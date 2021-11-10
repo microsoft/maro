@@ -118,12 +118,12 @@ class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, SingleRLPolicy):
         return self._get_v_critic(self.ndarray_to_tensor(states)).numpy()
 
     def learn_with_data_parallel(self, batch: dict) -> None:
-        assert hasattr(self, 'task_queue_client'), "learn_with_data_parallel is invalid before data_parallel is called."
+        assert self._task_queue_client, "learn_with_data_parallel is invalid before data_parallel is called."
         for _ in range(self._grad_iters):
-            worker_id_list = self.task_queue_client.request_workers()
+            worker_id_list = self._task_queue_client.request_workers()
             batch_list = [
                 {key: batch[key][i::len(worker_id_list)] for key in batch} for i in range(len(worker_id_list))]
-            loss_info_by_policy = self.task_queue_client.submit(
+            loss_info_by_policy = self._task_queue_client.submit(
                 worker_id_list, batch_list, self.get_state(), self._name)
             # build dummy computation graph by `get_batch_loss` before apply gradients.
             _ = self.get_batch_loss(batch_list[0], explicit_grad=True)

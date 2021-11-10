@@ -131,6 +131,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
 
         self._device = torch.device(device) if device is not None \
             else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self._task_queue_client = None
 
     @property
     def exploration_params(self) -> dict:
@@ -216,17 +217,17 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
     def data_parallel(self, *args, **kwargs) -> None:
         """"Initialize a proxy in the policy, for data-parallel training.
         Using the same arguments as `Proxy`."""
-        self.task_queue_client = TaskQueueClient()
-        self.task_queue_client.create_proxy(*args, **kwargs)
+        self._task_queue_client = TaskQueueClient()
+        self._task_queue_client.create_proxy(*args, **kwargs)
 
     def data_parallel_with_existing_proxy(self, proxy: Proxy) -> None:
         """"Initialize a proxy in the policy with an existing one, for data-parallel training."""
-        self.task_queue_client = TaskQueueClient()
-        self.task_queue_client.set_proxy(proxy)
+        self._task_queue_client = TaskQueueClient()
+        self._task_queue_client.set_proxy(proxy)
 
     def exit_data_parallel(self) -> None:
-        if hasattr(self, "task_queue_client"):
-            self.task_queue_client.exit()
+        if self._task_queue_client:
+            self._task_queue_client.exit()
 
     @abstractmethod
     def learn_with_data_parallel(self, batch: dict) -> None:

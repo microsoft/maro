@@ -397,16 +397,16 @@ class DQN(DiscreteQNetworkMixin, SingleRLPolicy):
         self._new_target_q_net_version = self._q_net_version
 
     def learn_with_data_parallel(self, batch: dict) -> None:
-        assert hasattr(self, 'task_queue_client'), "learn_with_data_parallel is invalid before data_parallel is called."
+        assert self._task_queue_client, "learn_with_data_parallel is invalid before data_parallel is called."
 
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
         for _ in range(self._num_epochs):
-            worker_id_list = self.task_queue_client.request_workers()
+            worker_id_list = self._task_queue_client.request_workers()
             batch_list = [
                 self._get_batch(self.train_batch_size // len(worker_id_list)) for i in range(len(worker_id_list))]
-            loss_info_by_policy = self.task_queue_client.submit(
+            loss_info_by_policy = self._task_queue_client.submit(
                 worker_id_list, batch_list, self.get_state(), self._name)
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
