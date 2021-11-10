@@ -46,30 +46,10 @@ actor_critic_agent_hyperparameters = {
     "clip_rewards": False
 }
 
-dqn_agent_hyperparameters =   {
-    "learning_rate": 0.005,
-    "batch_size": 128,
-    "buffer_size": 40000,
-    "epsilon": 1.0,
-    "epsilon_decay_rate_denominator": 3,
-    "discount_rate": 0.99,
-    "tau": 0.01,
-    "alpha_prioritised_replay": 0.6,
-    "beta_prioritised_replay": 0.1,
-    "incremental_td_error": 1e-8,
-    "update_every_n_steps": 3,
-    "linear_hidden_units": [30, 15],
-    "final_layer_activation": "None",
-    "batch_norm": False,
-    "gradient_clipping_norm": 5,
-    "clip_rewards": False,
-    "timesteps_to_give_up_control_for": 5
-}
-
 class Config(object):
     def __init__(self):
         self.num_episodes_to_run = 30
-        self.algorithm = "ddpg"  # ddpg, sac
+        self.algorithm = "sac"  # ddpg, sac
         self.experiment_name = f"{self.algorithm}_test"
 
         self.hyperparameters = {
@@ -92,18 +72,6 @@ class Config(object):
             },
 
             "Actor_Critic_Agents": actor_critic_agent_hyperparameters,
-            "DIAYN": {
-                "DISCRIMINATOR": {
-                    "learning_rate": 0.001,
-                    "linear_hidden_units": [32, 32],
-                    "final_layer_activation": None,
-                    "gradient_clipping_norm": 5
-                },
-                "AGENT": actor_critic_agent_hyperparameters,
-                "MANAGER": dqn_agent_hyperparameters,
-                "num_skills": 10,
-                "num_unsupservised_episodes": 500
-            }
         }
 
         # Parameters that could kept the stable
