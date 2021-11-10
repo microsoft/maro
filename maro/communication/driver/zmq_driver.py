@@ -69,7 +69,7 @@ class ZmqDriver(AbsDriver):
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")
-        self._logger.info(f"Receive message via unicasting at {self._ip_address}:{unicast_receiver_port}.")
+        self._logger.debug(f"Receive message via unicasting at {self._ip_address}:{unicast_receiver_port}.")
 
         # Dict about zmq.PUSH sockets, fulfills in self.connect.
         self._unicast_sender_dict = {}
@@ -80,7 +80,7 @@ class ZmqDriver(AbsDriver):
         self._broadcast_receiver = self._zmq_context.socket(zmq.SUB)
         self._broadcast_receiver.setsockopt(zmq.SUBSCRIBE, self._component_type.encode())
         broadcast_receiver_port = self._broadcast_receiver.bind_to_random_port(f"{self._protocol}://*")
-        self._logger.info(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
+        self._logger.debug(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
 
         # Record own sockets' address.
         self._address = {
@@ -122,10 +122,10 @@ class ZmqDriver(AbsDriver):
                         self._unicast_sender_dict[peer_name] = self._zmq_context.socket(zmq.PUSH)
                         self._unicast_sender_dict[peer_name].setsockopt(zmq.SNDTIMEO, self._send_timeout)
                         self._unicast_sender_dict[peer_name].connect(address)
-                        self._logger.info(f"Connects to {peer_name} via unicasting.")
+                        self._logger.debug(f"Connects to {peer_name} via unicasting.")
                     elif int(socket_type) == zmq.SUB:
                         self._broadcast_sender.connect(address)
-                        self._logger.info(f"Connects to {peer_name} via broadcasting.")
+                        self._logger.debug(f"Connects to {peer_name} via broadcasting.")
                     else:
                         raise SocketTypeError(f"Unrecognized socket type {socket_type}.")
                 except Exception as e:
@@ -158,7 +158,7 @@ class ZmqDriver(AbsDriver):
                     raise PeersDisconnectionError(f"Driver cannot disconnect to {peer_name}! Due to {str(e)}")
 
             self._disconnected_peer_name_list.append(peer_name)
-            self._logger.info(f"Disconnected with {peer_name}.")
+            self._logger.debug(f"Disconnected with {peer_name}.")
 
     def receive(self, timeout: int = None):
         """Receive message from ``zmq.POLLER``.

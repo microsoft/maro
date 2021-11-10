@@ -6,6 +6,8 @@ import os
 import sys
 from typing import List, Union
 
+from maro.utils import Logger
+
 
 def from_env(var_name, required=True, default=None):
     if var_name not in os.environ:
@@ -55,8 +57,8 @@ def get_scenario_module(scenario_path):
     return importlib.import_module(os.path.basename(scenario_dir))
 
 
-def get_log_dir(dir: str, job_name: str):
-    return os.path.join(dir, job_name)
+def get_logger(dir: str, job_name: str, tag: str):
+    return Logger(tag, dump_path=os.path.join(dir, f"{job_name}.log"), dump_mode="a")
 
 
 def get_checkpoint_dir(dir: str = None):

@@ -4,7 +4,7 @@
 import os
 
 from maro.rl.data_parallelism import task_queue
-from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
+from maro.rl.workflows.helpers import from_env, get_logger, get_scenario_module
 
 if __name__ == "__main__":
     num_hosts = from_env("NUMHOSTS", required=False, default=0)
@@ -24,5 +24,5 @@ if __name__ == "__main__":
                 from_env("REDISPORT", required=False, default=6379)),
             "max_peer_discovery_retries": 50
         },
-        log_dir=get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
+        logger=get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), "TASK_QUEUE")
     )

@@ -22,14 +22,11 @@ with io.open(CONFIG_PATH, "r") as in_file:
     config = convert_dottable(raw_config)
 
 LOG_PATH = os.path.join(FILE_PATH, "log", config.experiment_name)
-if not os.path.exists(LOG_PATH):
-    os.makedirs(LOG_PATH)
-simulation_logger = Logger(tag="simulation", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
-ilp_logger = Logger(tag="ilp", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
+simulation_logger = Logger(tag="simulation", format_=LogFormat.none, dump_path=LOG_PATH, dump_mode="w")
+ilp_logger = Logger(tag="ilp", format_=LogFormat.none, dump_path=LOG_PATH, dump_mode="w")
 
 if __name__ == "__main__":
     start_time = timeit.default_timer()
-
     env = Env(
         scenario=config.env.scenario,
         topology=config.env.topology,

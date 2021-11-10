@@ -6,27 +6,26 @@ import time
 
 from maro.communication import Proxy
 from maro.rl.utils import MsgKey, MsgTag
-from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
-from maro.utils import Logger
+from maro.rl.workflows.helpers import from_env, get_logger, get_scenario_module
 
 if __name__ == "__main__":
-    host_id = from_env("HOSTID")
+    host_id = f"POLICY_HOST.{from_env('HOSTID')}"
     peers = {"policy_manager": 1}
     data_parallelism = from_env("DATAPARALLELISM", required=False, default=1)
     if data_parallelism > 1:
         peers["grad_worker"] = data_parallelism
         peers["task_queue"] = 1
 
-    if host_id is None:
-        raise ValueError("missing environment variable: HOSTID")
-
     policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")
     group = from_env("POLICYGROUP")
     policy_dict, checkpoint_path = {}, {}
 
+    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), host_id)
+
     proxy = Proxy(
         group, "policy_host", peers,
-        component_name=f"POLICY_HOST.{host_id}",
+        component_name=host_id,
+        logger=logger,
         redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
         max_peer_discovery_retries=50
     )
@@ -34,9 +33,6 @@ if __name__ == "__main__":
     checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
     if checkpoint_dir:
         os.makedirs(checkpoint_dir, exist_ok=True)
-
-    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
-    logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:

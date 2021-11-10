@@ -31,7 +31,6 @@ COPY setup.py /maro/
 RUN bash /maro/scripts/install_maro.sh
 RUN pip cache purge
 
-RUN rm -r /maro/maro/rl
 RUN rm -r /maro/maro/simulator/scenarios/supply_chain
 
 ENV PYTHONPATH=/maro

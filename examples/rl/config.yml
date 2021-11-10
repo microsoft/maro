@@ -5,9 +5,9 @@ job: cim
 scenario_dir: "/maro/examples/cim"
 load_policy_dir: "/maro/examples/checkpoints/cim"
 checkpoint_dir: "/maro/examples/checkpoints/cim"
-log_dir: "/maro/examples/logs/cim"
-mode: single  # single, sync, async
-num_episodes: 50
+log_dir: "/maro/examples/logs"
+mode: sync  # single, sync, async
+num_episodes: 5
 eval_schedule: 5
 sync:
   num_rollouts: 3

@@ -4,7 +4,7 @@
 import os
 
 from maro.rl.learning import DistributedPolicyManager, MultiProcessPolicyManager, SimplePolicyManager
-from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
+from maro.rl.workflows.helpers import from_env, get_logger, get_scenario_module
 
 
 def get_policy_manager():
@@ -18,7 +18,7 @@ def get_policy_manager():
         "max_peer_discovery_retries": 50
     }
     checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
-    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
+    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), "POLICY_MANAGER")
     if manager_type == "simple":
         return SimplePolicyManager(
             policy_func_dict,
@@ -27,7 +27,7 @@ def get_policy_manager():
             data_parallelism=data_parallelism,
             group=group,
             proxy_kwargs=proxy_kwargs,
-            log_dir=log_dir
+            logger=logger
         )
     elif manager_type == "multi-process":
         return MultiProcessPolicyManager(
@@ -37,7 +37,7 @@ def get_policy_manager():
             data_parallelism=data_parallelism,
             group=group,
             proxy_kwargs=proxy_kwargs,
-            log_dir=log_dir
+            logger=logger
         )
     elif manager_type == "distributed":
         return DistributedPolicyManager(
@@ -45,7 +45,7 @@ def get_policy_manager():
             group=from_env("POLICYGROUP"),
             data_parallelism=data_parallelism,
             proxy_kwargs=proxy_kwargs,
-            log_dir=log_dir
+            logger=logger
         )
 
     raise ValueError(
