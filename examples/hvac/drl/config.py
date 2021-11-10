@@ -10,47 +10,46 @@ class Config(object):
         self.algorithm = "sac"  # ddpg, sac
         self.experiment_name = f"{self.algorithm}_test"
 
+        # Currently the hyperparameters is for Actor_Critic_Agents only, e.g., ddpg, sac
         self.hyperparameters = {
-            "Actor_Critic_Agents": {
-                "Actor": {
-                    "learning_rate": 0.0003,
-                    "linear_hidden_units": [128, 128],
-                    "hidden_activations": 'tanh',
-                    "dropout": 0.3,
-                    "final_layer_activation": 'tanh',
-                    "batch_norm": False,
-                    "tau": 0.005,
-                    "gradient_clipping_norm": 5,
-                    "initialiser": "Xavier"
-                },
+            "Actor": {
+                "learning_rate": 0.0003,
+                "linear_hidden_units": [128, 128],
+                "hidden_activations": 'tanh',
+                "dropout": 0.3,
+                "final_layer_activation": 'tanh',
+                "batch_norm": False,
+                "tau": 0.005,
+                "gradient_clipping_norm": 5,
+                "initialiser": "Xavier"
+            },
 
-                "Critic": {
-                    "learning_rate": 0.0003,
-                    "linear_hidden_units": [128, 128],
-                    "hidden_activations": 'tanh',
-                    "dropout": 0.3,
-                    "final_layer_activation": None,
-                    "batch_norm": False,
-                    "buffer_size": 1000000,
-                    "tau": 0.005,
-                    "gradient_clipping_norm": 5,
-                    "initialiser": "Xavier"
-                },
+            "Critic": {
+                "learning_rate": 0.0003,
+                "linear_hidden_units": [128, 128],
+                "hidden_activations": 'tanh',
+                "dropout": 0.3,
+                "final_layer_activation": None,
+                "batch_norm": False,
+                "buffer_size": 1000000,
+                "tau": 0.005,
+                "gradient_clipping_norm": 5,
+                "initialiser": "Xavier"
+            },
 
-                "min_steps_before_learning": 5000,
-                "batch_size": 256,
-                "discount_rate": 0.99,
-                "mu": 0.0,      # for O-H noise
-                "theta": 0.05,  # for O-H noise
-                "sigma": 0.05,  # for O-H noise
-                "update_every_n_steps": 100,
-                "learning_updates_per_learning_session": 2,
-                "automatically_tune_entropy_hyperparameter": True,  # SAC
-                "entropy_term_weight": 0.1, # SAC
-                "add_extra_noise": False,   # SAC
-                "do_evaluation_iterations": True,   # SAC
-                "clip_rewards": False
-            }
+            "min_steps_before_learning": 5000,
+            "batch_size": 256,
+            "discount_rate": 0.99,
+            "mu": 0.0,      # for O-H noise
+            "theta": 0.05,  # for O-H noise
+            "sigma": 0.05,  # for O-H noise
+            "update_every_n_steps": 100,
+            "learning_updates_per_learning_session": 2,
+            "automatically_tune_entropy_hyperparameter": True,  # SAC
+            "entropy_term_weight": 0.1, # SAC
+            "add_extra_noise": False,   # SAC
+            "do_evaluation_iterations": True,   # SAC
+            "clip_rewards": False
         }
 
         # Parameters that could kept the stable

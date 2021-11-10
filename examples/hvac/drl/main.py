@@ -12,9 +12,7 @@ config = Config()
 
 
 def evaluate(trainer):
-    agent_list = trainer.load_model_for_agents()
-    assert len(agent_list) == 1
-    agent = agent_list[0]
+    agent = trainer.load_model_for_agent()
 
     tracker = {"reward": []}
     done = False
@@ -37,7 +35,7 @@ def evaluate(trainer):
     post_evaluate(tracker, -1, config.log_dir, f"drl_{config.algorithm}_eval")
 
 def train(trainer):
-    trainer.run_games_for_agents()
+    trainer.run_games_for_agent()
     evaluate(trainer)
 
 if __name__ == "__main__":
@@ -46,14 +44,14 @@ if __name__ == "__main__":
     args = argParser.parse_args()
 
     if config.algorithm == "ddpg":
-        agents = [DDPG]
+        agent_class = DDPG
     elif config.algorithm == "sac":
-        agents = [SAC]
+        agent_class = SAC
     else:
         print(f"Wrong algorithm name: {config.algorithm}!")
         exit(0)
 
-    trainer = Trainer(config, agents, MAROHAVEnv())
+    trainer = Trainer(config, agent_class, MAROHAVEnv())
 
     if not args.eval:
         train(trainer)

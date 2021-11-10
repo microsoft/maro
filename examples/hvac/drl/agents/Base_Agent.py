@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import logging
 import os
 import sys
@@ -13,18 +14,16 @@ class Base_Agent(object):
     def __init__(self, config, env):
         self.config = config
         self.logger = self.setup_logger()
-        self.set_random_seeds(config.seed)
+        self._set_random_seeds(config.seed)
         self.environment = env
         self.environment_title = self.environment.unwrapped.id
         self.action_types = "DISCRETE" if self.environment.action_space.dtype == np.int64 else "CONTINUOUS"
-        self.action_size = int(self.get_action_size())
+        self.action_size = int(self._get_action_size())
         self.config.action_size = self.action_size
 
-        self.lowest_possible_episode_score = None
-
-        self.state_size =  int(self.get_state_size())
+        self.state_size = int(self._get_state_size())
         self.hyperparameters = config.hyperparameters
-        self.average_score_required_to_win = self.get_score_required_to_win()
+        self.average_score_required_to_win = self.environment.unwrapped.reward_threshold
         self.rolling_score_window = 10
         self.total_episode_score_so_far = 0
         self.game_full_episode_scores = []
@@ -35,40 +34,25 @@ class Base_Agent(object):
         self.device = "cuda:0" if config.use_GPU else "cpu"
         self.global_step_number = 0
         self.turn_off_exploration = False
-        self.agent_number = 0
-        self.model_path = config.file_to_save_model.format(self.agent_number)
+        self.model_path = config.file_to_save_model
         gym.logger.set_level(40)  # stops it from printing an unnecessary warning
-        self.log_game_info()
 
+    @abstractmethod
     def step(self):
         """Takes a step in the game. This method must be overriden by any agent"""
         raise ValueError("Step needs to be implemented by the agent")
 
-    def get_action_size(self):
+    def _get_action_size(self):
         """Gets the action_size for the gym env into the correct shape for a neural network"""
         if "overwrite_action_size" in self.config.__dict__: return self.config.overwrite_action_size
         if "action_size" in self.environment.__dict__: return self.environment.action_size
         if self.action_types == "DISCRETE": return self.environment.action_space.n
         else: return self.environment.action_space.shape[0]
 
-    def get_state_size(self):
+    def _get_state_size(self):
         """Gets the state_size for the gym env into the correct shape for a neural network"""
         random_state = self.environment.reset()
-        if isinstance(random_state, dict):
-            state_size = random_state["observation"].shape[0] + random_state["desired_goal"].shape[0]
-            return state_size
-        else:
-            return random_state.size
-
-    def get_score_required_to_win(self):
-        """Gets average score required to win game"""
-        print("TITLE ", self.environment_title)
-        try: return self.environment.unwrapped.reward_threshold
-        except AttributeError:
-            try:
-                return self.environment.spec.reward_threshold
-            except AttributeError:
-                return self.environment.unwrapped.spec.reward_threshold
+        return random_state.size
 
     def setup_logger(self):
         """Sets up the logger"""
@@ -90,14 +74,7 @@ class Base_Agent(object):
         logger.addHandler(handler)
         return logger
 
-    def log_game_info(self):
-        """Logs info relating to the game"""
-        for ix, param in enumerate([self.environment_title, self.action_types, self.action_size, self.lowest_possible_episode_score,
-                      self.state_size, self.hyperparameters, self.average_score_required_to_win, self.rolling_score_window,
-                      self.device]):
-            self.logger.info("{} -- {}".format(ix, param))
-
-    def set_random_seeds(self, random_seed):
+    def _set_random_seeds(self, random_seed):
         """Sets all possible random seeds so results can be reproduced"""
         os.environ['PYTHONHASHSEED'] = str(random_seed)
         torch.backends.cudnn.deterministic = True
@@ -132,19 +109,17 @@ class Base_Agent(object):
         if "exploration_strategy" in self.__dict__.keys(): self.exploration_strategy.reset()
         self.logger.info("Reseting game -- New start state {}".format(self.state))
 
-    def run_n_episodes(self, num_episodes=None, show_whether_achieved_goal=True, save_and_print_results=True):
+    def run_n_episodes(self):
         """Runs game to completion n times and then summarises results and saves model (if asked to)"""
-        if num_episodes is None: num_episodes = self.config.num_episodes_to_run
         start = time.time()
-        while self.episode_number < num_episodes:
+        while self.episode_number < self.config.num_episodes_to_run:
             self.reset_game()
             self.step()
-            if save_and_print_results:
-                self.save_and_print_result()
+            self.save_result()
+            self.print_rolling_result()
             if len(self.game_full_episode_scores) > 0 and self.max_episode_score_seen == self.game_full_episode_scores[-1]:
                 self.save_local_critic()
         time_taken = time.time() - start
-        if show_whether_achieved_goal: self.show_whether_achieved_goal()
         if self.config.save_model: self.locally_save_policy()
         return self.game_full_episode_scores, self.rolling_results, time_taken
 
@@ -158,11 +133,6 @@ class Base_Agent(object):
 
     def locally_save_policy(self):
         pass
-
-    def save_and_print_result(self):
-        """Saves and prints results of the game"""
-        self.save_result()
-        self.print_rolling_result()
 
     def save_result(self):
         """Saves the result of an episode of the game"""
@@ -186,26 +156,6 @@ class Base_Agent(object):
                                      self.game_full_episode_scores[-1], self.max_episode_score_seen))
         sys.stdout.flush()
 
-    def show_whether_achieved_goal(self):
-        """Prints out whether the agent achieved the environment target goal"""
-        index_achieved_goal = self.achieved_required_score_at_index()
-        print(" ")
-        if index_achieved_goal == -1: #this means agent never achieved goal
-            print("\033[91m" + "\033[1m" +
-                  "{} did not achieve required score \n".format(self.agent_name) +
-                  "\033[0m" + "\033[0m")
-        else:
-            print("\033[92m" + "\033[1m" +
-                  "{} achieved required score at episode {} \n".format(self.agent_name, index_achieved_goal) +
-                  "\033[0m" + "\033[0m")
-
-    def achieved_required_score_at_index(self):
-        """Returns the episode at which agent achieved goal or -1 if it never achieved it"""
-        for ix, score in enumerate(self.rolling_results):
-            if score > self.average_score_required_to_win:
-                return ix
-        return -1
-
     def update_learning_rate(self, starting_lr,  optimizer):
         """Lowers the learning rate according to how close we are to the solution"""
         if len(self.rolling_results) > 0:
@@ -222,7 +172,8 @@ class Base_Agent(object):
                 new_lr = starting_lr
             for g in optimizer.param_groups:
                 g['lr'] = new_lr
-        if random.random() < 0.001: self.logger.info("Learning rate {}".format(new_lr))
+        # if random.random() < 0.001:
+        self.logger.info("Learning rate {}".format(new_lr))
 
     def enough_experiences_to_learn_from(self):
         """Boolean indicated whether there are enough experiences in the memory buffer to learn from"""
@@ -259,7 +210,6 @@ class Base_Agent(object):
             learning_rate = g['lr']
             break
         self.logger.info("Learning Rate {}".format(learning_rate))
-
 
     def soft_update_of_target_network(self, local_model, target_model, tau):
         """Updates the target network in the direction of the local network but by taking a step size

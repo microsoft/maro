@@ -12,7 +12,8 @@ from examples.hvac.rl.callbacks import baseline
 
 
 class MAROHAVEnv(gym.Env):
-    environment_name = "HVAC"
+    id = "HVA Controller"
+    reward_threshold = -5
 
     def __init__(self):
         self.env = Env(scenario="hvac", **env_config)
@@ -27,17 +28,11 @@ class MAROHAVEnv(gym.Env):
             for key in baseline.keys()
         }
 
-        self.id = "HVA Controller"
-
         self.action_space = spaces.Box(
             low=np.array([-1, -1]),
             high=np.array([1, 1]),
             dtype=np.float32
         )
-
-        self.reward_threshold = -5
-
-        self.trials = 10
 
         self._max_episode_steps = 500
 
