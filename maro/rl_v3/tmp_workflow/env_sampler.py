@@ -8,7 +8,6 @@ from maro.rl_v3.tmp_workflow.config import (
     env_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
 )
 from maro.rl_v3.tmp_workflow.policies import get_policy_func_dict
-from maro.rl_v3.tmp_workflow.trainers import get_trainer_func_dict, policy2trainer
 from maro.rl_v3.utils import ActionWithAux
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
@@ -78,18 +77,11 @@ class CIMEnvSampler(AbsEnvSampler):
         self._tracker["env_metric"] = self._env.metrics
 
 
-def cim_get_env_sampler_func():
+if __name__ == "__main__":
     algorithm = "dqn"
-    return CIMEnvSampler(
+    env_sampler = CIMEnvSampler(
         get_env_func=lambda: Env(**env_conf),
         get_policy_func_dict=get_policy_func_dict,
-        get_trainer_func_dict=get_trainer_func_dict,
         agent2policy={agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list},
-        policy2trainer=policy2trainer,
         agent_wrapper_cls=SimpleAgentWrapper,
-        return_experiences=False
     )
-
-
-if __name__ == "__main__":
-    env_sampler = cim_get_env_sampler_func()

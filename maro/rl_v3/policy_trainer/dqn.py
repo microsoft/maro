@@ -56,7 +56,7 @@ class DQN(SingleTrainer):
         next_states = self._policy.ndarray_to_tensor(batch.next_states)
         actions = self._policy.ndarray_to_tensor(batch.actions)
         rewards = self._policy.ndarray_to_tensor(batch.rewards)
-        terminals = self._policy.ndarray_to_tensor(batch.terminals)
+        terminals = self._policy.ndarray_to_tensor(batch.terminals).float()
 
         with torch.no_grad():
             if self._double:

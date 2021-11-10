@@ -19,8 +19,7 @@ class AbsPolicy(object):
     def __init__(self, name: str, trainable: bool) -> None:
         super(AbsPolicy, self).__init__()
 
-        cls_name = self.__class__.__name__
-        self._name = f"{cls_name}__{next(AbsPolicy._policy_counter[cls_name])}__{name}_{trainable}"
+        self._name = name
         self._trainable = trainable
 
     @abstractmethod

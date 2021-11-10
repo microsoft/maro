@@ -48,9 +48,9 @@ class RandomIndexScheduler(AbsIndexScheduler):
         return indexes
 
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
-        assert batch_size is not None
-        assert 0 < batch_size <= self._size
-        return np.random.choice(self._size, size=batch_size, replace=False)
+        assert batch_size is not None and batch_size > 0
+        assert self._size > 0
+        return np.random.choice(self._size, size=batch_size, replace=batch_size > self._size)
 
     def get_last_index(self) -> int:
         raise NotImplementedError
@@ -182,6 +182,7 @@ class ReplayMemory(AbsReplayMemory):
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return TransitionBatch(
+            policy_name='',
             states=self._states[indexes],
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
@@ -340,6 +341,7 @@ class MultiReplayMemory(AbsReplayMemory):
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return MultiTransitionBatch(
+            policy_name='',
             states=self._states[indexes],
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],
