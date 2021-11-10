@@ -7,7 +7,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 class Config(object):
     def __init__(self):
         self.num_episodes_to_run = 30
-        self.algorithm = "ddpg"  # ddpg, sac
+        self.algorithm = "sac"  # ddpg, sac
         self.experiment_name = f"{self.algorithm}_test"
 
         self.hyperparameters = {
@@ -40,17 +40,15 @@ class Config(object):
                 "min_steps_before_learning": 5000,
                 "batch_size": 256,
                 "discount_rate": 0.99,
-                "mu": 0.0, #for O-H noise
-                "theta": 0.05, #for O-H noise
-                "sigma": 0.05, #for O-H noise
-                "action_noise_std": 0.1,  # for TD3
-                "action_noise_clipping_range": 0.1,  # for TD3
+                "mu": 0.0,      # for O-H noise
+                "theta": 0.05,  # for O-H noise
+                "sigma": 0.05,  # for O-H noise
                 "update_every_n_steps": 100,
                 "learning_updates_per_learning_session": 2,
-                "automatically_tune_entropy_hyperparameter": True,
-                "entropy_term_weight": 0.1,
-                "add_extra_noise": False,
-                "do_evaluation_iterations": True,
+                "automatically_tune_entropy_hyperparameter": True,  # SAC
+                "entropy_term_weight": 0.1, # SAC
+                "add_extra_noise": False,   # SAC
+                "do_evaluation_iterations": True,   # SAC
                 "clip_rewards": False
             }
         }
