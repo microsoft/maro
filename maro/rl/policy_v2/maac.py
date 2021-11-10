@@ -239,7 +239,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
     def data_parallel(self, *args, **kwargs) -> None:
         pass  # TODO
 
-    def learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+    def learn_with_data_parallel(self, batch: dict) -> None:
         pass  # TODO
 
     def update(self, loss_info_list: List[dict]) -> None:
