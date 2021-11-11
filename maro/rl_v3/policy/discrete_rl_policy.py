@@ -176,7 +176,6 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         return self._policy_net.get_net_state()
 
     def set_policy_state(self, policy_state: object) -> None:
-        print(f'Huoran: set_policy_state, policy_name = {self.name}')
         self._policy_net.set_net_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:

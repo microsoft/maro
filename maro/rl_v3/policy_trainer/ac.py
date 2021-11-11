@@ -8,6 +8,7 @@ from maro.rl_v3.model.v_net import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.policy_trainer import FIFOReplayMemory, SingleTrainer
 from maro.rl_v3.utils import TransitionBatch
+from maro.utils import clone
 
 
 class DiscreteActorCritic(SingleTrainer):
@@ -19,7 +20,7 @@ class DiscreteActorCritic(SingleTrainer):
         name: str,
         get_v_critic_net_func: Callable[[], VNet],
         policy: DiscretePolicyGradient = None,
-        replay_memory_capacity: int = 100000,
+        replay_memory_capacity: int = 10000,
         train_batch_size: int = 128,
         grad_iters: int = 1,
         reward_discount: float = 0.9,
@@ -64,40 +65,79 @@ class DiscreteActorCritic(SingleTrainer):
         self._v_critic_net = self._get_v_net_func()
 
     def train_step(self) -> None:
-        for _ in range(self._grad_iters):
-            self.improve(self._get_batch())
+        self.improve(self._get_batch())
 
     def improve(self, batch: TransitionBatch) -> None:
         self._policy.train()
+        self._v_critic_net.train()
+
+        v_critic_net_copy = clone(self._v_critic_net)
+        v_critic_net_copy.eval()
+
         states = self._policy.ndarray_to_tensor(batch.states)
         actions = self._policy.ndarray_to_tensor(batch.actions).long()
         logps_old = self._policy.ndarray_to_tensor(batch.logps)  # [B], action log-probability when sampling
 
-        self._v_critic_net.eval()
-        values = self._v_critic_net.v_values(states).detach().numpy()
-        self._v_critic_net.train()
-        state_values = self._v_critic_net.v_values(states)  # [B], state values given by critic
+        for _ in range(self._grad_iters):
+            values = self._v_critic_net.v_values(states).detach().numpy()
+            values = np.concatenate([values, values[-1:]])
+            rewards = np.concatenate([batch.rewards, values[-1:]])
+            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]
+            returns = self._policy.ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1])
+            advantages = self._policy.ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam))
 
-        values = np.concatenate([values, values[-1:]])
-        rewards = np.concatenate([batch.rewards, values[-1:]])
-        returns = self._policy.ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1])
-        deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]
-        advantages = self._policy.ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam))
+            # Critic loss
+            state_values = self._v_critic_net.v_values(states)  # [B], state values given by critic
+            critic_loss = self._critic_loss_func(state_values, returns)
 
-        # Critic loss
-        critic_loss = self._critic_loss_func(state_values, returns)
+            # Actor loss
+            action_probs = self._policy.get_action_probs(states)
+            logps = torch.log(action_probs.gather(1, actions).squeeze())  # [B]
+            logps = torch.clamp(logps, min=self._min_logp, max=.0)
+            if self._clip_ratio is not None:
+                ratio = torch.exp(logps - logps_old)
+                clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
+                actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
+            else:
+                actor_loss = -(logps * advantages).mean()
 
-        # Actor loss
-        action_probs = self._policy.get_action_probs(states)
-        logps = torch.log(action_probs.gather(1, actions).squeeze())  # [B]
-        logps = torch.clamp(logps, min=self._min_logp, max=.0)
-        if self._clip_ratio is not None:
-            ratio = torch.exp(logps - logps_old)
-            clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
-        else:
-            actor_loss = -(logps * advantages).mean()
-
-        # Update
-        self._policy.step(actor_loss)
-        self._v_critic_net.step(critic_loss)
+            # Update
+            self._policy.step(actor_loss)
+            self._v_critic_net.step(critic_loss * 0.1)
+    #
+    # def improve_backup_version(self, batch: TransitionBatch) -> None:
+    #     self._policy.train()
+    #     self._v_critic_net.train()
+    #
+    #     v_critic_net_copy = clone(self._v_critic_net)
+    #     v_critic_net_copy.eval()
+    #
+    #     states = self._policy.ndarray_to_tensor(batch.states)
+    #     actions = self._policy.ndarray_to_tensor(batch.actions).long()
+    #     logps_old = self._policy.ndarray_to_tensor(batch.logps)  # [B], action log-probability when sampling
+    #     values = v_critic_net_copy.v_values(states).detach().numpy()
+    #     values = np.concatenate([values, values[-1:]])
+    #     rewards = np.concatenate([batch.rewards, values[-1:]])
+    #     deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]
+    #     returns = self._policy.ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1])
+    #     advantages = self._policy.ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam))
+    #
+    #     for _ in range(self._grad_iters):
+    #         # Critic loss
+    #         state_values = self._v_critic_net.v_values(states)  # [B], state values given by critic
+    #         critic_loss = self._critic_loss_func(state_values, returns)
+    # 
+    #         # Actor loss
+    #         action_probs = self._policy.get_action_probs(states)
+    #         logps = torch.log(action_probs.gather(1, actions).squeeze())  # [B]
+    #         logps = torch.clamp(logps, min=self._min_logp, max=.0)
+    #         if self._clip_ratio is not None:
+    #             ratio = torch.exp(logps - logps_old)
+    #             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
+    #             actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
+    #         else:
+    #             actor_loss = -(logps * advantages).mean()
+    #
+    #         # Update
+    #         self._policy.step(actor_loss)
+    #         self._v_critic_net.step(critic_loss * 0.1)

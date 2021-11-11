@@ -22,7 +22,6 @@ def main(
     env_sampler = get_env_sampler_func()
     trainer_manager = get_trainer_manager_func()
 
-    policy_states = None
     for ep in range(1, num_episodes + 1):
         print(f"\n========== Start of episode {ep} ==========")
         collect_time = policy_update_time = 0
@@ -37,28 +36,26 @@ def main(
             tracker: dict = sample_result["tracker"]
             if post_collect:
                 post_collect([tracker], ep, segment)
-
             collect_time += time.time() - tc0
-            print(f"Huoran log: collect_time = {collect_time}")
 
             tu0 = time.time()
             trainer_manager.record_experiences(experiences)
             trainer_manager.train()
             policy_update_time += time.time() - tu0
-            print(f"Huoran log: policy_update_time = {policy_update_time}")
+
+            print(f"Huoran log: collect_time = {collect_time}, policy_update_time = {policy_update_time}")
 
             trainer_policy_states = trainer_manager.get_policy_states()
             policy_states = {}
             for v in trainer_policy_states.values():
                 policy_states.update(v)
 
-            tracker = env_sampler.test(policy_state_dict=policy_states)
-            if post_evaluate:
-                post_evaluate([tracker], ep)
+            env_sampler.set_policy_states(policy_states)
+            # tracker = env_sampler.test(policy_state_dict=policy_states)
+            # if post_evaluate:
+            #     post_evaluate([tracker], ep)
 
             segment += 1
-
-        env_sampler.test()
 
 
 if __name__ == "__main__":
@@ -75,7 +72,7 @@ if __name__ == "__main__":
             agent2policy={agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list},
             policy2trainer=policy2trainer
         ),
-        num_episodes=20,
+        num_episodes=30,
         post_collect=cim_post_collect,
         post_evaluate=cim_post_evaluate
     )

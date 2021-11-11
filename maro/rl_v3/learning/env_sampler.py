@@ -328,6 +328,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             "tracker": self._tracker
         }
 
+    def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:
+        self._agent_wrapper.set_policy_states(policy_state_dict)
+
     def test(self, policy_state_dict: Dict[str, object] = None) -> dict:
         self._env = self._test_env
         if policy_state_dict is not None:

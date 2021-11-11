@@ -27,8 +27,6 @@ class AbsPolicy(object, metaclass=ABCMeta):
         self._name = name
         self._trainable = trainable
 
-        print(f"Init {self.__class__.__name__}: {name}")
-
     @abstractmethod
     def get_actions(self, states: object) -> object:
         """
