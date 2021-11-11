@@ -59,10 +59,14 @@ class RandomIndexScheduler(AbsIndexScheduler):
 class FIFOIndexScheduler(AbsIndexScheduler):
     def __init__(self, capacity: int) -> None:
         super(FIFOIndexScheduler, self).__init__(capacity)
-        self._size = self._head = self._tail = 0
+        self._head = self._tail = 0
+
+    @property
+    def size(self) -> int:
+        return (self._tail - self._head) % self._capacity
 
     def get_put_indexes(self, batch_size: int) -> np.ndarray:
-        if self._size + batch_size <= self._capacity:
+        if self.size + batch_size <= self._capacity:
             if self._tail + batch_size <= self._capacity:
                 indexes = np.arange(self._tail, self._tail + batch_size)
             else:
@@ -71,19 +75,16 @@ class FIFOIndexScheduler(AbsIndexScheduler):
                     np.arange(self._tail + batch_size - self._capacity)
                 ])
             self._tail = (self._tail + batch_size) % self._capacity
-            self._size += batch_size
             return indexes
         else:
-            overwrite = self._size + batch_size - self._capacity
+            overwrite = self.size + batch_size - self._capacity
             self._head = (self._head + overwrite) % self._capacity
-            self._size -= overwrite
             return self.get_put_indexes(batch_size)
 
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
         tmp = self._tail if not forbid_last else (self._tail - 1) % self._capacity
         indexes = np.arange(self._head, tmp) if tmp > self._head \
             else np.concatenate([np.arange(self._head, self._capacity), np.arange(tmp)])
-        self._size = 1
         self._head = tmp
         return indexes
 

@@ -21,7 +21,7 @@ class DiscreteActorCritic(SingleTrainer):
         policy: DiscretePolicyGradient = None,
         replay_memory_capacity: int = 100000,
         train_batch_size: int = 128,
-        num_epochs: int = 1,
+        grad_iters: int = 1,
         reward_discount: float = 0.9,
         lam: float = 0.9,
         clip_ratio: float = None,
@@ -40,11 +40,11 @@ class DiscreteActorCritic(SingleTrainer):
             self.register_policy(policy)
 
         self._train_batch_size = train_batch_size
-        self._num_epochs = num_epochs
         self._reward_discount = reward_discount
         self._lam = lam
         self._clip_ratio = clip_ratio
         self._min_logp = min_logp
+        self._grad_iters = grad_iters
 
         self._critic_loss_func = critic_loss_cls() if critic_loss_cls is not None else torch.nn.MSELoss()
 
@@ -64,20 +64,20 @@ class DiscreteActorCritic(SingleTrainer):
         self._v_critic_net = self._get_v_net_func()
 
     def train_step(self) -> None:
-        for _ in range(self._num_epochs):
+        for _ in range(self._grad_iters):
             self.improve(self._get_batch())
 
     def improve(self, batch: TransitionBatch) -> None:
         self._policy.train()
-        self._v_critic_net.train()
-
         states = self._policy.ndarray_to_tensor(batch.states)
         actions = self._policy.ndarray_to_tensor(batch.actions).long()
         logps_old = self._policy.ndarray_to_tensor(batch.logps)  # [B], action log-probability when sampling
 
+        self._v_critic_net.eval()
+        values = self._v_critic_net.v_values(states).detach().numpy()
+        self._v_critic_net.train()
         state_values = self._v_critic_net.v_values(states)  # [B], state values given by critic
 
-        values = state_values.detach().numpy()
         values = np.concatenate([values, values[-1:]])
         rewards = np.concatenate([batch.rewards, values[-1:]])
         returns = self._policy.ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1])

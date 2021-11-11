@@ -95,8 +95,9 @@ class SimpleTrainerManager(AbsTrainerManager):
         agent_state_dict = exp_element.agent_state_dict
         action_with_aux_dict = exp_element.action_with_aux_dict
         reward_dict = exp_element.reward_dict
-        terminal = exp_element.terminal
+        terminal_dict = exp_element.terminal_dict
         next_global_state = exp_element.next_global_state
+        next_agent_state_dict = exp_element.next_agent_state_dict
 
         # Aggregate experiences by trainer
         trainer_buffer = defaultdict(list)
@@ -107,7 +108,10 @@ class SimpleTrainerManager(AbsTrainerManager):
             action_with_aux = action_with_aux_dict[agent_name]
             reward = reward_dict[agent_name]
 
-            trainer_buffer[trainer_name].append((policy_name, agent_state, action_with_aux, reward))
+            trainer_buffer[trainer_name].append((
+                policy_name, agent_state, action_with_aux, reward, next_agent_state_dict.get(agent_name, None),
+                terminal_dict[agent_name]
+            ))
 
         for trainer_name, exps in trainer_buffer.items():
             if trainer_name not in self._trainer_dict:
@@ -120,6 +124,8 @@ class SimpleTrainerManager(AbsTrainerManager):
                 agent_state: np.ndarray = exps[0][1]
                 action_with_aux: ActionWithAux = exps[0][2]
                 reward: float = exps[0][3]
+                next_state: np.ndarray = exps[0][4]
+                terminal: bool = exps[0][5]
 
                 batch = TransitionBatch(
                     policy_name=policy_name,
@@ -127,7 +133,7 @@ class SimpleTrainerManager(AbsTrainerManager):
                     actions=np.expand_dims(action_with_aux.action, axis=0),
                     rewards=np.array([reward]),
                     terminals=np.array([terminal]),
-                    next_states=None if next_global_state is None else np.expand_dims(next_global_state, axis=0),
+                    next_states=None if next_state is None else np.expand_dims(next_state, axis=0),
                     values=None if action_with_aux.value is None else np.array([action_with_aux.value]),
                     logps=None if action_with_aux.logp is None else np.array([action_with_aux.logp]),
                 )

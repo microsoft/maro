@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Callable, Deque, Dict, List, Optional, Tuple, Type
+from typing import Callable, Deque, Dict, Optional, Tuple, Type
 
 import numpy as np
 import torch
@@ -131,7 +131,7 @@ class ExpElement(CacheElement):
     Stores the complete information for a tick. ExpElement is an extension of CacheElement.
     """
     reward_dict: Dict[str, float]
-    terminal: bool
+    terminal_dict: Dict[str, bool]
     next_global_state: np.ndarray = None
     next_agent_state_dict: Dict[str, np.ndarray] = None
 
@@ -289,10 +289,12 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.tick)
             self._post_step(cache_element, reward_dict)
 
-            next_global_state = self._trans_cache[0].global_state if len(self._trans_cache) > 0 else self._global_state
-            next_agent_state_dict = self._trans_cache[0].agent_state_dict if len(self._trans_cache) > 0 \
-                else self._agent_state_dict
-            terminal = not self._global_state and len(self._trans_cache) == 0
+            if len(self._trans_cache) > 0:
+                next_global_state = self._trans_cache[0].global_state
+                next_agent_state_dict = dict(self._trans_cache[0].agent_state_dict)
+            else:
+                next_global_state = self._global_state
+                next_agent_state_dict = dict(self._agent_state_dict)
 
             experiences.append(ExpElement(
                 tick=cache_element.tick,
@@ -301,10 +303,25 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 action_with_aux_dict=cache_element.action_with_aux_dict,
                 env_action_dict=cache_element.env_action_dict,
                 reward_dict=reward_dict,
-                terminal=terminal,
+                terminal_dict={},  # Will be processed later
                 next_global_state=next_global_state,
                 next_agent_state_dict=next_agent_state_dict
             ))
+
+        # Update next_agent_state_dict & terminal_dict by using the entire experience list
+        latest_agent_state_dict = {}  # Used to update next_agent_state_dict
+        have_log = set([])  # Used to update terminal_dict
+        for i in range(len(experiences))[::-1]:
+            # Update terminal_dict
+            for agent_name in experiences[i].agent_state_dict:
+                experiences[i].terminal_dict[agent_name] = (self._global_state is None and agent_name not in have_log)
+                have_log.add(agent_name)
+            # Update next_agent_state_dict
+            for key, value in latest_agent_state_dict.items():
+                if key not in experiences[i].next_agent_state_dict:
+                    experiences[i].next_agent_state_dict[key] = value
+            latest_agent_state_dict.update(experiences[i].next_agent_state_dict)
+
         return {
             "end_of_episode": not self._agent_state_dict,
             "experiences": experiences,

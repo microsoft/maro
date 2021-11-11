@@ -116,9 +116,7 @@ ac_conf = {
     "grad_iters": 10,
     "critic_loss_cls": torch.nn.SmoothL1Loss,
     "min_logp": None,
-    "critic_loss_coef": 0.1,
-    "entropy_coef": 0.01,
+    # "entropy_coef": 0.01,
     # "clip_ratio": 0.8   # for PPO
-    "lam": .0,
-    "get_loss_on_rollout": False
+    "lam": .0
 }

@@ -1,16 +1,16 @@
 from maro.rl_v3.policy_trainer import DQN
-from .config import algorithm
+from .config import ac_conf, algorithm, dqn_conf
 from .policies import MyCriticNet
 from ..policy_trainer.ac import DiscreteActorCritic
 
 if algorithm == "dqn":
     get_trainer_func_dict = {
-        f"{algorithm}_trainer.{i}": lambda name: DQN(name=name) for i in range(4)
+        f"{algorithm}_trainer.{i}": lambda name: DQN(name=name, **dqn_conf) for i in range(4)
     }
 elif algorithm == "ac":
     get_trainer_func_dict = {
         f"{algorithm}_trainer.{i}": lambda name: DiscreteActorCritic(
-            name=name, get_v_critic_net_func=lambda: MyCriticNet()
+            name=name, get_v_critic_net_func=lambda: MyCriticNet(), **ac_conf
         ) for i in range(4)
     }
 else:
