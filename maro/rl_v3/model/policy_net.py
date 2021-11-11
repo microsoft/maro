@@ -10,7 +10,15 @@ from maro.rl_v3.utils.objects import SHAPE_CHECK_FLAG
 
 
 class PolicyNet(AbsNet, metaclass=ABCMeta):
+    """
+    Base class for all nets that serve as policy core. It has the concept of 'state' and 'action'.
+    """
     def __init__(self, state_dim: int, action_dim: int) -> None:
+        """
+        Args:
+            state_dim (int): Dimension of states.
+            action_dim (int): Dimension of actions.
+        """
         super(PolicyNet, self).__init__()
         self._state_dim = state_dim
         self._action_dim = action_dim
@@ -26,9 +34,22 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
     def get_actions_with_logps(
         self, states: torch.Tensor, exploring: bool, require_logps: bool = True
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        """
+        Get actions, and log probabilities of the actions if required, according to the states.
+
+        Args:
+            states (torch.Tensor): States.
+            exploring (bool): If it is True, return the results under exploring mode. Otherwise, return the results
+                under exploiting mode.
+            require_logps (bool): If the return value should contains log probabilities. Defaults to True.
+
+        Returns:
+            Actions
+            Log probabilities if require_logps == True else None.
+        """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
-        actions, logps = self._get_actions_impl(states, exploring, require_logps)
+        actions, logps = self._get_actions_with_logps_impl(states, exploring, require_logps)
         assert self._shape_check(states=states, actions=actions), \
             f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
         return actions, logps
@@ -48,14 +69,25 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
             return True
 
     @abstractmethod
-    def _get_actions_impl(
+    def _get_actions_with_logps_impl(
         self, states: torch.Tensor, exploring: bool, require_logps: bool
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        """
+        Implementation of `get_actions_with_logps`.
+        """
         raise NotImplementedError
 
 
 class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
+    """
+    Net for discrete policies.
+    """
     def __init__(self, state_dim: int, action_num: int) -> None:
+        """
+        Args:
+            state_dim (int): Dimension of states.
+            action_num (int): Number of actions.
+        """
         super(DiscretePolicyNet, self).__init__(state_dim=state_dim, action_dim=1)
         self._action_num = action_num
 
@@ -64,6 +96,15 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
         return self._action_num
 
     def get_action_probs(self, states: torch.Tensor) -> torch.Tensor:
+        """
+        Get the probabilities for all actions.
+
+        Args:
+            states (torch.Tensor): States.
+
+        Returns:
+            Probability matrix with shape [batch_size, action_num]
+        """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
         action_probs = self._get_action_probs_impl(states)
@@ -73,13 +114,25 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
         return action_probs
 
     def get_action_logps(self, states: torch.Tensor) -> torch.Tensor:
+        """
+        Get the log-probabilities for all actions.
+
+        Args:
+            states (torch.Tensor): States.
+
+        Returns:
+            Lop-probability matrix with shape [batch_size, action_num]
+        """
         return torch.log(self.get_action_probs(states))
 
     @abstractmethod
     def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
+        """
+        Implementation of `get_action_probs`.
+        """
         raise NotImplementedError
 
-    def _get_actions_impl(
+    def _get_actions_with_logps_impl(
         self, states: torch.Tensor, exploring: bool, require_logps: bool
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         if exploring:
@@ -92,7 +145,18 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
 
     def _get_actions_exploring_impl(
         self, states: torch.Tensor, require_logps: bool
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        """
+        Get actions, and log probabilities of the actions if required, according to the states under exploring mode.
+
+        Args:
+            states (torch.Tensor): States.
+            require_logps (bool): If the return value should contains log probabilities. Defaults to True.
+
+        Returns:
+            Actions
+            Log probabilities if require_logps == True else None.
+        """
         action_probs = Categorical(self.get_action_probs(states))
         actions = action_probs.sample()
         if require_logps:
@@ -103,5 +167,8 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
 
 
 class ContinuousPolicyNet(PolicyNet, metaclass=ABCMeta):
+    """
+    Net for continuous policies.
+    """
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(ContinuousPolicyNet, self).__init__(state_dim=state_dim, action_dim=action_dim)

@@ -7,6 +7,9 @@ from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 
 class VNet(AbsNet, metaclass=ABCMeta):
+    """
+    Net for V functions.
+    """
     def __init__(self, state_dim: int) -> None:
         super(VNet, self).__init__()
         self._state_dim = state_dim
@@ -22,6 +25,15 @@ class VNet(AbsNet, metaclass=ABCMeta):
             return states.shape[0] > 0 and match_shape(states, (None, self.state_dim))
 
     def v_values(self, states: torch.Tensor) -> torch.Tensor:
+        """
+        Get V-values according to states.
+
+        Args:
+            states (torch.Tensor): States.
+
+        Returns:
+            V-values with shape [batch_size]
+        """
         assert self._shape_check(states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
         v = self._get_v_values(states)
@@ -31,4 +43,7 @@ class VNet(AbsNet, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
+        """
+        Implementation of `v_values`.
+        """
         raise NotImplementedError

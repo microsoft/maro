@@ -11,6 +11,9 @@ from maro.rl_v3.utils import TransitionBatch
 
 
 class DiscreteActorCritic(SingleTrainer):
+    """
+    TODO: docs.
+    """
     def __init__(
         self,
         name: str,

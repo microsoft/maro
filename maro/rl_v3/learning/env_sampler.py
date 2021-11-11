@@ -12,34 +12,67 @@ from maro.simulator import Env
 
 
 class AbsAgentWrapper(object, metaclass=ABCMeta):
+    """
+    Agent wrapper is used to manager agents & policies during experiences collection.
+    """
     def __init__(
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
         agent2policy: Dict[str, str]  # {agent_name: policy_name}
     ) -> None:
+        """
+        Args:
+            policy_dict (Dict[str, RLPolicy]): Dict that stores all policies.
+            agent2policy (Dict[str, str]): Agent name to policy name mapping.
+        """
         self._policy_dict = policy_dict
         self._agent2policy = agent2policy
 
     def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:
+        """
+        Set policies' states.
+
+        Args:
+            policy_state_dict: A double-deck dict with format: {policy_name: policy_state}.
+        """
         for policy_name, policy_state in policy_state_dict.items():
             policy = self._policy_dict[policy_name]
             policy.set_policy_state(policy_state)
 
     def choose_action_with_aux(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
+        """
+        Choose action according to the given (observable) states of all agents.
+
+        Args:
+            state_by_agent (Dict[str, np.ndarray]): Agent state dict for all agents. Use agent name as the key to fetch
+                states from this dict.
+
+        Returns:
+            Dict that contains the action and other optional auxiliary information for all agents.
+        """
         with torch.no_grad():
             ret = self._choose_action_with_aux_impl(state_by_agent)
         return ret
 
     @abstractmethod
     def _choose_action_with_aux_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
+        """
+        Implementation of `choose_action_with_aux`.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def explore(self) -> None:
+        """
+        Switch all policies to exploring mode.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def exploit(self) -> None:
+        """
+        Switch all policies to exploiting mode.
+        """
         raise NotImplementedError
 
 
@@ -82,6 +115,9 @@ class SimpleAgentWrapper(AbsAgentWrapper):
 
 @dataclass
 class CacheElement:
+    """
+    The data structure used to store a cached value during experience collection.
+    """
     tick: int
     global_state: np.ndarray
     agent_state_dict: Dict[str, np.ndarray]
@@ -91,6 +127,9 @@ class CacheElement:
 
 @dataclass  # TODO: check if all fields are needed
 class ExpElement(CacheElement):
+    """
+    Stores the complete information for a tick. ExpElement is an extension of CacheElement.
+    """
     reward_dict: Dict[str, float]
     terminal: bool
     next_global_state: np.ndarray = None
@@ -99,6 +138,9 @@ class ExpElement(CacheElement):
 
 # TODO: event typehint
 class AbsEnvSampler(object, metaclass=ABCMeta):
+    """
+    Simulation data collector and policy evaluator.
+    """
     def __init__(
         self,
         get_env_func: Callable[[], Env],
@@ -109,6 +151,18 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         reward_eval_delay: int = 0,
         get_test_env_func: Callable[[], Env] = None
     ) -> None:
+        """
+        Args:
+            get_env_func (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create the learning Env.
+            get_policy_func_dict (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create policies.
+            agent2policy (Dict[str, str]): Agent name to policy name mapping.
+            agent_wrapper_cls (Type[AbsAgentWrapper]): Concrete AbsAgentWrapper type.
+            reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
+                for the action taken for that event. Defaults to 0, which means rewards are evaluated immediately
+                after executing an action.
+            get_test_env_func (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create the testing Env.
+                If it is None, use the learning Env as the testing Env.
+        """
         self._learn_env = get_env_func()
         self._test_env = get_test_env_func() if get_test_env_func is not None else self._learn_env
         self._env: Optional[Env] = None
@@ -147,10 +201,30 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _translate_to_env_action(self, action_with_aux_dict: Dict[str, ActionWithAux], event) -> Dict[str, object]:
+        """
+        Translation the actions into the format that the env could recognize.
+
+        Args:
+            action_with_aux_dict (Dict[str, ActionWithAux]): Action with auxiliary for all agents.
+            event: Decision event.
+
+        Returns:
+            A dict that contains env actions for all agents.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def _get_reward(self, env_action_dict: Dict[str, object], tick: int) -> Dict[str, float]:
+        """
+        Get rewards according to the env actions.
+
+        Args:
+            env_action_dict (Dict[str, object]): Dict that contains env actions for all agents.
+            tick (int): Current tick.
+
+        Returns:
+            A dict that contains rewards for all agents.
+        """
         raise NotImplementedError
 
     def sample(  # TODO: check logic with qiuyang
@@ -158,6 +232,17 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         policy_state_dict: Dict[str, object] = None,
         num_steps: int = -1
     ) -> dict:
+        """
+        Sample experiences.
+
+        Args:
+            policy_state_dict (Dict[str, object]): Policy states dict. If it is not None, then we need to update all
+                policies according to the latest policy states, then start the experience collection.
+            num_steps (int): Number of collecting steps. Defaults to -1, which means unlimited number of steps.
+
+        Returns:
+            A dict that contains the collected experiences and other additional information.
+        """
         # Init the env
         self._env = self._learn_env
         if not self._agent_state_dict:

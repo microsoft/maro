@@ -35,6 +35,9 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
 
 
 class ValueBasedPolicy(DiscreteRLPolicy):
+    """
+    Valued-based policy.
+    """
     def __init__(
         self,
         name: str,
@@ -120,6 +123,9 @@ class ValueBasedPolicy(DiscreteRLPolicy):
 
 
 class DiscretePolicyGradient(DiscreteRLPolicy):
+    """
+    Policy gradient policy that generates discrete actions.
+    """
     def __init__(
         self,
         name: str,
@@ -178,6 +184,15 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         self._policy_net.soft_update(other_policy.policy_net, tau)
 
     def get_action_probs(self, states: torch.Tensor) -> torch.Tensor:
+        """
+        Get the probabilities for all actions according to states.
+
+        Args:
+            states (torch.Tensor): States.
+
+        Returns:
+            Action probabilities with shape [batch_size, action_num]
+        """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
         action_probs = self._policy_net.get_action_probs(states)

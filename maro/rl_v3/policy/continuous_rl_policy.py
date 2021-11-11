@@ -37,6 +37,16 @@ class ContinuousRLPolicy(RLPolicy):
         device: str = None,
         trainable: bool = True
     ) -> None:
+        """
+        Args:
+            name (str): Name of the policy.
+            action_range: Value range of actions. Both the lower bound and the upper bound could be float or array. If
+                it is an array, it should contain the bound for every dimension. If it is a float, it will be
+                broadcast to all dimensions.
+            policy_net (ContinuousPolicyNet): The core net of this policy.
+            device (str): Device to store this model ('cpu' or 'gpu').
+            trainable (bool): Whether this policy is trainable. Defaults to True.
+        """
         assert isinstance(policy_net, ContinuousPolicyNet)
 
         super(ContinuousRLPolicy, self).__init__(

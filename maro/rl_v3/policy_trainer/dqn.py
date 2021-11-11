@@ -10,6 +10,9 @@ from .replay_memory import RandomReplayMemory
 
 
 class DQN(SingleTrainer):
+    """
+    TODO: docs.
+    """
     def __init__(
         self,
         name: str,
