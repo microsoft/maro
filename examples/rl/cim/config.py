@@ -42,7 +42,8 @@ state_dim = (
 
 ############################################## POLICIES ###############################################
 
-algorithm = "ac"
+algorithm = "ac"  # "dqn" or "ac"
+num_policies = 4
 
 # DQN settings
 q_net_conf = {

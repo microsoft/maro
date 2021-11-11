@@ -15,7 +15,7 @@ if cim_path not in sys.path:
     sys.path.insert(0, cim_path)
 
 from config import (
-    action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
+    action_shaping_conf, algorithm, env_conf, num_policies, port_attributes, reward_shaping_conf, state_shaping_conf,
     vessel_attributes
 )
 from policies_v2 import policy_func_dict
@@ -103,7 +103,7 @@ class CIMEnvSampler(AbsEnvSampler):
         self.tracker["env_metric"] = self.env.metrics
 
 
-agent2policy = {agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list}
+agent2policy = {agent: f"{algorithm}.{int(agent) % num_policies}" for agent in Env(**env_conf).agent_idx_list}
 
 def get_env_sampler():
     return CIMEnvSampler(

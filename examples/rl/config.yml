@@ -2,13 +2,13 @@
 # Licensed under the MIT license.
 
 job: cim
-scenario_dir: "/maro/examples/cim"
-load_policy_dir: "/maro/examples/checkpoints/cim"
-checkpoint_dir: "/maro/examples/checkpoints/cim"
-log_dir: "/maro/examples/logs"
-mode: sync  # single, sync, async
-num_episodes: 5
-eval_schedule: 5
+scenario_dir: "/home/yaqiu/maro/examples/rl/cim"
+#load_policy_dir: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
+checkpoint_dir: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
+log_dir: "/home/yaqiu/maro/examples/rl/logs"
+mode: async  # single, sync, async
+num_episodes: 2
+# eval_schedule: 2
 sync:
   num_rollouts: 3
   num_eval_rollouts: 1

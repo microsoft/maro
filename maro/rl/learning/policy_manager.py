@@ -49,6 +49,9 @@ class AbsPolicyManager(ABC):
         """Get the collective policy version."""
         raise NotImplementedError
 
+    def exit(self):
+        pass
+
     def server(self, group: str, num_actors: int, max_lag: int = 0, proxy_kwargs: dict = {}):
         """Run a server process.
 
@@ -91,7 +94,9 @@ class AbsPolicyManager(ABC):
             elif msg.tag == MsgTag.DONE:
                 num_active_actors -= 1
                 if num_active_actors == 0:
+                    self._logger.info(f"All actors done. Server exiting...")
                     proxy.close()
+                    self.exit()
                     return
 
 

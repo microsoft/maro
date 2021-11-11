@@ -51,21 +51,21 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int):
     return schedule
 
 
-def get_scenario_module(scenario_path):
-    scenario_dir = os.path.normpath(scenario_path)
-    sys.path.insert(0, os.path.dirname(scenario_dir))
-    return importlib.import_module(os.path.basename(scenario_dir))
+def get_scenario_module(scenario_path: str):
+    scenario_path = os.path.normpath(scenario_path)
+    sys.path.insert(0, os.path.dirname(scenario_path))
+    return importlib.import_module(os.path.basename(scenario_path))
+
+
+def get_log_path(dir: str, job_name: str):
+    return os.path.join(dir, f"{job_name}.log")
 
 
 def get_logger(dir: str, job_name: str, tag: str):
-    return Logger(tag, dump_path=os.path.join(dir, f"{job_name}.log"), dump_mode="a")
+    return Logger(tag, dump_path=get_log_path(dir, job_name), dump_mode="a")
 
 
 def get_checkpoint_dir(dir: str = None):
     if dir:
         os.makedirs(dir, exist_ok=True)
     return dir
-
-
-def get_load_policy_dir(dir: str):
-    return from_env("LOADDIR", required=False, default=None)
