@@ -94,7 +94,7 @@ class AbsPolicyManager(ABC):
             elif msg.tag == MsgTag.DONE:
                 num_active_actors -= 1
                 if num_active_actors == 0:
-                    self._logger.info(f"All actors done. Server exiting...")
+                    self._logger.info("All actors done. Server exiting...")
                     proxy.close()
                     self.exit()
                     return

@@ -4,8 +4,9 @@
 import json
 import os
 import subprocess
-import yaml
 from copy import deepcopy
+
+import yaml
 
 from maro.cli.local.meta import (
     DEFAULT_DOCKER_FILE_PATH, DEFAULT_DOCKER_IMAGE_NAME, DEFAULT_DOCKER_NETWORK, DEFAULT_REDIS_CONTAINER_NAME
@@ -23,12 +24,13 @@ def start_redis(port: int):
 def start_redis_container(port: int, network: str = DEFAULT_DOCKER_NETWORK):
     # create the exclusive network for containerized job management
     subprocess.run(["docker", "network", "create", network], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    subprocess.run([
-        "docker", "run", "-d",
-        "--network", network,
-        "--name", DEFAULT_REDIS_CONTAINER_NAME,
-        "-p", f"127.0.0.1:{port}:6379/tcp",
-        "redis"
+    subprocess.run(
+        [
+            "docker", "run", "-d",
+            "--network", network,
+            "--name", DEFAULT_REDIS_CONTAINER_NAME,
+            "-p", f"127.0.0.1:{port}:6379/tcp",
+            "redis"
         ],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -61,7 +63,7 @@ def check_proc_status(proc):
         if proc.poll() is None:
             return True, 0, None
         _, err_out = proc.communicate()
-        return False, proc.returncode, err_out 
+        return False, proc.returncode, err_out
     else:
         inspect = subprocess.run(
             ["docker", "inspect", proc, "--format={{.State.Running}} {{.State.ExitCode}}"],
@@ -192,8 +194,6 @@ def start_rl_job_in_containers(config):
     for component, (cmd, env) in get_container_specs(config).items():
         container_name = f"{job_name}.{component}"
         run_container_cmd = ["docker", "run", "-it", "-d", "--name", container_name, *env]
-
-        run_container_cmd.extend(["-v", f"/home/yaqiu/maro/maro/rl:/maro/maro/rl"])
 
         # volume mounts for scenario folder, policy loading, checkpointing and logging
         for local_path, path_in_cntr in get_volume_mapping(config).items():

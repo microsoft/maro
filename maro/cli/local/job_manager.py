@@ -14,9 +14,6 @@ from maro.cli.local.utils import (
 )
 
 
-ERROR_CODES_FOR_NOT_RESTART_CONTAINER = {0, 64, 65}
-
-
 if __name__ == "__main__":
     redis_port = int(os.getenv("REDISPORT", default=19999))
     redis_conn = redis.Redis(host="localhost", port=redis_port)
@@ -54,14 +51,13 @@ if __name__ == "__main__":
             details["status"] = JobStatus.FINISHED
             redis_conn.hset(RedisHashKey.JOB_DETAILS, job_name, json.dumps(details))
 
-        # Continue to monitor if the job is marked as REMOVED 
+        # Continue to monitor if the job is marked as REMOVED
         while json.loads(redis_conn.hget(RedisHashKey.JOB_DETAILS, job_name))["status"] != JobStatus.REMOVED:
             time.sleep(query_every)
 
         term(started[job_name], job_name, timeout=sigterm_timeout)
         redis_conn.hdel(RedisHashKey.JOB_DETAILS, job_name)
         redis_conn.hdel(RedisHashKey.JOB_CONF, job_name)
-
 
     while True:
         # check for pending jobs
@@ -77,7 +73,9 @@ if __name__ == "__main__":
 
             for job_name, conf in pending[:max(0, max_running - num_running)]:
                 if containerized and not image_exists():
-                    redis_conn.hset(RedisHashKey.JOB_DETAILS, job_name, json.dumps({"status": JobStatus.IMAGE_BUILDING}))
+                    redis_conn.hset(
+                        RedisHashKey.JOB_DETAILS, job_name, json.dumps({"status": JobStatus.IMAGE_BUILDING})
+                    )
                     build_image()
 
                 if containerized:

@@ -3,18 +3,17 @@
 
 import json
 import shutil
-import signal
 import subprocess
 import sys
 import time
 from os import makedirs
-from os.path import abspath, dirname, exists, join 
+from os.path import abspath, dirname, exists, join
 
 import redis
 import yaml
 
 from maro.cli.utils.common import close_by_pid, get_last_k_lines
-from maro.rl.workflows.helpers import get_log_path 
+from maro.rl.workflows.helpers import get_log_path
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
@@ -30,8 +29,8 @@ NO_JOB_MANAGER_MSG = """No job manager found. Run "maro local init" to start the
 NO_JOB_MSG = """No job named {} found. Run "maro local job ls" to view existing jobs."""
 JOB_LS_TEMPLATE = "{JOB:12}{STATUS:15}{STARTED:20}"
 
-# helper functions
 
+# helper functions
 def get_redis_conn(port=None):
     if port is None:
         try:
@@ -55,8 +54,7 @@ def clear_redis(conn):
         conn.delete(key)
 
 
-##################################  Functions executed on CLI commands  ################################## 
-
+# Functions executed on CLI commands
 def run(conf_path: str, containerize: bool = False, port: int = 20000, **kwargs):
     # Load job configuration file
     with open(conf_path, "r") as fr:
@@ -110,8 +108,7 @@ def init(
             "SIGTERMTIMEOUT": str(timeout),
             "CONTAINERIZE": str(containerize),
             "REDISPORT": str(port)
-        },
-        #stdout=subprocess.DEVNULL
+        }
     )
 
     # Dump environment setting
@@ -120,7 +117,7 @@ def init(
         json.dump({"port": port, "job_manager_pid": job_manager.pid, "containerized": containerize}, fp)
 
     # Create log folder
-    logger.info(f"Local job manager started")
+    logger.info("Local job manager started")
 
 
 def exit(**kwargs):
@@ -259,7 +256,7 @@ def list_jobs(**kwargs):
 
     # Header
     logger.info(JOB_LS_TEMPLATE.format(JOB="JOB", STATUS="STATUS", STARTED="STARTED"))
-    for job_name, details in redis_conn.hgetall(RedisHashKey.JOB_DETAILS).items(): 
+    for job_name, details in redis_conn.hgetall(RedisHashKey.JOB_DETAILS).items():
         job_name = job_name.decode()
         details = json.loads(details)
         if "start_time" in details:

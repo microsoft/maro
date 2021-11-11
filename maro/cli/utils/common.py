@@ -39,7 +39,7 @@ def get_child_pids(parent_pid):
         return [child.pid for child in psutil.Process(parent_pid).children(recursive=True)]
     except psutil.NoSuchProcess:
         print(f"No process with PID {parent_pid} found")
-        return 
+        return
 
 
 def get_redis_pid_by_port(port: int):

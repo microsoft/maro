@@ -6,7 +6,6 @@ from os.path import basename, join
 
 from maro.utils.utils import LOCAL_MARO_ROOT
 
-
 DEFAULT_SCRIPT = {
     "main": "main.py",
     "rolloutworker": "rollout.py",
@@ -18,11 +17,11 @@ DEFAULT_SCRIPT = {
 }
 MARO_ROOT_IN_CONTAINER = "/maro"
 
-# local paths
+
 def get_script_path(component: str, containerized: bool = False):
     root = MARO_ROOT_IN_CONTAINER if containerized else LOCAL_MARO_ROOT
     workflow_dir = join(root, "maro", "rl", "workflows")
-    return join(workflow_dir, DEFAULT_SCRIPT[component.split("-")[0]]) 
+    return join(workflow_dir, DEFAULT_SCRIPT[component.split("-")[0]])
 
 
 def format_env_vars(env: dict, mode: str = "proc"):
@@ -151,7 +150,7 @@ def get_rl_component_env_vars(config, containerized: bool = False):
         component_env["main"] = {**common, **env}
         component_env.update({
             f"rolloutworker-{worker_id}":
-                {**common, "WORKERID" : str(worker_id), "ROLLOUTGROUP": "-".join([config["job"], "rollout"])}
+                {**common, "WORKERID": str(worker_id), "ROLLOUTGROUP": "-".join([config["job"], "rollout"])}
             for worker_id in range(config["sync"]["num_rollouts"])
         })
 

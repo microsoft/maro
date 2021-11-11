@@ -5,7 +5,6 @@ from os.path import expanduser, join
 
 from maro.utils.utils import LOCAL_MARO_ROOT
 
-
 LOCAL_ROOT = expanduser("~/.maro/proc")
 LOCAL_STATE_PATH = join(LOCAL_ROOT, "state")
 DEFAULT_DOCKER_FILE_PATH = join(LOCAL_MARO_ROOT, "docker_files", "dev.df")
