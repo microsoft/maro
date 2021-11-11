@@ -1,11 +1,15 @@
+from numpy.core import overrides
 from .base_agent import Base_Agent
 from .exploration import OU_Noise
 from .replay_buffer import Replay_Buffer
+from .model import create_NN
 from torch.optim import Adam
 import torch
 import torch.nn.functional as F
 from torch.distributions import Normal
 import numpy as np
+import os
+from shutil import copy2
 
 LOG_SIG_MAX = 2
 LOG_SIG_MIN = -20
@@ -17,28 +21,72 @@ class SAC(Base_Agent):
       https://github.com/pranz24/pytorch-soft-actor-critic. It is an actor-critic algorithm where the agent is also trained
       to maximise the entropy of their actions as well as their cumulative reward"""
     agent_name = "SAC"
-    def __init__(self, config, env):
-        Base_Agent.__init__(self, config, env)
-        assert self.action_types == "CONTINUOUS", "Action types must be continuous. Use SAC Discrete instead for discrete actions"
-        assert self.config.hyperparameters["Actor"]["final_layer_activation"] != "Softmax", "Final actor layer must not be softmax"
+
+    def __init__(self, config, env, logger):
+        Base_Agent.__init__(self, config, env, logger)
+
         self.hyperparameters = config.hyperparameters
-        self.critic_local = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
-        self.critic_local_2 = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1,
-                                           key_to_use="Critic", override_seed=self.config.seed + 1)
-        self.critic_optimizer = torch.optim.Adam(self.critic_local.parameters(),
-                                                 lr=self.hyperparameters["Critic"]["learning_rate"], eps=1e-4)
-        self.critic_optimizer_2 = torch.optim.Adam(self.critic_local_2.parameters(),
-                                                   lr=self.hyperparameters["Critic"]["learning_rate"], eps=1e-4)
-        self.critic_target = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1,
-                                           key_to_use="Critic")
-        self.critic_target_2 = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1,
-                                            key_to_use="Critic")
+
+        self.critic_local = create_NN(
+            input_dim=self.state_size + self.action_size,
+            output_dim=1,
+            hyperparameters=self.hyperparameters["Critic"],
+            seed=self.config.seed,
+            device=self.device
+        )
+        self.critic_local_2 = create_NN(
+            input_dim=self.state_size + self.action_size,
+            output_dim=1,
+            hyperparameters=self.hyperparameters["Critic"],
+            seed=self.config.seed + 1,
+            device=self.device
+        )
+        self.critic_optimizer = torch.optim.Adam(
+            self.critic_local.parameters(),
+            lr=self.hyperparameters["Critic"]["learning_rate"],
+            eps=1e-4
+        )
+        self.critic_optimizer_2 = torch.optim.Adam(
+            self.critic_local_2.parameters(),
+            lr=self.hyperparameters["Critic"]["learning_rate"],
+            eps=1e-4
+        )
+
+        self.critic_target = create_NN(
+            input_dim=self.state_size + self.action_size,
+            output_dim=1,
+            hyperparameters=self.hyperparameters["Critic"],
+            seed=self.config.seed,
+            device=self.device
+        )
+        self.critic_target_2 = create_NN(
+            input_dim=self.state_size + self.action_size,
+            output_dim=1,
+            hyperparameters=self.hyperparameters["Critic"],
+            seed=self.config.seed,
+            device=self.device
+        )
         Base_Agent.copy_model_over(self.critic_local, self.critic_target)
         Base_Agent.copy_model_over(self.critic_local_2, self.critic_target_2)
-        self.memory = Replay_Buffer(self.hyperparameters["Critic"]["buffer_size"], self.hyperparameters["batch_size"])
-        self.actor_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size * 2, key_to_use="Actor")
-        self.actor_optimizer = torch.optim.Adam(self.actor_local.parameters(),
-                                          lr=self.hyperparameters["Actor"]["learning_rate"], eps=1e-4)
+
+        self.memory = Replay_Buffer(
+            self.hyperparameters["Critic"]["buffer_size"],
+            self.hyperparameters["batch_size"]
+        )
+
+        self.actor_local = create_NN(
+            input_dim=self.state_size,
+            output_dim=self.action_size * 2,
+            hyperparameters=self.hyperparameters["Actor"],
+            seed=self.config.seed,
+            device=self.device
+        )
+        self.actor_optimizer = torch.optim.Adam(
+            self.actor_local.parameters(),
+            lr=self.hyperparameters["Actor"]["learning_rate"],
+            eps=1e-4
+        )
+
         self.automatic_entropy_tuning = self.hyperparameters["automatically_tune_entropy_hyperparameter"]
         if self.automatic_entropy_tuning:
             self.target_entropy = -torch.prod(torch.Tensor(self.environment.action_space.shape).to(self.device)).item() # heuristic value from the paper
@@ -50,8 +98,10 @@ class SAC(Base_Agent):
 
         self.add_extra_noise = self.hyperparameters["add_extra_noise"]
         if self.add_extra_noise:
-            self.noise = OU_Noise(self.action_size, self.config.seed, self.hyperparameters["mu"],
-                                  self.hyperparameters["theta"], self.hyperparameters["sigma"])
+            self.noise = OU_Noise(
+                self.action_size, self.config.seed,
+                self.hyperparameters["mu"], self.hyperparameters["theta"], self.hyperparameters["sigma"]
+            )
 
         self.do_evaluation_iterations = self.hyperparameters["do_evaluation_iterations"]
 
@@ -71,7 +121,8 @@ class SAC(Base_Agent):
     def reset_game(self):
         """Resets the game information so we are ready to play a new episode"""
         Base_Agent.reset_game(self)
-        if self.add_extra_noise: self.noise.reset()
+        if self.add_extra_noise:
+            self.noise.reset()
 
     def step(self):
         """Runs an episode on the game, saving the experience and running a learning step if appropriate"""
@@ -85,7 +136,8 @@ class SAC(Base_Agent):
                 for _ in range(self.hyperparameters["learning_updates_per_learning_session"]):
                     self.learn()
             mask = False if self.episode_step_number_val >= self.environment._max_episode_steps else self.done
-            if not eval_ep: self.save_experience(experience=(self.state, self.action, self.reward, self.next_state, mask))
+            if not eval_ep:
+                self.memory.add_experience(self.state, self.action, self.reward, self.next_state, mask)
             self.state = self.next_state
             self.global_step_number += 1
             # print('global_step_num: ', self.global_step_number)
@@ -95,7 +147,7 @@ class SAC(Base_Agent):
         if eval_ep: self.print_summary_of_latest_evaluation_episode()
         self.episode_number += 1
         if len(self.game_full_episode_scores) > 0 and self.max_episode_score_seen >= self.game_full_episode_scores[-1]:
-            self.save_local_critic()
+            self.save_model()
 
     def pick_action(self, eval_ep, state=None):
         """Picks an action using one of three methods: 1) Randomly if we haven't passed a certain number of steps,
@@ -145,8 +197,11 @@ class SAC(Base_Agent):
     def time_for_critic_and_actor_to_learn(self):
         """Returns boolean indicating whether there are enough experiences to learn from and it is time to learn for the
         actor and critic"""
-        return self.global_step_number > self.hyperparameters["min_steps_before_learning"] and \
-               self.enough_experiences_to_learn_from() and self.global_step_number % self.hyperparameters["update_every_n_steps"] == 0
+        return (
+            self.global_step_number > self.hyperparameters["min_steps_before_learning"]
+            and len(self.memory) > self.hyperparameters["batch_size"]
+            and self.global_step_number % self.hyperparameters["update_every_n_steps"] == 0
+        )
 
     def learn(self):
         """Runs a learning iteration for the actor, both critics and (if specified) the temperature parameter"""
@@ -194,9 +249,9 @@ class SAC(Base_Agent):
 
     def update_critic_parameters(self, critic_loss_1, critic_loss_2):
         """Updates the parameters for both critics"""
-        self.take_optimisation_step(self.critic_optimizer, self.critic_local, critic_loss_1,
+        self.take_optimization_step(self.critic_optimizer, self.critic_local, critic_loss_1,
                                     self.hyperparameters["Critic"]["gradient_clipping_norm"])
-        self.take_optimisation_step(self.critic_optimizer_2, self.critic_local_2, critic_loss_2,
+        self.take_optimization_step(self.critic_optimizer_2, self.critic_local_2, critic_loss_2,
                                     self.hyperparameters["Critic"]["gradient_clipping_norm"])
         self.soft_update_of_target_network(self.critic_local, self.critic_target,
                                            self.hyperparameters["Critic"]["tau"])
@@ -205,10 +260,10 @@ class SAC(Base_Agent):
 
     def update_actor_parameters(self, actor_loss, alpha_loss):
         """Updates the parameters for the actor and (if specified) the temperature parameter"""
-        self.take_optimisation_step(self.actor_optimizer, self.actor_local, actor_loss,
+        self.take_optimization_step(self.actor_optimizer, self.actor_local, actor_loss,
                                     self.hyperparameters["Actor"]["gradient_clipping_norm"])
         if alpha_loss is not None:
-            self.take_optimisation_step(self.alpha_optim, None, alpha_loss, None)
+            self.take_optimization_step(self.alpha_optim, None, alpha_loss, None)
             self.alpha = self.log_alpha.exp()
 
     def print_summary_of_latest_evaluation_episode(self):
@@ -218,15 +273,25 @@ class SAC(Base_Agent):
         print("Episode score {} ".format(self.total_episode_score_so_far))
         print("----------------------------")
 
-    def save_local_critic(self):
-        # self.critic_local
-        checkpoint = {
-            'epoch': self.episode_number + 1,
-            'state_dict': self.actor_local.state_dict(),
-            'optimizer': self.actor_optimizer.state_dict(),
-        }
-        self.save_ckp(checkpoint, self.model_path)
+    def save_model(self):
+        torch.save(
+            self.actor_local.state_dict(),
+            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt")
+        )
+        torch.save(
+            self.actor_optimizer.state_dict(),
+            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt")
+        )
 
-    def load_local_critic(self):
-        # self.critic_local
-        self.load_ckp(self.model_path, self.actor_local, self.actor_optimizer)
+        copy2(
+            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt"),
+            os.path.join(self.config.checkpoint_dir, "actor.pt")
+        )
+        copy2(
+            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt"),
+            os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")
+        )
+
+    def load_model(self):
+        self.actor_local.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor.pt")))
+        self.actor_optimizer.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")))

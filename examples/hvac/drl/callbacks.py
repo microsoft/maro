@@ -9,11 +9,11 @@ def visualize_rolling_scores(result, log_dir, title):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
-    x_vals = list(range(len(result)))
-    ax.plot(x_vals, result, color="red")
+    x = list(range(len(result)))
+    ax.plot(x, result, color="red")
 
     ax.set_xlabel('Episode Number')
-    ax.set_xlim([0, x_vals[-1]])
+    ax.set_xlim([0, x[-1]])
     ax.set_ylabel('Rolling Episode Scores')
     ax.set_ylim([np.min(result), np.max(result)])
 

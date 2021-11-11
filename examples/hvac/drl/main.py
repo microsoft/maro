@@ -5,6 +5,8 @@ import os
 import pickle
 import random
 
+from maro.utils import Logger
+
 from examples.hvac.drl.agents import DDPG, SAC
 from examples.hvac.drl.hvac_env import MAROHAVEnv
 from examples.hvac.drl.callbacks import visualize_rolling_scores
@@ -16,14 +18,16 @@ class Trainer(object):
     def __init__(self, config, agent_class, env):
         if config.randomize_random_seed:
             config.seed = random.randint(0, 2**32 -2)
-        print("RANDOM SEED " , config.seed)
 
         self.config = config
         self.env = env
-        self.agent = agent_class(config, env)
+        self.logger = Logger(tag="Trainer", dump_folder=self.config.log_dir)
+        self.agent = agent_class(config, env, self.logger)
+
+        self.logger.info(f"RANDOM SEED: {config.seed}")
 
     def load_model(self):
-        self.agent.load_local_critic()
+        self.agent.load_model()
 
     def train(self):
         self.env.reset()

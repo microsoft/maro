@@ -6,57 +6,66 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Config(object):
     def __init__(self):
-        self.num_episodes_to_run = 30
+        self.num_episodes = 30
         self.algorithm = "sac"  # ddpg, sac
         self.experiment_name = f"{self.algorithm}_test"
 
         self.seed = 1   # Used only if randomize_random_seed is False
         self.randomize_random_seed = True
 
-        self.standard_deviation_results = 1.0
-
         self.use_GPU = False
 
         # Currently the hyperparameters is for Actor_Critic_Agents only, e.g., ddpg, sac
         self.hyperparameters = {
             "Actor": {
-                "learning_rate": 0.0003,
+                # For NN module
                 "linear_hidden_units": [128, 128],
+                "output_activation": 'tanh',
                 "hidden_activations": 'tanh',
                 "dropout": 0.3,
-                "final_layer_activation": 'tanh',
+                "initialiser": "Xavier",
                 "batch_norm": False,
+                # For optimizer
+                "learning_rate": 0.0003,
+                # For soft Update
                 "tau": 0.005,
+                # For gradient clipping
                 "gradient_clipping_norm": 5,
-                "initialiser": "Xavier"
             },
 
             "Critic": {
-                "learning_rate": 0.0003,
+                # For NN module
                 "linear_hidden_units": [128, 128],
+                "output_activation": None,
                 "hidden_activations": 'tanh',
                 "dropout": 0.3,
-                "final_layer_activation": None,
+                "initialiser": "Xavier",
                 "batch_norm": False,
+                # For optimizer
+                "learning_rate": 0.0003,
+                # For Replay Buffer
                 "buffer_size": 1000000,
+                # For Soft Update
                 "tau": 0.005,
+                # For gradient clipping
                 "gradient_clipping_norm": 5,
-                "initialiser": "Xavier"
             },
 
-            "min_steps_before_learning": 5000,
             "batch_size": 256,
+            # For SAC only
+            "automatically_tune_entropy_hyperparameter": True,
+            "entropy_term_weight": 0.1, # Used if not automatically tune entropy hyperparameter
+            "add_extra_noise": False,   # To apply OU noise or not
+            "do_evaluation_iterations": True,
+            "min_steps_before_learning": 5000,
+            # For OU Noise
+            "mu": 0.0,
+            "theta": 0.05,
+            "sigma": 0.05,
+            #
             "discount_rate": 0.99,
-            "mu": 0.0,      # for O-H noise
-            "theta": 0.05,  # for O-H noise
-            "sigma": 0.05,  # for O-H noise
             "update_every_n_steps": 100,
             "learning_updates_per_learning_session": 2,
-            "automatically_tune_entropy_hyperparameter": True,  # SAC
-            "entropy_term_weight": 0.1, # SAC
-            "add_extra_noise": False,   # SAC
-            "do_evaluation_iterations": True,   # SAC
-            "clip_rewards": False
         }
 
         copy2(src=os.path.abspath(__file__), dst=self.log_dir)

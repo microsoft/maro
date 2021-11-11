@@ -4,14 +4,16 @@ from torch import optim
 from .base_agent import Base_Agent
 from .replay_buffer import Replay_Buffer
 from .exploration import OU_Noise_Exploration
+import os
+from shutil import copy2
 
 
 class DDPG(Base_Agent):
     """A DDPG Agent"""
     agent_name = "DDPG"
 
-    def __init__(self, config, env):
-        Base_Agent.__init__(self, config, env)
+    def __init__(self, config, env, logger):
+        Base_Agent.__init__(self, config, env, logger)
         self.hyperparameters = config.hyperparameters
         self.critic_local = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
         self.critic_target = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
@@ -39,7 +41,7 @@ class DDPG(Base_Agent):
                     states, actions, rewards, next_states, dones = self.sample_experiences()
                     self.critic_learn(states, actions, rewards, next_states, dones)
                     self.actor_learn(states)
-            self.save_experience()
+            self.memory.add_experience(self.state, self.action, self.reward, self.next_state, self.done)
             self.state = self.next_state #this is to set the state for the next iteration
             self.global_step_number += 1
         self.episode_number += 1
@@ -62,7 +64,7 @@ class DDPG(Base_Agent):
     def critic_learn(self, states, actions, rewards, next_states, dones):
         """Runs a learning iteration for the critic"""
         loss = self.compute_loss(states, next_states, rewards, actions, dones)
-        self.take_optimisation_step(self.critic_optimizer, self.critic_local, loss, self.hyperparameters["Critic"]["gradient_clipping_norm"])
+        self.take_optimization_step(self.critic_optimizer, self.critic_local, loss, self.hyperparameters["Critic"]["gradient_clipping_norm"])
         self.soft_update_of_target_network(self.critic_local, self.critic_target, self.hyperparameters["Critic"]["tau"])
 
     def compute_loss(self, states, next_states, rewards, actions, dones):
@@ -99,14 +101,15 @@ class DDPG(Base_Agent):
     def time_for_critic_and_actor_to_learn(self):
         """Returns boolean indicating whether there are enough experiences to learn from and it is time to learn for the
         actor and critic"""
-        return self.enough_experiences_to_learn_from() and self.global_step_number % self.hyperparameters["update_every_n_steps"] == 0
+        return (
+            len(self.memory) > self.hyperparameters["batch_size"]
+            and self.global_step_number % self.hyperparameters["update_every_n_steps"] == 0
+        )
 
     def actor_learn(self, states):
         """Runs a learning iteration for the actor"""
-        if self.done: #we only update the learning rate at end of each episode
-            self.update_learning_rate(self.hyperparameters["Actor"]["learning_rate"], self.actor_optimizer)
         actor_loss = self.calculate_actor_loss(states)
-        self.take_optimisation_step(self.actor_optimizer, self.actor_local, actor_loss,
+        self.take_optimization_step(self.actor_optimizer, self.actor_local, actor_loss,
                                     self.hyperparameters["Actor"]["gradient_clipping_norm"])
         self.soft_update_of_target_network(self.actor_local, self.actor_target, self.hyperparameters["Actor"]["tau"])
 
@@ -116,15 +119,25 @@ class DDPG(Base_Agent):
         actor_loss = -self.critic_local(torch.cat((states, actions_pred), 1)).mean()
         return actor_loss
 
-    def save_local_critic(self):
-        # self.critic_local
-        checkpoint = {
-            'epoch': self.episode_number + 1,
-            'state_dict': self.actor_local.state_dict(),
-            'optimizer': self.actor_optimizer.state_dict(),
-        }
-        self.save_ckp(checkpoint, self.model_path)
+    def save_model(self):
+        torch.save(
+            self.actor_local.state_dict(),
+            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt")
+        )
+        torch.save(
+            self.actor_optimizer.state_dict(),
+            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt")
+        )
 
-    def load_local_critic(self):
-        # self.critic_local
-        self.load_ckp(self.model_path, self.actor_local, self.actor_optimizer)
+        copy2(
+            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt"),
+            os.path.join(self.config.checkpoint_dir, "actor.pt")
+        )
+        copy2(
+            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt"),
+            os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")
+        )
+
+    def load_model(self):
+        self.actor_local.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor.pt")))
+        self.actor_optimizer.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")))

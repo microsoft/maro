@@ -13,7 +13,6 @@ from examples.hvac.rl.callbacks import baseline
 
 class MAROHAVEnv(gym.Env):
     id = "HVA Controller"
-    reward_threshold = -5
 
     def __init__(self):
         self.env = Env(scenario="hvac", **env_config)
@@ -74,7 +73,7 @@ class MAROHAVEnv(gym.Env):
                 )
             )
         else:
-            reward = self.reward_threshold
+            reward = -5
 
         return float(reward)
 
