@@ -1,5 +1,5 @@
 
-from .Trainer import Trainer
+from .trainer import Trainer
 from .DDPG import DDPG
 from .SAC import SAC
 

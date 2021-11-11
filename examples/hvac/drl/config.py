@@ -7,7 +7,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 class Config(object):
     def __init__(self):
         self.num_episodes_to_run = 30
-        self.algorithm = "sac"  # ddpg, sac
+        self.algorithm = "ddpg"  # ddpg, sac
         self.experiment_name = f"{self.algorithm}_test"
 
         # Currently the hyperparameters is for Actor_Critic_Agents only, e.g., ddpg, sac

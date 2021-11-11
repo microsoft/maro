@@ -1,7 +1,6 @@
-from agents.Base_Agent import Base_Agent
-from utilities.OU_Noise import OU_Noise
-from utilities.Replay_Buffer import Replay_Buffer
-from utilities.Utility_Functions import save_ckp, load_ckp
+from .base_agent import Base_Agent
+from .exploration import OU_Noise
+from .replay_buffer import Replay_Buffer
 from torch.optim import Adam
 import torch
 import torch.nn.functional as F
@@ -227,8 +226,8 @@ class SAC(Base_Agent):
             'state_dict': self.actor_local.state_dict(),
             'optimizer': self.actor_optimizer.state_dict(),
         }
-        save_ckp(checkpoint, self.model_path)
+        self.save_ckp(checkpoint, self.model_path)
 
     def load_local_critic(self):
         # self.critic_local
-        load_ckp(self.model_path, self.actor_local, self.actor_optimizer)
+        self.load_ckp(self.model_path, self.actor_local, self.actor_optimizer)

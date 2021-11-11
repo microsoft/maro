@@ -278,3 +278,25 @@ class Base_Agent(object):
         """Copies model parameters from from_model to to_model"""
         for to_model, from_model in zip(to_model.parameters(), from_model.parameters()):
             to_model.data.copy_(from_model.data.clone())
+
+    @staticmethod
+    def load_ckp(checkpoint_fpath, model, optimizer):
+        """
+        checkpoint_path: path to save checkpoint
+        model: model that we want to load checkpoint parameters into
+        optimizer: optimizer we defined in previous training
+        """
+        checkpoint = torch.load(checkpoint_fpath)
+        model.load_state_dict(checkpoint['state_dict'])
+        if optimizer is not None:
+            optimizer.load_state_dict(checkpoint['optimizer'])
+        return model, optimizer, checkpoint['epoch']
+
+    @staticmethod
+    def save_ckp(state, checkpoint_path):
+        """
+        state: checkpoint we want to save
+        checkpoint_path: path to save checkpoint
+        """
+        f_path = checkpoint_path
+        torch.save(state, f_path)
