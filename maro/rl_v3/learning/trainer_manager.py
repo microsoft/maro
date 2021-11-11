@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from typing import Callable, Dict, List
 
@@ -10,21 +10,21 @@ from maro.rl_v3.policy_trainer import AbsTrainer, SingleTrainer
 from maro.rl_v3.utils import ActionWithAux, TransitionBatch
 
 
-class AbsTrainerManager(object):
+class AbsTrainerManager(object, metaclass=ABCMeta):
     def __init__(self) -> None:
         super(AbsTrainerManager, self).__init__()
 
     @abstractmethod
     def train(self) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_policy_states(self) -> Dict[str, Dict[str, object]]:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def record_experiences(self, experiences: List[ExpElement]) -> None:
-        pass
+        raise NotImplementedError
 
 
 class SimpleTrainerManager(AbsTrainerManager):
@@ -84,7 +84,7 @@ class SimpleTrainerManager(AbsTrainerManager):
                 continue
             trainer = self._trainer_dict[trainer_name]
             if isinstance(trainer, SingleTrainer):
-                assert len(exps) == 1
+                assert len(exps) == 1, f"SingleTrainer must has exactly one policy. Currently, it has {len(exps)}."
 
                 policy_name: str = exps[0][0]
                 agent_state: np.ndarray = exps[0][1]

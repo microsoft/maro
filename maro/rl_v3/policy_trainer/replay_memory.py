@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import List
 
 import numpy as np
@@ -7,22 +7,22 @@ from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch, match_shape
 from maro.rl_v3.utils.objects import SHAPE_CHECK_FLAG
 
 
-class AbsIndexScheduler(object):
+class AbsIndexScheduler(object, metaclass=ABCMeta):
     def __init__(self, capacity: int) -> None:
         super(AbsIndexScheduler, self).__init__()
         self._capacity = capacity
 
     @abstractmethod
     def get_put_indexes(self, batch_size: int) -> np.ndarray:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_last_index(self) -> int:
-        pass
+        raise NotImplementedError
 
 
 class RandomIndexScheduler(AbsIndexScheduler):
@@ -48,8 +48,8 @@ class RandomIndexScheduler(AbsIndexScheduler):
         return indexes
 
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
-        assert batch_size is not None and batch_size > 0
-        assert self._size > 0
+        assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
+        assert self._size > 0, "Cannot sample from an empty memory."
         return np.random.choice(self._size, size=batch_size, replace=batch_size > self._size)
 
     def get_last_index(self) -> int:
@@ -91,7 +91,7 @@ class FIFOIndexScheduler(AbsIndexScheduler):
         return (self._tail - 1) % self._capacity
 
 
-class AbsReplayMemory(object):
+class AbsReplayMemory(object, metaclass=ABCMeta):
     def __init__(self, capacity: int, state_dim: int, idx_scheduler: AbsIndexScheduler) -> None:
         super(AbsReplayMemory, self).__init__()
         self._capacity = capacity
@@ -113,7 +113,7 @@ class AbsReplayMemory(object):
         return self._idx_scheduler.get_sample_indexes(batch_size, forbid_last)
 
 
-class ReplayMemory(AbsReplayMemory):
+class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
     def __init__(
         self,
         capacity: int,
@@ -194,7 +194,7 @@ class ReplayMemory(AbsReplayMemory):
 
     @abstractmethod
     def _get_forbid_last(self) -> bool:
-        pass
+        raise NotImplementedError
 
 
 class RandomReplayMemory(ReplayMemory):
@@ -242,7 +242,7 @@ class FIFOReplayMemory(ReplayMemory):
         return not self._terminals[self._idx_scheduler.get_last_index()]
 
 
-class MultiReplayMemory(AbsReplayMemory):
+class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
     def __init__(
         self,
         capacity: int,
@@ -354,7 +354,7 @@ class MultiReplayMemory(AbsReplayMemory):
 
     @abstractmethod
     def _get_forbid_last(self) -> bool:
-        pass
+        raise NotImplementedError
 
 
 class RandomMultiReplayMemory(MultiReplayMemory):

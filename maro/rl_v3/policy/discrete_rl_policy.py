@@ -178,7 +178,10 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         self._policy_net.soft_update(other_policy.policy_net, tau)
 
     def get_action_probs(self, states: torch.Tensor) -> torch.Tensor:
-        assert self._shape_check(states=states)
+        assert self._shape_check(states=states), \
+            f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
         action_probs = self._policy_net.get_action_probs(states)
-        assert match_shape(action_probs, (states.shape[0], self.action_num))
+        assert match_shape(action_probs, (states.shape[0], self.action_num)), \
+            f"Action probabilities shape check failed. Expecting: {(states.shape[0], self.action_num)}, " \
+            f"actual: {action_probs.shape}."
         return action_probs

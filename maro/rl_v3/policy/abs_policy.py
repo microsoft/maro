@@ -13,7 +13,7 @@ from maro.rl_v3.utils import match_shape
 from maro.rl_v3.utils.objects import SHAPE_CHECK_FLAG
 
 
-class AbsPolicy(object):
+class AbsPolicy(object, metaclass=ABCMeta):
     _policy_counter = defaultdict(count)
 
     def __init__(self, name: str, trainable: bool) -> None:
@@ -26,7 +26,7 @@ class AbsPolicy(object):
 
     @abstractmethod
     def get_actions(self, states: object) -> object:
-        pass
+        raise NotImplementedError
 
     @property
     def name(self) -> str:
@@ -54,10 +54,10 @@ class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _rule(self, states: object) -> object:
-        pass
+        raise NotImplementedError
 
 
-class RLPolicy(AbsPolicy):
+class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     def __init__(
         self,
         name: str,
@@ -96,11 +96,11 @@ class RLPolicy(AbsPolicy):
 
     @abstractmethod  # TODO
     def step(self, loss: torch.Tensor) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod  # TODO
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        pass
+        raise NotImplementedError
 
     def get_actions_with_aux(self, states: np.ndarray) -> List[ActionWithAux]:
         actions, logps = self.get_actions_with_logps(states, require_logps=True)
@@ -118,7 +118,7 @@ class RLPolicy(AbsPolicy):
 
     @abstractmethod
     def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
-        pass
+        raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
         return self.get_actions_with_logps(states, require_logps=False)[0]
@@ -130,7 +130,7 @@ class RLPolicy(AbsPolicy):
     def _get_actions_with_logps_impl(
         self, states: torch.Tensor, exploring: bool, require_logps: bool
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        pass
+        raise NotImplementedError
 
     def get_actions_with_logps(
         self, states: np.ndarray, require_logps: bool = True
@@ -141,41 +141,44 @@ class RLPolicy(AbsPolicy):
     def get_actions_with_logps_tensor(
         self, states: torch.Tensor, require_logps: bool = True
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        assert self._shape_check(states=states)
+        assert self._shape_check(states=states), \
+            f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
         actions, logps = self._get_actions_with_logps_impl(states, self._is_exploring, require_logps)
-        assert self._shape_check(states=states, actions=actions)  # [B, action_dim]
-        assert logps is None or match_shape(logps, (states.shape[0],))  # [B]
+        assert self._shape_check(states=states, actions=actions), \
+            f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
+        assert logps is None or match_shape(logps, (states.shape[0],)), \
+            f"Log probabilities shape check failed. Expecting: {(states.shape[0],)}, actual: {logps.shape}."
         if SHAPE_CHECK_FLAG:
             assert self._post_check(states=states, actions=actions)
         return actions, logps
 
     @abstractmethod
     def freeze(self) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def unfreeze(self) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def eval(self) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def train(self) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_policy_state(self) -> object:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def set_policy_state(self, policy_state: object) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
-        pass
+        raise NotImplementedError
 
     def _shape_check(
         self,
@@ -197,7 +200,7 @@ class RLPolicy(AbsPolicy):
 
     @abstractmethod
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
-        pass
+        raise NotImplementedError
 
 
 if __name__ == '__main__':

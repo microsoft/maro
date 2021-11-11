@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Callable, Deque, Dict, List, Optional, Tuple, Type
@@ -11,7 +11,7 @@ from maro.rl_v3.utils import ActionWithAux
 from maro.simulator import Env
 
 
-class AbsAgentWrapper(object):
+class AbsAgentWrapper(object, metaclass=ABCMeta):
     def __init__(
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
@@ -32,15 +32,15 @@ class AbsAgentWrapper(object):
 
     @abstractmethod
     def _choose_action_with_aux_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def explore(self) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def exploit(self) -> None:
-        pass
+        raise NotImplementedError
 
 
 class SimpleAgentWrapper(AbsAgentWrapper):
@@ -98,7 +98,7 @@ class ExpElement(CacheElement):
 
 
 # TODO: event typehint
-class AbsEnvSampler(object):
+class AbsEnvSampler(object, metaclass=ABCMeta):
     def __init__(
         self,
         get_env_func: Callable[[], Env],
@@ -143,15 +143,15 @@ class AbsEnvSampler(object):
             Global state: np.ndarray
             Dict of agent states: Dict[str, np.ndarray]
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def _translate_to_env_action(self, action_with_aux_dict: Dict[str, ActionWithAux], event) -> Dict[str, object]:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def _get_reward(self, env_action_dict: Dict[str, object], tick: int) -> Dict[str, float]:
-        pass
+        raise NotImplementedError
 
     def sample(  # TODO: check logic with qiuyang
         self,
@@ -248,4 +248,4 @@ class AbsEnvSampler(object):
     def _post_step(
         self, cache_element: CacheElement, reward: Dict[str, float]
     ) -> None:
-        pass
+        raise NotImplementedError

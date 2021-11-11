@@ -1,11 +1,11 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Dict, Optional
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import TransitionBatch
 
 
-class AbsTrainer(object):
+class AbsTrainer(object, metaclass=ABCMeta):
     def __init__(self, name: str) -> None:
         self._name = name
 
@@ -15,18 +15,18 @@ class AbsTrainer(object):
 
     @abstractmethod
     def train_step(self) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_policy_state_dict(self) -> Dict[str, object]:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        pass
+        raise NotImplementedError
 
 
-class SingleTrainer(AbsTrainer):
+class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def __init__(self, name: str) -> None:
         super(SingleTrainer, self).__init__(name)
         self._policy: Optional[RLPolicy] = None
@@ -43,11 +43,11 @@ class SingleTrainer(AbsTrainer):
 
     @abstractmethod
     def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def register_policy(self, policy: RLPolicy) -> None:
-        pass
+        raise NotImplementedError
 
     def get_policy_state_dict(self) -> Dict[str, object]:
         return {self._policy.name: self._policy.get_policy_state()}
