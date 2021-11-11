@@ -17,10 +17,10 @@ from maro.rl.workflows.helpers import get_log_path
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
-from .meta import DEFAULT_DOCKER_IMAGE_NAME, LOCAL_ROOT, LOCAL_STATE_PATH, JobStatus, RedisHashKey
+from .meta import LOCAL_ROOT, LOCAL_STATE_PATH, JobStatus, RedisHashKey
 from .utils import (
-    build_image, image_exists, start_redis, start_redis_container, start_rl_job_in_foreground,
-    start_rl_job_with_docker_compose, stop_redis, stop_redis_container, stop_rl_job_with_docker_compose
+    start_redis, start_redis_container, start_rl_job_in_foreground, start_rl_job_with_docker_compose, stop_redis,
+    stop_redis_container, stop_rl_job_with_docker_compose
 )
 
 logger = CliLogger(name="MARO-LOCAL")
@@ -61,9 +61,6 @@ def run(conf_path: str, containerize: bool = False, port: int = 20000, **kwargs)
         conf = yaml.safe_load(fr)
 
     if containerize:
-        if not image_exists():
-            logger.info(f"Building docker image {DEFAULT_DOCKER_IMAGE_NAME}")
-            build_image()
         try:
             start_rl_job_with_docker_compose(conf)
         except KeyboardInterrupt:
