@@ -13,7 +13,6 @@ from maro.cli.local.utils import (
     build_image, image_exists, poll, start_rl_job_in_background, start_rl_job_in_containers, term
 )
 
-
 if __name__ == "__main__":
     redis_port = int(os.getenv("REDISPORT", default=19999))
     redis_conn = redis.Redis(host="localhost", port=redis_port)
