@@ -9,7 +9,7 @@ from maro.utils import Logger
 
 from examples.hvac.drl.agents import DDPG, SAC
 from examples.hvac.drl.hvac_env import MAROHAVEnv
-from examples.hvac.drl.callbacks import visualize_rolling_scores
+from examples.hvac.drl.callbacks import visualize_returns
 from examples.hvac.drl.config import Config
 from examples.hvac.rl.callbacks import post_evaluate
 
@@ -31,22 +31,29 @@ class Trainer(object):
 
     def train(self):
         self.env.reset()
-        game_scores, rolling_scores, time_taken = self.agent.run_n_episodes()
+        returns, rolling_returns, time_taken = self.agent.run_n_episodes()
 
-        results = [game_scores, rolling_scores, len(rolling_scores), -1 * max(rolling_scores), time_taken]
+        results = [returns, rolling_returns, time_taken]
         with open(os.path.join(self.config.log_dir, "results.pkl"), "wb") as f:
             pickle.dump(results, f, pickle.HIGHEST_PROTOCOL)
 
-        visualize_rolling_scores(
-            rolling_scores,
+        visualize_returns(
+            rolling_returns,
             self.config.log_dir,
-            f"{self.agent.environment_title} - {self.agent.agent_name}"
+            f"Rolling Returns - {self.agent.agent_name}"
+        )
+
+        visualize_returns(
+            returns,
+            self.config.log_dir,
+            f"Returns - {self.agent.agent_name}"
         )
 
     def evaluate(self):
+        self.agent.reset_game()
         tracker = {"reward": []}
         done = False
-        state = self.agent.environment.reset()
+        state = self.agent.state
         while not done:
             if config.algorithm == "ddpg":
                 self.agent.action = self.agent.pick_action(state=state)

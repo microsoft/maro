@@ -1,30 +1,30 @@
 import torch
 import torch.nn.functional as functional
 from torch import optim
-from .base_agent import Base_Agent
+from .base_agent import BaseAgent
 from .replay_buffer import Replay_Buffer
 from .exploration import OU_Noise_Exploration
 import os
 from shutil import copy2
 
 
-class DDPG(Base_Agent):
+class DDPG(BaseAgent):
     """A DDPG Agent"""
     agent_name = "DDPG"
 
     def __init__(self, config, env, logger):
-        Base_Agent.__init__(self, config, env, logger)
+        BaseAgent.__init__(self, config, env, logger)
         self.hyperparameters = config.hyperparameters
         self.critic_local = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
         self.critic_target = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
-        Base_Agent.copy_model_over(self.critic_local, self.critic_target)
+        BaseAgent.copy_model_over(self.critic_local, self.critic_target)
 
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(),
                                            lr=self.hyperparameters["Critic"]["learning_rate"], eps=1e-4)
         self.memory = Replay_Buffer(self.hyperparameters["Critic"]["buffer_size"], self.hyperparameters["batch_size"])
         self.actor_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size, key_to_use="Actor")
         self.actor_target = self.create_NN(input_dim=self.state_size, output_dim=self.action_size, key_to_use="Actor")
-        Base_Agent.copy_model_over(self.actor_local, self.actor_target)
+        BaseAgent.copy_model_over(self.actor_local, self.actor_target)
 
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(),
                                           lr=self.hyperparameters["Actor"]["learning_rate"], eps=1e-4)
@@ -43,8 +43,7 @@ class DDPG(Base_Agent):
                     self.actor_learn(states)
             self.memory.add_experience(self.state, self.action, self.reward, self.next_state, self.done)
             self.state = self.next_state #this is to set the state for the next iteration
-            self.global_step_number += 1
-        self.episode_number += 1
+            self.env_step_number += 1
 
     def sample_experiences(self):
         return self.memory.sample()
@@ -64,8 +63,8 @@ class DDPG(Base_Agent):
     def critic_learn(self, states, actions, rewards, next_states, dones):
         """Runs a learning iteration for the critic"""
         loss = self.compute_loss(states, next_states, rewards, actions, dones)
-        self.take_optimization_step(self.critic_optimizer, self.critic_local, loss, self.hyperparameters["Critic"]["gradient_clipping_norm"])
-        self.soft_update_of_target_network(self.critic_local, self.critic_target, self.hyperparameters["Critic"]["tau"])
+        self._take_optimization_step(self.critic_optimizer, self.critic_local, loss, self.hyperparameters["Critic"]["gradient_clipping_norm"])
+        self._soft_update_of_target_network(self.critic_local, self.critic_target, self.hyperparameters["Critic"]["tau"])
 
     def compute_loss(self, states, next_states, rewards, actions, dones):
         """Computes the loss for the critic"""
@@ -103,15 +102,15 @@ class DDPG(Base_Agent):
         actor and critic"""
         return (
             len(self.memory) > self.hyperparameters["batch_size"]
-            and self.global_step_number % self.hyperparameters["update_every_n_steps"] == 0
+            and self.env_step_number % self.hyperparameters["update_every_n_steps"] == 0
         )
 
     def actor_learn(self, states):
         """Runs a learning iteration for the actor"""
         actor_loss = self.calculate_actor_loss(states)
-        self.take_optimization_step(self.actor_optimizer, self.actor_local, actor_loss,
+        self._take_optimization_step(self.actor_optimizer, self.actor_local, actor_loss,
                                     self.hyperparameters["Actor"]["gradient_clipping_norm"])
-        self.soft_update_of_target_network(self.actor_local, self.actor_target, self.hyperparameters["Actor"]["tau"])
+        self._soft_update_of_target_network(self.actor_local, self.actor_target, self.hyperparameters["Actor"]["tau"])
 
     def calculate_actor_loss(self, states):
         """Calculates the loss for the actor"""
