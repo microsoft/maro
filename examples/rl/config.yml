@@ -21,7 +21,7 @@ async:
   max_lag: 3
   num_rollouts: 3
 policy_manager:
-  type: distributed   # simple, multi-process, distributed
+  type: simple   # simple, multi-process, distributed
   distributed:
     num_hosts: 2
 data_parallelism: 1

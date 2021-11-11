@@ -182,6 +182,6 @@ elif algorithm == "ac":
 elif algorithm == "maddpg":
     agent_nets = [MyActorNet() for i in range(num_agents)]
     maddpg_policy = MultiDiscreteActorCritic(algorithm, agent_nets, MyCentralizedCriticNet(), **maddpg_conf)
-    policy_func_dict = {f"{algorithm}": maddpg_policy}
+    policy_func_dict = {f"{algorithm}": lambda name: maddpg_policy}
 else:
     raise ValueError

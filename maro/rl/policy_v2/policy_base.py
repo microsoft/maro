@@ -43,7 +43,7 @@ class AbsPolicy(object):
             Actions and other auxiliary information based on states.
             The format of the returns is defined by the policy.
         """
-        pass
+        raise NotImplementedError
 
     @property
     def state_dim(self) -> int:
@@ -51,7 +51,7 @@ class AbsPolicy(object):
 
     @abstractmethod
     def _get_state_dim(self) -> int:
-        pass
+        raise NotImplementedError
 
 
 class DummyPolicy(AbsPolicy):
@@ -91,7 +91,7 @@ class RuleBasedPolicy(AbsPolicy):
     @abstractmethod
     def _rule(self, state: object) -> object:
         """The rule that should be implemented by inheritors."""
-        pass
+        raise NotImplementedError
 
 
 class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
@@ -145,10 +145,10 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         self._exploring = False
 
     def get_exploration_params(self):
-        pass
+        raise NotImplementedError
 
     def exploration_step(self):
-        pass
+        raise NotImplementedError
 
     def ndarray_to_tensor(self, array: np.ndarray) -> torch.Tensor:
         return torch.from_numpy(array).to(self._device)
@@ -162,11 +162,11 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
     @abstractmethod
     def _call_impl(self, states: np.ndarray) -> Iterable:
         """The implementation of `__call__` method. Actual logic should be implemented under this method."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def _call_post_check(self, states: np.ndarray, ret: Iterable) -> bool:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def record(
@@ -183,7 +183,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         Since we may have multiple agents sharing this policy, the internal buffer / memory should use the agents'
         names to separate storage for these agents. The ``agent_id`` parameter serves this purpose.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_rollout_info(self) -> object:  # TODO: return type?
@@ -198,7 +198,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         side, this should return a data batch to be used by ``learn`` on the learning side. See the implementation of
         this function in ``ActorCritic`` for reference.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> object:  # TODO: return type?
@@ -211,7 +211,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
             batch (dict): Data batch to compute the policy improvement information for.
             explicit_grad (bool): If True, the gradients should be explicitly returned. Defaults to False.
         """
-        pass
+        raise NotImplementedError
 
     def data_parallel(self, *args, **kwargs) -> None:
         """"Initialize a proxy in the policy, for data-parallel training.
@@ -230,7 +230,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
 
     @abstractmethod
     def learn_with_data_parallel(self, batch: dict) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def update(self, loss_info_list: List[dict]) -> None:
@@ -248,7 +248,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
             loss_info_list (List[dict]): A list of dictionaries containing loss information (e.g., gradients) computed
                 by multiple sources.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def learn(self, batch: dict) -> None:
@@ -261,7 +261,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         Args:
             batch (dict): Training data to train the policy with.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def improve(self) -> None:
@@ -271,7 +271,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         roll-out and training. The policy should have some kind of internal buffer / memory to store roll-out data and
         use as the source of training data.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_state(self) -> object:
@@ -281,7 +281,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         is contained in the policy, ``get_state`` may include a call to ``state_dict()`` on the model, while
         ``set_state`` should accordingly include ``load_state_dict()``.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def set_state(self, policy_state: object) -> None:
@@ -291,17 +291,17 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         is contained in the policy, ``set_state`` may include a call to ``load_state_dict()`` on the model, while
         ``get_state`` should accordingly include ``state_dict()``.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def load(self, path: str) -> None:
         """Load the policy state from disk."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def save(self, path: str) -> None:
         """Save the policy state to disk."""
-        pass
+        raise NotImplementedError
 
 
 class SingleRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
@@ -349,7 +349,7 @@ class SingleRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_action_dim(self) -> int:
-        pass
+        raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
         assert self._shape_check(states=states, actions=None)
@@ -359,7 +359,7 @@ class SingleRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_actions_impl(self, states: np.ndarray) -> np.ndarray:
-        pass
+        raise NotImplementedError
 
 
 class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
@@ -394,6 +394,12 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
         """
         super(MultiRLPolicy, self).__init__(name=name, device=device)
 
+    def __call__(self, states: List[np.ndarray], agent_ids: List[int]):
+        #assert self._shape_check(states=states, actions=None)
+        ret = self._call_impl(states, agent_ids)
+        #assert self._call_post_check(states=states, ret=ret)
+        return ret
+
     def _shape_check(self, states: np.ndarray, actions: Union[None, List[np.ndarray]]) -> bool:
         if not (states.shape[0] > 0 and match_shape(states, (None, self.state_dim))):
             return False
@@ -411,17 +417,17 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
     def action_dims(self) -> List[int]:
         return self._get_action_dims()
 
-    @abstractmethod
+    #@abstractmethod
     def _get_action_dims(self) -> List[int]:
-        pass
+        raise NotImplementedError
 
     @property
     def agent_num(self) -> int:
         return self._get_agent_num()
 
-    @abstractmethod
+    #@abstractmethod
     def _get_agent_num(self) -> int:
-        pass
+        raise NotImplementedError
 
     def get_actions(self, states: Union[np.ndarray, List[np.ndarray]]) -> List[np.ndarray]:
         assert self._shape_check(states=states, actions=None)
@@ -429,6 +435,6 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
         assert self._shape_check(states=states, actions=actions)
         return actions
 
-    @abstractmethod
+    #@abstractmethod
     def _get_actions_impl(self, states: Union[np.ndarray, List[np.ndarray]]) -> List[np.ndarray]:
-        pass
+        raise NotImplementedError
