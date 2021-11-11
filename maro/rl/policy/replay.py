@@ -65,6 +65,7 @@ class ReplayMemory:
 
         if self._ptr + added <= self._capacity:
             indexes = np.arange(self._ptr, self._ptr + added)
+            self._ptr += added
         # follow the overwrite rule set at init
         else:
             overwrites = self._ptr + added - self._capacity
@@ -74,12 +75,17 @@ class ReplayMemory:
                 else np.arange(overwrites)
             ])
 
+            if self._random_overwrite:
+                self._ptr = self._capacity
+            else:
+                self._ptr = overwrites
+
         self.states[indexes] = states
         self.actions[indexes] = actions
         self.rewards[indexes] = rewards
         self.next_states[indexes] = next_states
 
-        self._ptr = min(self._ptr + added, self._capacity)
+        # self._ptr = min(self._ptr + added, self._capacity)
         return indexes
 
     def sample(self, size: int):

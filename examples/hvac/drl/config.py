@@ -7,8 +7,15 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 class Config(object):
     def __init__(self):
         self.num_episodes_to_run = 30
-        self.algorithm = "ddpg"  # ddpg, sac
+        self.algorithm = "sac"  # ddpg, sac
         self.experiment_name = f"{self.algorithm}_test"
+
+        self.seed = 1   # Used only if randomize_random_seed is False
+        self.randomize_random_seed = True
+
+        self.standard_deviation_results = 1.0
+
+        self.use_GPU = False
 
         # Currently the hyperparameters is for Actor_Critic_Agents only, e.g., ddpg, sac
         self.hyperparameters = {
@@ -52,20 +59,6 @@ class Config(object):
             "clip_rewards": False
         }
 
-        # Parameters that could kept the stable
-        self.seed = 1
-        self.randomise_random_seed = True
-
-        self.standard_deviation_results = 1.0
-
-        self.use_GPU = False
-
-        self.show_solution_score = False
-        self.visualise_overall_agent_results = True
-
-        self.overwrite_existing_results_file = True
-        self.save_model = True
-
         copy2(src=os.path.abspath(__file__), dst=self.log_dir)
 
     @property
@@ -79,15 +72,3 @@ class Config(object):
         log_dir = os.path.join(CURRENT_DIR, "logs", self.experiment_name)
         os.makedirs(log_dir, exist_ok=True)
         return log_dir
-
-    @property
-    def file_to_save_data_results(self):
-        return os.path.join(self.checkpoint_dir, "results_data.pkl")
-
-    @property
-    def file_to_save_model(self, ep=None):
-        return os.path.join(self.checkpoint_dir, "model.pk")
-
-    @property
-    def file_to_save_results_graph(self):
-        return os.path.join(self.log_dir, "results_graph.png")

@@ -4,14 +4,19 @@ import torch
 import numpy as np
 
 class Replay_Buffer(object):
-    """Replay buffer to store past experiences that the agent can then use for training data"""
+    """Replay buffer to store past experiences that the agent can then use for training data.
+        The data saved in the order: (state, action, reward, next_state, done).
+    """
 
-    def __init__(self, buffer_size, batch_size, seed, device=None):
+    def __init__(self, buffer_size, batch_size, device=None):
+        self.state = deque(maxlen=buffer_size)
+        self.action = deque(maxlen=buffer_size)
+        self.reward = deque(maxlen=buffer_size)
+        self.next_state = deque(maxlen=buffer_size)
+        self.done = deque(maxlen=buffer_size)
 
-        self.memory = deque(maxlen=buffer_size)
         self.batch_size = batch_size
-        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
-        self.seed = random.seed(seed)
+
         if device:
             self.device = torch.device(device)
         else:
@@ -20,38 +25,34 @@ class Replay_Buffer(object):
     def add_experience(self, states, actions, rewards, next_states, dones):
         """Adds experience(s) into the replay buffer"""
         if type(dones) == list:
-            assert type(dones[0]) != list, "A done shouldn't be a list"
-            experiences = [self.experience(state, action, reward, next_state, done)
-                           for state, action, reward, next_state, done in
-                           zip(states, actions, rewards, next_states, dones)]
-            self.memory.extend(experiences)
+            assert len(states) == len(actions) == len(rewards) == len(next_states) == len(dones)
+            self.state.extend(states)
+            self.action.extend(actions)
+            self.reward.extend(rewards)
+            self.next_state.extend(next_states)
+            self.done.extend([int(done) for done in dones])
         else:
-            experience = self.experience(states, actions, rewards, next_states, dones)
-            self.memory.append(experience)
+            self.state.append(states)
+            self.action.append(actions)
+            self.reward.append(rewards)
+            self.next_state.append(next_states)
+            self.done.append(int(dones))
 
-    def sample(self, num_experiences=None, separate_out_data_types=True):
+    def sample(self, num_experiences=None):
         """Draws a random sample of experience from the replay buffer"""
-        experiences = self.pick_experiences(num_experiences)
-        if separate_out_data_types:
-            states, actions, rewards, next_states, dones = self.separate_out_data_types(experiences)
-            return states, actions, rewards, next_states, dones
-        else:
-            return experiences
+        batch_size = num_experiences if num_experiences else self.batch_size
+        indexes = np.random.choice(len(self.done), size=batch_size, replace=False)
 
-    def separate_out_data_types(self, experiences):
-        """Puts the sampled experience into the correct format for a PyTorch neural network"""
-        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(self.device)
-        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(self.device)
-        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(self.device)
-        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(self.device)
-        dones = torch.from_numpy(np.vstack([int(e.done) for e in experiences if e is not None])).float().to(self.device)
+        def get_data(q):
+            return torch.from_numpy(np.vstack([q[i] for i in indexes])).float().to(self.device)
 
-        return states, actions, rewards, next_states, dones
-
-    def pick_experiences(self, num_experiences=None):
-        if num_experiences is not None: batch_size = num_experiences
-        else: batch_size = self.batch_size
-        return random.sample(self.memory, k=batch_size)
+        return (
+            get_data(self.state),
+            get_data(self.action),
+            get_data(self.reward),
+            get_data(self.next_state),
+            get_data(self.done)
+        )
 
     def __len__(self):
-        return len(self.memory)
+        return len(self.done)

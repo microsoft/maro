@@ -19,8 +19,7 @@ class DDPG(Base_Agent):
 
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(),
                                            lr=self.hyperparameters["Critic"]["learning_rate"], eps=1e-4)
-        self.memory = Replay_Buffer(self.hyperparameters["Critic"]["buffer_size"], self.hyperparameters["batch_size"],
-                                    self.config.seed)
+        self.memory = Replay_Buffer(self.hyperparameters["Critic"]["buffer_size"], self.hyperparameters["batch_size"])
         self.actor_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size, key_to_use="Actor")
         self.actor_target = self.create_NN(input_dim=self.state_size, output_dim=self.action_size, key_to_use="Actor")
         Base_Agent.copy_model_over(self.actor_local, self.actor_target)

@@ -34,7 +34,7 @@ class Base_Agent(object):
         self.device = "cuda:0" if config.use_GPU else "cpu"
         self.global_step_number = 0
         self.turn_off_exploration = False
-        self.model_path = config.file_to_save_model
+        self.model_path = os.path.join(config.checkpoint_dir, "model.pt")
         gym.logger.set_level(40)  # stops it from printing an unnecessary warning
 
     @abstractmethod
@@ -120,7 +120,7 @@ class Base_Agent(object):
             if len(self.game_full_episode_scores) > 0 and self.max_episode_score_seen == self.game_full_episode_scores[-1]:
                 self.save_local_critic()
         time_taken = time.time() - start
-        if self.config.save_model: self.locally_save_policy()
+        self.locally_save_policy()
         return self.game_full_episode_scores, self.rolling_results, time_taken
 
     def conduct_action(self, action):
