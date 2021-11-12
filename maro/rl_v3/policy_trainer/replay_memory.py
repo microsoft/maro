@@ -50,7 +50,7 @@ class RandomIndexScheduler(AbsIndexScheduler):
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
         assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
         assert self._size > 0, "Cannot sample from an empty memory."
-        return np.random.choice(self._size, size=batch_size, replace=batch_size > self._size)
+        return np.random.choice(self._size, size=batch_size, replace=True)
 
     def get_last_index(self) -> int:
         raise NotImplementedError

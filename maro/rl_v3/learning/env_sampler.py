@@ -309,6 +309,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             ))
 
         # Update next_agent_state_dict & terminal_dict by using the entire experience list
+        # TODO: Add detailed explanation for this logic block.
         latest_agent_state_dict = {}  # Used to update next_agent_state_dict
         have_log = set([])  # Used to update terminal_dict
         for i in range(len(experiences))[::-1]:
