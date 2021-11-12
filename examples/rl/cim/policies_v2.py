@@ -79,8 +79,6 @@ class MyACNet(DiscreteVActorCriticNet):
         loss.backward()
         self.actor_optim.step()
         self.critic_optim.step()
-        # a = []
-        # print(a[0])
 
     def get_gradients(self, loss: torch.tensor) -> torch.tensor:
         self.actor_optim.zero_grad()

@@ -420,12 +420,21 @@ class AbsEnvSampler(ABC):
         # get initial state
         _, event, _ = self.env.step(None)
         state = self.get_state(event)
-        while not terminal:
+        while True:
             action = self.agent_wrapper.choose_action(state)
             env_action = self.get_env_action(action, event)
+            for agent, state in state.items():
+                self._transition_cache[agent].append((state, action[agent], env_action, self.env.tick))
             _, event, terminal = self.env.step(list(env_action.values()))
-            if not terminal:
-                state = self.get_state(event)
+            if terminal:
+                break
+            state = self.get_state(event)
+
+        for agent, cache in self._transition_cache.items():
+            while cache:
+                state, action, env_action, tick = cache.popleft()
+                reward = self.get_reward(env_action, tick)
+                self.post_step(state, action, env_action, reward, tick)
 
         return self.tracker
 

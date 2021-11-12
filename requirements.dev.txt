@@ -2,6 +2,7 @@ Cython==0.29.14
 astroid==2.3.3
 certifi==2019.9.11
 cycler==0.10.0
+docker==5.0.3
 flask==1.1.2
 flask-cors==3.0.10
 guppy3==3.0.9

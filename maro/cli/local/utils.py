@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import json
+import docker
 import os
 import subprocess
 from copy import deepcopy
@@ -23,16 +23,11 @@ def start_redis(port: int):
 
 def start_redis_container(port: int, network: str = DEFAULT_DOCKER_NETWORK):
     # create the exclusive network for containerized job management
-    subprocess.run(["docker", "network", "create", network], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    subprocess.run(
-        [
-            "docker", "run", "-d",
-            "--network", network,
-            "--name", DEFAULT_REDIS_CONTAINER_NAME,
-            "-p", f"127.0.0.1:{port}:6379/tcp",
-            "redis"
-        ],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    client = docker.from_env()
+    client.networks.create(network, driver="bridge")
+    client.containers.run(
+        "redis", network=network, name=DEFAULT_REDIS_CONTAINER_NAME, detach=True,
+        ports={"6379/tcp": ("127.0.0.1", port)}
     )
 
 
@@ -41,16 +36,16 @@ def stop_redis(port: int):
 
 
 def stop_redis_container(network: str = DEFAULT_DOCKER_NETWORK, stop_redis_timeout: int = 5):
-    subprocess.run(
-        ["docker", "stop", "-t", str(stop_redis_timeout), DEFAULT_REDIS_CONTAINER_NAME],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    subprocess.run(["docker", "rm", DEFAULT_REDIS_CONTAINER_NAME], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    subprocess.run(["docker", "network", "rm", network], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    client = docker.from_env()
+    container = client.containers.get(DEFAULT_REDIS_CONTAINER_NAME)
+    container.stop(timeout=stop_redis_timeout)
+    container.remove()
+    network = client.networks.get(network)
+    network.remove()
 
 
-def extract_error_msg_from_docker_log(container):
-    logs = subprocess.run(["docker", "logs", container], stdout=subprocess.PIPE, encoding="utf8").stdout.splitlines()
+def extract_error_msg_from_docker_log(container: docker.models.containers.Container):
+    logs = container.logs().decode().splitlines()
     for i, log in enumerate(logs):
         if "Traceback (most recent call last):" in log:
             return "\n".join(logs[i:])
@@ -65,12 +60,9 @@ def check_proc_status(proc):
         _, err_out = proc.communicate()
         return False, proc.returncode, err_out
     else:
-        inspect = subprocess.run(
-            ["docker", "inspect", proc, "--format={{.State.Running}} {{.State.ExitCode}}"],
-            stdout=subprocess.PIPE, encoding="utf8"
-        )
-        is_running, exit_code = inspect.stdout.split()
-        return is_running == "true", int(exit_code), extract_error_msg_from_docker_log(proc)
+        client = docker.from_env()
+        container_state = client.api.inspect_container(proc.id)["State"]
+        return container_state["Running"], container_state["ExitCode"], extract_error_msg_from_docker_log(proc)
 
 
 def poll(procs):
@@ -86,7 +78,7 @@ def poll(procs):
     return error, err_out, running
 
 
-def term(procs, job_name, timeout: int = 3):
+def term(procs, job_name: str, timeout: int = 3):
     if isinstance(procs[0], subprocess.Popen):
         for proc in procs:
             if proc.poll() is None:
@@ -97,10 +89,12 @@ def term(procs, job_name, timeout: int = 3):
                     proc.kill()
     else:
         for proc in procs:
-            subprocess.run(["docker", "stop", "-t", str(timeout), proc], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            subprocess.run(["docker", "rm", proc], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if len(procs) > 1:
-            subprocess.run(["docker", "network", "rm", job_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc.stop(timeout=timeout)
+            proc.remove()
+
+        client = docker.from_env()
+        job_network = client.networks.get(job_name)
+        job_network.remove()
 
 
 def exec(cmd: str, env: dict, debug: bool = False):
@@ -109,17 +103,23 @@ def exec(cmd: str, env: dict, debug: bool = False):
 
 
 def image_exists():
-    check = subprocess.run(
-        ["docker", "image", "inspect", DEFAULT_DOCKER_IMAGE_NAME], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    return bool(json.loads(check.stdout))
+    try:
+        client = docker.from_env()
+        client.images.get(DEFAULT_DOCKER_IMAGE_NAME)
+        return True
+    except docker.errors.ImageNotFound:
+        return False
 
 
 def build_image():
-    subprocess.run(
-        ["docker", "build", "--tag", DEFAULT_DOCKER_IMAGE_NAME, "-f", DEFAULT_DOCKER_FILE_PATH, LOCAL_MARO_ROOT],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+    client = docker.from_env()
+    with open(DEFAULT_DOCKER_FILE_PATH, "r") as fp:
+        client.images.build(
+            fileobj=fp,
+            tag=DEFAULT_DOCKER_IMAGE_NAME,
+            rm=True,
+            custom_context=True,
+        )
 
 
 def get_proc_specs(config, redis_port: int):
@@ -139,9 +139,7 @@ def get_container_specs(config):
     return {
         component: (
             get_script_path(component, containerized=True),
-            format_env_vars(
-                {**env, "REDISHOST": DEFAULT_REDIS_CONTAINER_NAME, "REDISPORT": "6379"}, mode="docker"
-            )
+            {**env, "REDISHOST": DEFAULT_REDIS_CONTAINER_NAME, "REDISPORT": "6379"}
         )
         for component, env in get_rl_component_env_vars(config, containerized=True).items()
     }
@@ -186,33 +184,29 @@ def start_rl_job_in_background(config, redis_port: int):
 
 def start_rl_job_in_containers(config):
     job_name = config["job"]
-    containers = []
+    client, containers = docker.from_env(), []
     if config["mode"] != "single":
         # create the exclusive network for the job
-        subprocess.run(["docker", "network", "create", job_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        job_network = client.networks.create(job_name, driver="bridge")
 
     for component, (cmd, env) in get_container_specs(config).items():
         container_name = f"{job_name}.{component}"
-        run_container_cmd = ["docker", "run", "-it", "-d", "--name", container_name, *env]
-
         # volume mounts for scenario folder, policy loading, checkpointing and logging
-        for local_path, path_in_cntr in get_volume_mapping(config).items():
-            run_container_cmd.extend(["-v", f"{local_path}:{path_in_cntr}"])
+        container = client.containers.run(
+            DEFAULT_DOCKER_IMAGE_NAME,
+            command=f"python3 {cmd}",
+            detach=True,
+            name=container_name,
+            environment=env,
+            volumes=[f"{src}:{target}" for src, target in get_volume_mapping(config).items()],
+            network=DEFAULT_DOCKER_NETWORK if config["mode"] != "single" else None
+        )
 
-        # A docker network is needed for distributed mode
-        if config["mode"] != "single":
-            run_container_cmd.extend(["--network", DEFAULT_DOCKER_NETWORK])
-
-        run_container_cmd.extend([DEFAULT_DOCKER_IMAGE_NAME, "python3", cmd])
-        subprocess.run(run_container_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # if completed_process.returncode:
         #     raise ResourceAllocationFailed(completed_process.stderr)
         if config["mode"] != "single":
-            subprocess.run(
-                ["docker", "network", "connect", job_name, container_name],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-        containers.append(container_name)
+            job_network.connect(container)
+        containers.append(container)
 
     return containers
 
