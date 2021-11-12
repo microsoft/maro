@@ -5,7 +5,8 @@ import torch
 from maro.rl_v3.model import DiscretePolicyNet, DiscreteQNet, FullyConnected, VNet
 from maro.rl_v3.policy import DiscretePolicyGradient, ValueBasedPolicy
 from .config import (
-    actor_net_conf, actor_optim_conf, algorithm, critic_net_conf, critic_optim_conf, q_net_conf, q_net_optim_conf
+    actor_net_conf, actor_optim_conf, algorithm, critic_net_conf, critic_optim_conf, dqn_policy_conf, q_net_conf,
+    q_net_optim_conf
 )
 
 
@@ -119,7 +120,7 @@ class MyCriticNet(VNet):
 if algorithm == "dqn":
     get_policy_func_dict = {
         f"{algorithm}.{i}": lambda name: ValueBasedPolicy(
-            name=name, q_net=MyQNet(), device="cpu") for i in range(4)
+            name=name, q_net=MyQNet(), device="cpu", **dqn_policy_conf) for i in range(4)
     }
 elif algorithm == "ac":
     get_policy_func_dict = {

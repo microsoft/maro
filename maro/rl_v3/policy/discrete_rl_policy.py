@@ -1,12 +1,14 @@
 from abc import ABCMeta
-from typing import Dict, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 
+from maro.rl.exploration import epsilon_greedy
 from maro.rl_v3.model import DiscretePolicyNet, DiscreteQNet
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import match_shape
+from maro.utils import clone
 
 
 class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
@@ -43,7 +45,10 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         name: str,
         q_net: DiscreteQNet,
         device: str = None,
-        trainable: bool = True
+        trainable: bool = True,
+        exploration_strategy: Tuple[Callable, dict] = (epsilon_greedy, {"epsilon": 0.1}),
+        exploration_scheduling_options: List[tuple] = None,
+        warmup: int = 50000
     ) -> None:
         assert isinstance(q_net, DiscreteQNet)
 
@@ -51,6 +56,15 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, device=device, trainable=trainable
         )
         self._q_net = q_net
+
+        self._exploration_func = exploration_strategy[0]
+        self._exploration_params = clone(exploration_strategy[1])  # deep copy is needed to avoid unwanted sharing
+        self._exploration_schedulers = [
+            opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options
+        ]
+
+        self._call_cnt = 0
+        self._warmup = warmup
 
     @property
     def q_net(self) -> DiscreteQNet:
@@ -77,8 +91,8 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         assert match_shape(q_values, (states.shape[0],))  # [B]
         return q_values
 
-    def explore(self) -> None:
-        pass  # Overwrite the base method and turn off explore mode.
+    # def explore(self) -> None:
+    #     pass  # Overwrite the base method and turn off explore mode.
 
     def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
         return self.q_values(states, actions)
@@ -86,12 +100,17 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def _get_actions_with_logps_impl(
         self, states: torch.Tensor, exploring: bool, require_logps: bool
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        self._call_cnt += 1
+        if self._call_cnt <= self._warmup:
+            return self.ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1))), None
+
+        q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
+        _, actions = q_matrix.max(dim=1)  # [B], [B]
+
         if exploring:
-            raise NotImplementedError
-        else:
-            q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
-            logps, action = q_matrix.max(dim=1)  # [B], [B]
-            return action.unsqueeze(1), logps if require_logps else None  # [B, 1], [B]
+            actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, **self._exploration_params)
+            actions = self.ndarray_to_tensor(actions)
+        return actions.unsqueeze(1), None  # [B, 1], [B]
 
     def step(self, loss: torch.Tensor) -> None:
         self._q_net.step(loss)

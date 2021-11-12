@@ -41,7 +41,7 @@ state_dim = (
 
 # ############################################# POLICIES ###############################################
 
-algorithm = "ac"
+algorithm = "dqn"
 
 # DQN settings
 q_net_conf = {
@@ -56,14 +56,7 @@ q_net_conf = {
     "dropout_p": 0.0
 }
 
-q_net_optim_conf = (RMSprop, {"lr": 0.05})
-
-dqn_conf = {
-    "reward_discount": .0,
-    "update_target_every": 5,
-    "num_epochs": 10,
-    "soft_update_coef": 0.1,
-    "double": False,
+dqn_policy_conf = {
     "exploration_strategy": (epsilon_greedy, {"epsilon": 0.4}),
     "exploration_scheduling_options": [(
         "epsilon", MultiLinearExplorationScheduler, {
@@ -73,10 +66,20 @@ dqn_conf = {
             "final_value": 0.0,
         }
     )],
+    "warmup": 100
+}
+
+q_net_optim_conf = (RMSprop, {"lr": 0.05})
+
+dqn_conf = {
+    "reward_discount": .0,
+    "update_target_every": 5,
+    "num_epochs": 10,
+    "soft_update_coef": 0.1,
+    "double": False,
     "replay_memory_capacity": 10000,
     "random_overwrite": False,
-    "warmup": 100,
-    "rollout_batch_size": 128,
+    # "rollout_batch_size": 128,
     "train_batch_size": 32,
     # "prioritized_replay_kwargs": {
     #     "alpha": 0.6,

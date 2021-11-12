@@ -23,7 +23,8 @@ class DQN(SingleTrainer):
         reward_discount: float = 0.9,
         update_target_every: int = 5,
         soft_update_coef: float = 0.1,
-        double: bool = False
+        double: bool = False,
+        random_overwrite: bool = False
     ) -> None:
         super(DQN, self).__init__(name)
 
@@ -31,6 +32,7 @@ class DQN(SingleTrainer):
         self._target_policy: Optional[ValueBasedPolicy] = None
         self._replay_memory: Optional[RandomReplayMemory] = None  # Will be created in `register_policy`
         self._replay_memory_capacity = replay_memory_capacity
+        self._random_overwrite = random_overwrite
         if policy is not None:
             self.register_policy(policy)
 
@@ -43,15 +45,23 @@ class DQN(SingleTrainer):
         self._soft_update_coef = soft_update_coef
         self._double = double
 
+        self._loss_func = torch.nn.MSELoss()
+
     def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
         self._replay_memory.put(transition_batch)
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
+        from maro.utils import set_seeds
+        set_seeds(987)
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
     def train_step(self) -> None:
         for _ in range(self._num_epochs):
             self.improve(self._get_batch())
+        self._policy_ver += 1
+        if self._policy_ver - self._target_policy_ver == self._update_target_every:
+            self._target_policy.soft_update(self._policy, self._soft_update_coef)
+            self._target_policy_ver = self._policy_ver
 
     def improve(self, batch: TransitionBatch) -> None:
         self._policy.train()
@@ -63,22 +73,20 @@ class DQN(SingleTrainer):
 
         with torch.no_grad():
             if self._double:
-                actions_by_eval_policy = self._policy.get_actions_tensor(states)
+                self._policy.exploit()
+                actions_by_eval_policy = self._policy.get_actions_tensor(next_states)
                 next_q_values = self._target_policy.q_values_tensor(next_states, actions_by_eval_policy)
             else:
+                self._target_policy.exploit()
                 actions = self._target_policy.get_actions_tensor(next_states)
                 next_q_values = self._target_policy.q_values_tensor(next_states, actions)
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
 
         q_values = self._policy.q_values_tensor(states, actions)
         # td_errors = target_q_values - q_values
-        loss = torch.nn.MSELoss()(q_values, target_q_values)
+        loss = self._loss_func(q_values, target_q_values)
 
         self._policy.step(loss)
-        self._policy_ver += 1
-        if self._policy_ver - self._target_policy_ver == self._update_target_every:
-            self._target_policy.soft_update(self._policy, self._soft_update_coef)
-            self._target_policy_ver = self._policy_ver
 
     def register_policy(self, policy: ValueBasedPolicy) -> None:
         assert isinstance(policy, ValueBasedPolicy)
@@ -89,5 +97,5 @@ class DQN(SingleTrainer):
 
         self._replay_memory = RandomReplayMemory(
             capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
-            action_dim=policy.action_dim, random_overwrite=True
+            action_dim=policy.action_dim, random_overwrite=self._random_overwrite
         )

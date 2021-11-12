@@ -106,7 +106,7 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
 
     def _get_q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         q = self.q_values_for_all_actions(states)  # [B, action_num]
-        return q.gather(1, actions).reshape(-1)  # [B, action_num] + [B, 1] => [B]
+        return q.gather(1, actions.long()).reshape(-1)  # [B, action_num] + [B, 1] => [B]
 
     @abstractmethod
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
