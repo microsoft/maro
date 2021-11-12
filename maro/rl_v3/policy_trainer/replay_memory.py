@@ -304,10 +304,10 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             assert match_shape(transition_batch.terminals, (batch_size,))
 
             if self._enable_local_states:
-                assert transition_batch.local_states is not None
-                assert len(transition_batch.local_states) == self.agent_num
+                assert transition_batch.agent_states is not None
+                assert len(transition_batch.agent_states) == self.agent_num
                 for i in range(self.agent_num):
-                    assert match_shape(transition_batch.local_states[i], (batch_size, self._local_states_dims[i]))
+                    assert match_shape(transition_batch.agent_states[i], (batch_size, self._local_states_dims[i]))
 
             if transition_batch.next_states is not None:
                 assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
@@ -324,9 +324,9 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             self._actions[i][indexes] = transition_batch.actions[i]
             self._rewards[i][indexes] = transition_batch.rewards[i]
         self._terminals[indexes] = transition_batch.terminals
-        if transition_batch.local_states is not None:
+        if transition_batch.agent_states is not None:
             for i in range(self.agent_num):
-                self._local_states[i][indexes] = transition_batch.local_states[i]
+                self._local_states[i][indexes] = transition_batch.agent_states[i]
         if transition_batch.next_states is not None:
             self._next_states[indexes] = transition_batch.next_states
         if transition_batch.values is not None:

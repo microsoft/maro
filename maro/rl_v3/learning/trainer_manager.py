@@ -7,7 +7,8 @@ import numpy as np
 from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.policy_trainer import AbsTrainer, SingleTrainer
-from maro.rl_v3.utils import ActionWithAux, TransitionBatch
+from maro.rl_v3.policy_trainer.abs_trainer import MultiTrainer
+from maro.rl_v3.utils import ActionWithAux, MultiTransitionBatch, TransitionBatch
 
 
 class AbsTrainerManager(object, metaclass=ABCMeta):
@@ -92,11 +93,12 @@ class SimpleTrainerManager(AbsTrainerManager):
             self._dispatch_experience(exp_element)
 
     def _dispatch_experience(self, exp_element: ExpElement) -> None:
+        state = exp_element.global_state
         agent_state_dict = exp_element.agent_state_dict
         action_with_aux_dict = exp_element.action_with_aux_dict
         reward_dict = exp_element.reward_dict
         terminal_dict = exp_element.terminal_dict
-        next_global_state = exp_element.next_global_state
+        next_state = exp_element.next_global_state
         next_agent_state_dict = exp_element.next_agent_state_dict
 
         # Aggregate experiences by trainer
@@ -124,7 +126,7 @@ class SimpleTrainerManager(AbsTrainerManager):
                 agent_state: np.ndarray = exps[0][1]
                 action_with_aux: ActionWithAux = exps[0][2]
                 reward: float = exps[0][3]
-                next_state: np.ndarray = exps[0][4]
+                next_agent_state: np.ndarray = exps[0][4]
                 terminal: bool = exps[0][5]
 
                 batch = TransitionBatch(
@@ -133,10 +135,66 @@ class SimpleTrainerManager(AbsTrainerManager):
                     actions=np.expand_dims(action_with_aux.action, axis=0),
                     rewards=np.array([reward]),
                     terminals=np.array([terminal]),
-                    next_states=None if next_state is None else np.expand_dims(next_state, axis=0),
+                    next_states=None if next_agent_state is None else np.expand_dims(next_agent_state, axis=0),
                     values=None if action_with_aux.value is None else np.array([action_with_aux.value]),
                     logps=None if action_with_aux.logp is None else np.array([action_with_aux.logp]),
                 )
                 trainer.record(policy_name=policy_name, transition_batch=batch)
-            else:  # TODO: MultiLearner case. To be implemented.
-                pass
+            elif isinstance(trainer, MultiTrainer):
+                policy_names: List[str] = []
+                actions: List[np.ndarray] = []
+                rewards: List[np.ndarray] = []
+                terminals: List[bool] = []
+                agent_states: List[np.ndarray] = []
+                next_agent_states: List[np.ndarray] = []
+                values: List[np.ndarray] = []
+                logps: List[np.ndarray] = []
+
+                next_agent_states_flag = True
+                values_flag = True
+                logps_flag = True
+
+                for exp in exps:
+                    policy_name: str = exp[0]
+                    agent_state: np.ndarray = exp[1]
+                    action_with_aux: ActionWithAux = exp[2]
+                    reward: float = exp[3]
+                    next_agent_state: np.ndarray = exp[4]
+                    terminal: bool = exp[5]
+
+                    policy_names.append(policy_name)
+                    actions.append(np.expand_dims(action_with_aux.action, axis=0))
+                    rewards.append(np.array([reward]))
+                    terminals.append(terminal)
+                    agent_states.append(np.expand_dims(agent_state, axis=0))
+
+                    if not next_agent_states_flag or next_agent_state is None:
+                        next_agent_states_flag = False
+                    else:
+                        next_agent_states.append(np.expand_dims(next_agent_state, axis=0))
+
+                    if not values_flag or action_with_aux.value is None:
+                        values_flag = False
+                    else:
+                        values.append(np.array([action_with_aux.value]))
+
+                    if not logps_flag or action_with_aux.logp is None:
+                        logps_flag = False
+                    else:
+                        logps.append(np.array([action_with_aux.logp]))
+
+                batch = MultiTransitionBatch(
+                    policy_names=policy_names,
+                    states=np.expand_dims(state, axis=0),
+                    actions=actions,
+                    rewards=rewards,
+                    terminals=np.array(terminals),
+                    agent_states=agent_states,
+                    next_states=np.expand_dims(next_state, axis=0),
+                    next_agent_states=None if not next_agent_states_flag else next_agent_states,
+                    values=None if not values_flag else values,
+                    logps=None if not logps_flag else logps
+                )
+                trainer.record(batch)
+            else:
+                raise ValueError

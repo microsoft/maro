@@ -96,9 +96,11 @@ class DDPG(SingleTrainer):
             actions=self._policy.get_actions_tensor(states)  # miu(s)
         ).mean()  # -Q(s, miu(s))
 
-        # Update
-        self._policy.step(policy_loss)
+        # Update Q first, then freeze Q and update miu.
         self._q_critic_net.step(q_loss * 0.1)  # TODO
+        self._q_critic_net.freeze()
+        self._policy.step(policy_loss)
+        self._q_critic_net.unfreeze()
 
     def _update_target_policy(self) -> None:
         self._policy_ver += 1
