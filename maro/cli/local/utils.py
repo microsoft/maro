@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import docker
 import os
 import subprocess
 from copy import deepcopy
 
+import docker
 import yaml
 
 from maro.cli.local.meta import (
