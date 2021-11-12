@@ -103,7 +103,7 @@ class DiscreteActorCritic(SingleTrainer):
 
             # Update
             self._policy.step(actor_loss)
-            self._v_critic_net.step(critic_loss * 0.1)
+            self._v_critic_net.step(critic_loss * 0.1)  # TODO
     #
     # def improve_backup_version(self, batch: TransitionBatch) -> None:
     #     self._policy.train()
@@ -126,7 +126,7 @@ class DiscreteActorCritic(SingleTrainer):
     #         # Critic loss
     #         state_values = self._v_critic_net.v_values(states)  # [B], state values given by critic
     #         critic_loss = self._critic_loss_func(state_values, returns)
-    # 
+    #
     #         # Actor loss
     #         action_probs = self._policy.get_action_probs(states)
     #         logps = torch.log(action_probs.gather(1, actions).squeeze())  # [B]
