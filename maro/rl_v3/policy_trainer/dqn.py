@@ -30,7 +30,6 @@ class DQN(SingleTrainer):
 
         self._policy: Optional[ValueBasedPolicy] = None
         self._target_policy: Optional[ValueBasedPolicy] = None
-        self._replay_memory: Optional[RandomReplayMemory] = None  # Will be created in `register_policy`
         self._replay_memory_capacity = replay_memory_capacity
         self._random_overwrite = random_overwrite
         if policy is not None:
@@ -51,19 +50,17 @@ class DQN(SingleTrainer):
         self._replay_memory.put(transition_batch)
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
-        from maro.utils import set_seeds
-        set_seeds(987)
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
     def train_step(self) -> None:
         for _ in range(self._num_epochs):
-            self.improve(self._get_batch())
+            self._improve(self._get_batch())
         self._policy_ver += 1
         if self._policy_ver - self._target_policy_ver == self._update_target_every:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
             self._target_policy_ver = self._policy_ver
 
-    def improve(self, batch: TransitionBatch) -> None:
+    def _improve(self, batch: TransitionBatch) -> None:
         self._policy.train()
         states = self._policy.ndarray_to_tensor(batch.states)
         next_states = self._policy.ndarray_to_tensor(batch.next_states)

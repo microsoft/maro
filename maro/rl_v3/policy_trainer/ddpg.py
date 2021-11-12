@@ -32,7 +32,6 @@ class DDPG(SingleTrainer):
         self._target_q_critic_net: QNet = Optional[QNet]
         self._get_q_critic_net_func = get_q_critic_net_func
         self._replay_memory_capacity = replay_memory_capacity
-        self._replay_memory = Optional[RandomReplayMemory]
         self._random_overwrite = random_overwrite
         if policy is not None:
             self.register_policy(policy)
@@ -66,14 +65,10 @@ class DDPG(SingleTrainer):
 
     def train_step(self) -> None:
         for _ in range(self._num_epochs):
-            self.improve(self._get_batch())
-        self._policy_ver += 1
-        if self._policy_ver - self._target_policy_ver == self._update_target_every:
-            self._target_policy.soft_update(self._policy, self._soft_update_coef)
-            self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
-            self._target_policy_ver = self._policy_ver
+            self._improve(self._get_batch())
+            self._update_target_policy()
 
-    def improve(self, batch: TransitionBatch) -> None:
+    def _improve(self, batch: TransitionBatch) -> None:
         """
         Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
         """
@@ -104,3 +99,10 @@ class DDPG(SingleTrainer):
         # Update
         self._policy.step(policy_loss)
         self._q_critic_net.step(q_loss * 0.1)  # TODO
+
+    def _update_target_policy(self) -> None:
+        self._policy_ver += 1
+        if self._policy_ver - self._target_policy_ver == self._update_target_every:
+            self._target_policy.soft_update(self._policy, self._soft_update_coef)
+            self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
+            self._target_policy_ver = self._policy_ver

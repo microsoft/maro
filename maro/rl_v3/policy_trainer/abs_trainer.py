@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Optional
 
 from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.policy_trainer import ReplayMemory
 from maro.rl_v3.utils import TransitionBatch
 
 
@@ -51,6 +52,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def __init__(self, name: str) -> None:
         super(SingleTrainer, self).__init__(name)
         self._policy: Optional[RLPolicy] = None
+        self._replay_memory = Optional[ReplayMemory]
 
     def record(
         self,
@@ -69,12 +71,11 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
             transition_batch=transition_batch
         )
 
-    @abstractmethod
     def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
         """
         Implementation of `record`.
         """
-        raise NotImplementedError
+        self._replay_memory.put(transition_batch)
 
     @abstractmethod
     def register_policy(self, policy: RLPolicy) -> None:

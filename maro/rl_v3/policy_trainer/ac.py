@@ -35,7 +35,6 @@ class DiscreteActorCritic(SingleTrainer):
 
         self._get_v_net_func = get_v_critic_net_func
         self._policy: Optional[DiscretePolicyGradient] = None
-        self._replay_memory: Optional[FIFOReplayMemory] = None
         self._v_critic_net: Optional[VNet] = None
         if policy is not None:
             self.register_policy(policy)
@@ -65,9 +64,9 @@ class DiscreteActorCritic(SingleTrainer):
         self._v_critic_net = self._get_v_net_func()
 
     def train_step(self) -> None:
-        self.improve(self._get_batch())
+        self._improve(self._get_batch())
 
-    def improve(self, batch: TransitionBatch) -> None:
+    def _improve(self, batch: TransitionBatch) -> None:
         self._policy.train()
         self._v_critic_net.train()
 
