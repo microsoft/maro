@@ -115,8 +115,8 @@ class MyCentralizedCriticNet(DiscreteQCriticNetwork):
         self.fc = FullyConnected(**centralized_critic_net_conf)
         self.optim = centralized_critic_optim_conf[0](self.fc.parameters(), **centralized_critic_optim_conf[1])
 
-    def _get_q_critic_for_all_actions(self, state: torch.Tensor) -> torch.Tensor:
-        return self.fc(state)
+    def _get_q_critic_for_all_actions(self, state: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+        return self.fc(torch.cat([state, action], dim=1))
 
     def get_gradients(self, loss: torch.tensor) -> torch.tensor:
         self.optim.zero_grad()

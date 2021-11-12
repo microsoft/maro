@@ -126,8 +126,9 @@ ac_conf = {
 
 # MADDPG settings
 num_agents = 4  # TODO: obtain num_agents in another way
+action_dim = 1
 centralized_critic_net_conf = {
-    "input_dim": state_dim * num_agents,
+    "input_dim": state_dim * num_agents + action_dim * num_agents,
     "hidden_dims": [256, 128, 64],
     "output_dim": 1,
     "activation": torch.nn.LeakyReLU,

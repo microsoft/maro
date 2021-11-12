@@ -168,7 +168,7 @@ class SimplePolicyManager(AbsPolicyManager):
         """
         t0 = time.time()
         for policy_id, info in rollout_info.items():
-            if isinstance(info, list):
+            if isinstance(info, list) and "loss" in info[0]:
                 self._policy_dict[policy_id].update(info)
             elif self._data_parallel:
                 self._policy_dict[policy_id].learn_with_data_parallel(info)
@@ -196,7 +196,7 @@ class SimplePolicyManager(AbsPolicyManager):
         if self._data_parallel:
             self._proxy.ibroadcast("grad_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
             self._proxy.ibroadcast("task_queue", MsgTag.EXIT, SessionType.NOTIFICATION)
-        self._proxy.close()
+            self._proxy.close()
         self._logger.info("Exiting...")
 
 

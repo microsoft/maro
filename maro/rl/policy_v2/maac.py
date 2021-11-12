@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from collections import defaultdict
 from typing import Callable, Dict, Iterable, List, Tuple
 
 import numpy as np
@@ -72,13 +73,14 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         super(MultiDiscreteActorCritic, self).__init__(name=name, device=device)
 
         self._critic_net = critic_net
-        self._total_state_dim = self._critic_net.state_dim
-        self._shared_state_dim = shared_state_dim
-
         self._agent_nets = agent_nets
+        self._shared_state_dim = shared_state_dim
         self._num_sub_agents = len(self._agent_nets)
-        # for each agent, individual state = local state + shared state
         self._local_state_dims = [net.state_dim - self._shared_state_dim for net in self._agent_nets]
+        self._total_action_dim = sum([net.action_dim for net in self._agent_nets])
+        self._total_state_dim = self._critic_net.state_dim - self._total_action_dim
+
+        # for each agent, individual state = local state + shared state
         assert all(dim >= 0 for dim in self._local_state_dims)
         assert self._total_state_dim == sum(self._local_state_dims) + self._shared_state_dim
 
@@ -165,10 +167,10 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         Returns:
             global_state (np.ndarray): Global state with shape [batch_size, sum(local_state_dim) + shared_state_dim]
         """
-        shared_state = state_list[0][:, -self._shared_state_dim:]
+        shared_state = state_list[0][:, self._total_state_dim - self._shared_state_dim:]
         global_state_list = []
-        for state in state_list:
-            local_state = state[:, :-self._shared_state_dim]
+        for local_state_dim, state in zip(self._local_state_dims, state_list):
+            local_state = state[:, :local_state_dim - self._shared_state_dim]
             global_state_list.append(local_state)
         global_state_list.append(shared_state)
         return np.concatenate(global_state_list, axis=1)
@@ -268,7 +270,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         This is used in a distributed learning setting and the returned data will be sent to its parent instance
         on the learning side (serving as the source of the latest model parameters) for training.
         """
-        rollout_infos = [sub_agent_memory.sample(self.rollout_batch_size) for sub_agent_memory in self._replay_memory]
+        rollout_infos = [self._replay_memory[i].sample(self.rollout_batch_size) for i in range(self._num_sub_agents)]
         return rollout_infos
 
     def get_batch_loss(self, batch: List[Dict[str, np.ndarray]], explicit_grad: bool = False) -> dict:
@@ -291,8 +293,8 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         # batch formatting
         states = self._get_global_states([sub_batch["states"] for sub_batch in batch])
         next_states = self._get_global_states([sub_batch["next_states"] for sub_batch in batch])
-        rewards = np.concatenate([sub_batch["rewards"] for sub_batch in batch], axis=1).sum(axis=1)  # coorperative
-        terminals = np.all(np.concatenate([sub_batch["terminals"] for sub_batch in batch], axis=1), axis=1)
+        rewards = np.concatenate([sub_batch["rewards"].reshape(-1, 1) for sub_batch in batch], axis=1).sum(axis=1)  # coorperative
+        terminals = np.all(np.concatenate([sub_batch["terminals"].reshape(-1, 1) for sub_batch in batch], axis=1), axis=1)
 
         # type converting
         states = torch.from_numpy(states).to(self._device)  # [batch_size, total_state_dim]
@@ -304,9 +306,11 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
 
         # critic loss
         with torch.no_grad():
-            next_actions = [agent(torch.from_numpy(sub_batch["next_states"]).to(self._device))
+            next_actions = [agent.get_actions_and_logps(
+                                torch.from_numpy(sub_batch["next_states"]).to(self._device), self._exploring)[0]
                             for agent, sub_batch in zip(self._target_agent_nets, batch)]
-            next_q_values = self._get_values_by_states_and_actions(next_states, next_actions)
+            next_action_tensor = torch.stack(next_actions).T  # [batch_size, sub_agent_num]
+            next_q_values = self._target_critic_net.q_critic(states, next_action_tensor)
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()  # [batch_size]
         q_values = self._get_values_by_states_and_actions(states, actions)  # [batch_size]
         critic_loss = self._critic_loss_func(q_values, target_q_values)
