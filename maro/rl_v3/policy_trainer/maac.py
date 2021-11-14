@@ -2,19 +2,18 @@ from typing import Callable, List, Optional
 
 import torch
 
-from maro.rl_v3.model.multi_q_net import MultiQNet
+from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient, RLPolicy
-from maro.rl_v3.policy_trainer import RandomMultiReplayMemory
-from maro.rl_v3.policy_trainer.abs_trainer import MultiTrainer
+from maro.rl_v3.replay_memory import RandomMultiReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch
 from maro.utils import clone
+from .abs_trainer import MultiTrainer
 
 
 class DiscreteMultiActorCritic(MultiTrainer):
     def __init__(
         self,
         name: str,
-        state_dim: int,
         reward_discount: float,
         get_v_critic_net_func: Callable[[], MultiQNet],
         policies: List[RLPolicy] = None,
@@ -32,7 +31,6 @@ class DiscreteMultiActorCritic(MultiTrainer):
         self._q_critic_net: Optional[MultiQNet] = None
         self._target_q_critic_net: Optional[MultiQNet] = None
         self._replay_memory_capacity = replay_memory_capacity
-        self._state_dim = state_dim
         self._target_policies: Optional[List[DiscretePolicyGradient]] = None
         if policies is not None:
             self.register_policies(policies)
@@ -57,9 +55,14 @@ class DiscreteMultiActorCritic(MultiTrainer):
             policy.name: policy for policy in policies
         }
         self._q_critic_net = self._get_v_critic_net_func()
+
+        action_dims = [policy.action_dim for policy in policies]
+        state_dim = self._q_critic_net.state_dim - sum(action_dims)
         self._replay_memory = RandomMultiReplayMemory(
-            capacity=self._replay_memory_capacity, state_dim=self._state_dim,
-            action_dims=[policy.action_dim for policy in policies]
+            capacity=self._replay_memory_capacity,
+            state_dim=state_dim,
+            action_dims=action_dims,
+            local_states_dims=[policy.state_dim for policy in policies]
         )
 
         self._target_policies: List[DiscretePolicyGradient] = [clone(policy) for policy in self._policies]

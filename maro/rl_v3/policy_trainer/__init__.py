@@ -1,13 +1,14 @@
-from .abs_trainer import AbsTrainer, SingleTrainer
+from .abs_trainer import AbsTrainer, MultiTrainer, SingleTrainer
+from .ac import DiscreteActorCritic
+from .ddpg import DDPG
 from .dqn import DQN
-from .replay_memory import (
-    FIFOMultiReplayMemory, FIFOReplayMemory, MultiReplayMemory, MultiTransitionBatch,
-    RandomMultiReplayMemory, RandomReplayMemory, ReplayMemory, TransitionBatch
-)
+from .maac import DiscreteMultiActorCritic
+
 
 __all__ = [
-    "AbsTrainer", "SingleTrainer",
+    "AbsTrainer", "MultiTrainer", "SingleTrainer",
+    "DiscreteActorCritic",
+    "DDPG",
     "DQN",
-    "FIFOMultiReplayMemory", "FIFOReplayMemory", "MultiReplayMemory", "MultiTransitionBatch", "RandomMultiReplayMemory",
-    "RandomReplayMemory", "ReplayMemory", "TransitionBatch"
+    "DiscreteMultiActorCritic"
 ]

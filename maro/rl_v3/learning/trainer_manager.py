@@ -4,11 +4,10 @@ from typing import Callable, Dict, List
 
 import numpy as np
 
-from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.policy_trainer import AbsTrainer, SingleTrainer
-from maro.rl_v3.policy_trainer.abs_trainer import MultiTrainer
+from maro.rl_v3.policy_trainer import AbsTrainer, MultiTrainer, SingleTrainer
 from maro.rl_v3.utils import ActionWithAux, MultiTransitionBatch, TransitionBatch
+from .env_sampler import ExpElement
 
 
 class AbsTrainerManager(object, metaclass=ABCMeta):
@@ -75,11 +74,20 @@ class SimpleTrainerManager(AbsTrainerManager):
         self._agent2policy = agent2policy
         self._policy2trainer = policy2trainer
 
+        # register policies
+        trainer_policies = defaultdict(list)
         for policy_name, trainer_name in self._policy2trainer.items():
             policy = self._policy_dict[policy_name]
-            trainer = self._trainer_dict[trainer_name]
+            trainer_policies[trainer_name].append(policy)
+        for trainer_name, trainer in self._trainer_dict.items():
+            policies = trainer_policies[trainer_name]
             if isinstance(trainer, SingleTrainer):
-                trainer.register_policy(policy)  # Register policy in trainer.
+                assert len(policies) == 1
+                trainer.register_policy(policies[0])
+            elif isinstance(trainer, MultiTrainer):
+                trainer.register_policies(policies)
+            else:
+                raise ValueError
 
     def train(self) -> None:
         for trainer in self._trainers:

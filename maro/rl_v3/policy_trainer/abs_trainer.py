@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.policy_trainer import MultiReplayMemory, ReplayMemory
+from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
 

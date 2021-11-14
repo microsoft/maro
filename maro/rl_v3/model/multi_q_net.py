@@ -3,15 +3,15 @@ from typing import List, Optional
 
 import torch
 
-from maro.rl_v3.model import AbsNet
 from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
+from .abs_net import AbsNet
 
 
 class MultiQNet(AbsNet, metaclass=ABCMeta):
     """
     Net for multi-agent Q functions.
     """
-    def __init__(self, state_dim, action_dims: List[int]) -> None:
+    def __init__(self, state_dim: int, action_dims: List[int]) -> None:
         """
         Args:
             state_dim (int): Dimension of states

@@ -1,17 +1,10 @@
 import time
 from typing import Callable, List
 
-from config import algorithm
-from maro.rl_v3.learning import AbsEnvSampler, AbsTrainerManager, ExpElement, SimpleAgentWrapper, SimpleTrainerManager
-from maro.rl_v3.tmp_workflow.callbacks import cim_post_collect, cim_post_evaluate
-from maro.rl_v3.tmp_workflow.config import env_conf
-from maro.rl_v3.tmp_workflow.env_sampler import CIMEnvSampler
-from maro.rl_v3.tmp_workflow.policies import get_policy_func_dict
-from maro.rl_v3.tmp_workflow.trainers import get_trainer_func_dict, policy2trainer
-from maro.simulator import Env
+from maro.rl_v3.learning import AbsEnvSampler, AbsTrainerManager, ExpElement
 
 
-def main(
+def run_workflow(
     get_env_sampler_func: Callable[[], AbsEnvSampler],
     get_trainer_manager_func: Callable[[], AbsTrainerManager],
     num_episodes: int,
@@ -23,7 +16,9 @@ def main(
     trainer_manager = get_trainer_manager_func()
 
     for ep in range(1, num_episodes + 1):
-        print(f"\n========== Start of episode {ep} ==========")
+        if ep != 1:
+            print('\n')
+        print(f"========== Start of episode {ep} ==========")
         collect_time = policy_update_time = 0
         segment = 1
         end_of_episode = False
@@ -56,23 +51,4 @@ def main(
             #     post_evaluate([tracker], ep)
 
             segment += 1
-
-
-if __name__ == "__main__":
-    main(
-        get_env_sampler_func=lambda: CIMEnvSampler(
-            get_env_func=lambda: Env(**env_conf),
-            get_policy_func_dict=get_policy_func_dict,
-            agent2policy={agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list},
-            agent_wrapper_cls=SimpleAgentWrapper,
-        ),
-        get_trainer_manager_func=lambda: SimpleTrainerManager(
-            get_trainer_func_dict=get_trainer_func_dict,
-            get_policy_func_dict=get_policy_func_dict,
-            agent2policy={agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list},
-            policy2trainer=policy2trainer
-        ),
-        num_episodes=30,
-        post_collect=cim_post_collect,
-        post_evaluate=cim_post_evaluate
-    )
+        print(f"========== End of episode {ep} ==========")

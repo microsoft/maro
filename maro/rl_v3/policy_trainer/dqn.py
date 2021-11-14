@@ -3,10 +3,10 @@ from typing import Optional
 import torch
 
 from maro.rl_v3.policy import ValueBasedPolicy
+from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch
 from maro.utils import clone
 from .abs_trainer import SingleTrainer
-from .replay_memory import RandomReplayMemory
 
 
 class DQN(SingleTrainer):

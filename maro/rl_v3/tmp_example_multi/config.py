@@ -4,8 +4,6 @@
 import torch
 from torch.optim import Adam, RMSprop
 
-from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
-
 env_conf = {
     "scenario": "cim",
     "topology": "toy.4p_ssdd_l0.0",
@@ -41,54 +39,7 @@ state_dim = (
 
 # ############################################# POLICIES ###############################################
 
-algorithm = "dqn"
-
-# DQN settings
-q_net_conf = {
-    "input_dim": state_dim,
-    "hidden_dims": [256, 128, 64, 32],
-    "output_dim": len(action_shaping_conf["action_space"]),
-    "activation": torch.nn.LeakyReLU,
-    "softmax": False,
-    "batch_norm": True,
-    "skip_connection": False,
-    "head": True,
-    "dropout_p": 0.0
-}
-
-dqn_policy_conf = {
-    "exploration_strategy": (epsilon_greedy, {"epsilon": 0.4}),
-    "exploration_scheduling_options": [(
-        "epsilon", MultiLinearExplorationScheduler, {
-            "splits": [(2, 0.32)],
-            "initial_value": 0.4,
-            "last_ep": 5,
-            "final_value": 0.0,
-        }
-    )],
-    "warmup": 100
-}
-
-q_net_optim_conf = (RMSprop, {"lr": 0.05})
-
-dqn_conf = {
-    "reward_discount": .0,
-    "update_target_every": 5,
-    "num_epochs": 10,
-    "soft_update_coef": 0.1,
-    "double": False,
-    "replay_memory_capacity": 10000,
-    "random_overwrite": False,
-    # "rollout_batch_size": 128,
-    "train_batch_size": 32,
-    # "prioritized_replay_kwargs": {
-    #     "alpha": 0.6,
-    #     "beta": 0.4,
-    #     "beta_step": 0.001,
-    #     "max_priority": 1e8
-    # }
-}
-
+algorithm = "maac"
 
 # AC settings
 actor_net_conf = {
@@ -102,7 +53,7 @@ actor_net_conf = {
 }
 
 critic_net_conf = {
-    "input_dim": state_dim,
+    "input_dim": state_dim + 4,
     "hidden_dims": [256, 128, 64],
     "output_dim": 1,
     "activation": torch.nn.LeakyReLU,
@@ -116,10 +67,7 @@ critic_optim_conf = (RMSprop, {"lr": 0.001})
 
 ac_conf = {
     "reward_discount": .0,
-    "grad_iters": 10,
-    "critic_loss_cls": torch.nn.SmoothL1Loss,
-    "min_logp": None,
+    "num_epoch": 10
     # "entropy_coef": 0.01,
     # "clip_ratio": 0.8   # for PPO
-    "lam": .0
 }

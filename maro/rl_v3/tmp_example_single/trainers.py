@@ -1,7 +1,6 @@
-from maro.rl_v3.policy_trainer import DQN
+from maro.rl_v3.policy_trainer import DQN, DiscreteActorCritic
 from .config import ac_conf, algorithm, dqn_conf
 from .policies import MyCriticNet
-from ..policy_trainer.ac import DiscreteActorCritic
 
 if algorithm == "dqn":
     get_trainer_func_dict = {

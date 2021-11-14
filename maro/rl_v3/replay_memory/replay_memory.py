@@ -3,8 +3,7 @@ from typing import List
 
 import numpy as np
 
-from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch, match_shape
-from maro.rl_v3.utils.objects import SHAPE_CHECK_FLAG
+from maro.rl_v3.utils import MultiTransitionBatch, SHAPE_CHECK_FLAG, TransitionBatch, match_shape
 
 
 class AbsIndexScheduler(object, metaclass=ABCMeta):
@@ -295,7 +294,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         if SHAPE_CHECK_FLAG:
             assert 0 < batch_size <= self._capacity
             assert match_shape(transition_batch.states, (batch_size, self._state_dim))
-
             assert len(transition_batch.actions) == len(transition_batch.rewards) == self.agent_num
             for i in range(self.agent_num):
                 assert match_shape(transition_batch.actions[i], (batch_size, self.action_dims[i]))
@@ -312,9 +310,11 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             if transition_batch.next_states is not None:
                 assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
             if transition_batch.values is not None:
-                assert match_shape(transition_batch.values, (batch_size,))
+                for value in transition_batch.values:
+                    assert match_shape(value, (batch_size,))
             if transition_batch.logps is not None:
-                assert match_shape(transition_batch.logps, (batch_size,))
+                for logp in transition_batch.logps:
+                    assert match_shape(logp, (batch_size,))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
 
@@ -342,12 +342,12 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return MultiTransitionBatch(
-            policy_name='',
+            policy_names=[],
             states=self._states[indexes],
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],
             terminals=self._terminals[indexes],
-            local_states=[state[indexes] for state in self._local_states] if self._enable_local_states else None,
+            agent_states=[state[indexes] for state in self._local_states] if self._enable_local_states else None,
             next_states=self._next_states[indexes] if self._enable_next_states else None,
             values=self._values[indexes] if self._enable_values else None,
             logps=self._logps[indexes] if self._enable_logps else None

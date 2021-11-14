@@ -4,9 +4,10 @@ import torch
 
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
-from maro.rl_v3.policy_trainer import RandomReplayMemory, SingleTrainer
+from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch
 from maro.utils import clone
+from .abs_trainer import SingleTrainer
 
 
 class DDPG(SingleTrainer):

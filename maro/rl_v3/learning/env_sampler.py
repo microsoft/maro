@@ -315,7 +315,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         for i in range(len(experiences))[::-1]:
             # Update terminal_dict
             for agent_name in experiences[i].agent_state_dict:
-                experiences[i].terminal_dict[agent_name] = (self._global_state is None and agent_name not in have_log)
+                experiences[i].terminal_dict[agent_name] = (not self._agent_state_dict and agent_name not in have_log)
                 have_log.add(agent_name)
             # Update next_agent_state_dict
             for key, value in latest_agent_state_dict.items():

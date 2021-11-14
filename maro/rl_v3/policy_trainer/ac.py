@@ -4,11 +4,12 @@ import numpy as np
 import torch
 
 from maro.rl.utils import discount_cumsum
-from maro.rl_v3.model.v_net import VNet
+from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.policy_trainer import FIFOReplayMemory, SingleTrainer
+from maro.rl_v3.replay_memory import FIFOReplayMemory
 from maro.rl_v3.utils import TransitionBatch
 from maro.utils import clone
+from .abs_trainer import SingleTrainer
 
 
 class DiscreteActorCritic(SingleTrainer):

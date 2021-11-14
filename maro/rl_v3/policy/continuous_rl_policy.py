@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from maro.rl_v3.model import ContinuousPolicyNet
-from maro.rl_v3.policy import RLPolicy
+from .abs_policy import RLPolicy
 
 
 def _parse_action_range(
