@@ -1,13 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# import time
-# from os import makedirs
-# from os.path import dirname, join, realpath
-#
-# log_dir = join(dirname(realpath(__file__)), "log", str(time.time()))
-# makedirs(log_dir, exist_ok=True)
-
 
 def cim_post_collect(trackers, ep, segment):
     # print the env metric from each rollout worker

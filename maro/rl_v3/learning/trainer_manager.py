@@ -101,12 +101,12 @@ class SimpleTrainerManager(AbsTrainerManager):
             self._dispatch_experience(exp_element)
 
     def _dispatch_experience(self, exp_element: ExpElement) -> None:
-        state = exp_element.global_state
+        state = exp_element.state
         agent_state_dict = exp_element.agent_state_dict
         action_with_aux_dict = exp_element.action_with_aux_dict
         reward_dict = exp_element.reward_dict
         terminal_dict = exp_element.terminal_dict
-        next_state = exp_element.next_global_state
+        next_state = exp_element.next_state
         next_agent_state_dict = exp_element.next_agent_state_dict
 
         # Aggregate experiences by trainer

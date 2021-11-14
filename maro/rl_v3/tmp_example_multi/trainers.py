@@ -1,6 +1,6 @@
-from config import ac_conf, algorithm
 from maro.rl_v3.policy_trainer import DiscreteMultiActorCritic
-from policies import MyMultiCriticNet
+from .config import ac_conf, algorithm
+from .policies import MyMultiCriticNet
 
 if algorithm == "maac":
     get_trainer_func_dict = {

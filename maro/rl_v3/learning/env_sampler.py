@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Callable, Deque, Dict, Optional, Tuple, Type
+from typing import Callable, Deque, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 import torch
@@ -119,7 +119,7 @@ class CacheElement:
     The data structure used to store a cached value during experience collection.
     """
     tick: int
-    global_state: np.ndarray
+    state: np.ndarray
     agent_state_dict: Dict[str, np.ndarray]
     action_with_aux_dict: Dict[str, ActionWithAux]
     env_action_dict: Dict[str, object]
@@ -132,7 +132,7 @@ class ExpElement(CacheElement):
     """
     reward_dict: Dict[str, float]
     terminal_dict: Dict[str, bool]
-    next_global_state: np.ndarray = None
+    next_state: np.ndarray = None
     next_agent_state_dict: Dict[str, np.ndarray] = None
 
 
@@ -174,7 +174,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._agent2policy = agent2policy
 
         # Global state & agent state
-        self._global_state: Optional[np.ndarray] = None
+        self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[str, np.ndarray] = {}
 
         self._trans_cache: Deque[CacheElement] = deque()
@@ -249,7 +249,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self._env.reset()
             self._trans_cache.clear()
             _, event, _ = self._env.step(None)
-            self._global_state, self._agent_state_dict = self._get_global_and_agent_state(event)
+            self._state, self._agent_state_dict = self._get_global_and_agent_state(event)
         else:
             event = None
 
@@ -268,7 +268,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self._trans_cache.append(
                 CacheElement(
                     tick=self._env.tick,
-                    global_state=self._global_state,
+                    state=self._state,
                     agent_state_dict=dict(self._agent_state_dict),
                     action_with_aux_dict=action_with_aux_dict,
                     env_action_dict=env_action_dict
@@ -276,7 +276,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             )
             # Update env and get new states (global & agent)
             _, event, done = self._env.step(list(env_action_dict.values()))
-            self._global_state, self._agent_state_dict = (None, {}) if done \
+            self._state, self._agent_state_dict = (None, {}) if done \
                 else self._get_global_and_agent_state(event)
             steps_to_go -= 1
 
@@ -290,24 +290,33 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self._post_step(cache_element, reward_dict)
 
             if len(self._trans_cache) > 0:
-                next_global_state = self._trans_cache[0].global_state
+                next_state = self._trans_cache[0].state
                 next_agent_state_dict = dict(self._trans_cache[0].agent_state_dict)
             else:
-                next_global_state = self._global_state
+                next_state = self._state
                 next_agent_state_dict = dict(self._agent_state_dict)
 
             experiences.append(ExpElement(
                 tick=cache_element.tick,
-                global_state=cache_element.global_state,
+                state=cache_element.state,
                 agent_state_dict=cache_element.agent_state_dict,
                 action_with_aux_dict=cache_element.action_with_aux_dict,
                 env_action_dict=cache_element.env_action_dict,
                 reward_dict=reward_dict,
                 terminal_dict={},  # Will be processed later
-                next_global_state=next_global_state,
+                next_state=next_state,
                 next_agent_state_dict=next_agent_state_dict
             ))
 
+        experiences = self._post_polish_experiences(experiences)
+
+        return {
+            "end_of_episode": not self._agent_state_dict,
+            "experiences": experiences,
+            "tracker": self._tracker
+        }
+
+    def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
         # Update next_agent_state_dict & terminal_dict by using the entire experience list
         # TODO: Add detailed explanation for this logic block.
         latest_agent_state_dict = {}  # Used to update next_agent_state_dict
@@ -322,12 +331,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 if key not in experiences[i].next_agent_state_dict:
                     experiences[i].next_agent_state_dict[key] = value
             latest_agent_state_dict.update(experiences[i].next_agent_state_dict)
-
-        return {
-            "end_of_episode": not self._agent_state_dict,
-            "experiences": experiences,
-            "tracker": self._tracker
-        }
+        return experiences
 
     def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:
         self._agent_wrapper.set_policy_states(policy_state_dict)

@@ -2,14 +2,14 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from config import (
-    action_shaping_conf, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
-)
 from maro.rl_v3.learning import AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.rl_v3.utils import ActionWithAux
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
-from policies import get_policy_func_dict
+from .config import (
+    action_shaping_conf, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
+)
+from .policies import get_policy_func_dict
 
 
 class CIMEnvSampler(AbsEnvSampler):

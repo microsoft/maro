@@ -2,11 +2,10 @@ from typing import Dict, List
 
 import torch
 
-from config import (
+from .config import (
     actor_net_conf, actor_optim_conf, algorithm, critic_net_conf, critic_optim_conf
 )
-from maro.rl_v3.model import DiscretePolicyNet, FullyConnected
-from maro.rl_v3.model.multi_q_net import MultiQNet
+from maro.rl_v3.model import DiscretePolicyNet, FullyConnected, MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 
 
