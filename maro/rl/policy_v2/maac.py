@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-from collections import defaultdict
 from typing import Callable, Dict, Iterable, List, Tuple
 
 import numpy as np
 import torch
 
+from maro.rl.exploration import gaussian_noise
 from maro.rl.modeling_v2 import DiscretePolicyGradientNetwork
 from maro.rl.modeling_v2.critic_model import MultiDiscreteQCriticNetwork
 from maro.rl.policy_v2.policy_base import MultiRLPolicy
@@ -61,6 +61,8 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         critic_loss_cls: Callable = None,
         critic_loss_coef: float = 1.0,
         soft_update_coef: float = 1.0,
+        exploration_strategy: Tuple[Callable, dict] = (gaussian_noise, {"mean": .0, "stddev": 1.0, "relative": False}),
+        exploration_scheduling_options: List[tuple] = [],
         clip_ratio: float = None,
         lam: float = 0.9,
         replay_memory_capacity: int = 1000000,
@@ -70,6 +72,12 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         train_batch_size: int = 32,
         device: str = None
     ) -> None:
+        if any(opt[0] not in exploration_strategy[1] for opt in exploration_scheduling_options):
+            raise ValueError(
+                f"The first element of an exploration scheduling option must be one of "
+                f"{list(exploration_strategy[1].keys())}"
+            )
+
         super(MultiDiscreteActorCritic, self).__init__(name=name, device=device)
 
         self._critic_net = critic_net
@@ -108,24 +116,34 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         self._replay_memory = [ReplayMemory(
             replay_memory_capacity, self._local_state_dims[i], action_dim=1, random_overwrite=random_overwrite)
             for i in range(self._num_sub_agents)]
-        self._agent_id_to_idx = dict()
         self.warmup = warmup
         self.rollout_batch_size = rollout_batch_size
         self.train_batch_size = train_batch_size
 
+        self.exploration_func = exploration_strategy[0]
+        self._exploration_params = clone(exploration_strategy[1])
+        self.exploration_schedulers = [
+            opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options
+        ]
+
     def _get_action_nums(self) -> List[int]:
         return [net.action_num for net in self._agent_nets]
+
+    def _get_action_dims(self) -> List[int]:
+        return [net.action_dim for net in self._agent_nets]
 
     def _get_state_dim(self) -> int:
         return self._critic_net.state_dim
 
+    def _get_agent_num(self) -> int:
+        return self._num_sub_agents
+
     def _call_impl(self, states: List[np.ndarray], agent_ids: List[int]) -> Iterable:
-        actions, logps = self.get_actions_with_logps(states, agent_ids)
+        actions = self.get_actions(states, agent_ids)
         return [
             {
                 "action": action,  # [num_sub_agent]
-                "logp": logp,  # [num_sub_agent]
-            } for action, logp in zip(actions, logps)
+            } for action in actions
         ]
 
     def _get_state_list(self, input_states: np.ndarray) -> List[torch.Tensor]:
@@ -175,7 +193,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         global_state_list.append(shared_state)
         return np.concatenate(global_state_list, axis=1)
 
-    def get_actions_with_logps(self, input_states: List[np.ndarray], agent_ids: List[int]) -> Tuple[List, List]:
+    def _get_actions_impl(self, input_states: List[np.ndarray], agent_ids: List[int]) -> List[np.ndarray]:
         """
 
         Args:
@@ -191,44 +209,12 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
 
         with torch.no_grad():
             actions = []
-            logps = []
             for agent_id, state in zip(agent_ids, input_states):  # iterate `num_sub_agent` times
                 net = self._agent_nets[agent_id]
                 state = torch.from_numpy(state).unsqueeze(0).to(self._device)
-                action, logp = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
+                action, _ = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
                 actions.append(action)
-                logps.append(logp)
-        return actions, logps
-
-    def get_actions_with_logps_and_values(self, input_states: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-
-        Args:
-            input_states (np.ndarray): global state with shape [batch_size, total_state_dim]
-
-        Returns:
-            actions: [batch_size, num_sub_agent]
-            logps: [batch_size, num_sub_agent]
-            values: [batch_size]
-        """
-        for net in self._agent_nets:
-            net.eval()
-
-        state_list = self._get_state_list(input_states)
-        with torch.no_grad():
-            actions = []
-            logps = []
-            for net, state in zip(self._agent_nets, state_list):  # iterate `num_sub_agent` times
-                action, logp = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
-                actions.append(action)
-                logps.append(logp)
-            values = self._get_values_by_states_and_actions(torch.from_numpy(input_states).to(self._device), actions)
-
-        actions = np.stack([action.cpu().numpy() for action in actions], axis=1)  # [batch_size, num_sub_agent]
-        logps = np.stack([logp.cpu().numpy() for logp in logps], axis=1)  # [batch_size, num_sub_agent]
-        values = values.cpu().numpy()  # [batch_size]
-
-        return actions, logps, values
+        return actions
 
     def _get_values_by_states_and_actions(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
         """Get Q-values by all agents' states and actions.
@@ -247,16 +233,14 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         self, key: str, state: np.ndarray, action: dict, reward: float,
         next_state: np.ndarray, terminal: bool
     ) -> None:
-        """Record experience information of a single agent. The info would be saved by the key(agent ID).
+        """Record experience information of a single agent. The info would be saved by the key(agent index).
         """
         if next_state is None:
             next_state = np.zeros(state.shape, dtype=np.float32)
 
-        if key not in self._agent_id_to_idx:
-            self._agent_id_to_idx[key] = len(self._agent_id_to_idx)
-        idx = self._agent_id_to_idx[key]
+        agent_idx = int(key)
         action = action["action"]  # keys: action, logp
-        self._replay_memory[idx].put(
+        self._replay_memory[agent_idx].put(
             np.expand_dims(state, axis=0),
             np.expand_dims(action, axis=0),
             np.expand_dims(reward, axis=0),
@@ -270,7 +254,8 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         This is used in a distributed learning setting and the returned data will be sent to its parent instance
         on the learning side (serving as the source of the latest model parameters) for training.
         """
-        rollout_infos = [self._replay_memory[i].sample(self.rollout_batch_size) for i in range(self._num_sub_agents)]
+        indexes = np.random.choice(self._replay_memory[0].size, size=self.rollout_batch_size)
+        rollout_infos = [self._replay_memory[i].sample_index(indexes) for i in range(self._num_sub_agents)]
         return rollout_infos
 
     def get_batch_loss(self, batch: List[Dict[str, np.ndarray]], explicit_grad: bool = False) -> dict:
@@ -293,8 +278,10 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         # batch formatting
         states = self._get_global_states([sub_batch["states"] for sub_batch in batch])
         next_states = self._get_global_states([sub_batch["next_states"] for sub_batch in batch])
-        rewards = np.concatenate([sub_batch["rewards"].reshape(-1, 1) for sub_batch in batch], axis=1).sum(axis=1)  # coorperative
-        terminals = np.all(np.concatenate([sub_batch["terminals"].reshape(-1, 1) for sub_batch in batch], axis=1), axis=1)
+        # `sum` for coorperative
+        rewards = np.concatenate([sub_batch["rewards"].reshape(-1, 1) for sub_batch in batch], axis=1).sum(axis=1)
+        terminals = np.all(
+            np.concatenate([sub_batch["terminals"].reshape(-1, 1) for sub_batch in batch], axis=1), axis=1)
 
         # type converting
         states = torch.from_numpy(states).to(self._device)  # [batch_size, total_state_dim]
@@ -388,13 +375,11 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         self._target_net_version = self._critic_net_version
 
     def get_exploration_params(self):
-        #return clone(self._exploration_params)
-        # TODO
-        pass
+        return clone(self._exploration_params)
 
     def exploration_step(self):
-        #TODO
-        pass
+        for sch in self.exploration_schedulers:
+            sch.step()
 
     def get_state(self) -> object:
         return {

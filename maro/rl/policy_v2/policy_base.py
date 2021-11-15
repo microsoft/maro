@@ -395,20 +395,19 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
         super(MultiRLPolicy, self).__init__(name=name, device=device)
 
     def __call__(self, states: List[np.ndarray], agent_ids: List[int]):
-        #assert self._shape_check(states=states, actions=None)
+        assert self._shape_check(states=states, actions=None)
         ret = self._call_impl(states, agent_ids)
-        #assert self._call_post_check(states=states, ret=ret)
+        # assert self._call_post_check(states=states, ret=ret)  # TODO
         return ret
 
-    def _shape_check(self, states: np.ndarray, actions: Union[None, List[np.ndarray]]) -> bool:
-        if not (states.shape[0] > 0 and match_shape(states, (None, self.state_dim))):
-            return False
+    def _shape_check(self, states: List[np.ndarray], actions: Union[None, List[torch.Tensor]]) -> bool:
+        for state in states:
+            if not state.shape[0] > 0:
+                return False
 
         if actions is not None:
-            if len(actions) != self.agent_num:
-                return False
             for action, action_dim in zip(actions, self.action_dims):
-                if not match_shape(action, (states.shape[0], action_dim)):
+                if not match_shape(action, (action_dim, )):
                     return False
 
         return True
@@ -417,7 +416,7 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
     def action_dims(self) -> List[int]:
         return self._get_action_dims()
 
-    #@abstractmethod
+    @abstractmethod
     def _get_action_dims(self) -> List[int]:
         raise NotImplementedError
 
@@ -425,16 +424,16 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
     def agent_num(self) -> int:
         return self._get_agent_num()
 
-    #@abstractmethod
+    @abstractmethod
     def _get_agent_num(self) -> int:
         raise NotImplementedError
 
-    def get_actions(self, states: Union[np.ndarray, List[np.ndarray]]) -> List[np.ndarray]:
+    def get_actions(self, states: Union[np.ndarray, List[np.ndarray]], agent_ids: List[int]) -> List[np.ndarray]:
         assert self._shape_check(states=states, actions=None)
-        actions = self._get_actions_impl(states)
+        actions = self._get_actions_impl(states, agent_ids)
         assert self._shape_check(states=states, actions=actions)
         return actions
 
-    #@abstractmethod
+    @abstractmethod
     def _get_actions_impl(self, states: Union[np.ndarray, List[np.ndarray]]) -> List[np.ndarray]:
         raise NotImplementedError
