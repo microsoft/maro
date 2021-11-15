@@ -22,10 +22,11 @@ class DiscreteMultiActorCritic(MultiTrainer):
         update_target_every: int = 5,
         soft_update_coef: float = 1.0,
         train_batch_size: int = 32,
-        q_value_loss_cls: Callable = None
+        q_value_loss_cls: Callable = None,
+        device: str = None
 
     ) -> None:
-        super(DiscreteMultiActorCritic, self).__init__(name)
+        super(DiscreteMultiActorCritic, self).__init__(name, device)
 
         self._get_v_critic_net_func = get_v_critic_net_func
         self._q_critic_net: Optional[MultiQNet] = None
@@ -56,12 +57,10 @@ class DiscreteMultiActorCritic(MultiTrainer):
         }
         self._q_critic_net = self._get_v_critic_net_func()
 
-        action_dims = [policy.action_dim for policy in policies]
-        state_dim = self._q_critic_net.state_dim - sum(action_dims)
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._replay_memory_capacity,
-            state_dim=state_dim,
-            action_dims=action_dims,
+            state_dim=self._q_critic_net.state_dim,
+            action_dims=[policy.action_dim for policy in policies],
             local_states_dims=[policy.state_dim for policy in policies]
         )
 
@@ -103,39 +102,33 @@ class DiscreteMultiActorCritic(MultiTrainer):
                 actions=next_actions  # a'
             )  # Q'(x', a')
 
-        critic_losses = []
-        actor_losses = []
+        latest_actions = [
+            policy.get_actions_tensor(agent_state)
+            for policy, agent_state in zip(self._policies, agent_states)
+        ]
+        print(latest_actions[0].requires_grad)
+        print(1)
+
         for i in range(len(self._policies)):
+            # Update critic
             # y = r + gamma * (1 - d) * Q'
-            target_q_values = (rewards[i] + self._reward_discount * (1 - terminals) * next_q_values).detach()
+            target_q_values = (rewards[i] + self._reward_discount * (1 - terminals.float()) * next_q_values).detach()
             q_values = self._q_critic_net.q_values(
                 states=states,  # x
                 actions=actions  # a
             )  # Q(x, a)
+            critic_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(x, a), Q'(x', a'))
+            self._q_critic_net.step(critic_loss * 0.1)  # TODO
 
-            # Replace action for current agent
-            action_backup = actions[i]
-            actions[i] = self._policies[i].get_actions_tensor(agent_states[i])  # a = miu(o)
-
-            q_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(x, a), Q'(x', a'))
+            # Update actor
+            self._q_critic_net.freeze()
+            new_actions = [actions[j] if i != j else latest_actions[j] for j in range(len(self._policies))]
             policy_loss = -self._q_critic_net.q_values(
                 states=states,  # x
-                actions=actions  # [a^j_1, ..., a_i, ..., a^j_N]
-            )  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
-
-            actor_losses.append(policy_loss)
-            critic_losses.append(q_loss)
-
-            # Restore old action
-            actions[i] = action_backup
-
-        # Update Q first, then freeze Q and update miu.
-        for q_loss in critic_losses:
-            self._q_critic_net.step(q_loss * 0.1)  # TODO
-        self._q_critic_net.freeze()
-        for policy, actor_loss in zip(self._policies, actor_losses):
-            policy.step(actor_loss)
-        self._q_critic_net.unfreeze()
+                actions=new_actions  # [a^j_1, ..., a_i, ..., a^j_N]
+            ).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
+            self._policies[i].step(policy_loss)
+            self._q_critic_net.unfreeze()
 
     def _update_target_policy(self) -> None:
         self._policy_ver += 1

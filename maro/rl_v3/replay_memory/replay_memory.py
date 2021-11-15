@@ -278,8 +278,10 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
 
         self._next_states = None if not self._enable_next_states \
             else np.zeros((self._capacity, self._state_dim), dtype=np.float32)
-        self._values = None if not self._enable_values else np.zeros(self._capacity, dtype=np.float32)
-        self._logps = None if not self._enable_logps else np.zeros(self._capacity, dtype=np.float32)
+        self._values = None if not self._enable_values \
+            else [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
+        self._logps = None if not self._enable_logps \
+            else [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
 
     @property
     def action_dims(self) -> List[int]:
@@ -330,9 +332,11 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         if transition_batch.next_states is not None:
             self._next_states[indexes] = transition_batch.next_states
         if transition_batch.values is not None:
-            self._values[indexes] = transition_batch.values
+            for i in range(self.agent_num):
+                self._values[i][indexes] = transition_batch.values[i]
         if transition_batch.logps is not None:
-            self._logps[indexes] = transition_batch.logps
+            for i in range(self.agent_num):
+                self._logps[i][indexes] = transition_batch.logps[i]
 
     def sample(self, batch_size: int = None) -> MultiTransitionBatch:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
@@ -349,8 +353,8 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             terminals=self._terminals[indexes],
             agent_states=[state[indexes] for state in self._local_states] if self._enable_local_states else None,
             next_states=self._next_states[indexes] if self._enable_next_states else None,
-            values=self._values[indexes] if self._enable_values else None,
-            logps=self._logps[indexes] if self._enable_logps else None
+            values=[value[indexes] for value in self._values] if self._enable_values else None,
+            logps=[logp[indexes] for logp in self._logps] if self._enable_logps else None
         )
 
     @abstractmethod

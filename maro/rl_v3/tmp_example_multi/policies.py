@@ -3,7 +3,7 @@ from typing import Dict, List
 import torch
 
 from .config import (
-    actor_net_conf, actor_optim_conf, algorithm, critic_net_conf, critic_optim_conf
+    actor_net_conf, actor_optim_conf, algorithm, critic_conf, critic_net_conf, critic_optim_conf
 )
 from maro.rl_v3.model import DiscretePolicyNet, FullyConnected, MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
@@ -48,8 +48,8 @@ class MyActorNet(DiscretePolicyNet):
 class MyMultiCriticNet(MultiQNet):
     def __init__(self) -> None:
         super(MyMultiCriticNet, self).__init__(
-            state_dim=critic_net_conf["input_dim"],
-            action_dims=[actor_net_conf["output_dim"]] * 4
+            state_dim=critic_conf["state_dim"],
+            action_dims=critic_conf["action_dims"]
         )
         self._critic = FullyConnected(**critic_net_conf)
         self._critic_optim = critic_optim_conf[0](self._critic.parameters(), **critic_optim_conf[1])

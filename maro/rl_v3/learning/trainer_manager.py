@@ -198,7 +198,7 @@ class SimpleTrainerManager(AbsTrainerManager):
                     rewards=rewards,
                     terminals=np.array(terminals),
                     agent_states=agent_states,
-                    next_states=np.expand_dims(next_state, axis=0),
+                    next_states=np.expand_dims(next_state, axis=0) if next_state is not None else None,
                     next_agent_states=None if not next_agent_states_flag else next_agent_states,
                     values=None if not values_flag else values,
                     logps=None if not logps_flag else logps

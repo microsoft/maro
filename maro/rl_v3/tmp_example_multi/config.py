@@ -52,8 +52,13 @@ actor_net_conf = {
     "head": True
 }
 
+critic_conf = {
+    "state_dim": state_dim,
+    "action_dims": [1]
+}
+
 critic_net_conf = {
-    "input_dim": state_dim + 4,
+    "input_dim": critic_conf["state_dim"] + sum(critic_conf["action_dims"]),
     "hidden_dims": [256, 128, 64],
     "output_dim": 1,
     "activation": torch.nn.LeakyReLU,
