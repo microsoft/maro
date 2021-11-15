@@ -40,6 +40,7 @@ state_dim = (
 # ############################################# POLICIES ###############################################
 
 algorithm = "maac"
+running_mode = "centralized"
 
 # AC settings
 actor_net_conf = {

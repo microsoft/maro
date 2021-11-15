@@ -23,6 +23,8 @@ class AbsPolicy(object, metaclass=ABCMeta):
         """
         super(AbsPolicy, self).__init__()
 
+        print(f"Creating policy {self.__class__.__name__} {name}")
+
         self._name = name
         self._trainable = trainable
 

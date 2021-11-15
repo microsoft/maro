@@ -4,16 +4,19 @@ from typing import Callable, List
 from maro.rl_v3.learning import AbsEnvSampler, AbsTrainerManager, ExpElement
 
 
-def run_workflow(
+def run_workflow_centralized_mode(
     get_env_sampler_func: Callable[[], AbsEnvSampler],
     get_trainer_manager_func: Callable[[], AbsTrainerManager],
     num_episodes: int,
     num_steps: int = -1,
     post_collect: Callable[[List[dict], int, int], None] = None,
-    post_evaluate: Callable[[List[dict], int], None] = None
+    post_evaluate: Callable[[List[dict], int], None] = None,
+    running_mode: str = "decentralized"
 ):
     env_sampler = get_env_sampler_func()
     trainer_manager = get_trainer_manager_func()
+
+    assert running_mode in ("centralized", "decentralized")
 
     for ep in range(1, num_episodes + 1):
         if ep != 1:
@@ -45,7 +48,9 @@ def run_workflow(
             for v in trainer_policy_states.values():
                 policy_states.update(v)
 
-            env_sampler.set_policy_states(policy_states)
+            if running_mode == "decentralized":
+                env_sampler.set_policy_states(policy_states)
+
             # tracker = env_sampler.test(policy_state_dict=policy_states)
             # if post_evaluate:
             #     post_evaluate([tracker], ep)

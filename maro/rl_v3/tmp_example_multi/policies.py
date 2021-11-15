@@ -2,11 +2,11 @@ from typing import Dict, List
 
 import torch
 
-from .config import (
-    actor_net_conf, actor_optim_conf, algorithm, critic_conf, critic_net_conf, critic_optim_conf
-)
 from maro.rl_v3.model import DiscretePolicyNet, FullyConnected, MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
+from .config import (
+    actor_net_conf, actor_optim_conf, algorithm, critic_conf, critic_net_conf, critic_optim_conf, running_mode
+)
 
 
 class MyActorNet(DiscretePolicyNet):
@@ -86,9 +86,20 @@ class MyMultiCriticNet(MultiQNet):
 
 # ###############################################################################
 if algorithm == "maac":
-    get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
-            name=name, policy_net=MyActorNet(), device="cpu") for i in range(4)
-    }
+    if running_mode == "centralized":
+        policies = {
+            f"{algorithm}.{i}": DiscretePolicyGradient(
+                name=f"{algorithm}.{i}", policy_net=MyActorNet(), device="cpu") for i in range(4)
+        }
+        get_policy_func_dict = {
+            f"{algorithm}.{i}": lambda name: policies[name] for i in range(4)
+        }
+    elif running_mode == "decentralized":
+        get_policy_func_dict = {
+            f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
+                name=name, policy_net=MyActorNet(), device="cpu") for i in range(4)
+        }
+    else:
+        raise ValueError
 else:
     raise ValueError

@@ -42,6 +42,7 @@ state_dim = (
 # ############################################# POLICIES ###############################################
 
 algorithm = "ac"
+running_mode = "centralized"
 
 # DQN settings
 q_net_conf = {

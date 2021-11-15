@@ -16,6 +16,8 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def __init__(self, name: str) -> None:
         self._name = name
 
+        print(f"Creating trainer {self.__class__.__name__} {name}")
+
     @property
     def name(self) -> str:
         return self._name

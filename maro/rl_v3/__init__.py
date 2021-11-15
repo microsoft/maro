@@ -1,3 +1,3 @@
-from .workflow import run_workflow
+from .workflow import run_workflow_centralized_mode
 
-__all__ = ["run_workflow"]
+__all__ = ["run_workflow_centralized_mode"]

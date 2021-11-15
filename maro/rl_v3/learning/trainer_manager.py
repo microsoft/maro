@@ -17,11 +17,19 @@ class AbsTrainerManager(object, metaclass=ABCMeta):
     def __init__(self) -> None:
         super(AbsTrainerManager, self).__init__()
 
-    @abstractmethod
     def train(self) -> None:
         """
         Run a new round of training.
         """
+        self.explore()
+        self._train_impl()
+
+    @abstractmethod
+    def _train_impl(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def explore(self) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -89,9 +97,13 @@ class SimpleTrainerManager(AbsTrainerManager):
             else:
                 raise ValueError
 
-    def train(self) -> None:
+    def _train_impl(self) -> None:
         for trainer in self._trainers:
             trainer.train_step()
+
+    def explore(self) -> None:
+        for policy in self._policy_dict.values():
+            policy.explore()
 
     def get_policy_states(self) -> Dict[str, Dict[str, object]]:
         return {trainer.name: trainer.get_policy_state_dict() for trainer in self._trainers}

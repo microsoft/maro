@@ -6,7 +6,7 @@ from maro.rl_v3.model import DiscretePolicyNet, DiscreteQNet, FullyConnected, VN
 from maro.rl_v3.policy import DiscretePolicyGradient, ValueBasedPolicy
 from .config import (
     actor_net_conf, actor_optim_conf, algorithm, critic_net_conf, critic_optim_conf, dqn_policy_conf, q_net_conf,
-    q_net_optim_conf
+    q_net_optim_conf, running_mode
 )
 
 
@@ -118,14 +118,36 @@ class MyCriticNet(VNet):
 
 # ###############################################################################
 if algorithm == "dqn":
-    get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: ValueBasedPolicy(
-            name=name, q_net=MyQNet(), device="cpu", **dqn_policy_conf) for i in range(4)
-    }
+    if running_mode == "centralized":
+        policies = {
+            f"{algorithm}.{i}": ValueBasedPolicy(
+                name=f"{algorithm}.{i}", q_net=MyQNet(), device="cpu", **dqn_policy_conf) for i in range(4)
+        }
+        get_policy_func_dict = {
+            f"{algorithm}.{i}": lambda name: policies[name] for i in range(4)
+        }
+    elif running_mode == "decentralized":
+        get_policy_func_dict = {
+            f"{algorithm}.{i}": lambda name: ValueBasedPolicy(
+                name=name, q_net=MyQNet(), device="cpu", **dqn_policy_conf) for i in range(4)
+        }
+    else:
+        raise ValueError
 elif algorithm == "ac":
-    get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
-            name=name, policy_net=MyActorNet(), device="cpu") for i in range(4)
-    }
+    if running_mode == "centralized":
+        policies = {
+            f"{algorithm}.{i}": DiscretePolicyGradient(
+                name=f"{algorithm}.{i}", policy_net=MyActorNet(), device="cpu") for i in range(4)
+        }
+        get_policy_func_dict = {
+            f"{algorithm}.{i}": lambda name: policies[name] for i in range(4)
+        }
+    elif running_mode == "decentralized":
+        get_policy_func_dict = {
+            f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
+                name=name, policy_net=MyActorNet(), device="cpu") for i in range(4)
+        }
+    else:
+        raise ValueError
 else:
     raise ValueError
