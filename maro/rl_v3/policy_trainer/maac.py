@@ -102,12 +102,15 @@ class DiscreteMultiActorCritic(MultiTrainer):
                 actions=next_actions  # a'
             )  # Q'(x', a')
 
-        latest_actions = [
-            policy.get_actions_tensor(agent_state)
-            for policy, agent_state in zip(self._policies, agent_states)
-        ]
-        print(latest_actions[0].requires_grad)
-        print(1)
+        latest_actions = []
+        latest_action_logps = []
+        for policy, agent_state in zip(self._policies, agent_states):
+            assert isinstance(policy, DiscretePolicyGradient)
+            latest_actions.append(policy.get_actions_tensor(agent_state))  # a = miu(o)
+            latest_action_logps.append(policy.get_state_action_logps(
+                agent_state,  # o
+                latest_actions[-1]  # a
+            ))  # log pi(a|o)
 
         for i in range(len(self._policies)):
             # Update critic
@@ -122,12 +125,17 @@ class DiscreteMultiActorCritic(MultiTrainer):
 
             # Update actor
             self._q_critic_net.freeze()
-            new_actions = [actions[j] if i != j else latest_actions[j] for j in range(len(self._policies))]
-            policy_loss = -self._q_critic_net.q_values(
+            # new_actions = [actions[j] if i != j else latest_actions[j] for j in range(len(self._policies))]
+
+            action_backup = actions[i]
+            actions[i] = latest_actions[i]  # Replace latest action
+            policy_loss = -(self._q_critic_net.q_values(
                 states=states,  # x
-                actions=new_actions  # [a^j_1, ..., a_i, ..., a^j_N]
-            ).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
+                actions=actions  # [a^j_1, ..., a_i, ..., a^j_N]
+            ) * latest_action_logps[i]).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
             self._policies[i].step(policy_loss)
+
+            actions[i] = action_backup  # Restore original action
             self._q_critic_net.unfreeze()
 
     def _update_target_policy(self) -> None:

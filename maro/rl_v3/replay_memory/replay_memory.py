@@ -227,6 +227,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._actions = [np.zeros((self._capacity, action_dim), dtype=np.float32) for action_dim in self._action_dims]
         self._rewards = [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
+        self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._terminals = np.zeros(self._capacity, dtype=np.bool)
 
         assert len(agent_states_dims) == self.agent_num
@@ -234,8 +235,9 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._agent_states = [
             np.zeros((self._capacity, state_dim), dtype=np.float32) for state_dim in self._agent_states_dims
         ]
-
-        self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
+        self._next_agent_states = [
+            np.zeros((self._capacity, state_dim), dtype=np.float32) for state_dim in self._agent_states_dims
+        ]
 
     @property
     def action_dims(self) -> List[int]:
@@ -256,11 +258,13 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
                 assert match_shape(transition_batch.rewards[i], (batch_size,))
 
             assert match_shape(transition_batch.terminals, (batch_size,))
+            assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
 
             assert len(transition_batch.agent_states) == self.agent_num
+            assert len(transition_batch.next_agent_states) == self.agent_num
             for i in range(self.agent_num):
                 assert match_shape(transition_batch.agent_states[i], (batch_size, self._agent_states_dims[i]))
-            assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
+                assert match_shape(transition_batch.next_agent_states[i], (batch_size, self._agent_states_dims[i]))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
 
@@ -270,11 +274,11 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             self._actions[i][indexes] = transition_batch.actions[i]
             self._rewards[i][indexes] = transition_batch.rewards[i]
         self._terminals[indexes] = transition_batch.terminals
-        if transition_batch.agent_states is not None:
-            for i in range(self.agent_num):
-                self._agent_states[i][indexes] = transition_batch.agent_states[i]
-        if transition_batch.next_states is not None:
-            self._next_states[indexes] = transition_batch.next_states
+
+        self._next_states[indexes] = transition_batch.next_states
+        for i in range(self.agent_num):
+            self._agent_states[i][indexes] = transition_batch.agent_states[i]
+            self._next_agent_states[i][indexes] = transition_batch.next_agent_states[i]
 
     def sample(self, batch_size: int = None) -> MultiTransitionBatch:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
@@ -289,8 +293,9 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],
             terminals=self._terminals[indexes],
+            next_states=self._next_states[indexes],
             agent_states=[state[indexes] for state in self._agent_states],
-            next_states=self._next_states[indexes]
+            next_agent_states=[state[indexes] for state in self._next_agent_states]
         )
 
     @abstractmethod
