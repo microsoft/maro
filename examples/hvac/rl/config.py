@@ -8,7 +8,7 @@ import torch
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-algorithm = "ddpg"
+algorithm = "sac"
 experiment_name = f"{algorithm}_test"
 
 env_config = {
@@ -25,7 +25,7 @@ training_config = {
     "model_path": "/home/Jinyu/maro/examples/hvac/rl/checkpoints/2021-11-03 04:32:29 ddpg_rewrite_V2_env_positive/ddpg_49",
     # Train
     "load_model": False,
-    "num_episodes": 200,
+    "num_episodes": 30,
     "evaluate_interval": 10,
     "checkpoint_path": os.path.join(CURRENT_DIR, "checkpoints"),
     "log_path": os.path.join(CURRENT_DIR, "logs"),
@@ -39,7 +39,7 @@ state_config = {
 
 reward_config = {
     # Bonsai
-    "type": "Bonsai",  # Bonsai, V2, V3, V4, V5
+    "type": "V3",  # Bonsai, V2, V3, V4, V5
     # V2
     "V2_efficiency_factor": 10,
     "V2_das_diff_factor": -2,
@@ -59,8 +59,8 @@ reward_config = {
 
 state_dim = len(state_config["attributes"])
 action_dim = 2
-action_lower_bound = [0.6, 53]
-action_upper_bound = [1.1, 65]
+action_lower_bound = [0.6, 45]
+action_upper_bound = [1.1, 60]
 
 ############################################## POLICIES ###############################################
 
@@ -117,8 +117,7 @@ sac_policy_net_config = {
     "dropout_p": 0.0
 }
 
-
-sac_policy_net_optim_config = (torch.optim.Adam, {"lr": 0.001})
+sac_policy_net_optim_config = (torch.optim.Adam, {"lr": 0.0003})
 
 sac_q_net_config = {
     "input_dim": state_dim + action_dim,
@@ -129,19 +128,19 @@ sac_q_net_config = {
     "batch_norm": False,
     "skip_connection": False,
     "head": True,
-    "dropout_p": 0.0
+    "dropout_p": 0.3
 }
 
-sac_q_net_optim_config = (torch.optim.Adam, {"lr": 0.001})
+sac_q_net_optim_config = (torch.optim.Adam, {"lr": 0.0003})
 
 sac_config = {
     "reward_discount": 0.99,
-    "soft_update_coeff": 0.9,
-    "alpha": 0.2,
-    "replay_memory_capacity": 10000,
+    "soft_update_coeff": 0.995,
+    "alpha": 0.1,
+    "replay_memory_capacity": 1000000,
     "random_overwrite": False,
-    "warmup": 5000,
-    "update_target_every": 5,
+    "warmup": 0,
+    "update_target_every": 1,
     "rollout_batch_size": 256,
     "train_batch_size": 256
 }

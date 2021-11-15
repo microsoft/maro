@@ -12,7 +12,8 @@ from maro.utils import Logger
 
 from .callbacks import baseline
 from .config import algorithm, env_config, reward_config, state_config
-from .policies import policy_func_dict
+# from .policies import policy_func_dict
+from .sac_policy import policy_func_dict
 
 
 attributes = state_config["attributes"]

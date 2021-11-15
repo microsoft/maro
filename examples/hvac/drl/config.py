@@ -57,7 +57,7 @@ class Config(object):
             "entropy_term_weight": 0.1, # Used if not automatically tune entropy hyperparameter
             "add_extra_noise": False,   # To apply OU noise or not
             "do_evaluation_iterations": True,
-            "min_steps_before_learning": 5000,
+            "min_steps_before_learning": 0,
             # For OU Noise
             "mu": 0.0,
             "theta": 0.05,

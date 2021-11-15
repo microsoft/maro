@@ -102,7 +102,8 @@ class SoftActorCritic(RLPolicy):
         if len(states.shape) == 1:
             states = states.unsqueeze(dim=0)
         with torch.no_grad():
-            return self.sac_net.get_action(states).cpu().numpy()
+            action = self.sac_net.get_action(states, deterministic=self.greedy).cpu().numpy()
+        return action
 
     def record(
         self,
@@ -132,64 +133,8 @@ class SoftActorCritic(RLPolicy):
         """
         return self._replay_memory.sample(self.rollout_batch_size)
 
-    def get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> dict:
-        """Compute loss for a data batch.
-
-        Args:
-            batch (dict): A batch containing "states", "actions", "rewards", "next_states" and "terminals" as keys.
-            explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
-                to False.
-        """
-        self.sac_net.train()
-        states = torch.from_numpy(batch["states"]).to(self.device)
-        next_states = torch.from_numpy(batch["next_states"]).to(self.device)
-        actual_actions = torch.from_numpy(batch["actions"]).to(self.device)
-        rewards = torch.from_numpy(batch["rewards"]).to(self.device)
-        terminals = torch.from_numpy(batch["terminals"]).float().to(self.device)
-        if len(actual_actions.shape) == 1:
-            actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
-
-        q1 = self.sac_net.get_q1_values(states, actual_actions)
-        q2 = self.sac_net.get_q2_values(states, actual_actions)
-
-        with torch.no_grad():
-            next_actions, next_logps = self.sac_net(next_states)
-            next_q = torch.min(
-                self.target_sac_net.get_q1_values(next_states, next_actions),
-                self.target_sac_net.get_q2_values(next_states, next_actions)
-            )
-            q_target = rewards + self.reward_discount * (1 - terminals) * (next_q - self.alpha * next_logps)
-            q_target = q_target.detach()  # (N,)
-
-        # Q loss
-        loss_info = {}
-        q_loss = self.q_value_loss_func(q1, q_target) + self.q_value_loss_func(q2, q_target)
-
-        # policy loss
-        for param in self.sac_net.q_params:
-            param.requires_grad = False
-
-        hypo_actions, hypo_logps = self.sac_net(states)
-        q_hypo = torch.min(
-            self.sac_net.get_q1_values(states, hypo_actions),
-            self.sac_net.get_q2_values(states, hypo_actions)
-        )
-        policy_loss = (self.alpha * hypo_logps - q_hypo).mean()
-
-        for param in self.sac_net.q_params:
-            param.requires_grad = True
-
-        # total loss and useful info
-        loss = policy_loss + self.q_value_loss_coeff * q_loss
-        loss_info = {
-            "policy_loss": policy_loss.detach().cpu().numpy(),
-            "q_loss": q_loss.detach().cpu().numpy(),
-            "loss": loss.detach().cpu().numpy() if explicit_grad else loss
-        }
-        if explicit_grad:
-            loss_info["grad"] = self.sac_net.get_gradients(loss)
-
-        return loss_info
+    def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
+        raise NotImplementedError
 
     def update(self, loss_info_list: List[dict]):
         """Update the model parameters with gradients computed by multiple gradient workers.
@@ -218,7 +163,6 @@ class SoftActorCritic(RLPolicy):
         for _ in range(self.num_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
 
-            # self.sac_net.step(self.get_batch_loss(train_batch)["loss"])
             ####################################################################
             states = torch.from_numpy(train_batch["states"]).to(self.device)
             next_states = torch.from_numpy(train_batch["next_states"]).to(self.device)
@@ -237,17 +181,17 @@ class SoftActorCritic(RLPolicy):
             q2 = self.sac_net.get_q2_values(states, actual_actions)
 
             with torch.no_grad():
-                next_actions, next_logps = self.sac_net(next_states)
+                next_actions, next_logps = self.sac_net(next_states, deterministic=False)
                 target_next_q = torch.min(
                     self.target_sac_net.get_q1_values(next_states, next_actions),
                     self.target_sac_net.get_q2_values(next_states, next_actions)
                 )
                 q_target = rewards + self.reward_discount * (1 - terminals) * (target_next_q - self.alpha * next_logps)
-                # q_target = q_target.detach()  # (N,)
 
             q_loss = self.q_value_loss_func(q1, q_target) + self.q_value_loss_func(q2, q_target)
 
             q_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.sac_net.q_params, 5)
             self.sac_net.q_optim.step()
 
             # Update policy
@@ -256,14 +200,18 @@ class SoftActorCritic(RLPolicy):
 
             self.sac_net.policy_optim.zero_grad()
 
-            hypo_actions, hypo_logps = self.sac_net(states)
+            # policy loss
+            hypo_actions, hypo_logps = self.sac_net(states, deterministic=False)
             q_hypo = torch.min(
                 self.sac_net.get_q1_values(states, hypo_actions),
                 self.sac_net.get_q2_values(states, hypo_actions)
             )
             policy_loss = (self.alpha * hypo_logps - q_hypo).mean()
 
+            # entropy loss
+
             policy_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.sac_net.policy_params, 5)
             self.sac_net.policy_optim.step()
 
             for param in self.sac_net.q_params:

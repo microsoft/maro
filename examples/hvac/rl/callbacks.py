@@ -88,6 +88,9 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
         ]
         writer.writerows(rows)
 
+    data = trackers['total_kw']
+    res = res = f"{(np.max(baseline['total_kw'][:len(data)]) - np.max(data))/np.max(data):.2%}"
+    return res
 
 def post_collect(trackers: dict, episode: int, path: str):
     post_evaluate(trackers, episode, path, prefix="Train")

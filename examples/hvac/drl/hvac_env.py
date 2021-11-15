@@ -38,8 +38,8 @@ class MAROHAVEnv(gym.Env):
     def step(self, action):
         act = Action(
             ahu_idx=0,
-            sps=0.6 + (action[1] + 1) * (1.1 - 0.6) / 2,
-            das=45 + (action[0] + 1) * (60 - 45) / 2
+            sps=0.6 + (action[0] + 1) * (1.1 - 0.6) / 2,
+            das=45 + (action[1] + 1) * (60 - 45) / 2
         )
 
         _, _, is_done = self.env.step(act)

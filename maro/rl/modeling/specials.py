@@ -277,6 +277,16 @@ class ContinuousSACNet(AbsCoreModel):
     def q_params(self):
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def policy_optim(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def q_optim(self):
+        raise NotImplementedError
+
     @abstractmethod
     def forward(self, states: torch.tensor, deterministic: bool = False) -> torch.tensor:
         """Compute actions for a batch of states or Q-values for a batch of states and actions.

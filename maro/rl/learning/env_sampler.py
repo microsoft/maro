@@ -383,7 +383,7 @@ class AbsEnvSampler(ABC):
             "step_range": (starting_step_index, self._step_index),
             "tracker": self.tracker,
             "end_of_episode": not self._state,
-            "exploration_params": self.agent_wrapper.get_exploration_params()
+            "exploration_params": self.agent_wrapper.get_exploration_params(),
         }
         if return_rollout_info:
             # ?: means like the experiences, but it is policy actually?

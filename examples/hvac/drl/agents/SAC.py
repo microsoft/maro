@@ -132,58 +132,67 @@ class SAC(BaseAgent):
             self.episode_step_number_val += 1
             self.action = self.pick_action(eval_ep)
             self.conduct_action(self.action)
-            if self._time_for_critic_and_actor_to_learn():
-                for _ in range(self.hyperparameters["learning_updates_per_learning_session"]):
-                    self._learn()
+            # if self._time_for_critic_and_actor_to_learn():
+            #     for _ in range(self.hyperparameters["learning_updates_per_learning_session"]):
+            #         self._learn()
             mask = False if self.episode_step_number_val >= self.environment._max_episode_steps else self.done
             if not eval_ep:
                 self.memory.add_experience(self.state, self.action, self.reward, self.next_state, mask)
             self.state = self.next_state
             self.env_step_number += 1
-            if self.env_step_number % 1000 == 0:
-                print('action: ', self.action, eval_ep, self.reward, self.done, self.env_step_number, self.episode_number)
+        for _ in range(self.hyperparameters["learning_updates_per_learning_session"]):
+            self._learn()
         if eval_ep:
             self.logger.info(f"Evaluation Episode Return: {self.total_episode_reward_so_far}")
 
     def pick_action(self, eval_ep, state=None):
-        """Picks an action using one of three methods: 1) Randomly if we haven't passed a certain number of steps,
-         2) Using the actor in evaluation mode if eval_ep is True  3) Using the actor in training mode if eval_ep is False.
-         The difference between evaluation and training mode is that training mode does more exploration"""
-        if state is None: state = self.state
-        if eval_ep: action = self._actor_pick_action(state=state, eval=True)
+        """Picks an action using one of three methods:
+            1) Randomly if we haven't passed a certain number of steps,
+            2) Using the actor in evaluation mode if eval_ep is True
+            3) Using the actor in training mode if eval_ep is False.
+         The difference between evaluation and training mode is that training mode does more exploration.
+        """
+        if state is None:
+            state = self.state
+        if eval_ep:
+            action = self._actor_pick_action(state=state, eval=True)
         elif self.env_step_number < self.hyperparameters["min_steps_before_learning"]:
             action = self.environment.action_space.sample()
             print("Picking random action ", action)
-        else: action = self._actor_pick_action(state=state)
+        else:
+            action = self._actor_pick_action(state=state)
         if self.add_extra_noise:
             action += self.noise.sample()
         return action
 
     def _actor_pick_action(self, state=None, eval=False):
-        """Uses actor to pick an action in one of two ways: 1) If eval = False and we aren't in eval mode then it picks
-        an action that has partly been randomly sampled 2) If eval = True then we pick the action that comes directly
-        from the network and so did not involve any random sampling"""
-        if state is None: state = self.state
+        """Uses actor to pick an action in one of two ways:
+            1) If eval = False and we aren't in eval mode then it picks an action that has partly been randomly sampled
+            2) If eval = True then we pick the action that comes directly from the network and so did not involve any random sampling
+        """
+        if state is None:
+            state = self.state
         state = torch.FloatTensor([state]).to(self.device)
-        if len(state.shape) == 1: state = state.unsqueeze(0)
-        if eval == False: action, _, _ = self._produce_action_and_action_info(state)
+        if len(state.shape) == 1:
+            state = state.unsqueeze(0)
+        if eval == False:
+            action, _, _ = self._produce_action_and_action_info(state)
         else:
             with torch.no_grad():
-                _, z, action = self._produce_action_and_action_info(state)
+                _, _, action = self._produce_action_and_action_info(state)
         action = action.detach().cpu().numpy()
         return action[0]
 
     def _produce_action_and_action_info(self, state):
         """Given the state, produces an action, the log probability of the action, and the tanh of the mean action"""
+        # TODO: add conditions for eval() and train()
+        self.actor_local.eval()
         actor_output = self.actor_local(state)
-        # actor_output[:, self.action_size:] = torch.abs(actor_output[:, self.action_size:])
-        # actor_output[:, :self.action_size] = torch.clamp(actor_output[:, :self.action_size], -1.0, 1.0)
-        # actor_output = torch.clamp(actor_output, -10.0, 10.0)
         mean = torch.clamp(actor_output[:, :self.action_size], -3.0, 3.0)
         log_std = torch.clamp(actor_output[:, self.action_size:], -5.0, 2.0)
         std = log_std.exp()
         normal = Normal(mean, std)
-        x_t = normal.rsample()  #rsample means it is sampled using reparameterisation trick
+        x_t = normal.rsample()  # rsample means it is sampled using reparameterisation trick
         action = torch.tanh(x_t)
         log_prob = normal.log_prob(x_t)
         log_prob -= torch.log(1 - action.pow(2) + EPSILON)
@@ -206,8 +215,7 @@ class SAC(BaseAgent):
         self._update_critic_parameters(qf1_loss, qf2_loss)
 
         policy_loss, log_pi = self._calculate_actor_loss(state_batch)
-        if self.automatic_entropy_tuning: alpha_loss = self._calculate_entropy_tuning_loss(log_pi)
-        else: alpha_loss = None
+        alpha_loss = self._calculate_entropy_tuning_loss(log_pi) if self.automatic_entropy_tuning else None
         self._update_actor_parameters(policy_loss, alpha_loss)
 
     def _calculate_critic_losses(self, state_batch, action_batch, reward_batch, next_state_batch, mask_batch):
@@ -235,26 +243,36 @@ class SAC(BaseAgent):
         return policy_loss, log_pi
 
     def _calculate_entropy_tuning_loss(self, log_pi):
-        """Calculates the loss for the entropy temperature parameter. This is only relevant if self.automatic_entropy_tuning
-        is True."""
+        """Calculates the loss for the entropy temperature parameter.
+        This is only relevant if self.automatic_entropy_tuning is True.
+        """
         alpha_loss = -(self.log_alpha * (log_pi + self.target_entropy).detach()).mean()
         return alpha_loss
 
     def _update_critic_parameters(self, critic_loss_1, critic_loss_2):
         """Updates the parameters for both critics"""
-        self._take_optimization_step(self.critic_optimizer, self.critic_local, critic_loss_1,
-                                    self.hyperparameters["Critic"]["gradient_clipping_norm"])
-        self._take_optimization_step(self.critic_optimizer_2, self.critic_local_2, critic_loss_2,
-                                    self.hyperparameters["Critic"]["gradient_clipping_norm"])
-        self._soft_update_of_target_network(self.critic_local, self.critic_target,
-                                           self.hyperparameters["Critic"]["tau"])
-        self._soft_update_of_target_network(self.critic_local_2, self.critic_target_2,
-                                           self.hyperparameters["Critic"]["tau"])
+        self._take_optimization_step(
+            self.critic_optimizer, self.critic_local, critic_loss_1,
+            self.hyperparameters["Critic"]["gradient_clipping_norm"]
+        )
+        self._take_optimization_step(
+            self.critic_optimizer_2, self.critic_local_2, critic_loss_2,
+            self.hyperparameters["Critic"]["gradient_clipping_norm"]
+        )
+
+        self._soft_update_of_target_network(
+            self.critic_local, self.critic_target, self.hyperparameters["Critic"]["tau"]
+        )
+        self._soft_update_of_target_network(
+            self.critic_local_2, self.critic_target_2, self.hyperparameters["Critic"]["tau"]
+        )
 
     def _update_actor_parameters(self, actor_loss, alpha_loss):
         """Updates the parameters for the actor and (if specified) the temperature parameter"""
-        self._take_optimization_step(self.actor_optimizer, self.actor_local, actor_loss,
-                                    self.hyperparameters["Actor"]["gradient_clipping_norm"])
+        self._take_optimization_step(
+            self.actor_optimizer, self.actor_local, actor_loss,
+            self.hyperparameters["Actor"]["gradient_clipping_norm"]
+        )
         if alpha_loss is not None:
             self._take_optimization_step(self.alpha_optim, None, alpha_loss, None)
             self.alpha = self.log_alpha.exp()

@@ -69,7 +69,8 @@ class Trainer(object):
         tracker["total_kw"] = np.cumsum(tracker["kw"])
         tracker["total_reward"] = np.cumsum(tracker["reward"])
 
-        post_evaluate(tracker, -1, config.log_dir, f"drl_{config.algorithm}_eval")
+        res = post_evaluate(tracker, -1, config.log_dir, f"drl_{config.algorithm}_eval")
+        self.logger.info(f"Final improvement: {res}")
 
 
 if __name__ == "__main__":

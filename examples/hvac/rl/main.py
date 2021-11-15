@@ -14,7 +14,7 @@ from examples.hvac.rl.env_sampler import get_env_sampler
 
 os.environ['TZ'] = "Asia/Shanghai"
 time.tzset()
-experiment_name = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} {experiment_name}"
+# experiment_name = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} {experiment_name}"
 
 checkpoint_dir = os.path.join(training_config["checkpoint_path"], experiment_name)
 
@@ -51,8 +51,9 @@ def train():
             or ep == training_config["num_episodes"] - 1
         ):
             trackers = env_sampler.test()
-            post_evaluate(trackers, episode=ep, path=log_dir, prefix="Eval")
+            res = post_evaluate(trackers, episode=ep, path=log_dir, prefix="Eval")
             logger.info(f"Ep {ep}: Evaluation finished")
+            logger.info(f"Final improvement: {res}")
 
 
 def test():
@@ -65,7 +66,8 @@ def test():
     tracker = env_sampler.test()
     logger.info(f"Exploitation finished")
 
-    post_evaluate(tracker, episode=-1, path=log_dir, prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train")
+    res = post_evaluate(tracker, episode=-1, path=log_dir, prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train")
+    logger.info(f"Final improvement: {res}")
 
 
 if __name__ == "__main__":
