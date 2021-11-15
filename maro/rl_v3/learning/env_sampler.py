@@ -302,7 +302,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 action_dict=cache_element.action_dict,
                 env_action_dict=cache_element.env_action_dict,
                 reward_dict=reward_dict,
-                terminal_dict={},  # Will be processed later
+                terminal_dict={},  # Will be processed later in `_post_polish_experiences()`
                 next_state=next_state,
                 next_agent_state_dict=next_agent_state_dict
             ))

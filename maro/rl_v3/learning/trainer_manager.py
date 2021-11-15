@@ -109,6 +109,9 @@ class SimpleTrainerManager(AbsTrainerManager):
         next_state = exp_element.next_state
         next_agent_state_dict = exp_element.next_agent_state_dict
 
+        if next_state is None:
+            next_state = state
+
         # Aggregate experiences by trainer
         trainer_buffer = defaultdict(list)
         for agent_name, agent_state in agent_state_dict.items():
@@ -119,7 +122,11 @@ class SimpleTrainerManager(AbsTrainerManager):
             reward = reward_dict[agent_name]
 
             trainer_buffer[trainer_name].append((
-                policy_name, agent_state, action, reward, next_agent_state_dict.get(agent_name, None),
+                policy_name,
+                agent_state,
+                action,
+                reward,
+                next_agent_state_dict[agent_name] if agent_name in next_agent_state_dict else agent_state,
                 terminal_dict[agent_name]
             ))
 
@@ -142,8 +149,8 @@ class SimpleTrainerManager(AbsTrainerManager):
                     states=np.expand_dims(agent_state, axis=0),
                     actions=np.expand_dims(action, axis=0),
                     rewards=np.array([reward]),
-                    terminals=np.array([terminal]),
-                    next_states=None if next_agent_state is None else np.expand_dims(next_agent_state, axis=0)
+                    next_states=np.expand_dims(next_agent_state, axis=0),
+                    terminals=np.array([terminal])
                 )
                 trainer.record(policy_name=policy_name, transition_batch=batch)
             elif isinstance(trainer, MultiTrainer):
@@ -153,8 +160,6 @@ class SimpleTrainerManager(AbsTrainerManager):
                 terminals: List[bool] = []
                 agent_states: List[np.ndarray] = []
                 next_agent_states: List[np.ndarray] = []
-
-                next_agent_states_flag = True
 
                 for exp in exps:
                     policy_name: str = exp[0]
@@ -169,21 +174,17 @@ class SimpleTrainerManager(AbsTrainerManager):
                     rewards.append(np.array([reward]))
                     terminals.append(terminal)
                     agent_states.append(np.expand_dims(agent_state, axis=0))
-
-                    if not next_agent_states_flag or next_agent_state is None:
-                        next_agent_states_flag = False
-                    else:
-                        next_agent_states.append(np.expand_dims(next_agent_state, axis=0))
+                    next_agent_states.append(np.expand_dims(next_agent_state, axis=0))
 
                 batch = MultiTransitionBatch(
                     policy_names=policy_names,
                     states=np.expand_dims(state, axis=0),
                     actions=actions,
                     rewards=rewards,
-                    terminals=np.array(terminals),
+                    next_states=np.expand_dims(next_state, axis=0),
                     agent_states=agent_states,
-                    next_states=np.expand_dims(next_state, axis=0) if next_state is not None else None,
-                    next_agent_states=None if not next_agent_states_flag else next_agent_states
+                    next_agent_states=next_agent_states,
+                    terminals=np.array(terminals)
                 )
                 trainer.record(batch)
             else:

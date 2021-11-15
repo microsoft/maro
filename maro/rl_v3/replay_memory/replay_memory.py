@@ -119,8 +119,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         capacity: int,
         state_dim: int,
         action_dim: int,
-        idx_scheduler: AbsIndexScheduler,
-        enable_next_states: bool = True,
+        idx_scheduler: AbsIndexScheduler
     ) -> None:
         super(ReplayMemory, self).__init__(capacity, state_dim, idx_scheduler)
         self._action_dim = action_dim
@@ -129,11 +128,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._actions = np.zeros((self._capacity, self._action_dim), dtype=np.float32)
         self._rewards = np.zeros(self._capacity, dtype=np.float32)
         self._terminals = np.zeros(self._capacity, dtype=np.bool)
-
-        self._enable_next_states = enable_next_states
-
-        self._next_states = None if not self._enable_next_states \
-            else np.zeros((self._capacity, self._state_dim), dtype=np.float32)
+        self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
 
     @property
     def action_dim(self) -> int:
@@ -147,8 +142,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             assert match_shape(transition_batch.actions, (batch_size, self._action_dim))
             assert match_shape(transition_batch.rewards, (batch_size,))
             assert match_shape(transition_batch.terminals, (batch_size,))
-            if transition_batch.next_states is not None:
-                assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
+            assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
 
@@ -157,8 +151,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._actions[indexes] = transition_batch.actions
         self._rewards[indexes] = transition_batch.rewards
         self._terminals[indexes] = transition_batch.terminals
-        if transition_batch.next_states is not None:
-            self._next_states[indexes] = transition_batch.next_states
+        self._next_states[indexes] = transition_batch.next_states
 
     def sample(self, batch_size: int = None) -> TransitionBatch:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
@@ -173,7 +166,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
             terminals=self._terminals[indexes],
-            next_states=self._next_states[indexes] if self._enable_next_states else None
+            next_states=self._next_states[indexes]
         )
 
     @abstractmethod
@@ -187,12 +180,10 @@ class RandomReplayMemory(ReplayMemory):
         capacity: int,
         state_dim: int,
         action_dim: int,
-        random_overwrite: bool = False,
-        enable_next_states: bool = True
+        random_overwrite: bool = False
     ):
         super(RandomReplayMemory, self).__init__(
-            capacity, state_dim, action_dim, RandomIndexScheduler(capacity, random_overwrite),
-            enable_next_states
+            capacity, state_dim, action_dim, RandomIndexScheduler(capacity, random_overwrite)
         )
         self._random_overwrite = random_overwrite
         self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
@@ -210,12 +201,10 @@ class FIFOReplayMemory(ReplayMemory):
         self,
         capacity: int,
         state_dim: int,
-        action_dim: int,
-        enable_next_states: bool = True
+        action_dim: int
     ):
         super(FIFOReplayMemory, self).__init__(
-            capacity, state_dim, action_dim, FIFOIndexScheduler(capacity),
-            enable_next_states
+            capacity, state_dim, action_dim, FIFOIndexScheduler(capacity)
         )
 
     def _get_forbid_last(self) -> bool:
@@ -229,9 +218,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         state_dim: int,
         action_dims: List[int],
         idx_scheduler: AbsIndexScheduler,
-        enable_local_states: bool = True,
-        local_states_dims: List[int] = None,
-        enable_next_states: bool = True
+        agent_states_dims: List[int]
     ) -> None:
         super(MultiReplayMemory, self).__init__(capacity, state_dim, idx_scheduler)
         self._agent_num = len(action_dims)
@@ -242,18 +229,13 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._rewards = [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
         self._terminals = np.zeros(self._capacity, dtype=np.bool)
 
-        self._enable_local_states = enable_local_states
-        self._enable_next_states = enable_next_states
+        assert len(agent_states_dims) == self.agent_num
+        self._agent_states_dims = agent_states_dims
+        self._agent_states = [
+            np.zeros((self._capacity, state_dim), dtype=np.float32) for state_dim in self._agent_states_dims
+        ]
 
-        if self._enable_local_states:
-            assert local_states_dims is not None and len(local_states_dims) == self.agent_num
-            self._local_states_dims = local_states_dims
-            self._local_states = [
-                np.zeros((self._capacity, state_dim), dtype=np.float32) for state_dim in self._local_states_dims
-            ]
-
-        self._next_states = None if not self._enable_next_states \
-            else np.zeros((self._capacity, self._state_dim), dtype=np.float32)
+        self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
 
     @property
     def action_dims(self) -> List[int]:
@@ -275,14 +257,10 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
 
             assert match_shape(transition_batch.terminals, (batch_size,))
 
-            if self._enable_local_states:
-                assert transition_batch.agent_states is not None
-                assert len(transition_batch.agent_states) == self.agent_num
-                for i in range(self.agent_num):
-                    assert match_shape(transition_batch.agent_states[i], (batch_size, self._local_states_dims[i]))
-
-            if transition_batch.next_states is not None:
-                assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
+            assert len(transition_batch.agent_states) == self.agent_num
+            for i in range(self.agent_num):
+                assert match_shape(transition_batch.agent_states[i], (batch_size, self._agent_states_dims[i]))
+            assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
 
@@ -294,7 +272,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._terminals[indexes] = transition_batch.terminals
         if transition_batch.agent_states is not None:
             for i in range(self.agent_num):
-                self._local_states[i][indexes] = transition_batch.agent_states[i]
+                self._agent_states[i][indexes] = transition_batch.agent_states[i]
         if transition_batch.next_states is not None:
             self._next_states[indexes] = transition_batch.next_states
 
@@ -311,8 +289,8 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],
             terminals=self._terminals[indexes],
-            agent_states=[state[indexes] for state in self._local_states] if self._enable_local_states else None,
-            next_states=self._next_states[indexes] if self._enable_next_states else None
+            agent_states=[state[indexes] for state in self._agent_states],
+            next_states=self._next_states[indexes]
         )
 
     @abstractmethod
@@ -326,14 +304,12 @@ class RandomMultiReplayMemory(MultiReplayMemory):
         capacity: int,
         state_dim: int,
         action_dims: List[int],
-        random_overwrite: bool = False,
-        enable_local_states: bool = True,
-        local_states_dims: List[int] = None,
-        enable_next_states: bool = True
+        agent_states_dims: List[int],
+        random_overwrite: bool = False
     ):
         super(RandomMultiReplayMemory, self).__init__(
             capacity, state_dim, action_dims, RandomIndexScheduler(capacity, random_overwrite),
-            enable_local_states, local_states_dims, enable_next_states
+            agent_states_dims
         )
         self._random_overwrite = random_overwrite
         self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
@@ -352,13 +328,11 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
         capacity: int,
         state_dim: int,
         action_dims: List[int],
-        enable_local_states: bool = True,
-        local_states_dims: List[int] = None,
-        enable_next_states: bool = True
+        agent_states_dims: List[int] = None
     ):
         super(FIFOMultiReplayMemory, self).__init__(
             capacity, state_dim, action_dims, FIFOIndexScheduler(capacity),
-            enable_local_states, local_states_dims, enable_next_states
+            agent_states_dims
         )
 
     def _get_forbid_last(self) -> bool:

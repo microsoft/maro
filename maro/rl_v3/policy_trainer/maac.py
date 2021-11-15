@@ -61,7 +61,7 @@ class DiscreteMultiActorCritic(MultiTrainer):
             capacity=self._replay_memory_capacity,
             state_dim=self._q_critic_net.state_dim,
             action_dims=[policy.action_dim for policy in policies],
-            local_states_dims=[policy.state_dim for policy in policies]
+            agent_states_dims=[policy.state_dim for policy in policies]
         )
 
         self._target_policies: List[DiscretePolicyGradient] = [clone(policy) for policy in self._policies]
