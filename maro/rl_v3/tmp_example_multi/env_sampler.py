@@ -3,7 +3,6 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 
 from maro.rl_v3.learning import AbsEnvSampler, CacheElement, SimpleAgentWrapper
-from maro.rl_v3.utils import ActionWithAux
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
 from .config import (
@@ -27,19 +26,17 @@ class CIMEnvSampler(AbsEnvSampler):
         ])
         return state, {port_idx: state}  # TODO: the global state here is a fake one
 
-    def _translate_to_env_action(self, action_with_aux_dict: Dict[str, ActionWithAux], event) -> Dict[str, object]:
+    def _translate_to_env_action(self, action_dict: Dict[str, np.ndarray], event) -> Dict[str, object]:
         action_space = action_shaping_conf["action_space"]
         finite_vsl_space = action_shaping_conf["finite_vessel_space"]
         has_early_discharge = action_shaping_conf["has_early_discharge"]
 
-        port_idx, action_with_aux = list(action_with_aux_dict.items()).pop()
-        assert isinstance(action_with_aux, ActionWithAux)
+        port_idx, model_action = list(action_dict.items()).pop()
 
         vsl_idx, action_scope = event.vessel_idx, event.action_scope
         vsl_snapshots = self._env.snapshot_list["vessels"]
         vsl_space = vsl_snapshots[self._env.tick:vsl_idx:vessel_attributes][2] if finite_vsl_space else float("inf")
 
-        model_action = action_with_aux.action
         percent = abs(action_space[model_action[0]])
         zero_action_idx = len(action_space) / 2  # index corresponding to value zero.
         if model_action < zero_action_idx:

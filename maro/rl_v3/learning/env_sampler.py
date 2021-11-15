@@ -7,7 +7,6 @@ import numpy as np
 import torch
 
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import ActionWithAux
 from maro.simulator import Env
 
 
@@ -39,7 +38,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
             policy = self._policy_dict[policy_name]
             policy.set_policy_state(policy_state)
 
-    def choose_action_with_aux(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
+    def choose_actions(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
         """
         Choose action according to the given (observable) states of all agents.
 
@@ -48,16 +47,16 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
                 states from this dict.
 
         Returns:
-            Dict that contains the action and other optional auxiliary information for all agents.
+            Dict that contains the action for all agents.
         """
         with torch.no_grad():
-            ret = self._choose_action_with_aux_impl(state_by_agent)
+            ret = self._choose_actions_impl(state_by_agent)
         return ret
 
     @abstractmethod
-    def _choose_action_with_aux_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
+    def _choose_actions_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
         """
-        Implementation of `choose_action_with_aux`.
+        Implementation of `choose_actions`.
         """
         raise NotImplementedError
 
@@ -84,7 +83,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     ) -> None:
         super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
 
-    def _choose_action_with_aux_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
+    def _choose_actions_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
         # Aggregate states by policy
         states_by_policy = defaultdict(list)  # {str: list of np.ndarray}
         agents_by_policy = defaultdict(list)  # {str: list of str}
@@ -93,16 +92,16 @@ class SimpleAgentWrapper(AbsAgentWrapper):
             states_by_policy[policy_name].append(state)
             agents_by_policy[policy_name].append(agent_name)
 
-        action_with_aux_dict = {}
+        action_dict = {}
         for policy_name in agents_by_policy:
             policy = self._policy_dict[policy_name]
             states = np.vstack(states_by_policy[policy_name])  # np.ndarray
             policy.eval()
-            action_with_aux_dict.update(zip(
+            action_dict.update(zip(
                 agents_by_policy[policy_name],  # list of str (agent name)
-                policy.get_actions_with_aux(states)  # list of action_with_aux
+                policy.get_actions(states)  # list of action
             ))
-        return action_with_aux_dict
+        return action_dict
 
     def explore(self) -> None:
         for policy in self._policy_dict.values():
@@ -121,7 +120,7 @@ class CacheElement:
     tick: int
     state: np.ndarray
     agent_state_dict: Dict[str, np.ndarray]
-    action_with_aux_dict: Dict[str, ActionWithAux]
+    action_dict: Dict[str, np.ndarray]
     env_action_dict: Dict[str, object]
 
 
@@ -200,12 +199,12 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _translate_to_env_action(self, action_with_aux_dict: Dict[str, ActionWithAux], event) -> Dict[str, object]:
+    def _translate_to_env_action(self, action_dict: Dict[str, np.ndarray], event) -> Dict[str, object]:
         """
         Translation the actions into the format that the env could recognize.
 
         Args:
-            action_with_aux_dict (Dict[str, ActionWithAux]): Action with auxiliary for all agents.
+            action_dict (Dict[str, np.ndarray]): Action for all agents.
             event: Decision event.
 
         Returns:
@@ -262,15 +261,15 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         steps_to_go = float("inf") if num_steps == -1 else num_steps
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
-            action_with_aux_dict = self._agent_wrapper.choose_action_with_aux(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_with_aux_dict, event)
+            action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
+            env_action_dict = self._translate_to_env_action(action_dict, event)
             # Store experiences in the cache
             self._trans_cache.append(
                 CacheElement(
                     tick=self._env.tick,
                     state=self._state,
                     agent_state_dict=dict(self._agent_state_dict),
-                    action_with_aux_dict=action_with_aux_dict,
+                    action_dict=action_dict,
                     env_action_dict=env_action_dict
                 )
             )
@@ -300,7 +299,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 tick=cache_element.tick,
                 state=cache_element.state,
                 agent_state_dict=cache_element.agent_state_dict,
-                action_with_aux_dict=cache_element.action_with_aux_dict,
+                action_dict=cache_element.action_dict,
                 env_action_dict=cache_element.env_action_dict,
                 reward_dict=reward_dict,
                 terminal_dict={},  # Will be processed later
@@ -347,8 +346,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         _, event, _ = self._env.step(None)
         _, agent_state_dict = self._get_global_and_agent_state(event)
         while not terminal:
-            action_with_aux_dict = self._agent_wrapper.choose_action_with_aux(agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_with_aux_dict, event)
+            action_dict = self._agent_wrapper.choose_actions(agent_state_dict)
+            env_action_dict = self._translate_to_env_action(action_dict, event)
             _, event, terminal = self._env.step(list(env_action_dict.values()))
             if not terminal:
                 _, agent_state_dict = self._get_global_and_agent_state(event)

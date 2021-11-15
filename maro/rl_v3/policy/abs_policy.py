@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 import numpy as np
 import torch
 
-from maro.rl_v3.utils import ActionWithAux, SHAPE_CHECK_FLAG, match_shape
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 
 class AbsPolicy(object, metaclass=ABCMeta):
@@ -163,46 +163,8 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    def get_actions_with_aux(self, states: np.ndarray) -> List[ActionWithAux]:
-        """
-        Get the action with optional auxiliary information according to states.
-
-        Args:
-            states (np.ndarray): States.
-
-        Returns:
-            Actions with optional auxiliary information (ActionWithAux).
-        """
-        actions, logps = self.get_actions_with_logps(states, require_logps=True)
-        values = self.get_values_by_states_and_actions(states, actions)
-
-        size = len(actions)
-        actions_with_aux = []
-        for i in range(size):
-            actions_with_aux.append(ActionWithAux(
-                action=actions[i],
-                value=values[i] if values is not None else None,
-                logp=logps[i] if logps is not None else None
-            ))
-        return actions_with_aux
-
-    @abstractmethod
-    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
-        """
-        Get the state values according to states and actions. This method is meaningful only for value-base policies.
-        For policy gradient policies, just return None.
-
-        Args:
-            states (np.ndarray): States.
-            actions (np.ndarray): Actions.
-
-        Returns:
-            State values with shape [batch_size] or None.
-        """
-        raise NotImplementedError
-
     def get_actions(self, states: np.ndarray) -> np.ndarray:
-        return self.get_actions_with_logps(states, require_logps=False)[0]
+        return self.get_actions_tensor(self.ndarray_to_tensor(states)).cpu().numpy()
 
     def get_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
         """
@@ -214,50 +176,18 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         Returns:
             Actions, a torch.Tensor.
         """
-        return self.get_actions_with_logps_tensor(states, require_logps=False)[0]
-
-    @abstractmethod
-    def _get_actions_with_logps_impl(
-        self, states: torch.Tensor, exploring: bool, require_logps: bool
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        """
-        Implementation of `get_actions_with_logps_tensor`.
-        """
-        raise NotImplementedError
-
-    def get_actions_with_logps(
-        self, states: np.ndarray, require_logps: bool = True
-    ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        """
-        Get actions, and log probabilities of the actions if required, according to the states.
-
-        Args:
-            states (torch.Tensor): States.
-            require_logps (bool): If the return value should contains log probabilities. Defaults to True.
-
-        Returns:
-            Actions
-            Log probabilities if require_logps == True else None.
-        """
-        actions, logps = self.get_actions_with_logps_tensor(self.ndarray_to_tensor(states), require_logps)
-        return actions.cpu().numpy(), logps.cpu().numpy() if logps is not None else None
-
-    def get_actions_with_logps_tensor(
-        self, states: torch.Tensor, require_logps: bool = True
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        """
-        Similar to `get_actions_with_logps`, but takes torch.Tensor as inputs and returns torch.Tensor.
-        """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
-        actions, logps = self._get_actions_with_logps_impl(states, self._is_exploring, require_logps)
+        actions = self._get_actions_impl(states, self._is_exploring)
         assert self._shape_check(states=states, actions=actions), \
             f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
-        assert logps is None or match_shape(logps, (states.shape[0],)), \
-            f"Log probabilities shape check failed. Expecting: {(states.shape[0],)}, actual: {logps.shape}."
         if SHAPE_CHECK_FLAG:
             assert self._post_check(states=states, actions=actions)
-        return actions, logps
+        return actions
+
+    @abstractmethod
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
+        raise NotImplementedError
 
     @abstractmethod
     def freeze(self) -> None:

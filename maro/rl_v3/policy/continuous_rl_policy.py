@@ -73,13 +73,8 @@ class ContinuousRLPolicy(RLPolicy):
             (actions.cpu().numpy() < np.array(self._ubounds)).all()
         ])
 
-    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
-        return None  # PG policy does not have state values
-
-    def _get_actions_with_logps_impl(
-        self, states: torch.Tensor, exploring: bool, require_logps: bool
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        return self._policy_net.get_actions_with_logps(states, exploring, require_logps)
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
+        return self._policy_net.get_actions(states, exploring)
 
     def step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)

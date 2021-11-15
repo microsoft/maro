@@ -30,28 +30,24 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
     def action_dim(self) -> int:
         return self._action_dim
 
-    def get_actions_with_logps(
-        self, states: torch.Tensor, exploring: bool, require_logps: bool = True
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    def get_actions(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         """
-        Get actions, and log probabilities of the actions if required, according to the states.
+        Get actions according to the states.
 
         Args:
             states (torch.Tensor): States.
             exploring (bool): If it is True, return the results under exploring mode. Otherwise, return the results
                 under exploiting mode.
-            require_logps (bool): If the return value should contains log probabilities. Defaults to True.
 
         Returns:
             Actions
-            Log probabilities if require_logps == True else None.
         """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
-        actions, logps = self._get_actions_with_logps_impl(states, exploring, require_logps)
+        actions = self._get_actions_impl(states, exploring)
         assert self._shape_check(states=states, actions=actions), \
             f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
-        return actions, logps
+        return actions
 
     def _shape_check(self, states: torch.Tensor, actions: Optional[torch.Tensor] = None) -> bool:
         if not SHAPE_CHECK_FLAG:
@@ -68,9 +64,7 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
             return True
 
     @abstractmethod
-    def _get_actions_with_logps_impl(
-        self, states: torch.Tensor, exploring: bool, require_logps: bool
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         """
         Implementation of `get_actions_with_logps`.
         """
@@ -131,26 +125,21 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    def _get_actions_with_logps_impl(
-        self, states: torch.Tensor, exploring: bool, require_logps: bool
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         if exploring:
-            actions, logps = self._get_actions_exploring_impl(states, require_logps)
-            return actions, logps
+            actions = self._get_actions_exploring_impl(states)
+            return actions
         else:
             action_logps = self.get_action_logps(states)
             logps, actions = action_logps.max(dim=1)
-            return actions.unsqueeze(1), logps if require_logps else None
+            return actions.unsqueeze(1)
 
-    def _get_actions_exploring_impl(
-        self, states: torch.Tensor, require_logps: bool
-) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    def _get_actions_exploring_impl(self, states: torch.Tensor) -> torch.Tensor:
         """
-        Get actions, and log probabilities of the actions if required, according to the states under exploring mode.
+        Get actions according to the states under exploring mode.
 
         Args:
             states (torch.Tensor): States.
-            require_logps (bool): If the return value should contains log probabilities. Defaults to True.
 
         Returns:
             Actions
@@ -158,11 +147,7 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
         """
         action_probs = Categorical(self.get_action_probs(states))
         actions = action_probs.sample()
-        if require_logps:
-            logps = action_probs.log_prob(actions)
-            return actions.unsqueeze(1), logps
-        else:
-            return actions.unsqueeze(1), None
+        return actions.unsqueeze(1)
 
 
 class ContinuousPolicyNet(PolicyNet, metaclass=ABCMeta):

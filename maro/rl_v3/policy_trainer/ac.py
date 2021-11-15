@@ -68,16 +68,17 @@ class DiscreteActorCritic(SingleTrainer):
         self._improve(self._get_batch())
 
     def _improve(self, batch: TransitionBatch) -> None:
-        self._policy.train()
-        self._v_critic_net.train()
-
         v_critic_net_copy = clone(self._v_critic_net)
         v_critic_net_copy.eval()
 
         states = self._policy.ndarray_to_tensor(batch.states)
         actions = self._policy.ndarray_to_tensor(batch.actions).long()
-        logps_old = self._policy.ndarray_to_tensor(batch.logps)  # [B], action log-probability when sampling
 
+        self._policy.eval()
+        logps_old = self._policy.get_state_action_logps(states, actions)  # [B], action log-probability when sampling
+
+        self._policy.train()
+        self._v_critic_net.train()
         for _ in range(self._grad_iters):
             values = self._v_critic_net.v_values(states).detach().numpy()
             values = np.concatenate([values, values[-1:]])

@@ -6,7 +6,7 @@ import numpy as np
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.policy_trainer import AbsTrainer, MultiTrainer, SingleTrainer
-from maro.rl_v3.utils import ActionWithAux, MultiTransitionBatch, TransitionBatch
+from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 from .env_sampler import ExpElement
 
 
@@ -103,7 +103,7 @@ class SimpleTrainerManager(AbsTrainerManager):
     def _dispatch_experience(self, exp_element: ExpElement) -> None:
         state = exp_element.state
         agent_state_dict = exp_element.agent_state_dict
-        action_with_aux_dict = exp_element.action_with_aux_dict
+        action_dict = exp_element.action_dict
         reward_dict = exp_element.reward_dict
         terminal_dict = exp_element.terminal_dict
         next_state = exp_element.next_state
@@ -115,11 +115,11 @@ class SimpleTrainerManager(AbsTrainerManager):
             policy_name = self._agent2policy[agent_name]
             trainer_name = self._policy2trainer[policy_name]
 
-            action_with_aux = action_with_aux_dict[agent_name]
+            action = action_dict[agent_name]
             reward = reward_dict[agent_name]
 
             trainer_buffer[trainer_name].append((
-                policy_name, agent_state, action_with_aux, reward, next_agent_state_dict.get(agent_name, None),
+                policy_name, agent_state, action, reward, next_agent_state_dict.get(agent_name, None),
                 terminal_dict[agent_name]
             ))
 
@@ -132,7 +132,7 @@ class SimpleTrainerManager(AbsTrainerManager):
 
                 policy_name: str = exps[0][0]
                 agent_state: np.ndarray = exps[0][1]
-                action_with_aux: ActionWithAux = exps[0][2]
+                action: np.ndarray = exps[0][2]
                 reward: float = exps[0][3]
                 next_agent_state: np.ndarray = exps[0][4]
                 terminal: bool = exps[0][5]
@@ -140,12 +140,10 @@ class SimpleTrainerManager(AbsTrainerManager):
                 batch = TransitionBatch(
                     policy_name=policy_name,
                     states=np.expand_dims(agent_state, axis=0),
-                    actions=np.expand_dims(action_with_aux.action, axis=0),
+                    actions=np.expand_dims(action, axis=0),
                     rewards=np.array([reward]),
                     terminals=np.array([terminal]),
-                    next_states=None if next_agent_state is None else np.expand_dims(next_agent_state, axis=0),
-                    values=None if action_with_aux.value is None else np.array([action_with_aux.value]),
-                    logps=None if action_with_aux.logp is None else np.array([action_with_aux.logp]),
+                    next_states=None if next_agent_state is None else np.expand_dims(next_agent_state, axis=0)
                 )
                 trainer.record(policy_name=policy_name, transition_batch=batch)
             elif isinstance(trainer, MultiTrainer):
@@ -155,23 +153,19 @@ class SimpleTrainerManager(AbsTrainerManager):
                 terminals: List[bool] = []
                 agent_states: List[np.ndarray] = []
                 next_agent_states: List[np.ndarray] = []
-                values: List[np.ndarray] = []
-                logps: List[np.ndarray] = []
 
                 next_agent_states_flag = True
-                values_flag = True
-                logps_flag = True
 
                 for exp in exps:
                     policy_name: str = exp[0]
                     agent_state: np.ndarray = exp[1]
-                    action_with_aux: ActionWithAux = exp[2]
+                    action: np.ndarray = exp[2]
                     reward: float = exp[3]
                     next_agent_state: np.ndarray = exp[4]
                     terminal: bool = exp[5]
 
                     policy_names.append(policy_name)
-                    actions.append(np.expand_dims(action_with_aux.action, axis=0))
+                    actions.append(np.expand_dims(action, axis=0))
                     rewards.append(np.array([reward]))
                     terminals.append(terminal)
                     agent_states.append(np.expand_dims(agent_state, axis=0))
@@ -181,16 +175,6 @@ class SimpleTrainerManager(AbsTrainerManager):
                     else:
                         next_agent_states.append(np.expand_dims(next_agent_state, axis=0))
 
-                    if not values_flag or action_with_aux.value is None:
-                        values_flag = False
-                    else:
-                        values.append(np.array([action_with_aux.value]))
-
-                    if not logps_flag or action_with_aux.logp is None:
-                        logps_flag = False
-                    else:
-                        logps.append(np.array([action_with_aux.logp]))
-
                 batch = MultiTransitionBatch(
                     policy_names=policy_names,
                     states=np.expand_dims(state, axis=0),
@@ -199,9 +183,7 @@ class SimpleTrainerManager(AbsTrainerManager):
                     terminals=np.array(terminals),
                     agent_states=agent_states,
                     next_states=np.expand_dims(next_state, axis=0) if next_state is not None else None,
-                    next_agent_states=None if not next_agent_states_flag else next_agent_states,
-                    values=None if not values_flag else values,
-                    logps=None if not logps_flag else logps
+                    next_agent_states=None if not next_agent_states_flag else next_agent_states
                 )
                 trainer.record(batch)
             else:

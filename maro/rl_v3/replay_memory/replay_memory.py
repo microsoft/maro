@@ -121,8 +121,6 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         action_dim: int,
         idx_scheduler: AbsIndexScheduler,
         enable_next_states: bool = True,
-        enable_values: bool = True,
-        enable_logps: bool = True
     ) -> None:
         super(ReplayMemory, self).__init__(capacity, state_dim, idx_scheduler)
         self._action_dim = action_dim
@@ -133,13 +131,9 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._terminals = np.zeros(self._capacity, dtype=np.bool)
 
         self._enable_next_states = enable_next_states
-        self._enable_values = enable_values
-        self._enable_logps = enable_logps
 
         self._next_states = None if not self._enable_next_states \
             else np.zeros((self._capacity, self._state_dim), dtype=np.float32)
-        self._values = None if not self._enable_values else np.zeros(self._capacity, dtype=np.float32)
-        self._logps = None if not self._enable_logps else np.zeros(self._capacity, dtype=np.float32)
 
     @property
     def action_dim(self) -> int:
@@ -155,10 +149,6 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             assert match_shape(transition_batch.terminals, (batch_size,))
             if transition_batch.next_states is not None:
                 assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
-            if transition_batch.values is not None:
-                assert match_shape(transition_batch.values, (batch_size,))
-            if transition_batch.logps is not None:
-                assert match_shape(transition_batch.logps, (batch_size,))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
 
@@ -169,10 +159,6 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._terminals[indexes] = transition_batch.terminals
         if transition_batch.next_states is not None:
             self._next_states[indexes] = transition_batch.next_states
-        if transition_batch.values is not None:
-            self._values[indexes] = transition_batch.values
-        if transition_batch.logps is not None:
-            self._logps[indexes] = transition_batch.logps
 
     def sample(self, batch_size: int = None) -> TransitionBatch:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
@@ -187,9 +173,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
             terminals=self._terminals[indexes],
-            next_states=self._next_states[indexes] if self._enable_next_states else None,
-            values=self._values[indexes] if self._enable_values else None,
-            logps=self._logps[indexes] if self._enable_logps else None
+            next_states=self._next_states[indexes] if self._enable_next_states else None
         )
 
     @abstractmethod
@@ -204,13 +188,11 @@ class RandomReplayMemory(ReplayMemory):
         state_dim: int,
         action_dim: int,
         random_overwrite: bool = False,
-        enable_next_states: bool = True,
-        enable_values: bool = True,
-        enable_logps: bool = True
+        enable_next_states: bool = True
     ):
         super(RandomReplayMemory, self).__init__(
             capacity, state_dim, action_dim, RandomIndexScheduler(capacity, random_overwrite),
-            enable_next_states, enable_values, enable_logps
+            enable_next_states
         )
         self._random_overwrite = random_overwrite
         self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
@@ -229,13 +211,11 @@ class FIFOReplayMemory(ReplayMemory):
         capacity: int,
         state_dim: int,
         action_dim: int,
-        enable_next_states: bool = True,
-        enable_values: bool = True,
-        enable_logps: bool = True
+        enable_next_states: bool = True
     ):
         super(FIFOReplayMemory, self).__init__(
             capacity, state_dim, action_dim, FIFOIndexScheduler(capacity),
-            enable_next_states, enable_values, enable_logps
+            enable_next_states
         )
 
     def _get_forbid_last(self) -> bool:
@@ -251,9 +231,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         idx_scheduler: AbsIndexScheduler,
         enable_local_states: bool = True,
         local_states_dims: List[int] = None,
-        enable_next_states: bool = True,
-        enable_values: bool = True,
-        enable_logps: bool = True
+        enable_next_states: bool = True
     ) -> None:
         super(MultiReplayMemory, self).__init__(capacity, state_dim, idx_scheduler)
         self._agent_num = len(action_dims)
@@ -266,8 +244,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
 
         self._enable_local_states = enable_local_states
         self._enable_next_states = enable_next_states
-        self._enable_values = enable_values
-        self._enable_logps = enable_logps
 
         if self._enable_local_states:
             assert local_states_dims is not None and len(local_states_dims) == self.agent_num
@@ -278,10 +254,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
 
         self._next_states = None if not self._enable_next_states \
             else np.zeros((self._capacity, self._state_dim), dtype=np.float32)
-        self._values = None if not self._enable_values \
-            else [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
-        self._logps = None if not self._enable_logps \
-            else [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
 
     @property
     def action_dims(self) -> List[int]:
@@ -311,12 +283,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
 
             if transition_batch.next_states is not None:
                 assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
-            if transition_batch.values is not None:
-                for value in transition_batch.values:
-                    assert match_shape(value, (batch_size,))
-            if transition_batch.logps is not None:
-                for logp in transition_batch.logps:
-                    assert match_shape(logp, (batch_size,))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
 
@@ -331,12 +297,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
                 self._local_states[i][indexes] = transition_batch.agent_states[i]
         if transition_batch.next_states is not None:
             self._next_states[indexes] = transition_batch.next_states
-        if transition_batch.values is not None:
-            for i in range(self.agent_num):
-                self._values[i][indexes] = transition_batch.values[i]
-        if transition_batch.logps is not None:
-            for i in range(self.agent_num):
-                self._logps[i][indexes] = transition_batch.logps[i]
 
     def sample(self, batch_size: int = None) -> MultiTransitionBatch:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
@@ -352,9 +312,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             rewards=[reward[indexes] for reward in self._rewards],
             terminals=self._terminals[indexes],
             agent_states=[state[indexes] for state in self._local_states] if self._enable_local_states else None,
-            next_states=self._next_states[indexes] if self._enable_next_states else None,
-            values=[value[indexes] for value in self._values] if self._enable_values else None,
-            logps=[logp[indexes] for logp in self._logps] if self._enable_logps else None
+            next_states=self._next_states[indexes] if self._enable_next_states else None
         )
 
     @abstractmethod
@@ -371,13 +329,11 @@ class RandomMultiReplayMemory(MultiReplayMemory):
         random_overwrite: bool = False,
         enable_local_states: bool = True,
         local_states_dims: List[int] = None,
-        enable_next_states: bool = True,
-        enable_values: bool = True,
-        enable_logps: bool = True
+        enable_next_states: bool = True
     ):
         super(RandomMultiReplayMemory, self).__init__(
             capacity, state_dim, action_dims, RandomIndexScheduler(capacity, random_overwrite),
-            enable_local_states, local_states_dims, enable_next_states, enable_values, enable_logps
+            enable_local_states, local_states_dims, enable_next_states
         )
         self._random_overwrite = random_overwrite
         self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
@@ -398,13 +354,11 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
         action_dims: List[int],
         enable_local_states: bool = True,
         local_states_dims: List[int] = None,
-        enable_next_states: bool = True,
-        enable_values: bool = True,
-        enable_logps: bool = True
+        enable_next_states: bool = True
     ):
         super(FIFOMultiReplayMemory, self).__init__(
             capacity, state_dim, action_dims, FIFOIndexScheduler(capacity),
-            enable_local_states, local_states_dims, enable_next_states, enable_values, enable_logps
+            enable_local_states, local_states_dims, enable_next_states
         )
 
     def _get_forbid_last(self) -> bool:
@@ -420,9 +374,7 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
     #         actions=np.ones((i, 3)),
     #         rewards=np.ones(i),
     #         terminals=np.zeros(i),
-    #         next_states=np.ones((i, 5)),
-    #         values=np.ones(i),
-    #         logps=np.ones(i)
+    #         next_states=np.ones((i, 5))
     #     )
     #
     #     print(memory._idx_scheduler._head, memory._idx_scheduler._tail, memory._idx_scheduler._size)
@@ -438,9 +390,7 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
     #         actions=np.ones((i, 3)),
     #         rewards=np.ones(i),
     #         terminals=np.zeros(i),
-    #         next_states=np.ones((i, 5)),
-    #         values=np.ones(i),
-    #         logps=np.ones(i)
+    #         next_states=np.ones((i, 5))
     #     )
     #
     #     print(memory._idx_scheduler._size, memory._idx_scheduler._ptr)

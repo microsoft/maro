@@ -14,8 +14,6 @@ class TransitionBatch:
     rewards: np.ndarray  # 1D
     terminals: np.ndarray  # 1D
     next_states: np.ndarray = None  # 2D
-    values: np.ndarray = None  # 1D
-    logps: np.ndarray = None  # 1D
 
     def __post_init__(self) -> None:
         if SHAPE_CHECK_FLAG:
@@ -26,8 +24,6 @@ class TransitionBatch:
 
             assert len(self.terminals.shape) == 1 and self.terminals.shape[0] == self.states.shape[0]
             assert self.next_states is None or self.next_states.shape == self.states.shape
-            assert self.values is None or self.values.shape == self.terminals.shape
-            assert self.logps is None or self.logps.shape == self.terminals.shape
 
 
 @dataclass
@@ -40,8 +36,6 @@ class MultiTransitionBatch:
     agent_states: List[np.ndarray] = None  # 2D
     next_states: np.ndarray = None  # 2D
     next_agent_states: List[np.ndarray] = None  # 2D
-    values: List[np.ndarray] = None  # 1D
-    logps: List[np.ndarray] = None  # 1D
 
     def __post_init__(self) -> None:
         if SHAPE_CHECK_FLAG:
@@ -52,10 +46,6 @@ class MultiTransitionBatch:
             for i in range(len(self.actions)):
                 assert len(self.actions[i].shape) == 2 and self.actions[i].shape[0] == self.states.shape[0]
                 assert len(self.rewards[i].shape) == 1 and self.rewards[i].shape[0] == self.states.shape[0]
-                if self.values is not None:
-                    assert len(self.values[i].shape) == 1 and self.values[i].shape[0] == self.states.shape[0]
-                if self.logps is not None:
-                    assert len(self.logps[i].shape) == 1 and self.logps[i].shape[0] == self.states.shape[0]
                 if self.agent_states is not None:
                     assert len(self.agent_states[i].shape) == 2
                     assert self.agent_states[i].shape[0] == self.states.shape[0]

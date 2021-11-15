@@ -91,18 +91,13 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         assert match_shape(q_values, (states.shape[0],))  # [B]
         return q_values
 
-    # def explore(self) -> None:
-    #     pass  # Overwrite the base method and turn off explore mode.
+    def explore(self) -> None:
+        pass  # Overwrite the base method and turn off explore mode.
 
-    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
-        return self.q_values(states, actions)
-
-    def _get_actions_with_logps_impl(
-        self, states: torch.Tensor, exploring: bool, require_logps: bool
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         self._call_cnt += 1
         if self._call_cnt <= self._warmup:
-            return self.ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1))), None
+            return self.ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1)))
 
         q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
         _, actions = q_matrix.max(dim=1)  # [B], [B]
@@ -110,7 +105,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         if exploring:
             actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, **self._exploration_params)
             actions = self.ndarray_to_tensor(actions)
-        return actions.unsqueeze(1), None  # [B, 1], [B]
+        return actions.unsqueeze(1)  # [B, 1]
 
     def step(self, loss: torch.Tensor) -> None:
         self._q_net.step(loss)
@@ -165,13 +160,8 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def policy_net(self) -> DiscretePolicyNet:
         return self._policy_net
 
-    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
-        return None  # PG policy does not have state values
-
-    def _get_actions_with_logps_impl(
-        self, states: torch.Tensor, exploring: bool, require_logps: bool
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        return self._policy_net.get_actions_with_logps(states, exploring, require_logps)
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
+        return self._policy_net.get_actions(states, exploring)
 
     def step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)
@@ -218,3 +208,14 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
             f"Action probabilities shape check failed. Expecting: {(states.shape[0], self.action_num)}, " \
             f"actual: {action_probs.shape}."
         return action_probs
+
+    def get_action_logps(self, states: torch.Tensor) -> torch.Tensor:
+        return torch.log(self.get_action_probs(states))
+
+    def get_state_action_probs(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        assert self._shape_check(states=states, actions=actions)
+        action_probs = self.get_action_probs(states)
+        return action_probs.gather(1, actions).squeeze()  # [B]
+
+    def get_state_action_logps(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        return torch.log(self.get_state_action_probs(states, actions))
