@@ -121,22 +121,22 @@ class DDPG(BaseAgent):
     def save_model(self):
         torch.save(
             self.actor_local.state_dict(),
-            os.path.join(self.checkpoint_dir, f"actor_{self.episode_number}.pt")
+            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt")
         )
         torch.save(
             self.actor_optimizer.state_dict(),
-            os.path.join(self.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt")
+            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt")
         )
 
         copy2(
-            os.path.join(self.checkpoint_dir, f"actor_{self.episode_number}.pt"),
-            os.path.join(self.checkpoint_dir, "actor.pt")
+            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt"),
+            os.path.join(self.config.checkpoint_dir, "actor.pt")
         )
         copy2(
-            os.path.join(self.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt"),
-            os.path.join(self.checkpoint_dir, "actor_optimizer.pt")
+            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt"),
+            os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")
         )
 
     def load_model(self):
-        self.actor_local.load_state_dict(torch.load(os.path.join(self.checkpoint_dir, "actor.pt")))
-        self.actor_optimizer.load_state_dict(torch.load(os.path.join(self.checkpoint_dir, "actor_optimizer.pt")))
+        self.actor_local.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor.pt")))
+        self.actor_optimizer.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")))

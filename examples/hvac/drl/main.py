@@ -11,13 +11,12 @@ from examples.hvac.rl.callbacks import post_evaluate
 from examples.hvac.rl.config import config
 from examples.hvac.rl.callbacks import baseline, visualize_returns
 
-LOG_DIR = os.path.join(config.training_config["log_path"], config.experiment_name)
 
 class Trainer(object):
     def __init__(self, config, agent_class, env):
         self.config = config
         self.env = env
-        self.logger = Logger(tag="Trainer", dump_folder=LOG_DIR)
+        self.logger = Logger(tag="Trainer", dump_folder=config.log_dir)
         self.agent = agent_class(config, env, self.logger)
 
     def load_model(self):
@@ -28,16 +27,10 @@ class Trainer(object):
         returns, rolling_returns, _ = self.agent.run_n_episodes()
 
         visualize_returns(
-            rolling_returns,
-            LOG_DIR,
-            f"Rolling Returns - {self.agent.agent_name}"
+            rolling_returns, config.log_dir, f"Rolling Returns - {self.agent.agent_name}"
         )
 
-        visualize_returns(
-            returns,
-            LOG_DIR,
-            f"Returns - {self.agent.agent_name}"
-        )
+        visualize_returns(returns, config.log_dir, f"Returns - {self.agent.agent_name}")
 
     def evaluate(self):
         self.agent.reset_game()
@@ -59,7 +52,7 @@ class Trainer(object):
         tracker["total_kw"] = np.cumsum(tracker["kw"])
         tracker["total_reward"] = np.cumsum(tracker["reward"])
 
-        res = post_evaluate(tracker, -1, LOG_DIR, f"drl_{config.algorithm}_eval")
+        res = post_evaluate(tracker, -1, config.log_dir, f"drl_{config.algorithm}_eval")
         self.logger.info(f"Final improvement: {res}")
 
 

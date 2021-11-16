@@ -8,7 +8,6 @@ import numpy as np
 from maro.rl.learning import AbsEnvSampler
 from maro.simulator import Env
 from maro.simulator.scenarios.hvac.common import Action
-from maro.utils import Logger
 
 from .callbacks import baseline
 from .config import config
@@ -27,7 +26,6 @@ class HVACEnvSampler(AbsEnvSampler):
         get_test_env=None,
         reward_eval_delay=0,
         parallel_inference=False,
-        logger: Logger=None,
     ):
         super().__init__(
             get_env,
@@ -54,10 +52,6 @@ class HVACEnvSampler(AbsEnvSampler):
             }
             for key in baseline.keys()
         }
-
-        self._logger = logger
-        if self._logger:
-            self._logger.info(f"efficiency,kw,das_diff,dat_penalty,reward")
 
     def get_state(self, tick: int = None) -> dict:
         if tick is not None:
@@ -149,15 +143,6 @@ class HVACEnvSampler(AbsEnvSampler):
                     + self.reward_config["V4_dat_penalty_factor"] * max(0, get_attribute("dat") - 57)
                 )
 
-                if self._logger:
-                    self._logger.debug(
-                        f"{math.exp(-efficiency_ratio)},"
-                        f"{(kw_line - get_attribute('kw')[0]) / self._statistics['kw']['range']},"
-                        f"{diff_das[0]},"
-                        f"{get_attribute('dat')[0] - 57},"
-                        f"{reward[0]/10}"
-                    )
-
         elif self.reward_config["type"] == "V5":
             reward = -20
             if diff_sps <= 0.3 and get_attribute("das") < 60:
@@ -169,15 +154,6 @@ class HVACEnvSampler(AbsEnvSampler):
                     + self.reward_config["V5_kw_factor"] * kw_gap * (2 if kw_gap > 0 else 1)
                     + self.reward_config["V5_dat_penalty_factor"] * max(0, get_attribute("dat") - 57)
                 )
-
-                if self._logger:
-                    self._logger.debug(
-                        f"{math.exp(-efficiency_ratio)},"
-                        f"{(kw_line - get_attribute('kw')[0]) / self._statistics['kw']['range']},"
-                        f","
-                        f"{get_attribute('dat')[0] - 57},"
-                        f"{reward[0]/10}"
-                    )
 
         return {agent_name: reward}
 
@@ -193,11 +169,10 @@ class HVACEnvSampler(AbsEnvSampler):
             self.tracker["total_reward"] = np.cumsum(self.tracker["reward"])
 
 
-def get_env_sampler(logger: Logger):
+def get_env_sampler():
     return HVACEnvSampler(
         get_env=lambda: Env(scenario="hvac", **config.env_config),
         get_policy_func_dict=policy_func_dict,
         agent2policy={agent_name: config.algorithm},
         get_test_env=lambda: Env(scenario="hvac", **config.env_config),
-        logger=logger
     )

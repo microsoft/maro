@@ -31,10 +31,6 @@ class BaseAgent(object):
         self.device = config.device
 
         self.logger = logger
-        self.checkpoint_dir = os.path.join(
-            config.training_config["checkpoint_path"],
-            config.experiment_name
-        )
 
     @abstractmethod
     def step(self):
@@ -83,7 +79,7 @@ class BaseAgent(object):
     def run_n_episodes(self):
         """Runs game to completion n times and then summarises results and saves model"""
         start = time.time()
-        while self.episode_number < self.config.training_config["num_episodes"]:
+        while self.episode_number < self.config.num_episode:
             self.reset_game()
             self.step()
             self.episode_number += 1

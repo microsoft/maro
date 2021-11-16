@@ -3,20 +3,27 @@
 
 import os
 import random
+import time
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Config(object):
     _instance = None
+    _start_time = None
 
     def __new__(cls, *args, **kw):
         if cls._instance is None:
+            os.environ['TZ'] = "Asia/Shanghai"
+            time.tzset()
             cls._instance = object.__new__(cls, *args, **kw)
+            cls._start_time = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}"
         return cls._instance
 
     def __init__(self):
         self.algorithm = "sac"
+        self.num_episode = 30
+        self.evaluate_interval = 10
 
         self.randomize_seed = False
         self.seed = 1       # Used only if randomize_seed is False
@@ -59,24 +66,6 @@ class Config(object):
             "V5_kw_factor": 4,
             "V5_dat_penalty_factor": -0.06,
         }
-
-        self.training_config = {
-            # Test
-            "test": False,
-            # "model_path": "/home/Jinyu/maro/examples/hvac/rl/checkpoints/2021-11-03 04:33:20 ddpg_rewrite_Bonsai_env_positive/ddpg_49",
-            "model_path": "/home/Jinyu/maro/examples/hvac/rl/checkpoints/2021-11-03 04:32:29 ddpg_rewrite_V2_env_positive/ddpg_49",
-            # Train
-            "load_model": False,
-            "num_episodes": 30,
-            "evaluate_interval": 10,
-            "checkpoint_path": os.path.join(CURRENT_DIR, "checkpoints"),
-            "log_path": os.path.join(CURRENT_DIR, "logs"),
-        }
-
-        self.baseline_path = os.path.join(
-            CURRENT_DIR,
-            "../../../maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_AHU_MAT.csv"
-        )
 
         self.hyperparameters = {   # Would be updated automatically according to algorithm used
         }
@@ -142,11 +131,23 @@ class Config(object):
             "sigma": 0.05,
         }
 
+        self.checkpoint_dir = os.path.join(CURRENT_DIR, "checkpoints", self.experiment_name)
+        self.log_dir = os.path.join(CURRENT_DIR, "logs", self.experiment_name)
+        self.baseline_path = os.path.join(
+            CURRENT_DIR,
+            "../../../maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_AHU_MAT.csv"
+        )
+
         self._update_values_accordingly()
 
     @property
     def experiment_name(self):
-        return f"{self.algorithm}_test"
+        return (
+            f"{self._start_time}_"
+            f"{self.algorithm}_"
+            f"{self.reward_config['type']}_"
+            f"{self.num_episode}"
+        )
 
     def _update_values_accordingly(self):
         # state config
@@ -161,5 +162,10 @@ class Config(object):
         # hyperparameter
         if self.algorithm == "sac":
             self.hyperparameters.update(self._sac_config)
+
+        # folder
+        os.makedirs(self.checkpoint_dir, exist_ok=True)
+        os.makedirs(self.log_dir, exist_ok=True)
+
 
 config = Config()
