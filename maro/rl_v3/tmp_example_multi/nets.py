@@ -1,12 +1,38 @@
 from typing import Dict, List
 
 import torch
+from torch.optim import Adam, RMSprop
 
 from maro.rl_v3.model import DiscretePolicyNet, FullyConnected, MultiQNet
-from maro.rl_v3.tmp_example_multi.config import actor_net_conf, actor_optim_conf, critic_conf, critic_net_conf, \
-    critic_optim_conf
+from maro.rl_v3.tmp_example_multi.config import action_shaping_conf, state_dim
+
+actor_net_conf = {
+    "input_dim": state_dim,
+    "hidden_dims": [256, 128, 64],
+    "output_dim": len(action_shaping_conf["action_space"]),
+    "activation": torch.nn.Tanh,
+    "softmax": True,
+    "batch_norm": False,
+    "head": True
+}
+critic_conf = {
+    "state_dim": state_dim,
+    "action_dims": [1]
+}
+critic_net_conf = {
+    "input_dim": critic_conf["state_dim"] + sum(critic_conf["action_dims"]),
+    "hidden_dims": [256, 128, 64],
+    "output_dim": 1,
+    "activation": torch.nn.LeakyReLU,
+    "softmax": False,
+    "batch_norm": True,
+    "head": True
+}
+actor_optim_conf = (Adam, {"lr": 0.001})
+critic_optim_conf = (RMSprop, {"lr": 0.001})
 
 
+# #####################################################################################################################
 class MyActorNet(DiscretePolicyNet):
     def __init__(self) -> None:
         super(MyActorNet, self).__init__(state_dim=actor_net_conf["input_dim"], action_num=actor_net_conf["output_dim"])
