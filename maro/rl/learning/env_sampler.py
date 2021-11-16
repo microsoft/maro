@@ -318,13 +318,17 @@ class AbsEnvSampler(ABC):
         agent2policy: Dict[str, str],
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
-        parallel_inference: bool = False
+        parallel_inference: bool = False,
+        multi_agent_policy: bool = False
     ):
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env else self._learn_env
         self.env = None
 
-        agent_wrapper_cls = ParallelAgentWrapper if parallel_inference else SimpleMultiAgentWrapper
+        if multi_agent_policy:
+            agent_wrapper_cls = SimpleMultiAgentWrapper
+        else:
+            agent_wrapper_cls = ParallelAgentWrapper if parallel_inference else SimpleAgentWrapper
         self.agent_wrapper: AbsAgentWrapper = agent_wrapper_cls(get_policy_func_dict, agent2policy)
 
         self.reward_eval_delay = reward_eval_delay
