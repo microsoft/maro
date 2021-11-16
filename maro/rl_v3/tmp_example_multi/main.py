@@ -4,8 +4,7 @@ from maro.simulator import Env
 from .callbacks import cim_post_collect, cim_post_evaluate
 from .config import algorithm, env_conf, running_mode
 from .env_sampler import CIMEnvSampler
-from .policies import get_policy_func_dict
-from .trainers import get_trainer_func_dict, policy2trainer
+from .policies import get_policy_func_dict, get_trainer_func_dict, policy2trainer
 
 if __name__ == "__main__":
     run_workflow_centralized_mode(
