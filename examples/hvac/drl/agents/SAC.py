@@ -2,7 +2,7 @@
 from .base_agent import BaseAgent
 from .exploration import OU_Noise
 from .replay_buffer import Replay_Buffer
-from .model import create_NN
+from examples.hvac.rl.sac_policy import create_NN
 from torch.optim import Adam
 import torch
 import torch.nn.functional as F
@@ -31,14 +31,14 @@ class SAC(BaseAgent):
             input_dim=self.state_size + self.action_size,
             output_dim=1,
             hyperparameters=self.hyperparameters["Critic"],
-            seed=self.config.seed,
+            seed=self.hyperparameters["Critic"]["base_seed"],
             device=self.device
         )
         self.critic_local_2 = create_NN(
             input_dim=self.state_size + self.action_size,
             output_dim=1,
             hyperparameters=self.hyperparameters["Critic"],
-            seed=self.config.seed + 1,
+            seed=self.hyperparameters["Critic"]["base_seed"] + 1,
             device=self.device
         )
         self.critic_optimizer = torch.optim.Adam(
@@ -56,29 +56,29 @@ class SAC(BaseAgent):
             input_dim=self.state_size + self.action_size,
             output_dim=1,
             hyperparameters=self.hyperparameters["Critic"],
-            seed=self.config.seed,
+            seed=self.hyperparameters["Critic"]["base_seed"],
             device=self.device
         )
         self.critic_target_2 = create_NN(
             input_dim=self.state_size + self.action_size,
             output_dim=1,
             hyperparameters=self.hyperparameters["Critic"],
-            seed=self.config.seed,
+            seed=self.hyperparameters["Critic"]["base_seed"],
             device=self.device
         )
         BaseAgent.copy_model_over(self.critic_local, self.critic_target)
         BaseAgent.copy_model_over(self.critic_local_2, self.critic_target_2)
 
         self.memory = Replay_Buffer(
-            self.hyperparameters["Critic"]["buffer_size"],
-            self.hyperparameters["batch_size"]
+            self.hyperparameters["replay_memory"]["capacity"],
+            self.hyperparameters["replay_memory"]["batch_size"]
         )
 
         self.actor_local = create_NN(
             input_dim=self.state_size,
             output_dim=self.action_size * 2,
             hyperparameters=self.hyperparameters["Actor"],
-            seed=self.config.seed,
+            seed=self.hyperparameters["Actor"]["seed"],
             device=self.device
         )
         self.actor_optimizer = torch.optim.Adam(
@@ -87,7 +87,7 @@ class SAC(BaseAgent):
             eps=1e-4
         )
 
-        self.automatic_entropy_tuning = self.hyperparameters["automatically_tune_entropy_hyperparameter"]
+        self.automatic_entropy_tuning = self.hyperparameters["sac"]["automatically_tune_entropy_hyperparameter"]
         if self.automatic_entropy_tuning:
             self.target_entropy = -torch.prod(torch.Tensor(self.environment.action_space.shape).to(self.device)).item() # heuristic value from the paper
             self.log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
@@ -96,19 +96,17 @@ class SAC(BaseAgent):
         else:
             self.alpha = self.hyperparameters["entropy_term_weight"]
 
-        self.add_extra_noise = self.hyperparameters["add_extra_noise"]
+        self.add_extra_noise = self.hyperparameters["sac"]["add_ou_noise"]
         if self.add_extra_noise:
             self.noise = OU_Noise(
                 self.action_size, self.config.seed,
                 self.hyperparameters["mu"], self.hyperparameters["theta"], self.hyperparameters["sigma"]
             )
 
-        self.do_evaluation_iterations = self.hyperparameters["do_evaluation_iterations"]
-
     def _save_result(self):
         """Saves the result of an episode of the game. Overriding the method in Base Agent that does this because we only
         want to keep track of the results during the evaluation episodes"""
-        if self.episode_number == 1 or not self.do_evaluation_iterations:
+        if self.episode_number == 1:
             self.full_episode_total_rewards.extend([self.total_episode_reward_so_far])
             self.rolling_returns.append(np.mean(self.full_episode_total_rewards[-self.rolling_return_window:]))
 
@@ -126,7 +124,7 @@ class SAC(BaseAgent):
 
     def step(self):
         """Runs an episode on the game, saving the experience and running a learning step if appropriate"""
-        eval_ep = (self.episode_number+1) % TRAINING_EPISODES_PER_EVAL_EPISODE == 0 and self.do_evaluation_iterations
+        eval_ep = (self.episode_number+1) % TRAINING_EPISODES_PER_EVAL_EPISODE == 0
         self.episode_step_number_val = 0
         while not self.done:
             self.episode_step_number_val += 1
@@ -140,7 +138,12 @@ class SAC(BaseAgent):
                 self.memory.add_experience(self.state, self.action, self.reward, self.next_state, mask)
             self.state = self.next_state
             self.env_step_number += 1
-        for _ in range(self.hyperparameters["learning_updates_per_learning_session"]):
+
+        # for i in range(len(self.memory)):
+        #     self.logger.info(self.memory.state[i], self.memory.action[i], self.memory.reward[i])
+        # exit(0)
+
+        for _ in range(self.hyperparameters["sac"]["learning_updates_per_learning_session"]):
             self._learn()
         if eval_ep:
             self.logger.info(f"Evaluation Episode Return: {self.total_episode_reward_so_far}")
@@ -156,7 +159,7 @@ class SAC(BaseAgent):
             state = self.state
         if eval_ep:
             action = self._actor_pick_action(state=state, eval=True)
-        elif self.env_step_number < self.hyperparameters["min_steps_before_learning"]:
+        elif self.env_step_number < self.hyperparameters["sac"]["warmup"]:
             action = self.environment.action_space.sample()
             print("Picking random action ", action)
         else:
@@ -181,6 +184,9 @@ class SAC(BaseAgent):
             with torch.no_grad():
                 _, _, action = self._produce_action_and_action_info(state)
         action = action.detach().cpu().numpy()
+
+        # self.logger.info(state, action)
+
         return action[0]
 
     def _produce_action_and_action_info(self, state):
@@ -226,7 +232,7 @@ class SAC(BaseAgent):
             qf1_next_target = self.critic_target(torch.cat((next_state_batch, next_state_action), 1))
             qf2_next_target = self.critic_target_2(torch.cat((next_state_batch, next_state_action), 1))
             min_qf_next_target = torch.min(qf1_next_target, qf2_next_target) - self.alpha * next_state_log_pi
-            next_q_value = reward_batch + (1.0 - mask_batch) * self.hyperparameters["discount_rate"] * (min_qf_next_target)
+            next_q_value = reward_batch + (1.0 - mask_batch) * self.hyperparameters["sac"]["reward_discount"] * (min_qf_next_target)
         qf1 = self.critic_local(torch.cat((state_batch, action_batch), 1))
         qf2 = self.critic_local_2(torch.cat((state_batch, action_batch), 1))
         qf1_loss = F.mse_loss(qf1, next_q_value)
@@ -280,22 +286,22 @@ class SAC(BaseAgent):
     def save_model(self):
         torch.save(
             self.actor_local.state_dict(),
-            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt")
+            os.path.join(self.checkpoint_dir, f"actor_{self.episode_number}.pt")
         )
         torch.save(
             self.actor_optimizer.state_dict(),
-            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt")
+            os.path.join(self.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt")
         )
 
         copy2(
-            os.path.join(self.config.checkpoint_dir, f"actor_{self.episode_number}.pt"),
-            os.path.join(self.config.checkpoint_dir, "actor.pt")
+            os.path.join(self.checkpoint_dir, f"actor_{self.episode_number}.pt"),
+            os.path.join(self.checkpoint_dir, "actor.pt")
         )
         copy2(
-            os.path.join(self.config.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt"),
-            os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")
+            os.path.join(self.checkpoint_dir, f"actor_optimizer_{self.episode_number}.pt"),
+            os.path.join(self.checkpoint_dir, "actor_optimizer.pt")
         )
 
     def load_model(self):
-        self.actor_local.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor.pt")))
-        self.actor_optimizer.load_state_dict(torch.load(os.path.join(self.config.checkpoint_dir, "actor_optimizer.pt")))
+        self.actor_local.load_state_dict(torch.load(os.path.join(self.checkpoint_dir, "actor.pt")))
+        self.actor_optimizer.load_state_dict(torch.load(os.path.join(self.checkpoint_dir, "actor_optimizer.pt")))

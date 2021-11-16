@@ -29,11 +29,11 @@ class OU_Noise_Exploration(object):
     def __init__(self, config):
         self.config = config
         self.noise = OU_Noise(
-            self.config.action_size,
-            self.config.seed,
-            self.config.hyperparameters["mu"],
-            self.config.hyperparameters["theta"],
-            self.config.hyperparameters["sigma"]
+            self.config.action_config["action_dim"],
+            self.config.ou_noise_config["seed"],
+            self.config.ou_noise_config["mu"],
+            self.config.ou_noise_config["theta"],
+            self.config.ou_noise_config["sigma"]
         )
 
     def perturb_action_for_exploration_purposes(self, action_info):

@@ -1,7 +1,8 @@
-from collections import namedtuple, deque
-import random
+from collections import deque
+
 import torch
 import numpy as np
+
 
 class Replay_Buffer(object):
     """Replay buffer to store past experiences that the agent can then use for training data.

@@ -9,20 +9,20 @@ from shutil import copy2
 from maro.utils import LogFormat, Logger
 
 from examples.hvac.rl.callbacks import post_evaluate
-from examples.hvac.rl.config import experiment_name, training_config
+from examples.hvac.rl.config import config
 from examples.hvac.rl.env_sampler import get_env_sampler
 
 os.environ['TZ'] = "Asia/Shanghai"
 time.tzset()
-# experiment_name = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} {experiment_name}"
+# experiment_name = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} {config.experiment_name}"
 
-checkpoint_dir = os.path.join(training_config["checkpoint_path"], experiment_name)
+checkpoint_dir = os.path.join(config.training_config["checkpoint_path"], config.experiment_name)
 
-log_dir = os.path.join(training_config["log_path"], experiment_name)
+log_dir = os.path.join(config.training_config["log_path"], config.experiment_name)
 os.makedirs(log_dir, exist_ok=True)
 
 
-def train():
+def train(training_config):
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     copy2(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.py"), log_dir)
@@ -56,7 +56,7 @@ def train():
             logger.info(f"Final improvement: {res}")
 
 
-def test():
+def test(training_config):
     logger = Logger(tag="Test", dump_folder=log_dir, format_=LogFormat.simple)
 
     env_sampler = get_env_sampler()
@@ -66,12 +66,16 @@ def test():
     tracker = env_sampler.test()
     logger.info(f"Exploitation finished")
 
-    res = post_evaluate(tracker, episode=-1, path=log_dir, prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train")
+    res = post_evaluate(
+        tracker, episode=-1, path=log_dir,
+        prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train"
+    )
     logger.info(f"Final improvement: {res}")
 
 
 if __name__ == "__main__":
+    training_config = config.training_config
     if training_config["test"]:
-        test()
+        test(training_config)
     else:
-        train()
+        train(training_config)

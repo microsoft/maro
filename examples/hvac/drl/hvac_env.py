@@ -1,20 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import gym
 import numpy as np
 from gym import spaces
 
 from maro.simulator import Env
 from maro.simulator.scenarios.hvac.common import Action
-from examples.hvac.rl.config import env_config
-from examples.hvac.rl.callbacks import baseline
 
 
-class MAROHAVEnv(gym.Env):
+class MAROHAVEnv(object):
     id = "HVA Controller"
 
-    def __init__(self):
+    def __init__(self, env_config, baseline):
         self.env = Env(scenario="hvac", **env_config)
 
         self._statistics = {

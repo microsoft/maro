@@ -1,6 +1,5 @@
 from abc import abstractmethod
 import os
-import gym
 import random
 import numpy as np
 import torch
@@ -14,9 +13,8 @@ class BaseAgent(object):
 
         self.environment = env
 
-        self.state_size = int(self._get_state_size())
-        self.action_size = int(self.environment.action_space.shape[0])
-        self.config.action_size = self.action_size
+        self.state_size = config.state_config["state_dim"]
+        self.action_size = config.action_config["action_dim"]
 
         self.hyperparameters = config.hyperparameters
 
@@ -30,9 +28,13 @@ class BaseAgent(object):
         self.episode_number = 0
         self.env_step_number = 0
 
-        self.device = "cuda:0" if config.use_GPU else "cpu"
+        self.device = config.device
 
         self.logger = logger
+        self.checkpoint_dir = os.path.join(
+            config.training_config["checkpoint_path"],
+            config.experiment_name
+        )
 
     @abstractmethod
     def step(self):
@@ -51,7 +53,6 @@ class BaseAgent(object):
         pass
 
     def _get_state_size(self):
-        """Gets the state_size for the gym env into the correct shape for a neural network"""
         random_state = self.environment.reset()
         return random_state.size
 
@@ -67,8 +68,6 @@ class BaseAgent(object):
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(random_seed)
             torch.cuda.manual_seed(random_seed)
-        if hasattr(gym.spaces, 'prng'):
-            gym.spaces.prng.seed(random_seed)
 
     def reset_game(self):
         """Resets the game information so we are ready to play a new episode"""
@@ -84,7 +83,7 @@ class BaseAgent(object):
     def run_n_episodes(self):
         """Runs game to completion n times and then summarises results and saves model"""
         start = time.time()
-        while self.episode_number < self.config.num_episodes:
+        while self.episode_number < self.config.training_config["num_episodes"]:
             self.reset_game()
             self.step()
             self.episode_number += 1

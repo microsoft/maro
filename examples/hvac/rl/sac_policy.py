@@ -1,74 +1,82 @@
-from itertools import chain
 import torch
+from itertools import chain
+from nn_builder.pytorch.NN import NN
 from torch.distributions import Normal
 
 from maro.rl.modeling import ContinuousSACNet
 from maro.rl.policy import SoftActorCritic
 
-from .config import (
-    state_dim, action_dim, action_lower_bound, action_upper_bound, sac_config
-)
-from ..drl.config import Config
-from ..drl.agents.model import create_NN
+from .config import config
 
-config = Config()
+
+def create_NN(input_dim: int, output_dim: int, hyperparameters: dict, seed: int, device: str):
+    """Creates a neural network for the agents to use"""
+    return NN(
+        input_dim=input_dim,
+        layers_info=hyperparameters["linear_hidden_units"] + [output_dim],
+        output_activation=hyperparameters["output_activation"],
+        hidden_activations=hyperparameters["hidden_activations"],
+        dropout=hyperparameters["dropout"],
+        initialiser=hyperparameters["initialiser"],
+        batch_norm=hyperparameters["batch_norm"],
+        random_seed=seed
+    ).to(device)
 
 
 class SACNet(ContinuousSACNet):
-    def __init__(self):
+    def __init__(self, state_dim, action_dim, hyperparameter, device):
         super().__init__()
+        self._state_dim = state_dim
+        self._action_dim = action_dim
 
         self.q1 = create_NN(
             input_dim=self.input_dim + self.action_dim,
             output_dim=1,
-            hyperparameters=config.hyperparameters["Critic"],
-            seed=config.seed,
-            device="cpu"
+            hyperparameters=hyperparameter["Critic"],
+            seed=hyperparameter["Critic"]["base_seed"],
+            device=device
         )
         self.q2 = create_NN(
             input_dim=self.input_dim + self.action_dim,
             output_dim=1,
-            hyperparameters=config.hyperparameters["Critic"],
-            seed=config.seed + 1,
-            device="cpu"
+            hyperparameters=hyperparameter["Critic"],
+            seed=hyperparameter["Critic"]["base_seed"] + 1,
+            device=device
         )
         self.critic_optimizer = torch.optim.Adam(
             self.q_params,
-            lr=config.hyperparameters["Critic"]["learning_rate"],
+            lr=hyperparameter["Critic"]["learning_rate"],
             eps=1e-4
         )
 
         self.actor = create_NN(
             input_dim=self.input_dim,
             output_dim=self.action_dim * 2,
-            hyperparameters=config.hyperparameters["Actor"],
-            seed=config.seed,
-            device="cpu"
+            hyperparameters=hyperparameter["Actor"],
+            seed=hyperparameter["Actor"]["seed"],
+            device=device
         )
         self.actor_optimizer = torch.optim.Adam(
             self.policy_params,
-            lr=config.hyperparameters["Actor"]["learning_rate"],
+            lr=hyperparameter["Actor"]["learning_rate"],
             eps=1e-4
         )
 
-        self._action_base = torch.tensor(action_lower_bound)
-        self._action_range = torch.tensor(action_upper_bound) - torch.tensor(action_lower_bound)
-
     @property
     def input_dim(self):
-        return state_dim
+        return self._state_dim
 
     @property
     def action_dim(self):
-        return action_dim
+        return self._action_dim
 
     @property
     def action_min(self):
-        return action_lower_bound
+        raise NotImplementedError
 
     @property
     def action_max(self):
-        return action_upper_bound
+        raise NotImplementedError
 
     @property
     def policy_params(self):
@@ -104,8 +112,6 @@ class SACNet(ContinuousSACNet):
 
         if deterministic:
             action = torch.tanh(mean)
-
-        action = self._action_base + self._action_range * (action + 1) / 2
 
         return action, log_prob
 
@@ -144,7 +150,20 @@ class SACNet(ContinuousSACNet):
 policy_func_dict = {
     "sac": lambda name: SoftActorCritic(
         name=name,
-        sac_net=SACNet(),
-        **sac_config
+        sac_net=SACNet(
+            config.state_config["state_dim"],
+            config.action_config["action_dim"],
+            config.hyperparameters,
+            config.device,
+        ),
+        reward_discount=config.hyperparameters["sac"]["reward_discount"],
+        alpha=config.hyperparameters["sac"]["alpha"],
+        update_target_every=config.hyperparameters["sac"]["update_target_every"],
+        soft_update_coeff=config.hyperparameters["sac"]["soft_update_coeff"],
+        replay_memory_capacity=config.hyperparameters["replay_memory"]["capacity"],
+        random_overwrite=config.hyperparameters["replay_memory"]["random_overwrite"],
+        warmup=config.hyperparameters["sac"]["warmup"],
+        train_batch_size=config.hyperparameters["replay_memory"]["batch_size"],
+        device=config.device
     )
 }

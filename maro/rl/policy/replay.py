@@ -33,6 +33,7 @@ class ReplayMemory:
         self.next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self.terminals = np.zeros(self._capacity, dtype=np.bool)
         self._ptr = 0
+        self._total_num = 0
 
     @property
     def capacity(self):
@@ -47,7 +48,7 @@ class ReplayMemory:
     @property
     def size(self):
         """Current number of experiences stored."""
-        return self._ptr
+        return min(self._total_num, self.capacity)
 
     def put(
         self,
@@ -84,6 +85,8 @@ class ReplayMemory:
         self.actions[indexes] = actions
         self.rewards[indexes] = rewards
         self.next_states[indexes] = next_states
+
+        self._total_num += added
 
         # self._ptr = min(self._ptr + added, self._capacity)
         return indexes

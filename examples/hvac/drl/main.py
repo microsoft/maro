@@ -2,50 +2,40 @@
 import argparse
 import numpy as np
 import os
-import pickle
-import random
 
 from maro.utils import Logger
 
 from examples.hvac.drl.agents import DDPG, SAC
 from examples.hvac.drl.hvac_env import MAROHAVEnv
-from examples.hvac.drl.callbacks import visualize_returns
-from examples.hvac.drl.config import Config
 from examples.hvac.rl.callbacks import post_evaluate
+from examples.hvac.rl.config import config
+from examples.hvac.rl.callbacks import baseline, visualize_returns
 
+LOG_DIR = os.path.join(config.training_config["log_path"], config.experiment_name)
 
 class Trainer(object):
     def __init__(self, config, agent_class, env):
-        if config.randomize_random_seed:
-            config.seed = random.randint(0, 2**32 -2)
-
         self.config = config
         self.env = env
-        self.logger = Logger(tag="Trainer", dump_folder=self.config.log_dir)
+        self.logger = Logger(tag="Trainer", dump_folder=LOG_DIR)
         self.agent = agent_class(config, env, self.logger)
-
-        self.logger.info(f"RANDOM SEED: {config.seed}")
 
     def load_model(self):
         self.agent.load_model()
 
     def train(self):
         self.env.reset()
-        returns, rolling_returns, time_taken = self.agent.run_n_episodes()
-
-        results = [returns, rolling_returns, time_taken]
-        with open(os.path.join(self.config.log_dir, "results.pkl"), "wb") as f:
-            pickle.dump(results, f, pickle.HIGHEST_PROTOCOL)
+        returns, rolling_returns, _ = self.agent.run_n_episodes()
 
         visualize_returns(
             rolling_returns,
-            self.config.log_dir,
+            LOG_DIR,
             f"Rolling Returns - {self.agent.agent_name}"
         )
 
         visualize_returns(
             returns,
-            self.config.log_dir,
+            LOG_DIR,
             f"Returns - {self.agent.agent_name}"
         )
 
@@ -69,13 +59,11 @@ class Trainer(object):
         tracker["total_kw"] = np.cumsum(tracker["kw"])
         tracker["total_reward"] = np.cumsum(tracker["reward"])
 
-        res = post_evaluate(tracker, -1, config.log_dir, f"drl_{config.algorithm}_eval")
+        res = post_evaluate(tracker, -1, LOG_DIR, f"drl_{config.algorithm}_eval")
         self.logger.info(f"Final improvement: {res}")
 
 
 if __name__ == "__main__":
-    config = Config()
-
     argParser = argparse.ArgumentParser()
     argParser.add_argument('--eval', action='store_true', default=False)
     args = argParser.parse_args()
@@ -88,7 +76,7 @@ if __name__ == "__main__":
         print(f"Wrong algorithm name: {config.algorithm}!")
         exit(0)
 
-    trainer = Trainer(config, agent_class, MAROHAVEnv())
+    trainer = Trainer(config, agent_class, MAROHAVEnv(config.env_config, baseline))
 
     if not args.eval:
         trainer.train()
