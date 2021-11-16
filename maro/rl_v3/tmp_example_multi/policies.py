@@ -18,10 +18,10 @@ if algorithm == "maac":
 else:
     raise ValueError
 
-get_policy_func_dict = preprocess_get_policy_func_dict(
-    get_policy_func_dict, running_mode
-)
-
 policy2trainer = {
     f"{algorithm}.{i}": f"{algorithm}.{i}_trainer" for i in range(4)
 }
+
+get_policy_func_dict = preprocess_get_policy_func_dict(
+    get_policy_func_dict, running_mode
+)
