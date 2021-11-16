@@ -129,6 +129,11 @@ class MyCentralizedCriticNet(DiscreteQCriticNetwork):
 
         self.optim.step()
 
+    def step(self, loss: torch.tensor) -> None:
+        self.optim.zero_grad()
+        #loss.backward()
+        #self.optim.step()
+
     def get_state(self) -> dict:
         return {
             "network": self.fc.state_dict(),
@@ -159,6 +164,11 @@ class MyActorNet(DiscretePolicyGradientNetwork):
             param.grad = grad[name]
 
         self.optim.step()
+
+    def step(self, loss: torch.tensor) -> None:
+        self.optim.zero_grad()
+        #loss.backward()
+        #self.optim.step()
 
     def get_state(self) -> dict:
         return {

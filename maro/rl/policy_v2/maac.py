@@ -140,50 +140,18 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
 
     def _call_impl(self, states: List[np.ndarray], agent_ids: List[int]) -> Iterable:
         actions = self.get_actions(states, agent_ids)
-        return [
-            {
+        return [{
                 "action": action,  # [num_sub_agent]
-            } for action in actions
-        ]
-
-    def _get_state_list(self, input_states: np.ndarray) -> List[torch.Tensor]:
-        """Get observable states for all sub-agents. Decode the global state into each individual state.
-
-        Args:
-            input_states (np.ndarray): global state with shape [batch_size, total_state_dim]
-
-        Returns:
-            A list of torch.Tensor.
-        """
-        # already individual state
-        if input_states.shape[1] == self._local_state_dims[0] + self._shared_state_dim:
-            individual_state = torch.from_numpy(input_states).to(self._device)
-            return [individual_state]
-
-        state_list = []
-        shared_state = input_states[:, self._total_state_dim - self._shared_state_dim:]  # [batch_size,shared_state_dim]
-        offset = 0
-        for local_state_dim in self._local_state_dims:
-            if offset + self._shared_state_dim == input_states.shape[1]:  # at the end
-                break
-            local_state = input_states[:, offset:offset + local_state_dim]  # [batch_size, local_state_dim]
-            offset += local_state_dim
-
-            individual_state = np.concatenate([local_state, shared_state], axis=1)  # [batch_size, individual_state_dim]
-            individual_state = torch.from_numpy(individual_state).to(self._device)
-            if len(individual_state.shape) == 1:
-                individual_state = individual_state.unsqueeze(dim=0)
-            state_list.append(individual_state)
-        return state_list
+            } for action in actions]
 
     def _get_global_states(self, state_list: List[np.ndarray]) -> np.ndarray:
         """Get concatenated global state of all sub-agents. Encode the individual states into global state.
 
         Args:
-            state_list (List[torch.Tensor]): List of local states encoded with shared state.
+            state_list (List[np.ndarray]): List of local states encoded with shared state.
 
         Returns:
-            global_state (np.ndarray): Global state with shape [batch_size, sum(local_state_dim) + shared_state_dim]
+            global_states (np.ndarray): Global state with shape [batch_size, sum(local_state_dim) + shared_state_dim]
         """
         shared_state = state_list[0][:, self._total_state_dim - self._shared_state_dim:]
         global_state_list = []
@@ -264,7 +232,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         Args:
             batch (List[Dict[np.ndarray]]): List of experience data (SARS) batch collected from subagents.
                 For each subagent's batch(dict), required keys: states, actions, rewards, next_states, terminals.
-                Each of them is shaped: [batch_size, total_state_dim/total_action_dim/...].
+                Each of them is shaped: [batch_size, individual_state_dim/action_dim/...].
             explicit_grad (bool): Whether explicitly return gradients. Defaults to False.
 
         Returns:
@@ -278,7 +246,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         # batch formatting
         states = self._get_global_states([sub_batch["states"] for sub_batch in batch])
         next_states = self._get_global_states([sub_batch["next_states"] for sub_batch in batch])
-        # `sum` for coorperative
+        # `sum` reward of subagents for coorperative mode
         rewards = np.concatenate([sub_batch["rewards"].reshape(-1, 1) for sub_batch in batch], axis=1).sum(axis=1)
         terminals = np.all(
             np.concatenate([sub_batch["terminals"].reshape(-1, 1) for sub_batch in batch], axis=1), axis=1)
@@ -318,21 +286,16 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         loss = sum(actor_losses) + self._critic_loss_coef * critic_loss
 
         loss_info = {
-            "critic_loss": critic_loss.detach().cpu().numpy(),
-            "actor_losses": [loss.detach().cpu().numpy() for loss in actor_losses],
+            "critic_loss": critic_loss,
+            "actor_losses": actor_losses,
             "loss": loss.detach().cpu().numpy() if explicit_grad else loss
         }
+
         if explicit_grad:
             loss_info["actor_grads"] = [net.get_gradients(loss) for net in self._agent_nets]
             loss_info["critic_grad"] = self._critic_net.get_gradients(loss)
 
         return loss_info
-
-    def data_parallel(self, *args, **kwargs) -> None:
-        pass  # TODO
-
-    def learn_with_data_parallel(self, batch: dict) -> None:
-        pass  # TODO
 
     def update(self, loss_info_list: List[dict]) -> None:
         for i, net in enumerate(self._agent_nets):
@@ -359,10 +322,10 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         for _ in range(self.num_epochs):
             indexes = np.random.choice(self._replay_memory[0].size, size=self.train_batch_size)
             train_batch = [memory.sample_index(indexes) for memory in self._replay_memory]
-            loss = self.get_batch_loss(train_batch)["loss"]
-            for net in self._agent_nets:
-                net.step(loss)
-            self._critic_net.step(loss)
+            loss = self.get_batch_loss(train_batch)
+            for net, actor_loss in zip(self._agent_nets, loss["actor_losses"]):
+                net.step(actor_loss)
+            self._critic_net.step(loss["critic_loss"])
             self._critic_net_version += 1
             if self._critic_net_version - self._target_net_version == self.update_target_every:
                 self._update_target()

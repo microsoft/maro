@@ -32,7 +32,7 @@ class AbsCoreModel(torch.nn.Module):
         Args:
             loss: Result of a computation graph that involves the underlying parameters.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_gradients(self, loss: torch.tensor) -> torch.tensor:
