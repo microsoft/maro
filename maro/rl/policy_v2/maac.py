@@ -275,11 +275,11 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         for i in range(self._num_sub_agents):
             net = self._agent_nets[i]
             state = torch.from_numpy(batch[i]["states"]).to(self._device)
-            new_action, _ = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
+            new_action, logp = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
             cur_actions = [action for action in actions]
             cur_actions[i] = new_action
             q_values = self._get_values_by_states_and_actions(states, cur_actions)
-            actor_loss = -q_values.mean()
+            actor_loss = -(q_values * logp).mean()
             actor_losses.append(actor_loss)
 
         # total loss
