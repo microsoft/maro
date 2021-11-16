@@ -28,7 +28,8 @@ class DiscreteActorCritic(SingleTrainer):
         lam: float = 0.9,
         clip_ratio: float = None,
         critic_loss_cls: Callable = None,
-        min_logp: float = None
+        min_logp: float = None,
+        critic_loss_coef: float = 0.1
     ) -> None:
         super(DiscreteActorCritic, self).__init__(name)
 
@@ -46,6 +47,7 @@ class DiscreteActorCritic(SingleTrainer):
         self._clip_ratio = clip_ratio
         self._min_logp = min_logp
         self._grad_iters = grad_iters
+        self._critic_loss_coef = critic_loss_coef
 
         self._critic_loss_func = critic_loss_cls() if critic_loss_cls is not None else torch.nn.MSELoss()
 
@@ -68,77 +70,43 @@ class DiscreteActorCritic(SingleTrainer):
         self._improve(self._get_batch())
 
     def _improve(self, batch: TransitionBatch) -> None:
+        """
+        Reference: https://tinyurl.com/2ezte4cr
+        """
         v_critic_net_copy = clone(self._v_critic_net)
         v_critic_net_copy.eval()
 
-        states = self._policy.ndarray_to_tensor(batch.states)
-        actions = self._policy.ndarray_to_tensor(batch.actions).long()
+        states = self._policy.ndarray_to_tensor(batch.states)  # s
+        actions = self._policy.ndarray_to_tensor(batch.actions).long()  # a
 
         self._policy.eval()
-        logps_old = self._policy.get_state_action_logps(states, actions)  # [B], action log-probability when sampling
+        logps_old = self._policy.get_state_action_logps(states, actions)  # log pi(a|s), action log-prob when sampling
 
         self._policy.train()
         self._v_critic_net.train()
         for _ in range(self._grad_iters):
-            values = self._v_critic_net.v_values(states).detach().numpy()
+            state_values = self._v_critic_net.v_values(states)
+            values = state_values.detach().numpy()
             values = np.concatenate([values, values[-1:]])
             rewards = np.concatenate([batch.rewards, values[-1:]])
-            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]
+            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
             returns = self._policy.ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1])
             advantages = self._policy.ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam))
 
             # Critic loss
-            state_values = self._v_critic_net.v_values(states)  # [B], state values given by critic
             critic_loss = self._critic_loss_func(state_values, returns)
 
             # Actor loss
             action_probs = self._policy.get_action_probs(states)
-            logps = torch.log(action_probs.gather(1, actions).squeeze())  # [B]
+            logps = torch.log(action_probs.gather(1, actions).squeeze())
             logps = torch.clamp(logps, min=self._min_logp, max=.0)
             if self._clip_ratio is not None:
                 ratio = torch.exp(logps - logps_old)
                 clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
                 actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
             else:
-                actor_loss = -(logps * advantages).mean()
+                actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
 
             # Update
             self._policy.step(actor_loss)
-            self._v_critic_net.step(critic_loss * 0.1)  # TODO
-    #
-    # def improve_backup_version(self, batch: TransitionBatch) -> None:
-    #     self._policy.train()
-    #     self._v_critic_net.train()
-    #
-    #     v_critic_net_copy = clone(self._v_critic_net)
-    #     v_critic_net_copy.eval()
-    #
-    #     states = self._policy.ndarray_to_tensor(batch.states)
-    #     actions = self._policy.ndarray_to_tensor(batch.actions).long()
-    #     logps_old = self._policy.ndarray_to_tensor(batch.logps)  # [B], action log-probability when sampling
-    #     values = v_critic_net_copy.v_values(states).detach().numpy()
-    #     values = np.concatenate([values, values[-1:]])
-    #     rewards = np.concatenate([batch.rewards, values[-1:]])
-    #     deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]
-    #     returns = self._policy.ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1])
-    #     advantages = self._policy.ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam))
-    #
-    #     for _ in range(self._grad_iters):
-    #         # Critic loss
-    #         state_values = self._v_critic_net.v_values(states)  # [B], state values given by critic
-    #         critic_loss = self._critic_loss_func(state_values, returns)
-    #
-    #         # Actor loss
-    #         action_probs = self._policy.get_action_probs(states)
-    #         logps = torch.log(action_probs.gather(1, actions).squeeze())  # [B]
-    #         logps = torch.clamp(logps, min=self._min_logp, max=.0)
-    #         if self._clip_ratio is not None:
-    #             ratio = torch.exp(logps - logps_old)
-    #             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-    #             actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
-    #         else:
-    #             actor_loss = -(logps * advantages).mean()
-    #
-    #         # Update
-    #         self._policy.step(actor_loss)
-    #         self._v_critic_net.step(critic_loss * 0.1)
+            self._v_critic_net.step(critic_loss * self._critic_loss_coef)

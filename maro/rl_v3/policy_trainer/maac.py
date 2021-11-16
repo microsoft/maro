@@ -23,7 +23,8 @@ class DiscreteMultiActorCritic(MultiTrainer):
         soft_update_coef: float = 1.0,
         train_batch_size: int = 32,
         q_value_loss_cls: Callable = None,
-        device: str = None
+        device: str = None,
+        critic_loss_coef: float = 0.1
 
     ) -> None:
         super(DiscreteMultiActorCritic, self).__init__(name, device)
@@ -42,6 +43,7 @@ class DiscreteMultiActorCritic(MultiTrainer):
         self._soft_update_coef = soft_update_coef
         self._train_batch_size = train_batch_size
         self._reward_discount = reward_discount
+        self._critic_loss_coef = critic_loss_coef
 
         self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
 
@@ -80,7 +82,7 @@ class DiscreteMultiActorCritic(MultiTrainer):
 
     def _improve(self, batch: MultiTransitionBatch) -> None:
         """
-        https://arxiv.org/pdf/1706.02275.pdf
+        References: https://arxiv.org/pdf/1706.02275.pdf
         """
         for policy in self._policies:
             policy.train()
@@ -121,11 +123,10 @@ class DiscreteMultiActorCritic(MultiTrainer):
                 actions=actions  # a
             )  # Q(x, a)
             critic_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(x, a), Q'(x', a'))
-            self._q_critic_net.step(critic_loss * 0.1)  # TODO
+            self._q_critic_net.step(critic_loss * self._critic_loss_coef)
 
             # Update actor
             self._q_critic_net.freeze()
-            # new_actions = [actions[j] if i != j else latest_actions[j] for j in range(len(self._policies))]
 
             action_backup = actions[i]
             actions[i] = latest_actions[i]  # Replace latest action

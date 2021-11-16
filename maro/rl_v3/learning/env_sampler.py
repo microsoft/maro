@@ -49,6 +49,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         Returns:
             Dict that contains the action for all agents.
         """
+        self.switch_to_eval_mode()
         with torch.no_grad():
             ret = self._choose_actions_impl(state_by_agent)
         return ret
@@ -74,6 +75,10 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def switch_to_eval_mode(self) -> None:
+        pass
+
 
 class SimpleAgentWrapper(AbsAgentWrapper):
     def __init__(
@@ -96,7 +101,6 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         for policy_name in agents_by_policy:
             policy = self._policy_dict[policy_name]
             states = np.vstack(states_by_policy[policy_name])  # np.ndarray
-            policy.eval()
             action_dict.update(zip(
                 agents_by_policy[policy_name],  # list of str (agent name)
                 policy.get_actions(states)  # list of action
@@ -110,6 +114,10 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     def exploit(self) -> None:
         for policy in self._policy_dict.values():
             policy.exploit()
+
+    def switch_to_eval_mode(self) -> None:
+        for policy in self._policy_dict.values():
+            policy.eval()
 
 
 @dataclass

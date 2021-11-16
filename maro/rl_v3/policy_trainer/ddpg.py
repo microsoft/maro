@@ -23,7 +23,8 @@ class DDPG(SingleTrainer):
         num_epochs: int = 1,
         update_target_every: int = 5,
         soft_update_coef: float = 1.0,
-        train_batch_size: int = 32
+        train_batch_size: int = 32,
+        critic_loss_coef: float = 0.1
     ) -> None:
         super(DDPG, self).__init__(name=name)
 
@@ -44,6 +45,7 @@ class DDPG(SingleTrainer):
         self._train_batch_size = train_batch_size
         self._reward_discount = reward_discount
         self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
+        self._critic_loss_coef = critic_loss_coef
 
     def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
         self._replay_memory.put(transition_batch)
@@ -91,14 +93,14 @@ class DDPG(SingleTrainer):
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
 
         q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
-        q_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
+        critic_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
         policy_loss = -self._q_critic_net.q_values(
             states=states,  # s
             actions=self._policy.get_actions_tensor(states)  # miu(s)
         ).mean()  # -Q(s, miu(s))
 
         # Update Q first, then freeze Q and update miu.
-        self._q_critic_net.step(q_loss * 0.1)  # TODO
+        self._q_critic_net.step(critic_loss * self._critic_loss_coef)  # TODO
         self._q_critic_net.freeze()
         self._policy.step(policy_loss)
         self._q_critic_net.unfreeze()

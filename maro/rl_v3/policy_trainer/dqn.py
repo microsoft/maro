@@ -80,7 +80,6 @@ class DQN(SingleTrainer):
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
 
         q_values = self._policy.q_values_tensor(states, actions)
-        # td_errors = target_q_values - q_values
         loss = self._loss_func(q_values, target_q_values)
 
         self._policy.step(loss)
