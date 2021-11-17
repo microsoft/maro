@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import Union
+
 import numpy as np
 
 
@@ -32,6 +34,7 @@ class ReplayMemory:
         self.rewards = np.zeros(self._capacity, dtype=np.float32)
         self.next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self.terminals = np.zeros(self._capacity, dtype=np.bool)
+        self._size = 0
         self._ptr = 0
 
     @property
@@ -47,7 +50,7 @@ class ReplayMemory:
     @property
     def size(self):
         """Current number of experiences stored."""
-        return self._ptr
+        return self._size
 
     def put(
         self,
@@ -65,6 +68,7 @@ class ReplayMemory:
 
         if self._ptr + added <= self._capacity:
             indexes = np.arange(self._ptr, self._ptr + added)
+            self._size = max(self._size, self._ptr + added)
         # follow the overwrite rule set at init
         else:
             overwrites = self._ptr + added - self._capacity
@@ -73,18 +77,23 @@ class ReplayMemory:
                 np.random.choice(self._ptr, size=overwrites, replace=False) if self._random_overwrite
                 else np.arange(overwrites)
             ])
+            self._size = self._capacity
 
         self.states[indexes] = states
         self.actions[indexes] = actions
         self.rewards[indexes] = rewards
         self.next_states[indexes] = next_states
 
-        self._ptr = min(self._ptr + added, self._capacity)
+        self._ptr = (self._ptr + added) % self._capacity
         return indexes
 
     def sample(self, size: int) -> dict:
         """Obtain a random sample."""
-        indexes = np.random.choice(self._ptr, size=size)
+        indexes = np.random.choice(self._size, size=size)
+        return self.sample_index(indexes)
+
+    def sample_index(self, indexes: Union[int, np.array]) -> dict:
+        """Obtain a batch of sample with given index."""
         return {
             "states": self.states[indexes],
             "actions": self.actions[indexes],
