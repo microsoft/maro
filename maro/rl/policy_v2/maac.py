@@ -142,7 +142,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         actions = self.get_actions(states, agent_ids)
         return [{
                 "action": action,  # [num_sub_agent]
-            } for action in actions]
+                } for action in actions]
 
     def _get_global_states(self, state_list: List[np.ndarray]) -> np.ndarray:
         """Get concatenated global state of all sub-agents. Encode the individual states into global state.
