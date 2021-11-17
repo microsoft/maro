@@ -28,7 +28,7 @@ class CriticMixin:
         Returns:
             Whether the states and actions have valid shapes
         """
-        pass
+        raise NotImplementedError
 
 
 class VCriticMixin(CriticMixin):
@@ -84,7 +84,7 @@ class QCriticMixin(CriticMixin):
         Returns:
             Q-values for critic with shape [batch_size]
         """
-        assert self._critic_net_shape_check(states=states, actions=actions)
+        #assert self._critic_net_shape_check(states=states, actions=actions)
         ret = self._get_q_critic(states, actions)
         assert match_shape(ret, (states.shape[0],))
         return ret
@@ -194,15 +194,14 @@ class DiscreteQCriticNetwork(QCriticNetwork):
         self._action_num = action_num
 
     def _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        q_matrix = self.q_critic_for_all_actions(states)  # [batch_size, action_num]
-        actions = actions.unsqueeze(dim=1)
-        return q_matrix.gather(dim=1, index=actions).reshape(-1)
+        q_values = self.q_critic_for_all_actions(states, actions)  # [batch_size, action_num]
+        return q_values.reshape(-1)
 
     @property
     def action_num(self) -> int:
         return self._action_num
 
-    def q_critic_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
+    def q_critic_for_all_actions(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         """
         Generates the matrix that contains the Q-values for all potential actions.
         The actual logics should be implemented in `_get_q_critic_for_all_actions`.
@@ -213,13 +212,13 @@ class DiscreteQCriticNetwork(QCriticNetwork):
         Returns:
             q critics for all actions with shape [batch_size, action_num]
         """
-        assert self._is_valid_state_shape(states)
-        ret = self._get_q_critic_for_all_actions(states)
+        #assert self._is_valid_state_shape(states)
+        ret = self._get_q_critic_for_all_actions(states, actions)
         assert match_shape(ret, (states.shape[0], self.action_num))
         return ret
 
     @abstractmethod
-    def _get_q_critic_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
+    def _get_q_critic_for_all_actions(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         """Implementation of `q_critic_for_all_actions`"""
         pass
 

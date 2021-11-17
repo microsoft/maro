@@ -103,7 +103,10 @@ class CIMEnvSampler(AbsEnvSampler):
         self.tracker["env_metric"] = self.env.metrics
 
 
-agent2policy = {agent: f"{algorithm}.{int(agent) % num_policies}" for agent in Env(**env_conf).agent_idx_list}
+if algorithm == "maddpg":
+    agent2policy = {agent: f"{algorithm}" for agent in Env(**env_conf).agent_idx_list}
+else:
+    agent2policy = {agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list}
 
 def get_env_sampler():
     return CIMEnvSampler(
@@ -111,5 +114,6 @@ def get_env_sampler():
         get_policy_func_dict=policy_func_dict,
         agent2policy=agent2policy,
         reward_eval_delay=reward_shaping_conf["time_window"],
-        parallel_inference=False
+        parallel_inference=False,
+        multi_agent_policy=True
     )

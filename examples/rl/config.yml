@@ -1,14 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job: cim
-scenario_dir: "/home/yaqiu/maro/examples/rl/cim"
-#load_policy_dir: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
-checkpoint_dir: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
-log_dir: "/home/yaqiu/maro/examples/rl/logs"
-mode: async  # single, sync, async
-num_episodes: 2
-# eval_schedule: 2
+job: cim_v2
+scenario_dir: "/maro/examples/cim"
+load_policy_dir: "/maro/examples/checkpoints/cim_v2"
+checkpoint_dir: "/maro/examples/checkpoints/cim_v2"
+log_dir: "/maro/examples/logs"
+mode: sync  # single, sync, async
+num_episodes: 5
+eval_schedule: 5
 sync:
   num_rollouts: 3
   num_eval_rollouts: 1
@@ -21,7 +21,7 @@ async:
   max_lag: 3
   num_rollouts: 3
 policy_manager:
-  type: distributed   # simple, multi-process, distributed
+  type: simple   # simple, multi-process, distributed
   distributed:
     num_hosts: 2
 data_parallelism: 1

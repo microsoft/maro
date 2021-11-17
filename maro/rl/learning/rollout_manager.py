@@ -294,7 +294,15 @@ class DistributedRolloutManager(AbsRolloutManager):
         # concat batches from different roll-out workers
         new_info_by_policy = {k: v for k, v in info_by_policy.items()}
         for policy_id, info_list in new_info_by_policy.items():
-            if "loss" not in info_list[0]:
+            if isinstance(info_list[0], list):  # List of multiagents' rollout info
+                new_info_by_agent = defaultdict(list)
+                for info in info_list:
+                    for i, value in enumerate(info):
+                        new_info_by_agent[i].append(value)
+                # concat batches for each agent's rollout info
+                new_info_by_agent = [concat_batches(new_info_by_agent[i]) for i in range(len(new_info_by_agent))]
+                new_info_by_policy[policy_id] = new_info_by_agent
+            elif "loss" not in info_list[0]:
                 new_info_by_policy[policy_id] = concat_batches(info_list)
 
         return new_info_by_policy, trackers

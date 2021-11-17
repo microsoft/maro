@@ -259,6 +259,38 @@ class ParallelAgentWrapper(AbsAgentWrapper):
             conn.recv()
 
 
+class SimpleMultiAgentWrapper(SimpleAgentWrapper):
+    def __init__(self, get_policy_func_dict: Dict[str, Callable], agent2policy: Dict[str, str]):
+        super(SimpleMultiAgentWrapper, self).__init__(get_policy_func_dict, agent2policy)
+
+    def choose_action(self, state_by_agent: Dict[str, np.ndarray]):
+        """Choose actions for all agents based on the observed states.
+        Specially, the multi-agent policy takes list of all agents' states as input.
+
+        Args:
+            state_by_agent (dict): Observed state of all agents.
+
+        Return:
+            action_by_agent (dict): Action taken by each agent.
+        """
+        states_by_policy, agents_by_policy = defaultdict(list), defaultdict(list)
+        for agent, state in state_by_agent.items():
+            states_by_policy[self._agent2policy[agent]].append(state)
+            agents_by_policy[self._agent2policy[agent]].append(agent)
+
+        action_by_agent = {}
+        # compute the actions for all local agents in multi-agent policy at the same time
+        for policy_id, policy in self.policy_dict.items():
+            if states_by_policy[policy_id]:
+                # assume the MA policy take (state, agent_id) tuple as input, and return list of actions
+                actions = policy(states_by_policy[policy_id], agents_by_policy[policy_id])
+                action_by_agent.update(
+                    zip(agents_by_policy[policy_id], actions)
+                )
+
+        return action_by_agent
+
+
 class AbsEnvSampler(ABC):
     """Simulation data collector and policy evaluator.
 
@@ -286,13 +318,17 @@ class AbsEnvSampler(ABC):
         agent2policy: Dict[str, str],
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
-        parallel_inference: bool = False
+        parallel_inference: bool = False,
+        multi_agent_policy: bool = False
     ):
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env else self._learn_env
         self.env = None
 
-        agent_wrapper_cls = ParallelAgentWrapper if parallel_inference else SimpleAgentWrapper
+        if multi_agent_policy:
+            agent_wrapper_cls = SimpleMultiAgentWrapper
+        else:
+            agent_wrapper_cls = ParallelAgentWrapper if parallel_inference else SimpleAgentWrapper
         self.agent_wrapper: AbsAgentWrapper = agent_wrapper_cls(get_policy_func_dict, agent2policy)
 
         self.reward_eval_delay = reward_eval_delay
