@@ -261,7 +261,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         # Update policy state if necessary
         if policy_state_dict is not None:
-            self._agent_wrapper.set_policy_states(policy_state_dict)
+            self.set_policy_states(policy_state_dict)
 
         # Collect experience
         self._agent_wrapper.explore()
@@ -345,7 +345,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def test(self, policy_state_dict: Dict[str, object] = None) -> dict:
         self._env = self._test_env
         if policy_state_dict is not None:
-            self._agent_wrapper.set_policy_states(policy_state_dict)
+            self.set_policy_states(policy_state_dict)
 
         self._agent_wrapper.exploit()
         self._env.reset()
