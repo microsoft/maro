@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Callable, Deque, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 import torch
@@ -17,12 +17,12 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     def __init__(
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
-        agent2policy: Dict[str, str]  # {agent_name: policy_name}
+        agent2policy: Dict[Any, str]  # {agent_name: policy_name}
     ) -> None:
         """
         Args:
             policy_dict (Dict[str, RLPolicy]): Dict that stores all policies.
-            agent2policy (Dict[str, str]): Agent name to policy name mapping.
+            agent2policy (Dict[Any, str]): Agent name to policy name mapping.
         """
         self._policy_dict = policy_dict
         self._agent2policy = agent2policy
@@ -38,12 +38,12 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
             policy = self._policy_dict[policy_name]
             policy.set_policy_state(policy_state)
 
-    def choose_actions(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    def choose_actions(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         """
         Choose action according to the given (observable) states of all agents.
 
         Args:
-            state_by_agent (Dict[str, np.ndarray]): Agent state dict for all agents. Use agent name as the key to fetch
+            state_by_agent (Dict[Any, np.ndarray]): Agent state dict for all agents. Use agent name as the key to fetch
                 states from this dict.
 
         Returns:
@@ -55,7 +55,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         return ret
 
     @abstractmethod
-    def _choose_actions_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    def _choose_actions_impl(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         """
         Implementation of `choose_actions`.
         """
@@ -84,11 +84,11 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     def __init__(
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
-        agent2policy: Dict[str, str]  # {agent_name: policy_name}
+        agent2policy: Dict[Any, str]  # {agent_name: policy_name}
     ) -> None:
         super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
 
-    def _choose_actions_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    def _choose_actions_impl(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         # Aggregate states by policy
         states_by_policy = defaultdict(list)  # {str: list of np.ndarray}
         agents_by_policy = defaultdict(list)  # {str: list of str}
@@ -127,23 +127,22 @@ class CacheElement:
     """
     tick: int
     state: np.ndarray
-    agent_state_dict: Dict[str, np.ndarray]
-    action_dict: Dict[str, np.ndarray]
-    env_action_dict: Dict[str, object]
+    agent_state_dict: Dict[Any, np.ndarray]
+    action_dict: Dict[Any, np.ndarray]
+    env_action_dict: Dict[Any, object]
 
 
-@dataclass  # TODO: check if all fields are needed
+@dataclass
 class ExpElement(CacheElement):
     """
     Stores the complete information for a tick. ExpElement is an extension of CacheElement.
     """
-    reward_dict: Dict[str, float]
-    terminal_dict: Dict[str, bool]
-    next_state: np.ndarray = None
-    next_agent_state_dict: Dict[str, np.ndarray] = None
+    reward_dict: Dict[Any, float]
+    terminal_dict: Dict[Any, bool]
+    next_state: Optional[np.ndarray]
+    next_agent_state_dict: Optional[Dict[Any, np.ndarray]]
 
 
-# TODO: event typehint
 class AbsEnvSampler(object, metaclass=ABCMeta):
     """
     Simulation data collector and policy evaluator.
@@ -153,7 +152,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         get_env_func: Callable[[], Env],
         #
         get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        agent2policy: Dict[str, str],  # {agent_name: policy_name}
+        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         agent_wrapper_cls: Type[AbsAgentWrapper],
         reward_eval_delay: int = 0,
         get_test_env_func: Callable[[], Env] = None
@@ -162,12 +161,12 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         Args:
             get_env_func (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create the learning Env.
             get_policy_func_dict (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create policies.
-            agent2policy (Dict[str, str]): Agent name to policy name mapping.
+            agent2policy (Dict[Any, str]): Agent name to policy name mapping.
             agent_wrapper_cls (Type[AbsAgentWrapper]): Concrete AbsAgentWrapper type.
             reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
                 for the action taken for that event. Defaults to 0, which means rewards are evaluated immediately
                 after executing an action.
-            get_test_env_func (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create the testing Env.
+            get_test_env_func (Callable[[], Env]): Dict of functions used to create the testing Env.
                 If it is None, use the learning Env as the testing Env.
         """
         self._learn_env = get_env_func()
@@ -182,7 +181,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         # Global state & agent state
         self._state: Optional[np.ndarray] = None
-        self._agent_state_dict: Dict[str, np.ndarray] = {}
+        self._agent_state_dict: Dict[Any, np.ndarray] = {}
 
         self._trans_cache: Deque[CacheElement] = deque()
         self._reward_eval_delay = reward_eval_delay
@@ -191,28 +190,28 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_global_and_agent_state(
-        self, event, tick: int = None
-    ) -> Tuple[Optional[np.ndarray], Dict[str, np.ndarray]]:
+        self, event: object, tick: int = None
+    ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
         """
         Get global state and dict of agent states.
 
         Args:
-            event: Event.
+            event (object): Event.
             tick (int): Tick.
 
         Returns:
             Global state: np.ndarray
-            Dict of agent states: Dict[str, np.ndarray]
+            Dict of agent states: Dict[Any, np.ndarray]
         """
         raise NotImplementedError
 
     @abstractmethod
-    def _translate_to_env_action(self, action_dict: Dict[str, np.ndarray], event) -> Dict[str, object]:
+    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
         """
         Translation the actions into the format that the env could recognize.
 
         Args:
-            action_dict (Dict[str, np.ndarray]): Action for all agents.
+            action_dict (Dict[Any, np.ndarray]): Action for all agents.
             event: Decision event.
 
         Returns:
@@ -221,12 +220,12 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_reward(self, env_action_dict: Dict[str, object], tick: int) -> Dict[str, float]:
+    def _get_reward(self, env_action_dict: Dict[Any, object], tick: int) -> Dict[Any, float]:
         """
         Get rewards according to the env actions.
 
         Args:
-            env_action_dict (Dict[str, object]): Dict that contains env actions for all agents.
+            env_action_dict (Dict[Any, object]): Dict that contains env actions for all agents.
             tick (int): Current tick.
 
         Returns:
@@ -362,7 +361,5 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         return self._tracker
 
     @abstractmethod
-    def _post_step(
-        self, cache_element: CacheElement, reward: Dict[str, float]
-    ) -> None:
+    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError

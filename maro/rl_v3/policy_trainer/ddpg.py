@@ -100,7 +100,7 @@ class DDPG(SingleTrainer):
         ).mean()  # -Q(s, miu(s))
 
         # Update Q first, then freeze Q and update miu.
-        self._q_critic_net.step(critic_loss * self._critic_loss_coef)  # TODO
+        self._q_critic_net.step(critic_loss * self._critic_loss_coef)
         self._q_critic_net.freeze()
         self._policy.step(policy_loss)
         self._q_critic_net.unfreeze()

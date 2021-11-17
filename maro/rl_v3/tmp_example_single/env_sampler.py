@@ -1,10 +1,10 @@
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 
 from maro.rl_v3.learning import AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, ActionType
+from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 from .config import (
     action_shaping_conf, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
 )
@@ -13,8 +13,8 @@ from .policies import get_policy_func_dict
 
 class CIMEnvSampler(AbsEnvSampler):
     def _get_global_and_agent_state(
-        self, event, tick: int = None
-    ) -> Tuple[Optional[np.ndarray], Dict[str, np.ndarray]]:
+        self, event: DecisionEvent, tick: int = None
+    ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
         tick = self._env.tick
         vessel_snapshots, port_snapshots = self._env.snapshot_list["vessels"], self._env.snapshot_list["ports"]
         port_idx, vessel_idx = event.port_idx, event.vessel_idx
@@ -26,7 +26,7 @@ class CIMEnvSampler(AbsEnvSampler):
         ])
         return None, {port_idx: state}
 
-    def _translate_to_env_action(self, action_dict: Dict[str, np.ndarray], event) -> Dict[str, object]:
+    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: DecisionEvent) -> Dict[Any, object]:
         action_space = action_shaping_conf["action_space"]
         finite_vsl_space = action_shaping_conf["finite_vessel_space"]
         has_early_discharge = action_shaping_conf["has_early_discharge"]
@@ -52,7 +52,7 @@ class CIMEnvSampler(AbsEnvSampler):
 
         return {port_idx: Action(vsl_idx, int(port_idx), actual_action, action_type)}
 
-    def _get_reward(self, env_action_dict: Dict[str, object], tick: int) -> Dict[str, float]:
+    def _get_reward(self, env_action_dict: Dict[Any, object], tick: int) -> Dict[Any, float]:
         start_tick = tick + 1
         ticks = list(range(start_tick, start_tick + reward_shaping_conf["time_window"]))
 
@@ -69,7 +69,7 @@ class CIMEnvSampler(AbsEnvSampler):
         )
         return {agent_id: reward for agent_id, reward in zip(ports, rewards)}
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[str, float]) -> None:
+    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._tracker["env_metric"] = self._env.metrics
 
 

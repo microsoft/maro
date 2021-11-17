@@ -142,7 +142,6 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         """
         return torch.from_numpy(array).to(self._device)
 
-    @abstractmethod  # TODO
     def step(self, loss: torch.Tensor) -> None:
         """
         Run a training step to update the policy.
@@ -152,7 +151,6 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    @abstractmethod  # TODO
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
         Get the gradients with respect to all parameters of the internal nets according to the given loss.
