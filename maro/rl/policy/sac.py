@@ -6,7 +6,7 @@ from typing import List, Union
 import numpy as np
 import torch
 
-from maro.rl.modeling import ContinuousSACNet
+from maro.rl.modeling import ContinuousSACNet, ContinuousActionSpace
 from maro.rl.utils import average_grads
 from maro.utils import clone
 
@@ -23,15 +23,14 @@ class SoftActorCritic(RLPolicy):
     Args:
         name (str): Unique identifier for the policy.
         sac_net (ContinuousSACNet): DDPG policy and q-value models.
+        action_space (ContinuousActionSpace): The output range of the actor. For random exploration.
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
+        num_training_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of training rounds between policy target model updates.
         q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        q_value_loss_coeff (float): Coefficient for policy loss in the total loss function, e.g.,
-            loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
-        soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
-            (1-soft_update_coeff) * target_model. Defaults to 1.0.
+        soft_update_coeff (float): Soft update coefficient, i.e. tau.
+            E.g., target_model = tau * eval_model + (1 - tau) * target_model. Defaults to 1.0.
         replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
@@ -46,13 +45,16 @@ class SoftActorCritic(RLPolicy):
         self,
         name: str,
         sac_net: ContinuousSACNet,
+        action_space: ContinuousActionSpace,
         reward_discount: float,
         alpha: float = 0.2,
-        num_epochs: int = 1,
+        actor_gradient_clipping_norm: float = 5,
+        critic_gradient_clipping_norm: float = 5,
+        num_training_epochs: int = 1,
         update_target_every: int = 5,
         q_value_loss_cls=torch.nn.MSELoss,
-        q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
+        # TODO: replay memory instance as parameter?
         replay_memory_capacity: int = 1000000,
         random_overwrite: bool = False,
         warmup: int = 50000,
@@ -69,33 +71,36 @@ class SoftActorCritic(RLPolicy):
         else:
             self.device = torch.device(device)
         self.sac_net = sac_net.to(self.device)
+        self.action_space = action_space
+        # TODO: no need to clone the actor network?
         self.target_sac_net = clone(self.sac_net)
         self.target_sac_net.eval()
         self.reward_discount = reward_discount
         self.alpha = alpha
-        self.num_epochs = num_epochs
+        self._actor_gradient_clipping_norm = actor_gradient_clipping_norm
+        self._critic_gradient_clipping_norm = critic_gradient_clipping_norm
+        self.num_training_epochs = num_training_epochs
         self.update_target_every = update_target_every
         self.q_value_loss_func = q_value_loss_cls()
-        self.q_value_loss_coeff = q_value_loss_coeff
         self.soft_update_coeff = soft_update_coeff
 
         self._sac_net_version = 0
         self._target_sac_net_version = 0
 
         self._replay_memory = ReplayMemory(
-            replay_memory_capacity, self.sac_net.input_dim,
-            action_dim=self.sac_net.action_dim, random_overwrite=random_overwrite
+            replay_memory_capacity,
+            self.sac_net.input_dim,
+            action_dim=self.sac_net.action_dim,
+            random_overwrite=random_overwrite
         )
         self.warmup = warmup
+        # TODO: let the rollout_batch_size to be the parameter of the get_rollout_info() ?
         self.rollout_batch_size = rollout_batch_size
         self.train_batch_size = train_batch_size
 
     def __call__(self, states: np.ndarray):
         if self._replay_memory.size < self.warmup:
-            return np.random.uniform(
-                low=self.sac_net.action_min, high=self.sac_net.action_max,
-                size=(states.shape[0] if len(states.shape) > 1 else 1, self.sac_net.action_dim)
-            )
+            return self.action_space.sample(states.shape[0] if len(states.shape) > 1 else 1)
 
         self.sac_net.eval()
         states = torch.from_numpy(states).to(self.device)
@@ -133,6 +138,7 @@ class SoftActorCritic(RLPolicy):
         """
         return self._replay_memory.sample(self.rollout_batch_size)
 
+    # TODO: no batch loss?
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
         raise NotImplementedError
 
@@ -160,7 +166,7 @@ class SoftActorCritic(RLPolicy):
 
     def improve(self):
         """Learn using data from the replay memory."""
-        for _ in range(self.num_epochs):
+        for _ in range(self.num_training_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
 
             ####################################################################
@@ -191,7 +197,7 @@ class SoftActorCritic(RLPolicy):
             q_loss = self.q_value_loss_func(q1, q_target) + self.q_value_loss_func(q2, q_target)
 
             q_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.sac_net.q_params, 5)
+            torch.nn.utils.clip_grad_norm_(self.sac_net.q_params, self._critic_gradient_clipping_norm)
             self.sac_net.q_optim.step()
 
             # Update policy
@@ -208,10 +214,8 @@ class SoftActorCritic(RLPolicy):
             )
             policy_loss = (self.alpha * hypo_logps - q_hypo).mean()
 
-            # entropy loss
-
             policy_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.sac_net.policy_params, 5)
+            torch.nn.utils.clip_grad_norm_(self.sac_net.policy_params, self._actor_gradient_clipping_norm)
             self.sac_net.policy_optim.step()
 
             for param in self.sac_net.q_params:
@@ -229,7 +233,7 @@ class SoftActorCritic(RLPolicy):
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
-        for _ in range(self.num_epochs):
+        for _ in range(self.num_training_epochs):
             worker_id_list = self.task_queue_client.request_workers()
             batch_list = [
                 self._replay_memory.sample(self.train_batch_size // len(worker_id_list))

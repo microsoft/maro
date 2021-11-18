@@ -70,8 +70,8 @@ class SAC(BaseAgent):
         BaseAgent.copy_model_over(self.critic_local_2, self.critic_target_2)
 
         self.memory = Replay_Buffer(
-            self.hyperparameters["replay_memory"]["capacity"],
-            self.hyperparameters["replay_memory"]["batch_size"]
+            self.config.replay_memory_config["capacity"],
+            self.config.replay_memory_config["batch_size"]
         )
 
         self.actor_local = create_NN(
@@ -131,7 +131,7 @@ class SAC(BaseAgent):
             self.action = self.pick_action(eval_ep)
             self.conduct_action(self.action)
             # if self._time_for_critic_and_actor_to_learn():
-            #     for _ in range(self.hyperparameters["learning_updates_per_learning_session"]):
+            #     for _ in range(self.hyperparameters["num_training_epochs"]):
             #         self._learn()
             mask = False if self.episode_step_number_val >= self.environment._max_episode_steps else self.done
             if not eval_ep:
@@ -143,7 +143,8 @@ class SAC(BaseAgent):
         #     self.logger.info(self.memory.state[i], self.memory.action[i], self.memory.reward[i])
         # exit(0)
 
-        for _ in range(self.hyperparameters["sac"]["learning_updates_per_learning_session"]):
+        # for _ in range(self.hyperparameters["sac"]["num_training_epochs"]):
+        for _ in range(2):
             self._learn()
         if eval_ep:
             self.logger.info(f"Evaluation Episode Return: {self.total_episode_reward_so_far}")

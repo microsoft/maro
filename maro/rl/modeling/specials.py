@@ -151,29 +151,45 @@ class DiscreteQNet(AbsCoreModel):
             params.data = (1 - tau) * params.data + tau * other_params.data
 
 
-class ContinuousACNet(AbsCoreModel):
-    """Model container for the actor-critic architecture for continuous action spaces."""
-    def __init__(self, out_min: Union[float, List[float]] = None, out_max: Union[float, List[float]] = None):
+class ContinuousActionSpace(object):
+    def __init__(
+        self,
+        action_dim: int,
+        lower_bound: Union[float, List[float]],
+        upper_bound: Union[float, List[float]]
+    ):
         super().__init__()
+
+        self._action_dim = action_dim
 
         def type_assert(name: str, value):
             if value is not None:
                 assert isinstance(value, (int, float, list)), f"{name} must be float or List[float]"
                 if isinstance(value, list):
+                    assert len(value) == self._action_dim, f"{name} must contains {self._action_dim} values"
                     for element in value:
                         assert isinstance(element, (int, float)), f"{value} must be float or List[float]"
 
-        type_assert("out_min", out_min)
-        type_assert("out_max", out_max)
+        type_assert("lower_bound", lower_bound)
+        type_assert("upper_bound", upper_bound)
 
-        if isinstance(out_min, list) and isinstance(out_max, list):
-            assert len(out_min) == len(out_max), "out_min and out_max should have the same dimension."
+        self._lower_bound = lower_bound
+        self._upper_bound = upper_bound
 
-        self.out_min = out_min
-        self.out_max = out_max
-        # For torch clamping
-        self._min = torch.tensor(out_min) if isinstance(out_min, list) else out_min
-        self._max = torch.tensor(out_max) if isinstance(out_max, list) else out_max
+    def sample(self, batch_size: int=1):
+        return np.random.uniform(
+            low=self._lower_bound,
+            high=self._upper_bound,
+            size=(batch_size, self._action_dim)
+        )
+
+    # TODO: add property for max_value and min_value ?
+
+
+class ContinuousACNet(AbsCoreModel):
+    """Model container for the actor-critic architecture for continuous action spaces."""
+    def __init__(self):
+        super().__init__()
 
     @property
     @abstractmethod
@@ -199,12 +215,7 @@ class ContinuousACNet(AbsCoreModel):
 
     def get_action(self, states: torch.tensor) -> torch.tensor:
         """Compute actions given a batch of states."""
-        action = self.forward(states)
-        if self._min is not None:
-            action = torch.max(action, self._min)
-        if self._max is not None:
-            action = torch.min(action, self._max)
-        return action
+        return self.forward(states)
 
     def value(self, states: torch.tensor):
         """Compute the Q-values for a batch of states using the actions computed from them."""
@@ -255,16 +266,6 @@ class ContinuousSACNet(AbsCoreModel):
     @property
     @abstractmethod
     def action_dim(self):
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def action_min(self):
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def action_max(self):
         raise NotImplementedError
 
     @property

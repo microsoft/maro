@@ -9,7 +9,7 @@ import torch
 
 from maro.communication import SessionMessage
 from maro.rl.exploration import gaussian_noise
-from maro.rl.modeling import ContinuousACNet
+from maro.rl.modeling import ContinuousACNet, ContinuousActionSpace
 from maro.rl.utils import MsgKey, MsgTag, average_grads
 from maro.utils import clone
 
@@ -28,12 +28,10 @@ class DDPG(RLPolicy):
         name (str): Unique identifier for the policy.
         ac_net (ContinuousACNet): DDPG policy and q-value models.
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
+        num_training_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of training rounds between policy target model updates.
         q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        q_value_loss_coeff (float): Coefficient for policy loss in the total loss function, e.g.,
-            loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
         soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
             (1-soft_update_coeff) * target_model. Defaults to 1.0.
         exploration_strategy (Tuple[Callable, dict]): A 2-tuple that consists of a) a function that takes a state
@@ -63,11 +61,11 @@ class DDPG(RLPolicy):
         self,
         name: str,
         ac_net: ContinuousACNet,
+        action_space: ContinuousActionSpace,
         reward_discount: float,
-        num_epochs: int = 1,
+        num_training_epochs: int = 1,
         update_target_every: int = 5,
         q_value_loss_cls=torch.nn.MSELoss,
-        q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
         exploration_strategy: Tuple[Callable, dict] = (gaussian_noise, {"mean": .0, "stddev": 1.0, "relative": False}),
         exploration_scheduling_options: List[tuple] = [],
@@ -93,13 +91,13 @@ class DDPG(RLPolicy):
         else:
             self.device = torch.device(device)
         self.ac_net = ac_net.to(self.device)
+        self.action_space = action_space
         self.target_ac_net = clone(self.ac_net)
         self.target_ac_net.eval()
         self.reward_discount = reward_discount
-        self.num_epochs = num_epochs
+        self.num_training_epochs = num_training_epochs
         self.update_target_every = update_target_every
         self.q_value_loss_func = q_value_loss_cls()
-        self.q_value_loss_coeff = q_value_loss_coeff
         self.soft_update_coeff = soft_update_coeff
 
         self._ac_net_version = 0
@@ -123,10 +121,7 @@ class DDPG(RLPolicy):
 
     def __call__(self, states: np.ndarray):
         if self._replay_memory.size < self.warmup:
-            return np.random.uniform(
-                low=self.ac_net.out_min, high=self.ac_net.out_max,
-                size=(states.shape[0] if len(states.shape) > 1 else 1, self.ac_net.action_dim)
-            )
+            return self.action_space.sample(states.shape[0] if len(states.shape) > 1 else 1)
 
         self.ac_net.eval()
         states = torch.from_numpy(states).to(self.device)
@@ -175,39 +170,7 @@ class DDPG(RLPolicy):
             explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
                 to False.
         """
-        states = torch.from_numpy(batch["states"]).to(self.device)
-        next_states = torch.from_numpy(batch["next_states"]).to(self.device)
-        actual_actions = torch.from_numpy(batch["actions"]).to(self.device)
-        rewards = torch.from_numpy(batch["rewards"]).to(self.device)
-        terminals = torch.from_numpy(batch["terminals"]).float().to(self.device)
-        if len(actual_actions.shape) == 1:
-            actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
-        if rewards.ndim == 1:
-            rewards = rewards.unsqueeze(dim=1)
-        if terminals.ndim == 1:
-            terminals = terminals.unsqueeze(dim=1)
-
-        self.ac_net.train()
-        with torch.no_grad():
-            next_q_values = self.target_ac_net.value(next_states)
-        target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N, 1)
-
-        # loss info
-        loss_info = {}
-        q_values = self.ac_net(states, actions=actual_actions) # (N, 1)
-        q_loss = self.q_value_loss_func(q_values, target_q_values)
-        # ?: Q network should be updated before the Pi loss computation
-        policy_loss = -self.ac_net.value(states).mean()
-        loss = policy_loss + self.q_value_loss_coeff * q_loss
-        loss_info = {
-            "policy_loss": policy_loss.detach().cpu().numpy(),
-            "q_loss": q_loss.detach().cpu().numpy(),
-            "loss": loss.detach().cpu().numpy() if explicit_grad else loss
-        }
-        if explicit_grad:
-            loss_info["grad"] = self.ac_net.get_gradients(loss)
-
-        return loss_info
+        raise NotImplementedError
 
     def update(self, loss_info_list: List[dict]):
         """Update the model parameters with gradients computed by multiple gradient workers.
@@ -233,10 +196,9 @@ class DDPG(RLPolicy):
 
     def improve(self):
         """Learn using data from the replay memory."""
-        for _ in range(self.num_epochs):
+        for _ in range(self.num_training_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
 
-            # self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
             ####################################################################
             states = torch.from_numpy(train_batch["states"]).to(self.device)
             next_states = torch.from_numpy(train_batch["next_states"]).to(self.device)
@@ -286,7 +248,7 @@ class DDPG(RLPolicy):
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
-        for _ in range(self.num_epochs):
+        for _ in range(self.num_training_epochs):
             msg_dict = defaultdict(lambda: defaultdict(dict))
             for worker_id in worker_id_list:
                 msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._replay_memory.sample(

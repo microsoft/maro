@@ -10,8 +10,7 @@ from maro.simulator import Env
 from maro.simulator.scenarios.hvac.common import Action
 
 from .callbacks import baseline
-from .config import config
-from .sac_policy import policy_func_dict
+from .config import config, policy_func_dict
 
 
 agent_name = "ahu01"

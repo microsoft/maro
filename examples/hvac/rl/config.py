@@ -22,10 +22,10 @@ class Config(object):
 
     def __init__(self):
         self.algorithm = "sac"
-        self.num_episode = 30
+        self.num_episode = 100
         self.evaluate_interval = 10
 
-        self.randomize_seed = False
+        self.randomize_seed = True
         self.seed = 1       # Used only if randomize_seed is False
 
         self.device = "cpu"
@@ -70,6 +70,12 @@ class Config(object):
         self.hyperparameters = {   # Would be updated automatically according to algorithm used
         }
 
+        self.replay_memory_config = {
+            "capacity": 1000000,
+            "random_overwrite": False,
+            "batch_size": 256,
+        }
+
         self._sac_config = {
             "Actor": {
                 # For NN module
@@ -105,12 +111,6 @@ class Config(object):
                 "gradient_clipping_norm": 5,
             },
 
-            "replay_memory": {
-                "capacity": 1000000,
-                "random_overwrite": False,
-                "batch_size": 256,
-            },
-
             "sac": {
                 "reward_discount": 0.99,
                 "soft_update_coeff": 0.995,     # 1 - tau
@@ -118,10 +118,53 @@ class Config(object):
                 "automatically_tune_entropy_hyperparameter": True,
                 "warmup": 0,
                 "update_target_every": 1,
-                "learning_updates_per_learning_session": 2,
+                "num_training_epochs": 1,
                 "add_ou_noise": False,
             },
+        }
 
+        self._ddpg_config = {
+            "Actor": {
+                # For NN module
+                "linear_hidden_units": [128, 128],
+                "output_activation": 'tanh',
+                "hidden_activations": 'tanh',
+                "dropout": 0.3,
+                "initialiser": "Xavier",
+                "batch_norm": False,
+                "seed": 1,
+                # For optimizer
+                "learning_rate": 0.0003,
+                # For soft Update
+                "tau": 0.005,
+                # For gradient clipping
+                "gradient_clipping_norm": 5,
+            },
+
+            "Critic": {
+                # For NN module
+                "linear_hidden_units": [128, 128],
+                "output_activation": None,
+                "hidden_activations": 'tanh',
+                "dropout": 0.3,
+                "initialiser": "Xavier",
+                "batch_norm": False,
+                "base_seed": 1,
+                # For optimizer
+                "learning_rate": 0.0003,
+                # For Soft Update
+                "tau": 0.005,
+                # For gradient clipping
+                "gradient_clipping_norm": 5,
+            },
+
+            "ddpg": {
+                "reward_discount": 0.99,
+                "soft_update_coeff": 0.995,
+                "warmup": 0,
+                "update_target_every": 1,
+                "num_training_epochs": 2,
+            },
         }
 
         self.ou_noise_config = {
@@ -146,7 +189,8 @@ class Config(object):
             f"{self._start_time}_"
             f"{self.algorithm}_"
             f"{self.reward_config['type']}_"
-            f"{self.num_episode}"
+            f"{self.num_episode}_"
+            f"test"
         )
 
     def _update_values_accordingly(self):
@@ -162,6 +206,11 @@ class Config(object):
         # hyperparameter
         if self.algorithm == "sac":
             self.hyperparameters.update(self._sac_config)
+        elif self.algorithm == "ddpg":
+            self.hyperparameters.update(self._ddpg_config)
+        else:
+            print(f"Wrong algorithm name: {self.algorithm}, please choose from [sac, ddpg]")
+            exit(0)
 
         # folder
         os.makedirs(self.checkpoint_dir, exist_ok=True)
@@ -169,3 +218,10 @@ class Config(object):
 
 
 config = Config()
+
+if config.algorithm == "sac":
+    from .sac_policy import policy_func_dict
+    policy_func_dict = policy_func_dict
+elif config.algorithm == "ddpg":
+    from .ddpg_policy import policy_func_dict
+    policy_func_dict = policy_func_dict

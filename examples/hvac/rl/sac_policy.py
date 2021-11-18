@@ -3,7 +3,7 @@ from itertools import chain
 from nn_builder.pytorch.NN import NN
 from torch.distributions import Normal
 
-from maro.rl.modeling import ContinuousSACNet
+from maro.rl.modeling import ContinuousSACNet, ContinuousActionSpace
 from maro.rl.policy import SoftActorCritic
 
 from .config import config
@@ -62,6 +62,31 @@ class SACNet(ContinuousSACNet):
             eps=1e-4
         )
 
+        """
+        NN(
+            (embedding_layers): ModuleList()
+            (hidden_layers): ModuleList(
+                (0): Linear(in_features=4, out_features=128, bias=True)
+                (1): Linear(in_features=128, out_features=128, bias=True)
+            )
+            (output_layers): ModuleList(
+                (0): Linear(in_features=128, out_features=4, bias=True)
+            )
+            (dropout_layer): Dropout(p=0.3, inplace=False)
+        )
+        NN(
+            (embedding_layers): ModuleList()
+            (hidden_layers): ModuleList(
+                (0): Linear(in_features=6, out_features=128, bias=True)
+                (1): Linear(in_features=128, out_features=128, bias=True)
+            )
+            (output_layers): ModuleList(
+                (0): Linear(in_features=128, out_features=1, bias=True)
+            )
+            (dropout_layer): Dropout(p=0.3, inplace=False)
+        )
+        """
+
     @property
     def input_dim(self):
         return self._state_dim
@@ -69,14 +94,6 @@ class SACNet(ContinuousSACNet):
     @property
     def action_dim(self):
         return self._action_dim
-
-    @property
-    def action_min(self):
-        raise NotImplementedError
-
-    @property
-    def action_max(self):
-        raise NotImplementedError
 
     @property
     def policy_params(self):
@@ -156,14 +173,16 @@ policy_func_dict = {
             config.hyperparameters,
             config.device,
         ),
+        action_space=ContinuousActionSpace(config.action_config["action_dim"], -1, 1),
         reward_discount=config.hyperparameters["sac"]["reward_discount"],
         alpha=config.hyperparameters["sac"]["alpha"],
+        num_training_epochs=config.hyperparameters["sac"]["num_training_epochs"],
         update_target_every=config.hyperparameters["sac"]["update_target_every"],
         soft_update_coeff=config.hyperparameters["sac"]["soft_update_coeff"],
-        replay_memory_capacity=config.hyperparameters["replay_memory"]["capacity"],
-        random_overwrite=config.hyperparameters["replay_memory"]["random_overwrite"],
+        replay_memory_capacity=config.replay_memory_config["capacity"],
+        random_overwrite=config.replay_memory_config["random_overwrite"],
+        train_batch_size=config.replay_memory_config["batch_size"],
         warmup=config.hyperparameters["sac"]["warmup"],
-        train_batch_size=config.hyperparameters["replay_memory"]["batch_size"],
         device=config.device
     )
 }

@@ -36,8 +36,8 @@ class FullyConnected(nn.Module):
         output_dim: int,
         hidden_dims: List[int],
         activation=nn.ReLU,
-        head: bool = False,
-        softmax: bool = False,
+        head: bool = False,     # TODO
+        softmax: bool = False,  # TODO, replaced with output_activation?
         batch_norm: bool = False,
         skip_connection: bool = False,
         dropout_p: float = None,

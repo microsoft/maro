@@ -7,6 +7,7 @@ from .exploration import OU_Noise_Exploration
 import os
 from shutil import copy2
 
+from examples.hvac.rl.sac_policy import create_NN
 
 class DDPG(BaseAgent):
     """A DDPG Agent"""
@@ -15,15 +16,42 @@ class DDPG(BaseAgent):
     def __init__(self, config, env, logger):
         BaseAgent.__init__(self, config, env, logger)
         self.hyperparameters = config.hyperparameters
-        self.critic_local = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
-        self.critic_target = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
+        self.critic_local = create_NN(
+            input_dim=self.state_size + self.action_size,
+            output_dim=1,
+            hyperparameters=self.hyperparameters["Critic"],
+            seed=self.hyperparameters["Critic"]["base_seed"],
+            device=self.device
+        )
+        self.critic_target = create_NN(
+            input_dim=self.state_size + self.action_size,
+            output_dim=1,
+            hyperparameters=self.hyperparameters["Critic"],
+            seed=self.hyperparameters["Critic"]["base_seed"],
+            device=self.device
+        )
         BaseAgent.copy_model_over(self.critic_local, self.critic_target)
 
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(),
                                            lr=self.hyperparameters["Critic"]["learning_rate"], eps=1e-4)
-        self.memory = Replay_Buffer(self.hyperparameters["Critic"]["buffer_size"], self.hyperparameters["batch_size"])
-        self.actor_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size, key_to_use="Actor")
-        self.actor_target = self.create_NN(input_dim=self.state_size, output_dim=self.action_size, key_to_use="Actor")
+        self.memory = Replay_Buffer(
+            self.config.replay_memory_config["capacity"],
+            self.config.replay_memory_config["batch_size"]
+        )
+        self.actor_local = create_NN(
+            input_dim=self.state_size,
+            output_dim=self.action_size,
+            hyperparameters=self.hyperparameters["Actor"],
+            seed=self.hyperparameters["Actor"]["seed"],
+            device=self.device
+        )
+        self.actor_target = create_NN(
+            input_dim=self.state_size,
+            output_dim=self.action_size,
+            hyperparameters=self.hyperparameters["Actor"],
+            seed=self.hyperparameters["Actor"]["seed"],
+            device=self.device
+        )
         BaseAgent.copy_model_over(self.actor_local, self.actor_target)
 
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(),
@@ -36,14 +64,14 @@ class DDPG(BaseAgent):
             # print("State ", self.state.shape)
             self.action = self.pick_action()
             self.conduct_action(self.action)
-            if self.time_for_critic_and_actor_to_learn():
-                for _ in range(self.hyperparameters["learning_updates_per_learning_session"]):
-                    states, actions, rewards, next_states, dones = self.sample_experiences()
-                    self.critic_learn(states, actions, rewards, next_states, dones)
-                    self.actor_learn(states)
             self.memory.add_experience(self.state, self.action, self.reward, self.next_state, self.done)
             self.state = self.next_state #this is to set the state for the next iteration
             self.env_step_number += 1
+
+        for _ in range(2):
+            states, actions, rewards, next_states, dones = self.sample_experiences()
+            self.critic_learn(states, actions, rewards, next_states, dones)
+            self.actor_learn(states)
 
     def sample_experiences(self):
         return self.memory.sample()
@@ -89,7 +117,7 @@ class DDPG(BaseAgent):
 
     def compute_critic_values_for_current_states(self, rewards, critic_targets_next, dones):
         """Computes the critic values for current states to be used in the loss for the critic"""
-        critic_targets_current = rewards + (self.hyperparameters["discount_rate"] * critic_targets_next * (1.0 - dones))
+        critic_targets_current = rewards + (self.hyperparameters["ddpg"]["reward_discount"] * critic_targets_next * (1.0 - dones))
         return critic_targets_current
 
     def compute_expected_critic_values(self, states, actions):
@@ -101,7 +129,7 @@ class DDPG(BaseAgent):
         """Returns boolean indicating whether there are enough experiences to learn from and it is time to learn for the
         actor and critic"""
         return (
-            len(self.memory) > self.hyperparameters["batch_size"]
+            len(self.memory) > self.config.replay_memory_config["batch_size"]
             and self.env_step_number % self.hyperparameters["update_every_n_steps"] == 0
         )
 

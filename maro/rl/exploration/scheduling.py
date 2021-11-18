@@ -101,29 +101,59 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         # validate splits
         splits = [(start_ep, initial_value)] + splits + [(last_ep, final_value)]
         splits.sort()
+
         for (ep, _), (ep2, _) in zip(splits, splits[1:]):
             if ep == ep2:
                 raise ValueError("The zeroth element of split points must be unique")
 
         super().__init__(exploration_params, param_name, initial_value=initial_value)
+
         self.final_value = final_value
         self._splits = splits
         self._ep = start_ep
         self._split_index = 1
-        self._delta = (self._splits[1][1] - self._exploration_params[self.param_name]) / (self._splits[1][0] - start_ep)
+        self._delta = self._get_delta(
+            start_ep=start_ep,
+            end_ep=self._splits[1][0],
+            start_value=self._exploration_params[self.param_name], # TODO: or use initial_value?
+            end_value=self._splits[1][1]
+        )
+
+    def _get_delta(self, start_ep: int, end_ep: int, start_value: float, end_value: float):
+        if end_ep == start_ep:
+            assert (
+                start_value == end_value,
+                f"[Episode {start_ep}] No episodes left to adjust {self.param_name} from {start_value} to {end_value}"
+            )
+            return 0
+
+        delta = (end_value - start_value) / (end_ep - start_ep)
+        return delta
+
+    def _update_param(self):
+        self._exploration_params[self.param_name] += self._delta
+
+        if (
+            (self._splits[self._split_index][1] - self._splits[self._split_index - 1][1])
+            * (self._splits[self._split_index][1] - self._exploration_params[self.param_name])
+        ) < 0:
+            self._exploration_params[self.param_name] = self._splits[self._split_index][1]
 
     def step(self):
         if self._split_index == len(self._splits):
             return
 
-        self._exploration_params[self.param_name] += self._delta
+        self._update_param()
+
         self._ep += 1
         if self._ep == self._splits[self._split_index][0]:
             self._split_index += 1
             if self._split_index < len(self._splits):
-                self._delta = (
-                    (self._splits[self._split_index][1] - self._splits[self._split_index - 1][1]) /
-                    (self._splits[self._split_index][0] - self._splits[self._split_index - 1][0])
+                self._delta = self._get_delta(
+                    self._splits[self._split_index - 1][0],
+                    self._splits[self._split_index][0],
+                    self._splits[self._split_index - 1][1],
+                    self._splits[self._split_index][1]
                 )
 
 
