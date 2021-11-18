@@ -143,17 +143,16 @@ def get_rl_component_env_vars(config, containerized: bool = False):
                 env["MAXEXRECV"] = str(config["sync"]["distributed"]["max_extra_recv_tries"])
             if "extra_recv_timeout" in config["sync"]["distributed"]:
                 env["MAXRECVTIMEO"] = str(config["sync"]["distributed"]["extra_recv_timeout"])
+            component_env.update({
+                f"rolloutworker-{worker_id}":
+                    {**common, "WORKERID": str(worker_id), "ROLLOUTGROUP": "-".join([config["job"], "rollout"])}
+                for worker_id in range(config["sync"]["num_rollouts"])
+            })
 
         if "num_eval_rollouts" in config["sync"]:
             env["NUMEVALROLLOUTS"] = str(config["sync"]["num_eval_rollouts"])
 
         component_env["main"] = {**common, **env}
-        component_env.update({
-            f"rolloutworker-{worker_id}":
-                {**common, "WORKERID": str(worker_id), "ROLLOUTGROUP": "-".join([config["job"], "rollout"])}
-            for worker_id in range(config["sync"]["num_rollouts"])
-        })
-
         return component_env
 
     if config["mode"] == "async":
