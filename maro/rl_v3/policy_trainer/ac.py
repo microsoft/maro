@@ -7,7 +7,7 @@ from maro.rl.utils import discount_cumsum
 from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.replay_memory import FIFOReplayMemory
-from maro.rl_v3.utils import TransitionBatch
+from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 from .abs_trainer import SingleTrainer
 
@@ -29,9 +29,10 @@ class DiscreteActorCritic(SingleTrainer):
         clip_ratio: float = None,
         critic_loss_cls: Callable = None,
         min_logp: float = None,
-        critic_loss_coef: float = 0.1
+        critic_loss_coef: float = 0.1,
+        device: str = None
     ) -> None:
-        super(DiscreteActorCritic, self).__init__(name)
+        super(DiscreteActorCritic, self).__init__(name, device)
 
         self._replay_memory_capacity = replay_memory_capacity
 
@@ -57,7 +58,7 @@ class DiscreteActorCritic(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def register_policy(self, policy: DiscretePolicyGradient) -> None:
+    def _register_policy_impl(self, policy: DiscretePolicyGradient) -> None:
         assert isinstance(policy, DiscretePolicyGradient)
         self._policy = policy
         self._replay_memory = FIFOReplayMemory(
@@ -65,6 +66,7 @@ class DiscreteActorCritic(SingleTrainer):
             action_dim=policy.action_dim
         )
         self._v_critic_net = self._get_v_net_func()
+        self._v_critic_net.to(self._device)
 
     def train_step(self) -> None:
         self._improve(self._get_batch())
@@ -76,8 +78,8 @@ class DiscreteActorCritic(SingleTrainer):
         v_critic_net_copy = clone(self._v_critic_net)
         v_critic_net_copy.eval()
 
-        states = self._policy.ndarray_to_tensor(batch.states)  # s
-        actions = self._policy.ndarray_to_tensor(batch.actions).long()  # a
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
 
         self._policy.eval()
         logps_old = self._policy.get_state_action_logps(states, actions)  # log pi(a|s), action log-prob when sampling
@@ -90,8 +92,8 @@ class DiscreteActorCritic(SingleTrainer):
             values = np.concatenate([values, values[-1:]])
             rewards = np.concatenate([batch.rewards, values[-1:]])
             deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
-            returns = self._policy.ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1])
-            advantages = self._policy.ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam))
+            returns = ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1], self._device)
+            advantages = ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam), self._device)
 
             # Critic loss
             critic_loss = self._critic_loss_func(state_values, returns)

@@ -5,7 +5,7 @@ import torch
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
 from maro.rl_v3.replay_memory import RandomReplayMemory
-from maro.rl_v3.utils import TransitionBatch
+from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 from .abs_trainer import SingleTrainer
 
@@ -24,9 +24,10 @@ class DDPG(SingleTrainer):
         update_target_every: int = 5,
         soft_update_coef: float = 1.0,
         train_batch_size: int = 32,
-        critic_loss_coef: float = 0.1
+        critic_loss_coef: float = 0.1,
+        device: str = None
     ) -> None:
-        super(DDPG, self).__init__(name=name)
+        super(DDPG, self).__init__(name=name, device=device)
 
         self._policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
         self._target_policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
@@ -50,10 +51,11 @@ class DDPG(SingleTrainer):
     def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
         self._replay_memory.put(transition_batch)
 
-    def register_policy(self, policy: ContinuousRLPolicy) -> None:
+    def _register_policy_impl(self, policy: ContinuousRLPolicy) -> None:
         assert isinstance(policy, ContinuousRLPolicy)
         self._policy = policy
         self._target_policy = clone(self._policy)
+        self._target_policy.set_name(f"target_{policy.name}")
         self._target_policy.eval()
         self._replay_memory = RandomReplayMemory(
             capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
@@ -62,6 +64,10 @@ class DDPG(SingleTrainer):
         self._q_critic_net = self._get_q_critic_net_func()
         self._target_q_critic_net: QNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
+
+        self._target_policy.to_device(self._device)
+        self._q_critic_net.to(self._device)
+        self._target_q_critic_net.to(self._device)
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
@@ -77,11 +83,11 @@ class DDPG(SingleTrainer):
         """
         self._policy.train()
 
-        states = self._policy.ndarray_to_tensor(batch.states)  # s
-        next_states = self._policy.ndarray_to_tensor(batch.next_states)  # s'
-        actions = self._policy.ndarray_to_tensor(batch.actions)  # a
-        rewards = self._policy.ndarray_to_tensor(batch.rewards)  # r
-        terminals = self._policy.ndarray_to_tensor(batch.terminals)  # d
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        next_states = ndarray_to_tensor(batch.next_states, self._device)  # s'
+        actions = ndarray_to_tensor(batch.actions, self._device)  # a
+        rewards = ndarray_to_tensor(batch.rewards, self._device)  # r
+        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
 
         with torch.no_grad():
             next_q_values = self._target_q_critic_net.q_values(

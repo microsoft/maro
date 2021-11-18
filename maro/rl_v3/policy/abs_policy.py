@@ -6,7 +6,7 @@ from typing import Dict, Optional
 import numpy as np
 import torch
 
-from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape, ndarray_to_tensor
 
 
 class AbsPolicy(object, metaclass=ABCMeta):
@@ -49,6 +49,9 @@ class AbsPolicy(object, metaclass=ABCMeta):
     def trainable(self) -> bool:
         return self._trainable
 
+    def set_name(self, name: str) -> None:
+        self._name = name
+
 
 class DummyPolicy(AbsPolicy):
     """
@@ -85,7 +88,6 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         name: str,
         state_dim: int,
         action_dim: int,
-        device: str = None,
         trainable: bool = True
     ) -> None:
         """
@@ -93,15 +95,14 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
             name (str): Name of the policy.
             state_dim (int): Dimension of states.
             action_dim (int): Dimension of actions.
-            device (str): Device to store this model ('cpu' or 'gpu').
             trainable (bool): Whether this policy is trainable. Defaults to True.
         """
         super(RLPolicy, self).__init__(name=name, trainable=trainable)
         self._state_dim = state_dim
         self._action_dim = action_dim
-        self._device = torch.device(device) if device is not None \
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._is_exploring = False
+
+        self._device: Optional[torch.device] = None
 
     @property
     def state_dim(self) -> int:
@@ -130,18 +131,6 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         """
         self._is_exploring = False
 
-    def ndarray_to_tensor(self, array: np.ndarray) -> torch.Tensor:
-        """
-        Convert a np.ndarray to a torch.Tensor.
-
-        Args:
-            array (np.ndarray): The input ndarray.
-
-        Returns:
-            A tensor with same shape and values.
-        """
-        return torch.from_numpy(array).to(self._device)
-
     def step(self, loss: torch.Tensor) -> None:
         """
         Run a training step to update the policy.
@@ -164,7 +153,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
-        return self.get_actions_tensor(self.ndarray_to_tensor(states)).cpu().numpy()
+        return self.get_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
 
     def get_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
         """
@@ -265,6 +254,23 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     @abstractmethod
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
         raise NotImplementedError
+
+    def to_device(self, device: torch.device) -> None:
+        if self._device is None:
+            self._device = device
+            self._to_device_impl(device)
+            print(f"Assign policy {self.name} to device {device}")
+        elif self._device == device:
+            print(f"Policy {self.name} has already been assigned to {device}. No need to take further actions.")
+        else:
+            raise ValueError(
+                f"Policy {self.name} has already been assigned to device {self._device} "
+                f"and cannot be re-assigned to device {device}"
+            )
+
+    @abstractmethod
+    def _to_device_impl(self, device: torch.device) -> None:
+        pass
 
 
 if __name__ == '__main__':

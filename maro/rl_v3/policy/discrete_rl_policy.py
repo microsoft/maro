@@ -1,12 +1,12 @@
 from abc import ABCMeta
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import torch
 
 from maro.rl.exploration import epsilon_greedy
 from maro.rl_v3.model import DiscretePolicyNet, DiscreteQNet
-from maro.rl_v3.utils import match_shape
+from maro.rl_v3.utils import match_shape, ndarray_to_tensor
 from maro.utils import clone
 from .abs_policy import RLPolicy
 
@@ -17,13 +17,12 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         name: str,
         state_dim: int,
         action_num: int,
-        device: str = None,
         trainable: bool = True
     ) -> None:
         assert action_num >= 1
 
         super(DiscreteRLPolicy, self).__init__(
-            name=name, state_dim=state_dim, action_dim=1, device=device, trainable=trainable
+            name=name, state_dim=state_dim, action_dim=1, trainable=trainable
         )
 
         self._action_num = action_num
@@ -44,7 +43,6 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         self,
         name: str,
         q_net: DiscreteQNet,
-        device: str = None,
         trainable: bool = True,
         exploration_strategy: Tuple[Callable, dict] = (epsilon_greedy, {"epsilon": 0.1}),
         exploration_scheduling_options: List[tuple] = None,
@@ -53,7 +51,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         assert isinstance(q_net, DiscreteQNet)
 
         super(ValueBasedPolicy, self).__init__(
-            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, device=device, trainable=trainable
+            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, trainable=trainable
         )
         self._q_net = q_net
 
@@ -71,7 +69,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         return self._q_net
 
     def q_values_for_all_actions(self, states: np.ndarray) -> np.ndarray:
-        return self.q_values_for_all_actions_tensor(self.ndarray_to_tensor(states)).cpu().numpy()
+        return self.q_values_for_all_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
 
     def q_values_for_all_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
         assert self._shape_check(states=states)
@@ -81,8 +79,8 @@ class ValueBasedPolicy(DiscreteRLPolicy):
 
     def q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
         return self.q_values_tensor(
-            self.ndarray_to_tensor(states),
-            self.ndarray_to_tensor(actions)
+            ndarray_to_tensor(states, self._device),
+            ndarray_to_tensor(actions, self._device)
         ).cpu().numpy()
 
     def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
@@ -97,14 +95,14 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         self._call_cnt += 1
         if self._call_cnt <= self._warmup:
-            return self.ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1)))
+            return ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1)), self._device)
 
         q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
         _, actions = q_matrix.max(dim=1)  # [B], [B]
 
         if exploring:
             actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, **self._exploration_params)
-            actions = self.ndarray_to_tensor(actions)
+            actions = ndarray_to_tensor(actions, self._device)
         return actions.unsqueeze(1)  # [B, 1]
 
     def step(self, loss: torch.Tensor) -> None:
@@ -135,6 +133,9 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         assert isinstance(other_policy, ValueBasedPolicy)
         self._q_net.soft_update(other_policy.q_net, tau)
 
+    def _to_device_impl(self, device: torch.device) -> None:
+        self._q_net.to(device)
+
 
 class DiscretePolicyGradient(DiscreteRLPolicy):
     """
@@ -144,14 +145,13 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         self,
         name: str,
         policy_net: DiscretePolicyNet,
-        device: str = None,
         trainable: bool = True
     ) -> None:
         assert isinstance(policy_net, DiscretePolicyNet)
 
         super(DiscretePolicyGradient, self).__init__(
             name=name, state_dim=policy_net.state_dim, action_num=policy_net.action_num,
-            device=device, trainable=trainable
+            trainable=trainable
         )
 
         self._policy_net = policy_net
@@ -219,3 +219,6 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
 
     def get_state_action_logps(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         return torch.log(self.get_state_action_probs(states, actions))
+
+    def _to_device_impl(self, device: torch.device) -> None:
+        self._policy_net.to(device)

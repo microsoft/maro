@@ -34,7 +34,6 @@ class ContinuousRLPolicy(RLPolicy):
         name: str,
         action_range: Tuple[Union[float, List[float]], Union[float, List[float]]],
         policy_net: ContinuousPolicyNet,
-        device: str = None,
         trainable: bool = True
     ) -> None:
         """
@@ -44,14 +43,13 @@ class ContinuousRLPolicy(RLPolicy):
                 it is an array, it should contain the bound for every dimension. If it is a float, it will be
                 broadcast to all dimensions.
             policy_net (ContinuousPolicyNet): The core net of this policy.
-            device (str): Device to store this model ('cpu' or 'gpu').
             trainable (bool): Whether this policy is trainable. Defaults to True.
         """
         assert isinstance(policy_net, ContinuousPolicyNet)
 
         super(ContinuousRLPolicy, self).__init__(
             name=name, state_dim=policy_net.state_dim, action_dim=policy_net.action_dim,
-            device=device, trainable=trainable
+            trainable=trainable
         )
 
         self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)
@@ -103,3 +101,6 @@ class ContinuousRLPolicy(RLPolicy):
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, ContinuousRLPolicy)
         self._policy_net.soft_update(other_policy.policy_net, tau)
+
+    def _to_device_impl(self, device: torch.device) -> None:
+        self._policy_net.to(device)

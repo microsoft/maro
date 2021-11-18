@@ -4,7 +4,7 @@ import torch
 
 from maro.rl_v3.policy import ValueBasedPolicy
 from maro.rl_v3.replay_memory import RandomReplayMemory
-from maro.rl_v3.utils import TransitionBatch
+from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 from .abs_trainer import SingleTrainer
 
@@ -24,9 +24,10 @@ class DQN(SingleTrainer):
         update_target_every: int = 5,
         soft_update_coef: float = 0.1,
         double: bool = False,
-        random_overwrite: bool = False
+        random_overwrite: bool = False,
+        device: str = None
     ) -> None:
-        super(DQN, self).__init__(name)
+        super(DQN, self).__init__(name, device)
 
         self._policy: Optional[ValueBasedPolicy] = None
         self._target_policy: Optional[ValueBasedPolicy] = None
@@ -62,11 +63,11 @@ class DQN(SingleTrainer):
 
     def _improve(self, batch: TransitionBatch) -> None:
         self._policy.train()
-        states = self._policy.ndarray_to_tensor(batch.states)
-        next_states = self._policy.ndarray_to_tensor(batch.next_states)
-        actions = self._policy.ndarray_to_tensor(batch.actions)
-        rewards = self._policy.ndarray_to_tensor(batch.rewards)
-        terminals = self._policy.ndarray_to_tensor(batch.terminals).float()
+        states = ndarray_to_tensor(batch.states, self._device)
+        next_states = ndarray_to_tensor(batch.next_states, self._device)
+        actions = ndarray_to_tensor(batch.actions, self._device)
+        rewards = ndarray_to_tensor(batch.rewards, self._device)
+        terminals = ndarray_to_tensor(batch.terminals, self._device).float()
 
         with torch.no_grad():
             if self._double:
@@ -84,12 +85,14 @@ class DQN(SingleTrainer):
 
         self._policy.step(loss)
 
-    def register_policy(self, policy: ValueBasedPolicy) -> None:
+    def _register_policy_impl(self, policy: ValueBasedPolicy) -> None:
         assert isinstance(policy, ValueBasedPolicy)
 
         self._policy = policy
         self._target_policy: ValueBasedPolicy = clone(policy)
+        self._target_policy.set_name(f"target_{policy.name}")
         self._target_policy.eval()
+        self._target_policy.to_device(self._device)
 
         self._replay_memory = RandomReplayMemory(
             capacity=self._replay_memory_capacity, state_dim=policy.state_dim,

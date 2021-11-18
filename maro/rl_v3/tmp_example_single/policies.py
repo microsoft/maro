@@ -41,19 +41,19 @@ ac_conf = {
 if algorithm == "dqn":
     get_policy_func_dict = {
         f"{algorithm}.{i}": lambda name: ValueBasedPolicy(
-            name=name, q_net=MyQNet(), device="cpu", **dqn_policy_conf) for i in range(4)
+            name=name, q_net=MyQNet(), **dqn_policy_conf) for i in range(4)
     }
     get_trainer_func_dict = {
-        f"{algorithm}.{i}_trainer": lambda name: DQN(name=name, **dqn_conf) for i in range(4)
+        f"{algorithm}.{i}_trainer": lambda name: DQN(name=name, device="cpu", **dqn_conf) for i in range(4)
     }
 elif algorithm == "ac":
     get_policy_func_dict = {
         f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
-            name=name, policy_net=MyActorNet(), device="cpu") for i in range(4)
+            name=name, policy_net=MyActorNet()) for i in range(4)
     }
     get_trainer_func_dict = {
         f"{algorithm}.{i}_trainer": lambda name: DiscreteActorCritic(
-            name=name, get_v_critic_net_func=lambda: MyCriticNet(), **ac_conf
+            name=name, device="cpu", get_v_critic_net_func=lambda: MyCriticNet(), **ac_conf
         ) for i in range(4)
     }
 else:

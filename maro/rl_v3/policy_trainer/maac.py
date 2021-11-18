@@ -5,7 +5,7 @@ import torch
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl_v3.replay_memory import RandomMultiReplayMemory
-from maro.rl_v3.utils import MultiTransitionBatch
+from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 from .abs_trainer import MultiTrainer
 
@@ -50,7 +50,7 @@ class DiscreteMultiActorCritic(MultiTrainer):
     def _record_impl(self, transition_batch: MultiTransitionBatch) -> None:
         self._replay_memory.put(transition_batch)
 
-    def register_policies(self, policies: List[RLPolicy]) -> None:
+    def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
         assert all(isinstance(policy, DiscretePolicyGradient) for policy in policies)
 
         self._policies = policies
@@ -66,11 +66,21 @@ class DiscreteMultiActorCritic(MultiTrainer):
             agent_states_dims=[policy.state_dim for policy in policies]
         )
 
-        self._target_policies: List[DiscretePolicyGradient] = [clone(policy) for policy in self._policies]
+        self._target_policies: List[DiscretePolicyGradient] = []
+        for policy in self._policies:
+            target_policy = clone(policy)
+            target_policy.set_name(f"target_{policy.name}")
+            self._target_policies.append(target_policy)
+
         for policy in self._target_policies:
             policy.eval()
         self._target_q_critic_net: MultiQNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
+
+        for policy in self._target_policies:
+            policy.to_device(self._device)
+        self._q_critic_net.to(self._device)
+        self._target_q_critic_net.to(self._device)
 
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
@@ -87,12 +97,12 @@ class DiscreteMultiActorCritic(MultiTrainer):
         for policy in self._policies:
             policy.train()
 
-        states = self.ndarray_to_tensor(batch.states)  # x
-        next_states = self.ndarray_to_tensor(batch.next_states)  # x'
-        agent_states = [self.ndarray_to_tensor(agent_state) for agent_state in batch.agent_states]  # o
-        actions = [self.ndarray_to_tensor(action) for action in batch.actions]  # a
-        rewards = [self.ndarray_to_tensor(reward) for reward in batch.rewards]  # r
-        terminals = self.ndarray_to_tensor(batch.terminals)  # d
+        states = ndarray_to_tensor(batch.states, self._device)  # x
+        next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
+        agent_states = [ndarray_to_tensor(agent_state, self._device) for agent_state in batch.agent_states]  # o
+        actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
+        rewards = [ndarray_to_tensor(reward, self._device) for reward in batch.rewards]  # r
+        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
 
         with torch.no_grad():
             next_actions = [

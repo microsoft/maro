@@ -13,7 +13,7 @@ ac_conf = {
 if algorithm == "maac":
     get_policy_func_dict = {
         f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
-            name=name, policy_net=MyActorNet(), device="cpu") for i in range(4)
+            name=name, policy_net=MyActorNet()) for i in range(4)
     }
     get_trainer_func_dict = {
         f"{algorithm}.{i}_trainer": lambda name: DiscreteMultiActorCritic(

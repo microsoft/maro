@@ -155,7 +155,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         agent_wrapper_cls: Type[AbsAgentWrapper],
         reward_eval_delay: int = 0,
-        get_test_env_func: Callable[[], Env] = None
+        get_test_env_func: Callable[[], Env] = None,
+        device: str = None
     ) -> None:
         """
         Args:
@@ -173,6 +174,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._test_env = get_test_env_func() if get_test_env_func is not None else self._learn_env
         self._env: Optional[Env] = None
 
+        self._device = torch.device(device) if device is not None \
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         self._policy_dict: Dict[str, RLPolicy] = {
             policy_name: func(policy_name) for policy_name, func in get_policy_func_dict.items()
         }
@@ -187,6 +191,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._reward_eval_delay = reward_eval_delay
 
         self._tracker = {}
+
+        for policy in self._policy_dict.values():
+            policy.to_device(self._device)
 
     @abstractmethod
     def _get_global_and_agent_state(

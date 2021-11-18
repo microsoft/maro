@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Optional
 
-import numpy as np
 import torch
 
 from maro.rl_v3.policy import RLPolicy
@@ -13,10 +12,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
     """
     Policy trainer used to train policies.
     """
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, device: str = None) -> None:
         self._name = name
+        self._device = torch.device(device) if device is not None \
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        print(f"Creating trainer {self.__class__.__name__} {name}")
+        print(f"Creating trainer {self.__class__.__name__} {name} on device {self._device}")
 
     @property
     def name(self) -> str:
@@ -54,8 +55,8 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains only one policy.
     """
-    def __init__(self, name: str) -> None:
-        super(SingleTrainer, self).__init__(name)
+    def __init__(self, name: str, device: str = None) -> None:
+        super(SingleTrainer, self).__init__(name, device)
         self._policy: Optional[RLPolicy] = None
         self._replay_memory = Optional[ReplayMemory]
 
@@ -82,11 +83,15 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         """
         self._replay_memory.put(transition_batch)
 
-    @abstractmethod
     def register_policy(self, policy: RLPolicy) -> None:
         """
         Register the policy and finish other related initializations.
         """
+        policy.to_device(self._device)
+        self._register_policy_impl(policy)
+
+    @abstractmethod
+    def _register_policy_impl(self, policy: RLPolicy) -> None:
         raise NotImplementedError
 
     def get_policy_state_dict(self) -> Dict[str, object]:
@@ -102,16 +107,10 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     Policy trainer that trains multiple policies.
     """
     def __init__(self, name: str, device: str = None) -> None:
-        super(MultiTrainer, self).__init__(name)
+        super(MultiTrainer, self).__init__(name, device)
         self._policy_dict: Dict[str, RLPolicy] = {}
         self._policies: List[RLPolicy] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
-
-        self._device = torch.device(device) if device is not None \
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    def ndarray_to_tensor(self, array: np.ndarray) -> torch.Tensor:
-        return torch.from_numpy(array).to(self._device)
 
     def record(
         self,
@@ -129,9 +128,14 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def _record_impl(self, transition_batch: MultiTransitionBatch) -> None:
         raise NotImplementedError
 
-    @abstractmethod
     def register_policies(self, policies: List[RLPolicy]) -> None:
-        raise NotImplementedError
+        for policy in policies:
+            policy.to_device(self._device)
+        self._register_policies_impl(policies)
+
+    @abstractmethod
+    def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
+        pass
 
     def get_policy_state_dict(self) -> Dict[str, object]:
         return {policy_name: policy.get_policy_state() for policy_name, policy in self._policy_dict.items()}

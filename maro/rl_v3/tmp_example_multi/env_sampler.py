@@ -24,7 +24,7 @@ class CIMEnvSampler(AbsEnvSampler):
             port_snapshots[ticks: [port_idx] + list(future_port_list): port_attributes],
             vessel_snapshots[tick: vessel_idx: vessel_attributes]
         ])
-        return None, {port_idx: state}
+        return state, {port_idx: state}
 
     def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: DecisionEvent) -> Dict[Any, object]:
         action_space = action_shaping_conf["action_space"]

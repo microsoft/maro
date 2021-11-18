@@ -26,3 +26,17 @@ def match_shape(tensor: Union[torch.Tensor, np.ndarray], shape: tuple) -> bool:
             if expected is not None and expected != val:
                 return False
         return True
+
+
+def ndarray_to_tensor(array: np.ndarray, device: torch.device) -> torch.Tensor:
+    """
+    Convert a np.ndarray to a torch.Tensor.
+
+    Args:
+        array (np.ndarray): The input ndarray.
+        device (torch.device): The device to assign this tensor.
+
+    Returns:
+        A tensor with same shape and values.
+    """
+    return torch.from_numpy(array).to(device)
