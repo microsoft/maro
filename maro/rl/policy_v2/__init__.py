@@ -3,7 +3,7 @@
 
 from .ac import DiscreteActorCritic
 from .dqn import DQN, PrioritizedExperienceReplay
-from .maac import MultiDiscreteActorCritic
+from .maddpg import MultiDiscreteActorCritic
 from .pg import DiscretePolicyGradient
 from .policy_base import AbsPolicy, AbsRLPolicy, DummyPolicy, RuleBasedPolicy
 

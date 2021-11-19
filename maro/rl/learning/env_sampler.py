@@ -310,6 +310,7 @@ class AbsEnvSampler(ABC):
         parallel_inference (bool): If True, the policies will be placed in separate processes so that inference can be
             performed in parallel to speed up simulation. This is useful if some policies are big and take a long time
             to generate actions. Defaults to False.
+        use_multi_agent_wrapper (bool): TODO
     """
     def __init__(
         self,
@@ -319,13 +320,13 @@ class AbsEnvSampler(ABC):
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
         parallel_inference: bool = False,
-        multi_agent_policy: bool = False
+        use_multi_agent_wrapper: bool = False
     ):
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env else self._learn_env
         self.env = None
 
-        if multi_agent_policy:
+        if use_multi_agent_wrapper:
             agent_wrapper_cls = SimpleMultiAgentWrapper
         else:
             agent_wrapper_cls = ParallelAgentWrapper if parallel_inference else SimpleAgentWrapper

@@ -84,7 +84,7 @@ class QCriticMixin(CriticMixin):
         Returns:
             Q-values for critic with shape [batch_size]
         """
-        #assert self._critic_net_shape_check(states=states, actions=actions)
+        # assert self._critic_net_shape_check(states=states, actions=actions)  # TODO: implement shape check
         ret = self._get_q_critic(states, actions)
         assert match_shape(ret, (states.shape[0],))
         return ret
@@ -212,7 +212,7 @@ class DiscreteQCriticNetwork(QCriticNetwork):
         Returns:
             q critics for all actions with shape [batch_size, action_num]
         """
-        #assert self._is_valid_state_shape(states)
+        # assert self._is_valid_state_shape(states)  # TODO: implement shape check
         ret = self._get_q_critic_for_all_actions(states, actions)
         assert match_shape(ret, (states.shape[0], self.action_num))
         return ret

@@ -142,7 +142,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         actions = self.get_actions(states, agent_ids)
         return [{
                 "action": action,  # [num_sub_agent]
-            } for action in actions]
+                } for action in actions]
 
     def _get_global_states(self, state_list: List[np.ndarray]) -> np.ndarray:
         """Get concatenated global state of all sub-agents. Encode the individual states into global state.
@@ -170,7 +170,6 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
 
         Returns:
             actions (List): [num_sub_agent, action_dim]
-            logps (List): [num_sub_agent, 1]
         """
         for net in self._agent_nets:
             net.eval()
@@ -268,7 +267,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
             next_q_values = self._target_critic_net.q_critic(states, next_action_tensor)
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()  # [batch_size]
         q_values = self._get_values_by_states_and_actions(states, actions)  # [batch_size]
-        critic_loss = self._critic_loss_func(q_values, target_q_values)
+        critic_loss = self._critic_loss_func(q_values, target_q_values) * self._critic_loss_coef
 
         # actor losses
         actor_losses = []
@@ -283,7 +282,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
             actor_losses.append(actor_loss)
 
         # total loss
-        loss = sum(actor_losses) + self._critic_loss_coef * critic_loss
+        loss = sum(actor_losses) + critic_loss
 
         loss_info = {
             "critic_loss": critic_loss,
