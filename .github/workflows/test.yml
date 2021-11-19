@@ -3,9 +3,9 @@ name: test
 
 on:
   push:
-    branches: [ master, v0.1, v0.2 ]
+    branches: [ master, v0.1, v0.2, v0.3 ]
   pull_request:
-    branches: [ master, v0.1, v0.2 ]
+    branches: [ master, v0.1, v0.2, v0.3 ]
   workflow_dispatch:
 
 jobs:
