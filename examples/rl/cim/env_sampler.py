@@ -115,5 +115,5 @@ def get_env_sampler():
         agent2policy=agent2policy,
         reward_eval_delay=reward_shaping_conf["time_window"],
         parallel_inference=False,
-        multi_agent_policy=(algorithm=="maddpg")
+        use_multi_agent_wrapper=(algorithm=="maddpg")
     )
