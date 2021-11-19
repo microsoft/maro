@@ -261,8 +261,8 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         # critic loss
         with torch.no_grad():
             next_actions = [agent.get_actions_and_logps(
-                                torch.from_numpy(sub_batch["next_states"]).to(self._device), self._exploring)[0]
-                            for agent, sub_batch in zip(self._target_agent_nets, batch)]
+                torch.from_numpy(sub_batch["next_states"]).to(self._device), self._exploring)[0]
+                for agent, sub_batch in zip(self._target_agent_nets, batch)]
             next_action_tensor = torch.stack(next_actions).T  # [batch_size, sub_agent_num]
             next_q_values = self._target_critic_net.q_critic(states, next_action_tensor)
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()  # [batch_size]
