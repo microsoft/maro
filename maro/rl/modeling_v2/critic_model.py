@@ -193,13 +193,16 @@ class DiscreteQCriticNetwork(QCriticNetwork):
         super(DiscreteQCriticNetwork, self).__init__(state_dim=state_dim, action_dim=1)
         self._action_num = action_num
 
-    def _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        q_values = self.q_critic_for_all_actions(states, actions)  # [batch_size, action_num]
-        return q_values.reshape(-1)
-
     @property
     def action_num(self) -> int:
         return self._action_num
+
+    def q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        """ Get the Q-values by given actions.
+        The actual logics should be implemented in `_get_q_critic`."""
+        # TODO: implement shape check
+        q_values = self._get_q_critic(states, actions)  # [batch_size, 1]
+        return q_values.squeeze(1)
 
     def q_critic_for_all_actions(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         """
@@ -212,15 +215,20 @@ class DiscreteQCriticNetwork(QCriticNetwork):
         Returns:
             q critics for all actions with shape [batch_size, action_num]
         """
-        # assert self._is_valid_state_shape(states)  # TODO: implement shape check
-        ret = self._get_q_critic_for_all_actions(states, actions)
+        assert self._is_valid_state_shape(states)
+        ret = self._get_q_critic_for_all_actions(states)
         assert match_shape(ret, (states.shape[0], self.action_num))
         return ret
 
     @abstractmethod
-    def _get_q_critic_for_all_actions(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        """Implementation of `q_critic`"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_q_critic_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
         """Implementation of `q_critic_for_all_actions`"""
-        pass
+        raise NotImplementedError
 
 
 class MultiQCriticNetwork(QCriticMixin, CriticNetwork, metaclass=ABCMeta):

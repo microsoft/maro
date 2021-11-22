@@ -84,7 +84,10 @@ class ReplayMemory:
         self.rewards[indexes] = rewards
         self.next_states[indexes] = next_states
 
-        self._ptr = (self._ptr + added) % self._capacity
+        if self._random_overwrite:
+            self._ptr = self._size
+        else:
+            self._ptr = (self._ptr + added) % self._capacity
         return indexes
 
     def sample(self, size: int) -> dict:

@@ -263,7 +263,7 @@ class SimpleMultiAgentWrapper(SimpleAgentWrapper):
     def __init__(self, get_policy_func_dict: Dict[str, Callable], agent2policy: Dict[str, str]):
         super(SimpleMultiAgentWrapper, self).__init__(get_policy_func_dict, agent2policy)
 
-    def choose_action(self, state_by_agent: Dict[str, np.ndarray]):
+    def choose_action(self, state_by_agent: Dict[str, np.ndarray]) -> dict:
         """Choose actions for all agents based on the observed states.
         Specially, the multi-agent policy takes list of all agents' states as input.
 

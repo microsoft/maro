@@ -7,7 +7,7 @@ import torch
 
 from maro.rl.exploration import gaussian_noise
 from maro.rl.modeling_v2 import DiscretePolicyGradientNetwork
-from maro.rl.modeling_v2.critic_model import MultiDiscreteQCriticNetwork
+from maro.rl.modeling_v2.critic_model import DiscreteQCriticNetwork
 from maro.rl.policy_v2.policy_base import MultiRLPolicy
 from maro.rl.policy_v2.policy_interfaces import MultiDiscreteActionMixin
 from maro.rl.policy_v2.replay import ReplayMemory
@@ -23,7 +23,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
     Args:
         name (str): Unique identifier for the policy.
         agent_nets (List[DiscretePolicyGradientNetwork]): Networks for all sub-agents.
-        critic_net (MultiDiscreteQCriticNetwork): Critic's network.
+        critic_net (DiscreteQCriticNetwork): Critic's network.
         reward_discount (float): Reward decay as defined in standard RL terminology.
         shared_state_dim (int): State dim of the shared part of state. Defaults to 0.
         num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
@@ -52,7 +52,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         self,
         name: str,
         agent_nets: List[DiscretePolicyGradientNetwork],
-        critic_net: MultiDiscreteQCriticNetwork,
+        critic_net: DiscreteQCriticNetwork,
         reward_discount: float,
         shared_state_dim: int = 0,
         num_epochs: int = 1,
@@ -100,7 +100,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
             agent_net.eval()
 
         self._reward_discount = reward_discount
-        self.num_epochs = num_epochs
+        self._num_epochs = num_epochs
         self.update_target_every = update_target_every
         self._min_logp = min_logp
         self._critic_loss_func = critic_loss_cls() if critic_loss_cls is not None else torch.nn.MSELoss()
@@ -140,9 +140,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
 
     def _call_impl(self, states: List[np.ndarray], agent_ids: List[int]) -> Iterable:
         actions = self.get_actions(states, agent_ids)
-        return [{
-                "action": action,  # [num_sub_agent]
-                } for action in actions]
+        return [{"action": action} for action in actions]  # [num_sub_agent]
 
     def _get_global_states(self, state_list: List[np.ndarray]) -> np.ndarray:
         """Get concatenated global state of all sub-agents. Encode the individual states into global state.
@@ -151,9 +149,9 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
             state_list (List[np.ndarray]): List of local states encoded with shared state.
 
         Returns:
-            global_states (np.ndarray): Global state with shape [batch_size, sum(local_state_dim) + shared_state_dim]
+            global_states (np.ndarray): Global state with shape [batch_size, sum(local_state_dims) + shared_state_dim]
         """
-        shared_state = state_list[0][:, self._total_state_dim - self._shared_state_dim:]
+        shared_state = state_list[0][:, self._local_state_dims[0] - self._shared_state_dim:]
         global_state_list = []
         for local_state_dim, state in zip(self._local_state_dims, state_list):
             local_state = state[:, :local_state_dim - self._shared_state_dim]
@@ -161,15 +159,18 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         global_state_list.append(shared_state)
         return np.concatenate(global_state_list, axis=1)
 
-    def _get_actions_impl(self, input_states: List[np.ndarray], agent_ids: List[int]) -> List[np.ndarray]:
+    def _get_actions_impl(self, input_states: List[np.ndarray], agent_ids: List[int]) -> List[torch.Tensor]:
         """
 
         Args:
-            input_states (List[np.ndarray]): global state with shape [batch_size, total_state_dim]
+            input_states (List[np.ndarray]): global state with shape [batch_size, local_state_dim]
             agent_ids (List[int]): the corresponding agent id of input states.
 
         Returns:
-            actions (List): [num_sub_agent, action_dim]
+            actions (List[torch.Tensor]): `num_sub_agent` actions, with shape [batch_size] for each.
+                Each action should have shape [batch_size, action_dim], but we only support
+                `action_dim=1` by now so the `action_dim` is actually squeezed.
+
         """
         for net in self._agent_nets:
             net.eval()
@@ -187,13 +188,15 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         """Get Q-values by all agents' states and actions.
 
         Args:
-            states (torch.Tensor): States of all sub-agents, with shape [batch_size, total_state_dim].
-            actions (List[torch.Tensor]): List of sub-agents' action, with shape [batch_size, action_num].
+            states (torch.Tensor): States of all sub-agents, with shape [batch_size, local_state_dim].
+            actions (List[torch.Tensor]): List of sub-agents' action, with shape [batch_size].
+                The sub-agents' actions should have shape [batch_size, action_dim], but we only support
+                `action_dim=1` by now so the `action_dim` is actually squeezed.
 
         Returns:
             q_values (torch.Tensor): The Q-values with shape [batch_size].
         """
-        action_tensor = torch.stack(actions).T  # [batch_size, sub_agent_num]
+        action_tensor = torch.stack(actions).T  # [sub_agent_num, batch_size] -> [batch_size, sub_agent_num]
         return self._critic_net.q_critic(states, action_tensor)
 
     def record(
@@ -215,7 +218,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
             np.expand_dims(terminal, axis=0)
         )
 
-    def get_rollout_info(self) -> dict:
+    def get_rollout_info(self) -> List[dict]:
         """Randomly sample a batch of transitions from all agents' replay memories.
 
         This is used in a distributed learning setting and the returned data will be sent to its parent instance
@@ -245,7 +248,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         # batch formatting
         states = self._get_global_states([sub_batch["states"] for sub_batch in batch])
         next_states = self._get_global_states([sub_batch["next_states"] for sub_batch in batch])
-        # `sum` reward of subagents for coorperative mode
+        # `sum` reward of sub-agents for coorperative mode
         rewards = np.concatenate([sub_batch["rewards"].reshape(-1, 1) for sub_batch in batch], axis=1).sum(axis=1)
         terminals = np.all(
             np.concatenate([sub_batch["terminals"].reshape(-1, 1) for sub_batch in batch], axis=1), axis=1)
@@ -264,7 +267,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
                 torch.from_numpy(sub_batch["next_states"]).to(self._device), self._exploring)[0]
                 for agent, sub_batch in zip(self._target_agent_nets, batch)]
             next_action_tensor = torch.stack(next_actions).T  # [batch_size, sub_agent_num]
-            next_q_values = self._target_critic_net.q_critic(states, next_action_tensor)
+            next_q_values = self._target_critic_net.q_critic(next_states, next_action_tensor)  # [batch_size]
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()  # [batch_size]
         q_values = self._get_values_by_states_and_actions(states, actions)  # [batch_size]
         critic_loss = self._critic_loss_func(q_values, target_q_values) * self._critic_loss_coef
@@ -318,7 +321,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         self.improve()
 
     def improve(self) -> None:
-        for _ in range(self.num_epochs):
+        for _ in range(self._num_epochs):
             indexes = np.random.choice(self._replay_memory[0].size, size=self.train_batch_size)
             train_batch = [memory.sample_index(indexes) for memory in self._replay_memory]
             loss = self.get_batch_loss(train_batch)
@@ -343,13 +346,13 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
         for sch in self.exploration_schedulers:
             sch.step()
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         return {
             "agent_nets": [net.get_state() for net in self._agent_nets],
             "critic_net": self._critic_net.get_state()
         }
 
-    def set_state(self, policy_state: object) -> None:
+    def set_state(self, policy_state: dict) -> None:
         assert isinstance(policy_state, object), f"Expected `object` but got `{type(policy_state)}` instead."
         for net, state in zip(self._agent_nets, policy_state["agent_nets"]):
             net.set_state(state)

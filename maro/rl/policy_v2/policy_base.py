@@ -436,5 +436,5 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
         return actions
 
     @abstractmethod
-    def _get_actions_impl(self, states: Union[np.ndarray, List[np.ndarray]]) -> List[np.ndarray]:
+    def _get_actions_impl(self, states: Union[np.ndarray, List[np.ndarray]], agent_ids: List[int]) -> List[np.ndarray]:
         raise NotImplementedError
