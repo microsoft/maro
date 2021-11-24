@@ -245,9 +245,11 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
             net.train()
         self._critic_net.train()
 
+        state_list = [sub_batch["states"] for sub_batch in batch]
+        next_state_list = [sub_batch["next_states"] for sub_batch in batch]
+
         # batch formatting
-        states = self._get_global_states([sub_batch["states"] for sub_batch in batch])
-        next_states = self._get_global_states([sub_batch["next_states"] for sub_batch in batch])
+        states = self._get_global_states(state_list)
         # `sum` reward of sub-agents for coorperative mode
         rewards = np.concatenate([sub_batch["rewards"].reshape(-1, 1) for sub_batch in batch], axis=1).sum(axis=1)
         terminals = np.all(
@@ -255,34 +257,14 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
 
         # type converting
         states = torch.from_numpy(states).to(self._device)  # [batch_size, total_state_dim]
-        next_states = torch.from_numpy(next_states).to(self._device)  # [batch_size, total_state_dim]
         actions = [torch.from_numpy(sub_batch["actions"]).to(self._device).long() for sub_batch in batch]
 
         rewards = torch.from_numpy(rewards).to(self._device)  # [batch_size]
         terminals = torch.from_numpy(terminals).float().to(self._device)  # [batch_size]
 
-        # critic loss
-        with torch.no_grad():
-            next_actions = [agent.get_actions_and_logps(
-                torch.from_numpy(sub_batch["next_states"]).to(self._device), self._exploring)[0]
-                for agent, sub_batch in zip(self._target_agent_nets, batch)]
-            next_action_tensor = torch.stack(next_actions).T  # [batch_size, sub_agent_num]
-            next_q_values = self._target_critic_net.q_critic(next_states, next_action_tensor)  # [batch_size]
-        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()  # [batch_size]
-        q_values = self._get_values_by_states_and_actions(states, actions)  # [batch_size]
-        critic_loss = self._critic_loss_func(q_values, target_q_values) * self._critic_loss_coef
-
-        # actor losses
-        actor_losses = []
-        for i in range(self._num_sub_agents):
-            net = self._agent_nets[i]
-            state = torch.from_numpy(batch[i]["states"]).to(self._device)
-            new_action, logp = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
-            cur_actions = [action for action in actions]
-            cur_actions[i] = new_action
-            q_values = self._get_values_by_states_and_actions(states, cur_actions)
-            actor_loss = -(q_values * logp).mean()
-            actor_losses.append(actor_loss)
+        critic_loss = self._get_critic_loss(
+            states, actions, rewards, next_state_list, terminals) * self._critic_loss_coef
+        actor_losses = self._get_actor_losses(states, actions, state_list)
 
         # total loss
         loss = sum(actor_losses) + critic_loss
@@ -298,6 +280,40 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, MultiRLPolicy):
             loss_info["critic_grad"] = self._critic_net.get_gradients(loss)
 
         return loss_info
+
+    def _get_critic_loss(
+            self, states: torch.Tensor, actions: List[torch.Tensor], rewards: torch.Tensor,
+            next_state_list: List[torch.Tensor], terminals: torch.Tensor
+    ) -> torch.Tensor:
+        # critic loss
+        next_states = self._get_global_states(next_state_list)
+        next_states = torch.from_numpy(next_states).to(self._device)  # [batch_size, total_state_dim]
+        with torch.no_grad():
+            next_actions = [agent.get_actions_and_logps(
+                torch.from_numpy(next_state).to(self._device), self._exploring)[0]
+                for agent, next_state in zip(self._target_agent_nets, next_state_list)]
+            next_action_tensor = torch.stack(next_actions).T  # [batch_size, sub_agent_num]
+            next_q_values = self._target_critic_net.q_critic(next_states, next_action_tensor)  # [batch_size]
+        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()  # [batch_size]
+        q_values = self._get_values_by_states_and_actions(states, actions)  # [batch_size]
+        critic_loss = self._critic_loss_func(q_values, target_q_values)
+        return critic_loss
+
+    def _get_actor_losses(
+        self, states: torch.Tensor, actions: List[torch.Tensor], state_list: List[torch.Tensor]
+    ) -> List[torch.Tensor]:
+        # actor losses
+        actor_losses = []
+        for i in range(self._num_sub_agents):
+            net = self._agent_nets[i]
+            state = torch.from_numpy(state_list[i]).to(self._device)
+            new_action, logp = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
+            cur_actions = [action for action in actions]
+            cur_actions[i] = new_action
+            q_values = self._get_values_by_states_and_actions(states, cur_actions)
+            actor_loss = -(q_values * logp).mean()
+            actor_losses.append(actor_loss)
+        return actor_losses
 
     def update(self, loss_info_list: List[dict]) -> None:
         for i, net in enumerate(self._agent_nets):
