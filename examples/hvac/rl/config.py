@@ -190,7 +190,6 @@ class Config(object):
             f"{self.algorithm}_"
             f"{self.reward_config['type']}_"
             f"{self.num_episode}_"
-            f"test"
         )
 
     def _update_values_accordingly(self):
@@ -215,6 +214,20 @@ class Config(object):
         # folder
         os.makedirs(self.checkpoint_dir, exist_ok=True)
         os.makedirs(self.log_dir, exist_ok=True)
+
+    def __repr__(self) -> str:
+        return (
+            "\n"
+            f"Experiment Name: {self.experiment_name}\n"
+            f"Algorithm: {self.algorithm}\n"
+            f"Random Seed: {self.seed}\n"
+            f"Env config: {self.env_config}\n"
+            f"State config: {self.state_config}\n"
+            f"Action config: {self.action_config}\n"
+            f"Reward config: {self.reward_config}\n"
+            f"Replay Memory config: {self.replay_memory_config}\n"
+            f"Hyperparameters: {self.hyperparameters}\n"
+        )
 
 
 config = Config()
