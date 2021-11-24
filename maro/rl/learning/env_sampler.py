@@ -285,6 +285,7 @@ class AbsEnvSampler(ABC):
         agent2policy: Dict[str, str],
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
+        cast_experience_without_sufficient_delay: bool = False,
         parallel_inference: bool = False
     ):
         self._learn_env = get_env()
@@ -295,6 +296,7 @@ class AbsEnvSampler(ABC):
         self.agent_wrapper = agent_wrapper_cls(get_policy_func_dict, agent2policy)
 
         self.reward_eval_delay = reward_eval_delay
+        self.cast_experience_without_sufficient_delay = cast_experience_without_sufficient_delay
         self._state = None
         self._event = None
         self._step_index = 0
@@ -369,7 +371,10 @@ class AbsEnvSampler(ABC):
         Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
         """
         for agent, cache in self._transition_cache.items():
-            while cache and (not self._state or self.env.tick - cache[0][-1] >= self.reward_eval_delay):
+            while cache and (
+                self.env.tick - cache[0][-1] >= self.reward_eval_delay
+                or (not self._state and not self.cast_experience_without_sufficient_delay)
+            ):
                 state, action, env_actions, tick = cache.popleft()
                 reward = self.get_reward(env_actions, tick)
                 self.post_step(state, action, env_actions, reward, tick)
@@ -419,7 +424,10 @@ class AbsEnvSampler(ABC):
                 state = self.get_state()
 
         for agent, cache in self._test_transition_cache.items():
-            while cache and (not self._state or self.env.tick - cache[0][-1] >= self.reward_eval_delay):
+            while cache and (
+                self.env.tick - cache[0][-1] >= self.reward_eval_delay
+                or (not self._state and not self.cast_experience_without_sufficient_delay)
+            ):
                 state, action, env_actions, tick = cache.popleft()
                 reward = self.get_reward(env_actions, tick)
                 self.post_step(state, action, env_actions, reward, tick)

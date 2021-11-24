@@ -23,7 +23,8 @@ class HVACEnvSampler(AbsEnvSampler):
         get_policy_func_dict,
         agent2policy,
         get_test_env=None,
-        reward_eval_delay=0,
+        reward_eval_delay=1,
+        cast_experience_without_sufficient_delay=True,
         parallel_inference=False,
     ):
         super().__init__(
@@ -32,6 +33,7 @@ class HVACEnvSampler(AbsEnvSampler):
             agent2policy,
             get_test_env=get_test_env,
             reward_eval_delay=reward_eval_delay,
+            cast_experience_without_sufficient_delay=cast_experience_without_sufficient_delay,
             parallel_inference=parallel_inference
         )
 
@@ -81,7 +83,7 @@ class HVACEnvSampler(AbsEnvSampler):
         diff_sps = abs(get_attribute("sps") - get_attribute("sps", t=tick))
         diff_das = abs(get_attribute("das") - get_attribute("das", t=tick))
 
-        efficiency_ratio = abs(get_attribute("kw") / (get_attribute("at") + 1e-8))
+        efficiency_ratio = abs(get_attribute("kw") / get_attribute("at"))
 
         reward = -5
 
@@ -160,11 +162,10 @@ class HVACEnvSampler(AbsEnvSampler):
         if "reward" not in self.tracker:
             self.tracker["reward"] = []
         self.tracker["reward"].append(reward[agent_name][0] if isinstance(reward[agent_name], np.ndarray) else reward[agent_name])
-        if tick == self.env._start_tick + self.env._durations - 1:
+        if tick == self.env._start_tick + self.env._durations - 1 - self.reward_eval_delay:
             for attribute in ["kw", "at", "dat", "mat"] + ["sps", "das"]:
-                self.tracker[attribute] = self.env.snapshot_list["ahus"][::attribute][1:]
+                self.tracker[attribute] = self.env.snapshot_list["ahus"][::attribute][1:1+len(self.tracker["reward"])]
             self.tracker["total_kw"] = np.cumsum(self.tracker["kw"])
-            self.tracker["reward"] = self.tracker["reward"][1:]
             self.tracker["total_reward"] = np.cumsum(self.tracker["reward"])
 
 
