@@ -34,5 +34,5 @@ state_dim = (
     + len(vessel_attributes)
 )
 
-algorithm = "maac"
+algorithm = "maddpg"
 running_mode = "centralized"

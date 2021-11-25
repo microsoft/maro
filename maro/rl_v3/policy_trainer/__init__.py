@@ -3,6 +3,7 @@ from .ac import DiscreteActorCritic
 from .ddpg import DDPG
 from .dqn import DQN
 from .maac import DiscreteMultiActorCritic
+from .maddpg import MADDPG
 
 
 __all__ = [
@@ -10,5 +11,6 @@ __all__ = [
     "DiscreteActorCritic",
     "DDPG",
     "DQN",
-    "DiscreteMultiActorCritic"
+    "DiscreteMultiActorCritic",
+    "MADDPG"
 ]
