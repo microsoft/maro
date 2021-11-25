@@ -264,7 +264,7 @@ def new_project_from_scratch(options: dict):
     # Generate scenario/common.py that contains dummy DecisionEvent and Action class.
     generate_commons(env, scenario_folder, options)
 
-    # Generate scenario/events.py that contains dummy events definitions.
+    # Generate scenario/common.py that contains dummy events definitions.
     generate_events(env, scenario_folder, options)
 
     # Generate a empty config.yml.
@@ -344,14 +344,14 @@ def generate_commons(env: Environment, folder: str, options: dict):
 
 
 def generate_events(env: Environment, folder: str, options: dict):
-    """Generate events.py with options.
+    """Generate common.py with options.
 
     Args:
         env (Environment): Template environment used to retrieve template.
         folder (str): Folder to place new file.
-        options (dict): Options for events.py.
+        options (dict): Options for common.py.
     """
-    template = env.get_template("events.py.jinja")
+    template = env.get_template("common.py.jinja")
 
-    with open(os.path.join(folder, "events.py"), "wt") as fp:
+    with open(os.path.join(folder, "common.py"), "wt") as fp:
         fp.write(template.render(project=options))
