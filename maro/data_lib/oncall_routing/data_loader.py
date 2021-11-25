@@ -8,7 +8,6 @@ import pandas as pd
 from maro.simulator.scenarios.oncall_routing.common import PlanElement, RouteNumber
 from maro.simulator.scenarios.oncall_routing.order import GLOBAL_ORDER_COUNTER, Order
 
-
 rtb_fake_order = Order()
 rtb_fake_order.id = next(GLOBAL_ORDER_COUNTER)
 rtb_fake_order.coord = (32.72329226, -117.0718922)

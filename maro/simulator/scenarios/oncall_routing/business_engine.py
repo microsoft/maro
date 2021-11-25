@@ -14,7 +14,7 @@ from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils import random
 
-from .arrival_time_predictor import EstimatedArrivalTimePredictor, ActualArrivalTimeSampler
+from .arrival_time_predictor import ActualArrivalTimeSampler, EstimatedArrivalTimePredictor
 from .carrier import Carrier
 from .common import (
     Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, OrderId, PlanElement, RouteNumber
