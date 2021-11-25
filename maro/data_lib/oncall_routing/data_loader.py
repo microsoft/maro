@@ -1,10 +1,12 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from typing import Dict, List
 
 import pandas as pd
 
-from .order import GLOBAL_ORDER_COUNTER, Order
-from .common import PlanElement, RouteNumber
-
+from maro.simulator.scenarios.oncall_routing.common import PlanElement, RouteNumber
+from maro.simulator.scenarios.oncall_routing.order import GLOBAL_ORDER_COUNTER, Order
 
 rtb_fake_order = Order()
 rtb_fake_order.id = next(GLOBAL_ORDER_COUNTER)

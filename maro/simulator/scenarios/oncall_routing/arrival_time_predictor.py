@@ -1,7 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import math
 from dataclasses import dataclass
 
 from maro.simulator.utils import random
+
 from .common import Coordinate
 from .utils import EST_RAND_KEY, geo_distance_meter
 
