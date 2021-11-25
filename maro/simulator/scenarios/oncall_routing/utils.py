@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from geopy.distance import geodesic
 
 from .common import Coordinate

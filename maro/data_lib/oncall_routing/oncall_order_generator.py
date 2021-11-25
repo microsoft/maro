@@ -1,9 +1,12 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from collections import deque
 from typing import Deque, List, Tuple
 
 import pandas as pd
 
-from .order import GLOBAL_ORDER_COUNTER, Order
+from maro.simulator.scenarios.oncall_routing.order import GLOBAL_ORDER_COUNTER, Order
 
 
 class OncallOrderGenerator(object):

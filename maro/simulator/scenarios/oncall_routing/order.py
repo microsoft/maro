@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from itertools import count
 
 GLOBAL_ORDER_COUNTER = count()
