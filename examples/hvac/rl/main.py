@@ -47,8 +47,7 @@ def train(config: Config, model_path: str):
             trackers = env_sampler.test()
             res = post_evaluate(trackers, episode=ep, path=config.log_dir, prefix="Eval")
             total_return_test.append(trackers["total_reward"][-1])
-            logger.info(f"Ep {ep}: Evaluation finished")
-            logger.info(f"Final improvement: {res}")
+            logger.info(f"Ep {ep}: Evaluation Improvement {res}")
 
     visualize_returns(total_return, config.log_dir, "Return")
     visualize_returns(rolling_total_return, config.log_dir, "Rolling Return")

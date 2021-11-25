@@ -78,7 +78,8 @@ class HVACEnvSampler(AbsEnvSampler):
 
     def get_reward(self, actions: list, tick: int):
         def get_attribute(name: str, idx: int=0, t: int=tick+1):
-            return self.env.snapshot_list["ahus"][t:idx:name]
+            frame_index = self.env.get_frame_index(t)
+            return self.env.snapshot_list["ahus"][frame_index:idx:name]
 
         diff_sps = abs(get_attribute("sps") - get_attribute("sps", t=tick))
         diff_das = abs(get_attribute("das") - get_attribute("das", t=tick))

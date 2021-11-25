@@ -25,13 +25,14 @@ class Config(object):
         self.num_episode = 100
         self.evaluate_interval = 10
 
-        self.randomize_seed = True
+        self.randomize_seed = False
         self.seed = 1       # Used only if randomize_seed is False
 
         self.device = "cpu"
 
         self.env_config = {
             "topology": "building121",
+            "start_tick": 0,
             "durations": 500,
         }
 
@@ -189,6 +190,7 @@ class Config(object):
             f"{self._start_time}_"
             f"{self.algorithm}_"
             f"{self.reward_config['type']}_"
+            f"{self.env_config['start_tick']}~{self.env_config['durations'] + self.env_config['start_tick']}_"
             f"{self.num_episode}_"
         )
 

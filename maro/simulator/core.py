@@ -156,6 +156,10 @@ class Env(AbsEnv):
         """int: Frame index in snapshot list for current tick."""
         return tick_to_frame_index(self._start_tick, self._tick, self._snapshot_resolution)
 
+    def get_frame_index(self, tick: int) -> int:
+        """Get the corresponding frame index of the given absolute env tick."""
+        return tick_to_frame_index(self._start_tick, tick, self._snapshot_resolution)
+
     @property
     def snapshot_list(self) -> SnapshotList:
         """SnapshotList: A snapshot list containing all the snapshots of frame at each dump point.

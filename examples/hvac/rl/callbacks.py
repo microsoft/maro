@@ -17,17 +17,26 @@ def get_baseline(baseline_path):
     df = df.dropna()
     df = df.reset_index()
 
-    return {
+    st = config.env_config["start_tick"]
+    et = config.env_config["start_tick"] + config.env_config["durations"]
+
+    baseline = {
         "kw": df["KW"].to_numpy(),
         "dat": df["DAT"].to_numpy(),
         "at": df["air_ton"].to_numpy(),
         "mat": df["DAS"].to_numpy() + df["delta_MAT_DAS"].to_numpy(),
         "sps": df["SPS"].to_numpy(),
         "das": df["DAS"].to_numpy(),
-        "total_kw": np.cumsum(df["KW"].to_numpy())
     }
 
-baseline = get_baseline(config.baseline_path)
+    partial_baseline = {key: value[st:et] for key, value in baseline.items()}
+
+    baseline["total_kw"] = np.cumsum(baseline["kw"])
+    partial_baseline["total_kw"] = np.cumsum(partial_baseline["kw"])
+
+    return baseline, partial_baseline
+
+baseline, partial_baseline = get_baseline(config.baseline_path)
 
 def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
 
@@ -37,8 +46,8 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
             data = np.array(data)
         if "total" in att:
             if "kw" in att:
-                baseline_total = np.max(baseline[att][:len(data)])
-                return f"{att}_[{np.min(data):.5f}, {np.max(data):.5f}]_{(baseline_total - np.max(data))/np.max(data):.2%}"
+                bs_total = np.max(partial_baseline[att][:len(data)])
+                return f"{att}_[{np.min(data):.5f}, {np.max(data):.5f}]_{(bs_total - np.max(data))/np.max(data):.2%}"
             return f"{att}_[{np.min(data):.5f}, {np.max(data):.5f}]"
         return f"{att}_[{np.min(data):.3f}, {np.max(data):.3f}]_({np.mean(data):.3f}, {np.std(data):.3f})"
 
@@ -47,19 +56,19 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
 
     for idx, att in enumerate(attributes):
         axs_plot[idx//3, idx%3].plot(trackers[att], c='r')
-        axs_plot[idx//3, idx%3].plot(baseline[att][:len(trackers[att])], c='b')
+        axs_plot[idx//3, idx%3].plot(partial_baseline[att][:len(trackers[att])], c='b')
         axs_plot[idx//3, idx%3].set_title(get_title(att))
 
         if "total" in att:
             continue
 
         bins = np.linspace(
-            min(min(trackers[att]), min(baseline[att])),
-            max(max(trackers[att]), max(baseline[att])),
+            min(min(trackers[att]), min(partial_baseline[att])),
+            max(max(trackers[att]), max(partial_baseline[att])),
             15
         )
         axs_hist[idx//3, idx%3].hist(trackers[att], bins=bins, density=True, color='r', alpha=0.4)
-        axs_hist[idx//3, idx%3].hist(baseline[att], bins=bins, density=True, color='b', alpha=0.4)
+        axs_hist[idx//3, idx%3].hist(partial_baseline[att], bins=bins, density=True, color='b', alpha=0.4)
         axs_hist[idx//3, idx%3].set_title(att)
 
     axs_plot[0, 3].plot(trackers["reward"], c='r')
@@ -89,7 +98,7 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
         writer.writerows(rows)
 
     data = trackers['total_kw']
-    res = res = f"{(np.max(baseline['total_kw'][:len(data)]) - np.max(data))/np.max(data):.2%}"
+    res = res = f"{(np.max(partial_baseline['total_kw'][:len(data)]) - np.max(data))/np.max(data):.2%}"
     return res
 
 def post_collect(trackers: dict, episode: int, path: str):
