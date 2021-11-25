@@ -1,20 +1,24 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import os
 from collections import defaultdict, deque
 from typing import Deque, Dict, List, Optional
 
-from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
+from maro.backends.frame import FrameBase, SnapshotList
+from maro.data_lib.oncall_routing import FromCSVOncallOrderGenerator, load_plan_simple
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils import random
+
 from .arrival_time_predictor import EstimatedArrivalTimePredictor, ActualArrivalTimeSampler
-from .carrier_status import CarrierStatus
-from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, OrderId, \
-    PlanElement, RouteNumber
-from .data_loader import load_plan_simple
-from .oncall_order_generator import FromCSVOncallOrderGenerator
+from .carrier import Carrier
+from .common import (
+    Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, OrderId, PlanElement, RouteNumber
+)
 from .order import Order
 from .utils import GLOBAL_RAND_KEY
 
@@ -62,13 +66,13 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             os.path.join(self._config_path, "routes.csv")
         )
         self._routes: List[RouteNumber] = sorted(list(self._remain_plan.keys()))
-        self._carrier_status: Dict[RouteNumber, CarrierStatus] = {}
+        self._carriers: Dict[RouteNumber, Carrier] = {}
         for route_number in self._remain_plan.keys():
-            carrier_status = CarrierStatus()
-            carrier_status.route_number = route_number
-            carrier_status.coord = self._config["headquarter_coordinate"]
-            # carrier_status.close_rtb = (16, 0)  # TODO
-            self._carrier_status[route_number] = carrier_status
+            carrier = Carrier()
+            carrier.route_number = route_number
+            carrier.coord = self._config["headquarter_coordinate"]
+            # carrier.close_rtb = (16, 0)  # TODO
+            self._carriers[route_number] = carrier
             for i in range(len(self._remain_plan[route_number])):
                 self._refresh_arr_time(tick=-1, route_number=route_number, index=i)
 
@@ -133,7 +137,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def _refresh_arr_time(self, tick: int, route_number: RouteNumber, index: int = 0) -> None:
         plan = self._remain_plan[route_number]
-        source_coord = self._carrier_status[route_number].coord if index == 0 else plan[index - 1].order.coord
+        source_coord = self._carriers[route_number].coord if index == 0 else plan[index - 1].order.coord
         target_coord = plan[index].order.coord
 
         eat = self._eat_predictor.predict(tick, source_coord, target_coord)
@@ -162,7 +166,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         plan = self._remain_plan[route_number]
         cur_arrival = plan.pop(0)  # Finish the current plan
-        self._carrier_status[route_number].coord = cur_arrival.order.coord
+        self._carriers[route_number].coord = cur_arrival.order.coord
         self._upcoming_arr_time[route_number] = None if len(plan) == 0 else event.tick + plan[0].act_arr_time
 
     def _on_action_received(self, event: CascadeEvent) -> None:

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, NamedTuple, Union
