@@ -7,7 +7,7 @@ from pathlib import Path
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import EventBuffer
-from maro.simulator.utils.common import tick_to_frame_index, total_frames
+from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index, total_frames
 
 
 class AbsBusinessEngine(ABC):
@@ -75,6 +75,26 @@ class AbsBusinessEngine(ABC):
             int: Frame index in snapshot list of specified tick.
         """
         return tick_to_frame_index(self._start_tick, tick, self._snapshot_resolution)
+
+    def get_ticks_frame_index_mapping(self) -> dict:
+        """Helper method to get current available ticks to related frame index mapping.
+
+        Returns:
+            dict: Dictionary of avaliable tick to frame index, it would be 1 to N mapping if the resolution is not 1.
+        """
+        mapping = {}
+        
+        if self.snapshots is not None:
+            frame_index_list = self.snapshots.get_frame_index_list()
+
+            for frame_index in frame_index_list:
+                frame_start_tick = self._start_tick + frame_index * self._snapshot_resolution
+                frame_end_tick = min(self._max_tick, frame_start_tick + self._snapshot_resolution)
+
+                for tick in range(frame_start_tick, frame_end_tick):
+                    mapping[tick] = frame_index
+
+        return mapping
 
     def calc_max_snapshots(self) -> int:
         """Helper method to calculate total snapshot should be in snapshot list with parameters passed via constructor.
