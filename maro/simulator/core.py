@@ -212,7 +212,6 @@ class Env(AbsEnv):
         """
         return self._business_engine.get_ticks_frame_index_mapping()
 
-
     def _init_business_engine(self):
         """Initialize business engine object.
 

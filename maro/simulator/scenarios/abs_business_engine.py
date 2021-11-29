@@ -7,7 +7,7 @@ from pathlib import Path
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import EventBuffer
-from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index, total_frames
+from maro.simulator.utils.common import tick_to_frame_index, total_frames
 
 
 class AbsBusinessEngine(ABC):
@@ -83,7 +83,7 @@ class AbsBusinessEngine(ABC):
             dict: Dictionary of avaliable tick to frame index, it would be 1 to N mapping if the resolution is not 1.
         """
         mapping = {}
-        
+
         if self.snapshots is not None:
             frame_index_list = self.snapshots.get_frame_index_list()
 
