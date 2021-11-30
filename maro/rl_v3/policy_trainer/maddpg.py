@@ -194,7 +194,7 @@ class MADDPG(MultiTrainer):
             ))  # log pi(a|o)
 
         actor_losses = []
-        for i in range(len(self._policies)):
+        for i in range(self.num_policies):
             # Update actor
             self._q_critic_nets[i].freeze()
 
