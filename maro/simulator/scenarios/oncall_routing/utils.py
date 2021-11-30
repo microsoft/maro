@@ -4,6 +4,7 @@
 from geopy.distance import geodesic
 
 from maro.simulator.utils import random
+
 from .common import Coordinate
 
 GLOBAL_RAND_KEY = "global_rand_key"

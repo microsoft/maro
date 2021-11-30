@@ -5,8 +5,9 @@ import os
 from collections import defaultdict, deque
 from typing import Deque, Dict, List, Optional
 
-from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
+
+from maro.backends.frame import FrameBase, SnapshotList
 
 from maro.data_lib.oncall_routing import FromHistoryOncallOrderGenerator
 from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, PlanLoader, SamplePlanLoader
@@ -15,6 +16,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils import random
+
 from .arrival_time_predictor import ActualArrivalTimeSampler, EstimatedArrivalTimePredictor
 from .carrier import Carrier
 from .common import (

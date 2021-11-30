@@ -8,8 +8,7 @@ from typing import Deque, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, Order
-from maro.simulator.scenarios.oncall_routing import ONCALL_RAND_KEY
+from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Order
 from maro.simulator.utils import random
 
 

@@ -8,7 +8,7 @@ import pandas as pd
 from yaml import safe_load
 
 from maro.simulator.scenarios.oncall_routing import (
-    Coordinate, GLOBAL_ORDER_COUNTER, Order, PLAN_RAND_KEY, PlanElement, RouteNumber
+    GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement, RouteNumber
 )
 from maro.simulator.utils import random
 
