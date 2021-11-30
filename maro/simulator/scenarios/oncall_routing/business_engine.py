@@ -8,7 +8,6 @@ from typing import Deque, Dict, List, Optional
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
-
 from maro.data_lib.oncall_routing import FromHistoryOncallOrderGenerator
 from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, PlanLoader, SamplePlanLoader
 from maro.data_lib.oncall_routing.oncall_order_generator import OncallOrderGenerator, SampleOncallOrderGenerator
