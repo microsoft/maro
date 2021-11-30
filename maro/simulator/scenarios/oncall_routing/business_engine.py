@@ -19,9 +19,7 @@ from maro.utils import convert_dottable
 
 from .arrival_time_predictor import ActualArrivalTimeSampler, EstimatedArrivalTimePredictor
 from .carrier import Carrier
-from .common import (
-    Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
-)
+from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
 from .frame_builder import gen_oncall_routing_frame
 from .order import Order
 from .route import Route

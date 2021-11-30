@@ -7,9 +7,7 @@ from typing import Dict, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import (
-    GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement
-)
+from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement
 from maro.simulator.utils import random
 
 rtb_fake_order = Order()
