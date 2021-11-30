@@ -8,8 +8,9 @@ from typing import Deque, Dict, List, Optional
 from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
-from maro.data_lib.oncall_routing import FromCSVOncallOrderGenerator
+from maro.data_lib.oncall_routing import FromHistoryOncallOrderGenerator
 from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, PlanLoader, SamplePlanLoader
+from maro.data_lib.oncall_routing.oncall_order_generator import OncallOrderGenerator, SampleOncallOrderGenerator
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
@@ -53,13 +54,17 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = safe_load(fp)
 
+        self._default_random_seed = 1024
+        random.seed(self._default_random_seed)
+
         self._frame = FrameBase()
         self._snapshots = self._frame.snapshots
 
-        self._oncall_order_generator = FromCSVOncallOrderGenerator(
-            os.path.join(self._config_path, "oncall_orders.csv")
-        )
+        print("Loading oncall orders.")
+        self._oncall_order_generator = self._get_oncall_generator()
+        self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
+        print("Oncall orders loaded.")
 
         self._waiting_order_dict: Dict[OrderId, Order] = {}  # Orders already sent to agents and waiting for actions
 
@@ -67,6 +72,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._eat_predictor = EstimatedArrivalTimePredictor()
 
         # ##### Load plan #####
+        print("Loading plans.")
         data_loader = self._get_data_loader()
 
         self._remain_plan: Dict[RouteNumber, List[PlanElement]] = data_loader.generate_plan()
@@ -80,14 +86,18 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             self._carriers[route_number] = carrier
             for i in range(len(self._remain_plan[route_number])):
                 self._refresh_arr_time(tick=-1, route_number=route_number, index=i)
-
         self._upcoming_arr_time: Dict[RouteNumber, Optional[int]] = {
             route_number: plan[0].act_arr_time for route_number, plan in self._remain_plan.items()
         }
-
-        self._default_random_seed = 1024
+        print("Plans loaded.")
 
         self._register_events()
+
+    def _get_oncall_generator(self) -> OncallOrderGenerator:
+        if os.path.exists(os.path.join(self._config_path, "oncall_orders.csv")):
+            return FromHistoryOncallOrderGenerator(os.path.join(self._config_path, "oncall_orders.csv"))
+        if os.path.exists(os.path.join(self._config_path, "oncall_numbers.txt")):
+            return SampleOncallOrderGenerator(self._config_path)
 
     def _get_data_loader(self) -> PlanLoader:
         if os.path.exists(os.path.join(self._config_path, "routes.csv")):
@@ -251,11 +261,4 @@ if __name__ == "__main__":
             for _order in _event.oncall_orders:
                 print(_order.id, _order.coord)
 
-            _orders = _event.oncall_orders
-            _actions = [
-                Action(order_id=_orders[0].id, route_number=987, insert_index=3),
-                Action(order_id=_orders[1].id, route_number=987, insert_index=5)
-            ]
-
-            env.step(_actions)
             break

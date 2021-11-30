@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
+from yaml import safe_load
 
 from maro.simulator.scenarios.oncall_routing.common import Coordinate, PlanElement, RouteNumber
 from maro.simulator.scenarios.oncall_routing.order import GLOBAL_ORDER_COUNTER, Order
@@ -67,38 +68,25 @@ class FromHistoryPlanLoader(PlanLoader):
 
 
 def _load_sample_length(path: str) -> Dict[int, List[int]]:
-    ret = {}
-    with open(path, "r") as fin:
-        nday = int(fin.readline())
-        for line in fin:
-            route_number, content = line.strip().split("\t")
-            route_number = int(route_number)
-            sizes = []
-            for elem in content.split("/"):
-                _, size = elem.split(",")
-                size = int(size)
-                sizes.append(size)
-            sizes += [0] * (nday - len(sizes))
-            ret[route_number] = sizes
+    with open(path) as fp:
+        ret = safe_load(fp)
     return ret
 
 
 def _load_sample_coords(path: str) -> Dict[int, Tuple[List[Coordinate], List[float]]]:
     ret = {}
-    with open(path, "r") as fin:
+    with open(path) as fin:
         for line in fin:
-            route_number, content = line.strip().split("\t")
+            route_number, coords, probs = line.strip().split("\t")
             route_number = int(route_number)
-            coords = []
-            counts = []
-            for elem in content.split("/"):
-                lat, lng, cnt = elem.split(",")
-                coords.append(Coordinate(float(lat), float(lng)))
-                counts.append(int(cnt))
-            total_cnt = sum(counts)
-            probs = [cnt / total_cnt for cnt in counts]
 
-            ret[route_number] = (coords, probs)
+            new_coords = []
+            for elem in coords.split("/"):
+                lat, lng = elem.split(",")
+                new_coords.append(Coordinate(float(lat), float(lng)))
+            probs = [float(elem) for elem in probs.split("/")]
+
+            ret[route_number] = (new_coords, probs)
     return ret
 
 
@@ -108,10 +96,9 @@ class SamplePlanLoader(PlanLoader):
 
         assert 0.0 < pickup_ratio < 1.0
 
-        self._sample_length = _load_sample_length(os.path.join(sample_config_path, "route_length.txt"))
+        self._sample_length = _load_sample_length(os.path.join(sample_config_path, "route_length.yml"))
         self._sample_coords = _load_sample_coords(os.path.join(sample_config_path, "route_coord.txt"))
         self._route_numbers = sorted(list(self._sample_coords.keys()))
-        self._random_seed = random[PLAN_RAND_KEY].randint(0, 1023)
         self._pickup_ratio = pickup_ratio
 
     def _generate_plan_impl(self) -> Dict[RouteNumber, List[PlanElement]]:

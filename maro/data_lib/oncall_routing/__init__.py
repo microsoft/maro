@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .oncall_order_generator import FromCSVOncallOrderGenerator
+from .oncall_order_generator import FromHistoryOncallOrderGenerator
 
-__all__ = ["FromCSVOncallOrderGenerator"]
+__all__ = ["FromHistoryOncallOrderGenerator"]
