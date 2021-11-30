@@ -3,7 +3,7 @@
 
 from typing import List
 
-from maro.backends.frame import NodeAttribute, NodeBase, node
+from maro.backends.frame import NodeBase, node
 
 from .common import PlanElement
 
