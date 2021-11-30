@@ -20,18 +20,19 @@ class MADDPG(MultiTrainer):
         replay_memory_capacity: int = 10000,
         num_epoch: int = 10,
         update_target_every: int = 5,
-        soft_update_coef: float = 0.1,
+        soft_update_coef: float = 0.5,
         train_batch_size: int = 32,
         q_value_loss_cls: Callable = None,
         device: str = None,
-        critic_loss_coef: float = 1.0
+        critic_loss_coef: float = 1.0,
+        shared_critic: bool = False
 
     ) -> None:
         super(MADDPG, self).__init__(name, device)
 
         self._get_q_critic_net_func = get_q_critic_net_func
-        self._q_critic_net: Optional[MultiQNet] = None
-        self._target_q_critic_net: Optional[MultiQNet] = None
+        self._q_critic_nets: Optional[List[MultiQNet]] = None
+        self._target_q_critic_nets: Optional[List[MultiQNet]] = None
         self._replay_memory_capacity = replay_memory_capacity
         self._target_policies: Optional[List[DiscretePolicyGradient]] = None
         if policies is not None:
@@ -39,11 +40,12 @@ class MADDPG(MultiTrainer):
 
         self._num_epoch = num_epoch
         self._update_target_every = update_target_every
-        self._policy_ver = self._target_policy_ver = 0
+        self._policy_version = self._target_policy_version = 0
         self._soft_update_coef = soft_update_coef
         self._train_batch_size = train_batch_size
         self._reward_discount = reward_discount
         self._critic_loss_coef = critic_loss_coef
+        self._shared_critic = shared_critic
 
         self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
 
@@ -57,11 +59,16 @@ class MADDPG(MultiTrainer):
         self._policy_dict = {
             policy.name: policy for policy in policies
         }
-        self._q_critic_net = self._get_q_critic_net_func()
+        if self._shared_critic:
+            q_critic_net = self._get_q_critic_net_func()
+            q_critic_net.to(self._device)
+            self._q_critic_nets = [q_critic_net for i in range(self.num_policies)]
+        else:
+            self._q_critic_nets = [self._get_q_critic_net_func().to(self._device) for i in range(self.num_policies)]
 
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._replay_memory_capacity,
-            state_dim=self._q_critic_net.state_dim,
+            state_dim=self._q_critic_nets[0].state_dim,
             action_dims=[policy.action_dim for policy in policies],
             agent_states_dims=[policy.state_dim for policy in policies]
         )
@@ -74,13 +81,14 @@ class MADDPG(MultiTrainer):
 
         for policy in self._target_policies:
             policy.eval()
-        self._target_q_critic_net: MultiQNet = clone(self._q_critic_net)
-        self._target_q_critic_net.eval()
+
+        self._target_q_critic_nets = [clone(net) for net in self._q_critic_nets]
+        for i in range(self.num_policies):
+            self._target_q_critic_nets[i].eval()
+            self._target_q_critic_nets[i].to(self._device)
 
         for policy in self._target_policies:
             policy.to_device(self._device)
-        self._q_critic_net.to(self._device)
-        self._target_q_critic_net.to(self._device)
 
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
@@ -90,7 +98,10 @@ class MADDPG(MultiTrainer):
             train_batch = self._get_batch()
             # iteratively update critic & actors
             loss = self.get_batch_loss(train_batch, scope="critic")
-            self._q_critic_net.step(loss["critic_loss"])
+            for critic_net, critic_loss in zip(self._q_critic_nets, loss["critic_losses"]):
+                critic_net.step(critic_loss)
+                if self._shared_critic:
+                    break  # only update once for shared critic
 
             loss = self.get_batch_loss(train_batch, scope="actor")
             for policy, actor_loss in zip(self._policies, loss["actor_losses"]):
@@ -111,14 +122,14 @@ class MADDPG(MultiTrainer):
         assert scope in ["all", "critic", "actor"], f'scope should in ["all", "critic", "actor"] but get {scope}.'
         loss_info = dict()
         if scope == "all" or scope == "critic":
-            critic_loss = self._get_critic_loss(batch)
-            loss_info["critic_loss"] = critic_loss
+            critic_losses = self._get_critic_losses(batch)
+            loss_info["critic_losses"] = critic_losses
         if scope == "all" or scope == "actor":
             actor_losses = self._get_actor_losses(batch)
             loss_info["actor_losses"] = actor_losses
         return loss_info
 
-    def _get_critic_loss(self, batch: MultiTransitionBatch) -> torch.Tensor:
+    def _get_critic_losses(self, batch: MultiTransitionBatch) -> List[torch.Tensor]:
         states = ndarray_to_tensor(batch.states, self._device)  # x
         next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
         agent_states = [ndarray_to_tensor(agent_state, self._device) for agent_state in batch.agent_states]  # o
@@ -131,20 +142,38 @@ class MADDPG(MultiTrainer):
                 policy.get_actions_tensor(agent_state)  # a' = miu'(o)
                 for policy, agent_state in zip(self._target_policies, agent_states)
             ]
-            next_q_values = self._target_q_critic_net.q_values(
-                states=next_states,  # x'
-                actions=next_actions  # a'
-            )  # Q'(x', a')
 
-        # Update critic
-        # y = r + gamma * (1 - d) * Q'
-        target_q_values = (sum(rewards) + self._reward_discount * (1 - terminals.float()) * next_q_values).detach()
-        q_values = self._q_critic_net.q_values(
-            states=states,  # x
-            actions=actions  # a
-        )  # Q(x, a)
-        critic_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(x, a), Q'(x', a'))
-        return critic_loss * self._critic_loss_coef
+        critic_losses = []
+        if self._shared_critic:
+            with torch.no_grad():
+                next_q_values = self._target_q_critic_nets[0].q_values(
+                    states=next_states,  # x'
+                    actions=next_actions  # a'
+                )  # Q'(x', a')
+            # sum(rewards) for shard critic
+            target_q_values = (sum(rewards) + self._reward_discount * (1 - terminals.float()) * next_q_values).detach()
+            q_values = self._q_critic_nets[0].q_values(
+                states=states,  # x
+                actions=actions  # a
+            )  # Q(x, a)
+            critic_loss = self._q_value_loss_func(q_values, target_q_values) * self._critic_loss_coef
+            critic_losses.append(critic_loss)
+        else:
+            for i in range(self.num_policies):
+                with torch.no_grad():
+                    next_q_values = self._target_q_critic_nets[i].q_values(
+                        states=next_states,  # x'
+                        actions=next_actions)  # a'
+                target_q_values = (
+                    rewards[i] + self._reward_discount * (1 - terminals.float()) * next_q_values).detach()
+                q_values = self._q_critic_nets[i].q_values(
+                    states=states,  # x
+                    actions=actions  # a
+                )  # Q(x, a)
+                critic_loss = self._q_value_loss_func(q_values, target_q_values) * self._critic_loss_coef
+                critic_losses.append(critic_loss)
+
+        return critic_losses
 
     def _get_actor_losses(self, batch: MultiTransitionBatch) -> List[torch.Tensor]:
         for policy in self._policies:
@@ -167,24 +196,27 @@ class MADDPG(MultiTrainer):
         actor_losses = []
         for i in range(len(self._policies)):
             # Update actor
-            self._q_critic_net.freeze()
+            self._q_critic_nets[i].freeze()
 
             action_backup = actions[i]
             actions[i] = latest_actions[i]  # Replace latest action
-            actor_loss = -(self._q_critic_net.q_values(
+            actor_loss = -(self._q_critic_nets[i].q_values(
                 states=states,  # x
                 actions=actions  # [a^j_1, ..., a_i, ..., a^j_N]
             ) * latest_action_logps[i]).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
             actor_losses.append(actor_loss)
 
             actions[i] = action_backup  # Restore original action
-            self._q_critic_net.unfreeze()
+            self._q_critic_nets[i].unfreeze()
         return actor_losses
 
     def _update_target_policy(self) -> None:
-        self._policy_ver += 1
-        if self._policy_ver - self._target_policy_ver == self._update_target_every:
+        self._policy_version += 1
+        if self._policy_version - self._target_policy_version == self._update_target_every:
             for policy, target_policy in zip(self._policies, self._target_policies):
                 target_policy.soft_update(policy, self._soft_update_coef)
-            self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
-            self._target_policy_ver = self._policy_ver
+            for critic, target_critic in zip(self._q_critic_nets, self._target_q_critic_nets):
+                target_critic.soft_update(critic, self._soft_update_coef)
+                if self._shared_critic:
+                    break  # only update once for shared critic
+            self._target_policy_version = self._policy_version
