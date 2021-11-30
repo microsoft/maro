@@ -44,5 +44,5 @@ class FromCSVOncallOrderGenerator(OncallOrderGenerator):
 
 if __name__ == "__main__":
     oncall_order_generator = FromCSVOncallOrderGenerator(
-        "C:/workspace/maro/maro/simulator/scenarios/oncall_routing/topologies/example/oncall_orders.csv"
+        "/maro/simulator/scenarios/oncall_routing/topologies/example_history/oncall_orders.csv"
     )

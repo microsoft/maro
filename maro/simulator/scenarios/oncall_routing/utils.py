@@ -7,6 +7,7 @@ from .common import Coordinate
 
 GLOBAL_RAND_KEY = "global_rand_key"
 EST_RAND_KEY = "est_rand_key"
+PLAN_RAND_KEY = "plan_rand_key"
 
 
 def geo_distance_meter(source_coordinate: Coordinate, target_coordinate: Coordinate) -> float:

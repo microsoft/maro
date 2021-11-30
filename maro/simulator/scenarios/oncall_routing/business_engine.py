@@ -5,15 +5,15 @@ import os
 from collections import defaultdict, deque
 from typing import Deque, Dict, List, Optional
 
+from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
-from maro.backends.frame import FrameBase, SnapshotList
-from maro.data_lib.oncall_routing import FromCSVOncallOrderGenerator, load_plan_simple
+from maro.data_lib.oncall_routing import FromCSVOncallOrderGenerator
+from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, PlanLoader, SamplePlanLoader
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils import random
-
 from .arrival_time_predictor import ActualArrivalTimeSampler, EstimatedArrivalTimePredictor
 from .carrier import Carrier
 from .common import (
@@ -46,6 +46,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         )
 
         self.update_config_root_path(__file__)
+        if "config_path" in additional_options:
+            self._config_path = additional_options["config_path"]
+        print(f"Config path: {self._config_path}")
+
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = safe_load(fp)
 
@@ -62,9 +66,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._aat_predictor = ActualArrivalTimeSampler()
         self._eat_predictor = EstimatedArrivalTimePredictor()
 
-        self._remain_plan: Dict[RouteNumber, List[PlanElement]] = load_plan_simple(
-            os.path.join(self._config_path, "routes.csv")
-        )
+        # ##### Load plan #####
+        data_loader = self._get_data_loader()
+
+        self._remain_plan: Dict[RouteNumber, List[PlanElement]] = data_loader.generate_plan()
         self._routes: List[RouteNumber] = sorted(list(self._remain_plan.keys()))
         self._carriers: Dict[RouteNumber, Carrier] = {}
         for route_number in self._remain_plan.keys():
@@ -83,6 +88,12 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._default_random_seed = 1024
 
         self._register_events()
+
+    def _get_data_loader(self) -> PlanLoader:
+        if os.path.exists(os.path.join(self._config_path, "routes.csv")):
+            return FromHistoryPlanLoader(os.path.join(self._config_path, "routes.csv"))
+        if os.path.exists(os.path.join(self._config_path, "route_coord.txt")):
+            return SamplePlanLoader(self._config_path)
 
     @property
     def frame(self) -> FrameBase:
@@ -166,6 +177,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         plan = self._remain_plan[route_number]
         cur_arrival = plan.pop(0)  # Finish the current plan
+
         self._carriers[route_number].coord = cur_arrival.order.coord
         self._upcoming_arr_time[route_number] = None if len(plan) == 0 else event.tick + plan[0].act_arr_time
 
@@ -222,7 +234,13 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
 
 if __name__ == "__main__":
-    env = Env(scenario="oncall_routing", topology="example", start_tick=0, durations=10000000)
+    env = Env(
+        scenario="oncall_routing",
+        topology="example_history",
+        start_tick=0,
+        durations=10000000,
+        options={"config_path": "C:/workspace/fedex_topology/example_sample/"}
+    )
     is_done = False
     while not is_done:
         _, _event, is_done = env.step(action=None)
@@ -230,6 +248,8 @@ if __name__ == "__main__":
         assert isinstance(_event, OncallRoutingPayload)
         if len(_event.oncall_orders) > 0:
             print(env.tick)
+            for _order in _event.oncall_orders:
+                print(_order.id, _order.coord)
 
             _orders = _event.oncall_orders
             _actions = [
