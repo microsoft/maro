@@ -15,13 +15,16 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils import random
+from maro.utils import convert_dottable
 
 from .arrival_time_predictor import ActualArrivalTimeSampler, EstimatedArrivalTimePredictor
 from .carrier import Carrier
 from .common import (
-    Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, OrderId, PlanElement, RouteNumber
+    Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
 )
+from .frame_builder import gen_oncall_routing_frame
 from .order import Order
+from .route import Route
 from .utils import GLOBAL_RAND_KEY
 
 
@@ -53,13 +56,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         print(f"Config path: {self._config_path}")
 
         with open(os.path.join(self._config_path, "config.yml")) as fp:
-            self._config = safe_load(fp)
+            self._config = convert_dottable(safe_load(fp))
 
         self._default_random_seed = 1024
         random.seed(self._default_random_seed)
-
-        self._frame = FrameBase()
-        self._snapshots = self._frame.snapshots
 
         print("Loading oncall orders.")
         self._oncall_order_generator = self._get_oncall_generator()
@@ -67,7 +67,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._oncall_order_buffer: Deque[Order] = deque()
         print("Oncall orders loaded.")
 
-        self._waiting_order_dict: Dict[OrderId, Order] = {}  # Orders already sent to agents and waiting for actions
+        self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
 
         self._aat_predictor = ActualArrivalTimeSampler()
         self._eat_predictor = EstimatedArrivalTimePredictor()
@@ -75,20 +75,51 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # ##### Load plan #####
         print("Loading plans.")
         data_loader = self._get_data_loader()
+        self._remain_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
 
-        self._remain_plan: Dict[RouteNumber, List[PlanElement]] = data_loader.generate_plan()
-        self._routes: List[RouteNumber] = sorted(list(self._remain_plan.keys()))
-        self._carriers: Dict[RouteNumber, Carrier] = {}
-        for route_number in self._remain_plan.keys():
-            carrier = Carrier()
-            carrier.route_number = route_number
-            carrier.coord = self._config["headquarter_coordinate"]
-            # carrier.close_rtb = (16, 0)  # TODO
-            self._carriers[route_number] = carrier
-            for i in range(len(self._remain_plan[route_number])):
-                self._refresh_arr_time(tick=-1, route_number=route_number, index=i)
-        self._upcoming_arr_time: Dict[RouteNumber, Optional[int]] = {
-            route_number: plan[0].act_arr_time for route_number, plan in self._remain_plan.items()
+        # Initialize Frames.
+        route_num = len(self._remain_plan.keys())
+        self._frame = gen_oncall_routing_frame(
+            route_num=route_num,
+            snapshots_num=self.calc_max_snapshots()
+        )
+        self._snapshots = self._frame.snapshots
+
+        # Initialize Carriers & Routes.
+        self._carriers: List[Carrier] = self._frame.carriers
+        self._routes: List[Route] = self._frame.routes
+        self._route_name2idx = {}
+
+        for idx, route_name in enumerate(sorted(list(self._remain_plan.keys()))):
+            self._route_name2idx[route_name] = idx
+            carrier = self._carriers[idx]
+            route = self._routes[idx]
+
+            carrier_name = f"C_{route_name}"
+
+            carrier.set_init_state(
+                name=carrier_name,
+                route_idx=idx,
+                route_name=route_name,
+                lat=self._config.station.latitude,
+                lng=self._config.station.longitude,
+                close_rtb=self._config.station.close_rtb,
+            )
+
+            route.set_init_state(
+                name=route_name,
+                carrier_idx=idx,
+                carrier_name=carrier_name,
+            )
+            route.remaining_plan = self._remain_plan[route_name]
+
+        # Initialize Arrival Time.
+        for route in self._routes:
+            for i in range(len(route.remaining_plan)):
+                self._refresh_arr_time(tick=-1, route_idx=route.idx, index=i)
+
+        self._upcoming_arr_time: Dict[str, Optional[int]] = {
+            route_name: plan[0].act_arr_time for route_name, plan in self._remain_plan.items()
         }
         print("Plans loaded.")
 
@@ -119,9 +150,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def step(self, tick: int) -> None:
         # Carrier arrive its next destination
-        for route_number in self._routes:
-            if self._upcoming_arr_time[route_number] is not None and self._upcoming_arr_time[route_number] == tick:
-                carrier_arrival_payload = CarrierArrivalPayload(route_number)
+        for route_name in self._route_name2idx.keys():
+            if self._upcoming_arr_time[route_name] is not None and self._upcoming_arr_time[route_name] == tick:
+                carrier_arrival_payload = CarrierArrivalPayload(route_name)
                 carrier_arrival_event = self._event_buffer.gen_atom_event(
                     tick=tick, event_type=Events.CARRIER_ARRIVAL, payload=carrier_arrival_payload
                 )
@@ -157,9 +188,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         new_seed = self._default_random_seed if keep_seed else random[GLOBAL_RAND_KEY].randint(0, 4095)
         random.seed(new_seed)
 
-    def _refresh_arr_time(self, tick: int, route_number: RouteNumber, index: int = 0) -> None:
-        plan = self._remain_plan[route_number]
-        source_coord = self._carriers[route_number].coord if index == 0 else plan[index - 1].order.coord
+    def _refresh_arr_time(self, tick: int, route_idx: int, index: int = 0) -> None:
+        carrier_idx = self._routes[route_idx].carrier_idx
+        plan = self._routes[route_idx].remaining_plan
+        source_coord = self._carriers[carrier_idx].coordinate if index == 0 else plan[index - 1].order.coord
         target_coord = plan[index].order.coord
 
         eat = self._eat_predictor.predict(tick, source_coord, target_coord)
@@ -183,30 +215,34 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         payload = event.payload
         assert isinstance(payload, CarrierArrivalPayload)
 
-        route_number = payload.route_number
+        route_name = payload.route_name
+        route_idx = self._route_name2idx[route_name]
+        carrier_idx = self._routes[route_idx].carrier_idx
+
         # TODO: deliver / pickup packages
 
-        plan = self._remain_plan[route_number]
+        plan = self._routes[route_idx].remaining_plan
         cur_arrival = plan.pop(0)  # Finish the current plan
 
-        self._carriers[route_number].coord = cur_arrival.order.coord
-        self._upcoming_arr_time[route_number] = None if len(plan) == 0 else event.tick + plan[0].act_arr_time
+        self._carriers[carrier_idx].update_coordinate(cur_arrival.order.coord)
+        self._upcoming_arr_time[route_name] = None if len(plan) == 0 else event.tick + plan[0].act_arr_time
 
     def _on_action_received(self, event: CascadeEvent) -> None:
         actions = event.payload
         assert isinstance(actions, list)
 
         # Aggregate actions by route
-        action_by_route: Dict[RouteNumber, List[Action]] = defaultdict(list)
+        action_by_route: Dict[str, List[Action]] = defaultdict(list)
         for action in actions:
             assert isinstance(action, Action)
-            action_by_route[action.route_number].append(action)
+            action_by_route[action.route_name].append(action)
 
-        for route_number, actions in action_by_route.items():
+        for route_name, actions in action_by_route.items():
             # Sort actions by: 1) insert index, 2) in-segment order
             actions.sort(key=lambda _action: (_action.insert_index, _action.in_segment_order))
 
-            old_plan = self._remain_plan[route_number]
+            route_idx = self._route_name2idx[route_name]
+            old_plan = self._routes[route_idx].remaining_plan
             new_plan = []
             refresh_indexes = []
             j = 0
@@ -232,9 +268,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 if has_new_plan:
                     refresh_indexes.append(len(new_plan) - 1)
 
-            self._remain_plan[route_number] = new_plan
+            old_plan = new_plan
             for index in refresh_indexes:
-                self._refresh_arr_time(tick=event.tick, route_number=route_number, index=index)
+                self._refresh_arr_time(tick=event.tick, route_idx=route_idx, index=index)
 
         # Put back suspended oncall orders
         self._oncall_order_buffer = deque([order for order in self._waiting_order_dict.values()])

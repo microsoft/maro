@@ -6,7 +6,10 @@ from maro.simulator.scenarios.oncall_routing.common import Action, OncallRouting
 
 
 if __name__ == "__main__":
-    env = Env(scenario="oncall_routing", topology="example", start_tick=0, durations=10000000)
+    env = Env(
+        scenario="oncall_routing", topology="example", start_tick=0, durations=1000,
+        # options={"config_path": "C:/workspace/fedex_topology/example_sample/"}
+    )
 
     env.reset()
     metrics, decision_event, is_done = env.step(None)
@@ -16,10 +19,7 @@ if __name__ == "__main__":
         if len(orders) > 0:
             print(env.tick)
 
-            _actions = [
-                Action(order_id=orders[0].id, route_number=987, insert_index=3),
-                Action(order_id=orders[1].id, route_number=987, insert_index=5)
-            ]
+            for order in orders:
+                print(order.id, order.coord)
 
-            env.step(_actions)
             break
