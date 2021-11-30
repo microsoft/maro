@@ -4,13 +4,12 @@ import os
 from abc import abstractmethod
 from typing import Dict, List, Tuple
 
-import numpy as np
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing.common import Coordinate, PlanElement, RouteNumber
-from maro.simulator.scenarios.oncall_routing.order import GLOBAL_ORDER_COUNTER, Order
-from maro.simulator.scenarios.oncall_routing.utils import PLAN_RAND_KEY
+from maro.simulator.scenarios.oncall_routing import (
+    Coordinate, GLOBAL_ORDER_COUNTER, Order, PLAN_RAND_KEY, PlanElement, RouteNumber
+)
 from maro.simulator.utils import random
 
 rtb_fake_order = Order()

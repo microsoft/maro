@@ -96,7 +96,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def _get_oncall_generator(self) -> OncallOrderGenerator:
         if os.path.exists(os.path.join(self._config_path, "oncall_orders.csv")):
             return FromHistoryOncallOrderGenerator(os.path.join(self._config_path, "oncall_orders.csv"))
-        if os.path.exists(os.path.join(self._config_path, "oncall_numbers.txt")):
+        if os.path.exists(os.path.join(self._config_path, "oncall_info.yml")):
             return SampleOncallOrderGenerator(self._config_path)
 
     def _get_data_loader(self) -> PlanLoader:
