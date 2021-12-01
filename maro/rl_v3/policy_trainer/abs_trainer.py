@@ -112,6 +112,10 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         self._policies: List[RLPolicy] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
 
+    @property
+    def num_policies(self):
+        return len(self._policies)
+
     def record(
         self,
         transition_batch: MultiTransitionBatch
