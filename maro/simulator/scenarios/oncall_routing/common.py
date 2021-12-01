@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from .order import Order
 
@@ -34,8 +34,8 @@ class CarrierArrivalPayload:
 @dataclass
 class PlanElement:
     order: Order
-    est_arr_time: int  # Estimated arrival time
-    act_arr_time: int  # Actual arrival time
+    estimated_duration_from_last: Optional[int] = None  # Estimated duration from last stop
+    actual_duration_from_last: Optional[int] = None  # Actual duration from last stop
 
 
 @dataclass

@@ -5,20 +5,18 @@ import os
 from collections import defaultdict, deque
 from typing import Deque, Dict, List, Optional
 
+from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
-from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.oncall_routing import FromHistoryOncallOrderGenerator
 from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, PlanLoader, SamplePlanLoader
 from maro.data_lib.oncall_routing.oncall_order_generator import OncallOrderGenerator, SampleOncallOrderGenerator
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
-from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils import random
 from maro.utils import convert_dottable
 from . import Coordinate
-
-from .arrival_time_predictor import ActualArrivalTimeSampler, EstimatedArrivalTimePredictor
+from .arrival_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .carrier import Carrier
 from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
 from .frame_builder import gen_oncall_routing_frame
@@ -79,15 +77,15 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
 
-        self._aat_predictor = ActualArrivalTimeSampler()
-        self._eat_predictor = EstimatedArrivalTimePredictor()
+        self._actual_duration_predictor = ActualDurationSampler()
+        self._estimated_duration_predictor = EstimatedDurationPredictor()
 
         # ##### Load plan #####
         print("Loading plans.")
         data_loader = self._get_data_loader()
         self._remain_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
         for plan in self._remain_plan.values():  # TODO
-            plan.append(PlanElement(order=self._rtb_order, act_arr_time=-1, est_arr_time=-1))
+            plan.append(PlanElement(order=self._rtb_order))
 
         # Initialize Frames.
         route_num = len(self._remain_plan.keys())
@@ -131,7 +129,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 self._refresh_arr_time(tick=-1, route_idx=route.idx, index=i)
 
         self._upcoming_arr_time: Dict[str, Optional[int]] = {
-            route_name: plan[0].act_arr_time for route_name, plan in self._remain_plan.items()
+            route_name: plan[0].actual_duration_from_last for route_name, plan in self._remain_plan.items()
         }
         print("Plans loaded.")
 
@@ -208,10 +206,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         source_coord = self._carriers[carrier_idx].coordinate if index == 0 else plan[index - 1].order.coord
         target_coord = plan[index].order.coord
 
-        eat = self._eat_predictor.predict(tick, source_coord, target_coord)
-        aat = self._aat_predictor.sample(tick, source_coord, target_coord, eat)
-        plan[index].act_arr_time = aat
-        plan[index].est_arr_time = eat
+        estimated_duration = self._estimated_duration_predictor.predict(tick, source_coord, target_coord)
+        actual_duration = self._actual_duration_predictor.sample(tick, source_coord, target_coord, estimated_duration)
+        plan[index].actual_duration_from_last = actual_duration
+        plan[index].estimated_duration_from_last = estimated_duration
 
     def _register_events(self) -> None:
         register_handler = self._event_buffer.register_event_handler
@@ -239,7 +237,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         cur_arrival = plan.pop(0)  # Finish the current plan
 
         self._carriers[carrier_idx].update_coordinate(cur_arrival.order.coord)
-        self._upcoming_arr_time[route_name] = None if len(plan) == 0 else event.tick + plan[0].act_arr_time
+        self._upcoming_arr_time[route_name] = None if len(plan) == 0 else event.tick + plan[0].actual_duration_from_last
 
     def _on_action_received(self, event: CascadeEvent) -> None:
         actions = event.payload
@@ -266,10 +264,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 while j < len(actions) and actions[j].insert_index < i:
                     new_order_id = actions[j].order_id
                     new_order = self._waiting_order_dict.pop(new_order_id)  # Remove this order from waiting dict
-                    new_plan_element = PlanElement(
-                        order=new_order,
-                        est_arr_time=-1, act_arr_time=-1  # To be calculated in `self._refresh_arr_time()`
-                    )
+                    new_plan_element = PlanElement(order=new_order)
                     new_plan.append(new_plan_element)
                     refresh_indexes.append(len(new_plan) - 1)
                     j += 1
