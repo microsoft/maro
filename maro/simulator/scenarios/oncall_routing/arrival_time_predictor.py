@@ -15,7 +15,7 @@ class TimePredictionFeature:
     pass
 
 
-class EstimatedArrivalTimePredictor:
+class EstimatedDurationPredictor:
     def predict(
         self,
         tick: int,
@@ -27,7 +27,7 @@ class EstimatedArrivalTimePredictor:
         return math.ceil(max(1.0, distance / 200.0))  # TODO: fake
 
 
-class ActualArrivalTimeSampler:
+class ActualDurationSampler:
     def sample(
         self,
         tick: int,
