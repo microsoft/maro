@@ -80,14 +80,17 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         windows = random[ONCALL_RAND_KEY].choices(self._time_windows[0], weights=self._time_windows[1], k=n)
         close_times = [min(2359, open_times[i] + windows[i]) for i in range(n)]
 
-        self._queue = deque()
+        buff = []
         for i in range(n):
             order = Order()
             order.id = str(next(GLOBAL_ORDER_COUNTER))
             order.coord = coords[i]
             order.open_time = open_times[i]
             order.close_time = close_times[i]
-            self._queue.append((int(order.open_time) // 3, order))  # TODO: fake
+            buff.append((int(order.open_time) // 3, order))  # TODO: fake
+
+        buff.sort(key=lambda x: x[0])
+        self._queue = deque(buff)
 
 
 if __name__ == "__main__":
