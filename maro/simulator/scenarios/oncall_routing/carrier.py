@@ -56,9 +56,9 @@ class Carrier(NodeBase):
 
         self.reset()
 
-    def update_coordinate(self, coor: Coordinate):
-        self.latitude = coor.lat
-        self.longitude = coor.lng
+    def update_coordinate(self, coord: Coordinate):
+        self.latitude = coord.lat
+        self.longitude = coord.lng
 
     def reset(self):
         self.latitude = self._lat
