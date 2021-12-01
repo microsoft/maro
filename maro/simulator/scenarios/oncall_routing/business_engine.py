@@ -16,12 +16,13 @@ from maro.simulator import Env
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils import random
 from maro.utils import convert_dottable
+from . import Coordinate
 
 from .arrival_time_predictor import ActualArrivalTimeSampler, EstimatedArrivalTimePredictor
 from .carrier import Carrier
 from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
 from .frame_builder import gen_oncall_routing_frame
-from .order import Order
+from .order import GLOBAL_ORDER_COUNTER, Order
 from .route import Route
 from .utils import GLOBAL_RAND_KEY
 
@@ -48,6 +49,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             additional_options=additional_options
         )
 
+        # Load config
         self.update_config_root_path(__file__)
         if "config_path" in additional_options:
             self._config_path = additional_options["config_path"]
@@ -56,9 +58,19 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = convert_dottable(safe_load(fp))
 
+        # TODO: fake head quarter order
+        self._rtb_order = Order()
+        self._rtb_order.id = str(next(GLOBAL_ORDER_COUNTER))
+        self._rtb_order.coord = Coordinate(
+            lat=self._config.station.latitude,
+            lng=self._config.station.longitude
+        )
+
+        # Init random seed
         self._default_random_seed = 1024
         random.seed(self._default_random_seed)
 
+        # Init oncall order generator
         print("Loading oncall orders.")
         self._oncall_order_generator = self._get_oncall_generator()
         self._oncall_order_generator.reset()
@@ -74,6 +86,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         print("Loading plans.")
         data_loader = self._get_data_loader()
         self._remain_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
+        for plan in self._remain_plan.values():  # TODO
+            plan.append(PlanElement(order=self._rtb_order, act_arr_time=-1, est_arr_time=-1))
 
         # Initialize Frames.
         route_num = len(self._remain_plan.keys())
@@ -128,12 +142,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             return FromHistoryOncallOrderGenerator(os.path.join(self._config_path, "oncall_orders.csv"))
         if os.path.exists(os.path.join(self._config_path, "oncall_info.yml")):
             return SampleOncallOrderGenerator(self._config_path)
+        raise ValueError("Cannot found correct oncall data.")
 
     def _get_data_loader(self) -> PlanLoader:
         if os.path.exists(os.path.join(self._config_path, "routes.csv")):
             return FromHistoryPlanLoader(os.path.join(self._config_path, "routes.csv"))
         if os.path.exists(os.path.join(self._config_path, "route_coord.txt")):
             return SamplePlanLoader(self._config_path)
+        raise ValueError("Cannot found correct route data.")
 
     @property
     def frame(self) -> FrameBase:
@@ -266,7 +282,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 if has_new_plan:
                     refresh_indexes.append(len(new_plan) - 1)
 
-            old_plan = new_plan
+            self._routes[route_idx].remaining_plan = new_plan
             for index in refresh_indexes:
                 self._refresh_arr_time(tick=event.tick, route_idx=route_idx, index=index)
 
@@ -276,24 +292,3 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def post_step(self, tick: int) -> bool:
         return all(len(plan) == 0 for plan in self._remain_plan.values())
-
-
-if __name__ == "__main__":
-    env = Env(
-        scenario="oncall_routing",
-        topology="example_history",
-        start_tick=0,
-        durations=10000000,
-        options={"config_path": "C:/workspace/fedex_topology/example_sample/"}
-    )
-    is_done = False
-    while not is_done:
-        _, _event, is_done = env.step(action=None)
-
-        assert isinstance(_event, OncallRoutingPayload)
-        if len(_event.oncall_orders) > 0:
-            print(env.tick)
-            for _order in _event.oncall_orders:
-                print(_order.id, _order.coord)
-
-            break
