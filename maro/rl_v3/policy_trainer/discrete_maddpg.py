@@ -12,7 +12,7 @@ from maro.utils import clone
 from .abs_trainer import MultiTrainer
 
 
-class MADDPG(MultiTrainer):
+class DiscreteMADDPG(MultiTrainer):
     def __init__(
         self,
         name: str,
@@ -30,7 +30,7 @@ class MADDPG(MultiTrainer):
         shared_critic: bool = False
 
     ) -> None:
-        super(MADDPG, self).__init__(name, device)
+        super(DiscreteMADDPG, self).__init__(name, device)
 
         self._get_q_critic_net_func = get_q_critic_net_func
         self._q_critic_nets: Optional[List[MultiQNet]] = None
@@ -64,7 +64,7 @@ class MADDPG(MultiTrainer):
         if self._shared_critic:
             q_critic_net = self._get_q_critic_net_func()
             q_critic_net.to(self._device)
-            self._q_critic_nets = [q_critic_net for i in range(self.num_policies)]
+            self._q_critic_nets = [q_critic_net for _ in range(self.num_policies)]
         else:
             self._q_critic_nets = [self._get_q_critic_net_func().to(self._device) for i in range(self.num_policies)]
 
@@ -111,7 +111,7 @@ class MADDPG(MultiTrainer):
 
             self._update_target_policy()
 
-    def get_batch_loss(self, batch: MultiTransitionBatch, scope="all") -> Dict[str, torch.Tensor]:
+    def get_batch_loss(self, batch: MultiTransitionBatch, scope="all") -> Dict[str, List[torch.Tensor]]:
         """Get loss with a batch of data. If scope is specified, return the expected loss of scope.
 
         Args:
@@ -119,7 +119,7 @@ class MADDPG(MultiTrainer):
             scope (str): The expected scope to compute loss. Should be in ['all', 'critic', 'actor'].
 
         Returns:
-            loss_info (Dict[str, torch.Tensor]): Loss of each scope.
+            loss_info (Dict[str, List[torch.Tensor]]): Loss of each scope.
         """
         assert scope in ["all", "critic", "actor"], f'scope should in ["all", "critic", "actor"] but get {scope}.'
         loss_info = dict()

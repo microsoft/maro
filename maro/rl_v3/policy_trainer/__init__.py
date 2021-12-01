@@ -1,9 +1,9 @@
 from .abs_trainer import AbsTrainer, MultiTrainer, SingleTrainer
 from .ac import DiscreteActorCritic
 from .ddpg import DDPG
+from .discrete_maddpg import DiscreteMADDPG
 from .dqn import DQN
 from .maac import DiscreteMultiActorCritic
-from .maddpg import MADDPG
 
 
 __all__ = [
@@ -12,5 +12,5 @@ __all__ = [
     "DDPG",
     "DQN",
     "DiscreteMultiActorCritic",
-    "MADDPG"
+    "DiscreteMADDPG"
 ]
