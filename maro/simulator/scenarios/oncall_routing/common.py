@@ -3,12 +3,9 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, NamedTuple, Union
+from typing import List
 
 from .order import Order
-
-RouteNumber = Union[str, int]
-OrderId = Union[str, int]
 
 
 class Events(Enum):
@@ -16,15 +13,10 @@ class Events(Enum):
     ONCALL_RECEIVE = "oncall_receive"
 
 
-class Coordinate(NamedTuple):
-    lat: float
-    lng: float
-
-
 @dataclass
 class Action:
-    order_id: OrderId
-    route_number: RouteNumber
+    order_id: str
+    route_name: str
     insert_index: int
     in_segment_order: int = 0
 
@@ -36,7 +28,7 @@ class OncallReceivePayload:
 
 @dataclass
 class CarrierArrivalPayload:
-    route_number: RouteNumber
+    route_name: str
 
 
 @dataclass
