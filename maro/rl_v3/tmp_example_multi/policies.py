@@ -20,7 +20,7 @@ if algorithm == "maac":
             name=name, get_v_critic_net_func=lambda: MyMultiCriticNet(), device="cpu", **ac_conf
         ) for i in range(4)
     }
-elif algorithm == "maddpg":
+elif algorithm == "discrete_maddpg":
     get_policy_func_dict = {
         f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
             name=name, policy_net=MyActorNet()) for i in range(4)
