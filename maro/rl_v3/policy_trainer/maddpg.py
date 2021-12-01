@@ -1,5 +1,6 @@
 from typing import Callable, Dict, List, Optional
 
+import numpy as np
 import torch
 
 from maro.rl_v3.model import MultiQNet
@@ -135,7 +136,7 @@ class MADDPG(MultiTrainer):
         next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
         agent_states = [ndarray_to_tensor(agent_state, self._device) for agent_state in batch.agent_states]  # o
         actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
-        rewards = [ndarray_to_tensor(reward, self._device) for reward in batch.rewards]  # r
+        rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), self._device)  # r
         terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
 
         with torch.no_grad():
@@ -152,12 +153,12 @@ class MADDPG(MultiTrainer):
                     actions=next_actions  # a'
                 )  # Q'(x', a')
             # sum(rewards) for shard critic
-            target_q_values = (sum(rewards) + self._reward_discount * (1 - terminals.float()) * next_q_values).detach()
+            target_q_values = (rewards.sum(0) + self._reward_discount * (1 - terminals.float()) * next_q_values)
             q_values = self._q_critic_nets[0].q_values(
                 states=states,  # x
                 actions=actions  # a
             )  # Q(x, a)
-            critic_loss = self._q_value_loss_func(q_values, target_q_values) * self._critic_loss_coef
+            critic_loss = self._q_value_loss_func(q_values, target_q_values.detach()) * self._critic_loss_coef
             critic_losses.append(critic_loss)
         else:
             for i in range(self.num_policies):
@@ -166,12 +167,12 @@ class MADDPG(MultiTrainer):
                         states=next_states,  # x'
                         actions=next_actions)  # a'
                 target_q_values = (
-                    rewards[i] + self._reward_discount * (1 - terminals.float()) * next_q_values).detach()
+                    rewards[i] + self._reward_discount * (1 - terminals.float()) * next_q_values)
                 q_values = self._q_critic_nets[i].q_values(
                     states=states,  # x
                     actions=actions  # a
                 )  # Q(x, a)
-                critic_loss = self._q_value_loss_func(q_values, target_q_values) * self._critic_loss_coef
+                critic_loss = self._q_value_loss_func(q_values, target_q_values.detach()) * self._critic_loss_coef
                 critic_losses.append(critic_loss)
 
         return critic_losses
