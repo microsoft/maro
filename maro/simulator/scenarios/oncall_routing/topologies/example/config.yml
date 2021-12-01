@@ -1,0 +1,6 @@
+station:
+  latitude: 32.72329226
+  longitude: -117.0718922
+  close_rtb: 1600
+
+interrupt_cycle: 10

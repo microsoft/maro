@@ -7,31 +7,29 @@ from typing import Dict, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import (
-    GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement, RouteNumber
-)
+from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement
 from maro.simulator.utils import random
 
 rtb_fake_order = Order()
-rtb_fake_order.id = next(GLOBAL_ORDER_COUNTER)
-rtb_fake_order.coord = (32.72329226, -117.0718922)
+rtb_fake_order.id = str(next(GLOBAL_ORDER_COUNTER))
+rtb_fake_order.coord = Coordinate(lat=32.72329226, lng=-117.0718922)
 
 
-def _load_plan_simple(csv_path: str) -> Dict[RouteNumber, List[PlanElement]]:
+def _load_plan_simple(csv_path: str) -> Dict[str, List[PlanElement]]:
     print(f"Loading routes data from {csv_path}.")
     df = pd.read_csv(csv_path, sep=',')
 
-    route_numbers = sorted(list(set(df["ROUTENBR"])))
+    route_names = sorted(list(set(df["ROUTENBR"])))
     plan_by_route = {}
-    for route_number in route_numbers:
-        data = df[df["ROUTENBR"] == route_number]
+    for route_name in route_names:
+        data = df[df["ROUTENBR"] == route_name]
         data.sort_values(by=['STOPTIME'])
 
         plan = []
         for e in data.to_dict(orient='records'):
             # TODO
             order = Order()
-            order.id = next(GLOBAL_ORDER_COUNTER)
+            order.id = str(next(GLOBAL_ORDER_COUNTER))
             order.coord = Coordinate(e["LAT"], e["LNG"])
             order.open_time = e["READYTIME"]
             order.close_time = e["CLOSETIME"]
@@ -39,7 +37,7 @@ def _load_plan_simple(csv_path: str) -> Dict[RouteNumber, List[PlanElement]]:
 
             plan.append(PlanElement(order=order, est_arr_time=-1, act_arr_time=-1))
         plan.append(PlanElement(rtb_fake_order, est_arr_time=-1, act_arr_time=-1))
-        plan_by_route[route_number] = plan
+        plan_by_route[route_name] = plan
 
     print(f"Loading finished. Loaded data of {len(plan_by_route)} routes.")
     return plan_by_route
@@ -49,11 +47,11 @@ class PlanLoader(object):
     def __init__(self) -> None:
         super(PlanLoader, self).__init__()
 
-    def generate_plan(self) -> Dict[RouteNumber, List[PlanElement]]:
+    def generate_plan(self) -> Dict[str, List[PlanElement]]:
         return self._generate_plan_impl()
 
     @abstractmethod
-    def _generate_plan_impl(self) -> Dict[RouteNumber, List[PlanElement]]:
+    def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         raise NotImplementedError
 
 
@@ -62,22 +60,21 @@ class FromHistoryPlanLoader(PlanLoader):
         super(FromHistoryPlanLoader, self).__init__()
         self._plan = _load_plan_simple(csv_path)
 
-    def _generate_plan_impl(self) -> Dict[RouteNumber, List[PlanElement]]:
+    def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         return self._plan
 
 
-def _load_sample_length(path: str) -> Dict[int, List[int]]:
+def _load_sample_length(path: str) -> Dict[str, List[int]]:
     with open(path) as fp:
         ret = safe_load(fp)
     return ret
 
 
-def _load_sample_coords(path: str) -> Dict[int, Tuple[List[Coordinate], List[float]]]:
+def _load_sample_coords(path: str) -> Dict[str, Tuple[List[Coordinate], List[float]]]:
     ret = {}
     with open(path) as fin:
         for line in fin:
-            route_number, coords, probs = line.strip().split("\t")
-            route_number = int(route_number)
+            route_name, coords, probs = line.strip().split("\t")
 
             new_coords = []
             for elem in coords.split("/"):
@@ -85,7 +82,7 @@ def _load_sample_coords(path: str) -> Dict[int, Tuple[List[Coordinate], List[flo
                 new_coords.append(Coordinate(float(lat), float(lng)))
             probs = [float(elem) for elem in probs.split("/")]
 
-            ret[route_number] = (new_coords, probs)
+            ret[route_name] = (new_coords, probs)
     return ret
 
 
@@ -97,21 +94,21 @@ class SamplePlanLoader(PlanLoader):
 
         self._sample_length = _load_sample_length(os.path.join(sample_config_path, "route_length.yml"))
         self._sample_coords = _load_sample_coords(os.path.join(sample_config_path, "route_coord.txt"))
-        self._route_numbers = sorted(list(self._sample_coords.keys()))
+        self._route_names = sorted(list(self._sample_coords.keys()))
         self._pickup_ratio = pickup_ratio
 
-    def _generate_plan_impl(self) -> Dict[RouteNumber, List[PlanElement]]:
+    def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         ret = {}
-        for route_number in self._route_numbers:
+        for route_name in self._route_names:
             # Sample route length. Skip empty routes.
-            length = random[PLAN_RAND_KEY].choice(self._sample_length[route_number])
+            length = random[PLAN_RAND_KEY].choice(self._sample_length[route_name])
             if length == 0:
                 continue
 
             # Sample coordinates, with weights, with replacement.
             coords = random[PLAN_RAND_KEY].choices(
-                population=self._sample_coords[route_number][0],
-                weights=self._sample_coords[route_number][1],
+                population=self._sample_coords[route_name][0],
+                weights=self._sample_coords[route_name][1],
                 k=length
             )
 
@@ -119,7 +116,7 @@ class SamplePlanLoader(PlanLoader):
             plan = []
             for coord in coords:
                 order = Order()
-                order.id = next(GLOBAL_ORDER_COUNTER)
+                order.id = str(next(GLOBAL_ORDER_COUNTER))
                 order.coord = coord
                 if random[PLAN_RAND_KEY].uniform(0.0, 1.0) < self._pickup_ratio:  # Pickup order
                     # TODO: sample open_time and close_time
@@ -130,7 +127,7 @@ class SamplePlanLoader(PlanLoader):
                 plan.append(PlanElement(order=order, est_arr_time=-1, act_arr_time=-1))
             plan.append(PlanElement(rtb_fake_order, est_arr_time=-1, act_arr_time=-1))
 
-            ret[route_number] = plan
+            ret[route_name] = plan
 
         return ret
 

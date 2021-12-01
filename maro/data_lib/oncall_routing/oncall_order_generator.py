@@ -38,7 +38,7 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
         buff = []
         for e in df.to_dict(orient='records'):
             order = Order()
-            order.id = next(GLOBAL_ORDER_COUNTER)
+            order.id = str(next(GLOBAL_ORDER_COUNTER))
             order.coord = (e["LAT"], e["LNG"])
             order.open_time = e["READYTIME"]
             order.close_time = e["CLOSETIME"]
@@ -82,7 +82,7 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         self._queue = deque()
         for i in range(n):
             order = Order()
-            order.id = next(GLOBAL_ORDER_COUNTER)
+            order.id = str(next(GLOBAL_ORDER_COUNTER))
             order.coord = coords[i]
             order.open_time = open_times[i]
             order.close_time = close_times[i]

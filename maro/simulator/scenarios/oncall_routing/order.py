@@ -3,14 +3,15 @@
 
 from itertools import count
 
+from .coordinate import Coordinate
+
 GLOBAL_ORDER_COUNTER = count()
 
 
-# TODO: Rewrite this part in the frame fashion
 class Order:
     def __init__(self) -> None:
-        self.id = None
-        self.coord = None
+        self.id: str = None
+        self.coord: Coordinate = None
         self.privilege = None
         self.open_time = None
         self.close_time = None
