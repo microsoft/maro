@@ -17,6 +17,11 @@ class Carrier(NodeBase):
     payload_volume = NodeAttribute("f")
     payload_quantity = NodeAttribute("i")
 
+    delayed_order_num = NodeAttribute("i")
+    total_delayed_time = NodeAttribute("i")
+
+    # TODO: anyway to access the route info through the carrier directly?
+
     def __init__(self) -> None:
         self._name = None
         self._route_idx = None

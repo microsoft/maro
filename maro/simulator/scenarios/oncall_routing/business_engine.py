@@ -13,17 +13,25 @@ from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, Plan
 from maro.data_lib.oncall_routing.oncall_order_generator import OncallOrderGenerator, SampleOncallOrderGenerator
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
+from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
 from maro.utils import convert_dottable
 from . import Coordinate
-from .arrival_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
+from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .carrier import Carrier
 from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
 from .frame_builder import gen_oncall_routing_frame
-from .order import GLOBAL_ORDER_COUNTER, Order
+from .order import GLOBAL_ORDER_COUNTER, Order, OrderStatus
 from .route import Route
 from .utils import GLOBAL_RAND_KEY
 
+metrics_desc = """
+Oncall routing metrics used provide statistics information until now.
+It contains following keys:
+
+total_order_delayed(int): The total delayed order quantity of all carriers.
+total_order_delay_time(int): The total order delay time of all carriers.
+"""
 
 class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def __init__(
@@ -56,21 +64,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = convert_dottable(safe_load(fp))
 
-        # TODO: fake head quarter order
-        self._rtb_order = Order()
-        self._rtb_order.id = str(next(GLOBAL_ORDER_COUNTER))
-        self._rtb_order.coord = Coordinate(
-            lat=self._config.station.latitude,
-            lng=self._config.station.longitude
-        )
-
         # Init random seed
-        self._default_random_seed = 1024
-        random.seed(self._default_random_seed)
+        random.seed(self._config.seed)
+
+        self._init_metrics()
 
         # Init oncall order generator
         print("Loading oncall orders.")
-        self._oncall_order_generator = self._get_oncall_generator()
+        self._oncall_order_generator = self._get_oncall_generator() # TODO: move this logic to data lib?
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         print("Oncall orders loaded.")
@@ -82,13 +83,21 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # ##### Load plan #####
         print("Loading plans.")
-        data_loader = self._get_data_loader()
-        self._remain_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
-        for plan in self._remain_plan.values():  # TODO
-            plan.append(PlanElement(order=self._rtb_order))
+        data_loader = self._get_data_loader() # TODO: move this logic to data lib?
+        remaining_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
+
+        # TODO: fake head quarter order
+        rtb_order = Order()
+        rtb_order.id = str(next(GLOBAL_ORDER_COUNTER))
+        rtb_order.coord = Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude)
+
+        for plan in remaining_plan.values():
+            plan.append(PlanElement(order=rtb_order))
+        route_name_list = sorted(list(remaining_plan.keys()))
+        print("Plans loaded.")
 
         # Initialize Frames.
-        route_num = len(self._remain_plan.keys())
+        route_num = len(route_name_list)
         self._frame = gen_oncall_routing_frame(
             route_num=route_num,
             snapshots_num=self.calc_max_snapshots()
@@ -99,14 +108,15 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._carriers: List[Carrier] = self._frame.carriers
         self._routes: List[Route] = self._frame.routes
         self._route_name2idx = {}
+        self._carrier_name2idx = {}
 
-        for idx, route_name in enumerate(sorted(list(self._remain_plan.keys()))):
+        for idx, route_name in enumerate(route_name_list):
             self._route_name2idx[route_name] = idx
-            carrier = self._carriers[idx]
-            route = self._routes[idx]
 
             carrier_name = f"C_{route_name}"
+            self._carrier_name2idx[carrier_name] = idx
 
+            carrier = self._carriers[idx]
             carrier.set_init_state(
                 name=carrier_name,
                 route_idx=idx,
@@ -116,24 +126,50 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 close_rtb=self._config.station.close_rtb,
             )
 
+            route = self._routes[idx]
             route.set_init_state(
                 name=route_name,
                 carrier_idx=idx,
                 carrier_name=carrier_name,
             )
-            route.remaining_plan = self._remain_plan[route_name]
+            route.remaining_plan = remaining_plan[route_name]
+            self._total_order_num += len(remaining_plan[route_name]) - 1
 
-        # Initialize Arrival Time.
+        # Initialize duration between stops and create the carrier arrival events.
         for route in self._routes:
             for i in range(len(route.remaining_plan)):
-                self._refresh_arr_time(tick=-1, route_idx=route.idx, index=i)
+                self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
 
-        self._upcoming_arr_time: Dict[str, Optional[int]] = {
-            route_name: plan[0].actual_duration_from_last for route_name, plan in self._remain_plan.items()
-        }
-        print("Plans loaded.")
+            if len(route.remaining_plan) > 0:
+                carrier_arrival_payload = CarrierArrivalPayload(route.carrier_idx)
+                carrier_arrival_event = self._event_buffer.gen_atom_event(
+                    tick=route.remaining_plan[0].actual_duration_from_last,
+                    event_type=Events.CARRIER_ARRIVAL,
+                    payload=carrier_arrival_payload
+                )
+                self._event_buffer.insert_event(carrier_arrival_event)
 
         self._register_events()
+
+    def _init_metrics(self):
+        self._total_order_num: int = 0
+        self._total_order_delayed: int = 0
+        self._total_order_delay_time: int = 0
+
+    def _get_metrics(self) -> DocableDict:
+        """Get current environment metrics information.
+
+        Returns:
+            DocableDict: Metrics information.
+        """
+
+        return DocableDict(
+            metrics_desc,
+            {
+                'total_order_delayed': self._total_order_delayed,
+                'total_order_delay_time': self._total_order_delay_time,
+            }
+        )
 
     def _get_oncall_generator(self) -> OncallOrderGenerator:
         if os.path.exists(os.path.join(self._config_path, "oncall_orders.csv")):
@@ -161,15 +197,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return list(range(len(self._routes)))
 
     def step(self, tick: int) -> None:
-        # Carrier arrive its next destination
-        for route_name in self._route_name2idx.keys():
-            if self._upcoming_arr_time[route_name] is not None and self._upcoming_arr_time[route_name] == tick:
-                carrier_arrival_payload = CarrierArrivalPayload(route_name)
-                carrier_arrival_event = self._event_buffer.gen_atom_event(
-                    tick=tick, event_type=Events.CARRIER_ARRIVAL, payload=carrier_arrival_payload
-                )
-                self._event_buffer.insert_event(carrier_arrival_event)
-
         # Update oncall orders
         oncall_orders = self._oncall_order_generator.get_oncall_orders(tick)
         if len(oncall_orders) > 0:
@@ -197,10 +224,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return self._config
 
     def reset(self, keep_seed: bool = False) -> None:
-        new_seed = self._default_random_seed if keep_seed else random[GLOBAL_RAND_KEY].randint(0, 4095)
+        new_seed = self._config.seed if keep_seed else random[GLOBAL_RAND_KEY].randint(0, 4095)
         random.seed(new_seed)
+        self._init_metrics()
 
-    def _refresh_arr_time(self, tick: int, route_idx: int, index: int = 0) -> None:
+    def _refresh_plan_duration(self, tick: int, route_idx: int, index: int = 0) -> None:
         carrier_idx = self._routes[route_idx].carrier_idx
         plan = self._routes[route_idx].remaining_plan
         source_coord = self._carriers[carrier_idx].coordinate if index == 0 else plan[index - 1].order.coord
@@ -222,22 +250,52 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         payload = event.payload
         assert isinstance(payload, OncallReceivePayload)
         self._oncall_order_buffer.extend(payload.orders)
+        self._total_order_num += len(payload.orders)
 
     def _on_carrier_arrival(self, event: AtomEvent) -> None:
         payload = event.payload
         assert isinstance(payload, CarrierArrivalPayload)
 
-        route_name = payload.route_name
-        route_idx = self._route_name2idx[route_name]
-        carrier_idx = self._routes[route_idx].carrier_idx
+        carrier_idx = payload.carrier_idx
+        route_idx = self._carriers[carrier_idx].route_idx
 
-        # TODO: deliver / pickup packages
-
+        # Handle the orders can be finished.
         plan = self._routes[route_idx].remaining_plan
-        cur_arrival = plan.pop(0)  # Finish the current plan
+        cur_arrival: PlanElement = plan.pop(0)
+        self._on_order_finished(self._carriers[carrier_idx], cur_arrival.order, event.tick)
+        while len(plan) > 0 and plan[0].actual_duration_from_last == 0: # TODO: or compare the coordinate?
+            cur_arrival = plan.pop(0)
+            self._on_order_finished(self._carriers[carrier_idx], cur_arrival.order, event.tick)
 
         self._carriers[carrier_idx].update_coordinate(cur_arrival.order.coord)
-        self._upcoming_arr_time[route_name] = None if len(plan) == 0 else event.tick + plan[0].actual_duration_from_last
+
+        # Add next arrival event.
+        if len(plan) > 0:
+            carrier_arrival_payload = CarrierArrivalPayload(carrier_idx)
+            carrier_arrival_event = self._event_buffer.gen_atom_event(
+                tick=event.tick + plan[0].actual_duration_from_last,
+                event_type=Events.CARRIER_ARRIVAL,
+                payload=carrier_arrival_payload
+            )
+            self._event_buffer.insert_event(carrier_arrival_event)
+
+    def _on_order_finished(self, carrier: Carrier, order: Order, tick: int):
+        # Update carrier payload information.
+        payload_factor = -1 if order.is_delivery else 1
+        carrier.payload_quantity += payload_factor * order.package_num
+        carrier.payload_volume += payload_factor * order.volume
+        carrier.payload_weight += payload_factor * order.weight
+
+        # Update performance statistics.
+        if order.status == OrderStatus.IN_PROCESS_BUT_DELAYED:
+            carrier.delayed_order_num += 1
+            carrier.total_delayed_time += tick - order.close_time
+            self._total_order_delayed += 1
+            self._total_order_delay_time += tick - order.close_time
+
+        order.status = OrderStatus.FINISHED
+
+        # TODO: to save finished order or not?
 
     def _on_action_received(self, event: CascadeEvent) -> None:
         actions = event.payload
@@ -279,11 +337,12 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
             self._routes[route_idx].remaining_plan = new_plan
             for index in refresh_indexes:
-                self._refresh_arr_time(tick=event.tick, route_idx=route_idx, index=index)
+                self._refresh_plan_duration(tick=event.tick, route_idx=route_idx, index=index)
 
         # Put back suspended oncall orders
         self._oncall_order_buffer = deque([order for order in self._waiting_order_dict.values()])
         self._waiting_order_dict.clear()
 
     def post_step(self, tick: int) -> bool:
-        return all(len(plan) == 0 for plan in self._remain_plan.values())
+        # return all(len(route.remaining_plan) == 0 for route in self._routes)
+        return tick + 1 == self._max_tick
