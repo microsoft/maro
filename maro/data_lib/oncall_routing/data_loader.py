@@ -10,10 +10,6 @@ from yaml import safe_load
 from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement
 from maro.simulator.utils import random
 
-rtb_fake_order = Order()
-rtb_fake_order.id = str(next(GLOBAL_ORDER_COUNTER))
-rtb_fake_order.coord = Coordinate(lat=32.72329226, lng=-117.0718922)
-
 
 def _load_plan_simple(csv_path: str) -> Dict[str, List[PlanElement]]:
     print(f"Loading routes data from {csv_path}.")
@@ -36,7 +32,6 @@ def _load_plan_simple(csv_path: str) -> Dict[str, List[PlanElement]]:
             order.is_delivery = e["IS_DELIVERY"]
 
             plan.append(PlanElement(order=order, est_arr_time=-1, act_arr_time=-1))
-        plan.append(PlanElement(rtb_fake_order, est_arr_time=-1, act_arr_time=-1))
         plan_by_route[route_name] = plan
 
     print(f"Loading finished. Loaded data of {len(plan_by_route)} routes.")
@@ -125,7 +120,6 @@ class SamplePlanLoader(PlanLoader):
                     # TODO: sample open_time and close_time
                     order.is_delivery = True
                 plan.append(PlanElement(order=order, est_arr_time=-1, act_arr_time=-1))
-            plan.append(PlanElement(rtb_fake_order, est_arr_time=-1, act_arr_time=-1))
 
             ret[route_name] = plan
 

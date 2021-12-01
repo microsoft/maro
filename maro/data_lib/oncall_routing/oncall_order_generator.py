@@ -70,6 +70,7 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
             self._coords = oncall_info["coordinates"]
             self._ready_times = oncall_info["ready_times"]
             self._time_windows = oncall_info["time_windows"]
+            self._additional_info = oncall_info["additional_info"]
 
     def reset(self) -> None:
         n = random[ONCALL_RAND_KEY].choice(self._oncall_numbers)
