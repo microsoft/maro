@@ -29,8 +29,12 @@ metrics_desc = """
 Oncall routing metrics used provide statistics information until now.
 It contains following keys:
 
+total_order_num(int): The total number of orders.
+total_failures_due_to_early_arrival(int):
+total_order_in_advance(int):
 total_order_delayed(int): The total delayed order quantity of all carriers.
 total_order_delay_time(int): The total order delay time of all carriers.
+total_order_completed(int):
 """
 
 class OncallRoutingBusinessEngine(AbsBusinessEngine):
@@ -153,8 +157,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def _init_metrics(self):
         self._total_order_num: int = 0
+        self._failed_due_to_early_arrival: int = 0
+        self._total_order_in_advance: int = 0
         self._total_order_delayed: int = 0
         self._total_order_delay_time: int = 0
+        self._total_order_completed: int = 0
 
     def _get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
@@ -166,8 +173,12 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return DocableDict(
             metrics_desc,
             {
-                'total_order_delayed': self._total_order_delayed,
-                'total_order_delay_time': self._total_order_delay_time,
+                "total_order_num": self._total_order_num,
+                "total_failures_due_to_early_arrival": self._failed_due_to_early_arrival,
+                "total_order_in_advance": self._total_order_in_advance,
+                "total_order_delayed": self._total_order_delayed,
+                "total_order_delay_time": self._total_order_delay_time,
+                "total_order_completed": self._total_order_completed,
             }
         )
 
@@ -262,10 +273,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Handle the orders can be finished.
         plan = self._routes[route_idx].remaining_plan
         cur_arrival: PlanElement = plan.pop(0)
-        self._on_order_finished(self._carriers[carrier_idx], cur_arrival.order, event.tick)
+        self._order_processing(self._carriers[carrier_idx], cur_arrival.order, event.tick)
         while len(plan) > 0 and plan[0].actual_duration_from_last == 0: # TODO: or compare the coordinate?
             cur_arrival = plan.pop(0)
-            self._on_order_finished(self._carriers[carrier_idx], cur_arrival.order, event.tick)
+            self._order_processing(self._carriers[carrier_idx], cur_arrival.order, event.tick)
 
         self._carriers[carrier_idx].update_coordinate(cur_arrival.order.coord)
 
@@ -279,23 +290,37 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             )
             self._event_buffer.insert_event(carrier_arrival_event)
 
-    def _on_order_finished(self, carrier: Carrier, order: Order, tick: int):
+    def _order_processing(self, carrier: Carrier, order: Order, tick: int):
+        order_status = order.get_status(tick, self._config.order_transition.buffer_before_open_time)
+
+        # Update performance statistics.
+        if order_status == OrderStatus.NOT_READY:
+            self._failed_due_to_early_arrival += 1
+            order.set_status(OrderStatus.TERMINATED)
+            return
+        elif order_status == OrderStatus.FINISHED or order_status == OrderStatus.TERMINATED:
+            print(f"Order with wrong status in order processing: {order}, skip")
+            return
+        elif order_status == OrderStatus.READY_IN_ADVANCE:
+            self._total_order_in_advance += 1
+            carrier.in_advance_order_num += 1
+        elif order_status == OrderStatus.IN_PROCESS_BUT_DELAYED:
+            carrier.delayed_order_num += 1
+            carrier.total_delayed_time += tick - order.close_time
+            self._total_order_delayed += 1
+            self._total_order_delay_time += tick - order.close_time
+
+        order.set_status(OrderStatus.FINISHED)
+        self._total_order_completed += 1
+
         # Update carrier payload information.
         payload_factor = -1 if order.is_delivery else 1
         carrier.payload_quantity += payload_factor * order.package_num
         carrier.payload_volume += payload_factor * order.volume
         carrier.payload_weight += payload_factor * order.weight
 
-        # Update performance statistics.
-        if order.status == OrderStatus.IN_PROCESS_BUT_DELAYED:
-            carrier.delayed_order_num += 1
-            carrier.total_delayed_time += tick - order.close_time
-            self._total_order_delayed += 1
-            self._total_order_delay_time += tick - order.close_time
-
-        order.status = OrderStatus.FINISHED
-
         # TODO: to save finished order or not?
+        # TODO: add order processing time
 
     def _on_action_received(self, event: CascadeEvent) -> None:
         actions = event.payload

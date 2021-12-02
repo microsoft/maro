@@ -3,6 +3,11 @@ seed: 1024
 station:
   latitude: 32.72329226
   longitude: -117.0718922
-  close_rtb: 1600
+  close_rtb: 1600 # change to tick-based
 
 interrupt_cycle: 10
+
+order_transition:
+  buffer_before_open_time: 30 # how long it could be ready in advance
+  # buffer_after_close_time: 30 # how long it can be delayed before termination
+  final_deadline: 1440  # the final ddl for all the orders to be completed

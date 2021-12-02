@@ -17,6 +17,7 @@ class Carrier(NodeBase):
     payload_volume = NodeAttribute("f")
     payload_quantity = NodeAttribute("i")
 
+    in_advance_order_num = NodeAttribute("i")
     delayed_order_num = NodeAttribute("i")
     total_delayed_time = NodeAttribute("i")
 

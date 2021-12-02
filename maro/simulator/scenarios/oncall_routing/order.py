@@ -8,9 +8,11 @@ from .coordinate import Coordinate
 
 GLOBAL_ORDER_COUNTER = count()
 
+
 class OrderStatus(Enum):
     # TODO: confirm the order status
     NOT_READY = "order not ready yet"
+    READY_IN_ADVANCE = "order not reach the open time but ready for service"
     IN_PROCESS = "order in process"
     IN_PROCESS_BUT_DELAYED = "order in process but delayed"
     FINISHED = "order finished"
@@ -34,16 +36,19 @@ class Order:
         self.delay_buffer = None
         self._status = OrderStatus.NOT_READY
 
-    @property
-    def status(self, tick: int):
+    def get_status(self, tick: int, advance_buffer: int=0):
         # TODO: update here or in BE?
-        if self._status == OrderStatus.NOT_READY and tick >= self.open_time:
+        if self._status == OrderStatus.NOT_READY and tick + advance_buffer >= self.open_time:
+            self._status = OrderStatus.READY_IN_ADVANCE
+        if self._status == OrderStatus.READY_IN_ADVANCE and tick >= self.open_time:
             self._status = OrderStatus.IN_PROCESS
         if self._status == OrderStatus.IN_PROCESS and tick > self.close_time:
             self._status = OrderStatus.IN_PROCESS_BUT_DELAYED
         # TODO: logic for terminated?
         return self._status
 
-    @status.setter
-    def status(self, var: OrderStatus):
+    def set_status(self, var: OrderStatus):
         self._status = var
+
+    def __repr__(self) -> str:
+        return f"[Order]: id: {self.id}, coord: {self.coord}"
