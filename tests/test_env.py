@@ -305,33 +305,32 @@ class TestEnv(unittest.TestCase):
 
             run_to_end(env)
 
-            f2t_mapping = env.get_ticks_frame_index_mapping()
+            t2f_mapping = env.get_ticks_frame_index_mapping()
 
             # tick == frame index
-            self.assertListEqual([f for f in f2t_mapping.keys()], [f for f in range(max_tick)])
-            self.assertListEqual([f for f in f2t_mapping.values()], [f for f in range(max_tick)])
+            self.assertListEqual([t for t in t2f_mapping.keys()], [t for t in range(max_tick)])
+            self.assertListEqual([f for f in t2f_mapping.values()], [f for f in range(max_tick)])
 
     def test_get_avalible_frame_index_to_ticks_with_resolution2(self):
-        # for backend_name in backends_to_test:
-        #     os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+        for backend_name in backends_to_test:
+            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
 
-        max_tick = 10
-        start_tick = 0
-        resolution = 2
+            max_tick = 10
+            start_tick = 0
+            resolution = 2
 
-        env = Env(scenario="cim", topology="tests/data/cim/customized_config",
+            env = Env(scenario="cim", topology="tests/data/cim/customized_config",
                     start_tick=start_tick, durations=max_tick, snapshot_resolution=resolution)
 
-        run_to_end(env)
+            run_to_end(env)
 
-        f2t_mapping = env.get_ticks_frame_index_mapping()
+            t2f_mapping = env.get_ticks_frame_index_mapping()
 
-        self.assertListEqual([f for f in f2t_mapping.keys()], [f for f in range(max_tick)])
+            self.assertListEqual([t for t in t2f_mapping.keys()], [t for t in range(max_tick)])
 
-        for t, v in f2t_mapping.items():
-            v2 = tick_to_frame_index(start_tick, t, resolution)
-
-            self.assertEqual(v, v2)
+            for t, v in t2f_mapping.items():
+                v2 = tick_to_frame_index(start_tick, t, resolution)
+                self.assertEqual(v, v2)
 
 
 if __name__ == "__main__":
