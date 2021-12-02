@@ -50,15 +50,15 @@ class MyQNet(DiscreteQNet):
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
         return self._fc(states)
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._optim.zero_grad()
-        loss.backward()
-        self._optim.step()
-
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         self._optim.zero_grad()
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad: dict) -> None:
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+        self._optim.step()
 
     def get_net_state(self) -> object:
         return {"network": self.state_dict(), "optim": self._optim.state_dict()}
@@ -90,15 +90,15 @@ class MyActorNet(DiscretePolicyNet):
     def unfreeze(self) -> None:
         self.unfreeze_all_parameters()
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._actor_optim.zero_grad()
-        loss.backward()
-        self._actor_optim.step()
-
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         self._actor_optim.zero_grad()
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad: dict) -> None:
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+        self._actor_optim.step()
 
     def get_net_state(self) -> dict:
         return {
@@ -120,15 +120,15 @@ class MyCriticNet(VNet):
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
         return self._critic(states).squeeze(-1)
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._critic_optim.zero_grad()
-        loss.backward()
-        self._critic_optim.step()
-
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         self._critic_optim.zero_grad()
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad: dict) -> None:
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+        self._critic_optim.step()
 
     def get_net_state(self) -> dict:
         return {

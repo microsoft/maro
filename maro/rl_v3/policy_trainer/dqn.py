@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 
 import torch
 
@@ -53,15 +53,16 @@ class DQN(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def train_step(self) -> None:
+    def _train_step_impl(self, data_parallel: bool = False) -> None:
         for _ in range(self._num_epochs):
-            self._improve(self._get_batch())
+            self._improve(self._get_batch(), data_parallel)
+
         self._policy_ver += 1
         if self._policy_ver - self._target_policy_ver == self._update_target_every:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
             self._target_policy_ver = self._policy_ver
 
-    def _improve(self, batch: TransitionBatch) -> None:
+    def _get_loss(self, batch: TransitionBatch) -> torch.Tensor:
         self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)
         next_states = ndarray_to_tensor(batch.next_states, self._device)
@@ -81,9 +82,39 @@ class DQN(SingleTrainer):
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
 
         q_values = self._policy.q_values_tensor(states, actions)
-        loss = self._loss_func(q_values, target_q_values)
+        return self._loss_func(q_values, target_q_values)
 
-        self._policy.step(loss)
+    def _batch_grad_worker(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+        assert scope == "all", f"Unrecognized scope {scope}. Excepting 'all'."
+
+        self._policy.train()
+        states = ndarray_to_tensor(batch.states, self._device)
+        next_states = ndarray_to_tensor(batch.next_states, self._device)
+        actions = ndarray_to_tensor(batch.actions, self._device)
+        rewards = ndarray_to_tensor(batch.rewards, self._device)
+        terminals = ndarray_to_tensor(batch.terminals, self._device).float()
+
+        with torch.no_grad():
+            if self._double:
+                self._policy.exploit()
+                actions_by_eval_policy = self._policy.get_actions_tensor(next_states)
+                next_q_values = self._target_policy.q_values_tensor(next_states, actions_by_eval_policy)
+            else:
+                self._target_policy.exploit()
+                actions = self._target_policy.get_actions_tensor(next_states)
+                next_q_values = self._target_policy.q_values_tensor(next_states, actions)
+        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
+
+        q_values = self._policy.q_values_tensor(states, actions)
+        loss: torch.Tensor = self._loss_func(q_values, target_q_values)
+
+        return {"grad": self._policy.get_gradients(loss)}
+
+    def _improve(self, batch: TransitionBatch, data_parallel: bool) -> None:
+        grad_dict = self._get_batch_grad(batch, data_parallel=data_parallel)
+
+        self._policy.train()
+        self._policy.apply_gradients(grad_dict["grad"])
 
     def _register_policy_impl(self, policy: ValueBasedPolicy) -> None:
         assert isinstance(policy, ValueBasedPolicy)
@@ -98,3 +129,13 @@ class DQN(SingleTrainer):
             capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
             action_dim=policy.action_dim, random_overwrite=self._random_overwrite
         )
+
+    def get_trainer_state_dict(self) -> dict:
+        return {
+            "policy_state": self.get_policy_state_dict(),
+            "target_policy_state": self._target_policy.get_policy_state()
+        }
+
+    def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
+        self.set_policy_state_dict(trainer_state_dict["policy_state"])
+        self._target_policy.set_policy_state(trainer_state_dict["target_policy_state"])

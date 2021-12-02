@@ -1,8 +1,10 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import torch
 
+from maro.communication import Proxy
+from maro.rl.data_parallelism import TaskQueueClient
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
@@ -19,12 +21,19 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
         print(f"Creating trainer {self.__class__.__name__} {name} on device {self._device}")
 
+        self._task_queue_client = Optional[TaskQueueClient]
+
     @property
     def name(self) -> str:
         return self._name
 
+    def train_step(self, data_parallel: bool = False) -> None:
+        if data_parallel:
+            assert self._task_queue_client is not None
+        self._train_step_impl(data_parallel)
+
     @abstractmethod
-    def train_step(self) -> None:
+    def _train_step_impl(self, data_parallel: bool = False) -> None:
         """
         Run a training step to update all the policies that this trainer is responsible for.
         """
@@ -49,6 +58,34 @@ class AbsTrainer(object, metaclass=ABCMeta):
             policy_state_dict (Dict[str, object]): A double-deck dict with format: {policy_name: policy_state}.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def get_trainer_state_dict(self) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
+        raise NotImplementedError
+
+    def data_parallel(self, *args, **kwargs) -> None:
+        """
+        Initialize a proxy in the policy, for data-parallel training.
+        Using the same arguments as `Proxy`.
+        """
+        self._task_queue_client = TaskQueueClient()
+        self._task_queue_client.create_proxy(*args, **kwargs)
+
+    def data_parallel_with_existing_proxy(self, proxy: Proxy) -> None:
+        """
+        Initialize a proxy in the policy with an existing one, for data-parallel training.
+        """
+        self._task_queue_client = TaskQueueClient()
+        self._task_queue_client.set_proxy(proxy)
+
+    def exit_data_parallel(self) -> None:
+        if self._task_queue_client is not None:
+            self._task_queue_client.exit()
+            self._task_queue_client = None
 
 
 class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
@@ -101,6 +138,25 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         assert len(policy_state_dict) == 1 and self._policy.name in policy_state_dict
         self._policy.set_policy_state(policy_state_dict[self._policy.name])
 
+    @abstractmethod
+    def _batch_grad_worker(
+        self,
+        batch: TransitionBatch,
+        scope: str = "all"
+    ) -> Dict[str, Dict[str, torch.Tensor]]:
+        raise NotImplementedError
+
+    def _get_batch_grad(
+        self,
+        batch: TransitionBatch,
+        scope: str = "all",
+        data_parallel: bool = False
+    ) -> Dict[str, Dict[str, torch.Tensor]]:
+        if data_parallel:
+            raise NotImplementedError
+        else:
+            return self._batch_grad_worker(batch, scope)
+
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
@@ -149,3 +205,22 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         for policy_name, policy_state in policy_state_dict.items():
             assert policy_name in self._policy_dict
             self._policy_dict[policy_name].set_policy_state(policy_state)
+
+    @abstractmethod
+    def _batch_grad_worker(
+        self,
+        batch: MultiTransitionBatch,
+        scope: str = "all"
+    ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
+        raise NotImplementedError
+
+    def _get_batch_grad(
+        self,
+        batch: MultiTransitionBatch,
+        scope: str = "all",
+        data_parallel: bool = False
+    ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
+        if data_parallel:
+            raise NotImplementedError
+        else:
+            return self._batch_grad_worker(batch, scope)

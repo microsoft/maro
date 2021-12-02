@@ -85,7 +85,7 @@ class DiscreteMultiActorCritic(MultiTrainer):
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def train_step(self) -> None:
+    def _train_step_impl(self, data_parallel: bool = False) -> None:
         for _ in range(self._num_epoch):
             self._improve(self._get_batch())
             self._update_target_policy()
@@ -156,3 +156,19 @@ class DiscreteMultiActorCritic(MultiTrainer):
                 target_policy.soft_update(policy, self._soft_update_coef)
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
             self._target_policy_ver = self._policy_ver
+
+    def get_trainer_state_dict(self) -> dict:
+        return {
+            "policy_status": self.get_policy_state_dict(),
+            "target_policy_status": [policy.get_policy_state() for policy in self._target_policies],
+            "critic_status": self._q_critic_net.get_net_state(),
+            "target_critic_status": self._target_q_critic_net.get_net_state()
+        }
+
+    def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
+        self.set_policy_state_dict(trainer_state_dict["policy_status"])
+        self._q_critic_net.set_net_state(trainer_state_dict["critic_status"])
+        self._target_q_critic_net.set_net_state(trainer_state_dict["target_critic_status"])
+
+        for policy, status in zip(self._target_policies, trainer_state_dict["target_policy_status"]):
+            policy.set_policy_state(status)

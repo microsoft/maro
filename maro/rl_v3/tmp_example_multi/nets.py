@@ -48,15 +48,15 @@ class MyActorNet(DiscretePolicyNet):
     def unfreeze(self) -> None:
         self.unfreeze_all_parameters()
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._actor_optim.zero_grad()
-        loss.backward()
-        self._actor_optim.step()
-
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         self._actor_optim.zero_grad()
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad: dict) -> None:
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+        self._actor_optim.step()
 
     def get_net_state(self) -> dict:
         return {
@@ -81,15 +81,15 @@ class MyMultiCriticNet(MultiQNet):
     def _get_q_values(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
         return self._critic(torch.cat([states] + actions, dim=1)).squeeze(-1)
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._critic_optim.zero_grad()
-        loss.backward()
-        self._critic_optim.step()
-
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         self._critic_optim.zero_grad()
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad: dict) -> None:
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+        self._critic_optim.step()
 
     def get_net_state(self) -> dict:
         return {

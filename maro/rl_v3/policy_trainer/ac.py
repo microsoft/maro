@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 import numpy as np
 import torch
@@ -68,37 +68,38 @@ class DiscreteActorCritic(SingleTrainer):
         self._v_critic_net = self._get_v_net_func()
         self._v_critic_net.to(self._device)
 
-    def train_step(self) -> None:
-        self._improve(self._get_batch())
+    def _train_step_impl(self, data_parallel: bool = False) -> None:
+        self._improve(self._get_batch(), data_parallel)
 
-    def _improve(self, batch: TransitionBatch) -> None:
+    def _batch_grad_worker(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
         """
         Reference: https://tinyurl.com/2ezte4cr
         """
-        v_critic_net_copy = clone(self._v_critic_net)
-        v_critic_net_copy.eval()
+        assert scope in ("all", "actor", "critic"), \
+            f"Unrecognized scope {scope}. Excepting 'all', 'actor', or 'critic'."
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
         actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
 
-        self._policy.eval()
-        logps_old = self._policy.get_state_action_logps(states, actions)  # log pi(a|s), action log-prob when sampling
+        if self._clip_ratio is not None:
+            self._policy.eval()
+            logps_old = self._policy.get_state_action_logps(states, actions)
+        else:
+            logps_old = None
 
         self._policy.train()
         self._v_critic_net.train()
-        for _ in range(self._grad_iters):
-            state_values = self._v_critic_net.v_values(states)
-            values = state_values.detach().numpy()
-            values = np.concatenate([values, values[-1:]])
-            rewards = np.concatenate([batch.rewards, values[-1:]])
+
+        state_values = self._v_critic_net.v_values(states)
+        values = state_values.detach().numpy()
+        values = np.concatenate([values, values[-1:]])
+        rewards = np.concatenate([batch.rewards, values[-1:]])
+
+        grad_dict = {}
+        if scope in ("all", "actor"):
             deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
-            returns = ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1], self._device)
             advantages = ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam), self._device)
 
-            # Critic loss
-            critic_loss = self._critic_loss_func(state_values, returns)
-
-            # Actor loss
             action_probs = self._policy.get_action_probs(states)
             logps = torch.log(action_probs.gather(1, actions).squeeze())
             logps = torch.clamp(logps, min=self._min_logp, max=.0)
@@ -109,6 +110,33 @@ class DiscreteActorCritic(SingleTrainer):
             else:
                 actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
 
-            # Update
-            self._policy.step(actor_loss)
-            self._v_critic_net.step(critic_loss * self._critic_loss_coef)
+            grad_dict["actor_grad"] = self._policy.get_gradients(actor_loss)
+
+        if scope in ("all", "critic"):
+            returns = ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1], self._device)
+            critic_loss = self._critic_loss_func(state_values, returns)
+
+            grad_dict["critic_grad"] = self._v_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
+
+        return grad_dict
+
+    def _improve(self, batch: TransitionBatch, data_parallel: bool) -> None:
+        """
+        Reference: https://tinyurl.com/2ezte4cr
+        """
+        for _ in range(self._grad_iters):
+            grad_dict = self._get_batch_grad(batch, scope="all", data_parallel=data_parallel)
+            self._policy.train()
+            self._policy.apply_gradients(grad_dict["actor_grad"])
+            self._v_critic_net.train()
+            self._v_critic_net.apply_gradients(grad_dict["critic_grad"])
+
+    def get_trainer_state_dict(self) -> dict:
+        return {
+            "critic_state": self._v_critic_net.get_net_state(),
+            "policy_state": self.get_policy_state_dict()
+        }
+
+    def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
+        self._v_critic_net.set_net_state(trainer_state_dict["critic_state"])
+        self.set_policy_state_dict(trainer_state_dict["policy_state"])

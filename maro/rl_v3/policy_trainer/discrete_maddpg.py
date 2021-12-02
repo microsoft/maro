@@ -66,7 +66,7 @@ class DiscreteMADDPG(MultiTrainer):
             q_critic_net.to(self._device)
             self._q_critic_nets = [q_critic_net for _ in range(self.num_policies)]
         else:
-            self._q_critic_nets = [self._get_q_critic_net_func().to(self._device) for i in range(self.num_policies)]
+            self._q_critic_nets = [self._get_q_critic_net_func().to(self._device) for _ in range(self.num_policies)]
 
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._replay_memory_capacity,
@@ -95,122 +95,123 @@ class DiscreteMADDPG(MultiTrainer):
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def train_step(self) -> None:
+    def _train_step_impl(self, data_parallel: bool = False) -> None:
         for _ in range(self._num_epoch):
-            train_batch = self._get_batch()
-            # iteratively update critic & actors
-            loss = self.get_batch_loss(train_batch, scope="critic")
-            for critic_net, critic_loss in zip(self._q_critic_nets, loss["critic_losses"]):
-                critic_net.step(critic_loss)
-                if self._shared_critic:
-                    break  # only update once for shared critic
+            self._improve(self._get_batch(), data_parallel)
 
-            loss = self.get_batch_loss(train_batch, scope="actor")
-            for policy, actor_loss in zip(self._policies, loss["actor_losses"]):
-                policy.step(actor_loss)
+    def _improve(self, batch: MultiTransitionBatch, data_parallel: bool) -> None:
+        grads = self._get_batch_grad(batch, scope="critic", data_parallel=data_parallel)
+        for net, grad in zip(self._q_critic_nets, grads["critic_grads"]):
+            net.train()
+            net.apply_gradients(grad)
+            if self._shared_critic:
+                break
 
-            self._update_target_policy()
+        grads = self._get_batch_grad(batch, scope="actor", data_parallel=data_parallel)
+        for policy, grad in zip(self._policies, grads["actor_grads"]):
+            policy.train()
+            policy.apply_gradients(grad)
 
-    def get_batch_loss(self, batch: MultiTransitionBatch, scope="all") -> Dict[str, List[torch.Tensor]]:
-        """Get loss with a batch of data. If scope is specified, return the expected loss of scope.
+        self._update_target_policy()
 
-        Args:
-            batch (MultiTransitionBatch): The batch of multi-agent experience data.
-            scope (str): The expected scope to compute loss. Should be in ['all', 'critic', 'actor'].
+    def _batch_grad_worker(
+        self,
+        batch: MultiTransitionBatch,
+        scope: str = "all"
+    ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
+        assert scope in ("all", "actor", "critic"), \
+            f"Unrecognized scope {scope}. Excepting 'all', 'actor', or 'critic'."
 
-        Returns:
-            loss_info (Dict[str, List[torch.Tensor]]): Loss of each scope.
-        """
-        assert scope in ["all", "critic", "actor"], f'scope should in ["all", "critic", "actor"] but get {scope}.'
-        loss_info = dict()
-        if scope == "all" or scope == "critic":
-            critic_losses = self._get_critic_losses(batch)
-            loss_info["critic_losses"] = critic_losses
-        if scope == "all" or scope == "actor":
-            actor_losses = self._get_actor_losses(batch)
-            loss_info["actor_losses"] = actor_losses
-        return loss_info
-
-    def _get_critic_losses(self, batch: MultiTransitionBatch) -> List[torch.Tensor]:
         states = ndarray_to_tensor(batch.states, self._device)  # x
-        next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
         agent_states = [ndarray_to_tensor(agent_state, self._device) for agent_state in batch.agent_states]  # o
         actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
-        rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), self._device)  # r
-        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
 
-        with torch.no_grad():
-            next_actions = [
-                policy.get_actions_tensor(agent_state)  # a' = miu'(o)
-                for policy, agent_state in zip(self._target_policies, agent_states)
-            ]
-
-        critic_losses = []
-        if self._shared_critic:
+        grad_dict = {}
+        if scope in ("all", "critic"):
             with torch.no_grad():
-                next_q_values = self._target_q_critic_nets[0].q_values(
-                    states=next_states,  # x'
-                    actions=next_actions  # a'
-                )  # Q'(x', a')
-            # sum(rewards) for shard critic
-            target_q_values = (rewards.sum(0) + self._reward_discount * (1 - terminals.float()) * next_q_values)
-            q_values = self._q_critic_nets[0].q_values(
-                states=states,  # x
-                actions=actions  # a
-            )  # Q(x, a)
-            critic_loss = self._q_value_loss_func(q_values, target_q_values.detach()) * self._critic_loss_coef
-            critic_losses.append(critic_loss)
-        else:
-            for i in range(self.num_policies):
+                next_actions = [
+                    policy.get_actions_tensor(agent_state)  # a' = miu'(o)
+                    for policy, agent_state in zip(self._target_policies, agent_states)
+                ]
+
+            next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
+            rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), self._device)  # r
+            terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
+
+            for net in self._q_critic_nets:
+                net.train()
+
+            critic_losses = []
+            if self._shared_critic:
                 with torch.no_grad():
-                    next_q_values = self._target_q_critic_nets[i].q_values(
+                    next_q_values = self._target_q_critic_nets[0].q_values(
                         states=next_states,  # x'
-                        actions=next_actions)  # a'
-                target_q_values = (
-                    rewards[i] + self._reward_discount * (1 - terminals.float()) * next_q_values)
-                q_values = self._q_critic_nets[i].q_values(
+                        actions=next_actions  # a'
+                    )  # Q'(x', a')
+                # sum(rewards) for shard critic
+                target_q_values = (rewards.sum(0) + self._reward_discount * (1 - terminals.float()) * next_q_values)
+                q_values = self._q_critic_nets[0].q_values(
                     states=states,  # x
                     actions=actions  # a
                 )  # Q(x, a)
                 critic_loss = self._q_value_loss_func(q_values, target_q_values.detach()) * self._critic_loss_coef
                 critic_losses.append(critic_loss)
+            else:
+                for i in range(self.num_policies):
+                    with torch.no_grad():
+                        next_q_values = self._target_q_critic_nets[i].q_values(
+                            states=next_states,  # x'
+                            actions=next_actions)  # a'
+                    target_q_values = (
+                        rewards[i] + self._reward_discount * (1 - terminals.float()) * next_q_values)
+                    q_values = self._q_critic_nets[i].q_values(
+                        states=states,  # x
+                        actions=actions  # a
+                    )  # Q(x, a)
+                    critic_loss = self._q_value_loss_func(q_values, target_q_values.detach()) * self._critic_loss_coef
+                    critic_losses.append(critic_loss)
 
-        return critic_losses
+            grad_dict["critic_grads"] = [
+                net.get_gradients(loss)
+                for net, loss in zip(self._q_critic_nets, critic_losses)
+            ]
 
-    def _get_actor_losses(self, batch: MultiTransitionBatch) -> List[torch.Tensor]:
-        for policy in self._policies:
-            policy.train()
+        if scope in ("all", "actor"):
+            for policy in self._policies:
+                policy.train()
 
-        states = ndarray_to_tensor(batch.states, self._device)  # x
-        agent_states = [ndarray_to_tensor(agent_state, self._device) for agent_state in batch.agent_states]  # o
-        actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
+            latest_actions = []
+            latest_action_logps = []
+            for policy, agent_state in zip(self._policies, agent_states):
+                assert isinstance(policy, DiscretePolicyGradient)
+                latest_actions.append(policy.get_actions_tensor(agent_state))  # a = miu(o)
+                latest_action_logps.append(policy.get_state_action_logps(
+                    agent_state,  # o
+                    latest_actions[-1]  # a
+                ))  # log pi(a|o)
 
-        latest_actions = []
-        latest_action_logps = []
-        for policy, agent_state in zip(self._policies, agent_states):
-            assert isinstance(policy, DiscretePolicyGradient)
-            latest_actions.append(policy.get_actions_tensor(agent_state))  # a = miu(o)
-            latest_action_logps.append(policy.get_state_action_logps(
-                agent_state,  # o
-                latest_actions[-1]  # a
-            ))  # log pi(a|o)
+            actor_losses = []
+            for i in range(self.num_policies):
+                # Update actor
+                self._q_critic_nets[i].freeze()
 
-        actor_losses = []
-        for i in range(self.num_policies):
-            # Update actor
-            self._q_critic_nets[i].freeze()
+                action_backup = actions[i]
+                actions[i] = latest_actions[i]  # Replace latest action
+                actor_loss = -(self._q_critic_nets[i].q_values(
+                    states=states,  # x
+                    actions=actions  # [a^j_1, ..., a_i, ..., a^j_N]
+                ) * latest_action_logps[i]).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
+                actor_losses.append(actor_loss)
 
-            action_backup = actions[i]
-            actions[i] = latest_actions[i]  # Replace latest action
-            actor_loss = -(self._q_critic_nets[i].q_values(
-                states=states,  # x
-                actions=actions  # [a^j_1, ..., a_i, ..., a^j_N]
-            ) * latest_action_logps[i]).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
-            actor_losses.append(actor_loss)
+                actions[i] = action_backup  # Restore original action
+                self._q_critic_nets[i].unfreeze()
 
-            actions[i] = action_backup  # Restore original action
-            self._q_critic_nets[i].unfreeze()
-        return actor_losses
+            grad_dict["actor_grads"] = [
+                policy.get_gradients(loss)
+                for policy, loss in zip(self._policies, actor_losses)
+            ]
+
+        return grad_dict
 
     def _update_target_policy(self) -> None:
         self._policy_version += 1
@@ -222,3 +223,20 @@ class DiscreteMADDPG(MultiTrainer):
                 if self._shared_critic:
                     break  # only update once for shared critic
             self._target_policy_version = self._policy_version
+
+    def get_trainer_state_dict(self) -> dict:
+        return {
+            "policy_state": self.get_policy_state_dict(),
+            "target_policy_state": [policy.get_policy_state() for policy in self._target_policies],
+            "critic_state": [net.get_net_state() for net in self._q_critic_nets],
+            "target_critic_state": [net.get_net_state() for net in self._target_q_critic_nets]
+        }
+
+    def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
+        self.set_policy_state_dict(trainer_state_dict["policy_state"])
+        for policy, policy_state in zip(self._target_policies, trainer_state_dict["target_policy_state"]):
+            policy.set_policy_state(policy_state)
+        for net, net_state in zip(self._q_critic_nets, trainer_state_dict["critic_state"]):
+            net.set_net_state(net_state)
+        for net, net_state in zip(self._target_q_critic_nets, trainer_state_dict["target_critic_state"]):
+            net.set_net_state(net_state)

@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 import torch
 
@@ -72,44 +72,63 @@ class DDPG(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def train_step(self) -> None:
+    def _train_step_impl(self, data_parallel: bool = False) -> None:
         for _ in range(self._num_epochs):
-            self._improve(self._get_batch())
+            self._improve(self._get_batch(), data_parallel)
             self._update_target_policy()
 
-    def _improve(self, batch: TransitionBatch) -> None:
+    def _batch_grad_worker(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
         """
         Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
         """
+
+        assert scope in ("all", "actor", "critic"), \
+            f"Unrecognized scope {scope}. Excepting 'all', 'actor', or 'critic'."
+
+        self._q_critic_net.train()
         self._policy.train()
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
-        next_states = ndarray_to_tensor(batch.next_states, self._device)  # s'
-        actions = ndarray_to_tensor(batch.actions, self._device)  # a
-        rewards = ndarray_to_tensor(batch.rewards, self._device)  # r
-        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
 
-        with torch.no_grad():
-            next_q_values = self._target_q_critic_net.q_values(
-                states=next_states,  # s'
-                actions=self._target_policy.get_actions_tensor(next_states)  # miu_targ(s')
-            )  # Q_targ(s', miu_targ(s'))
+        grad_dict = {}
+        if scope in ("all", "critic"):
+            next_states = ndarray_to_tensor(batch.next_states, self._device)  # s'
+            actions = ndarray_to_tensor(batch.actions, self._device)  # a
+            rewards = ndarray_to_tensor(batch.rewards, self._device)  # r
+            terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
 
-        # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
-        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
+            with torch.no_grad():
+                next_q_values = self._target_q_critic_net.q_values(
+                    states=next_states,  # s'
+                    actions=self._target_policy.get_actions_tensor(next_states)  # miu_targ(s')
+                )  # Q_targ(s', miu_targ(s'))
 
-        q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
-        critic_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
-        policy_loss = -self._q_critic_net.q_values(
-            states=states,  # s
-            actions=self._policy.get_actions_tensor(states)  # miu(s)
-        ).mean()  # -Q(s, miu(s))
+            # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
+            target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
 
-        # Update Q first, then freeze Q and update miu.
-        self._q_critic_net.step(critic_loss * self._critic_loss_coef)
-        self._q_critic_net.freeze()
-        self._policy.step(policy_loss)
-        self._q_critic_net.unfreeze()
+            q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
+            critic_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
+
+            grad_dict["critic_grad"] = self._q_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
+
+        if scope in ("all", "actor"):
+            policy_loss = -self._q_critic_net.q_values(
+                states=states,  # s
+                actions=self._policy.get_actions_tensor(states)  # miu(s)
+            ).mean()  # -Q(s, miu(s))
+
+            grad_dict["actor_grad"] = self._policy.get_gradients(policy_loss)
+
+        return grad_dict
+
+    def _improve(self, batch: TransitionBatch, data_parallel: bool) -> None:
+        grad_dict = self._get_batch_grad(batch, scope="critic", data_parallel=data_parallel)
+        self._q_critic_net.train()
+        self._q_critic_net.apply_gradients(grad_dict["critic_grad"])
+
+        grad_dict = self._get_batch_grad(batch, scope="actor", data_parallel=data_parallel)
+        self._policy.train()
+        self._policy.apply_gradients(grad_dict["actor_grad"])
 
     def _update_target_policy(self) -> None:
         self._policy_ver += 1
@@ -117,3 +136,17 @@ class DDPG(SingleTrainer):
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
             self._target_policy_ver = self._policy_ver
+
+    def get_trainer_state_dict(self) -> dict:
+        return {
+            "policy_state": self.get_policy_state_dict(),
+            "target_policy_state": self._target_policy.get_policy_state(),
+            "critic_state": self._q_critic_net.get_net_state(),
+            "target_critic_state": self._target_q_critic_net.get_net_state()
+        }
+
+    def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
+        self.set_policy_state_dict(trainer_state_dict["policy_state"])
+        self._target_policy.set_policy_state(trainer_state_dict["target_policy_state"])
+        self._q_critic_net.set_net_state(trainer_state_dict["critic_state"])
+        self._target_q_critic_net.set_net_state(trainer_state_dict["target_critic_state"])
