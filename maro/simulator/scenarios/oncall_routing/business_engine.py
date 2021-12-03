@@ -5,9 +5,9 @@ import os
 from collections import defaultdict, deque
 from typing import Deque, Dict, List, Optional
 
-from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
+from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.oncall_routing import FromHistoryOncallOrderGenerator
 from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, PlanLoader, SamplePlanLoader
 from maro.data_lib.oncall_routing.oncall_order_generator import OncallOrderGenerator, SampleOncallOrderGenerator
@@ -16,10 +16,11 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
 from maro.utils import convert_dottable
+
 from . import Coordinate
-from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .carrier import Carrier
 from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
+from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
 from .order import GLOBAL_ORDER_COUNTER, Order, OrderStatus
 from .route import Route
@@ -36,6 +37,7 @@ total_order_delayed(int): The total delayed order quantity of all carriers.
 total_order_delay_time(int): The total order delay time of all carriers.
 total_order_completed(int):
 """
+
 
 class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def __init__(
@@ -75,7 +77,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Init oncall order generator
         print("Loading oncall orders.")
-        self._oncall_order_generator = self._get_oncall_generator() # TODO: move this logic to data lib?
+        self._oncall_order_generator = self._get_oncall_generator()  # TODO: move this logic to data lib?
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         print("Oncall orders loaded.")
@@ -87,7 +89,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # ##### Load plan #####
         print("Loading plans.")
-        data_loader = self._get_data_loader() # TODO: move this logic to data lib?
+        data_loader = self._get_data_loader()  # TODO: move this logic to data lib?
         remaining_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
 
         # TODO: fake head quarter order
@@ -274,7 +276,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         plan = self._routes[route_idx].remaining_plan
         cur_arrival: PlanElement = plan.pop(0)
         self._order_processing(self._carriers[carrier_idx], cur_arrival.order, event.tick)
-        while len(plan) > 0 and plan[0].actual_duration_from_last == 0: # TODO: or compare the coordinate?
+        while len(plan) > 0 and plan[0].actual_duration_from_last == 0:  # TODO: or compare the coordinate?
             cur_arrival = plan.pop(0)
             self._order_processing(self._carriers[carrier_idx], cur_arrival.order, event.tick)
 

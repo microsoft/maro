@@ -36,7 +36,7 @@ class Order:
         self.delay_buffer = None
         self._status = OrderStatus.NOT_READY
 
-    def get_status(self, tick: int, advance_buffer: int=0):
+    def get_status(self, tick: int, advance_buffer: int = 0):
         # TODO: update here or in BE?
         if self._status == OrderStatus.NOT_READY and tick + advance_buffer >= self.open_time:
             self._status = OrderStatus.READY_IN_ADVANCE
