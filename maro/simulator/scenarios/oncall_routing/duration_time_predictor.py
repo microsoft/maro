@@ -35,6 +35,8 @@ class ActualDurationSampler:
         target_coordinate: Coordinate,
         estimated_arrival_time: float
     ) -> float:
+        if estimated_arrival_time == 0.0:
+            return estimated_arrival_time
         variance = estimated_arrival_time * 0.1
         noise = random[EST_RAND_KEY].normalvariate(mu=0.0, sigma=variance)
         return math.ceil(max(1.0, noise + estimated_arrival_time))  # TODO: fake
