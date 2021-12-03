@@ -5,7 +5,6 @@ from .discrete_maddpg import DiscreteMADDPG
 from .dqn import DQN
 from .maac import DiscreteMultiActorCritic
 
-
 __all__ = [
     "AbsTrainer", "MultiTrainer", "SingleTrainer",
     "DiscreteActorCritic",

@@ -6,6 +6,7 @@ from maro.rl_v3.policy import ValueBasedPolicy
 from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
+
 from .abs_trainer import SingleTrainer
 
 
@@ -53,9 +54,9 @@ class DQN(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def _train_step_impl(self, data_parallel: bool = False) -> None:
+    def _train_step_impl(self) -> None:
         for _ in range(self._num_epochs):
-            self._improve(self._get_batch(), data_parallel)
+            self._improve(self._get_batch())
 
         self._policy_ver += 1
         if self._policy_ver - self._target_policy_ver == self._update_target_every:
@@ -84,7 +85,7 @@ class DQN(SingleTrainer):
         q_values = self._policy.q_values_tensor(states, actions)
         return self._loss_func(q_values, target_q_values)
 
-    def _batch_grad_worker(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def atomic_get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
         assert scope == "all", f"Unrecognized scope {scope}. Excepting 'all'."
 
         self._policy.train()
@@ -110,8 +111,8 @@ class DQN(SingleTrainer):
 
         return {"grad": self._policy.get_gradients(loss)}
 
-    def _improve(self, batch: TransitionBatch, data_parallel: bool) -> None:
-        grad_dict = self._get_batch_grad(batch, data_parallel=data_parallel)
+    def _improve(self, batch: TransitionBatch) -> None:
+        grad_dict = self._get_batch_grad(batch)
 
         self._policy.train()
         self._policy.apply_gradients(grad_dict["grad"])

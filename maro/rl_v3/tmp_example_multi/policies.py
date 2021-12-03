@@ -1,6 +1,7 @@
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.policy_trainer import DiscreteMultiActorCritic, DiscreteMADDPG
+from maro.rl_v3.policy_trainer import DiscreteMADDPG, DiscreteMultiActorCritic
 from maro.rl_v3.workflow import preprocess_get_policy_func_dict
+
 from .config import algorithm, running_mode
 from .nets import MyActorNet, MyMultiCriticNet
 

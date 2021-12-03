@@ -4,6 +4,7 @@ import numpy as np
 import torch
 
 from maro.rl_v3.model import ContinuousPolicyNet
+
 from .abs_policy import RLPolicy
 
 

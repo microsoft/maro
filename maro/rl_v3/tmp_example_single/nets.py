@@ -4,6 +4,7 @@ import torch
 from torch.optim import Adam, RMSprop
 
 from maro.rl_v3.model import DiscretePolicyNet, DiscreteQNet, FullyConnected, VNet
+
 from .config import action_shaping_conf, state_dim
 
 q_net_conf = {

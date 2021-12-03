@@ -7,6 +7,7 @@ from maro.rl_v3.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl_v3.replay_memory import RandomMultiReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
+
 from .abs_trainer import MultiTrainer
 
 

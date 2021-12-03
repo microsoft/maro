@@ -8,7 +8,7 @@ from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.replay_memory import FIFOReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
-from maro.utils import clone
+
 from .abs_trainer import SingleTrainer
 
 
@@ -68,10 +68,10 @@ class DiscreteActorCritic(SingleTrainer):
         self._v_critic_net = self._get_v_net_func()
         self._v_critic_net.to(self._device)
 
-    def _train_step_impl(self, data_parallel: bool = False) -> None:
-        self._improve(self._get_batch(), data_parallel)
+    def _train_step_impl(self) -> None:
+        self._improve(self._get_batch())
 
-    def _batch_grad_worker(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def atomic_get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
         """
         Reference: https://tinyurl.com/2ezte4cr
         """
@@ -120,12 +120,12 @@ class DiscreteActorCritic(SingleTrainer):
 
         return grad_dict
 
-    def _improve(self, batch: TransitionBatch, data_parallel: bool) -> None:
+    def _improve(self, batch: TransitionBatch) -> None:
         """
         Reference: https://tinyurl.com/2ezte4cr
         """
         for _ in range(self._grad_iters):
-            grad_dict = self._get_batch_grad(batch, scope="all", data_parallel=data_parallel)
+            grad_dict = self._get_batch_grad(batch, scope="all")
             self._policy.train()
             self._policy.apply_gradients(grad_dict["actor_grad"])
             self._v_critic_net.train()

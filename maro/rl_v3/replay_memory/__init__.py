@@ -1,6 +1,6 @@
 from .replay_memory import (
-    FIFOMultiReplayMemory, FIFOReplayMemory, MultiReplayMemory, MultiTransitionBatch,
-    RandomMultiReplayMemory, RandomReplayMemory, ReplayMemory, TransitionBatch
+    FIFOMultiReplayMemory, FIFOReplayMemory, MultiReplayMemory, MultiTransitionBatch, RandomMultiReplayMemory,
+    RandomReplayMemory, ReplayMemory, TransitionBatch
 )
 
 __all__ = [

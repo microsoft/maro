@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import torch
 
@@ -14,26 +14,27 @@ class AbsTrainer(object, metaclass=ABCMeta):
     """
     Policy trainer used to train policies.
     """
-    def __init__(self, name: str, device: str = None) -> None:
+    def __init__(self, name: str, device: str = None, data_parallel: bool = False) -> None:
         self._name = name
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         print(f"Creating trainer {self.__class__.__name__} {name} on device {self._device}")
 
+        self._data_parallel = data_parallel
         self._task_queue_client = Optional[TaskQueueClient]
 
     @property
     def name(self) -> str:
         return self._name
 
-    def train_step(self, data_parallel: bool = False) -> None:
-        if data_parallel:
-            assert self._task_queue_client is not None
-        self._train_step_impl(data_parallel)
+    def train_step(self) -> None:
+        if self._data_parallel:
+            assert self._task_queue_client is not None, f"Task queue client must be configured under data parallel mode"
+        self._train_step_impl()
 
     @abstractmethod
-    def _train_step_impl(self, data_parallel: bool = False) -> None:
+    def _train_step_impl(self) -> None:
         """
         Run a training step to update all the policies that this trainer is responsible for.
         """
@@ -67,7 +68,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
         raise NotImplementedError
 
-    def data_parallel(self, *args, **kwargs) -> None:
+    def init_data_parallel(self, *args, **kwargs) -> None:
         """
         Initialize a proxy in the policy, for data-parallel training.
         Using the same arguments as `Proxy`.
@@ -75,7 +76,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._task_queue_client = TaskQueueClient()
         self._task_queue_client.create_proxy(*args, **kwargs)
 
-    def data_parallel_with_existing_proxy(self, proxy: Proxy) -> None:
+    def init_data_parallel_with_existing_proxy(self, proxy: Proxy) -> None:
         """
         Initialize a proxy in the policy with an existing one, for data-parallel training.
         """
@@ -139,7 +140,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._policy.set_policy_state(policy_state_dict[self._policy.name])
 
     @abstractmethod
-    def _batch_grad_worker(
+    def atomic_get_batch_grad(
         self,
         batch: TransitionBatch,
         scope: str = "all"
@@ -149,13 +150,12 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def _get_batch_grad(
         self,
         batch: TransitionBatch,
-        scope: str = "all",
-        data_parallel: bool = False
+        scope: str = "all"
     ) -> Dict[str, Dict[str, torch.Tensor]]:
-        if data_parallel:
+        if self._data_parallel:
             raise NotImplementedError
         else:
-            return self._batch_grad_worker(batch, scope)
+            return self.atomic_get_batch_grad(batch, scope)
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
@@ -207,7 +207,7 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
             self._policy_dict[policy_name].set_policy_state(policy_state)
 
     @abstractmethod
-    def _batch_grad_worker(
+    def atomic_get_batch_grad(
         self,
         batch: MultiTransitionBatch,
         scope: str = "all"
@@ -217,10 +217,9 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def _get_batch_grad(
         self,
         batch: MultiTransitionBatch,
-        scope: str = "all",
-        data_parallel: bool = False
+        scope: str = "all"
     ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
-        if data_parallel:
+        if self._data_parallel:
             raise NotImplementedError
         else:
-            return self._batch_grad_worker(batch, scope)
+            return self.atomic_get_batch_grad(batch, scope)

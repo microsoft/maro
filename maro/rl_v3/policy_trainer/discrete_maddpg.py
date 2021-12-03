@@ -95,26 +95,26 @@ class DiscreteMADDPG(MultiTrainer):
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def _train_step_impl(self, data_parallel: bool = False) -> None:
+    def _train_step_impl(self) -> None:
         for _ in range(self._num_epoch):
-            self._improve(self._get_batch(), data_parallel)
+            self._improve(self._get_batch())
 
-    def _improve(self, batch: MultiTransitionBatch, data_parallel: bool) -> None:
-        grads = self._get_batch_grad(batch, scope="critic", data_parallel=data_parallel)
+    def _improve(self, batch: MultiTransitionBatch) -> None:
+        grads = self._get_batch_grad(batch, scope="critic")
         for net, grad in zip(self._q_critic_nets, grads["critic_grads"]):
             net.train()
             net.apply_gradients(grad)
             if self._shared_critic:
                 break
 
-        grads = self._get_batch_grad(batch, scope="actor", data_parallel=data_parallel)
+        grads = self._get_batch_grad(batch, scope="actor")
         for policy, grad in zip(self._policies, grads["actor_grads"]):
             policy.train()
             policy.apply_gradients(grad)
 
         self._update_target_policy()
 
-    def _batch_grad_worker(
+    def atomic_get_batch_grad(
         self,
         batch: MultiTransitionBatch,
         scope: str = "all"
