@@ -24,10 +24,12 @@ class Order:
         self,
         order_id: str,
         coordinate: Coordinate,
-        open_time=None,  # TODO: typehint
-        close_time=None,  # TODO: typehint
+        open_time: int,
+        close_time: int,
         is_delivery=None  # TODO: typehint
     ) -> None:
+        assert 0 <= open_time <= close_time < 1440
+
         self.id = order_id
         self.coord = coordinate
         self.privilege = None

@@ -113,7 +113,9 @@ class DeprecatedSamplePlanLoader(PlanLoader):
             for coord in coords:
                 order = Order(
                     order_id=str(next(GLOBAL_ORDER_COUNTER)),
-                    coordinate=coord
+                    coordinate=coord,
+                    open_time=0,
+                    close_time=1440 - 1
                 )
                 if random[PLAN_RAND_KEY].uniform(0.0, 1.0) < self._pickup_ratio:  # Pickup order
                     # TODO: sample open_time and close_time

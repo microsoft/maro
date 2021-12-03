@@ -5,15 +5,16 @@ import os
 from collections import defaultdict, deque
 from typing import Deque, Dict, List, Optional
 
-from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
+from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.oncall_routing import get_data_loader, get_oncall_generator
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
 from maro.utils import convert_dottable
+
 from .carrier import Carrier
 from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
 from .coordinate import Coordinate

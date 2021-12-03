@@ -30,6 +30,10 @@ class OncallOrderGenerator(object):
         return orders
 
 
+def convert_time_format(t: int) -> int:
+    return (t // 100) * 60 + (t % 100)
+
+
 class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
     def __init__(self, csv_path: str) -> None:
         super(FromHistoryOncallOrderGenerator, self).__init__()
@@ -40,8 +44,8 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
             order = Order(
                 order_id=str(next(GLOBAL_ORDER_COUNTER)),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
-                open_time=e["READYTIME"],
-                close_time=e["CLOSETIME"]
+                open_time=convert_time_format(e["READYTIME"]),
+                close_time=convert_time_format(e["CLOSETIME"])
             )
 
             buff.append((int(order.open_time), order))
@@ -61,19 +65,19 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
             oncall_info = safe_load(fp)
             self._oncall_numbers = oncall_info["oncall_numbers"]
             self._coords = oncall_info["coordinates"]
-            self._ready_times = oncall_info["ready_times"]
+            self._open_times = oncall_info["open_times"]
             self._time_windows = oncall_info["time_windows"]
             self._additional_info = oncall_info["additional_info"]
 
-            self._ready_times[0] = [(val // 100) * 60 + (val % 100) for val in self._ready_times[0]]
+            self._open_times[0] = [convert_time_format(val) for val in self._open_times[0]]
 
     def reset(self) -> None:
         n = random[ONCALL_RAND_KEY].choice(self._oncall_numbers)
 
         coords = random[ONCALL_RAND_KEY].choices(self._coords[0], weights=self._coords[1], k=n)
-        open_times = random[ONCALL_RAND_KEY].choices(self._ready_times[0], weights=self._ready_times[1], k=n)
+        open_times = random[ONCALL_RAND_KEY].choices(self._open_times[0], weights=self._open_times[1], k=n)
         windows = random[ONCALL_RAND_KEY].choices(self._time_windows[0], weights=self._time_windows[1], k=n)
-        close_times = [min(2359, open_times[i] + windows[i]) for i in range(n)]
+        close_times = [min(1440 - 1, open_times[i] + windows[i]) for i in range(n)]
 
         buff = []
         for i in range(n):
