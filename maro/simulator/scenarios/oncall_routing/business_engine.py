@@ -17,9 +17,9 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
 from maro.utils import convert_dottable
 
-from . import Coordinate
 from .carrier import Carrier
 from .common import Action, CarrierArrivalPayload, Events, OncallReceivePayload, OncallRoutingPayload, PlanElement
+from .coordinate import Coordinate
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
 from .order import GLOBAL_ORDER_COUNTER, Order, OrderStatus
@@ -371,5 +371,4 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._waiting_order_dict.clear()
 
     def post_step(self, tick: int) -> bool:
-        # return all(len(route.remaining_plan) == 0 for route in self._routes)
         return tick + 1 == self._max_tick
