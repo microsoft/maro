@@ -30,7 +30,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     def train_step(self) -> None:
         if self._data_parallel:
-            assert self._task_queue_client is not None, f"Task queue client must be configured under data parallel mode"
+            assert self._task_queue_client is not None, "Task queue client must be configured under data parallel mode"
         self._train_step_impl()
 
     @abstractmethod
