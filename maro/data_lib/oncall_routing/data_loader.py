@@ -31,7 +31,7 @@ def _load_plan_simple(csv_path: str) -> Dict[str, List[PlanElement]]:
             order.close_time = e["CLOSETIME"]
             order.is_delivery = e["IS_DELIVERY"]
 
-            plan.append(PlanElement(order=order, estimated_duration_from_last=-1, act_arr_time=-1))
+            plan.append(PlanElement(order=order))
         plan_by_route[str(route_name)] = plan
 
     print(f"Loading finished. Loaded data of {len(plan_by_route)} routes.")

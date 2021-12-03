@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.simulator import Env
-from maro.simulator.scenarios.oncall_routing.common import Action, OncallRoutingPayload
+from maro.simulator.scenarios.oncall_routing.common import OncallRoutingPayload
 
 
 if __name__ == "__main__":
@@ -16,10 +16,11 @@ if __name__ == "__main__":
     while not is_done:
         assert isinstance(decision_event, OncallRoutingPayload)
         orders = decision_event.oncall_orders
-        if len(orders) > 0:
-            print(env.tick)
+        print(
+            f"Env Tick: {env.tick}, "
+            f"On-call Order Num: {len(orders)}, "
+            f"{(orders[0].id, orders[0].coord) if len(orders) > 0 else ''}"
+        )
+        metrics, decision_event, is_done = env.step(None)
 
-            for order in orders:
-                print(order.id, order.coord)
-
-            break
+    print(metrics)
