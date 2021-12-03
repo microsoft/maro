@@ -24,18 +24,41 @@ def _load_plan_simple(csv_path: str) -> Dict[str, List[PlanElement]]:
         plan = []
         for e in data.to_dict(orient='records'):
             # TODO
-            order = Order()
-            order.id = str(next(GLOBAL_ORDER_COUNTER))
-            order.coord = Coordinate(e["LAT"], e["LNG"])
-            order.open_time = e["READYTIME"]
-            order.close_time = e["CLOSETIME"]
-            order.is_delivery = e["IS_DELIVERY"]
+            order = Order(
+                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                coordinate=Coordinate(e["LAT"], e["LNG"]),
+                open_time=0,  # TODO: fake
+                close_time=1440 - 1,  # TODO: fake
+                is_delivery=e["IS_DELIVERY"]
+            )
 
             plan.append(PlanElement(order=order))
         plan_by_route[str(route_name)] = plan
 
     print(f"Loading finished. Loaded data of {len(plan_by_route)} routes.")
     return plan_by_route
+
+
+def _deprecated_load_sample_length(path: str) -> Dict[str, List[int]]:
+    with open(path) as fp:
+        ret = safe_load(fp)
+    return ret
+
+
+def _deprecated_load_sample_coords(path: str) -> Dict[str, Tuple[List[Coordinate], List[float]]]:
+    ret = {}
+    with open(path) as fin:
+        for line in fin:
+            route_name, coords, probs = line.strip().split("\t")
+
+            new_coords = []
+            for elem in coords.split("/"):
+                lat, lng = elem.split(",")
+                new_coords.append(Coordinate(float(lat), float(lng)))
+            probs = [float(elem) for elem in probs.split("/")]
+
+            ret[route_name] = (new_coords, probs)
+    return ret
 
 
 class PlanLoader(object):
@@ -59,36 +82,14 @@ class FromHistoryPlanLoader(PlanLoader):
         return self._plan
 
 
-def _load_sample_length(path: str) -> Dict[str, List[int]]:
-    with open(path) as fp:
-        ret = safe_load(fp)
-    return ret
-
-
-def _load_sample_coords(path: str) -> Dict[str, Tuple[List[Coordinate], List[float]]]:
-    ret = {}
-    with open(path) as fin:
-        for line in fin:
-            route_name, coords, probs = line.strip().split("\t")
-
-            new_coords = []
-            for elem in coords.split("/"):
-                lat, lng = elem.split(",")
-                new_coords.append(Coordinate(float(lat), float(lng)))
-            probs = [float(elem) for elem in probs.split("/")]
-
-            ret[route_name] = (new_coords, probs)
-    return ret
-
-
-class SamplePlanLoader(PlanLoader):
+class DeprecatedSamplePlanLoader(PlanLoader):
     def __init__(self, sample_config_path: str, pickup_ratio: float = 0.05) -> None:
-        super(SamplePlanLoader, self).__init__()
+        super(DeprecatedSamplePlanLoader, self).__init__()
 
         assert 0.0 < pickup_ratio < 1.0
 
-        self._sample_length = _load_sample_length(os.path.join(sample_config_path, "route_length.yml"))
-        self._sample_coords = _load_sample_coords(os.path.join(sample_config_path, "route_coord.txt"))
+        self._sample_length = _deprecated_load_sample_length(os.path.join(sample_config_path, "route_length.yml"))
+        self._sample_coords = _deprecated_load_sample_coords(os.path.join(sample_config_path, "route_coord.txt"))
         self._route_names = sorted(list(self._sample_coords.keys()))
         self._pickup_ratio = pickup_ratio
 
@@ -110,9 +111,10 @@ class SamplePlanLoader(PlanLoader):
             # Build plan
             plan = []
             for coord in coords:
-                order = Order()
-                order.id = str(next(GLOBAL_ORDER_COUNTER))
-                order.coord = coord
+                order = Order(
+                    order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                    coordinate=coord
+                )
                 if random[PLAN_RAND_KEY].uniform(0.0, 1.0) < self._pickup_ratio:  # Pickup order
                     # TODO: sample open_time and close_time
                     order.is_delivery = False
@@ -126,6 +128,14 @@ class SamplePlanLoader(PlanLoader):
         return ret
 
 
+def get_data_loader(config_path: str) -> PlanLoader:
+    if os.path.exists(os.path.join(config_path, "routes.csv")):
+        return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"))
+    if os.path.exists(os.path.join(config_path, "route_coord.txt")):
+        return DeprecatedSamplePlanLoader(config_path)
+    raise ValueError("Cannot found correct route data.")
+
+
 if __name__ == "__main__":
-    loader = SamplePlanLoader(sample_config_path="C:/Users/huoranli/Downloads/fedex/1129_coord_pool")
+    loader = DeprecatedSamplePlanLoader(sample_config_path="C:/Users/huoranli/Downloads/fedex/1129_coord_pool")
     loader.generate_plan()

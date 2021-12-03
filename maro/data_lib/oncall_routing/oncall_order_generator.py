@@ -8,7 +8,7 @@ from typing import Deque, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Order
+from maro.simulator.scenarios.oncall_routing import Coordinate, GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Order
 from maro.simulator.utils import random
 
 
@@ -37,27 +37,20 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
         df = pd.read_csv(csv_path, sep=',')
         buff = []
         for e in df.to_dict(orient='records'):
-            order = Order()
-            order.id = str(next(GLOBAL_ORDER_COUNTER))
-            order.coord = (e["LAT"], e["LNG"])
-            order.open_time = e["READYTIME"]
-            order.close_time = e["CLOSETIME"]
+            order = Order(
+                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                coordinate=Coordinate(e["LAT"], e["LNG"]),
+                open_time=e["READYTIME"],
+                close_time=e["CLOSETIME"]
+            )
 
-            buff.append((int(order.open_time) // 3, order))  # TODO: fake
+            buff.append((int(order.open_time), order))
 
         buff.sort(key=lambda x: x[0])
         self._origin_data = buff
 
     def reset(self) -> None:
         self._queue = deque(self._origin_data)
-
-
-def add_time(start_time: int, window: int) -> int:
-    h, m = start_time // 100, start_time % 100
-    m += window
-    h += m // 60
-    m %= 60
-    return h * 100 + m
 
 
 class SampleOncallOrderGenerator(OncallOrderGenerator):
@@ -72,6 +65,8 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
             self._time_windows = oncall_info["time_windows"]
             self._additional_info = oncall_info["additional_info"]
 
+            self._ready_times[0] = [(val // 100) * 60 + (val % 100) for val in self._ready_times[0]]
+
     def reset(self) -> None:
         n = random[ONCALL_RAND_KEY].choice(self._oncall_numbers)
 
@@ -82,15 +77,24 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
 
         buff = []
         for i in range(n):
-            order = Order()
-            order.id = str(next(GLOBAL_ORDER_COUNTER))
-            order.coord = coords[i]
-            order.open_time = open_times[i]
-            order.close_time = close_times[i]
-            buff.append((int(order.open_time) // 3, order))  # TODO: fake
+            order = Order(
+                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                coordinate=coords[i],
+                open_time=open_times[i],
+                close_time=close_times[i]
+            )
+            buff.append((int(order.open_time), order))
 
         buff.sort(key=lambda x: x[0])
         self._queue = deque(buff)
+
+
+def get_oncall_generator(config_path) -> OncallOrderGenerator:
+    if os.path.exists(os.path.join(config_path, "oncall_orders.csv")):
+        return FromHistoryOncallOrderGenerator(os.path.join(config_path, "oncall_orders.csv"))
+    if os.path.exists(os.path.join(config_path, "oncall_info.yml")):
+        return SampleOncallOrderGenerator(config_path)
+    raise ValueError("Cannot found correct oncall data.")
 
 
 if __name__ == "__main__":
