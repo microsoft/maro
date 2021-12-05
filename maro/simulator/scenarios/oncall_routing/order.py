@@ -26,7 +26,7 @@ class Order:
         coordinate: Coordinate,
         open_time: int,
         close_time: int,
-        is_delivery=None  # TODO: typehint
+        is_delivery: bool = None
     ) -> None:
         assert 0 <= open_time <= close_time < 1440
 

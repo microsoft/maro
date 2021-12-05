@@ -9,9 +9,10 @@ from yaml import safe_load
 
 from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement
 from maro.simulator.utils import random
+from maro.utils import DottableDict
 
 
-def _load_plan_simple(csv_path: str) -> Dict[str, List[PlanElement]]:
+def _load_plan_simple(csv_path: str, start_tick: int, end_tick: int) -> Dict[str, List[PlanElement]]:
     print(f"Loading routes data from {csv_path}.")
     df = pd.read_csv(csv_path, sep=',')
 
@@ -27,8 +28,8 @@ def _load_plan_simple(csv_path: str) -> Dict[str, List[PlanElement]]:
             order = Order(
                 order_id=str(next(GLOBAL_ORDER_COUNTER)),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
-                open_time=0,  # TODO: fake
-                close_time=1440 - 1,  # TODO: fake
+                open_time=start_tick,
+                close_time=end_tick,
                 is_delivery=e["IS_DELIVERY"]
             )
 
@@ -74,16 +75,16 @@ class PlanLoader(object):
 
 
 class FromHistoryPlanLoader(PlanLoader):
-    def __init__(self, csv_path: str) -> None:
+    def __init__(self, csv_path: str, config: DottableDict) -> None:
         super(FromHistoryPlanLoader, self).__init__()
-        self._plan = _load_plan_simple(csv_path)
+        self._plan = _load_plan_simple(csv_path, config.start_tick, config.end_tick)
 
     def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         return self._plan
 
 
 class DeprecatedSamplePlanLoader(PlanLoader):
-    def __init__(self, sample_config_path: str, pickup_ratio: float = 0.05) -> None:
+    def __init__(self, sample_config_path: str, config: DottableDict, pickup_ratio: float = 0.05) -> None:
         super(DeprecatedSamplePlanLoader, self).__init__()
 
         assert 0.0 < pickup_ratio < 1.0
@@ -92,6 +93,9 @@ class DeprecatedSamplePlanLoader(PlanLoader):
         self._sample_coords = _deprecated_load_sample_coords(os.path.join(sample_config_path, "route_coord.txt"))
         self._route_names = sorted(list(self._sample_coords.keys()))
         self._pickup_ratio = pickup_ratio
+
+        self._start_tick = config.start_tick
+        self._end_tick = config.end_tick
 
     def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         ret = {}
@@ -114,8 +118,8 @@ class DeprecatedSamplePlanLoader(PlanLoader):
                 order = Order(
                     order_id=str(next(GLOBAL_ORDER_COUNTER)),
                     coordinate=coord,
-                    open_time=0,
-                    close_time=1440 - 1
+                    open_time=self._start_tick,
+                    close_time=self._end_tick
                 )
                 if random[PLAN_RAND_KEY].uniform(0.0, 1.0) < self._pickup_ratio:  # Pickup order
                     # TODO: sample open_time and close_time
@@ -130,11 +134,11 @@ class DeprecatedSamplePlanLoader(PlanLoader):
         return ret
 
 
-def get_data_loader(config_path: str) -> PlanLoader:
+def get_data_loader(config_path: str, config: DottableDict) -> PlanLoader:
     if os.path.exists(os.path.join(config_path, "routes.csv")):
-        return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"))
+        return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"), config)
     if os.path.exists(os.path.join(config_path, "route_coord.txt")):
-        return DeprecatedSamplePlanLoader(config_path)
+        return DeprecatedSamplePlanLoader(config_path, config)
     raise ValueError("Cannot found correct route data.")
 
 

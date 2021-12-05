@@ -75,7 +75,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Init oncall order generator
         print("Loading oncall orders.")
-        self._oncall_order_generator = get_oncall_generator(self._config_path)
+        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config)
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         print("Oncall orders loaded.")
@@ -87,15 +87,15 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # ##### Load plan #####
         print("Loading plans.")
-        data_loader = get_data_loader(self._config_path)
+        data_loader = get_data_loader(self._config_path, self._config)
         remaining_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
 
         # TODO: fake head quarter order
         rtb_order = Order(
             order_id=str(next(GLOBAL_ORDER_COUNTER)),
             coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
-            open_time=0,
-            close_time=1440 - 1
+            open_time=self._config.start_tick,
+            close_time=self._config.end_tick
         )
 
         for plan in remaining_plan.values():

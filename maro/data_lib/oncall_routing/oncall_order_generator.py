@@ -8,8 +8,9 @@ from typing import Deque, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import Coordinate, GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Order
+from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Coordinate, Order
 from maro.simulator.utils import random
+from maro.utils import DottableDict
 
 
 class OncallOrderGenerator(object):
@@ -58,7 +59,7 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
 
 
 class SampleOncallOrderGenerator(OncallOrderGenerator):
-    def __init__(self, config_path: str) -> None:
+    def __init__(self, config_path: str, config: DottableDict) -> None:
         super(SampleOncallOrderGenerator, self).__init__()
 
         with open(os.path.join(config_path, "oncall_info.yml")) as fp:
@@ -71,13 +72,15 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
 
             self._open_times[0] = [convert_time_format(val) for val in self._open_times[0]]
 
+        self._end_tick = config.end_tick
+
     def reset(self) -> None:
         n = random[ONCALL_RAND_KEY].choice(self._oncall_numbers)
 
         coords = random[ONCALL_RAND_KEY].choices(self._coords[0], weights=self._coords[1], k=n)
         open_times = random[ONCALL_RAND_KEY].choices(self._open_times[0], weights=self._open_times[1], k=n)
         windows = random[ONCALL_RAND_KEY].choices(self._time_windows[0], weights=self._time_windows[1], k=n)
-        close_times = [min(1440 - 1, open_times[i] + windows[i]) for i in range(n)]
+        close_times = [min(self._end_tick, open_times[i] + windows[i]) for i in range(n)]
 
         buff = []
         for i in range(n):
@@ -93,15 +96,9 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         self._queue = deque(buff)
 
 
-def get_oncall_generator(config_path) -> OncallOrderGenerator:
+def get_oncall_generator(config_path: str, config: DottableDict) -> OncallOrderGenerator:
     if os.path.exists(os.path.join(config_path, "oncall_orders.csv")):
         return FromHistoryOncallOrderGenerator(os.path.join(config_path, "oncall_orders.csv"))
     if os.path.exists(os.path.join(config_path, "oncall_info.yml")):
-        return SampleOncallOrderGenerator(config_path)
+        return SampleOncallOrderGenerator(config_path, config)
     raise ValueError("Cannot found correct oncall data.")
-
-
-if __name__ == "__main__":
-    oncall_order_generator = FromHistoryOncallOrderGenerator(
-        "/maro/simulator/scenarios/oncall_routing/topologies/example_history/oncall_orders.csv"
-    )
