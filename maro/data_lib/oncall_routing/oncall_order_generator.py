@@ -46,7 +46,8 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
                 order_id=str(next(GLOBAL_ORDER_COUNTER)),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
                 open_time=convert_time_format(e["READYTIME"]),
-                close_time=convert_time_format(e["CLOSETIME"])
+                close_time=convert_time_format(e["CLOSETIME"]),
+                is_delivery=False
             )
 
             create_time = max(0, order.open_time - random[ONCALL_RAND_KEY].uniform(30, 120))
@@ -89,7 +90,8 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
                 order_id=str(next(GLOBAL_ORDER_COUNTER)),
                 coordinate=coords[i],
                 open_time=open_times[i],
-                close_time=close_times[i]
+                close_time=close_times[i],
+                is_delivery=False,
             )
             create_time = max(0, order.open_time - random[ONCALL_RAND_KEY].uniform(30, 120))
             buff.append((create_time, order))

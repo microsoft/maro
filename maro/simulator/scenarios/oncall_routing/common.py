@@ -10,6 +10,8 @@ from .order import Order
 
 class Events(Enum):
     CARRIER_ARRIVAL = "carrier_arrival"
+    ORDER_PROCESSING = "ready to process order"
+    CARRIER_DEPARTURE = "carrier_departure"
     ONCALL_RECEIVE = "oncall_receive"
 
 
@@ -30,6 +32,16 @@ class OncallReceivePayload:
 class CarrierArrivalPayload:
     carrier_idx: int
     # TODO: carrier name, route name, detailed stop info?
+
+
+@dataclass
+class CarrierDeparturePayload:
+    carrier_idx: int
+
+
+@dataclass
+class OrderProcessingPayload:
+    carrier_idx: int
 
 
 @dataclass
