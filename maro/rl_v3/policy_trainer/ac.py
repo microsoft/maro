@@ -71,7 +71,7 @@ class DiscreteActorCritic(SingleTrainer):
     def _train_step_impl(self) -> None:
         self._improve(self._get_batch())
 
-    def atomic_get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
         """
         Reference: https://tinyurl.com/2ezte4cr
         """

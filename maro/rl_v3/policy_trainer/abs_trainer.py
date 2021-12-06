@@ -140,7 +140,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._policy.set_policy_state(policy_state_dict[self._policy.name])
 
     @abstractmethod
-    def atomic_get_batch_grad(
+    def get_batch_grad(
         self,
         batch: TransitionBatch,
         scope: str = "all"
@@ -155,7 +155,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         if self._data_parallel:
             raise NotImplementedError
         else:
-            return self.atomic_get_batch_grad(batch, scope)
+            return self.get_batch_grad(batch, scope)
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):

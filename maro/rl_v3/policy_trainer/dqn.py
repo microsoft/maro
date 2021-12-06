@@ -85,7 +85,7 @@ class DQN(SingleTrainer):
         q_values = self._policy.q_values_tensor(states, actions)
         return self._loss_func(q_values, target_q_values)
 
-    def atomic_get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
         assert scope == "all", f"Unrecognized scope {scope}. Excepting 'all'."
 
         self._policy.train()

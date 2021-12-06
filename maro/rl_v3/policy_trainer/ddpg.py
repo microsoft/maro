@@ -11,6 +11,28 @@ from maro.utils import clone
 from .abs_trainer import SingleTrainer
 
 
+class DDPGActorModule(object):
+    def __init__(
+        self
+    ) -> None:
+        super(DDPGActorModule, self).__init__()
+
+        self._policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
+        self._target_policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
+
+    def _register_policy_impl(self, policy: ContinuousRLPolicy) -> None:
+        assert isinstance(policy, ContinuousRLPolicy)
+        self._policy = policy
+        self._target_policy = clone(self._policy)
+        self._target_policy.set_name(f"target_{policy.name}")
+        self._target_policy.eval()
+
+    def get_batch_grad(self) -> Dict[str, torch.Tensor]:
+
+
+
+
+
 class DDPG(SingleTrainer):
     def __init__(
         self,
@@ -78,7 +100,7 @@ class DDPG(SingleTrainer):
             self._improve(self._get_batch())
             self._update_target_policy()
 
-    def atomic_get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
         """
         Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
         """
