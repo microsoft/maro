@@ -49,7 +49,8 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
                 close_time=convert_time_format(e["CLOSETIME"])
             )
 
-            buff.append((int(order.open_time), order))
+            create_time = max(0, order.open_time - random[ONCALL_RAND_KEY].uniform(30, 120))
+            buff.append((create_time, order))
 
         buff.sort(key=lambda x: x[0])
         self._origin_data = buff
@@ -90,7 +91,8 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
                 open_time=open_times[i],
                 close_time=close_times[i]
             )
-            buff.append((int(order.open_time), order))
+            create_time = max(0, order.open_time - random[ONCALL_RAND_KEY].uniform(30, 120))
+            buff.append((create_time, order))
 
         buff.sort(key=lambda x: x[0])
         self._queue = deque(buff)
