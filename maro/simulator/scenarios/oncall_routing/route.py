@@ -34,12 +34,12 @@ class Route(NodeBase):
     def carrier_name(self) -> str:
         return self._carrier_name
 
-    def set_init_state(self, name: str, carrier_idx: int, carrier_name: str):
+    def set_init_state(self, name: str, carrier_idx: int, carrier_name: str) -> None:
         self._name = name
         self._carrier_idx = carrier_idx
         self._carrier_name = carrier_name
 
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         pass

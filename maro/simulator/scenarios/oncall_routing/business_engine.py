@@ -8,9 +8,7 @@ from typing import Deque, Dict, List, Optional
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
-from maro.data_lib.oncall_routing import FromHistoryOncallOrderGenerator
-from maro.data_lib.oncall_routing.data_loader import FromHistoryPlanLoader, PlanLoader, SamplePlanLoader
-from maro.data_lib.oncall_routing.oncall_order_generator import OncallOrderGenerator, SampleOncallOrderGenerator
+from maro.data_lib.oncall_routing import get_data_loader, get_oncall_generator
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
@@ -77,7 +75,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Init oncall order generator
         print("Loading oncall orders.")
-        self._oncall_order_generator = self._get_oncall_generator()  # TODO: move this logic to data lib?
+        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config)
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         print("Oncall orders loaded.")
@@ -89,13 +87,16 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # ##### Load plan #####
         print("Loading plans.")
-        data_loader = self._get_data_loader()  # TODO: move this logic to data lib?
+        data_loader = get_data_loader(self._config_path, self._config)
         remaining_plan: Dict[str, List[PlanElement]] = data_loader.generate_plan()
 
         # TODO: fake head quarter order
-        rtb_order = Order()
-        rtb_order.id = str(next(GLOBAL_ORDER_COUNTER))
-        rtb_order.coord = Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude)
+        rtb_order = Order(
+            order_id=str(next(GLOBAL_ORDER_COUNTER)),
+            coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
+            open_time=self._config.start_tick,
+            close_time=self._config.end_tick
+        )
 
         for plan in remaining_plan.values():
             plan.append(PlanElement(order=rtb_order))
@@ -157,7 +158,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         self._register_events()
 
-    def _init_metrics(self):
+    def _init_metrics(self) -> None:
         self._total_order_num: int = 0
         self._failed_due_to_early_arrival: int = 0
         self._total_order_in_advance: int = 0
@@ -184,20 +185,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             }
         )
 
-    def _get_oncall_generator(self) -> OncallOrderGenerator:
-        if os.path.exists(os.path.join(self._config_path, "oncall_orders.csv")):
-            return FromHistoryOncallOrderGenerator(os.path.join(self._config_path, "oncall_orders.csv"))
-        if os.path.exists(os.path.join(self._config_path, "oncall_info.yml")):
-            return SampleOncallOrderGenerator(self._config_path)
-        raise ValueError("Cannot found correct oncall data.")
-
-    def _get_data_loader(self) -> PlanLoader:
-        if os.path.exists(os.path.join(self._config_path, "routes.csv")):
-            return FromHistoryPlanLoader(os.path.join(self._config_path, "routes.csv"))
-        if os.path.exists(os.path.join(self._config_path, "route_coord.txt")):
-            return SamplePlanLoader(self._config_path)
-        raise ValueError("Cannot found correct route data.")
-
     @property
     def frame(self) -> FrameBase:
         return self._frame
@@ -223,9 +210,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         if (tick + 1) % self._config["interrupt_cycle"] == 0 and len(self._oncall_order_buffer) > 0:
             decision_event = self._event_buffer.gen_decision_event(
                 tick=tick,
-                payload=OncallRoutingPayload(
-                    oncall_orders=list(self._oncall_order_buffer)
-                )
+                payload=OncallRoutingPayload(oncall_orders=list(self._oncall_order_buffer))
             )
             self._event_buffer.insert_event(decision_event)
 
@@ -292,7 +277,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             )
             self._event_buffer.insert_event(carrier_arrival_event)
 
-    def _order_processing(self, carrier: Carrier, order: Order, tick: int):
+    def _order_processing(self, carrier: Carrier, order: Order, tick: int) -> None:
         order_status = order.get_status(tick, self._config.order_transition.buffer_before_open_time)
 
         # Update performance statistics.
@@ -316,10 +301,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._total_order_completed += 1
 
         # Update carrier payload information.
-        payload_factor = -1 if order.is_delivery else 1
-        carrier.payload_quantity += payload_factor * order.package_num
-        carrier.payload_volume += payload_factor * order.volume
-        carrier.payload_weight += payload_factor * order.weight
+        # TODO
+        # payload_factor = -1 if order.is_delivery else 1
+        # carrier.payload_quantity += payload_factor * order.package_num
+        # carrier.payload_volume += payload_factor * order.volume
+        # carrier.payload_weight += payload_factor * order.weight
 
         # TODO: to save finished order or not?
         # TODO: add order processing time
