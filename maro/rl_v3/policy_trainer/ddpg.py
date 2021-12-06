@@ -11,28 +11,6 @@ from maro.utils import clone
 from .abs_trainer import SingleTrainer
 
 
-class DDPGActorModule(object):
-    def __init__(
-        self
-    ) -> None:
-        super(DDPGActorModule, self).__init__()
-
-        self._policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
-        self._target_policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
-
-    def _register_policy_impl(self, policy: ContinuousRLPolicy) -> None:
-        assert isinstance(policy, ContinuousRLPolicy)
-        self._policy = policy
-        self._target_policy = clone(self._policy)
-        self._target_policy.set_name(f"target_{policy.name}")
-        self._target_policy.eval()
-
-    def get_batch_grad(self) -> Dict[str, torch.Tensor]:
-
-
-
-
-
 class DDPG(SingleTrainer):
     def __init__(
         self,
