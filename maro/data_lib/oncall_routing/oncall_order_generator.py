@@ -8,8 +8,9 @@ from typing import Deque, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Order
+from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Coordinate, Order
 from maro.simulator.utils import random
+from maro.utils import DottableDict
 
 
 class OncallOrderGenerator(object):
@@ -30,6 +31,10 @@ class OncallOrderGenerator(object):
         return orders
 
 
+def convert_time_format(t: int) -> int:
+    return (t // 100) * 60 + (t % 100)
+
+
 class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
     def __init__(self, csv_path: str) -> None:
         super(FromHistoryOncallOrderGenerator, self).__init__()
@@ -37,13 +42,14 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
         df = pd.read_csv(csv_path, sep=',')
         buff = []
         for e in df.to_dict(orient='records'):
-            order = Order()
-            order.id = str(next(GLOBAL_ORDER_COUNTER))
-            order.coord = (e["LAT"], e["LNG"])
-            order.open_time = e["READYTIME"]
-            order.close_time = e["CLOSETIME"]
+            order = Order(
+                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                coordinate=Coordinate(e["LAT"], e["LNG"]),
+                open_time=convert_time_format(e["READYTIME"]),
+                close_time=convert_time_format(e["CLOSETIME"])
+            )
 
-            buff.append((int(order.open_time) // 3, order))  # TODO: fake
+            buff.append((int(order.open_time), order))
 
         buff.sort(key=lambda x: x[0])
         self._origin_data = buff
@@ -52,48 +58,47 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
         self._queue = deque(self._origin_data)
 
 
-def add_time(start_time: int, window: int) -> int:
-    h, m = start_time // 100, start_time % 100
-    m += window
-    h += m // 60
-    m %= 60
-    return h * 100 + m
-
-
 class SampleOncallOrderGenerator(OncallOrderGenerator):
-    def __init__(self, config_path: str) -> None:
+    def __init__(self, config_path: str, config: DottableDict) -> None:
         super(SampleOncallOrderGenerator, self).__init__()
 
         with open(os.path.join(config_path, "oncall_info.yml")) as fp:
             oncall_info = safe_load(fp)
             self._oncall_numbers = oncall_info["oncall_numbers"]
             self._coords = oncall_info["coordinates"]
-            self._ready_times = oncall_info["ready_times"]
+            self._open_times = oncall_info["open_times"]
             self._time_windows = oncall_info["time_windows"]
             self._additional_info = oncall_info["additional_info"]
+
+            self._open_times[0] = [convert_time_format(val) for val in self._open_times[0]]
+
+        self._end_tick = config.end_tick
 
     def reset(self) -> None:
         n = random[ONCALL_RAND_KEY].choice(self._oncall_numbers)
 
         coords = random[ONCALL_RAND_KEY].choices(self._coords[0], weights=self._coords[1], k=n)
-        open_times = random[ONCALL_RAND_KEY].choices(self._ready_times[0], weights=self._ready_times[1], k=n)
+        open_times = random[ONCALL_RAND_KEY].choices(self._open_times[0], weights=self._open_times[1], k=n)
         windows = random[ONCALL_RAND_KEY].choices(self._time_windows[0], weights=self._time_windows[1], k=n)
-        close_times = [min(2359, open_times[i] + windows[i]) for i in range(n)]
+        close_times = [min(self._end_tick, open_times[i] + windows[i]) for i in range(n)]
 
         buff = []
         for i in range(n):
-            order = Order()
-            order.id = str(next(GLOBAL_ORDER_COUNTER))
-            order.coord = coords[i]
-            order.open_time = open_times[i]
-            order.close_time = close_times[i]
-            buff.append((int(order.open_time) // 3, order))  # TODO: fake
+            order = Order(
+                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                coordinate=coords[i],
+                open_time=open_times[i],
+                close_time=close_times[i]
+            )
+            buff.append((int(order.open_time), order))
 
         buff.sort(key=lambda x: x[0])
         self._queue = deque(buff)
 
 
-if __name__ == "__main__":
-    oncall_order_generator = FromHistoryOncallOrderGenerator(
-        "/maro/simulator/scenarios/oncall_routing/topologies/example_history/oncall_orders.csv"
-    )
+def get_oncall_generator(config_path: str, config: DottableDict) -> OncallOrderGenerator:
+    if os.path.exists(os.path.join(config_path, "oncall_orders.csv")):
+        return FromHistoryOncallOrderGenerator(os.path.join(config_path, "oncall_orders.csv"))
+    if os.path.exists(os.path.join(config_path, "oncall_info.yml")):
+        return SampleOncallOrderGenerator(config_path, config)
+    raise ValueError("Cannot found correct oncall data.")

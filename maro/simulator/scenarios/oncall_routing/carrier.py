@@ -27,6 +27,9 @@ class Carrier(NodeBase):
         self._name = None
         self._route_idx = None
         self._route_name = None
+        self._lat = None
+        self._lng = None
+        self._close_rtb = None
 
     @property
     def idx(self) -> int:
@@ -51,7 +54,7 @@ class Carrier(NodeBase):
     def set_init_state(
         self, name: str, route_idx: int, route_name: str,
         lat: float, lng: float, close_rtb: int
-    ):
+    ) -> None:
         self._name = name
         self._route_idx = route_idx
         self._route_name = route_name
@@ -62,11 +65,11 @@ class Carrier(NodeBase):
 
         self.reset()
 
-    def update_coordinate(self, coord: Coordinate):
+    def update_coordinate(self, coord: Coordinate) -> None:
         self.latitude = coord.lat
         self.longitude = coord.lng
 
-    def reset(self):
+    def reset(self) -> None:
         self.latitude = self._lat
         self.longitude = self._lng
         self.close_rtb_time = self._close_rtb
