@@ -30,7 +30,7 @@ class CIMTrajectory(Trajectory):
     def __init__(
         self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
         reward_time_window, fulfillment_factor, shortage_factor, time_decay,
-        finite_vessel_space=True, has_early_discharge=True 
+        finite_vessel_space=True, has_early_discharge=True
     ):
         super().__init__(env)
         self.port_attributes = port_attributes
@@ -72,7 +72,7 @@ class CIMTrajectory(Trajectory):
             plan_action = percent * (scope.discharge + early_discharge) - early_discharge
             actual_action = round(plan_action) if plan_action > 0 else round(percent * scope.discharge)
         else:
-            actual_action, action_type = 0, None
+            actual_action, action_type = 0, ActionType.LOAD
 
         return {port: Action(vessel, port, actual_action, action_type)}
 

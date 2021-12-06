@@ -3,9 +3,9 @@ name: test
 
 on:
   push:
-    branches: [ master, v0.1, v0.2 ]
+    branches: [ master, v0.1, v0.2, v0.3 ]
   pull_request:
-    branches: [ master, v0.1, v0.2 ]
+    branches: [ master, v0.1, v0.2, v0.3 ]
   workflow_dispatch:
 
 jobs:
@@ -13,8 +13,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
         matrix:
-          os: [ubuntu-16.04, ubuntu-18.04, windows-latest, macos-latest]
-          python-version: [3.6, 3.7]
+          os: [ubuntu-18.04, windows-latest, macos-latest]
+          python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -39,7 +39,7 @@ jobs:
     - name: Install torch on Windows
       if: runner.os == 'Windows'
       run: |
-        pip install torch===1.6.0 torchvision===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+        pip install torch===1.7.1 torchvision===0.8.2 -f https://download.pytorch.org/whl/torch_stable.html
 
     - name: Install test dependencies
       run: |

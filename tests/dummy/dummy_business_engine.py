@@ -45,7 +45,7 @@ class DummyEngine(AbsBusinessEngine):
 
         return tick+1 == self._max_tick
 
-    def reset(self):
+    def reset(self, keep_seed: bool = False):
         self._frame.reset()
         self._frame.snapshots.reset()
 

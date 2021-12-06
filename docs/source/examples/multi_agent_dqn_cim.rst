@@ -4,7 +4,7 @@ Multi Agent DQN for CIM
 This example demonstrates how to use MARO's reinforcement learning (RL) toolkit to solve the container
 inventory management (CIM) problem. It is formalized as a multi-agent reinforcement learning problem,
 where each port acts as a decision agent. When a vessel arrives at a port, these agents must take actions
-by transfering a certain amount of containers to / from the vessel. The objective is for the agents to
+by transferring a certain amount of containers to / from the vessel. The objective is for the agents to
 learn policies that minimize the overall container shortage.
 
 Trajectory
@@ -19,7 +19,7 @@ in the roll-out loop. In this example,
     to or unloaded from the vessel) to action objects that can be executed by the environment.
   * ``get_offline_reward`` computes the reward of a given action as a linear combination of fulfillment and
     shortage within a future time frame.
-  * ``on_finish`` processes a complete trajectory into data that can be used directly by the learning agents. 
+  * ``on_finish`` processes a complete trajectory into data that can be used directly by the learning agents.
 
 
 .. code-block:: python
@@ -27,7 +27,7 @@ in the roll-out loop. In this example,
         def __init__(
             self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
             reward_time_window, fulfillment_factor, shortage_factor, time_decay,
-            finite_vessel_space=True, has_early_discharge=True 
+            finite_vessel_space=True, has_early_discharge=True
         ):
             super().__init__(env)
             self.port_attributes = port_attributes
@@ -69,7 +69,7 @@ in the roll-out loop. In this example,
                 plan_action = percent * (scope.discharge + early_discharge) - early_discharge
                 actual_action = round(plan_action) if plan_action > 0 else round(percent * scope.discharge)
             else:
-                actual_action, action_type = 0, None
+                actual_action, action_type = 0, ActionType.LOAD
 
             return {port: Action(vessel, port, actual_action, action_type)}
 
@@ -113,7 +113,7 @@ Agent
 
 The out-of-the-box DQN is used as our agent.
 
-.. code-block:: python    
+.. code-block:: python
     agent_config = {
         "model": ...,
         "optimization": ...,
@@ -149,7 +149,7 @@ The learner's side requires a concrete learner class that inherits from ``AbsLea
 method which contains the main training loop. Here the implementation is similar to the single-threaded version
 except that the ``collect`` method is used to obtain roll-out data from the actors (since the roll-out executors
 are located on the actors' side). The agents created here are where training occurs and hence always contains the
-latest policies. 
+latest policies.
 
 .. code-block:: python
     def cim_dqn_learner():
@@ -165,4 +165,4 @@ latest policies.
 
 .. note::
 
-  All related code snippets are supported in `maro playground <https://hub.docker.com/r/arthursjiang/maro>`_.
+  All related code snippets are supported in `maro playground <https://hub.docker.com/r/maro2020/playground>`_.

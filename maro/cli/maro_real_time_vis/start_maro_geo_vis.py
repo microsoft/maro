@@ -12,12 +12,15 @@ from maro.utils.exception.cli_exception import CliError
 
 from .back_end.vis_app.data_process.request.request_params import request_settings
 
+GEO_FRONT_SERVICE_DOCKER_IMAGE = "maro2020/geo_front_service"
+DEFAULT_FRONT_END_PORT = 8080
+
 
 def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwargs: dict):
     grader_path = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
     if start == 'database':
 
-        # Start the databse container.
+        # Start the database container.
         database_start_path = f"{grader_path}/streamit/server"
         subprocess.check_call(
             'sh run_docker.sh',
@@ -77,15 +80,14 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
 
         # Start front-end docker container.
         exec_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-        os.system("docker pull meroychen/geo_front_service")
+        os.system(f"docker pull {GEO_FRONT_SERVICE_DOCKER_IMAGE}")
         os.system("docker stop geo-vis")
         os.system("docker rm geo-vis")
-        if front_end_port is not None:
-            os.system(f"docker run -d -p {front_end_port}:8080 --name geo-vis meroychen/geo_front_service")
-        else:
-            os.system("docker run -d -p 8080:8080 --name geo-vis meroychen/geo_front_service")
+        os.system(
+            f"docker run -d -p {front_end_port if front_end_port is not None else DEFAULT_FRONT_END_PORT}:8080 "
+            f"--name geo-vis {GEO_FRONT_SERVICE_DOCKER_IMAGE}"
+        )
         back_end_path = f"{exec_path}/back_end/vis_app/app.py"
         os.system(f"python {back_end_path}")
-
     else:
         raise CliError("Please input 'database' or 'service'.")

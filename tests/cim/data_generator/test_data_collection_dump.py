@@ -5,11 +5,10 @@ import os
 import tempfile
 import unittest
 
-import numpy as np
-
 from maro.data_lib.cim.cim_data_dump import dump_from_config
 
 MAX_TICK = 20
+
 
 class TestDataCollectionDump(unittest.TestCase):
     def test_dump(self):
@@ -19,7 +18,9 @@ class TestDataCollectionDump(unittest.TestCase):
         dump_from_config(config_path, output_folder, 20)
 
         # check output folder
-        for fname in ["ports.csv", "vessels.csv", "routes.csv", "global_order_proportion.txt", "order_proportion.csv", "misc.yml"]:
+        for fname in [
+            "ports.csv", "vessels.csv", "routes.csv", "global_order_proportion.txt", "order_proportion.csv", "misc.yml"
+        ]:
             self.assertTrue(os.path.exists(os.path.join(output_folder, fname)), fname)
 
         # TODO: check content?
@@ -37,5 +38,6 @@ class TestDataCollectionDump(unittest.TestCase):
         with self.assertRaises(AssertionError):
             dump_from_config(config_path, None, 20)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     unittest.main()

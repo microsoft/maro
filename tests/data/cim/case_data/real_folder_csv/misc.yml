@@ -1,0 +1,7 @@
+max_tick: 224
+container_volume: 1
+past_stop_number: 4
+future_stop_number: 3
+seed: 4096
+dsch_cost_factor: 0.05
+load_cost_factor: 0.05
