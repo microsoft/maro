@@ -22,6 +22,7 @@ data/
 maro_venv/
 pyvenv.cfg
 htmlcov/
-.coverage
 *supply_chain_*/
 examples/supply_chain/docker-compose.yml
+.coverage
+.coveragerc
