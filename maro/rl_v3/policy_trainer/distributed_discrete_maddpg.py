@@ -331,8 +331,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         self._device_str = device
 
         self._get_q_critic_net_func = get_q_critic_net_func
-        self._q_critic_net: Optional[MultiQNet] = None
-        self._target_q_critic_net: Optional[MultiQNet] = None
+        self._critic_worker: Optional[DiscreteMADDPGWorker] = None
         self._group_size = group_size
         self._replay_memory_capacity = replay_memory_capacity
         self._target_policies: Optional[List[DiscretePolicyGradient]] = None
@@ -364,14 +363,12 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         self._policy_names = [policy.name for policy in policies]
 
         if self._shared_critic:
-            self._q_critic_net = self._get_q_critic_net_func()
-            self._q_critic_net.to(self._device)
-            self._target_q_critic_net = clone(self._q_critic_net)
-            self._target_q_critic_net.to(self._device)
-            self._target_q_critic_net.eval()
-        else:
-            self._q_critic_net = None
-            self._target_q_critic_net = None
+            self._critic_worker = DiscreteMADDPGWorker(
+                reward_discount=self._reward_discount, get_q_critic_net_func=self._get_q_critic_net_func,
+                shared_critic=self._shared_critic, device=self._device_str, data_parallel=self._data_parallel,
+                critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
+                update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
+            )
 
         self._workers: List[DiscreteMADDPGWorker] = []
         self._worker_indexes: List[List[int]] = []
@@ -419,20 +416,12 @@ class DistributedDiscreteMADDPG(MultiTrainer):
 
         # Update critic
         if self._shared_critic:
-            grads = self._get_batch_grad(
-                batch,
-                tensor_dict={"next_actions": next_actions},
-                scope="critic"
-            )
-            self._q_critic_net.train()
-            self._q_critic_net.apply_gradients(grads["critic_grads"][0])
+            self._critic_worker.update_critics(next_actions=next_actions)
+            net_state, target_net_state = self._critic_worker.get_critic_state()
 
             # Sync latest critic to workers
             for worker in self._workers:
-                worker.set_critic_state(
-                    net_state=self._q_critic_net.get_net_state(),
-                    target_net_state=self._target_q_critic_net.get_net_state()
-                )
+                worker.set_critic_state(net_state=net_state, target_net_state=target_net_state)
         else:
             for worker in self._workers:
                 worker.update_critics(next_actions=next_actions)
@@ -453,60 +442,19 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         # Update version
         self._update_target_policy()
 
-    def _get_critic_grad(
-        self,
-        batch: MultiTransitionBatch,
-        tensor_dict: Dict[str, object]
-    ) -> List[Dict[str, torch.Tensor]]:
-        assert self._shared_critic
-
-        states = ndarray_to_tensor(batch.states, self._device)  # x
-        actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
-
-        next_actions = tensor_dict["next_actions"]
-        assert isinstance(next_actions, list)
-
-        next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
-        rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), self._device)  # r
-        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
-
-        self._q_critic_net.train()
-
-        with torch.no_grad():
-            next_q_values = self._target_q_critic_net.q_values(
-                states=next_states,  # x'
-                actions=next_actions  # a'
-            )  # Q'(x', a')
-        # sum(rewards) for shard critic
-        target_q_values = (rewards.sum(0) + self._reward_discount * (1 - terminals.float()) * next_q_values)
-        q_values = self._q_critic_net.q_values(
-            states=states,  # x
-            actions=actions  # a
-        )  # Q(x, a)
-        critic_loss = self._q_value_loss_func(q_values, target_q_values.detach()) * self._critic_loss_coef
-
-        return [self._q_critic_net.get_gradients(critic_loss)]
-
     def get_batch_grad(
         self,
         batch: MultiTransitionBatch,
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
-        assert scope in ("all", "critic"), \
-            f"Unrecognized scope {scope}. Excepting 'all', 'critic'."
-
-        grad_dict = {}
-        if scope in ("all", "critic"):
-            grad_dict["critic_grads"] = self._get_critic_grad(batch, tensor_dict)
-
-        return grad_dict
+        raise NotImplementedError
 
     def _update_target_policy(self) -> None:
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._update_target_every:
             if self._shared_critic:
-                self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
+                self._critic_worker.update_target_policy()
             self._target_policy_version = self._policy_version
 
         for worker in self._workers:
