@@ -69,7 +69,7 @@ def normalize_weights(weights: List[float]) -> List[float]:
 
 
 class SampleOncallOrderGenerator(OncallOrderGenerator):
-    def __init__(self, config_path: str, config: DottableDict) -> None:
+    def __init__(self, config_path: str, data_loader_config: DottableDict) -> None:
         super(SampleOncallOrderGenerator, self).__init__()
 
         with open(os.path.join(config_path, "oncall_info.yml")) as fp:
@@ -82,8 +82,8 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
 
             self._open_times[0] = [convert_time_format(val) for val in self._open_times[0]]
 
-        self._start_tick = config.start_tick
-        self._end_tick = config.end_tick
+        self._start_tick = data_loader_config.start_tick
+        self._end_tick = data_loader_config.end_tick
 
         new_open_times = [[], []]
         for t, weight in zip(self._open_times[0], self._open_times[1]):
@@ -119,10 +119,10 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         self._queue = deque(buff)
 
 
-def get_oncall_generator(config_path: str, config: DottableDict) -> OncallOrderGenerator:
-    if config.oncall_generator_type == "history":
+def get_oncall_generator(config_path: str, data_loader_config: DottableDict) -> OncallOrderGenerator:
+    if data_loader_config.oncall_generator_type == "history":
         return FromHistoryOncallOrderGenerator(os.path.join(config_path, "oncall_orders.csv"))
-    elif config.oncall_generator_type == "sample":
-        return SampleOncallOrderGenerator(config_path, config)
+    elif data_loader_config.oncall_generator_type == "sample":
+        return SampleOncallOrderGenerator(config_path, data_loader_config)
     else:
         raise ValueError("Cannot found correct oncall data.")

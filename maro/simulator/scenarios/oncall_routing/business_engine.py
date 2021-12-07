@@ -79,14 +79,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Step 2: Init oncall order generator, oncall order buffer, waiting order dict.
         print("Loading oncall orders.")
-        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config)
+        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config.data_loader_config)
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
-        self._data_loader = get_data_loader(self._config_path, self._config)
+        self._data_loader = get_data_loader(self._config_path, self._config.data_loader_config)
         remaining_plan: Dict[str, List[PlanElement]] = self._load_route_plan()
 
         # Step 4: Init predictor.
@@ -153,8 +153,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         rtb_order = Order(
             order_id=str(next(GLOBAL_ORDER_COUNTER)),
             coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
-            open_time=self._config.start_tick,
-            close_time=self._config.end_tick,
+            open_time=self._config.data_loader_config.start_tick,
+            close_time=self._config.data_loader_config.end_tick,
             is_delivery=None,
             status=OrderStatus.DUMMY
         )
