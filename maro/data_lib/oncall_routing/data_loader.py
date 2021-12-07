@@ -135,13 +135,9 @@ class DeprecatedSamplePlanLoader(PlanLoader):
 
 
 def get_data_loader(config_path: str, config: DottableDict) -> PlanLoader:
-    if os.path.exists(os.path.join(config_path, "routes.csv")):
+    if config.data_loader_type == "history":
         return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"), config)
-    if os.path.exists(os.path.join(config_path, "route_coord.txt")):
+    elif config.data_loader_type == "sample":
         return DeprecatedSamplePlanLoader(config_path, config)
-    raise ValueError("Cannot found correct route data.")
-
-
-if __name__ == "__main__":
-    loader = DeprecatedSamplePlanLoader(sample_config_path="C:/Users/huoranli/Downloads/fedex/1129_coord_pool")
-    loader.generate_plan()
+    else:
+        raise ValueError("Cannot found correct route data.")
