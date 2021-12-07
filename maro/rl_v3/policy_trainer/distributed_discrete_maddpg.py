@@ -416,6 +416,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
 
         # Update critic
         if self._shared_critic:
+            self._critic_worker.set_batch(batch)
             self._critic_worker.update_critics(next_actions=next_actions)
             net_state, target_net_state = self._critic_worker.get_critic_state()
 
