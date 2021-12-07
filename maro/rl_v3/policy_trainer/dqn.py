@@ -26,9 +26,10 @@ class DQN(SingleTrainer):
         soft_update_coef: float = 0.1,
         double: bool = False,
         random_overwrite: bool = False,
-        device: str = None
+        device: str = None,
+        data_parallel: bool = False
     ) -> None:
-        super(DQN, self).__init__(name, device)
+        super(DQN, self).__init__(name, device, data_parallel)
 
         self._policy: Optional[ValueBasedPolicy] = None
         self._target_policy: Optional[ValueBasedPolicy] = None
@@ -85,7 +86,12 @@ class DQN(SingleTrainer):
         q_values = self._policy.q_values_tensor(states, actions)
         return self._loss_func(q_values, target_q_values)
 
-    def get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(
+        self,
+        batch: TransitionBatch,
+        tensor_dict: Dict[str, object] = None,
+        scope: str = "all"
+    ) -> Dict[str, Dict[str, torch.Tensor]]:
         assert scope == "all", f"Unrecognized scope {scope}. Excepting 'all'."
 
         self._policy.train()

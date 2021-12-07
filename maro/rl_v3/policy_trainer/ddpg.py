@@ -26,9 +26,10 @@ class DDPG(SingleTrainer):
         soft_update_coef: float = 1.0,
         train_batch_size: int = 32,
         critic_loss_coef: float = 0.1,
-        device: str = None
+        device: str = None,
+        data_parallel: bool = False
     ) -> None:
-        super(DDPG, self).__init__(name=name, device=device)
+        super(DDPG, self).__init__(name=name, device=device, data_parallel=data_parallel)
 
         self._policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
         self._target_policy: ContinuousRLPolicy = Optional[ContinuousRLPolicy]
@@ -78,7 +79,12 @@ class DDPG(SingleTrainer):
             self._improve(self._get_batch())
             self._update_target_policy()
 
-    def get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(
+        self,
+        batch: TransitionBatch,
+        tensor_dict: Dict[str, object] = None,
+        scope: str = "all"
+    ) -> Dict[str, Dict[str, torch.Tensor]]:
         """
         Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
         """

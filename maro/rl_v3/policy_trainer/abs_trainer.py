@@ -93,8 +93,8 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains only one policy.
     """
-    def __init__(self, name: str, device: str = None) -> None:
-        super(SingleTrainer, self).__init__(name, device)
+    def __init__(self, name: str, device: str = None, data_parallel: bool = False) -> None:
+        super(SingleTrainer, self).__init__(name, device, data_parallel)
         self._policy: Optional[RLPolicy] = None
         self._replay_memory = Optional[ReplayMemory]
 
@@ -143,6 +143,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def get_batch_grad(
         self,
         batch: TransitionBatch,
+        tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, Dict[str, torch.Tensor]]:
         raise NotImplementedError
@@ -150,27 +151,32 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def _get_batch_grad(
         self,
         batch: TransitionBatch,
+        tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, Dict[str, torch.Tensor]]:
         if self._data_parallel:
             raise NotImplementedError
         else:
-            return self.get_batch_grad(batch, scope)
+            return self.get_batch_grad(batch, tensor_dict, scope)
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains multiple policies.
     """
-    def __init__(self, name: str, device: str = None) -> None:
-        super(MultiTrainer, self).__init__(name, device)
+    def __init__(self, name: str, device: str = None, data_parallel: bool = False) -> None:
+        super(MultiTrainer, self).__init__(name, device, data_parallel)
         self._policy_dict: Dict[str, RLPolicy] = {}
         self._policies: List[RLPolicy] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
 
     @property
-    def num_policies(self):
-        return len(self._policies)
+    def num_policies(self) -> int:
+        return self._get_num_policies()
+
+    @abstractmethod
+    def _get_num_policies(self) -> int:
+        raise NotImplementedError
 
     def record(
         self,
@@ -197,19 +203,11 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
         pass
 
-    def get_policy_state_dict(self) -> Dict[str, object]:
-        return {policy_name: policy.get_policy_state() for policy_name, policy in self._policy_dict.items()}
-
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        assert len(policy_state_dict) == len(self._policy_dict)
-        for policy_name, policy_state in policy_state_dict.items():
-            assert policy_name in self._policy_dict
-            self._policy_dict[policy_name].set_policy_state(policy_state)
-
     @abstractmethod
-    def atomic_get_batch_grad(
+    def get_batch_grad(
         self,
         batch: MultiTransitionBatch,
+        tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
         raise NotImplementedError
@@ -217,9 +215,10 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def _get_batch_grad(
         self,
         batch: MultiTransitionBatch,
+        tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
         if self._data_parallel:
             raise NotImplementedError
         else:
-            return self.atomic_get_batch_grad(batch, scope)
+            return self.get_batch_grad(batch, tensor_dict, scope)

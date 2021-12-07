@@ -30,9 +30,10 @@ class DiscreteActorCritic(SingleTrainer):
         critic_loss_cls: Callable = None,
         min_logp: float = None,
         critic_loss_coef: float = 0.1,
-        device: str = None
+        device: str = None,
+        data_parallel: bool = False
     ) -> None:
-        super(DiscreteActorCritic, self).__init__(name, device)
+        super(DiscreteActorCritic, self).__init__(name, device, data_parallel)
 
         self._replay_memory_capacity = replay_memory_capacity
 
@@ -71,7 +72,12 @@ class DiscreteActorCritic(SingleTrainer):
     def _train_step_impl(self) -> None:
         self._improve(self._get_batch())
 
-    def get_batch_grad(self, batch: TransitionBatch, scope: str = "all") -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(
+        self,
+        batch: TransitionBatch,
+        tensor_dict: Dict[str, object] = None,
+        scope: str = "all"
+    ) -> Dict[str, Dict[str, torch.Tensor]]:
         """
         Reference: https://tinyurl.com/2ezte4cr
         """
