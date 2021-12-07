@@ -83,7 +83,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
-        self._unallocated_oncall_num = 0
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
