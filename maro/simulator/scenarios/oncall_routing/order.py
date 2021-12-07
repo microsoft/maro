@@ -3,6 +3,9 @@
 
 from enum import Enum
 from itertools import count
+from typing import Optional
+
+from maro.utils import DottableDict
 
 from .coordinate import Coordinate
 
@@ -10,13 +13,13 @@ GLOBAL_ORDER_COUNTER = count()
 
 
 class OrderStatus(Enum):
-    # TODO: confirm the order status
-    NOT_READY = "order not ready yet"
+    NOT_READY = "order not ready yet"   # TODO: add the carrier waiting event, wait till ready
     READY_IN_ADVANCE = "order not reach the open time but ready for service"
     IN_PROCESS = "order in process"
     IN_PROCESS_BUT_DELAYED = "order in process but delayed"
-    FINISHED = "order finished"
+    COMPLETED = "order completed"
     TERMINATED = "order terminated"
+    DUMMY = "dummy order, for case like rtb trigger"
 
 
 class Order:
@@ -26,38 +29,49 @@ class Order:
         coordinate: Coordinate,
         open_time: int,
         close_time: int,
-        is_delivery: bool = None
+        is_delivery: Optional[bool],
+        status: OrderStatus = OrderStatus.NOT_READY
     ) -> None:
         assert 0 <= open_time <= close_time < 1440
 
-        self.id = order_id
-        self.coord = coordinate
-        self.privilege = None
-        # TODO: align the open time and close time with env tick
-        self.open_time = open_time
-        self.close_time = close_time
-        self.is_delivery = is_delivery
-        self.service_level = None
-        self.package_num = None
-        self.weight = None
-        self.volume = None
-        self.creation_time = None
-        self.delay_buffer = None
-        self._status = OrderStatus.NOT_READY
+        self.id: str = order_id
+        self.coord: Coordinate = coordinate
+        self.privilege = None   # TODO: Enum class?
+        self.open_time: int = open_time
+        self.close_time: int = close_time
+        self.is_delivery: bool = is_delivery
+        self.service_level = None   # TODO: Enum class?
+        self.package_num: Optional[int] = None
+        self.weight: Optional[float] = None
+        self.volume: Optional[float] = None
+        self.creation_time: Optional[int] = None
+        self.delay_buffer: Optional[int] = None  # TODO: keep the independent one or use a general setting
+        self._status = status
 
-    def get_status(self, tick: int, advance_buffer: int = 0) -> OrderStatus:
-        # TODO: update here or in BE?
-        if self._status == OrderStatus.NOT_READY and tick >= self.open_time - advance_buffer:
+    def get_status(self, tick: int, transition_config: DottableDict) -> OrderStatus:
+        # TODO: fresh order status at each tick if needed
+        if self._status == OrderStatus.NOT_READY and tick >= self.open_time - transition_config.buffer_before_open_time:
             self._status = OrderStatus.READY_IN_ADVANCE
         if self._status == OrderStatus.READY_IN_ADVANCE and tick >= self.open_time:
             self._status = OrderStatus.IN_PROCESS
         if self._status == OrderStatus.IN_PROCESS and tick > self.close_time:
             self._status = OrderStatus.IN_PROCESS_BUT_DELAYED
-        # TODO: logic for terminated?
+        if (
+            self._status == OrderStatus.IN_PROCESS_BUT_DELAYED
+            and tick > min(
+                self.close_time + transition_config.buffer_after_open_time,
+                transition_config.last_tick_for_order_processing
+            )
+        ):
+            self._status = OrderStatus.TERMINATED
         return self._status
 
     def set_status(self, var: OrderStatus) -> None:
         self._status = var
 
     def __repr__(self) -> str:
-        return f"[Order]: id: {self.id}, coord: {self.coord}"
+        # TODO: add more information
+        return (
+            f"[Order]: id: {self.id}, coord: {self.coord}, status: {self._status}, "
+            f"open time: {self.open_time}, close time: {self.close_time}"
+        )

@@ -11,7 +11,8 @@ if __name__ == "__main__":
         # options={"config_path": "C:/workspace/fedex_topology/example_sample/"}
     )
 
-    env.reset()
+    # TODO: check the reset functionality
+    # env.reset()
     metrics, decision_event, is_done = env.step(None)
     while not is_done:
         assert isinstance(decision_event, OncallRoutingPayload)
