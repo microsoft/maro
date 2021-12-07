@@ -26,6 +26,9 @@ class EstimatedDurationPredictor:
         distance = geo_distance_meter(source_coordinate, target_coordinate)
         return math.ceil(max(1.0, distance / 200.0))  # TODO: fake
 
+    def reset(self):
+        pass
+
 
 class ActualDurationSampler:
     def sample(
@@ -40,3 +43,6 @@ class ActualDurationSampler:
         variance = estimated_arrival_time * 0.1
         noise = random[EST_RAND_KEY].normalvariate(mu=0.0, sigma=variance)
         return math.ceil(max(1.0, noise + estimated_arrival_time))  # TODO: fake
+
+    def reset(self):
+        pass

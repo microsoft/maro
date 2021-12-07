@@ -7,7 +7,9 @@ from typing import Dict, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, PLAN_RAND_KEY, Coordinate, Order, PlanElement
+from maro.simulator.scenarios.oncall_routing import (
+    GLOBAL_ORDER_ID_GENERATOR, PLAN_RAND_KEY, Coordinate, Order, PlanElement
+)
 from maro.simulator.utils import random
 from maro.utils import DottableDict
 
@@ -26,7 +28,7 @@ def _load_plan_simple(csv_path: str, start_tick: int, end_tick: int) -> Dict[str
         for e in data.to_dict(orient='records'):
             # TODO
             order = Order(
-                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                order_id=next(GLOBAL_ORDER_ID_GENERATOR),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
                 open_time=start_tick,
                 close_time=end_tick,
@@ -116,7 +118,7 @@ class DeprecatedSamplePlanLoader(PlanLoader):
             plan = []
             for coord in coords:
                 order = Order(
-                    order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                    order_id=next(GLOBAL_ORDER_ID_GENERATOR),
                     coordinate=coord,
                     open_time=self._start_tick,
                     close_time=self._end_tick

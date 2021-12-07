@@ -8,7 +8,7 @@ from typing import Deque, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_COUNTER, ONCALL_RAND_KEY, Coordinate, Order
+from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_ID_GENERATOR, ONCALL_RAND_KEY, Coordinate, Order
 from maro.simulator.utils import random
 from maro.utils import DottableDict
 
@@ -46,7 +46,7 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
         buff = []
         for e in df.to_dict(orient='records'):
             order = Order(
-                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                order_id=next(GLOBAL_ORDER_ID_GENERATOR),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
                 open_time=convert_time_format(e["READYTIME"]),
                 close_time=convert_time_format(e["CLOSETIME"]),
@@ -106,7 +106,7 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         buff = []
         for i in range(n):
             order = Order(
-                order_id=str(next(GLOBAL_ORDER_COUNTER)),
+                order_id=next(GLOBAL_ORDER_ID_GENERATOR),
                 coordinate=coords[i],
                 open_time=open_times[i],
                 close_time=close_times[i],

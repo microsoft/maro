@@ -9,11 +9,36 @@ from maro.utils import DottableDict
 
 from .coordinate import Coordinate
 
-GLOBAL_ORDER_COUNTER = count()
+
+class OrderIdGenerator(object):
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+            cls.__instance = super(OrderIdGenerator, cls).__new__(cls, *args, **kwargs)
+        return cls.__instance
+
+    def __init__(self) -> None:
+        self._counter = count()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> str:
+        return str(next(self._counter))
+
+    def next(self):
+        return self.__next__()
+
+    def reset(self):
+        self._counter = count()
+
+
+GLOBAL_ORDER_ID_GENERATOR = OrderIdGenerator()
 
 
 class OrderStatus(Enum):
-    NOT_READY = "order not ready yet"   # TODO: add the carrier waiting event, wait till ready
+    NOT_READY = "order not ready yet"
     READY_IN_ADVANCE = "order not reach the open time but ready for service"
     IN_PROCESS = "order in process"
     IN_PROCESS_BUT_DELAYED = "order in process but delayed"

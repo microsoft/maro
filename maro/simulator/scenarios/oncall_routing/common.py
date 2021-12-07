@@ -31,7 +31,6 @@ class OncallReceivePayload:
 @dataclass
 class CarrierArrivalPayload:
     carrier_idx: int
-    # TODO: carrier name, route name, detailed stop info?
 
 
 @dataclass

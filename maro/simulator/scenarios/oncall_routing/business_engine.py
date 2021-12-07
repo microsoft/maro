@@ -3,7 +3,6 @@
 
 import os
 from collections import defaultdict, deque
-from itertools import count
 from typing import Deque, Dict, List, Optional
 
 from yaml import safe_load
@@ -24,7 +23,7 @@ from .common import (
 from .coordinate import Coordinate
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
-from .order import GLOBAL_ORDER_COUNTER, Order, OrderStatus
+from .order import GLOBAL_ORDER_ID_GENERATOR, Order, OrderStatus
 from .route import Route
 from .utils import GLOBAL_RAND_KEY
 
@@ -147,11 +146,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def _load_route_plan(self) -> Dict[str, List[PlanElement]]:
         remaining_plan: Dict[str, List[PlanElement]] = self._data_loader.generate_plan()
-        # TODO: sort the plan in a same location by (open time, close time)
 
         # TODO: fake head quarter order
         rtb_order = Order(
-            order_id=str(next(GLOBAL_ORDER_COUNTER)),
+            order_id=next(GLOBAL_ORDER_ID_GENERATOR),
             coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
             open_time=self._config.data_loader_config.start_tick,
             close_time=self._config.data_loader_config.end_tick,
@@ -160,6 +158,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         )
 
         for plan in remaining_plan.values():
+            # Sort the plan elements in a same location by (open time, close time)
+            # TODO: sort the plan in a same location by (open time, close time)
+
+            # Add a DUMMY order to let the carrier return to building.
             plan.append(PlanElement(order=rtb_order))
         self._route_name_list: List[str] = sorted(list(remaining_plan.keys()))
         return remaining_plan
@@ -263,8 +265,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         random.seed(new_seed)
 
         # Step 2
-        # TODO: replaced with a reset method
-        GLOBAL_ORDER_COUNTER = count()
+        GLOBAL_ORDER_ID_GENERATOR.reset()
         self._oncall_order_generator.reset()
         self._oncall_order_buffer.clear()
         self._waiting_order_dict.clear()
@@ -274,7 +275,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         remaining_plan = self._load_route_plan()
 
         # Step 4
-        # TODO: predictor reset
+        self._actual_duration_predictor.reset()
+        self._estimated_duration_predictor.reset()
 
         # Step 5
         self._snapshots.reset()
