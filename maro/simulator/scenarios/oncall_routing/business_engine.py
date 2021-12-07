@@ -79,14 +79,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Step 2: Init oncall order generator, oncall order buffer, waiting order dict.
         print("Loading oncall orders.")
-        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config)
+        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config.data_loader_config)
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
-        self._data_loader = get_data_loader(self._config_path, self._config)
+        self._data_loader = get_data_loader(self._config_path, self._config.data_loader_config)
         remaining_plan: Dict[str, List[PlanElement]] = self._load_route_plan()
 
         # Step 4: Init predictor.
@@ -101,7 +101,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         )
         self._snapshots = self._frame.snapshots
 
-        # Step 6: Init nodes(Carriers & Routes), name-index mapping.
+        # Step 6: Init nodes (Carriers & Routes), name-index mapping.
         self._carriers: List[Carrier] = self._frame.carriers
         self._routes: List[Route] = self._frame.routes
         self._route_name2idx = {}
@@ -153,8 +153,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         rtb_order = Order(
             order_id=str(next(GLOBAL_ORDER_COUNTER)),
             coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
-            open_time=self._config.start_tick,
-            close_time=self._config.end_tick,
+            open_time=self._config.data_loader_config.start_tick,
+            close_time=self._config.data_loader_config.end_tick,
             is_delivery=None,
             status=OrderStatus.DUMMY
         )
@@ -333,7 +333,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         order_status = plan[0].order.get_status(event.tick, self._config.order_transition)
 
-        # TODO: furthur simplify the order processing logic?
+        # TODO: further simplify the order processing logic?
         if order_status == OrderStatus.NOT_READY:
             # Wait, and process when it's ready in the future.
             order_processing_payload = OrderProcessingPayload(carrier_idx=carrier_idx)
@@ -515,7 +515,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for route in self._routes:
                 plan = route.remaining_plan
                 if len(plan) == 1:
-                    print(f"carrier_idx: {route.carrier_idx}, remaining plan: {len(route.remaining_plan)} {plan[0].order}")
+                    print(
+                        f"carrier_idx: {route.carrier_idx}, "
+                        f"remaining plan: {len(route.remaining_plan)} {plan[0].order}"
+                    )
                 elif len(plan) > 0:
                     print(f"carrier_idx: {route.carrier_idx}, remaining plan: {len(route.remaining_plan)}")
         return is_done
