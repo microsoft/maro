@@ -83,6 +83,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._oncall_order_generator.reset()
         self._oncall_order_buffer: Deque[Order] = deque()
         self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
+        self._unallocated_oncall_num = 0
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
@@ -101,7 +102,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         )
         self._snapshots = self._frame.snapshots
 
-        # Step 6: Init nodes(Carriers & Routes), name-index mapping.
+        # Step 6: Init nodes (Carriers & Routes), name-index mapping.
         self._carriers: List[Carrier] = self._frame.carriers
         self._routes: List[Route] = self._frame.routes
         self._route_name2idx = {}
@@ -333,7 +334,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         order_status = plan[0].order.get_status(event.tick, self._config.order_transition)
 
-        # TODO: furthur simplify the order processing logic?
+        # TODO: further simplify the order processing logic?
         if order_status == OrderStatus.NOT_READY:
             # Wait, and process when it's ready in the future.
             order_processing_payload = OrderProcessingPayload(carrier_idx=carrier_idx)
@@ -515,7 +516,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for route in self._routes:
                 plan = route.remaining_plan
                 if len(plan) == 1:
-                    print(f"carrier_idx: {route.carrier_idx}, remaining plan: {len(route.remaining_plan)} {plan[0].order}")
+                    print(
+                        f"carrier_idx: {route.carrier_idx}, "
+                        f"remaining plan: {len(route.remaining_plan)} {plan[0].order}"
+                    )
                 elif len(plan) > 0:
                     print(f"carrier_idx: {route.carrier_idx}, remaining plan: {len(route.remaining_plan)}")
         return is_done

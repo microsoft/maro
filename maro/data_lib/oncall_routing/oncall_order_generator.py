@@ -25,6 +25,9 @@ class OncallOrderGenerator(object):
 
     def get_oncall_orders(self, tick: int) -> List[Order]:
         orders = []
+        if len(self._queue) > 0 and self._queue[0][0] < tick:
+            raise ValueError(f"Unprocessed oncall order at tick {self._queue[0][0]} before current tick {tick}.")
+
         while len(self._queue) > 0 and self._queue[0][0] == tick:
             _, order = self._queue.popleft()
             orders.append(order)
