@@ -1,6 +1,3 @@
-start_tick: 480 # TODO: re-organized
-end_tick: 960
-
 seed: 1024
 
 station:
@@ -16,3 +13,9 @@ order_transition:
   last_tick_for_order_processing: 960  # Unit: tick
   processing_time: 1  # Unit: tick
   processing_proportion_to_quantity: False  # If True, processing_time * order quantity to process
+
+data_loader_config:
+  data_loader_type: "history" # history, sample
+  oncall_generator_type: "sample" # history, sample
+  start_tick: 0
+  end_tick: 1439

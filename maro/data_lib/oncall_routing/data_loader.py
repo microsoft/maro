@@ -75,16 +75,16 @@ class PlanLoader(object):
 
 
 class FromHistoryPlanLoader(PlanLoader):
-    def __init__(self, csv_path: str, config: DottableDict) -> None:
+    def __init__(self, csv_path: str, data_loader_config: DottableDict) -> None:
         super(FromHistoryPlanLoader, self).__init__()
-        self._plan = _load_plan_simple(csv_path, config.start_tick, config.end_tick)
+        self._plan = _load_plan_simple(csv_path, data_loader_config.start_tick, data_loader_config.end_tick)
 
     def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         return self._plan
 
 
 class DeprecatedSamplePlanLoader(PlanLoader):
-    def __init__(self, sample_config_path: str, config: DottableDict, pickup_ratio: float = 0.05) -> None:
+    def __init__(self, sample_config_path: str, data_loader_config: DottableDict, pickup_ratio: float = 0.05) -> None:
         super(DeprecatedSamplePlanLoader, self).__init__()
 
         assert 0.0 < pickup_ratio < 1.0
@@ -94,8 +94,8 @@ class DeprecatedSamplePlanLoader(PlanLoader):
         self._route_names = sorted(list(self._sample_coords.keys()))
         self._pickup_ratio = pickup_ratio
 
-        self._start_tick = config.start_tick
-        self._end_tick = config.end_tick
+        self._start_tick = data_loader_config.start_tick
+        self._end_tick = data_loader_config.end_tick
 
     def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         ret = {}
@@ -134,14 +134,10 @@ class DeprecatedSamplePlanLoader(PlanLoader):
         return ret
 
 
-def get_data_loader(config_path: str, config: DottableDict) -> PlanLoader:
-    if os.path.exists(os.path.join(config_path, "routes.csv")):
-        return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"), config)
-    if os.path.exists(os.path.join(config_path, "route_coord.txt")):
-        return DeprecatedSamplePlanLoader(config_path, config)
-    raise ValueError("Cannot found correct route data.")
-
-
-if __name__ == "__main__":
-    loader = DeprecatedSamplePlanLoader(sample_config_path="C:/Users/huoranli/Downloads/fedex/1129_coord_pool")
-    loader.generate_plan()
+def get_data_loader(config_path: str, data_loader_config: DottableDict) -> PlanLoader:
+    if data_loader_config.data_loader_type == "history":
+        return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"), data_loader_config)
+    elif data_loader_config.data_loader_type == "sample":
+        return DeprecatedSamplePlanLoader(config_path, data_loader_config)
+    else:
+        raise ValueError("Cannot found correct route data.")
