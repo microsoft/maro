@@ -1,0 +1,31 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+job_name: sc 
+scenario: supply_chain
+mode: sync
+num_episodes: 3
+eval_schedule: 3 
+num_steps: -1
+max_lag: 0
+# If true, the roll-out experiences will be distributed amongst roll-out workers / actors
+# in round-robin fashion based on agent index. Otherwise, every roll-out worker / actor will
+# store the roll-out experiences for all agents whose experiences need to be stored.
+rollout_experience_distribution: true
+sync:
+  rollout_group: rollout
+  rollout_mode: multi-node # single-process, multi-process, multi-node
+  num_rollout_workers: 6
+  min_finished_workers: 4
+  max_extra_recv_tries: 2
+  extra_recv_timeout: 100
+async:
+  group: async
+  num_actors: 3
+policy_manager:
+  train_group: policy-manager
+  train_mode: multi-node # single-process, multi-process, multi-node
+  num_trainers: 2
+redis:
+  host: maro-redis
+  port: 6379

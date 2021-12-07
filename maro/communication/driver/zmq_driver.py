@@ -160,11 +160,11 @@ class ZmqDriver(AbsDriver):
             self._disconnected_peer_name_list.append(peer_name)
             self._logger.info(f"Disconnected with {peer_name}.")
 
-    def receive(self, is_continuous: bool = True, timeout: int = None):
+    def receive(self, timeout: int = None):
         """Receive message from ``zmq.POLLER``.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Defaults to True.
+            timeout (int): Timeout for polling. If the first poll times out, the function returns None.
 
         Yields:
             recv_message (Message): The received message from the poller.
@@ -184,13 +184,38 @@ class ZmqDriver(AbsDriver):
                 recv_message = pickle.loads(recv_message)
                 self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
             else:
-                self._logger.debug(f"Cannot receive any message within {receive_timeout}.")
+                self._logger.debug(f"No message received within {receive_timeout}.")
                 return
 
             yield recv_message
 
-            if not is_continuous:
-                break
+    def receive_once(self, timeout: int = None):
+        """Receive a single message from ``zmq.POLLER``.
+
+        Args:
+            timeout (int): Time-out for ZMQ polling. If the first poll times out, the function returns None.
+
+        Returns:
+            recv_message (Message): The received message from the poller or None if the poller times out.
+        """
+        receive_timeout = timeout if timeout else self._receive_timeout
+        try:
+            sockets = dict(self._poller.poll(receive_timeout))
+        except Exception as e:
+            raise DriverReceiveError(f"Driver cannot receive message as {e}")
+
+        if self._unicast_receiver in sockets:
+            recv_message = self._unicast_receiver.recv_pyobj()
+            self._logger.debug(f"Receive a message from {recv_message.source} through unicast receiver.")
+        elif self._broadcast_receiver in sockets:
+            _, recv_message = self._broadcast_receiver.recv_multipart()
+            recv_message = pickle.loads(recv_message)
+            self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
+        else:
+            self._logger.debug(f"No message received within {receive_timeout}.")
+            return
+
+        return recv_message
 
     def send(self, message: Message):
         """Send message.

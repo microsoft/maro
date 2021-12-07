@@ -31,16 +31,16 @@ def actor_init(queue, redis_port):
     )
 
     # Continuously receive messages from proxy.
-    for msg in proxy.receive(is_continuous=True):
+    for msg in proxy.receive():
         print(f"receive message from master. {msg.tag}")
         if msg.tag == "cont":
-            proxy.reply(message=msg, tag="recv", payload="successful receive!")
+            proxy.reply(message=msg, tag="recv", body="successful receive!")
         elif msg.tag == "stop":
-            proxy.reply(message=msg, tag="recv", payload=f"{proxy.name} exited!")
+            proxy.reply(message=msg, tag="recv", body=f"{proxy.name} exited!")
             queue.put(proxy.name)
             break
         elif msg.tag == "finish":
-            proxy.reply(message=msg, tag="recv", payload=f"{proxy.name} finish!")
+            proxy.reply(message=msg, tag="recv", body=f"{proxy.name} finish!")
             sys.exit(0)
 
     proxy.close()
@@ -85,7 +85,7 @@ class TestRejoin(unittest.TestCase):
             **PROXY_PARAMETER
         )
 
-        cls.peers = cls.master_proxy.peers_name["actor"]
+        cls.peers = cls.master_proxy.peers["actor"]
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -113,7 +113,7 @@ class TestRejoin(unittest.TestCase):
             tag="stop",
             source=TestRejoin.master_proxy.name,
             destination=TestRejoin.peers[1],
-            payload=None,
+            body=None,
             session_type=SessionType.TASK
         )
         TestRejoin.master_proxy.isend(disconnect_message)

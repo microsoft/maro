@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import Iterable
+from collections.abc import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
 from typing import Generator, List, Optional, Tuple

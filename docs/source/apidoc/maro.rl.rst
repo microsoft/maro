@@ -1,198 +1,135 @@
-Agent
+Exploration
 ================================================================================
 
-maro.rl.agent.abs\_agent
+maro.rl.exploration.strategies
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_agent
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.agent.dqn
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.agent.dqn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.agent.ddpg
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.agent.ddpg
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.agent.policy\_optimization
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.agent.policy_optimization
+.. automodule:: maro.rl.exploration.strategies
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-Agent Manager
+maro.rl.exploration.scheduling
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.exploration.scheduling
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Modeling
 ================================================================================
 
-maro.rl.agent.abs\_agent\_manager
+maro.rl.modeling.core_model
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_agent_manager
+.. automodule:: maro.rl.modeling.core_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.modeling.fc_block
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.modeling.fc_block
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.modeling.specials
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.modeling.specials
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-Model
+Learning
 ================================================================================
 
-maro.rl.model.learning\_model
+maro.rl.learning.env_sampler
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.model.torch.learning_model
+.. automodule:: maro.rl.learning.env_sampler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.learning.learning_loop
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.learning.learning_loop
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.learning.policy_manager
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.learning.policy_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.learning.rollout_manager
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.learning.rollout_manager
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-Explorer
+Policy
 ================================================================================
 
-maro.rl.exploration.abs\_explorer
+maro.rl.policy.ac
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.abs_explorer
+.. automodule:: maro.rl.policy.ac
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.exploration.epsilon\_greedy\_explorer
+maro.rl.policy.ddpg
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.epsilon_greedy_explorer
+.. automodule:: maro.rl.policy.ddpg
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.exploration.noise\_explorer
+maro.rl.policy.dqn
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.noise_explorer
+.. automodule:: maro.rl.policy.dqn
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Scheduler
-================================================================================
-
-maro.rl.scheduling.scheduler
+maro.rl.policy.pg
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.scheduling.scheduler
+.. automodule:: maro.rl.policy.pg
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.scheduling.simple\_parameter\_scheduler
+maro.rl.policy.policy
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.scheduling.simple_parameter_scheduler
+.. automodule:: maro.rl.policy.policy
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Shaping
-================================================================================
-
-maro.rl.shaping.abs\_shaper
+maro.rl.policy.replay
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.shaping.abs_shaper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Storage
-================================================================================
-
-maro.rl.storage.abs\_store
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.storage.abs_store
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.storage.simple\_store
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.storage.simple_store
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Actor
-================================================================================
-
-maro.rl.actor.abs\_actor
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.actor.abs_actor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.actor.simple\_actor
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.actor.simple_actor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Learner
-================================================================================
-
-maro.rl.learner.abs\_learner
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.learner.abs_learner
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.learner.simple\_learner
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.learner.simple_learner
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Distributed Topologies
-================================================================================
-
-maro.rl.dist\_topologies.common
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.dist_topologies.common
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.dist\_topologies.single\_learner\_multi\_actor\_sync\_mode
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.dist_topologies.single_learner_multi_actor_sync_mode
+.. automodule:: maro.rl.policy.replay
    :members:
    :undoc-members:
    :show-inheritance:

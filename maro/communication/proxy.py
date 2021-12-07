@@ -27,8 +27,10 @@ from .utils import default_parameters
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host
 PORT = default_parameters.proxy.redis.port
-MAX_RETRIES = default_parameters.proxy.redis.max_retries
-BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
+INITIAL_REDIS_CONNECT_RETRY_INTERVAL = default_parameters.proxy.redis.initial_retry_interval
+MAX_REDIS_CONNECT_RETRIES = default_parameters.proxy.redis.max_retries
+INITIAL_PEER_DISCOVERY_RETRY_INTERVAL = default_parameters.proxy.peer_discovery.initial_retry_interval
+MAX_PEER_DISCOVERY_RETRIES = default_parameters.proxy.peer_discovery.max_retries
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 ENABLE_REJOIN = default_parameters.proxy.peer_rejoin.enable  # Only enable at real k8s cluster or grass cluster
 PEERS_CATCH_LIFETIME = default_parameters.proxy.peer_rejoin.peers_catch_lifetime
@@ -55,8 +57,12 @@ class Proxy:
             Defaults to ``DriverType.ZMQ``.
         driver_parameters (Dict): The arguments for communication driver class initial. Defaults to None.
         redis_address (Tuple): Hostname and port of the Redis server. Defaults to ("localhost", 6379).
-        max_retries (int): Maximum number of retries before raising an exception. Defaults to 5.
-        retry_interval_base_value (float): The time interval between attempts. Defaults to 0.1.
+        initial_redis_connect_retry_interval: Base value for the wait time between retries to connect to Redis.
+            Retries follow the exponential backoff algorithm. Defaults to 0.1.
+        max_redis_connect_retries: Maximum number of retries to connect to Redis. Defaults to 5.
+        initial_peer_discovery_retry_interval: Base value for the wait time between retries to find peers.
+            Retries follow the exponential backoff algorithm. Defaults to 0.1.
+        max_peer_discovery_retries: Maximum number of retries to find peers. Defaults to 5.
         log_enable (bool): Open internal logger or not. Defaults to True.
         enable_rejoin (bool): Allow peers rejoin or not. Defaults to False, and must use with maro cli.
         minimal_peers Union[int, dict]: The minimal number of peers for each peer type.
@@ -73,11 +79,14 @@ class Proxy:
         group_name: str,
         component_type: str,
         expected_peers: dict,
+        component_name: str = None,
         driver_type: DriverType = DriverType.ZMQ,
         driver_parameters: dict = None,
         redis_address: Tuple = (HOST, PORT),
-        max_retries: int = MAX_RETRIES,
-        retry_interval_base_value: float = BASE_RETRY_INTERVAL,
+        initial_redis_connect_retry_interval: int = INITIAL_REDIS_CONNECT_RETRY_INTERVAL,
+        max_redis_connect_retries: int = MAX_REDIS_CONNECT_RETRIES,
+        initial_peer_discovery_retry_interval: int = INITIAL_PEER_DISCOVERY_RETRY_INTERVAL,
+        max_peer_discovery_retries: int = MAX_PEER_DISCOVERY_RETRIES,
         log_enable: bool = True,
         enable_rejoin: bool = ENABLE_REJOIN,
         minimal_peers: Union[int, dict] = MINIMAL_PEERS,
@@ -91,15 +100,17 @@ class Proxy:
         self._group_name = group_name
         self._component_type = component_type
         self._redis_hash_name = f"{self._group_name}:{self._component_type}"
-        if "COMPONENT_NAME" in os.environ:
-            self._name = os.getenv("COMPONENT_NAME")
+        if component_name is not None:
+            self._name = component_name
         else:
             unique_id = str(uuid.uuid1()).replace("-", "")
-            self._name = f"{self._component_type}_proxy_{unique_id}"
-        self._max_retries = max_retries
-        self._retry_interval_base_value = retry_interval_base_value
+            self._name = f"{self._component_type}_{unique_id}"
+        self._initial_redis_connect_retry_interval = initial_redis_connect_retry_interval
+        self._max_redis_connect_retries = max_redis_connect_retries
+        self._initial_peer_discovery_retry_interval = initial_peer_discovery_retry_interval
+        self._max_peer_discovery_retries = max_peer_discovery_retries
         self._log_enable = log_enable
-        self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
+        self._logger = InternalLogger(component_name=self._name + "_proxy") if self._log_enable else DummyLogger()
 
         # TODO:In multiprocess with spawn start method, the driver must be initiated before the Redis.
         # Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.
@@ -112,12 +123,28 @@ class Proxy:
             self._logger.error(f"Unsupported driver type {driver_type}, please use DriverType class.")
             sys.exit(NON_RESTART_EXIT_CODE)
 
-        # Initialize the Redis.
+        # Initialize connection to the redis server.
         self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1], socket_keepalive=True)
-        try:
-            self._redis_connection.ping()
-        except Exception as e:
-            self._logger.error(f"{self._name} failure to connect to redis server due to {e}")
+        next_retry, success = self._initial_redis_connect_retry_interval, False
+        for _ in range(self._max_redis_connect_retries):
+            try:
+                self._redis_connection.ping()
+                success = True
+                break
+            except Exception as e:
+                self._logger.error(
+                    f"{self._name} failed to connect to Redis due to {e}. Retrying in {next_retry} seconds."
+                )
+                time.sleep(next_retry)
+                next_retry *= 2
+
+        if success:
+            self._logger.info(
+                f"{self._name} is successfully connected to the redis server "
+                f"at {redis_address[0]}:{redis_address[1]}."
+            )
+        else:
+            self._logger.error(f"{self._name} failed to connect to the redis server.")
             sys.exit(NON_RESTART_EXIT_CODE)
 
         # Record the peer's redis information.
@@ -209,7 +236,6 @@ class Proxy:
                                     the value of table is the peer's socket address.
         """
         self._redis_connection.hset(self._redis_hash_name, self._name, json.dumps(self._driver.address))
-
         # Handle interrupt signal for clearing Redis record.
         try:
             signal.signal(signal.SIGINT, self._signal_handler)
@@ -226,44 +252,37 @@ class Proxy:
         if not self._peers_info_dict:
             raise PeersMissError(f"Cannot get {self._name}\'s peers.")
 
-        for peer_type in self._peers_info_dict.keys():
-            peer_hash_name, peer_number = self._peers_info_dict[peer_type]
-            retry_number = 0
-            expected_peers_name = []
-            while retry_number < self._max_retries:
-                if self._redis_connection.hlen(peer_hash_name) >= peer_number:
-                    expected_peers_name = self._redis_connection.hkeys(peer_hash_name)
-                    expected_peers_name = [peer.decode() for peer in expected_peers_name]
-                    if len(expected_peers_name) > peer_number:
-                        expected_peers_name = expected_peers_name[:peer_number]
-                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s name.")
+        for peer_type, (peer_hash_name, num_expected) in self._peers_info_dict.items():
+            registered_peers, next_retry = [], self._initial_peer_discovery_retry_interval
+            for _ in range(self._max_peer_discovery_retries):
+                if self._redis_connection.hlen(peer_hash_name) >= num_expected:
+                    registered_peers = [peer.decode() for peer in self._redis_connection.hkeys(peer_hash_name)]
+                    if len(registered_peers) > num_expected:
+                        del registered_peers[num_expected:]
+                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s names.")
                     break
                 else:
                     self._logger.warn(
-                        f"{self._name} failed to get {peer_type}\'s name. Retrying in "
-                        f"{self._retry_interval_base_value * (2 ** retry_number)} seconds."
+                        f"{self._name} failed to get {peer_type}\'s name. Retrying in {next_retry} seconds."
                     )
-                    time.sleep(self._retry_interval_base_value * (2 ** retry_number))
-                    retry_number += 1
+                    time.sleep(next_retry)
+                    next_retry *= 2
 
-            if not expected_peers_name:
+            if not registered_peers:
                 raise InformationUncompletedError(
-                    f"{self._name} failure to get enough number of {peer_type} from redis."
+                    f"{self._name} failed to get the required number of {peer_type}s from redis."
                 )
 
-            self._onboard_peer_dict[peer_type] = {peer_name: None for peer_name in expected_peers_name}
+            self._onboard_peer_dict[peer_type] = {peer_name: None for peer_name in registered_peers}
 
         self._onboard_peers_start_time = time.time()
 
     def _build_connection(self):
         """Grabbing all peers' address from Redis, and connect all peers in driver."""
-        for peer_type in self._peers_info_dict.keys():
+        for peer_type, info in self._peers_info_dict.items():
             name_list = list(self._onboard_peer_dict[peer_type].keys())
             try:
-                peers_socket_value = self._redis_connection.hmget(
-                    self._peers_info_dict[peer_type].hash_table_name,
-                    name_list
-                )
+                peers_socket_value = self._redis_connection.hmget(info.hash_table_name, name_list)
                 for idx, peer_name in enumerate(name_list):
                     self._onboard_peer_dict[peer_type][peer_name] = json.loads(peers_socket_value[idx])
                     self._logger.info(f"{self._name} successfully get {peer_name}\'s socket address")
@@ -288,19 +307,27 @@ class Proxy:
         return self._component_type
 
     @property
-    def peers_name(self) -> Dict:
+    def peers(self) -> Dict:
         """Dict: The ``Dict`` of all connected peers' names, stored by peer type."""
         return {
             peer_type: list(self._onboard_peer_dict[peer_type].keys()) for peer_type in self._peers_info_dict.keys()
         }
 
-    def receive(self, is_continuous: bool = True, timeout: int = None):
-        """Receive messages from communication driver.
+    def receive(self, timeout: int = None):
+        """Enter an infinite loop of receiving messages from the communication driver.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Defaults to True.
+            timeout (int): Timeout for each receive attempt. If the first attempt times out, the function returns None.
         """
-        return self._driver.receive(is_continuous, timeout=timeout)
+        return self._driver.receive(timeout=timeout)
+
+    def receive_once(self, timeout: int = None):
+        """Receive a single message from the communication driver.
+
+        Args:
+            timeout (int): Timeout for receive attempt.
+        """
+        return self._driver.receive_once(timeout=timeout)
 
     def receive_by_id(self, targets: List[str], timeout: int = None) -> List[Message]:
         """Receive target messages from communication driver.
@@ -334,7 +361,7 @@ class Proxy:
             return received_messages
 
         # Wait for incoming messages.
-        for msg in self._driver.receive(is_continuous=True, timeout=timeout):
+        for msg in self._driver.receive(timeout=timeout):
             if not msg:
                 return received_messages
 
@@ -353,17 +380,17 @@ class Proxy:
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_payload_list: list
+        destination_body_list: list
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of session id."""
         session_id_list = []
 
-        for destination, payload in destination_payload_list:
+        for destination, body in destination_body_list:
             message = SessionMessage(
                 tag=tag,
                 source=self._name,
                 destination=destination,
-                payload=payload,
+                body=body,
                 session_type=session_type
             )
             send_result = self.isend(message)
@@ -376,7 +403,7 @@ class Proxy:
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_payload_list: list,
+        destination_body_list: list,
         timeout: int = -1
     ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
@@ -384,15 +411,15 @@ class Proxy:
         Args:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            destination_payload_list ([Tuple(str, object)]): The destination-payload list.
+            destination_body_list ([Tuple(str, object)]): The destination-body list.
                 The first item of the tuple in list is the message destination,
-                and the second item of the tuple in list is the message payload.
+                and the second item of the tuple in list is the message body.
 
         Returns:
             List[Message]: List of replied message.
         """
         return self.receive_by_id(
-            targets=self._scatter(tag, session_type, destination_payload_list),
+            targets=self._scatter(tag, session_type, destination_body_list),
             timeout=timeout
         )
 
@@ -400,31 +427,31 @@ class Proxy:
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_payload_list: list
+        destination_body_list: list
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of message id.
 
         Args:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            destination_payload_list ([Tuple(str, object)]): The destination-payload list.
+            destination_body_list ([Tuple(str, object)]): The destination-body list.
                 The first item of the tuple in list is the message's destination,
-                and the second item of the tuple in list is the message's payload.
+                and the second item of the tuple in list is the message's body.
 
         Returns:
             List[str]: List of message's session id.
         """
-        return self._scatter(tag, session_type, destination_payload_list)
+        return self._scatter(tag, session_type, destination_body_list)
 
     def _broadcast(
         self,
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        payload=None
+        body=None
     ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
-        if component_type not in list(self._onboard_peer_dict.keys()):
+        if component_type not in self._onboard_peer_dict:
             self._logger.error(
                 f"peer_type: {component_type} cannot be recognized. Please check the input of proxy.broadcast."
             )
@@ -437,7 +464,7 @@ class Proxy:
             tag=tag,
             source=self._name,
             destination=component_type,
-            payload=payload,
+            body=body,
             session_type=session_type
         )
 
@@ -450,7 +477,7 @@ class Proxy:
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        payload=None,
+        body=None,
         timeout: int = None
     ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
@@ -459,13 +486,13 @@ class Proxy:
             component_type (str): Broadcast to all peers in this type.
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            payload (object): The true data. Defaults to None.
+            body (object): The true data. Defaults to None.
 
         Returns:
             List[Message]: List of replied messages.
         """
         return self.receive_by_id(
-            targets=self._broadcast(component_type, tag, session_type, payload),
+            targets=self._broadcast(component_type, tag, session_type, body),
             timeout=timeout
         )
 
@@ -474,7 +501,7 @@ class Proxy:
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        payload=None
+        body=None
     ) -> List[str]:
         """Broadcast message to all subscribers, and return list of message's session id.
 
@@ -482,12 +509,12 @@ class Proxy:
             component_type (str): Broadcast to all peers in this type.
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            payload (object): The true data. Defaults to None.
+            body (object): The true data. Defaults to None.
 
         Returns:
             List[str]: List of message's session id which related to the replied message.
         """
-        return self._broadcast(component_type, tag, session_type, payload)
+        return self._broadcast(component_type, tag, session_type, body)
 
     def _send(self, message: Message) -> Union[List[str], None]:
         """Send a message to a remote peer.
@@ -509,8 +536,8 @@ class Proxy:
             # Check message cache.
             if (
                 self._enable_message_cache
-                and message.destination in list(self._onboard_peer_dict[peer_type].keys())
-                and message.destination in list(self._message_cache_for_exited_peers.keys())
+                and message.destination in self._onboard_peer_dict[peer_type]
+                and message.destination in self._message_cache_for_exited_peers
             ):
                 self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
@@ -563,7 +590,7 @@ class Proxy:
         self,
         message: Union[SessionMessage, Message],
         tag: Union[str, Enum] = None,
-        payload=None,
+        body=None,
         ack_reply: bool = False
     ) -> List[str]:
         """Reply a received message.
@@ -571,13 +598,13 @@ class Proxy:
         Args:
             message (Message): The message need to reply.
             tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
-            payload (object): New message payload, if None, keeps the original message's payload. Defaults to None.
+            body (object): New message body, if None, keeps the original message's body. Defaults to None.
             ack_reply (bool): If True, it is acknowledge reply. Defaults to False.
 
         Returns:
             List[str]: Message belonged session id.
         """
-        message.reply(tag=tag, payload=payload)
+        message.reply(tag=tag, body=body)
         if isinstance(message, SessionMessage):
             if message.session_type == SessionType.TASK:
                 session_stage = TaskSessionStage.RECEIVE if ack_reply else TaskSessionStage.COMPLETE
@@ -592,7 +619,7 @@ class Proxy:
         message: Union[SessionMessage, Message],
         destination: str,
         tag: Union[str, Enum] = None,
-        payload=None
+        body=None
     ) -> List[str]:
         """Forward a received message.
 
@@ -600,12 +627,12 @@ class Proxy:
             message (Message): The message need to forward.
             destination (str): The receiver of message.
             tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
-            payload (object): Message payload, if None, keeps the original message's payload. Defaults to None.
+            body (object): Message body, if None, keeps the original message's body. Defaults to None.
 
         Returns:
             List[str]: Message belonged session id.
         """
-        message.forward(destination=destination, tag=tag, payload=payload)
+        message.forward(destination=destination, tag=tag, body=body)
         return self.isend(message)
 
     def _check_peers_update(self):

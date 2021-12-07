@@ -129,6 +129,7 @@ setup(
     install_requires=[
         # TODO: use a helper function to collect these
         "numpy<1.20.0",
+        "scipy<=1.7.0",
         "torch<1.8.0",
         "holidays>=0.10.3",
         "pyaml>=20.4.0",
