@@ -25,8 +25,8 @@ class OncallOrderGenerator(object):
 
     def get_oncall_orders(self, tick: int) -> List[Order]:
         orders = []
-        if len(self._queue) > 0 and self._queue[0][0] < tick:
-            raise ValueError(f"Unprocessed oncall order at tick {self._queue[0][0]} before current tick {tick}.")
+        while len(self._queue) > 0 and self._queue[0][0] < tick:
+            self._queue.popleft()
 
         while len(self._queue) > 0 and self._queue[0][0] == tick:
             _, order = self._queue.popleft()
@@ -112,7 +112,7 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
                 close_time=close_times[i],
                 is_delivery=False,
             )
-            create_time = max(0, order.open_time - random[ONCALL_RAND_KEY].uniform(30, 120))
+            create_time = max(0, order.open_time - int(random[ONCALL_RAND_KEY].uniform(30, 120)))
             buff.append((create_time, order))
 
         buff.sort(key=lambda x: x[0])
