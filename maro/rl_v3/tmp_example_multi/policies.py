@@ -1,5 +1,5 @@
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.policy_trainer import DiscreteMADDPG, DistributedDiscreteMADDPG
+from maro.rl_v3.policy_trainer import DistributedDiscreteMADDPG
 from maro.rl_v3.workflow import preprocess_get_policy_func_dict
 
 from .config import algorithm, running_mode

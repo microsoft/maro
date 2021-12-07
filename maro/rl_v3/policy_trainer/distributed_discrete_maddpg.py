@@ -3,6 +3,8 @@ from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
 import torch
 
+from maro.communication import Proxy
+from maro.rl.data_parallelism import TaskQueueClient
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl_v3.policy_trainer import MultiTrainer
@@ -53,6 +55,8 @@ class DiscreteMADDPGWorker(object):
         self._q_value_loss_func = q_value_loss_func
         self._update_target_every = update_target_every
         self._soft_update_coef = soft_update_coef
+
+        self._task_queue_client: Optional[TaskQueueClient] = None
 
     def register_policies(self, policy_dict: Dict[int, RLPolicy]) -> None:
         self._register_policies_impl(policy_dict)
@@ -302,6 +306,26 @@ class DiscreteMADDPGWorker(object):
             self._target_policies[i].set_policy_state(trainer_state_dict["target_policy_state"][i])
             self._q_critic_nets[i].set_net_state(trainer_state_dict["critic_state"][i])
             self._target_q_critic_nets[i].set_net_state(trainer_state_dict["target_critic_state"][i])
+
+    def init_data_parallel(self, *args, **kwargs) -> None:
+        """
+        Initialize a proxy in the policy, for data-parallel training.
+        Using the same arguments as `Proxy`.
+        """
+        self._task_queue_client = TaskQueueClient()
+        self._task_queue_client.create_proxy(*args, **kwargs)
+
+    def init_data_parallel_with_existing_proxy(self, proxy: Proxy) -> None:
+        """
+        Initialize a proxy in the policy with an existing one, for data-parallel training.
+        """
+        self._task_queue_client = TaskQueueClient()
+        self._task_queue_client.set_proxy(proxy)
+
+    def exit_data_parallel(self) -> None:
+        if self._task_queue_client is not None:
+            self._task_queue_client.exit()
+            self._task_queue_client = None
 
 
 class DistributedDiscreteMADDPG(MultiTrainer):

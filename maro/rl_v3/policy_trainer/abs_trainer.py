@@ -22,7 +22,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         print(f"Creating trainer {self.__class__.__name__} {name} on device {self._device}")
 
         self._data_parallel = data_parallel
-        self._task_queue_client = Optional[TaskQueueClient]
+        self._task_queue_client: Optional[TaskQueueClient] = None
 
     @property
     def name(self) -> str:
