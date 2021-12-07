@@ -1,13 +1,18 @@
+start_tick: 480 # TODO: re-organized
+end_tick: 960
+
 seed: 1024
 
 station:
   latitude: 32.72329226
   longitude: -117.0718922
-  close_rtb: 960 # change to tick-based
+  close_rtb: 960 # Unit: tick
 
 interrupt_cycle: 10
 
 order_transition:
-  buffer_before_open_time: 30 # how long it could be ready in advance
-  # buffer_after_close_time: 30 # how long it can be delayed before termination
-  final_deadline: 1440  # the final ddl for all the orders to be completed
+  buffer_before_open_time: 30 # Unit: tick; how long it could be ready in advance
+  buffer_after_open_time: 30  # Unit: tick; actual termination tick would be min(close + buffer, rtb)
+  last_tick_for_order_processing: 960  # Unit: tick
+  processing_time: 1  # Unit: tick
+  processing_proportion_to_quantity: False  # If True, processing_time * order quantity to process

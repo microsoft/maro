@@ -21,6 +21,8 @@ class Carrier(NodeBase):
     delayed_order_num = NodeAttribute("i")
     total_delayed_time = NodeAttribute("i")
 
+    in_stop = NodeAttribute("i")    # In a stop or on the way to next stop
+
     # TODO: anyway to access the route info through the carrier directly?
 
     def __init__(self) -> None:
@@ -50,6 +52,9 @@ class Carrier(NodeBase):
     @property
     def coordinate(self) -> Coordinate:
         return Coordinate(lat=self.latitude, lng=self.longitude)
+
+    # TODO: whether add the target coordinate or not?
+    # TODO: Refresh the location in each tick?
 
     def set_init_state(
         self, name: str, route_idx: int, route_name: str,
