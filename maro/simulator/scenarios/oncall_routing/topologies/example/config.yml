@@ -1,6 +1,3 @@
-start_tick: 480 # TODO: re-organized
-end_tick: 960
-
 seed: 1024
 
 station:
