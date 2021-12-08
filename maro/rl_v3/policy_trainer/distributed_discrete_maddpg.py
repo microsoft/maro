@@ -24,7 +24,8 @@ class DiscreteMADDPGWorker(object):
         critic_loss_coef: float = 1.0,
         soft_update_coef: float = 0.5,
         update_target_every: int = 5,
-        q_value_loss_func: Callable = None
+        q_value_loss_func: Callable = None,
+        worker_name: str = None
     ) -> None:
         super(DiscreteMADDPGWorker, self).__init__()
 
@@ -57,6 +58,11 @@ class DiscreteMADDPGWorker(object):
         self._soft_update_coef = soft_update_coef
 
         self._task_queue_client: Optional[TaskQueueClient] = None
+        self._name = worker_name
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def register_policies(self, policy_dict: Dict[int, RLPolicy]) -> None:
         self._register_policies_impl(policy_dict)
@@ -130,7 +136,7 @@ class DiscreteMADDPGWorker(object):
         scope: str = "all"
     ) -> Dict[str, Dict[int, Dict[str, torch.Tensor]]]:
         if self._data_parallel:
-            raise NotImplementedError  # TODO
+            return self._remote_learn(batch, tensor_dict, scope)
         else:
             return self.get_batch_grad(batch, tensor_dict, scope)
 
@@ -236,6 +242,26 @@ class DiscreteMADDPGWorker(object):
             grad_dict["actor_grads"] = self._get_actor_grad(batch, latest_actions, latest_action_logps)
 
         return grad_dict
+
+    def _remote_learn(
+        self,
+        batch: MultiTransitionBatch,
+        tensor_dict: Dict[str, object] = None,
+        scope: str = "all"
+    ) -> Dict[str, Dict[int, Dict[str, torch.Tensor]]]:
+        assert self._task_queue_client is not None
+        worker_id_list = self._task_queue_client.request_workers()
+        batch_list = self._dispatch_batch(batch)
+        trainer_state = self.get_trainer_state_dict()
+        trainer_name = self.name
+        # TODO: tensor_dict
+        loss_info_by_name = self._task_queue_client.sumbit(
+            worker_id_list, batch_list, trainer_state, trainer_name, scope)
+        return loss_info_by_name[trainer_name]
+
+    def _dispatch_batch(self, batch):
+        # TODO: dispatch function
+        raise NotImplementedError
 
     def update_critics(self, next_actions: List[torch.Tensor]) -> None:
         assert not self._shared_critic
@@ -391,7 +417,8 @@ class DistributedDiscreteMADDPG(MultiTrainer):
                 reward_discount=self._reward_discount, get_q_critic_net_func=self._get_q_critic_net_func,
                 shared_critic=self._shared_critic, device=self._device_str, data_parallel=self._data_parallel,
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
-                update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
+                update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func,
+                worker_name="maddpg_critic.0"
             )
 
         self._workers: List[DiscreteMADDPGWorker] = []
@@ -402,7 +429,8 @@ class DistributedDiscreteMADDPG(MultiTrainer):
                 reward_discount=self._reward_discount, get_q_critic_net_func=self._get_q_critic_net_func,
                 shared_critic=self._shared_critic, device=self._device_str, data_parallel=self._data_parallel,
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
-                update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
+                update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func,
+                worker_name=f"maddpg_worker.{cursor}"
             )
 
             cursor_end = min(cursor + self._group_size, self.num_policies)

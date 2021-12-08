@@ -34,13 +34,14 @@ class TaskQueueClient(object):
         return worker_list
 
     # TODO: rename this method
-    def submit(self, worker_id_list: List, batch_list: List, policy_state: Dict, policy_name: str):
+    def submit(self, worker_id_list: List, batch_list: List, policy_state: Dict, policy_name: str, scope: str = None):
         """Learn a batch of data on several grad workers."""
         msg_dict = defaultdict(lambda: defaultdict(dict))
         loss_info_by_policy = {policy_name: []}
         for worker_id, batch in zip(worker_id_list, batch_list):
             msg_dict[worker_id][MsgKey.GRAD_TASK][policy_name] = batch
             msg_dict[worker_id][MsgKey.POLICY_STATE][policy_name] = policy_state
+            msg_dict[worker_id][MsgKey.GRAD_SCOPE][policy_name] = scope
             # data-parallel by multiple remote gradient workers
             self._proxy.isend(SessionMessage(
                 MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
