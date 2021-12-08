@@ -534,7 +534,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 self._refresh_plan_duration(tick=event.tick, route_idx=route_idx, index=index)
 
         # Put back suspended oncall orders
-        self._oncall_order_buffer = deque([order for order in self._waiting_order_dict.values()])
+        self._oncall_order_buffer.extend([order for order in self._waiting_order_dict.values()])
         self._waiting_order_dict.clear()
 
     def post_step(self, tick: int) -> bool:
