@@ -2,8 +2,8 @@
 # Licensed under the MIT license.
 
 import os
-from collections import defaultdict, deque
-from typing import Deque, Dict, List, Optional
+from collections import defaultdict
+from typing import Dict, List, Optional
 
 from yaml import safe_load
 
@@ -76,12 +76,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Step 1: Init random seed
         random.seed(self._config.seed)
 
-        # Step 2: Init oncall order generator, oncall order buffer, waiting order dict.
+        # Step 2: Init oncall order generator, oncall order buffer.
         print("Loading oncall orders.")
         self._oncall_order_generator = get_oncall_generator(self._config_path, self._config.data_loader_config)
         self._oncall_order_generator.reset()  # We have to call `reset()` to initialize oncall order generator
-        self._oncall_order_buffer: Deque[Order] = deque()
-        self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
+        self._oncall_order_buffer: Dict[str, Order] = {}
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
@@ -249,14 +248,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         if (tick + 1) % self._config["interrupt_cycle"] == 0 and len(self._oncall_order_buffer) > 0:
             decision_event = self._event_buffer.gen_decision_event(
                 tick=tick,
-                payload=OncallRoutingPayload(oncall_orders=list(self._oncall_order_buffer))
+                payload=OncallRoutingPayload(
+                    get_oncall_orders_func=lambda: list(self._oncall_order_buffer.values())
+                )
             )
             self._event_buffer.insert_event(decision_event)
-
-            # Move all oncall orders to waiting order dict, and clear oncall order buffer.
-            # After receiving actions, all orders that are not processed will be put back to oncall order buffer.
-            self._waiting_order_dict = {order.id: order for order in self._oncall_order_buffer}
-            self._oncall_order_buffer.clear()
 
     @property
     def configs(self) -> dict:
@@ -283,7 +279,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         GLOBAL_ORDER_ID_GENERATOR.reset()
         self._oncall_order_generator.reset()
         self._oncall_order_buffer.clear()
-        self._waiting_order_dict.clear()
 
         # Step 3
         self._data_loader.reset()
@@ -329,7 +324,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def _on_oncall_receive(self, event: AtomEvent) -> None:
         payload = event.payload
         assert isinstance(payload, OncallReceivePayload)
-        self._oncall_order_buffer.extend(payload.orders)
+        self._oncall_order_buffer.update({order.id: order for order in payload.orders})
         self._total_oncall_num += len(payload.orders)
         self._total_order_num += len(payload.orders)
 
@@ -512,7 +507,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         raise ValueError("Insert on-call orders before the current destination is not allowed.")
 
                     new_order_id = actions[j].order_id
-                    new_order = self._waiting_order_dict.pop(new_order_id)  # Remove this order from waiting dict
+                    new_order = self._oncall_order_buffer.pop(new_order_id)  # Remove this order from oncall buffer
                     new_plan_element = PlanElement(order=new_order)
                     new_plan.append(new_plan_element)
                     refresh_indexes.append(len(new_plan) - 1)
@@ -533,13 +528,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for index in refresh_indexes:
                 self._refresh_plan_duration(tick=event.tick, route_idx=route_idx, index=index)
 
-        # Put back suspended oncall orders
-        self._oncall_order_buffer.extend([order for order in self._waiting_order_dict.values()])
-        self._waiting_order_dict.clear()
-
     def post_step(self, tick: int) -> bool:
         is_done: bool = (tick + 1 == self._max_tick)
-        self._unallocated_oncall_num = len(self._oncall_order_buffer) + len(self._waiting_order_dict)
+        self._unallocated_oncall_num = len(self._oncall_order_buffer)
         # TODO: handle the orders left issue
         if is_done:
             for route in self._routes:
@@ -550,5 +541,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         f"remaining plan: {len(route.remaining_plan)} {plan[0].order}"
                     )
                 elif len(plan) > 0:
-                    print(f"carrier_idx: {route.carrier_idx}, route_name: {route.name}, remaining plan: {len(route.remaining_plan)}")
+                    print(
+                        f"carrier_idx: {route.carrier_idx}, route_name: {route.name}, "
+                        f"remaining plan: {len(route.remaining_plan)}"
+                    )
         return is_done

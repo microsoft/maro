@@ -16,7 +16,7 @@ if __name__ == "__main__":
     metrics, decision_event, is_done = env.step(None)
     while not is_done:
         assert isinstance(decision_event, OncallRoutingPayload)
-        orders = decision_event.oncall_orders
+        orders = decision_event.get_oncall_orders_func()
         print(
             f"Env Tick: {env.tick}, "
             f"On-call Order Num: {len(orders)}, "

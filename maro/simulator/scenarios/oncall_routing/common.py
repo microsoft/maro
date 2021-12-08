@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from .order import Order
 
@@ -52,4 +52,4 @@ class PlanElement:
 
 @dataclass
 class OncallRoutingPayload:
-    oncall_orders: List[Order]
+    get_oncall_orders_func: Callable[[], List[Order]]
