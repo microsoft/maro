@@ -12,6 +12,7 @@ from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_ID_GENERATOR, O
 from maro.simulator.utils import random
 from maro.utils import DottableDict
 
+from .utils import convert_time_format
 
 class OncallOrderGenerator(object):
     def __init__(self) -> None:
@@ -32,10 +33,6 @@ class OncallOrderGenerator(object):
             _, order = self._queue.popleft()
             orders.append(order)
         return orders
-
-
-def convert_time_format(t: int) -> int:
-    return (t // 100) * 60 + (t % 100)
 
 
 class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
