@@ -496,7 +496,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for i, old_plan_element in enumerate(old_plan):
                 has_new_plan = False
                 # Insert all oncall orders that should be inserted before this old stop
-                while j < len(actions) and actions[j].insert_index < i:
+                while j < len(actions) and actions[j].insert_index == i:
                     if i == 0 and self._carriers[carrier_idx].in_stop == 0:
                         raise ValueError("Insert on-call orders before the current destination is not allowed.")
 
