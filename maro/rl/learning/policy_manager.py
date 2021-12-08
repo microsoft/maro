@@ -283,7 +283,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                         self._logger.info(f"Saved policy {id_} to {checkpoint_path}")
                 elif msg["type"] == "quit":
                     if self._data_parallel:
-                        policy.exit_data_parallelism()
+                        policy.exit_data_parallel()
                     policy.save(checkpoint_path)
                     self._logger.info(f"Saved policy {id_} to {checkpoint_path}")
                     break
