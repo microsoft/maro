@@ -50,6 +50,10 @@ class PlanElement:
     actual_duration_from_last: Optional[int] = None  # Actual duration from last stop
 
 
-@dataclass
-class OncallRoutingPayload:
-    get_oncall_orders_func: Callable[[], List[Order]]
+class OncallRoutingPayload(object):
+    def __init__(self, get_oncall_orders_func: Callable[[], List[Order]]):
+        self._get_oncall_orders_func: Callable[[], List[Order]] = get_oncall_orders_func
+
+    @property
+    def oncall_orders(self) -> List[Order]:
+        return self._get_oncall_orders_func()
