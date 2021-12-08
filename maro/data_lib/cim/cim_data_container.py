@@ -6,14 +6,14 @@ from abc import ABC, abstractmethod
 from math import ceil
 from typing import Dict, List
 
+from maro.simulator.utils import random
+
 from .entities import (
     CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
-    PortSetting, VesselSetting
+    PortSetting, SyntheticPortSetting, VesselSetting
 )
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
-from .utils import (
-    apply_noise, buffer_tick_rand, get_buffer_tick_seed, get_order_num_seed, list_sum_normalize, order_num_rand
-)
+from .utils import BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY, apply_noise, list_sum_normalize
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 from .vessel_past_stops_wrapper import VesselPastStopsWrapper
 from .vessel_reachable_stops_wrapper import VesselReachableStopsWrapper
@@ -42,7 +42,7 @@ class CimBaseDataContainer(ABC):
     Args:
         data_collection (CimBaseDataCollection): Corresponding data collection.
     """
-    def __init__(self, data_collection: CimBaseDataCollection):
+    def __init__(self, data_collection: CimBaseDataCollection) -> None:
         self._data_collection = data_collection
 
         # wrapper for interfaces, to make it easy to use
@@ -60,9 +60,6 @@ class CimBaseDataContainer(ABC):
         self._vessel_plan_wrapper = VesselSailingPlanWrapper(self._data_collection)
         self._reachable_stops_wrapper = VesselReachableStopsWrapper(self._data_collection)
 
-        # keep the seed so we can reproduce the sequence after reset
-        self._buffer_tick_seed: int = get_buffer_tick_seed()
-
         # flag to tell if we need to reset seed, we need this flag as outside may set the seed after env.reset
         self._is_need_reset_seed = False
 
@@ -77,24 +74,34 @@ class CimBaseDataContainer(ABC):
         return self._data_collection.future_stop_number
 
     @property
+    def load_cost_factor(self) -> float:
+        """float: Factor of the cost for each empty load."""
+        return self._data_collection.load_cost_factor
+
+    @property
+    def dsch_cost_factor(self) -> float:
+        """float: Factor of the cost for each empty discharge."""
+        return self._data_collection.dsch_cost_factor
+
+    @property
     def ports(self) -> List[PortSetting]:
         """List[PortSetting]: List of port initial settings."""
-        return self._data_collection.ports_settings
+        return self._data_collection.port_settings
 
     @property
     def port_number(self) -> int:
         """int: Number of ports."""
-        return len(self._data_collection.ports_settings)
+        return len(self._data_collection.port_settings)
 
     @property
     def vessels(self) -> List[VesselSetting]:
         """List[VesselSetting]: List of vessel initial settings."""
-        return self._data_collection.vessels_settings
+        return self._data_collection.vessel_settings
 
     @property
     def vessel_number(self) -> int:
         """int: Number of vessels."""
-        return len(self._data_collection.vessels_settings)
+        return len(self._data_collection.vessel_settings)
 
     @property
     def container_volume(self) -> int:
@@ -144,7 +151,7 @@ class CimBaseDataContainer(ABC):
             .. code-block:: python
 
                 # Get full return buffer tick of port 0.
-                buffer_tick = data_cnr.full_return_buffers[0]
+                buffer_tick = data_cntr.full_return_buffers[0]
         """
         return self._full_return_buffer_wrapper
 
@@ -202,14 +209,14 @@ class CimBaseDataContainer(ABC):
         return self._reachable_stops_wrapper
 
     @property
-    def vessel_period(self) -> int:
-        """Wrapper to get vessel's planed sailing period (without noise to complete a whole route).
+    def vessel_period(self) -> List[int]:
+        """Wrapper to get vessel's planned sailing period (without noise to complete a whole route).
 
         Examples:
 
             .. code-block:: python
 
-                # Get planed sailing for vessel 0.
+                # Get planned sailing for vessel 0.
                 period = data_cntr.vessel_period[0]
         """
         return self._data_collection.vessel_period_without_noise
@@ -234,8 +241,8 @@ class CimBaseDataContainer(ABC):
         self._is_need_reset_seed = True
 
     def _reset_seed(self):
-        """Reset internal seed for generate reproduceable data"""
-        buffer_tick_rand.seed(self._buffer_tick_seed)
+        """Reset internal seed for generate reproduce-able data"""
+        random.reset_seed(BUFFER_TICK_RAND_KEY)
 
     @abstractmethod
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
@@ -262,9 +269,6 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
     def __init__(self, data_collection: CimSyntheticDataCollection):
         super().__init__(data_collection)
 
-        # keep the seed so we can reproduce the sequence after reset
-        self._order_num_seed: int = get_order_num_seed()
-
     # TODO: get_events which composed with arrive, departure and order
 
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
@@ -284,16 +288,16 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
             self._is_need_reset_seed = False
 
-        if tick >= self._data_collection.max_tick:
+        if tick >= self._data_collection.max_tick:  # pragma: no cover
             warnings.warn(f"{tick} out of max tick {self._data_collection.max_tick}")
             return []
 
         return self._gen_orders(tick, total_empty_container)
 
     def _reset_seed(self):
-        """Reset internal seed for generate reproduceable data"""
+        """Reset internal seed for generate reproduce-able data"""
         super()._reset_seed()
-        order_num_rand.seed(self._order_num_seed)
+        random.reset_seed(ORDER_NUM_RAND_KEY)
 
     def _gen_orders(self, tick: int, total_empty_container: int) -> List[Order]:
         """Generate order for specified tick.
@@ -304,6 +308,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
         """
         # result
         order_list: List[Order] = []
+        assert isinstance(self._data_collection, CimSyntheticDataCollection)
         order_proportion = self._data_collection.order_proportion
         order_mode = self._data_collection.order_mode
         total_containers = self._data_collection.total_containers
@@ -312,7 +317,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
         orders_to_gen = int(order_proportion[tick])
 
         # if under unfixed mode, we will consider current empty container as factor
-        if order_mode == OrderGenerateMode.UNFIXED:
+        if order_mode == OrderGenerateMode.UNFIXED:  # pragma: no cover. TODO: remove this mark later
             delta = total_containers - total_empty_container
 
             if orders_to_gen <= delta:
@@ -327,9 +332,11 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
         # calculate orders distribution for each port as source
         for port_idx in range(self.port_number):
-            source_dist: NoisedItem = self.ports[port_idx].source_proportion
+            port = self.ports[port_idx]
+            assert isinstance(port, SyntheticPortSetting)
+            source_dist: NoisedItem = port.source_proportion
 
-            noised_source_order_number = apply_noise(source_dist.base, source_dist.noise, order_num_rand)
+            noised_source_order_number = apply_noise(source_dist.base, source_dist.noise, random[ORDER_NUM_RAND_KEY])
 
             noised_source_order_dist.append(noised_source_order_number)
 
@@ -342,11 +349,13 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
             if remaining_orders == 0:
                 break
 
-            targets_dist: List[NoisedItem] = self.ports[port_idx].target_proportions
+            port = self.ports[port_idx]
+            assert isinstance(port, SyntheticPortSetting)
+            targets_dist: List[NoisedItem] = port.target_proportions
 
             # apply noise and normalize
             noised_targets_dist = list_sum_normalize(
-                [apply_noise(target.base, target.noise, order_num_rand) for target in targets_dist])
+                [apply_noise(target.base, target.noise, random[ORDER_NUM_RAND_KEY]) for target in targets_dist])
 
             # order for current ports
             cur_port_order_num = ceil(orders_to_gen * noised_source_order_dist[port_idx])
@@ -399,6 +408,7 @@ class CimRealDataContainer(CimBaseDataContainer):
         super().__init__(data_collection)
 
         # orders
+        assert isinstance(self._data_collection, CimRealDataCollection)
         self._orders: Dict[int, List[Order]] = self._data_collection.orders
 
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
@@ -418,11 +428,8 @@ class CimRealDataContainer(CimBaseDataContainer):
 
             self._is_need_reset_seed = False
 
-        if tick >= self._data_collection.max_tick:
+        if tick >= self._data_collection.max_tick:  # pragma: no cover
             warnings.warn(f"{tick} out of max tick {self._data_collection.max_tick}")
             return []
 
-        if tick not in self._orders:
-            return []
-
-        return self._orders[tick]
+        return self._orders[tick] if tick in self._orders else []

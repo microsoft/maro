@@ -146,7 +146,7 @@ def deploy(hide_info: bool = True):
 
         # Deployment failed.
         error_list.append(
-            "An issue occured while deploying meta files for MARO."
+            "An issue occurred while deploying meta files for MARO."
             f" {e} Please run 'maro meta deploy' to deploy the data files."
         )
         version_info["MARO_DATA"]["deploy_status"] = "failed"

@@ -1,23 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from random import Random
 from typing import List, Union
 
-from maro.simulator.utils.sim_random import SimRandom, random
+# we keep 4 random generator to make the result is reproduce-able with same seed(s), no matter if agent passed actions
+ORDER_INIT_RAND_KEY = "order_init"
+ROUTE_INIT_RAND_KEY = "route_init"
+ORDER_NUM_RAND_KEY = "order_number"
+BUFFER_TICK_RAND_KEY = "buffer_time"
 
-# we keep 4 random generator to make the result is reproduceable with same seed(s), no matter if agent passed actions
-route_init_rand = random["route_init"]
-order_init_rand = random["order_init"]
-buffer_tick_rand = random["buffer_time"]
-order_num_rand = random["order_number"]
-
-
-def get_buffer_tick_seed():
-    return random.get_seed("buffer_time")
-
-
-def get_order_num_seed():
-    return random.get_seed("order_number")
+DATA_CONTAINER_INIT_SEED_LIMIT = 4096
 
 
 def clip(min_val: Union[int, float], max_val: Union[int, float], value: Union[int, float]) -> Union[int, float]:
@@ -34,7 +27,7 @@ def clip(min_val: Union[int, float], max_val: Union[int, float], value: Union[in
     return max(min_val, min(max_val, value))
 
 
-def apply_noise(value: Union[int, float], noise: Union[int, float], rand: SimRandom) -> float:
+def apply_noise(value: Union[int, float], noise: Union[int, float], rand: Random) -> float:
     """Apply noise with specified random generator
 
     Args:
@@ -60,7 +53,11 @@ def list_sum_normalize(num_list: List[Union[int, float]]) -> List[float]:
     t = sum(num_list)
 
     # avoid dive zero exception
-    if t == 0:
-        return 0
+    return num_list if t == 0 else [d / t for d in num_list]
 
-    return [d / t for d in num_list]
+
+def extract_key_of_three_ints(key) -> (int, int, int):
+    assert type(key) == tuple or type(key) == list
+    assert len(key) == 3
+
+    return int(key[0]), int(key[1]), int(key[2])

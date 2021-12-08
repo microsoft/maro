@@ -22,7 +22,7 @@ too few empty docks. In such a situation, the bike repositioning is essential to
 balance the bike's supply and demand. A good bike repositioning can not only meet
 the needs in the stations with heavy ride demand but also free the stations that
 do not have enough empty docks. Also, in the long run, a good bike repositioning
-can improve the bike useability, empower citizens' daily life, and reduce the
+can improve the bike usability, empower citizens' daily life, and reduce the
 carbon emission.
 
 Resource Flow

@@ -2,13 +2,13 @@
 [![Platform](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/platform.svg)](https://pypi.org/project/pymaro/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pymaro.svg?logo=python&logoColor=white)](https://pypi.org/project/pymaro/#files)
 [![Code Size](https://img.shields.io/github/languages/code-size/microsoft/maro)](https://github.com/microsoft/maro)
-[![Docker Size](https://img.shields.io/docker/image-size/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro/tags?page=1)
+[![Docker Size](https://img.shields.io/docker/image-size/maro2020/maro)](https://hub.docker.com/repository/docker/maro2020/maro/tags?page=1)
 [![Issues](https://img.shields.io/github/issues/microsoft/maro)](https://github.com/microsoft/maro/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/microsoft/maro)](https://github.com/microsoft/maro/pulls)
 [![Dependencies](https://img.shields.io/librariesio/github/microsoft/maro)](https://libraries.io/pypi/pymaro)
 [![test](https://github.com/microsoft/maro/workflows/test/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Atest)
 [![build](https://github.com/microsoft/maro/workflows/build/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Abuild)
-[![docker](https://github.com/microsoft/maro/workflows/docker/badge.svg)](https://hub.docker.com/repository/docker/arthursjiang/maro)
+[![docker](https://github.com/microsoft/maro/workflows/docker/badge.svg)](https://hub.docker.com/repository/docker/maro2020/maro)
 [![docs](https://readthedocs.org/projects/maro/badge/?version=latest)](https://maro.readthedocs.io/)
 [![PypI Versions](https://img.shields.io/pypi/v/pymaro)](https://pypi.org/project/pymaro/#files)
 [![Wheel](https://img.shields.io/pypi/wheel/pymaro)](https://pypi.org/project/pymaro/#files)
@@ -23,8 +23,8 @@
 [![Lint](https://github.com/microsoft/maro/workflows/lint/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Alint)
 [![Coverage](https://img.shields.io/codecov/c/github/microsoft/maro)](https://codecov.io/gh/microsoft/maro)
 [![Downloads](https://img.shields.io/pypi/dm/pymaro)](https://pypi.org/project/pymaro/#files)
-[![Docker Pulls](https://img.shields.io/docker/pulls/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro)
-[![Play with MARO](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/play_with_maro.svg)](https://hub.docker.com/r/arthursjiang/maro)
+[![Docker Pulls](https://img.shields.io/docker/pulls/maro2020/maro)](https://hub.docker.com/repository/docker/maro2020/maro)
+[![Play with MARO](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/play_with_maro.svg)](https://hub.docker.com/r/maro2020/maro)
 
 # [![MARO LOGO](./docs/source/images/logo.svg)](https://maro.readthedocs.io/en/latest/)
 
@@ -57,6 +57,8 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 | `docs`      | MARO docs, it is host on [readthedocs](https://maro.readthedocs.io/en/latest/).                   |
 | `examples`  | Showcase of MARO.                                                                                 |
 | `notebooks` | MARO quick-start notebooks.                                                                       |
+
+*Try [MARO playground](#run-playground) to have a quick experience.*
 
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
@@ -185,14 +187,16 @@ maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
 
 ## Run Playground
 
-- Pull from [Docker Hub](https://hub.docker.com/repository/registry-1.docker.io/arthursjiang/maro/tags?page=1)
+- Pull from [Docker Hub](https://hub.docker.com/r/maro2020/playground)
 
   ```sh
+  # Pull the docker image from docker hub
+  docker pull maro2020/playground
+
   # Run playground container.
   # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-  # Local host docs -> http://127.0.0.1:40010
-  # Jupyter lab with maro -> http://127.0.0.1:40011
-  docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 arthursjiang/maro:cpu
+  # Jupyter lab with maro -> http://127.0.0.1:40010
+  docker run -p 40009:40009 -p 40010:40010 maro2020/playground
   ```
 
 - Build from source
@@ -204,9 +208,8 @@ maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
 
     # Run playground container.
     # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-    # Local host docs -> http://127.0.0.1:40010
-    # Jupyter lab with maro -> http://127.0.0.1:40011
-    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+    # Jupyter lab with maro -> http://127.0.0.1:40010
+    docker run -p 40009:40009 -p 40010:40010 maro2020/playground
     ```
 
   - Windows
@@ -217,9 +220,8 @@ maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
 
     # Run playground container.
     # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-    # Local host docs -> http://127.0.0.1:40010
-    # Jupyter lab with maro -> http://127.0.0.1:40011
-    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+    # Jupyter lab with maro -> http://127.0.0.1:40010
+    docker run -p 40009:40009 -p 40010:40010 maro2020/playground
     ```
 
 ## Contributing
