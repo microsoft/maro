@@ -168,9 +168,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return remaining_plan
 
     def _load_carrier_arrival_event(self) -> None:
-        """
-        Put the first arrival event of each route into the event buffer.
-        """
+        """Put the first arrival event of each route into the event buffer."""
         for route in self._routes:
             if len(route.remaining_plan) > 0:
                 carrier_arrival_payload = CarrierArrivalPayload(route.carrier_idx)
@@ -326,8 +324,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._total_order_num += len(payload.orders)
 
     def _on_carrier_arrival(self, event: CascadeEvent) -> None:
-        """
-        When a carrier arrives a stop:
+        """When a carrier arrives a stop:
         1. If there is no available orders now, the carrier waits until the first ready order comes.
         2. Otherwise, the carrier will start to process orders (by creating a order processing event).
         """
