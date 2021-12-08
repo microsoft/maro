@@ -79,7 +79,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Step 2: Init oncall order generator, oncall order buffer, waiting order dict.
         print("Loading oncall orders.")
         self._oncall_order_generator = get_oncall_generator(self._config_path, self._config.data_loader_config)
-        self._oncall_order_generator.reset()
+        self._oncall_order_generator.reset()  # We have to call `reset()` to initialize oncall order generator
         self._oncall_order_buffer: Deque[Order] = deque()
         self._waiting_order_dict: Dict[str, Order] = {}  # Orders already sent to agents and waiting for actions
 
@@ -148,6 +148,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         remaining_plan: Dict[str, List[PlanElement]] = self._data_loader.generate_plan()
 
         # TODO: fake head quarter order
+        # The DUMMY order that represents the return-to-building event
         rtb_order = Order(
             order_id=next(GLOBAL_ORDER_ID_GENERATOR),
             coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
@@ -167,6 +168,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return remaining_plan
 
     def _load_carrier_arrival_event(self) -> None:
+        """Put the first arrival event of each route into the event buffer."""
         for route in self._routes:
             if len(route.remaining_plan) > 0:
                 carrier_arrival_payload = CarrierArrivalPayload(route.carrier_idx)
@@ -226,6 +228,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Update oncall orders
         oncall_orders = self._oncall_order_generator.get_oncall_orders(tick)
         if len(oncall_orders) > 0:
+            # If there are oncall orders, create an oncall receive event.
             oncall_receive_payload = OncallReceivePayload(oncall_orders)
             oncall_receive_event = self._event_buffer.gen_atom_event(
                 tick=tick, event_type=Events.ONCALL_RECEIVE, payload=oncall_receive_payload
@@ -240,6 +243,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             )
             self._event_buffer.insert_event(decision_event)
 
+            # Move all oncall orders to waiting order dict, and clear oncall order buffer.
+            # After receiving actions, all orders that are not processed will be put back to oncall order buffer.
             self._waiting_order_dict = {order.id: order for order in self._oncall_order_buffer}
             self._oncall_order_buffer.clear()
 
@@ -247,7 +252,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def configs(self) -> dict:
         return self._config
 
-    def _reset_nodes(self, remaining_plan: Dict[str, List[PlanElement]]):
+    def _reset_nodes(self, remaining_plan: Dict[str, List[PlanElement]]) -> None:
         for route in self._routes:
             route.reset()
             # Step 6-1: Initialize route plan
@@ -271,7 +276,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._waiting_order_dict.clear()
 
         # Step 3
-        # TODO: data_loader reset?
+        self._data_loader.reset()
         remaining_plan = self._load_route_plan()
 
         # Step 4
@@ -319,6 +324,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._total_order_num += len(payload.orders)
 
     def _on_carrier_arrival(self, event: CascadeEvent) -> None:
+        """When a carrier arrives a stop:
+        1. If there is no available orders now, the carrier waits until the first ready order comes.
+        2. Otherwise, the carrier will start to process orders (by creating a order processing event).
+        """
         payload = event.payload
         assert isinstance(payload, CarrierArrivalPayload)
 
@@ -368,6 +377,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Handle the orders can be finished.
         processing_time = 0
         processing_order = False
+        # Try to process all orders located in the same position
         while len(plan) > 0 and plan[0].order.coord == carrier.coordinate:
             order: Order = plan[0].order
             order_status = order.get_status(event.tick + processing_time, self._config.order_transition)
@@ -438,9 +448,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 event_type=Events.CARRIER_DEPARTURE,
                 payload=carrier_departure_payload
             )
-            if departure_tick == event.tick:
+            if departure_tick == event.tick:  # If the processing time is 0, departure immediately.
                 event.add_immediate_event(carrier_departure_event)
-            else:
+            else:  # Otherwise, create a departure event in the future
                 self._event_buffer.insert_event(carrier_departure_event)
 
     def _on_carrier_departure(self, event: AtomEvent) -> None:
@@ -478,6 +488,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             actions.sort(key=lambda _action: (_action.insert_index, _action.in_segment_order))
 
             route_idx = self._route_name2idx[route_name]
+            carrier_idx = self._routes[route_idx].carrier_idx
             old_plan = self._routes[route_idx].remaining_plan
             new_plan = []
             refresh_indexes = []
@@ -485,7 +496,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for i, old_plan_element in enumerate(old_plan):
                 has_new_plan = False
                 # Insert all oncall orders that should be inserted before this old stop
-                while j < len(actions) and actions[j].insert_index < i:
+                while j < len(actions) and actions[j].insert_index == i:
+                    if i == 0 and self._carriers[carrier_idx].in_stop == 0:
+                        raise ValueError("Insert on-call orders before the current destination is not allowed.")
+
                     new_order_id = actions[j].order_id
                     new_order = self._waiting_order_dict.pop(new_order_id)  # Remove this order from waiting dict
                     new_plan_element = PlanElement(order=new_order)
@@ -500,6 +514,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 # If there are new oncall orders before this old stop, refresh predicted time.
                 if has_new_plan:
                     refresh_indexes.append(len(new_plan) - 1)
+
+            if j != len(actions):
+                raise ValueError("Insert on-call orders after the RTB event is not allowed.")
 
             self._routes[route_idx].remaining_plan = new_plan
             for index in refresh_indexes:

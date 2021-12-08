@@ -72,6 +72,10 @@ class PlanLoader(object):
         return self._generate_plan_impl()
 
     @abstractmethod
+    def reset(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         raise NotImplementedError
 
@@ -80,6 +84,9 @@ class FromHistoryPlanLoader(PlanLoader):
     def __init__(self, csv_path: str, data_loader_config: DottableDict) -> None:
         super(FromHistoryPlanLoader, self).__init__()
         self._plan = _load_plan_simple(csv_path, data_loader_config.start_tick, data_loader_config.end_tick)
+
+    def reset(self) -> None:
+        pass
 
     def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         return self._plan
@@ -98,6 +105,9 @@ class DeprecatedSamplePlanLoader(PlanLoader):
 
         self._start_tick = data_loader_config.start_tick
         self._end_tick = data_loader_config.end_tick
+
+    def reset(self) -> None:
+        pass
 
     def _generate_plan_impl(self) -> Dict[str, List[PlanElement]]:
         ret = {}
