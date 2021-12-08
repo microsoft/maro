@@ -247,7 +247,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def configs(self) -> dict:
         return self._config
 
-    def _reset_nodes(self, remaining_plan: Dict[str, List[PlanElement]]):
+    def _reset_nodes(self, remaining_plan: Dict[str, List[PlanElement]]) -> None:
         for route in self._routes:
             route.reset()
             # Step 6-1: Initialize route plan
@@ -271,7 +271,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._waiting_order_dict.clear()
 
         # Step 3
-        # TODO: data_loader reset?
+        self._data_loader.reset()
         remaining_plan = self._load_route_plan()
 
         # Step 4
