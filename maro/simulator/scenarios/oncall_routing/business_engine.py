@@ -491,6 +491,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             actions.sort(key=lambda _action: (_action.insert_index, _action.in_segment_order))
 
             route_idx = self._route_name2idx[route_name]
+            carrier_idx = self._routes[route_idx].carrier_idx
             old_plan = self._routes[route_idx].remaining_plan
             new_plan = []
             refresh_indexes = []
@@ -499,6 +500,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 has_new_plan = False
                 # Insert all oncall orders that should be inserted before this old stop
                 while j < len(actions) and actions[j].insert_index < i:
+                    if i == 0 and self._carriers[carrier_idx].in_stop == 0:
+                        raise ValueError("Insert on-call orders before the current destination is not allowed.")
+
                     new_order_id = actions[j].order_id
                     new_order = self._waiting_order_dict.pop(new_order_id)  # Remove this order from waiting dict
                     new_plan_element = PlanElement(order=new_order)
@@ -513,6 +517,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 # If there are new oncall orders before this old stop, refresh predicted time.
                 if has_new_plan:
                     refresh_indexes.append(len(new_plan) - 1)
+
+            if j != len(actions):
+                raise ValueError("Insert on-call orders after the RTB event is not allowed.")
 
             self._routes[route_idx].remaining_plan = new_plan
             for index in refresh_indexes:
