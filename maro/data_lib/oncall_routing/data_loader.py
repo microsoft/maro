@@ -13,6 +13,8 @@ from maro.simulator.scenarios.oncall_routing import (
 from maro.simulator.utils import random
 from maro.utils import DottableDict
 
+from .utils import convert_time_format
+
 
 def _load_plan_simple(csv_path: str, start_tick: int, end_tick: int) -> Dict[str, List[PlanElement]]:
     print(f"Loading routes data from {csv_path}.")
@@ -30,8 +32,8 @@ def _load_plan_simple(csv_path: str, start_tick: int, end_tick: int) -> Dict[str
             order = Order(
                 order_id=next(GLOBAL_ORDER_ID_GENERATOR),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
-                open_time=start_tick,
-                close_time=end_tick,
+                open_time=start_tick if e["IS_DELIVERY"] else convert_time_format(int(e["READYTIME"])),
+                close_time=end_tick if e["IS_DELIVERY"] else convert_time_format(int(e["CLOSETIME"])),
                 is_delivery=e["IS_DELIVERY"]
             )
 

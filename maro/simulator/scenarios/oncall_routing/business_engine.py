@@ -145,7 +145,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
     def _load_route_plan(self) -> Dict[str, List[PlanElement]]:
-        remaining_plan: Dict[str, List[PlanElement]] = self._data_loader.generate_plan()
+        remaining_plan: Dict[str, List[PlanElement]] = self._data_loader.generate_plan()  # TODO: load orders only
 
         # TODO: fake head quarter order
         # The DUMMY order that represents the return-to-building event
@@ -160,7 +160,17 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         for plan in remaining_plan.values():
             # Sort the plan elements in a same location by (open time, close time)
-            # TODO: sort the plan in a same location by (open time, close time)
+            start, total = 0, len(plan)
+            while start < total:
+                end = start + 1
+                while end < total and plan[start].order.coord == plan[end].order.coord:
+                    end += 1
+                # Sort interval [start, end)
+                plan[start:end] = sorted(
+                    plan[start:end],
+                    key=lambda elem: (elem.order.open_time, elem.order.close_time)
+                )
+                start = end
 
             # Add a DUMMY order to let the carrier return to building.
             plan.append(PlanElement(order=rtb_order))
@@ -335,12 +345,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         route_idx = self._carriers[carrier_idx].route_idx
         plan = self._routes[route_idx].remaining_plan
 
+        assert len(plan) > 0, f"Expect valid plan elements but get empty plan: tick {event.tick}, carrier {carrier_idx}"
+
         # Update the location of the carrier.
         self._carriers[carrier_idx].in_stop = 1
         self._carriers[carrier_idx].update_coordinate(coord=plan[0].order.coord)
-
-        if len(plan) == 0:
-            return
 
         order_status = plan[0].order.get_status(event.tick, self._config.order_transition)
 
@@ -380,7 +389,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Try to process all orders located in the same position
         while len(plan) > 0 and plan[0].order.coord == carrier.coordinate:
             order: Order = plan[0].order
-            order_status = order.get_status(event.tick + processing_time, self._config.order_transition)
+            # The accumulated processing time is ignored here
+            # due to the assumption that the processing start at the very begining.
+            order_status = order.get_status(event.tick, self._config.order_transition)
 
             # Update performance statistics.
             if order_status == OrderStatus.DUMMY:
@@ -528,16 +539,16 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def post_step(self, tick: int) -> bool:
         is_done: bool = (tick + 1 == self._max_tick)
-        self._unallocated_oncall_num = len(self._oncall_order_buffer)
+        self._unallocated_oncall_num = len(self._oncall_order_buffer) + len(self._waiting_order_dict)
         # TODO: handle the orders left issue
         if is_done:
             for route in self._routes:
                 plan = route.remaining_plan
                 if len(plan) == 1:
                     print(
-                        f"carrier_idx: {route.carrier_idx}, "
+                        f"carrier_idx: {route.carrier_idx}, route_name: {route.name}, "
                         f"remaining plan: {len(route.remaining_plan)} {plan[0].order}"
                     )
                 elif len(plan) > 0:
-                    print(f"carrier_idx: {route.carrier_idx}, remaining plan: {len(route.remaining_plan)}")
+                    print(f"carrier_idx: {route.carrier_idx}, route_name: {route.name}, remaining plan: {len(route.remaining_plan)}")
         return is_done
