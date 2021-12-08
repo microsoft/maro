@@ -13,8 +13,31 @@ from .abs_trainer import SingleTrainer
 
 
 class DiscreteActorCritic(SingleTrainer):
-    """
-    TODO: docs.
+    """Actor Critic algorithm with separate policy and value models.
+
+    References:
+        https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
+        https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
+
+    Args:
+        name (str): Unique identifier for the policy.
+        get_v_critic_net_func (Callable[[], VNet]): Function to get V critic net.
+        policy (DiscretePolicyGradient): The policy to be trained.
+        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
+        train_batch_size (int): Batch size for training the Q-net. Defaults to 128.
+        grad_iters (int): Number of iterations to calculate gradients. Defaults to 1.
+        reward_discount (float): Reward decay as defined in standard RL terminology. Defaults to 0.9.
+        lam (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
+        clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
+            in which case the actor loss is calculated using the usual policy gradient theorem.
+        critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
+            the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
+        min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
+            very large in magnitude and causing stability issues. Defaults to None, which means no lower bound.
+        critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 1.0.
+        device (str): Identifier for the torch device. The policy will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
+        enable_data_parallelism (bool): Whether to enable data parallelism in this trainer. Defaults to False.
     """
     def __init__(
         self,
@@ -31,9 +54,9 @@ class DiscreteActorCritic(SingleTrainer):
         min_logp: float = None,
         critic_loss_coef: float = 0.1,
         device: str = None,
-        data_parallel: bool = False
+        enable_data_parallelism: bool = False
     ) -> None:
-        super(DiscreteActorCritic, self).__init__(name, device, data_parallel)
+        super(DiscreteActorCritic, self).__init__(name, device, enable_data_parallelism)
 
         self._replay_memory_capacity = replay_memory_capacity
 
@@ -84,14 +107,17 @@ class DiscreteActorCritic(SingleTrainer):
         assert scope in ("all", "actor", "critic"), \
             f"Unrecognized scope {scope}. Excepting 'all', 'actor', or 'critic'."
 
-        states = ndarray_to_tensor(batch.states, self._device)  # s
-        actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
+        grad_dict = {}
+        if scope in ("all", "actor"):
+            grad_dict["actor_grad"] = self._get_actor_grad(batch)
 
-        if self._clip_ratio is not None:
-            self._policy.eval()
-            logps_old = self._policy.get_state_action_logps(states, actions)
-        else:
-            logps_old = None
+        if scope in ("all", "critic"):
+            grad_dict["critic_grad"] = self._get_critic_grad(batch)
+
+        return grad_dict
+
+    def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        states = ndarray_to_tensor(batch.states, self._device)  # s
 
         self._policy.train()
         self._v_critic_net.train()
@@ -101,30 +127,40 @@ class DiscreteActorCritic(SingleTrainer):
         values = np.concatenate([values, values[-1:]])
         rewards = np.concatenate([batch.rewards, values[-1:]])
 
-        grad_dict = {}
-        if scope in ("all", "actor"):
-            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
-            advantages = ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam), self._device)
+        returns = ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1], self._device)
+        critic_loss = self._critic_loss_func(state_values, returns)
 
-            action_probs = self._policy.get_action_probs(states)
-            logps = torch.log(action_probs.gather(1, actions).squeeze())
-            logps = torch.clamp(logps, min=self._min_logp, max=.0)
-            if self._clip_ratio is not None:
-                ratio = torch.exp(logps - logps_old)
-                clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-                actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
-            else:
-                actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
+        return self._v_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
 
-            grad_dict["actor_grad"] = self._policy.get_gradients(actor_loss)
+    def _get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
 
-        if scope in ("all", "critic"):
-            returns = ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1], self._device)
-            critic_loss = self._critic_loss_func(state_values, returns)
+        if self._clip_ratio is not None:
+            self._policy.eval()
+            logps_old = self._policy.get_state_action_logps(states, actions)
+        else:
+            logps_old = None
 
-            grad_dict["critic_grad"] = self._v_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
+        state_values = self._v_critic_net.v_values(states)
+        values = state_values.detach().numpy()
+        values = np.concatenate([values, values[-1:]])
+        rewards = np.concatenate([batch.rewards, values[-1:]])
 
-        return grad_dict
+        deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
+        advantages = ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam), self._device)
+
+        action_probs = self._policy.get_action_probs(states)
+        logps = torch.log(action_probs.gather(1, actions).squeeze())
+        logps = torch.clamp(logps, min=self._min_logp, max=.0)
+        if self._clip_ratio is not None:
+            ratio = torch.exp(logps - logps_old)
+            clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
+            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
+        else:
+            actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
+
+        return self._policy.get_gradients(actor_loss)
 
     def _improve(self, batch: TransitionBatch) -> None:
         """
@@ -140,9 +176,9 @@ class DiscreteActorCritic(SingleTrainer):
     def get_trainer_state_dict(self) -> dict:
         return {
             "critic_state": self._v_critic_net.get_net_state(),
-            "policy_state": self.get_policy_state_dict()
+            "policy_state": self._policy.get_policy_state()
         }
 
     def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
         self._v_critic_net.set_net_state(trainer_state_dict["critic_state"])
-        self.set_policy_state_dict(trainer_state_dict["policy_state"])
+        self._policy.set_policy_state(trainer_state_dict["policy_state"])

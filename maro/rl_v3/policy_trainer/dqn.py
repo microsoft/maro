@@ -11,8 +11,30 @@ from .abs_trainer import SingleTrainer
 
 
 class DQN(SingleTrainer):
-    """
-    TODO: docs.
+    """The Deep-Q-Networks algorithm.
+
+    See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
+
+    Args:
+        name (str): Unique identifier for the policy.
+        policy (ValueBasedPolicy): The policy to be trained.
+        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 100000.
+        train_batch_size (int): Batch size for training the Q-net. Defaults to 128.
+        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
+        reward_discount (float): Reward decay as defined in standard RL terminology. Defaults to 0.9.
+        update_target_every (int): Number of gradient steps between target model updates. Defaults to 5.
+        soft_update_coef (float): Soft update coefficient, e.g.,
+            target_model = (soft_update_coef) * eval_model + (1-soft_update_coef) * target_model.
+            Defaults to 0.1.
+        double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
+            i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
+            See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
+        random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
+            overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
+            wrap-around. Defaults to False.
+        device (str): Identifier for the torch device. The policy will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
+        enable_data_parallelism (bool): Whether to enable data parallelism in this trainer. Defaults to False.
     """
     def __init__(
         self,
@@ -27,12 +49,13 @@ class DQN(SingleTrainer):
         double: bool = False,
         random_overwrite: bool = False,
         device: str = None,
-        data_parallel: bool = False
+        enable_data_parallelism: bool = False
     ) -> None:
-        super(DQN, self).__init__(name, device, data_parallel)
+        super(DQN, self).__init__(name, device, enable_data_parallelism)
 
         self._policy: Optional[ValueBasedPolicy] = None
         self._target_policy: Optional[ValueBasedPolicy] = None
+        self._replay_memory: Optional[RandomReplayMemory] = None
         self._replay_memory_capacity = replay_memory_capacity
         self._random_overwrite = random_overwrite
         if policy is not None:
@@ -42,7 +65,7 @@ class DQN(SingleTrainer):
         self._num_epochs = num_epochs
         self._reward_discount = reward_discount
 
-        self._policy_ver = self._target_policy_ver = 0
+        self._policy_version = self._target_policy_version = 0
         self._update_target_every = update_target_every
         self._soft_update_coef = soft_update_coef
         self._double = double
@@ -58,33 +81,13 @@ class DQN(SingleTrainer):
     def _train_step_impl(self) -> None:
         for _ in range(self._num_epochs):
             self._improve(self._get_batch())
+        self._update_policy_version()
 
-        self._policy_ver += 1
-        if self._policy_ver - self._target_policy_ver == self._update_target_every:
+    def _update_policy_version(self) -> None:
+        self._policy_version += 1
+        if self._policy_version - self._target_policy_version == self._update_target_every:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
-            self._target_policy_ver = self._policy_ver
-
-    def _get_loss(self, batch: TransitionBatch) -> torch.Tensor:
-        self._policy.train()
-        states = ndarray_to_tensor(batch.states, self._device)
-        next_states = ndarray_to_tensor(batch.next_states, self._device)
-        actions = ndarray_to_tensor(batch.actions, self._device)
-        rewards = ndarray_to_tensor(batch.rewards, self._device)
-        terminals = ndarray_to_tensor(batch.terminals, self._device).float()
-
-        with torch.no_grad():
-            if self._double:
-                self._policy.exploit()
-                actions_by_eval_policy = self._policy.get_actions_tensor(next_states)
-                next_q_values = self._target_policy.q_values_tensor(next_states, actions_by_eval_policy)
-            else:
-                self._target_policy.exploit()
-                actions = self._target_policy.get_actions_tensor(next_states)
-                next_q_values = self._target_policy.q_values_tensor(next_states, actions)
-        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
-
-        q_values = self._policy.q_values_tensor(states, actions)
-        return self._loss_func(q_values, target_q_values)
+            self._target_policy_version = self._policy_version
 
     def get_batch_grad(
         self,
@@ -139,10 +142,10 @@ class DQN(SingleTrainer):
 
     def get_trainer_state_dict(self) -> dict:
         return {
-            "policy_state": self.get_policy_state_dict(),
+            "policy_state": self._policy.get_policy_state(),
             "target_policy_state": self._target_policy.get_policy_state()
         }
 
     def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
-        self.set_policy_state_dict(trainer_state_dict["policy_state"])
+        self._policy.set_policy_state(trainer_state_dict["policy_state"])
         self._target_policy.set_policy_state(trainer_state_dict["target_policy_state"])

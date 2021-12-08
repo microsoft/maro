@@ -345,9 +345,9 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         device: str = None,
         critic_loss_coef: float = 1.0,
         shared_critic: bool = False,
-        data_parallel: bool = False
+        enable_data_parallelism: bool = False
     ) -> None:
-        super(DistributedDiscreteMADDPG, self).__init__(name, device, data_parallel)
+        super(DistributedDiscreteMADDPG, self).__init__(name, device, enable_data_parallelism)
 
         self._workers: Optional[List[DiscreteMADDPGWorker]] = None
         self._worker_indexes: Optional[List[List[int]]] = None
@@ -389,7 +389,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         if self._shared_critic:
             self._critic_worker = DiscreteMADDPGWorker(
                 reward_discount=self._reward_discount, get_q_critic_net_func=self._get_q_critic_net_func,
-                shared_critic=self._shared_critic, device=self._device_str, data_parallel=self._data_parallel,
+                shared_critic=self._shared_critic, device=self._device_str, data_parallel=self._enable_data_parallelism,
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
                 update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
             )
@@ -400,7 +400,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         while cursor < self.num_policies:
             worker = DiscreteMADDPGWorker(
                 reward_discount=self._reward_discount, get_q_critic_net_func=self._get_q_critic_net_func,
-                shared_critic=self._shared_critic, device=self._device_str, data_parallel=self._data_parallel,
+                shared_critic=self._shared_critic, device=self._device_str, data_parallel=self._enable_data_parallelism,
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
                 update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
             )

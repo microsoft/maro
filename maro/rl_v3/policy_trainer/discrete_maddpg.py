@@ -28,9 +28,9 @@ class DiscreteMADDPG(MultiTrainer):
         device: str = None,
         critic_loss_coef: float = 1.0,
         shared_critic: bool = False,
-        data_parallel: bool = False
+        enable_data_parallelism: bool = False
     ) -> None:
-        super(DiscreteMADDPG, self).__init__(name, device, data_parallel)
+        super(DiscreteMADDPG, self).__init__(name, device, enable_data_parallelism)
 
         self._get_q_critic_net_func = get_q_critic_net_func
         self._q_critic_nets: Optional[List[MultiQNet]] = None
@@ -241,14 +241,15 @@ class DiscreteMADDPG(MultiTrainer):
 
     def get_trainer_state_dict(self) -> dict:
         return {
-            "policy_state": self.get_policy_state_dict(),
+            "policy_state": [policy.get_policy_state() for policy in self._policies],
             "target_policy_state": [policy.get_policy_state() for policy in self._target_policies],
             "critic_state": [net.get_net_state() for net in self._q_critic_nets],
             "target_critic_state": [net.get_net_state() for net in self._target_q_critic_nets]
         }
 
     def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
-        self.set_policy_state_dict(trainer_state_dict["policy_state"])
+        for policy, policy_state in zip(self._policies, trainer_state_dict["policy_state"]):
+            policy.set_policy_state(policy_state)
         for policy, policy_state in zip(self._target_policies, trainer_state_dict["target_policy_state"]):
             policy.set_policy_state(policy_state)
         for net, net_state in zip(self._q_critic_nets, trainer_state_dict["critic_state"]):

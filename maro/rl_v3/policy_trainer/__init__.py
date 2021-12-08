@@ -9,7 +9,7 @@ __all__ = [
     "AbsTrainer", "MultiTrainer", "SingleTrainer",
     "DiscreteActorCritic",
     "DDPG",
-    "DQN",
     "DiscreteMADDPG",
-    "DistributedDiscreteMADDPG"
+    "DistributedDiscreteMADDPG",
+    "DQN"
 ]

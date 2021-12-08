@@ -14,14 +14,21 @@ class AbsTrainer(object, metaclass=ABCMeta):
     """
     Policy trainer used to train policies.
     """
-    def __init__(self, name: str, device: str = None, data_parallel: bool = False) -> None:
+    def __init__(self, name: str, device: str = None, enable_data_parallelism: bool = False) -> None:
+        """
+        Args:
+            name (str): Name of the trainer
+            device (str): Device to store this trainer. If it is None, the device will be set to "cpu" if cuda is
+                unavailable and "cuda" otherwise. Defaults to None.
+            enable_data_parallelism (bool): Whether to enable data parallelism in this trainer.
+        """
         self._name = name
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         print(f"Creating trainer {self.__class__.__name__} {name} on device {self._device}")
 
-        self._data_parallel = data_parallel
+        self._enable_data_parallelism = enable_data_parallelism
         self._task_queue_client: Optional[TaskQueueClient] = None
 
     @property
@@ -29,8 +36,9 @@ class AbsTrainer(object, metaclass=ABCMeta):
         return self._name
 
     def train_step(self) -> None:
-        if self._data_parallel:
-            assert self._task_queue_client is not None, "Task queue client must be configured under data parallel mode"
+        if self._enable_data_parallelism:
+            assert self._task_queue_client is not None, \
+                "Task queue client must be configured in order to enable data parallelism"
         self._train_step_impl()
 
     @abstractmethod
@@ -62,13 +70,23 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     @abstractmethod
     def get_trainer_state_dict(self) -> dict:
+        """
+        Returns:
+            A dict that contains trainer's state.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
+        """
+        Set trainer's state.
+
+        Args:
+            trainer_state_dict (dict): A dict that contains trainer's state.
+        """
         raise NotImplementedError
 
-    def init_data_parallel(self, *args, **kwargs) -> None:
+    def init_data_parallelism(self, *args, **kwargs) -> None:
         """
         Initialize a proxy in the policy, for data-parallel training.
         Using the same arguments as `Proxy`.
@@ -76,14 +94,14 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._task_queue_client = TaskQueueClient()
         self._task_queue_client.create_proxy(*args, **kwargs)
 
-    def init_data_parallel_with_existing_proxy(self, proxy: Proxy) -> None:
+    def init_data_parallelism_with_existing_proxy(self, proxy: Proxy) -> None:
         """
         Initialize a proxy in the policy with an existing one, for data-parallel training.
         """
         self._task_queue_client = TaskQueueClient()
         self._task_queue_client.set_proxy(proxy)
 
-    def exit_data_parallel(self) -> None:
+    def exit_data_parallelism(self) -> None:
         if self._task_queue_client is not None:
             self._task_queue_client.exit()
             self._task_queue_client = None
@@ -93,8 +111,8 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains only one policy.
     """
-    def __init__(self, name: str, device: str = None, data_parallel: bool = False) -> None:
-        super(SingleTrainer, self).__init__(name, device, data_parallel)
+    def __init__(self, name: str, device: str = None, enable_data_parallelism: bool = False) -> None:
+        super(SingleTrainer, self).__init__(name, device, enable_data_parallelism)
         self._policy: Optional[RLPolicy] = None
         self._replay_memory = Optional[ReplayMemory]
 
@@ -116,9 +134,6 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         )
 
     def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
-        """
-        Implementation of `record`.
-        """
         self._replay_memory.put(transition_batch)
 
     def register_policy(self, policy: RLPolicy) -> None:
@@ -146,6 +161,17 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, Dict[str, torch.Tensor]]:
+        """
+        Get the gradients of a single batch. This function defines the atomic logic of gradient computing.
+
+        Args:
+            batch (TransitionBatch): Data batch.
+            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
+            scope (str): Scope of gradient calculation.
+
+        Returns:
+            A double-deck dict that contains required gradients.
+        """
         raise NotImplementedError
 
     def _get_batch_grad(
@@ -154,8 +180,20 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, Dict[str, torch.Tensor]]:
-        if self._data_parallel:
-            raise NotImplementedError
+        """
+        Get the gradients of a single batch. The calculation could be done in single worker mode or in data parallelism
+            mode, depends on the trainer's configuration.
+
+        Args:
+            batch (TransitionBatch): Data batch.
+            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
+            scope (str): Scope of gradient calculation.
+
+        Returns:
+            A double-deck dict that contains required gradients.
+        """
+        if self._enable_data_parallelism:
+            raise NotImplementedError  # TODO
         else:
             return self.get_batch_grad(batch, tensor_dict, scope)
 
@@ -164,8 +202,8 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains multiple policies.
     """
-    def __init__(self, name: str, device: str = None, data_parallel: bool = False) -> None:
-        super(MultiTrainer, self).__init__(name, device, data_parallel)
+    def __init__(self, name: str, device: str = None, enable_data_parallelism: bool = False) -> None:
+        super(MultiTrainer, self).__init__(name, device, enable_data_parallelism)
         self._policy_dict: Dict[str, RLPolicy] = {}
         self._policies: List[RLPolicy] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
@@ -195,6 +233,9 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         raise NotImplementedError
 
     def register_policies(self, policies: List[RLPolicy]) -> None:
+        """
+        Register the policies and finish other related initializations.
+        """
         for policy in policies:
             policy.to_device(self._device)
         self._register_policies_impl(policies)
@@ -210,6 +251,17 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
+        """
+        Get the gradients of a single batch. This function defines the atomic logic of gradient computing.
+
+        Args:
+            batch (MultiTransitionBatch): Data batch.
+            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
+            scope (str): Scope of gradient calculation.
+
+        Returns:
+            A double-deck dict that contains required gradients.
+        """
         raise NotImplementedError
 
     def _get_batch_grad(
@@ -218,7 +270,19 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
-        if self._data_parallel:
-            raise NotImplementedError
+        """
+        Get the gradients of a single batch. The calculation could be done in single worker mode or in data parallelism
+            mode, depends on the trainer's configuration.
+
+        Args:
+            batch (MultiTransitionBatch): Data batch.
+            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
+            scope (str): Scope of gradient calculation.
+
+        Returns:
+            A double-deck dict that contains required gradients.
+        """
+        if self._enable_data_parallelism:
+            raise NotImplementedError  # TODO
         else:
             return self.get_batch_grad(batch, tensor_dict, scope)
