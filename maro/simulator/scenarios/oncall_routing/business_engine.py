@@ -40,6 +40,7 @@ total_order_delayed(int): The total delayed order quantity of all carriers.
 total_order_delay_time(int): The total order delay time of all carriers.
 total_order_terminated(int): The total number of order that are terminated during the simulation.
 total_order_completed(int):
+pending_order_num(int): The number of orders pending in the plan that is waiting for service (w/o RTB Dummy Order).
 """
 
 
@@ -198,6 +199,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._total_order_delay_time: int = 0
         self._total_order_terminated: int = 0
         self._total_order_completed: int = 0
+        self._pending_order_num: int = 0
 
         for route in self._routes:
             self._total_order_num += len(route.remaining_plan) - 1
@@ -220,6 +222,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 "total_order_delay_time": self._total_order_delay_time,
                 "total_order_terminated": self._total_order_terminated,
                 "total_order_completed": self._total_order_completed,
+                "pending_order_num": self._pending_order_num,
             }
         )
 
@@ -531,6 +534,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def post_step(self, tick: int) -> bool:
         is_done: bool = (tick + 1 == self._max_tick)
         self._unallocated_oncall_num = len(self._oncall_order_buffer)
+        self._pending_order_num = sum([max(len(route.remaining_plan) - 1, 0) for route in self._routes])
         # TODO: handle the orders left issue
         if is_done:
             for route in self._routes:
