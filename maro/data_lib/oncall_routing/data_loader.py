@@ -8,7 +8,7 @@ import pandas as pd
 from yaml import safe_load
 
 from maro.simulator.scenarios.oncall_routing import (
-    GLOBAL_ORDER_ID_GENERATOR, PLAN_RAND_KEY, Coordinate, Order, PlanElement
+    OrderIdGenerator, PLAN_RAND_KEY, Coordinate, Order, PlanElement
 )
 from maro.simulator.utils import random
 from maro.utils import DottableDict
@@ -16,7 +16,12 @@ from maro.utils import DottableDict
 from .utils import convert_time_format
 
 
-def _load_plan_simple(csv_path: str, start_tick: int, end_tick: int) -> Dict[str, List[PlanElement]]:
+def _load_plan_simple(
+    csv_path: str,
+    start_tick: int,
+    end_tick: int,
+    id_counter: OrderIdGenerator,
+) -> Dict[str, List[PlanElement]]:
     print(f"Loading routes data from {csv_path}.")
     df = pd.read_csv(csv_path, sep=',')
 
@@ -30,7 +35,7 @@ def _load_plan_simple(csv_path: str, start_tick: int, end_tick: int) -> Dict[str
         for e in data.to_dict(orient='records'):
             # TODO
             order = Order(
-                order_id=next(GLOBAL_ORDER_ID_GENERATOR),
+                order_id=id_counter.next(),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
                 open_time=start_tick if e["IS_DELIVERY"] else convert_time_format(int(e["READYTIME"])),
                 close_time=end_tick if e["IS_DELIVERY"] else convert_time_format(int(e["CLOSETIME"])),
@@ -69,6 +74,7 @@ def _deprecated_load_sample_coords(path: str) -> Dict[str, Tuple[List[Coordinate
 class PlanLoader(object):
     def __init__(self) -> None:
         super(PlanLoader, self).__init__()
+        self._id_counter = OrderIdGenerator(prefix="planned")
 
     def generate_plan(self) -> Dict[str, List[PlanElement]]:
         return self._generate_plan_impl()
@@ -85,7 +91,12 @@ class PlanLoader(object):
 class FromHistoryPlanLoader(PlanLoader):
     def __init__(self, csv_path: str, data_loader_config: DottableDict) -> None:
         super(FromHistoryPlanLoader, self).__init__()
-        self._plan = _load_plan_simple(csv_path, data_loader_config.start_tick, data_loader_config.end_tick)
+        self._plan = _load_plan_simple(
+            csv_path,
+            data_loader_config.start_tick,
+            data_loader_config.end_tick,
+            self._id_counter
+        )
 
     def reset(self) -> None:
         pass
