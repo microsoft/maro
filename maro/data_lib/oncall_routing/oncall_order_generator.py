@@ -104,7 +104,7 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         for i in range(n):
             order = Order(
                 order_id=next(GLOBAL_ORDER_ID_GENERATOR),
-                coordinate=coords[i],
+                coordinate=Coordinate(lat=coords[i][0], lng=coords[i][1]),
                 open_time=open_times[i],
                 close_time=close_times[i],
                 is_delivery=False,

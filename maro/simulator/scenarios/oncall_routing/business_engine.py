@@ -18,12 +18,13 @@ from maro.utils import convert_dottable
 from .carrier import Carrier
 from .common import (
     Action, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload, OncallRoutingPayload,
-    OrderProcessingPayload, PlanElement
+    OrderProcessingPayload
 )
 from .coordinate import Coordinate
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
 from .order import GLOBAL_ORDER_ID_GENERATOR, Order, OrderStatus
+from .plan_element import PlanElement
 from .route import Route
 from .utils import GLOBAL_RAND_KEY
 
@@ -249,7 +250,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             decision_event = self._event_buffer.gen_decision_event(
                 tick=tick,
                 payload=OncallRoutingPayload(
-                    get_oncall_orders_func=lambda: list(self._oncall_order_buffer.values())
+                    get_oncall_orders_func=lambda: list(self._oncall_order_buffer.values()),
+                    get_routes_info_func=lambda: self._routes,
                 )
             )
             self._event_buffer.insert_event(decision_event)
@@ -427,7 +429,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
             self._total_order_completed += 1
             order.set_status(OrderStatus.COMPLETED)
-            # TODO: to save finished order or not?
 
             # Update carrier payload information.
             # TODO

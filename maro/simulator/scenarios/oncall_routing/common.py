@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Callable, List, Optional
 
 from .order import Order
+from .route import Route
 
 
 class Events(Enum):
@@ -19,8 +20,14 @@ class Events(Enum):
 class Action:
     order_id: str
     route_name: str
-    insert_index: int
-    in_segment_order: int = 0
+    insert_index: int   # Insert before the i-th order of current remaining plan.
+    in_segment_order: int = 0  # Relative order of multiple on-call orders with same insert_index.
+
+    def __repr__(self) -> str:
+        return (
+            f"Action(order_id: {self.order_id}, route_name: {self.route_name}, "
+            f"insert_index: {self.insert_index}, in_segment_order: {self.in_segment_order})"
+        )
 
 
 @dataclass
@@ -43,13 +50,20 @@ class OrderProcessingPayload:
     carrier_idx: int
 
 
-@dataclass
-class PlanElement:
-    order: Order
-    estimated_duration_from_last: Optional[int] = None  # Estimated duration from last stop
-    actual_duration_from_last: Optional[int] = None  # Actual duration from last stop
+class OncallRoutingPayload(object):
+    def __init__(
+        self,
+        get_oncall_orders_func: Callable[[], List[Order]],
+        get_routes_info_func: Callable[[], List[Route]]
+    ):
+        self._get_oncall_orders_func: Callable[[], List[Order]] = get_oncall_orders_func
+        self._get_routes_info_func: Callable[[], List[Route]] = get_routes_info_func
 
+    @property
+    def oncall_orders(self) -> List[Order]:
+        return self._get_oncall_orders_func()
 
-@dataclass
-class OncallRoutingPayload:
-    get_oncall_orders_func: Callable[[], List[Order]]
+    @property
+    def routes_info(self) -> List[Route]:
+        # TODO: deep copy or?
+        return self._get_routes_info_func()

@@ -5,7 +5,7 @@ from typing import List
 
 from maro.backends.frame import NodeBase, node
 
-from .common import PlanElement
+from .plan_element import PlanElement
 
 
 @node("routes")
