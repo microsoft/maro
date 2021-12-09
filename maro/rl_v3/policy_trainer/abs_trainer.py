@@ -3,8 +3,6 @@ from typing import Dict, List, Optional
 
 import torch
 
-from maro.communication import Proxy
-from maro.rl.data_parallelism import TaskQueueClient
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
@@ -29,16 +27,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         print(f"Creating trainer {self.__class__.__name__} {name} on device {self._device}")
 
         self._enable_data_parallelism = enable_data_parallelism
-        self._task_queue_client: Optional[TaskQueueClient] = None
 
     @property
     def name(self) -> str:
         return self._name
 
     def train_step(self) -> None:
-        if self._enable_data_parallelism:
-            assert self._task_queue_client is not None, \
-                "Task queue client must be configured in order to enable data parallelism"
         self._train_step_impl()
 
     @abstractmethod
@@ -68,44 +62,6 @@ class AbsTrainer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def get_trainer_state_dict(self) -> dict:
-        """
-        Returns:
-            A dict that contains trainer's state.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def set_trainer_state_dict(self, trainer_state_dict: dict) -> None:
-        """
-        Set trainer's state.
-
-        Args:
-            trainer_state_dict (dict): A dict that contains trainer's state.
-        """
-        raise NotImplementedError
-
-    def init_data_parallelism(self, *args, **kwargs) -> None:
-        """
-        Initialize a proxy in the policy, for data-parallel training.
-        Using the same arguments as `Proxy`.
-        """
-        self._task_queue_client = TaskQueueClient()
-        self._task_queue_client.create_proxy(*args, **kwargs)
-
-    def init_data_parallelism_with_existing_proxy(self, proxy: Proxy) -> None:
-        """
-        Initialize a proxy in the policy with an existing one, for data-parallel training.
-        """
-        self._task_queue_client = TaskQueueClient()
-        self._task_queue_client.set_proxy(proxy)
-
-    def exit_data_parallelism(self) -> None:
-        if self._task_queue_client is not None:
-            self._task_queue_client.exit()
-            self._task_queue_client = None
-
 
 class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
@@ -113,89 +69,34 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     def __init__(self, name: str, device: str = None, enable_data_parallelism: bool = False) -> None:
         super(SingleTrainer, self).__init__(name, device, enable_data_parallelism)
-        self._policy: Optional[RLPolicy] = None
+        self._policy_name: Optional[str] = None
         self._replay_memory = Optional[ReplayMemory]
 
     def record(
         self,
-        policy_name: str,  # TODO: need this?
         transition_batch: TransitionBatch
     ) -> None:
         """
         Record the experiences collected by external modules.
 
         Args:
-            policy_name (str): The name of the policy that generates this batch.
             transition_batch (TransitionBatch): A TransitionBatch item that contains a batch of experiences.
         """
-        self._record_impl(
-            policy_name=policy_name,
-            transition_batch=transition_batch
-        )
+        self._record_impl(transition_batch=transition_batch)
 
-    def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
+    def _record_impl(self, transition_batch: TransitionBatch) -> None:
         self._replay_memory.put(transition_batch)
 
     def register_policy(self, policy: RLPolicy) -> None:
         """
         Register the policy and finish other related initializations.
         """
-        policy.to_device(self._device)
+        self._policy_name = policy.name
         self._register_policy_impl(policy)
 
     @abstractmethod
     def _register_policy_impl(self, policy: RLPolicy) -> None:
         raise NotImplementedError
-
-    def get_policy_state_dict(self) -> Dict[str, object]:
-        return {self._policy.name: self._policy.get_policy_state()}
-
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        assert len(policy_state_dict) == 1 and self._policy.name in policy_state_dict
-        self._policy.set_policy_state(policy_state_dict[self._policy.name])
-
-    @abstractmethod
-    def get_batch_grad(
-        self,
-        batch: TransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        """
-        Get the gradients of a single batch. This function defines the atomic logic of gradient computing.
-
-        Args:
-            batch (TransitionBatch): Data batch.
-            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
-            scope (str): Scope of gradient calculation.
-
-        Returns:
-            A double-deck dict that contains required gradients.
-        """
-        raise NotImplementedError
-
-    def _get_batch_grad(
-        self,
-        batch: TransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        """
-        Get the gradients of a single batch. The calculation could be done in single worker mode or in data parallelism
-            mode, depends on the trainer's configuration.
-
-        Args:
-            batch (TransitionBatch): Data batch.
-            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
-            scope (str): Scope of gradient calculation.
-
-        Returns:
-            A double-deck dict that contains required gradients.
-        """
-        if self._enable_data_parallelism:
-            raise NotImplementedError  # TODO
-        else:
-            return self.get_batch_grad(batch, tensor_dict, scope)
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
@@ -204,17 +105,12 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     def __init__(self, name: str, device: str = None, enable_data_parallelism: bool = False) -> None:
         super(MultiTrainer, self).__init__(name, device, enable_data_parallelism)
-        self._policy_dict: Dict[str, RLPolicy] = {}
-        self._policies: List[RLPolicy] = []
+        self._policy_names: List[str] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
 
     @property
     def num_policies(self) -> int:
-        return self._get_num_policies()
-
-    @abstractmethod
-    def _get_num_policies(self) -> int:
-        raise NotImplementedError
+        return len(self._policy_names)
 
     def record(
         self,
@@ -228,61 +124,16 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         """
         self._record_impl(transition_batch)
 
-    @abstractmethod
     def _record_impl(self, transition_batch: MultiTransitionBatch) -> None:
-        raise NotImplementedError
+        self._replay_memory.put(transition_batch)
 
     def register_policies(self, policies: List[RLPolicy]) -> None:
         """
         Register the policies and finish other related initializations.
         """
-        for policy in policies:
-            policy.to_device(self._device)
+        self._policy_names = [policy.name for policy in policies]
         self._register_policies_impl(policies)
 
     @abstractmethod
     def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
-        pass
-
-    @abstractmethod
-    def get_batch_grad(
-        self,
-        batch: MultiTransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
-        """
-        Get the gradients of a single batch. This function defines the atomic logic of gradient computing.
-
-        Args:
-            batch (MultiTransitionBatch): Data batch.
-            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
-            scope (str): Scope of gradient calculation.
-
-        Returns:
-            A double-deck dict that contains required gradients.
-        """
         raise NotImplementedError
-
-    def _get_batch_grad(
-        self,
-        batch: MultiTransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, List[Dict[str, torch.Tensor]]]:
-        """
-        Get the gradients of a single batch. The calculation could be done in single worker mode or in data parallelism
-            mode, depends on the trainer's configuration.
-
-        Args:
-            batch (MultiTransitionBatch): Data batch.
-            tensor_dict (Dict[str, object]): Other auxiliary variables used to calculate the gradient.
-            scope (str): Scope of gradient calculation.
-
-        Returns:
-            A double-deck dict that contains required gradients.
-        """
-        if self._enable_data_parallelism:
-            raise NotImplementedError  # TODO
-        else:
-            return self.get_batch_grad(batch, tensor_dict, scope)
