@@ -8,17 +8,19 @@ from typing import Deque, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import GLOBAL_ORDER_ID_GENERATOR, ONCALL_RAND_KEY, Coordinate, Order
+from maro.simulator.scenarios.oncall_routing import ONCALL_RAND_KEY, Coordinate, Order, OrderIdGenerator
 from maro.simulator.utils import random
 from maro.utils import DottableDict
 
 from .utils import convert_time_format
+
 
 class OncallOrderGenerator(object):
     def __init__(self) -> None:
         super(OncallOrderGenerator, self).__init__()
 
         self._queue: Deque[Tuple[int, Order]] = deque()
+        self._id_counter = OrderIdGenerator(prefix="oncall")
 
     @abstractmethod
     def reset(self) -> None:
@@ -43,7 +45,7 @@ class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
         buff = []
         for e in df.to_dict(orient='records'):
             order = Order(
-                order_id=next(GLOBAL_ORDER_ID_GENERATOR),
+                order_id=self._id_counter.next(),
                 coordinate=Coordinate(e["LAT"], e["LNG"]),
                 open_time=convert_time_format(e["READYTIME"]),
                 close_time=convert_time_format(e["CLOSETIME"]),
@@ -90,6 +92,8 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         self._open_times = [new_open_times[0], normalize_weights(new_open_times[1])]
 
     def reset(self) -> None:
+        self._id_counter.reset()
+
         n = random[ONCALL_RAND_KEY].choice(self._oncall_numbers)
 
         coords = random[ONCALL_RAND_KEY].choices(self._coords[0], weights=self._coords[1], k=n)
@@ -103,7 +107,7 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         buff = []
         for i in range(n):
             order = Order(
-                order_id=next(GLOBAL_ORDER_ID_GENERATOR),
+                order_id=self._id_counter.next(),
                 coordinate=Coordinate(lat=coords[i][0], lng=coords[i][1]),
                 open_time=open_times[i],
                 close_time=close_times[i],

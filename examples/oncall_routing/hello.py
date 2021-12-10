@@ -8,7 +8,6 @@ from maro.simulator.scenarios.oncall_routing.common import OncallRoutingPayload
 if __name__ == "__main__":
     env = Env(
         scenario="oncall_routing", topology="example", start_tick=0, durations=1440,
-        # options={"config_path": "C:/workspace/fedex_topology/example_sample/"}
     )
 
     # TODO: check the reset functionality

@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from enum import Enum
-from itertools import count
 from typing import Optional
 
 from maro.utils import DottableDict
@@ -11,30 +10,16 @@ from .coordinate import Coordinate
 
 
 class OrderIdGenerator(object):
-    __instance = None
+    def __init__(self, prefix: str) -> None:
+        self._prefix = prefix
+        self._count = 0
 
-    def __new__(cls, *args, **kwargs):
-        if cls.__instance is None:
-            cls.__instance = super(OrderIdGenerator, cls).__new__(cls, *args, **kwargs)
-        return cls.__instance
+    def reset(self, reset_to: int = 0) -> None:
+        self._count = reset_to
 
-    def __init__(self) -> None:
-        self._counter = count()
-
-    def __iter__(self):
-        return self
-
-    def __next__(self) -> str:
-        return str(next(self._counter))
-
-    def next(self):
-        return self.__next__()
-
-    def reset(self):
-        self._counter = count()
-
-
-GLOBAL_ORDER_ID_GENERATOR = OrderIdGenerator()
+    def next(self) -> str:
+        self._count += 1
+        return "{}_{:04d}".format(self._prefix, self._count - 1)
 
 
 class OrderStatus(Enum):

@@ -23,7 +23,7 @@ from .common import (
 from .coordinate import Coordinate
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
-from .order import GLOBAL_ORDER_ID_GENERATOR, Order, OrderStatus
+from .order import Order, OrderStatus
 from .plan_element import PlanElement
 from .route import Route
 from .utils import GLOBAL_RAND_KEY
@@ -150,7 +150,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # TODO: fake head quarter order
         # The DUMMY order that represents the return-to-building event
         rtb_order = Order(
-            order_id=next(GLOBAL_ORDER_ID_GENERATOR),
+            order_id="dummy_rtb_order",
             coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
             open_time=self._config.data_loader_config.start_tick,
             close_time=self._config.data_loader_config.end_tick,
@@ -278,7 +278,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         random.seed(new_seed)
 
         # Step 2
-        GLOBAL_ORDER_ID_GENERATOR.reset()
         self._oncall_order_generator.reset()
         self._oncall_order_buffer.clear()
 
