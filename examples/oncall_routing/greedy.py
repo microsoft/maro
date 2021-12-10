@@ -7,6 +7,9 @@ from maro.simulator import Env
 from maro.simulator.scenarios.oncall_routing import Order, Route
 from maro.simulator.scenarios.oncall_routing.common import Action, OncallRoutingPayload
 from maro.simulator.scenarios.oncall_routing.utils import geo_distance_meter
+from maro.utils import set_seeds
+
+set_seeds(0)
 
 
 def get_greedy_action(order: Order, routes: List[Route], carriers_in_stop: List[bool]) -> Optional[Action]:

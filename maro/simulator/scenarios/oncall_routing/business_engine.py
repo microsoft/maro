@@ -472,6 +472,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._carriers[carrier_idx].in_stop = 0
 
         plan = self._routes[route_idx].remaining_plan
+
+        # Remove the order if it is already terminated.
+        while (
+            len(plan) > 0
+            and plan[0].order.get_status(event.tick, self._config.order_transition) == OrderStatus.TERMINATED
+        ):
+            plan.pop(0)
+
         # Add next carrier arrival event.
         if len(plan) > 0:
             carrier_arrival_payload = CarrierArrivalPayload(carrier_idx)
