@@ -235,7 +235,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return self._snapshots
 
     def get_agent_idx_list(self) -> List[int]:
-        return list(range(len(self._routes)))
+        return []
 
     def step(self, tick: int) -> None:
         # Update oncall orders
