@@ -40,6 +40,7 @@ total_order_delayed(int): The total delayed order quantity of all carriers.
 total_order_delay_time(int): The total order delay time of all carriers.
 total_order_terminated(int): The total number of order that are terminated during the simulation.
 total_order_completed(int):
+pending_order_num(int): The number of orders pending in the plan that is waiting for service (w/o RTB Dummy Order).
 """
 
 
@@ -198,6 +199,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._total_order_delay_time: int = 0
         self._total_order_terminated: int = 0
         self._total_order_completed: int = 0
+        self._pending_order_num: int = 0
 
         for route in self._routes:
             self._total_order_num += len(route.remaining_plan) - 1
@@ -220,6 +222,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 "total_order_delay_time": self._total_order_delay_time,
                 "total_order_terminated": self._total_order_terminated,
                 "total_order_completed": self._total_order_completed,
+                "pending_order_num": self._pending_order_num,
             }
         )
 
@@ -232,7 +235,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return self._snapshots
 
     def get_agent_idx_list(self) -> List[int]:
-        return list(range(len(self._routes)))
+        raise Exception("Agent Index List not available in On-Call Routing scenario!")
 
     def step(self, tick: int) -> None:
         # Update oncall orders
@@ -469,6 +472,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._carriers[carrier_idx].in_stop = 0
 
         plan = self._routes[route_idx].remaining_plan
+
+        # Remove the order if it is already terminated.
+        while (
+            len(plan) > 0
+            and plan[0].order.get_status(event.tick, self._config.order_transition) == OrderStatus.TERMINATED
+        ):
+            plan.pop(0)
+
         # Add next carrier arrival event.
         if len(plan) > 0:
             carrier_arrival_payload = CarrierArrivalPayload(carrier_idx)
@@ -531,6 +542,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def post_step(self, tick: int) -> bool:
         is_done: bool = (tick + 1 == self._max_tick)
         self._unallocated_oncall_num = len(self._oncall_order_buffer)
+        self._pending_order_num = sum([max(len(route.remaining_plan) - 1, 0) for route in self._routes])
         # TODO: handle the orders left issue
         if is_done:
             for route in self._routes:
