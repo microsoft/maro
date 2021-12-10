@@ -29,12 +29,12 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
         super(DiscreteMADDPGWorker, self).__init__(name, device, enable_data_parallelism)
 
         # Actor
-        self._target_policies: Optional[Dict[int, DiscretePolicyGradient]] = None
+        self._target_policies: Dict[int, DiscretePolicyGradient] = {}
 
         # Critic
         self._get_q_critic_net_func = get_q_critic_net_func
-        self._q_critic_nets: Optional[Dict[int, MultiQNet]] = None
-        self._target_q_critic_nets: Optional[Dict[int, MultiQNet]] = None
+        self._q_critic_nets: Dict[int, MultiQNet] = {}
+        self._target_q_critic_nets: Dict[int, MultiQNet] = {}
 
         #
         self._shared_critic = shared_critic
@@ -46,8 +46,6 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
         self._soft_update_coef = soft_update_coef
 
     def _register_policies_impl(self, policy_dict: Dict[int, RLPolicy]) -> None:
-        assert all(isinstance(policy, DiscretePolicyGradient) for policy in policy_dict.values())
-
         # Actors
         self._policies: Dict[int, DiscretePolicyGradient] = {}
         self._target_policies: Dict[int, DiscretePolicyGradient] = {}
@@ -110,17 +108,20 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
             ret_dict["policy_state"] = {i: self._policies[i].get_policy_state() for i in self._indexes}
             ret_dict["target_policy_state"] = {i: self._target_policies[i].get_policy_state() for i in self._indexes}
         if scope in ("all", "critic"):
-            ret_dict["critic_state"] = {i: self._q_critic_nets[i].get_net_state() for i in self._indexes}
-            ret_dict["target_critic_state"] = {i: self._target_q_critic_nets[i].get_net_state() for i in self._indexes}
+            indexes = [0] if self._shared_critic else self._indexes
+            ret_dict["critic_state"] = {i: self._q_critic_nets[i].get_net_state() for i in indexes}
+            ret_dict["target_critic_state"] = {i: self._target_q_critic_nets[i].get_net_state() for i in indexes}
 
         return ret_dict
 
     def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
-        for i in self._indexes:
-            if scope in ("all", "actor"):
+        if scope in ("all", "actor"):
+            for i in self._indexes:
                 self._policies[i].set_policy_state(worker_state_dict["policy_state"][i])
                 self._target_policies[i].set_policy_state(worker_state_dict["target_policy_state"][i])
-            if scope in ("all", "critic"):
+        if scope in ("all", "critic"):
+            indexes = [0] if self._shared_critic else self._indexes
+            for i in indexes:
                 self._q_critic_nets[i].set_net_state(worker_state_dict["critic_state"][i])
                 self._target_q_critic_nets[i].set_net_state(worker_state_dict["target_critic_state"][i])
 
@@ -140,7 +141,8 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
             net.train()
 
         critic_loss_dict = {}
-        for i in self._indexes:
+        indexes = [0] if self._shared_critic else self._indexes
+        for i in indexes:
             q_net = self._q_critic_nets[i]
             target_q_net = self._target_q_critic_nets[i]
             with torch.no_grad():
@@ -158,7 +160,7 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
         return {
             i: self._q_critic_nets[i].get_gradients(critic_loss_dict[i])
-            for i in self._indexes
+            for i in indexes
         }
 
     def _get_actor_grad(
@@ -228,8 +230,6 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
         return grad_dict
 
     def update_critics(self, next_actions: List[torch.Tensor]) -> None:
-        assert not self._shared_critic
-
         grads = self._get_batch_grad(
             self._batch,
             tensor_dict={"next_actions": next_actions},
@@ -280,7 +280,12 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         shared_critic: bool = False,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(DistributedDiscreteMADDPG, self).__init__(name, device, enable_data_parallelism)
+        super(DistributedDiscreteMADDPG, self).__init__(
+            name=name,
+            device=device,
+            enable_data_parallelism=enable_data_parallelism,
+            train_batch_size=train_batch_size
+        )
 
         self._get_q_critic_net_func = get_q_critic_net_func
         self._critic_worker: Optional[DiscreteMADDPGWorker] = None
@@ -295,7 +300,6 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         self._update_target_every = update_target_every
         self._policy_version = self._target_policy_version = 0
         self._soft_update_coef = soft_update_coef
-        self._train_batch_size = train_batch_size
         self._reward_discount = reward_discount
         self._critic_loss_coef = critic_loss_coef
 
@@ -311,6 +315,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
                 update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
             )
+            self._critic_worker.register_policies({})  # Register with empty policy dict to init the critic net
 
         self._workers: List[DiscreteMADDPGWorker] = []
         self._worker_indexes: List[List[int]] = []
@@ -327,7 +332,6 @@ class DistributedDiscreteMADDPG(MultiTrainer):
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
                 update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
             )
-
             worker.register_policies({i: policies[i] for i in indexes})
 
             cursor = cursor_end
@@ -341,9 +345,6 @@ class DistributedDiscreteMADDPG(MultiTrainer):
             action_dims=[policy.action_dim for policy in policies],
             agent_states_dims=[policy.state_dim for policy in policies]
         )
-
-    def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
-        return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
     def _train_step_impl(self) -> None:
         for _ in range(self._num_epoch):

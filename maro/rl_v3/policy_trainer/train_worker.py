@@ -77,7 +77,7 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
 
     @abstractmethod
     def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
-        """Set trainer's state."""
+        """Set worker's state."""
         raise NotImplementedError
 
 
@@ -93,6 +93,7 @@ class SingleTrainWorker(AbsTrainWorker, metaclass=ABCMeta):
         self._policy: Optional[RLPolicy] = None
 
     def register_policy(self, policy: RLPolicy) -> None:
+        policy.to_device(self._device)
         self._register_policy_impl(policy)
 
     @abstractmethod
@@ -118,7 +119,7 @@ class MultiTrainWorker(AbsTrainWorker, metaclass=ABCMeta):
     ) -> None:
         super(MultiTrainWorker, self).__init__(name, device, enable_data_parallelism)
         self._batch: Optional[MultiTransitionBatch] = None
-        self._policies: Optional[Dict[int, RLPolicy]] = None
+        self._policies: Dict[int, RLPolicy] = {}
         self._indexes: List[int] = []
 
     @property
@@ -127,6 +128,8 @@ class MultiTrainWorker(AbsTrainWorker, metaclass=ABCMeta):
 
     def register_policies(self, policy_dict: Dict[int, RLPolicy]) -> None:
         self._indexes = list(policy_dict.keys())
+        for policy in policy_dict.values():
+            policy.to_device(self._device)
         self._register_policies_impl(policy_dict)
 
     @abstractmethod

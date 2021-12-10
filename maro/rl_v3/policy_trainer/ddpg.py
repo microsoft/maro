@@ -44,13 +44,12 @@ class DDPGWorker(SingleTrainWorker):
         self._target_policy = clone(self._policy)
         self._target_policy.set_name(f"target_{policy.name}")
         self._target_policy.eval()
+        self._target_policy.to_device(self._device)
 
         self._q_critic_net = self._get_q_critic_net_func()
+        self._q_critic_net.to(self._device)
         self._target_q_critic_net: QNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
-
-        self._target_policy.to_device(self._device)
-        self._q_critic_net.to(self._device)
         self._target_q_critic_net.to(self._device)
 
     def get_batch_grad(
@@ -191,7 +190,12 @@ class DDPG(SingleTrainer):
         device: str = None,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(DDPG, self).__init__(name=name, device=device, enable_data_parallelism=enable_data_parallelism)
+        super(DDPG, self).__init__(
+            name=name,
+            device=device,
+            enable_data_parallelism=enable_data_parallelism,
+            train_batch_size=train_batch_size
+        )
 
         self._get_q_critic_net_func = get_q_critic_net_func
 
@@ -224,9 +228,6 @@ class DDPG(SingleTrainer):
             action_dim=policy.action_dim, random_overwrite=self._random_overwrite
         )
 
-    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
-        return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
-
     def _train_step_impl(self) -> None:
         for _ in range(self._num_epochs):
             self._worker.set_batch(self._get_batch())
@@ -239,9 +240,8 @@ class DDPG(SingleTrainer):
             self._worker.soft_update_target()
             self._target_policy_version = self._policy_version
 
-    def get_policy_state_dict(self) -> Dict[str, object]:
-        return {self._policy_name: self._worker.get_policy_state()}
+    def get_policy_state(self) -> object:
+        return self._worker.get_policy_state()
 
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        assert len(policy_state_dict) == 1 and self._policy_name in policy_state_dict
-        self._worker.set_policy_state(list(policy_state_dict.values())[0])
+    def set_policy_state(self, policy_state: object) -> None:
+        self._worker.set_policy_state(policy_state)

@@ -42,35 +42,22 @@ class AbsTrainer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def get_policy_state_dict(self) -> Dict[str, object]:
-        """
-        Get policies' states.
-
-        Returns:
-            A double-deck dict with format: {policy_name: policy_state}.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        """
-        Set policies' states.
-
-        Args:
-            policy_state_dict (Dict[str, object]): A double-deck dict with format: {policy_name: policy_state}.
-        """
-        raise NotImplementedError
-
 
 class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains only one policy.
     """
-    def __init__(self, name: str, device: str = None, enable_data_parallelism: bool = False) -> None:
+    def __init__(
+        self,
+        name: str,
+        device: str = None,
+        enable_data_parallelism: bool = False,
+        train_batch_size: int = 128
+    ) -> None:
         super(SingleTrainer, self).__init__(name, device, enable_data_parallelism)
         self._policy_name: Optional[str] = None
         self._replay_memory = Optional[ReplayMemory]
+        self._train_batch_size = train_batch_size
 
     def record(
         self,
@@ -87,6 +74,9 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def _record_impl(self, transition_batch: TransitionBatch) -> None:
         self._replay_memory.put(transition_batch)
 
+    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
+
     def register_policy(self, policy: RLPolicy) -> None:
         """
         Register the policy and finish other related initializations.
@@ -98,15 +88,31 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def _register_policy_impl(self, policy: RLPolicy) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def get_policy_state(self) -> object:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_policy_state(self, policy_state: object) -> None:
+        raise NotImplementedError
+
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains multiple policies.
     """
-    def __init__(self, name: str, device: str = None, enable_data_parallelism: bool = False) -> None:
+
+    def __init__(
+        self,
+        name: str,
+        device: str = None,
+        enable_data_parallelism: bool = False,
+        train_batch_size: int = 128
+    ) -> None:
         super(MultiTrainer, self).__init__(name, device, enable_data_parallelism)
         self._policy_names: List[str] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
+        self._train_batch_size = train_batch_size
 
     @property
     def num_policies(self) -> int:
@@ -127,6 +133,9 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def _record_impl(self, transition_batch: MultiTransitionBatch) -> None:
         self._replay_memory.put(transition_batch)
 
+    def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
+
     def register_policies(self, policies: List[RLPolicy]) -> None:
         """
         Register the policies and finish other related initializations.
@@ -136,4 +145,24 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
 
     @abstractmethod
     def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_policy_state_dict(self) -> Dict[str, object]:
+        """
+        Get policies' states.
+
+        Returns:
+            A double-deck dict with format: {policy_name: policy_state}.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
+        """
+        Set policies' states.
+
+        Args:
+            policy_state_dict (Dict[str, object]): A double-deck dict with format: {policy_name: policy_state}.
+        """
         raise NotImplementedError
