@@ -235,7 +235,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return self._snapshots
 
     def get_agent_idx_list(self) -> List[int]:
-        return []
+        raise Exception("Agent Index List not available in On-Call Routing scenario!")
 
     def step(self, tick: int) -> None:
         # Update oncall orders
