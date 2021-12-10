@@ -31,7 +31,7 @@ def get_random_action(order: Order, routes: List[Route], carriers_in_stop: List[
         )
     )
 
-# Greedy: assign each on-call order randomly to the available route.
+# Random: assign each on-call order randomly to the available route.
 if __name__ == "__main__":
     env = Env(
         scenario="oncall_routing", topology="example", start_tick=0, durations=1440,
