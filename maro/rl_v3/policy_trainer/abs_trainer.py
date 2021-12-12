@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 import torch
 
 from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.policy_trainer.train_worker import SingleTrainWorker
 from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
@@ -79,6 +80,8 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._replay_memory = Optional[ReplayMemory]
         self._train_batch_size = train_batch_size
 
+        self._worker: Optional[SingleTrainWorker] = None
+
     def record(
         self,
         transition_batch: TransitionBatch
@@ -108,20 +111,12 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def _register_policy_impl(self, policy: RLPolicy) -> None:
         raise NotImplementedError
 
-    @abstractmethod
-    def get_policy_state(self) -> object:
-        raise NotImplementedError
-
-    @abstractmethod
-    def set_policy_state(self, policy_state: object) -> None:
-        raise NotImplementedError
-
     def get_policy_state_dict(self) -> Dict[str, object]:
-        return {self._policy_name: self.get_policy_state()}
+        return {self._policy_name: self._worker.get_policy_state()}
 
     def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
         assert len(policy_state_dict) == 1 and self._policy_name in policy_state_dict
-        self.set_policy_state(policy_state_dict[self._policy_name])
+        self._worker.set_policy_state(policy_state_dict[self._policy_name])
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
