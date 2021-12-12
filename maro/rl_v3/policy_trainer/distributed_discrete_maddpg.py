@@ -250,6 +250,9 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
         return sub_batches
 
     def update_critics(self, next_actions: List[torch.Tensor]) -> None:
+        if self._batch is None:
+            return
+
         grads = self._get_batch_grad(
             self._batch,
             tensor_dict={"next_actions": next_actions},
@@ -261,6 +264,9 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
             self._q_critic_nets[i].apply_gradients(grad)
 
     def update_actors(self, latest_actions: List[torch.Tensor], latest_action_logps: List[torch.Tensor]) -> None:
+        if self._batch is None:
+            return
+
         grads = self._get_batch_grad(
             self._batch,
             tensor_dict={

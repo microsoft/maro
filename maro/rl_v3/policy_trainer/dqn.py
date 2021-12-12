@@ -79,6 +79,9 @@ class DQNWorker(SingleTrainWorker):
         self._target_policy.set_policy_state(worker_state_dict["target_policy_state"])
 
     def update(self) -> None:
+        if self._batch is None:
+            return
+        
         grad_dict = self._get_batch_grad(self._batch)
 
         self._policy.train()

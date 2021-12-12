@@ -113,6 +113,9 @@ class DDPGWorker(SingleTrainWorker):
         return self._q_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
 
     def update(self) -> None:
+        if self._batch is None:
+            return
+
         grad_dict = self._get_batch_grad(self._batch, scope="critic")
         self._q_critic_net.train()
         self._q_critic_net.apply_gradients(grad_dict["critic_grad"])

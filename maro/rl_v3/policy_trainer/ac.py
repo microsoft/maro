@@ -115,6 +115,9 @@ class DiscreteActorCriticWorker(SingleTrainWorker):
         """
         Reference: https://tinyurl.com/2ezte4cr
         """
+        if self._batch is None:
+            return
+
         grad_dict = self._get_batch_grad(self._batch, scope="all")
         self._policy.train()
         self._policy.apply_gradients(grad_dict["actor_grad"])

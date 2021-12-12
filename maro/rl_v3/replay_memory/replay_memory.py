@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -23,12 +23,23 @@ class AbsIndexScheduler(object, metaclass=ABCMeta):
     def get_last_index(self) -> int:
         raise NotImplementedError
 
+    @property
+    def size(self) -> int:
+        return self._get_size()
+
+    @abstractmethod
+    def _get_size(self) -> int:
+        raise NotImplementedError
+
 
 class RandomIndexScheduler(AbsIndexScheduler):
     def __init__(self, capacity: int, random_overwrite: bool) -> None:
         super(RandomIndexScheduler, self).__init__(capacity)
         self._random_overwrite = random_overwrite
         self._ptr = self._size = 0
+
+    def _get_size(self) -> int:
+        return self._size
 
     def get_put_indexes(self, batch_size: int) -> np.ndarray:
         if self._ptr + batch_size <= self._capacity:
@@ -47,8 +58,10 @@ class RandomIndexScheduler(AbsIndexScheduler):
         return indexes
 
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+        if self.size == 0:
+            return np.array([])
+
         assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
-        assert self._size > 0, "Cannot sample from an empty memory."
         return np.random.choice(self._size, size=batch_size, replace=True)
 
     def get_last_index(self) -> int:
@@ -60,8 +73,7 @@ class FIFOIndexScheduler(AbsIndexScheduler):
         super(FIFOIndexScheduler, self).__init__(capacity)
         self._head = self._tail = 0
 
-    @property
-    def size(self) -> int:
+    def _get_size(self) -> int:
         return (self._tail - self._head) % self._capacity
 
     def get_put_indexes(self, batch_size: int) -> np.ndarray:
@@ -81,6 +93,9 @@ class FIFOIndexScheduler(AbsIndexScheduler):
             return self.get_put_indexes(batch_size)
 
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+        if self.size == 0:
+            return np.array([])
+
         tmp = self._tail if not forbid_last else (self._tail - 1) % self._capacity
         indexes = np.arange(self._head, tmp) if tmp > self._head \
             else np.concatenate([np.arange(self._head, self._capacity), np.arange(tmp)])
@@ -153,14 +168,14 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._terminals[indexes] = transition_batch.terminals
         self._next_states[indexes] = transition_batch.next_states
 
-    def sample(self, batch_size: int = None) -> TransitionBatch:
+    def sample(self, batch_size: int = None) -> Optional[TransitionBatch]:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
         return self.sample_by_indexes(indexes)
 
-    def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
+    def sample_by_indexes(self, indexes: np.ndarray) -> Optional[TransitionBatch]:
         assert all([0 <= idx < self._capacity for idx in indexes])
 
-        return TransitionBatch(
+        return None if len(indexes) == 0 else TransitionBatch(
             policy_name='',
             states=self._states[indexes],
             actions=self._actions[indexes],
@@ -280,14 +295,14 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             self._agent_states[i][indexes] = transition_batch.agent_states[i]
             self._next_agent_states[i][indexes] = transition_batch.next_agent_states[i]
 
-    def sample(self, batch_size: int = None) -> MultiTransitionBatch:
+    def sample(self, batch_size: int = None) -> Optional[MultiTransitionBatch]:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
         return self.sample_by_indexes(indexes)
 
-    def sample_by_indexes(self, indexes: np.ndarray) -> MultiTransitionBatch:
+    def sample_by_indexes(self, indexes: np.ndarray) -> Optional[MultiTransitionBatch]:
         assert all([0 <= idx < self._capacity for idx in indexes])
 
-        return MultiTransitionBatch(
+        return None if len(indexes) == 0 else MultiTransitionBatch(
             policy_names=[],
             states=self._states[indexes],
             actions=[action[indexes] for action in self._actions],
