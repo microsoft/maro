@@ -216,13 +216,7 @@ class DiscreteActorCritic(SingleTrainer):
             action_dim=policy.action_dim
         )
 
-    def _train_step_impl(self) -> None:
+    def train_step(self) -> None:
         self._worker.set_batch(self._get_batch())
         for _ in range(self._grad_iters):
             self._worker.update()
-
-    def get_policy_state(self) -> object:
-        return self._worker.get_policy_state()
-
-    def set_policy_state(self, policy_state: object) -> None:
-        self._worker.set_policy_state(policy_state)

@@ -257,8 +257,10 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
     def soft_update_target(self) -> None:
         for i in self._indexes:
             self._target_policies[i].soft_update(self._policies[i], self._soft_update_coef)
-            if not self._shared_critic:
-                self._target_q_critic_nets[i].soft_update(self._q_critic_nets[i], self._soft_update_coef)
+
+        indexes = [0] if self._shared_critic else self._indexes
+        for i in indexes:
+            self._target_q_critic_nets[i].soft_update(self._q_critic_nets[i], self._soft_update_coef)
 
 
 class DistributedDiscreteMADDPG(MultiTrainer):
@@ -346,7 +348,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
             agent_states_dims=[policy.state_dim for policy in policies]
         )
 
-    def _train_step_impl(self) -> None:
+    def train_step(self) -> None:
         for _ in range(self._num_epoch):
             self._improve(self._get_batch())
 

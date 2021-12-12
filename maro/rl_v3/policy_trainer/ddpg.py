@@ -228,7 +228,7 @@ class DDPG(SingleTrainer):
             action_dim=policy.action_dim, random_overwrite=self._random_overwrite
         )
 
-    def _train_step_impl(self) -> None:
+    def train_step(self) -> None:
         for _ in range(self._num_epochs):
             self._worker.set_batch(self._get_batch())
             self._worker.update()
@@ -239,9 +239,3 @@ class DDPG(SingleTrainer):
         if self._policy_version - self._target_policy_version == self._update_target_every:
             self._worker.soft_update_target()
             self._target_policy_version = self._policy_version
-
-    def get_policy_state(self) -> object:
-        return self._worker.get_policy_state()
-
-    def set_policy_state(self, policy_state: object) -> None:
-        self._worker.set_policy_state(policy_state)

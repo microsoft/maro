@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 import torch
 
@@ -26,10 +26,6 @@ class DQNWorker(SingleTrainWorker):
         self._reward_discount = reward_discount
         self._soft_update_coef = soft_update_coef
         self._double = double
-
-        self._policy: Optional[ValueBasedPolicy] = None
-        self._target_policy: Optional[ValueBasedPolicy] = None
-
         self._loss_func = torch.nn.MSELoss()
 
     def _register_policy_impl(self, policy: RLPolicy) -> None:
@@ -156,7 +152,7 @@ class DQN(SingleTrainer):
         self._loss_func = torch.nn.MSELoss()
         self._policy_version = self._target_policy_version = 0
 
-    def _train_step_impl(self) -> None:
+    def train_step(self) -> None:
         for _ in range(self._num_epochs):
             self._worker.set_batch(self._get_batch())
             self._worker.update()
@@ -180,9 +176,3 @@ class DQN(SingleTrainer):
         if self._policy_version - self._target_policy_version == self._update_target_every:
             self._worker.soft_update_target()
             self._target_policy_version = self._policy_version
-
-    def get_policy_state(self) -> object:
-        return self._worker.get_policy_state()
-
-    def set_policy_state(self, policy_state: object) -> None:
-        self._worker.set_policy_state(policy_state)
