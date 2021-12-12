@@ -1,7 +1,9 @@
-from .env_sampler import AbsAgentWrapper, AbsEnvSampler, CacheElement, ExpElement, SimpleAgentWrapper
+from .env_sampler import (
+    AbsAgentWrapper, AbsEnvSampler, AgentExpElement, CacheElement, PolicyExpElement, SimpleAgentWrapper
+)
 from .trainer_manager import AbsTrainerManager, SimpleTrainerManager
 
 __all__ = [
-    "AbsAgentWrapper", "AbsEnvSampler", "CacheElement", "ExpElement", "SimpleAgentWrapper",
+    "AbsAgentWrapper", "AbsEnvSampler", "AgentExpElement", "CacheElement", "PolicyExpElement", "SimpleAgentWrapper",
     "AbsTrainerManager", "SimpleTrainerManager"
 ]

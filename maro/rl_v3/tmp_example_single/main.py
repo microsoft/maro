@@ -19,7 +19,6 @@ if __name__ == "__main__":
         get_trainer_manager_func=lambda: SimpleTrainerManager(
             get_trainer_func_dict=get_trainer_func_dict,
             get_policy_func_dict=get_policy_func_dict,
-            agent2policy={agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list},
             policy2trainer=policy2trainer
         ),
         num_episodes=30,

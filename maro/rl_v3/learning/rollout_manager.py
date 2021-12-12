@@ -13,7 +13,7 @@ from maro.communication import Proxy, SessionType
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import DummyLogger, Logger, set_seeds
 
-from .env_sampler import AbsEnvSampler, ExpElement
+from .env_sampler import AbsEnvSampler, AgentExpElement
 
 
 class AbsRolloutManager(object):
@@ -28,7 +28,7 @@ class AbsRolloutManager(object):
     @abstractmethod
     def collect(
         self, ep: int, segment: int, policy_state_dict: Dict[str, object]
-    ) -> Tuple[List[List[ExpElement]], List[dict]]:
+    ) -> Tuple[List[List[AgentExpElement]], List[dict]]:
         raise NotImplementedError
 
     @abstractmethod
@@ -100,7 +100,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
 
     def collect(
         self, ep: int, segment: int, policy_state_dict: Dict[str, object]
-    ) -> Tuple[List[List[ExpElement]], List[dict]]:
+    ) -> Tuple[List[List[AgentExpElement]], List[dict]]:
         self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment})")
 
         exp_lists, trackers = [], []
@@ -190,7 +190,7 @@ class DistributedRolloutManager(AbsRolloutManager):
 
     def collect(
         self, ep: int, segment: int, policy_state_dict: Dict[str, object]
-    ) -> Tuple[List[List[ExpElement]], List[dict]]:
+    ) -> Tuple[List[List[AgentExpElement]], List[dict]]:
         msg_body = {
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
@@ -228,7 +228,7 @@ class DistributedRolloutManager(AbsRolloutManager):
 
     def _handle_worker_result(
         self, msg, ep: int, segment: int
-    ) -> Tuple[Optional[List[ExpElement]], Optional[dict]]:  # TODO: msg type
+    ) -> Tuple[Optional[List[AgentExpElement]], Optional[dict]]:  # TODO: msg type
         if msg.tag != MsgTag.SAMPLE_DONE:
             self._logger.info(
                 f"Ignored a message of type {msg.tag} (expected message type {MsgTag.SAMPLE_DONE})"

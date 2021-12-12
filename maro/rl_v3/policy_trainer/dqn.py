@@ -81,7 +81,7 @@ class DQNWorker(SingleTrainWorker):
     def update(self) -> None:
         if self._batch is None:
             return
-        
+
         grad_dict = self._get_batch_grad(self._batch)
 
         self._policy.train()

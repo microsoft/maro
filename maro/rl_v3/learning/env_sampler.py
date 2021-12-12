@@ -127,24 +127,36 @@ class CacheElement:
     """
     tick: int
     state: np.ndarray
-    agent_state_dict: Dict[Any, np.ndarray]
-    action_dict: Dict[Any, np.ndarray]
+    agent_state_dict: Dict[str, np.ndarray]
+    action_dict: Dict[str, np.ndarray]
     env_action_list: list
 
 
 @dataclass
-class ExpElement:
+class AgentExpElement:
     """
     Stores the complete information for a tick. ExpElement is an extension of CacheElement.
     """
     tick: int
     state: np.ndarray
-    agent_state_dict: Dict[Any, np.ndarray]
-    action_dict: Dict[Any, np.ndarray]
-    reward_dict: Dict[Any, float]
-    terminal_dict: Dict[Any, bool]
+    agent_state_dict: Dict[str, np.ndarray]
+    action_dict: Dict[str, np.ndarray]
+    reward_dict: Dict[str, float]
+    terminal_dict: Dict[str, bool]
     next_state: Optional[np.ndarray]
-    next_agent_state_dict: Optional[Dict[Any, np.ndarray]]
+    next_agent_state_dict: Dict[str, np.ndarray]
+
+
+@dataclass
+class PolicyExpElement:
+    tick: int
+    state: np.ndarray
+    policy_state_dict: Dict[str, List[np.ndarray]]
+    action_dict: Dict[str, List[np.ndarray]]
+    reward_dict: Dict[str, List[float]]
+    terminal_dict: Dict[str, List[bool]]
+    next_state: Optional[np.ndarray]
+    next_policy_state_dict: Optional[Dict[str, List[np.ndarray]]]
 
 
 class AbsEnvSampler(object, metaclass=ABCMeta):
@@ -299,7 +311,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         #
         tick_bound = self._env.tick - self._reward_eval_delay
-        experiences = []
+        agent_experiences = []
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
 
@@ -313,7 +325,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 next_state = self._state
                 next_agent_state_dict = dict(self._agent_state_dict)
 
-            experiences.append(ExpElement(
+            agent_experiences.append(AgentExpElement(
                 tick=cache_element.tick,
                 state=cache_element.state,
                 agent_state_dict=cache_element.agent_state_dict,
@@ -324,15 +336,16 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 next_agent_state_dict=next_agent_state_dict
             ))
 
-        experiences = self._post_polish_experiences(experiences)
+        agent_experiences = self._post_polish_experiences(agent_experiences)
+        policy_experiences = [self.aggregate_exp_by_policy(exp) for exp in agent_experiences]
 
         return {
             "end_of_episode": not self._agent_state_dict,
-            "experiences": experiences,
+            "experiences": policy_experiences,
             "tracker": self._tracker
         }
 
-    def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
+    def _post_polish_experiences(self, experiences: List[AgentExpElement]) -> List[AgentExpElement]:
         # Update next_agent_state_dict & terminal_dict by using the entire experience list
         # TODO: Add detailed explanation for this logic block.
         latest_agent_state_dict = {}  # Used to update next_agent_state_dict
@@ -373,3 +386,32 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     @abstractmethod
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError
+
+    def aggregate_exp_by_policy(self, agent_exp_elem: AgentExpElement) -> PolicyExpElement:
+        policy_state_dict: Dict[Any, List[np.ndarray]] = defaultdict(list)
+        action_dict: Dict[Any, List[np.ndarray]] = defaultdict(list)
+        reward_dict: Dict[Any, List[float]] = defaultdict(list)
+        terminal_dict: Dict[Any, List[bool]] = defaultdict(list)
+        next_policy_state_dict: Dict[Any, List[np.ndarray]] = defaultdict(list)
+
+        tick = agent_exp_elem.tick
+        state = agent_exp_elem.state
+        next_state = agent_exp_elem.next_state
+        if next_state is None:
+            next_state = state
+
+        agent_names = list(agent_exp_elem.agent_state_dict.keys())
+        for agent_name in agent_names:
+            policy_name = self._agent2policy[agent_name]
+            policy_state_dict[policy_name].append(agent_exp_elem.agent_state_dict[agent_name])
+            action_dict[policy_name].append(agent_exp_elem.action_dict[agent_name])
+            reward_dict[policy_name].append(agent_exp_elem.reward_dict[agent_name])
+            terminal_dict[policy_name].append(agent_exp_elem.terminal_dict[agent_name])
+            next_policy_state_dict[policy_name].append(
+                agent_exp_elem.next_agent_state_dict.get(agent_name, agent_exp_elem.agent_state_dict[agent_name])
+            )
+
+        return PolicyExpElement(
+            tick, state, policy_state_dict, action_dict,
+            reward_dict, terminal_dict, next_state, next_policy_state_dict
+        )

@@ -275,11 +275,11 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             assert match_shape(transition_batch.terminals, (batch_size,))
             assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
 
-            assert len(transition_batch.agent_states) == self.agent_num
-            assert len(transition_batch.next_agent_states) == self.agent_num
+            assert len(transition_batch.policy_states) == self.agent_num
+            assert len(transition_batch.next_policy_states) == self.agent_num
             for i in range(self.agent_num):
-                assert match_shape(transition_batch.agent_states[i], (batch_size, self._agent_states_dims[i]))
-                assert match_shape(transition_batch.next_agent_states[i], (batch_size, self._agent_states_dims[i]))
+                assert match_shape(transition_batch.policy_states[i], (batch_size, self._agent_states_dims[i]))
+                assert match_shape(transition_batch.next_policy_states[i], (batch_size, self._agent_states_dims[i]))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
 
@@ -292,8 +292,8 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
 
         self._next_states[indexes] = transition_batch.next_states
         for i in range(self.agent_num):
-            self._agent_states[i][indexes] = transition_batch.agent_states[i]
-            self._next_agent_states[i][indexes] = transition_batch.next_agent_states[i]
+            self._agent_states[i][indexes] = transition_batch.policy_states[i]
+            self._next_agent_states[i][indexes] = transition_batch.next_policy_states[i]
 
     def sample(self, batch_size: int = None) -> Optional[MultiTransitionBatch]:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
@@ -309,8 +309,8 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             rewards=[reward[indexes] for reward in self._rewards],
             terminals=self._terminals[indexes],
             next_states=self._next_states[indexes],
-            agent_states=[state[indexes] for state in self._agent_states],
-            next_agent_states=[state[indexes] for state in self._next_agent_states]
+            policy_states=[state[indexes] for state in self._agent_states],
+            next_policy_states=[state[indexes] for state in self._next_agent_states]
         )
 
     @abstractmethod

@@ -74,7 +74,7 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
     def get_target_action_dict(self) -> Dict[int, torch.Tensor]:
         agent_state_dict = {
-            i: ndarray_to_tensor(self._batch.agent_states[i], self._device)
+            i: ndarray_to_tensor(self._batch.policy_states[i], self._device)
             for i in self._indexes
         }  # o
         with torch.no_grad():
@@ -86,7 +86,7 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
     def get_latest_action_dict(self) -> Tuple[dict, dict]:
         agent_state_dict = {
-            i: ndarray_to_tensor(self._batch.agent_states[i], self._device)
+            i: ndarray_to_tensor(self._batch.policy_states[i], self._device)
             for i in self._indexes
         }  # o
 

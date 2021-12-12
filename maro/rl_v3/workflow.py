@@ -1,7 +1,7 @@
 import time
 from typing import Callable, Dict, List
 
-from maro.rl_v3.learning import AbsEnvSampler, AbsTrainerManager, ExpElement
+from maro.rl_v3.learning import AbsEnvSampler, AbsTrainerManager, PolicyExpElement
 from maro.rl_v3.policy import RLPolicy
 
 
@@ -44,7 +44,7 @@ def run_workflow_centralized_mode(
             tc0 = time.time()
             sample_result = env_sampler.sample(num_steps=num_steps)
             end_of_episode: bool = sample_result["end_of_episode"]
-            experiences: List[ExpElement] = sample_result["experiences"]
+            experiences: List[PolicyExpElement] = sample_result["experiences"]
 
             tracker: dict = sample_result["tracker"]
             if post_collect:
