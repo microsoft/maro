@@ -42,6 +42,26 @@ class AbsTrainer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def get_policy_state_dict(self) -> Dict[str, object]:
+        """
+        Get policies' states.
+
+        Returns:
+            A double-deck dict with format: {policy_name: policy_state}.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
+        """
+        Set policies' states.
+
+        Args:
+            policy_state_dict (Dict[str, object]): A double-deck dict with format: {policy_name: policy_state}.
+        """
+        raise NotImplementedError
+
 
 class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
@@ -96,6 +116,13 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def set_policy_state(self, policy_state: object) -> None:
         raise NotImplementedError
 
+    def get_policy_state_dict(self) -> Dict[str, object]:
+        return {self._policy_name: self.get_policy_state()}
+
+    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
+        assert len(policy_state_dict) == 1 and self._policy_name in policy_state_dict
+        self.set_policy_state(policy_state_dict[self._policy_name])
+
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
@@ -145,24 +172,4 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
 
     @abstractmethod
     def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_policy_state_dict(self) -> Dict[str, object]:
-        """
-        Get policies' states.
-
-        Returns:
-            A double-deck dict with format: {policy_name: policy_state}.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        """
-        Set policies' states.
-
-        Args:
-            policy_state_dict (Dict[str, object]): A double-deck dict with format: {policy_name: policy_state}.
-        """
         raise NotImplementedError
