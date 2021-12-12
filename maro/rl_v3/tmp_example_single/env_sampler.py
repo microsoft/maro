@@ -27,7 +27,7 @@ class CIMEnvSampler(AbsEnvSampler):
         ])
         return None, {port_idx: state}
 
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: DecisionEvent) -> Dict[Any, object]:
+    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: DecisionEvent) -> list:
         action_space = action_shaping_conf["action_space"]
         finite_vsl_space = action_shaping_conf["finite_vessel_space"]
         has_early_discharge = action_shaping_conf["has_early_discharge"]
@@ -51,14 +51,14 @@ class CIMEnvSampler(AbsEnvSampler):
         else:
             actual_action, action_type = 0, None
 
-        return {port_idx: Action(vsl_idx, int(port_idx), actual_action, action_type)}
+        return [Action(vsl_idx, int(port_idx), actual_action, action_type)]
 
-    def _get_reward(self, env_action_dict: Dict[Any, object], tick: int) -> Dict[Any, float]:
+    def _get_reward(self, env_action_list: list, tick: int) -> Dict[Any, float]:
         start_tick = tick + 1
         ticks = list(range(start_tick, start_tick + reward_shaping_conf["time_window"]))
 
         # Get the ports that took actions at the given tick
-        ports = [int(port) for port in list(env_action_dict.keys())]
+        ports = [action.port_idx for action in env_action_list]
         port_snapshots = self._env.snapshot_list["ports"]
         future_fulfillment = port_snapshots[ticks:ports:"fulfillment"].reshape(len(ticks), -1)
         future_shortage = port_snapshots[ticks:ports:"shortage"].reshape(len(ticks), -1)

@@ -129,14 +129,18 @@ class CacheElement:
     state: np.ndarray
     agent_state_dict: Dict[Any, np.ndarray]
     action_dict: Dict[Any, np.ndarray]
-    env_action_dict: Dict[Any, object]
+    env_action_list: list
 
 
 @dataclass
-class ExpElement(CacheElement):
+class ExpElement:
     """
     Stores the complete information for a tick. ExpElement is an extension of CacheElement.
     """
+    tick: int
+    state: np.ndarray
+    agent_state_dict: Dict[Any, np.ndarray]
+    action_dict: Dict[Any, np.ndarray]
     reward_dict: Dict[Any, float]
     terminal_dict: Dict[Any, bool]
     next_state: Optional[np.ndarray]
@@ -213,7 +217,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
+    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> list:
         """
         Translation the actions into the format that the env could recognize.
 
@@ -227,12 +231,12 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_reward(self, env_action_dict: Dict[Any, object], tick: int) -> Dict[Any, float]:
+    def _get_reward(self, env_action_list: list, tick: int) -> Dict[Any, float]:
         """
         Get rewards according to the env actions.
 
         Args:
-            env_action_dict (Dict[Any, object]): Dict that contains env actions for all agents.
+            env_action_list (list): List that contains env actions for all agents.
             tick (int): Current tick.
 
         Returns:
@@ -276,7 +280,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, event)
+            env_action_list = self._translate_to_env_action(action_dict, event)
             # Store experiences in the cache
             self._trans_cache.append(
                 CacheElement(
@@ -284,11 +288,11 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     state=self._state,
                     agent_state_dict=dict(self._agent_state_dict),
                     action_dict=action_dict,
-                    env_action_dict=env_action_dict
+                    env_action_list=env_action_list
                 )
             )
             # Update env and get new states (global & agent)
-            _, event, done = self._env.step(list(env_action_dict.values()))
+            _, event, done = self._env.step(env_action_list)
             self._state, self._agent_state_dict = (None, {}) if done \
                 else self._get_global_and_agent_state(event)
             steps_to_go -= 1
@@ -299,7 +303,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
 
-            reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.tick)
+            reward_dict = self._get_reward(cache_element.env_action_list, cache_element.tick)
             self._post_step(cache_element, reward_dict)
 
             if len(self._trans_cache) > 0:
@@ -314,7 +318,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 state=cache_element.state,
                 agent_state_dict=cache_element.agent_state_dict,
                 action_dict=cache_element.action_dict,
-                env_action_dict=cache_element.env_action_dict,
                 reward_dict=reward_dict,
                 terminal_dict={},  # Will be processed later in `_post_polish_experiences()`
                 next_state=next_state,
@@ -361,8 +364,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         _, agent_state_dict = self._get_global_and_agent_state(event)
         while not terminal:
             action_dict = self._agent_wrapper.choose_actions(agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, event)
-            _, event, terminal = self._env.step(list(env_action_dict.values()))
+            env_action_list = self._translate_to_env_action(action_dict, event)
+            _, event, terminal = self._env.step(env_action_list)
             if not terminal:
                 _, agent_state_dict = self._get_global_and_agent_state(event)
         return self._tracker
