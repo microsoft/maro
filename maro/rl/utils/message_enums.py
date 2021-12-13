@@ -41,6 +41,7 @@ class MsgKey(Enum):
     GRAD_SCOPE = "grad_scope"
     LOSS_INFO = "loss_info"
     STATE = "state"
+    TENSOR = "tensor"
     POLICY_STATE = "policy_state"
     EXPLORATION_STEP = "exploration_step"
     VERSION = "version"

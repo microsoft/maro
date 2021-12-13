@@ -49,9 +49,10 @@ if __name__ == "__main__":
                     active_policies.insert(0, name)
                     logger.info(f"Initialized policies {name}")
 
-                policy_dict[name].set_trainer_state_dict(msg.body[MsgKey.POLICY_STATE][name])
-                # TODO: tensor dict
-                grad_dict = policy_dict[name].get_batch_grad(batch, scope=msg.body[MsgKey.GRAD_SCOPE][name])
+                tensor_dict = msg.body[MsgKey.TENSOR][name]
+                policy_dict[name].set_worker_state_dict(msg.body[MsgKey.POLICY_STATE][name])
+                grad_dict = policy_dict[name].get_batch_grad(
+                    batch, tensor_dict, scope=msg.body[MsgKey.GRAD_SCOPE][name])
                 msg_body[MsgKey.LOSS_INFO][name] = grad_dict
                 msg_body[MsgKey.POLICY_IDS].append(name)
                 # put the latest one to queue head
