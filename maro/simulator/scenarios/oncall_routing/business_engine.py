@@ -146,7 +146,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
     def _load_route_plan(self) -> Dict[str, List[PlanElement]]:
-        remaining_plan: Dict[str, List[PlanElement]] = self._data_loader.generate_plan()  # TODO: load orders only
+        orders_dict = self._data_loader.generate_plan()
+        remaining_plan = {
+            route_name: [PlanElement(order) for order in orders] for route_name, orders in orders_dict.items()
+        }
 
         # TODO: fake head quarter order
         # The DUMMY order that represents the return-to-building event
