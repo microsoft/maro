@@ -165,7 +165,7 @@ class SimpleTrainerManager(AbsTrainerManager):
                     next_states=np.expand_dims(next_agent_state, axis=0),
                     terminals=np.array([terminal])
                 )
-                trainer.record(policy_name=policy_name, transition_batch=batch)
+                trainer.record(transition_batch=batch)
             elif isinstance(trainer, MultiTrainer):
                 policy_names: List[str] = []
                 actions: List[np.ndarray] = []
