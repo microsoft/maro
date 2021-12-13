@@ -50,6 +50,7 @@ if __name__ == "__main__":
                     logger.info(f"Initialized policies {name}")
 
                 policy_dict[name].set_trainer_state_dict(msg.body[MsgKey.POLICY_STATE][name])
+                # TODO: tensor dict
                 grad_dict = policy_dict[name].get_batch_grad(batch, scope=msg.body[MsgKey.GRAD_SCOPE][name])
                 msg_body[MsgKey.LOSS_INFO][name] = grad_dict
                 msg_body[MsgKey.POLICY_IDS].append(name)

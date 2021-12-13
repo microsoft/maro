@@ -251,17 +251,30 @@ class DiscreteMADDPGWorker(object):
     ) -> Dict[str, Dict[int, Dict[str, torch.Tensor]]]:
         assert self._task_queue_client is not None
         worker_id_list = self._task_queue_client.request_workers()
-        batch_list = self._dispatch_batch(batch)
+        # TODO: merge tensor_dict into batch_list
+        batch_list = self._dispatch_batch(batch, len(worker_id_list))
         trainer_state = self.get_trainer_state_dict()
         trainer_name = self.name
-        # TODO: tensor_dict
         loss_info_by_name = self._task_queue_client.sumbit(
             worker_id_list, batch_list, trainer_state, trainer_name, scope)
         return loss_info_by_name[trainer_name]
 
-    def _dispatch_batch(self, batch):
-        # TODO: dispatch function
-        raise NotImplementedError
+    def _dispatch_batch(self, batch: MultiTransitionBatch, num_workers: int) -> List[MultiTransitionBatch]:
+        batch_size = batch.states.shape[0]
+        assert batch_size >= num_workers, \
+            f"Batch size should be greater than or equal to num_workers, but got {batch_size} and {num_workers}."
+        sub_batch_indexes = [range(batch_size)[i::num_workers] for i in range(num_workers)]
+        sub_batches = [MultiTransitionBatch(
+            policy_names=[],
+            states=batch.states[indexes],
+            actions=[action[indexes] for action in batch.actions],
+            rewards=[reward[indexes] for reward in batch.rewards],
+            terminals=batch.terminals[indexes],
+            next_states=batch.next_states[indexes],
+            agent_states=[state[indexes] for state in batch.agent_states],
+            next_agent_states=[state[indexes] for state in batch.next_agent_states]
+        ) for indexes in sub_batch_indexes]
+        return sub_batches
 
     def update_critics(self, next_actions: List[torch.Tensor]) -> None:
         assert not self._shared_critic
