@@ -45,9 +45,6 @@ class EstimatedDurationPredictor:
 class ActualDurationSampler:
     def sample(
         self,
-        tick: int,
-        source_coordinate: Coordinate,
-        target_coordinate: Coordinate,
         estimated_arrival_time: int
     ) -> int:
         if estimated_arrival_time == 0.0:

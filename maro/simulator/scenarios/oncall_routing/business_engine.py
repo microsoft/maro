@@ -144,7 +144,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
 
         # Step 7: Create the carrier arrival events.
-        self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}
+        self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}  # {route_name: (last coordinate, last tick)}
         self._load_carrier_arrival_event()
 
         # Step 8: Init Env metrics.
@@ -360,7 +360,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         target_coord = plan[index].order.coord
 
         estimated_duration = self._estimated_duration_predictor.predict(tick, source_coord, target_coord)
-        actual_duration = self._actual_duration_predictor.sample(tick, source_coord, target_coord, estimated_duration)
+        actual_duration = self._actual_duration_predictor.sample(estimated_duration)
         plan[index].actual_duration_from_last = actual_duration
         plan[index].estimated_duration_from_last = estimated_duration
 
