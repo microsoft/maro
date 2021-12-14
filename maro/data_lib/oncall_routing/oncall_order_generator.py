@@ -8,7 +8,7 @@ from typing import Deque, List, Tuple
 import pandas as pd
 from yaml import safe_load
 
-from maro.simulator.scenarios.oncall_routing import Coordinate, ONCALL_RAND_KEY, Order, OrderIdGenerator
+from maro.simulator.scenarios.oncall_routing import ONCALL_RAND_KEY, Coordinate, Order, OrderIdGenerator
 from maro.simulator.scenarios.oncall_routing.coordinate import CoordinateClipper
 from maro.simulator.utils import random
 from maro.utils import DottableDict

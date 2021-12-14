@@ -75,6 +75,9 @@ def _get_staying_time(tick: int, plan: List[PlanElement], order_transition: Dott
             if order_transition.processing_proportion_to_quantity:
                 processing_time += order_transition.processing_time
 
+    if processing_order and not order_transition.processing_proportion_to_quantity:
+        processing_time = order_transition.processing_time
+
     return cur_tick + processing_time - tick
 
 
