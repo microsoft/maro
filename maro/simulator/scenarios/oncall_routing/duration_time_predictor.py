@@ -46,10 +46,19 @@ class EstimatedDurationPredictor:
 
 
 class ActualDurationSampler:
+    def __init__(self, est_duration_predictor: EstimatedDurationPredictor) -> None:
+        self._est_duration_predictor = est_duration_predictor
+
     def sample(
         self,
-        estimated_arrival_time: int
+        tick: int,
+        source_coordinate: Coordinate,
+        target_coordinate: Coordinate,
+        feature: TimePredictionFeature = None
     ) -> int:
+        estimated_arrival_time = self._est_duration_predictor.predict(
+            tick, source_coordinate, target_coordinate, feature)
+
         if estimated_arrival_time == 0:
             return estimated_arrival_time
         variance = estimated_arrival_time * 0.1
@@ -57,4 +66,4 @@ class ActualDurationSampler:
         return int(math.ceil(max(1.0, noise + estimated_arrival_time)))  # TODO: fake
 
     def reset(self):
-        pass
+        self._est_duration_predictor.reset()
