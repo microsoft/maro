@@ -13,14 +13,14 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
-from maro.utils import clone, convert_dottable, DottableDict
+from maro.utils import DottableDict, clone, convert_dottable
 
 from .carrier import Carrier
 from .common import (
     Action, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload, OncallRoutingPayload,
     OrderProcessingPayload
 )
-from .coordinate import calculate_carrier_coord, Coordinate, CoordinateClipper
+from .coordinate import Coordinate, CoordinateClipper, calculate_carrier_coord
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
 from .order import Order, OrderStatus
@@ -168,6 +168,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Step 7: Create the carrier arrival events.
         self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}  # {route_name: (last coordinate, last tick)}
+        self._route_next_departure_dict: Dict[str, Optional[int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8: Init Env metrics.
@@ -216,6 +217,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         """Put the first arrival event of each route into the event buffer."""
         for route in self._routes:
             self._route_last_arrival[route.name] = (self._head_quarter_coord, 0)
+            self._route_next_departure_dict[route.name] = None
 
             if len(route.remaining_plan) > 0:
                 carrier_arrival_payload = CarrierArrivalPayload(route.carrier_idx)
@@ -289,15 +291,15 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             route_meta_info_dict = {}
             for route in self._routes:
                 if len(route.remaining_plan) == 0:
-                    current_destination_arrival_duration = None
+                    estimated_duration_to_the_next_stop = None
                     next_departure_tick = None
                 elif self._carriers[route.carrier_idx].in_stop:
-                    current_destination_arrival_duration = self._estimated_duration_predictor.predict(
+                    estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
                         tick=tick,
                         source_coordinate=self._route_last_arrival[route.name][0],
                         target_coordinate=route.remaining_plan[0].order.coord
                     )
-                    next_departure_tick = self._carriers[route.carrier_idx].next_departure_tick
+                    next_departure_tick = self._route_next_departure_dict[route.name]
                 else:
                     last_coord, last_tick = self._route_last_arrival[route.name]
                     next_coord = route.remaining_plan[0].order.coord
@@ -309,14 +311,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     )
                     carrier_coord = self._coord_clipper.clip(carrier_coord)
 
-                    current_destination_arrival_duration = self._estimated_duration_predictor.predict(
+                    estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
                         tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
                     )
                     next_departure_tick = None
 
                 route_meta_info_dict[route.name] = {
                     "carrier_idx": route.carrier_idx,
-                    "current_destination_arrival_duration": current_destination_arrival_duration,
+                    "estimated_duration_to_the_next_stop": estimated_duration_to_the_next_stop,
                     "next_departure_tick": next_departure_tick
                 }
 
@@ -375,6 +377,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Step 7
         self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}
+        self._route_next_departure_dict: Dict[str, Optional[int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8
@@ -428,7 +431,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Get the time that the carrier stays in the stop through simulation
         staying_time = _get_staying_time(event.tick, plan, self._config.order_transition)
-        self._carriers[carrier_idx].next_departure_tick = event.tick + staying_time
+        self._route_next_departure_dict[route_name] = event.tick + staying_time
 
         order_status = plan[0].order.get_status(event.tick, self._config.order_transition)
 
@@ -488,7 +491,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     tick=order.open_time - self._config.order_transition.buffer_before_open_time,
                     event_type=Events.ORDER_PROCESSING,
                     payload=order_processing_payload
-                )
+                )  # TODO: processing_time lost
                 self._event_buffer.insert_event(order_processing_event)
                 return
 
@@ -554,7 +557,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         route_name = self._routes[route_idx].name
 
         self._carriers[carrier_idx].in_stop = 0
-        self._carriers[carrier_idx].next_departure_tick = -1
+        self._route_next_departure_dict[route_name] = None
 
         plan = self._routes[route_idx].remaining_plan
 
