@@ -8,7 +8,7 @@ import pandas as pd
 
 from maro.simulator.scenarios.oncall_routing import Coordinate, Order, OrderIdGenerator
 from maro.simulator.scenarios.oncall_routing.coordinate import CoordinateClipper
-from maro.utils import clone, DottableDict
+from maro.utils import DottableDict, clone
 
 from .utils import convert_time_format
 

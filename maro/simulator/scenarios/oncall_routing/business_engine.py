@@ -55,14 +55,28 @@ def _get_staying_time(tick: int, plan: List[PlanElement], order_transition: Dott
 
     cur_tick = tick
     processing_time = 0
+    processing_order = False
     for order in copied_orders:
         order_status = order.get_status(cur_tick, order_transition)
-        if order_status != OrderStatus.DUMMY:
-            if order_status == OrderStatus.NOT_READY:
-                cur_tick = order.open_time - order_transition.buffer_before_open_time
-                processing_time = 0  # TODO
+        if order_status in (OrderStatus.DUMMY, OrderStatus.COMPLETED, OrderStatus.TERMINATED):
+            pass
+        elif order_status == OrderStatus.NOT_READY:
+            if processing_order and not order_transition.processing_proportion_to_quantity:
+                processing_time = order_transition.processing_time
+
+            cur_tick = max(
+                order.open_time - order_transition.buffer_before_open_time,
+                cur_tick + processing_time
+            )
+            processing_time = 0
+            processing_order = False
+        else:
+            processing_order = True
             if order_transition.processing_proportion_to_quantity:
                 processing_time += order_transition.processing_time
+
+    if processing_order and not order_transition.processing_proportion_to_quantity:
+        processing_time = order_transition.processing_time
 
     return cur_tick + processing_time - tick
 
@@ -486,9 +500,17 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
             elif order_status == OrderStatus.NOT_READY:
                 # Wait, and process when it's ready in the future.
+                if processing_order and not self._config.order_transition.processing_proportion_to_quantity:
+                    processing_time = self._config.order_transition.processing_time
+
+                next_order_processing_tick = max(
+                    order.open_time - self._config.order_transition.buffer_before_open_time,
+                    event.tick + processing_time
+                )
+
                 order_processing_payload = OrderProcessingPayload(carrier_idx=carrier_idx)
                 order_processing_event = self._event_buffer.gen_cascade_event(
-                    tick=order.open_time - self._config.order_transition.buffer_before_open_time,
+                    tick=next_order_processing_tick,
                     event_type=Events.ORDER_PROCESSING,
                     payload=order_processing_payload
                 )  # TODO: processing_time lost
