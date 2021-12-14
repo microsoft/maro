@@ -10,6 +10,7 @@ from maro.simulator.scenarios.oncall_routing import Coordinate, Order, OrderIdGe
 from maro.utils import DottableDict, clone
 
 from .utils import convert_time_format
+from ...simulator.scenarios.oncall_routing.coordinate import CoordinateClipper
 
 
 def _load_plan_simple(
@@ -17,7 +18,7 @@ def _load_plan_simple(
     start_tick: int,
     end_tick: int,
     id_counter: OrderIdGenerator,
-    coordinate_keep_digit: int
+    coord_clipper: CoordinateClipper
 ) -> Dict[str, List[Order]]:
     print(f"Loading routes data from {csv_path}.")
     df = pd.read_csv(csv_path, sep=',')
@@ -31,11 +32,9 @@ def _load_plan_simple(
         orders = []
         for e in data.to_dict(orient='records'):
             # TODO
-            lat = round(e["LAT"], coordinate_keep_digit)
-            lng = round(e["LNG"], coordinate_keep_digit)
             order = Order(
                 order_id=id_counter.next(),
-                coordinate=Coordinate(lat, lng),
+                coordinate=coord_clipper.clip(Coordinate(e["LAT"], e["LNG"])),
                 open_time=start_tick if e["IS_DELIVERY"] else convert_time_format(int(e["READYTIME"])),
                 close_time=end_tick if e["IS_DELIVERY"] else convert_time_format(int(e["CLOSETIME"])),
                 is_delivery=e["IS_DELIVERY"]
@@ -65,14 +64,14 @@ class PlanLoader(object):
 
 
 class FromHistoryPlanLoader(PlanLoader):
-    def __init__(self, csv_path: str, data_loader_config: DottableDict) -> None:
+    def __init__(self, csv_path: str, data_loader_config: DottableDict, coord_clipper: CoordinateClipper) -> None:
         super(FromHistoryPlanLoader, self).__init__()
         self._plan = _load_plan_simple(
             csv_path,
             data_loader_config.start_tick,
             data_loader_config.end_tick,
             self._id_counter,
-            data_loader_config.coordinate_keep_digit
+            coord_clipper
         )
 
     def reset(self) -> None:
@@ -83,8 +82,12 @@ class FromHistoryPlanLoader(PlanLoader):
         return {route_name: [clone(order) for order in orders] for route_name, orders in self._plan.items()}
 
 
-def get_data_loader(config_path: str, data_loader_config: DottableDict) -> PlanLoader:
+def get_data_loader(
+    config_path: str,
+    data_loader_config: DottableDict,
+    coord_clipper: CoordinateClipper
+) -> PlanLoader:
     if data_loader_config.data_loader_type == "history":
-        return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"), data_loader_config)
+        return FromHistoryPlanLoader(os.path.join(config_path, "routes.csv"), data_loader_config, coord_clipper)
     else:
         raise ValueError("Cannot found correct route data.")

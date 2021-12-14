@@ -7,7 +7,7 @@ from typing import Dict, Tuple
 
 from maro.simulator.utils import random
 
-from .coordinate import Coordinate
+from .coordinate import Coordinate, CoordinateClipper
 from .utils import EST_RAND_KEY, geo_distance_meter
 
 
@@ -17,8 +17,9 @@ class TimePredictionFeature:
 
 
 class EstimatedDurationPredictor:
-    def __init__(self) -> None:
+    def __init__(self, coord_clipper: CoordinateClipper) -> None:
         self._cache: Dict[Tuple[Coordinate, Coordinate], int] = {}
+        self._coord_clipper = coord_clipper
 
     def predict(
         self,
@@ -27,6 +28,8 @@ class EstimatedDurationPredictor:
         target_coordinate: Coordinate,
         feature: TimePredictionFeature = None
     ) -> int:
+        source_coordinate = self._coord_clipper.clip(source_coordinate)
+        target_coordinate = self._coord_clipper.clip(target_coordinate)
         min_coord = min(source_coordinate, target_coordinate)
         max_coord = max(source_coordinate, target_coordinate)
         key = (min_coord, max_coord)

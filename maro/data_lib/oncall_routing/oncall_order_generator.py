@@ -13,6 +13,7 @@ from maro.simulator.utils import random
 from maro.utils import DottableDict
 
 from .utils import convert_time_format
+from ...simulator.scenarios.oncall_routing.coordinate import CoordinateClipper
 
 
 class OncallOrderGenerator(object):
@@ -38,17 +39,15 @@ class OncallOrderGenerator(object):
 
 
 class FromHistoryOncallOrderGenerator(OncallOrderGenerator):
-    def __init__(self, csv_path: str, coordinate_keep_digit: int) -> None:
+    def __init__(self, csv_path: str, coord_clipper: CoordinateClipper) -> None:
         super(FromHistoryOncallOrderGenerator, self).__init__()
 
         df = pd.read_csv(csv_path, sep=',')
         buff = []
         for e in df.to_dict(orient='records'):
-            lat = round(e["LAT"], coordinate_keep_digit)
-            lng = round(e["LNG"], coordinate_keep_digit)
             order = Order(
                 order_id=self._id_counter.next(),
-                coordinate=Coordinate(lat, lng),
+                coordinate=coord_clipper.clip(Coordinate(e["LAT"], e["LNG"])),
                 open_time=convert_time_format(e["READYTIME"]),
                 close_time=convert_time_format(e["CLOSETIME"]),
                 is_delivery=False
@@ -70,7 +69,7 @@ def normalize_weights(weights: List[float]) -> List[float]:
 
 
 class SampleOncallOrderGenerator(OncallOrderGenerator):
-    def __init__(self, config_path: str, data_loader_config: DottableDict) -> None:
+    def __init__(self, config_path: str, data_loader_config: DottableDict, coord_clipper: CoordinateClipper) -> None:
         super(SampleOncallOrderGenerator, self).__init__()
 
         with open(os.path.join(config_path, "oncall_info.yml")) as fp:
@@ -85,7 +84,6 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
 
         self._start_tick = data_loader_config.start_tick
         self._end_tick = data_loader_config.end_tick
-        self._coordinate_keep_digit = data_loader_config.coordinate_keep_digit
 
         new_open_times = [[], []]
         for t, weight in zip(self._open_times[0], self._open_times[1]):
@@ -93,6 +91,8 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
                 new_open_times[0].append(t)
                 new_open_times[1].append(weight)
         self._open_times = [new_open_times[0], normalize_weights(new_open_times[1])]
+
+        self._coord_clipper = coord_clipper
 
     def reset(self) -> None:
         self._id_counter.reset()
@@ -109,11 +109,9 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
 
         buff = []
         for i in range(n):
-            lat = round(coords[i][0], self._coordinate_keep_digit)
-            lng = round(coords[i][1], self._coordinate_keep_digit)
             order = Order(
                 order_id=self._id_counter.next(),
-                coordinate=Coordinate(lat, lng),
+                coordinate=self._coord_clipper.clip(Coordinate(coords[i][0], coords[i][1])),
                 open_time=open_times[i],
                 close_time=close_times[i],
                 is_delivery=False,
@@ -125,13 +123,17 @@ class SampleOncallOrderGenerator(OncallOrderGenerator):
         self._queue = deque(buff)
 
 
-def get_oncall_generator(config_path: str, data_loader_config: DottableDict) -> OncallOrderGenerator:
+def get_oncall_generator(
+    config_path: str,
+    data_loader_config: DottableDict,
+    coord_clipper: CoordinateClipper
+) -> OncallOrderGenerator:
     if data_loader_config.oncall_generator_type == "history":
         return FromHistoryOncallOrderGenerator(
             os.path.join(config_path, "oncall_orders.csv"),
-            data_loader_config.coordinate_keep_digit
+            coord_clipper
         )
     elif data_loader_config.oncall_generator_type == "sample":
-        return SampleOncallOrderGenerator(config_path, data_loader_config)
+        return SampleOncallOrderGenerator(config_path, data_loader_config, coord_clipper)
     else:
         raise ValueError("Cannot found correct oncall data.")

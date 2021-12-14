@@ -22,7 +22,7 @@ def get_random_action(
     for route_name in route_plan_dict:
         plan = route_plan_dict[route_name]
         carrier_idx = route_meta_info_dict[route_name]["carrier_idx"]
-        if len(plan) >= 2 - carriers_in_stop[carrier_idx]:
+        if len(plan) >= 2 - (1 if carriers_in_stop[carrier_idx] else 0):
             available_route_names.append(route_name)
 
     if len(available_route_names) == 0:

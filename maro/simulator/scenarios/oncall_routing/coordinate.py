@@ -16,3 +16,14 @@ class Coordinate(NamedTuple):
 
     def __repr__(self) -> str:
         return f"({self.lat}, {self.lng})"
+
+
+class CoordinateClipper(object):
+    def __init__(self, keep_digit: int) -> None:
+        self._keep_digit = keep_digit
+
+    def clip(self, coord: Coordinate) -> Coordinate:
+        return Coordinate(
+            lat=round(coord.lat, self._keep_digit),
+            lng=round(coord.lng, self._keep_digit)
+        )

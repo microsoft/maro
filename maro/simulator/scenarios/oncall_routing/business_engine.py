@@ -20,7 +20,7 @@ from .common import (
     Action, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload, OncallRoutingPayload,
     OrderProcessingPayload
 )
-from .coordinate import Coordinate
+from .coordinate import Coordinate, CoordinateClipper
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
 from .order import Order, OrderStatus
@@ -75,23 +75,28 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = convert_dottable(safe_load(fp))
 
-        # Step 1: Init random seed
+        # Step 1: Init random seed & coordinate clipper
         random.seed(self._config.seed)
+        self._coord_clipper = CoordinateClipper(keep_digit=self._config.data_loader_config.coordinate_keep_digit)
 
         # Step 2: Init oncall order generator, oncall order buffer.
         print("Loading oncall orders.")
-        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config.data_loader_config)
+        self._oncall_order_generator = get_oncall_generator(
+            self._config_path, self._config.data_loader_config, self._coord_clipper
+        )
         self._oncall_order_generator.reset()  # We have to call `reset()` to initialize oncall order generator
         self._oncall_order_buffer: Dict[str, Order] = {}
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
-        self._data_loader = get_data_loader(self._config_path, self._config.data_loader_config)
+        self._data_loader = get_data_loader(
+            self._config_path, self._config.data_loader_config, self._coord_clipper
+        )
         remaining_plan: Dict[str, List[PlanElement]] = self._load_route_plan()
 
         # Step 4: Init predictor.
         self._actual_duration_predictor = ActualDurationSampler()
-        self._estimated_duration_predictor = EstimatedDurationPredictor()
+        self._estimated_duration_predictor = EstimatedDurationPredictor(coord_clipper=self._coord_clipper)
 
         # Step 5: Init Frame and snapshot.
         route_num = len(self._route_name_list)
