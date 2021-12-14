@@ -305,16 +305,18 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             route_meta_info_dict = {}
             for route in self._routes:
                 if len(route.remaining_plan) == 0:
-                    estimated_duration_to_the_next_stop = None
                     next_departure_tick = None
+                    estimated_duration_to_the_next_stop = None
                 elif self._carriers[route.carrier_idx].in_stop:
+                    next_departure_tick = self._route_next_departure_dict[route.name]
                     estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
-                        tick=tick,
+                        tick=next_departure_tick,
                         source_coordinate=self._route_last_arrival[route.name][0],
                         target_coordinate=route.remaining_plan[0].order.coord
                     )
-                    next_departure_tick = self._route_next_departure_dict[route.name]
                 else:
+                    next_departure_tick = None
+
                     last_coord, last_tick = self._route_last_arrival[route.name]
                     next_coord = route.remaining_plan[0].order.coord
                     act_duration = route.remaining_plan[0].actual_duration_from_last
@@ -328,7 +330,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
                         tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
                     )
-                    next_departure_tick = None
 
                 route_meta_info_dict[route.name] = {
                     "carrier_idx": route.carrier_idx,
@@ -354,6 +355,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return self._config
 
     def _reset_nodes(self, remaining_plan: Dict[str, List[PlanElement]]) -> None:
+        # Carrier should be reset before the Route to provide the correct coordinate.
+        for carrier in self._carriers:
+            carrier.reset()
+
         for route in self._routes:
             route.reset()
             # Step 6-1: Initialize route plan
@@ -362,8 +367,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for i in range(len(route.remaining_plan)):
                 self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
 
-        for carrier in self._carriers:
-            carrier.reset()
 
     def reset(self, keep_seed: bool = False) -> None:
         # Step 1

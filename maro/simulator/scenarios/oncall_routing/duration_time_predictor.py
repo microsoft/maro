@@ -34,8 +34,11 @@ class EstimatedDurationPredictor:
         max_coord = max(source_coordinate, target_coordinate)
         key = (min_coord, max_coord)
         if key not in self._cache:
-            distance = geo_distance_meter(source_coordinate, target_coordinate)
-            self._cache[key] = int(math.ceil(max(1.0, distance / 200.0)))  # TODO: fake
+            if source_coordinate == target_coordinate:
+                self._cache[key] = 0
+            else:
+                distance = geo_distance_meter(source_coordinate, target_coordinate)
+                self._cache[key] = int(math.ceil(max(1.0, distance / 200.0)))  # TODO: fake
         return self._cache[key]
 
     def reset(self):
@@ -47,7 +50,7 @@ class ActualDurationSampler:
         self,
         estimated_arrival_time: int
     ) -> int:
-        if estimated_arrival_time == 0.0:
+        if estimated_arrival_time == 0:
             return estimated_arrival_time
         variance = estimated_arrival_time * 0.1
         noise = random[EST_RAND_KEY].normalvariate(mu=0.0, sigma=variance)
