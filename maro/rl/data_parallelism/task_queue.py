@@ -5,6 +5,8 @@ from collections import defaultdict
 from multiprocessing import Manager, Process, Queue, managers
 from typing import Dict, List
 
+import torch
+
 from maro.communication import Proxy, SessionMessage
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import DummyLogger, Logger
@@ -37,7 +39,7 @@ class TaskQueueClient(object):
     def submit(
         self, worker_id_list: List, batch_list: List, tensor_dict_list: List, policy_state: Dict, policy_name: str,
         scope: str = None
-    ) -> Dict[str, List]:
+    ) -> Dict[str, List[Dict[str, Dict[int, Dict[str, torch.Tensor]]]]]:
         """Learn a batch of data on several grad workers."""
         msg_dict = defaultdict(lambda: defaultdict(dict))
         loss_info_by_policy = {policy_name: []}

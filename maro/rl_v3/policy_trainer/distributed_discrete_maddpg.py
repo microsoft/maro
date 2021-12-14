@@ -229,23 +229,6 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
         return grad_dict
 
-    def _remote_learn(
-        self,
-        batch: MultiTransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[int, Dict[str, torch.Tensor]]]:
-        assert self._task_queue_client is not None
-        worker_id_list = self._task_queue_client.request_workers()
-        batch_list = self._dispatch_batch(batch, len(worker_id_list))
-        # TODO: implement _dispatch_tensor_dict
-        tensor_dict_list = self._dispatch_tensor_dict(tensor_dict, len(worker_id_list))
-        trainer_state = self.get_worker_state_dict()
-        trainer_name = self.name
-        loss_info_by_name = self._task_queue_client.sumbit(
-            worker_id_list, batch_list, tensor_dict_list, trainer_state, trainer_name, scope)
-        return loss_info_by_name[trainer_name]
-
     def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_workers: int) -> List[Dict[str, object]]:
         raise NotImplementedError
 
