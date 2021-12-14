@@ -47,7 +47,7 @@ if __name__ == "__main__":
     )
 
     # TODO: check the reset functionality
-    # env.reset()
+    env.reset(keep_seed=True)
     metrics, decision_event, is_done = env.step(None)
     while not is_done:
         assert isinstance(decision_event, OncallRoutingPayload)
@@ -57,7 +57,6 @@ if __name__ == "__main__":
         route_meta_info_dict = decision_event.route_meta_info_dict
 
         # Call get_action one by one to get the action without considering segment index
-        print(f"Processing {len(orders)} orders at tick {env.tick}.")
         actions: List[Action] = [get_greedy_action(
             order, route_meta_info_dict, route_plan_dict, carriers_in_stop
         ) for order in orders]

@@ -354,6 +354,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         return self._config
 
     def _reset_nodes(self, remaining_plan: Dict[str, List[PlanElement]]) -> None:
+        # Carrier should be reset before the Route to provide the correct coordinate.
+        for carrier in self._carriers:
+            carrier.reset()
+
         for route in self._routes:
             route.reset()
             # Step 6-1: Initialize route plan
@@ -362,8 +366,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for i in range(len(route.remaining_plan)):
                 self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
 
-        for carrier in self._carriers:
-            carrier.reset()
 
     def reset(self, keep_seed: bool = False) -> None:
         # Step 1

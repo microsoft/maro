@@ -11,7 +11,7 @@ if __name__ == "__main__":
     )
 
     # TODO: check the reset functionality
-    # env.reset()
+    env.reset(keep_seed=True)
     metrics, decision_event, is_done = env.step(None)
     while not is_done:
         assert isinstance(decision_event, OncallRoutingPayload)
