@@ -21,7 +21,8 @@ class Carrier(NodeBase):
     delayed_order_num = NodeAttribute("i")
     total_delayed_time = NodeAttribute("i")
 
-    in_stop = NodeAttribute("i")    # In a stop or on the way to next stop
+    in_stop = NodeAttribute("i")  # In a stop or on the way to next stop
+    next_departure_tick = NodeAttribute("i")  # Tick that the carrier leaves the current stop
 
     # TODO: anyway to access the route info through the carrier directly?
 

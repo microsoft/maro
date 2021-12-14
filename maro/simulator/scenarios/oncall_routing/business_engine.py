@@ -13,7 +13,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
-from maro.utils import clone, convert_dottable
+from maro.utils import clone, convert_dottable, DottableDict
 
 from .carrier import Carrier
 from .common import (
@@ -42,6 +42,29 @@ total_order_terminated(int): The total number of order that are terminated durin
 total_order_completed(int):
 pending_order_num(int): The number of orders pending in the plan that is waiting for service (w/o RTB Dummy Order).
 """
+
+
+def _get_staying_time(tick: int, plan: List[PlanElement], order_transition: DottableDict) -> int:
+    cur_coord = plan[0].order.coord
+    copied_orders: List[Order] = []
+    for i in range(len(plan)):
+        if plan[i].order.coord == cur_coord:
+            copied_orders.append(clone(plan[i].order))
+        else:
+            break
+
+    cur_tick = tick
+    processing_time = 0
+    for order in copied_orders:
+        order_status = order.get_status(cur_tick, order_transition)
+        if order_status != OrderStatus.DUMMY:
+            if order_status == OrderStatus.NOT_READY:
+                cur_tick = order.open_time - order_transition.buffer_before_open_time
+                processing_time = 0  # TODO
+            if order_transition.processing_proportion_to_quantity:
+                processing_time += order_transition.processing_time
+
+    return cur_tick + processing_time - tick
 
 
 class OncallRoutingBusinessEngine(AbsBusinessEngine):
@@ -267,12 +290,14 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for route in self._routes:
                 if len(route.remaining_plan) == 0:
                     current_destination_arrival_duration = None
+                    next_departure_tick = None
                 elif self._carriers[route.carrier_idx].in_stop:
                     current_destination_arrival_duration = self._estimated_duration_predictor.predict(
                         tick=tick,
                         source_coordinate=self._route_last_arrival[route.name][0],
                         target_coordinate=route.remaining_plan[0].order.coord
                     )
+                    next_departure_tick = self._carriers[route.carrier_idx].next_departure_tick
                 else:
                     last_coord, last_tick = self._route_last_arrival[route.name]
                     next_coord = route.remaining_plan[0].order.coord
@@ -287,10 +312,12 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     current_destination_arrival_duration = self._estimated_duration_predictor.predict(
                         tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
                     )
+                    next_departure_tick = None
 
                 route_meta_info_dict[route.name] = {
                     "carrier_idx": route.carrier_idx,
-                    "current_destination_arrival_duration": current_destination_arrival_duration
+                    "current_destination_arrival_duration": current_destination_arrival_duration,
+                    "next_departure_tick": next_departure_tick
                 }
 
             decision_event = self._event_buffer.gen_decision_event(
@@ -399,6 +426,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._carriers[carrier_idx].in_stop = 1
         self._carriers[carrier_idx].update_coordinate(coord=plan[0].order.coord)
 
+        # Get the time that the carrier stays in the stop through simulation
+        staying_time = _get_staying_time(event.tick, plan, self._config.order_transition)
+        self._carriers[carrier_idx].next_departure_tick = event.tick + staying_time
+
         order_status = plan[0].order.get_status(event.tick, self._config.order_transition)
 
         # TODO: further simplify the order processing logic?
@@ -441,7 +472,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         while len(plan) > 0 and plan[0].order.coord == carrier.coordinate:
             order: Order = plan[0].order
             # The accumulated processing time is ignored here
-            # due to the assumption that the processing start at the very begining.
+            # due to the assumption that the processing start at the very beginning.
             order_status = order.get_status(event.tick, self._config.order_transition)
 
             # Update performance statistics.
@@ -523,6 +554,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         route_name = self._routes[route_idx].name
 
         self._carriers[carrier_idx].in_stop = 0
+        self._carriers[carrier_idx].next_departure_tick = -1
 
         plan = self._routes[route_idx].remaining_plan
 
