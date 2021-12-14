@@ -305,16 +305,18 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             route_meta_info_dict = {}
             for route in self._routes:
                 if len(route.remaining_plan) == 0:
-                    estimated_duration_to_the_next_stop = None
                     next_departure_tick = None
+                    estimated_duration_to_the_next_stop = None
                 elif self._carriers[route.carrier_idx].in_stop:
+                    next_departure_tick = self._route_next_departure_dict[route.name]
                     estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
-                        tick=tick,
+                        tick=next_departure_tick,
                         source_coordinate=self._route_last_arrival[route.name][0],
                         target_coordinate=route.remaining_plan[0].order.coord
                     )
-                    next_departure_tick = self._route_next_departure_dict[route.name]
                 else:
+                    next_departure_tick = None
+
                     last_coord, last_tick = self._route_last_arrival[route.name]
                     next_coord = route.remaining_plan[0].order.coord
                     act_duration = route.remaining_plan[0].actual_duration_from_last
@@ -328,7 +330,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
                         tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
                     )
-                    next_departure_tick = None
 
                 route_meta_info_dict[route.name] = {
                     "carrier_idx": route.carrier_idx,
