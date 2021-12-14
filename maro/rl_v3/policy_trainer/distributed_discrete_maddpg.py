@@ -229,6 +229,26 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
         return grad_dict
 
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_workers: int) -> List[Dict[str, object]]:
+        raise NotImplementedError
+
+    def _dispatch_batch(self, batch: MultiTransitionBatch, num_workers: int) -> List[MultiTransitionBatch]:
+        batch_size = batch.states.shape[0]
+        assert batch_size >= num_workers, \
+            f"Batch size should be greater than or equal to num_workers, but got {batch_size} and {num_workers}."
+        sub_batch_indexes = [range(batch_size)[i::num_workers] for i in range(num_workers)]
+        sub_batches = [MultiTransitionBatch(
+            policy_names=[],
+            states=batch.states[indexes],
+            actions=[action[indexes] for action in batch.actions],
+            rewards=[reward[indexes] for reward in batch.rewards],
+            terminals=batch.terminals[indexes],
+            next_states=batch.next_states[indexes],
+            agent_states=[state[indexes] for state in batch.agent_states],
+            next_agent_states=[state[indexes] for state in batch.next_agent_states]
+        ) for indexes in sub_batch_indexes]
+        return sub_batches
+
     def update_critics(self, next_actions: List[torch.Tensor]) -> None:
         grads = self._get_batch_grad(
             self._batch,

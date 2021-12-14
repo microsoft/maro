@@ -5,6 +5,7 @@ import torch
 
 from maro.communication import Proxy
 from maro.rl.data_parallelism import TaskQueueClient
+from maro.rl.utils import average_grads
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
@@ -33,10 +34,27 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
         scope: str = "all"
     ) -> Dict[str, Dict[int, Dict[str, torch.Tensor]]]:
         if self._enable_data_parallelism:
-            assert self._task_queue_client is not None
-            raise NotImplementedError  # TODO
+            gradients = self._remote_learn(batch, tensor_dict, scope)
+            return average_grads(gradients)
         else:
             return self.get_batch_grad(batch, tensor_dict, scope)
+
+    def _remote_learn(
+        self,
+        batch: MultiTransitionBatch,
+        tensor_dict: Dict[str, object] = None,
+        scope: str = "all"
+    ) -> List[Dict[str, Dict[int, Dict[str, torch.Tensor]]]]:
+        assert self._task_queue_client is not None
+        worker_id_list = self._task_queue_client.request_workers()
+        batch_list = self._dispatch_batch(batch, len(worker_id_list))
+        # TODO: implement _dispatch_tensor_dict
+        tensor_dict_list = self._dispatch_tensor_dict(tensor_dict, len(worker_id_list))
+        worker_state = self.get_worker_state_dict()
+        worker_name = self.name
+        loss_info_by_name = self._task_queue_client.submit(
+            worker_id_list, batch_list, tensor_dict_list, worker_state, worker_name, scope)
+        return loss_info_by_name[worker_name]
 
     @abstractmethod
     def get_batch_grad(
@@ -45,6 +63,14 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, Dict[int, Dict[str, torch.Tensor]]]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _dispatch_batch(self, batch: MultiTransitionBatch, num_workers: int) -> List[MultiTransitionBatch]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_workers: int) -> List[Dict[str, object]]:
         raise NotImplementedError
 
     def init_data_parallel(self, *args, **kwargs) -> None:
