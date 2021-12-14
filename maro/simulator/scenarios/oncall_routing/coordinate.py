@@ -27,3 +27,21 @@ class CoordinateClipper(object):
             lat=round(coord.lat, self._keep_digit),
             lng=round(coord.lng, self._keep_digit)
         )
+
+
+def calculate_carrier_coord(
+    source_coord: Coordinate,
+    target_coord: Coordinate,
+    total_time: int,
+    passed_time: int
+) -> Coordinate:
+    assert total_time != 0
+    assert 0 <= passed_time <= total_time
+
+    lat_gap = target_coord.lat - source_coord.lat
+    lng_gap = target_coord.lng - source_coord.lng
+
+    return Coordinate(
+        lat=source_coord.lat + lat_gap * passed_time / total_time,
+        lng=source_coord.lng + lng_gap * passed_time / total_time
+    )

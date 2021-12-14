@@ -3,7 +3,7 @@
 
 import os
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from yaml import safe_load
 
@@ -20,7 +20,7 @@ from .common import (
     Action, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload, OncallRoutingPayload,
     OrderProcessingPayload
 )
-from .coordinate import Coordinate, CoordinateClipper
+from .coordinate import calculate_carrier_coord, Coordinate, CoordinateClipper
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
 from .order import Order, OrderStatus
@@ -75,9 +75,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = convert_dottable(safe_load(fp))
 
-        # Step 1: Init random seed & coordinate clipper
+        # Step 1: Init random seed & coordinate clipper & head quarter coordinate
         random.seed(self._config.seed)
         self._coord_clipper = CoordinateClipper(keep_digit=self._config.data_loader_config.coordinate_keep_digit)
+        self._head_quarter_coord = Coordinate(self._config.station.latitude, self._config.station.longitude)
+        self._head_quarter_coord = self._coord_clipper.clip(self._head_quarter_coord)
 
         # Step 2: Init oncall order generator, oncall order buffer.
         print("Loading oncall orders.")
@@ -123,8 +125,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 name=carrier_name,
                 route_idx=idx,
                 route_name=route_name,
-                lat=self._config.station.latitude,
-                lng=self._config.station.longitude,
+                lat=self._head_quarter_coord.lat,
+                lng=self._head_quarter_coord.lng,
                 close_rtb=self._config.station.close_rtb,
             )
 
@@ -142,7 +144,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
 
         # Step 7: Create the carrier arrival events.
-        self._current_dest_arrival_tick: Dict[str, Optional[int]] = {}
+        self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8: Init Env metrics.
@@ -161,7 +163,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # The DUMMY order that represents the return-to-building event
         rtb_order = Order(
             order_id="dummy_rtb_order",
-            coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
+            coordinate=self._head_quarter_coord,
             open_time=self._config.data_loader_config.start_tick,
             close_time=self._config.data_loader_config.end_tick,
             is_delivery=None,
@@ -190,6 +192,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def _load_carrier_arrival_event(self) -> None:
         """Put the first arrival event of each route into the event buffer."""
         for route in self._routes:
+            self._route_last_arrival[route.name] = (self._head_quarter_coord, 0)
+
             if len(route.remaining_plan) > 0:
                 carrier_arrival_payload = CarrierArrivalPayload(route.carrier_idx)
                 carrier_arrival_event = self._event_buffer.gen_cascade_event(
@@ -198,9 +202,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     payload=carrier_arrival_payload
                 )
                 self._event_buffer.insert_event(carrier_arrival_event)
-                self._current_dest_arrival_tick[route.name] = route.remaining_plan[0].estimated_duration_from_last
-            else:
-                self._current_dest_arrival_tick[route.name] = None
 
     def _init_metrics(self) -> None:
         self._total_oncall_num: int = 0
@@ -264,10 +265,32 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         if (tick + 1) % self._config["interrupt_cycle"] == 0 and len(self._oncall_order_buffer) > 0:
             route_meta_info_dict = {}
             for route in self._routes:
-                t = self._current_dest_arrival_tick[route.name]
+                if len(route.remaining_plan) == 0:
+                    current_destination_arrival_duration = None
+                elif self._carriers[route.carrier_idx].in_stop:
+                    current_destination_arrival_duration = self._estimated_duration_predictor.predict(
+                        tick=tick,
+                        source_coordinate=self._route_last_arrival[route.name][0],
+                        target_coordinate=route.remaining_plan[0].order.coord
+                    )
+                else:
+                    last_coord, last_tick = self._route_last_arrival[route.name]
+                    next_coord = route.remaining_plan[0].order.coord
+                    act_duration = route.remaining_plan[0].actual_duration_from_last
+
+                    carrier_coord = calculate_carrier_coord(
+                        source_coord=last_coord, target_coord=next_coord, total_time=act_duration,
+                        passed_time=tick - last_tick
+                    )
+                    carrier_coord = self._coord_clipper.clip(carrier_coord)
+
+                    current_destination_arrival_duration = self._estimated_duration_predictor.predict(
+                        tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
+                    )
+
                 route_meta_info_dict[route.name] = {
                     "carrier_idx": route.carrier_idx,
-                    "current_destination_arrival_duration": None if t is None else t - tick  # TODO
+                    "current_destination_arrival_duration": current_destination_arrival_duration
                 }
 
             decision_event = self._event_buffer.gen_decision_event(
@@ -324,7 +347,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._reset_nodes(remaining_plan=remaining_plan)
 
         # Step 7
-        self._current_dest_arrival_tick: Dict[str, Optional[int]] = {}
+        self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8
@@ -367,6 +390,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         carrier_idx = payload.carrier_idx
         route_idx = self._carriers[carrier_idx].route_idx
+        route_name = self._routes[route_idx].name
         plan = self._routes[route_idx].remaining_plan
 
         assert len(plan) > 0, f"Expect valid plan elements but get empty plan: tick {event.tick}, carrier {carrier_idx}"
@@ -397,6 +421,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 payload=order_processing_payload
             )
             event.add_immediate_event(event=order_processing_event)
+
+        # `last_tick` will be update later when carrier departures
+        self._route_last_arrival[route_name] = (plan[0].order.coord, -1)
 
     def _on_order_processing(self, event: CascadeEvent) -> None:
         payload = event.payload
@@ -493,6 +520,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         carrier_idx = payload.carrier_idx
         route_idx = self._carriers[carrier_idx].route_idx
+        route_name = self._routes[route_idx].name
 
         self._carriers[carrier_idx].in_stop = 0
 
@@ -514,9 +542,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 payload=carrier_arrival_payload
             )
             self._event_buffer.insert_event(carrier_arrival_event)
-            self._current_dest_arrival_tick[self._routes[route_idx].name] = carrier_arrival_event.tick
-        else:
-            self._current_dest_arrival_tick[self._routes[route_idx].name] = None
+
+        # Update `last_time`
+        self._route_last_arrival[route_name] = (self._route_last_arrival[route_name][0], event.tick)
 
     def _on_action_received(self, event: CascadeEvent) -> None:
         actions = event.payload
