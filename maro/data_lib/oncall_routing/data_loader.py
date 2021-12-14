@@ -7,7 +7,7 @@ from typing import Dict, List
 import pandas as pd
 
 from maro.simulator.scenarios.oncall_routing import Coordinate, Order, OrderIdGenerator
-from maro.utils import clone, DottableDict
+from maro.utils import DottableDict, clone
 
 from .utils import convert_time_format
 
@@ -28,7 +28,7 @@ def _load_plan_simple(
         data = df[df["ROUTENBR"] == route_name]
         data.sort_values(by=['STOPTIME'])
 
-        plan = []
+        orders = []
         for e in data.to_dict(orient='records'):
             # TODO
             lat = round(e["LAT"], coordinate_keep_digit)
@@ -40,8 +40,8 @@ def _load_plan_simple(
                 close_time=end_tick if e["IS_DELIVERY"] else convert_time_format(int(e["CLOSETIME"])),
                 is_delivery=e["IS_DELIVERY"]
             )
-            plan.append(order)
-        plan_by_route[str(route_name)] = plan
+            orders.append(order)
+        plan_by_route[str(route_name)] = orders
 
     print(f"Loading finished. Loaded data of {len(plan_by_route)} routes.")
     return plan_by_route
@@ -52,15 +52,15 @@ class PlanLoader(object):
         super(PlanLoader, self).__init__()
         self._id_counter = OrderIdGenerator(prefix="planned")
 
-    def generate_plan(self) -> Dict[str, List[Order]]:
-        return self._generate_plan_impl()
+    def generate_route_orders(self) -> Dict[str, List[Order]]:
+        return self._generate_route_orders_impl()
 
     @abstractmethod
     def reset(self) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def _generate_plan_impl(self) -> Dict[str, List[Order]]:
+    def _generate_route_orders_impl(self) -> Dict[str, List[Order]]:
         raise NotImplementedError
 
 
@@ -78,7 +78,7 @@ class FromHistoryPlanLoader(PlanLoader):
     def reset(self) -> None:
         pass
 
-    def _generate_plan_impl(self) -> Dict[str, List[Order]]:
+    def _generate_route_orders_impl(self) -> Dict[str, List[Order]]:
         # Return copies of orders
         return {route_name: [clone(order) for order in orders] for route_name, orders in self._plan.items()}
 

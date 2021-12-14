@@ -13,7 +13,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
-from maro.utils import convert_dottable
+from maro.utils import clone, convert_dottable
 
 from .carrier import Carrier
 from .common import (
@@ -147,7 +147,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
     def _load_route_plan(self) -> Dict[str, List[PlanElement]]:
-        orders_dict = self._data_loader.generate_plan()
+        orders_dict = self._data_loader.generate_route_orders()
         remaining_plan = {
             route_name: [PlanElement(order) for order in orders] for route_name, orders in orders_dict.items()
         }
@@ -193,7 +193,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     payload=carrier_arrival_payload
                 )
                 self._event_buffer.insert_event(carrier_arrival_event)
-                self._current_dest_arrival_tick[route.name] = carrier_arrival_event.tick
+                self._current_dest_arrival_tick[route.name] = route.remaining_plan[0].estimated_duration_from_last
             else:
                 self._current_dest_arrival_tick[route.name] = None
 
@@ -270,9 +270,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 payload=OncallRoutingPayload(
                     get_oncall_orders_func=lambda: list(self._oncall_order_buffer.values()),
                     get_route_plan_dict_func=lambda: {
-                        _route.name: [_elem.order for _elem in _route.remaining_plan] for _route in self._routes
+                        _route.name: [clone(_elem.order) for _elem in _route.remaining_plan] for _route in self._routes
                     },
-                    get_estimated_duration_predictor_func=lambda: self.estimated_duration_predictor,
+                    get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
                     route_meta_info_dict=route_meta_info_dict
                 )
             )
@@ -319,6 +319,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._reset_nodes(remaining_plan=remaining_plan)
 
         # Step 7
+        self._current_dest_arrival_tick: Dict[str, Optional[int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8
@@ -580,7 +581,3 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         f"remaining plan: {len(route.remaining_plan)}"
                     )
         return is_done
-
-    @property
-    def estimated_duration_predictor(self) -> EstimatedDurationPredictor:
-        return self._estimated_duration_predictor

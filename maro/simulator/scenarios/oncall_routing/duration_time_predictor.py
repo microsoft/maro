@@ -27,7 +27,9 @@ class EstimatedDurationPredictor:
         target_coordinate: Coordinate,
         feature: TimePredictionFeature = None
     ) -> int:
-        key = (source_coordinate, target_coordinate)
+        min_coord = min(source_coordinate, target_coordinate)
+        max_coord = max(source_coordinate, target_coordinate)
+        key = (min_coord, max_coord)
         if key not in self._cache:
             distance = geo_distance_meter(source_coordinate, target_coordinate)
             self._cache[key] = int(math.ceil(max(1.0, distance / 200.0)))  # TODO: fake
