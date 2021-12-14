@@ -134,8 +134,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         remaining_plan: Dict[str, List[PlanElement]] = self._load_route_plan()
 
         # Step 4: Init predictor.
-        self._actual_duration_predictor = ActualDurationSampler()
         self._estimated_duration_predictor = EstimatedDurationPredictor(coord_clipper=self._coord_clipper)
+        self._actual_duration_predictor = ActualDurationSampler(self._estimated_duration_predictor)
 
         # Step 5: Init Frame and snapshot.
         route_num = len(self._route_name_list)
@@ -305,17 +305,17 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             route_meta_info_dict = {}
             for route in self._routes:
                 if len(route.remaining_plan) == 0:
-                    next_departure_tick = None
+                    estimated_next_departure_tick = None
                     estimated_duration_to_the_next_stop = None
                 elif self._carriers[route.carrier_idx].in_stop:
-                    next_departure_tick = self._route_next_departure_dict[route.name]
+                    estimated_next_departure_tick = self._route_next_departure_dict[route.name]
                     estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
-                        tick=next_departure_tick,
+                        tick=estimated_next_departure_tick,
                         source_coordinate=self._route_last_arrival[route.name][0],
                         target_coordinate=route.remaining_plan[0].order.coord
                     )
                 else:
-                    next_departure_tick = None
+                    estimated_next_departure_tick = None
 
                     last_coord, last_tick = self._route_last_arrival[route.name]
                     next_coord = route.remaining_plan[0].order.coord
@@ -334,7 +334,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 route_meta_info_dict[route.name] = {
                     "carrier_idx": route.carrier_idx,
                     "estimated_duration_to_the_next_stop": estimated_duration_to_the_next_stop,
-                    "next_departure_tick": next_departure_tick
+                    "estimated_next_departure_tick": estimated_next_departure_tick
                 }
 
             decision_event = self._event_buffer.gen_decision_event(
@@ -366,7 +366,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             # Step 6-2: Initialize duration between stops
             for i in range(len(route.remaining_plan)):
                 self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
-
 
     def reset(self, keep_seed: bool = False) -> None:
         # Step 1
@@ -406,10 +405,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         source_coord = self._carriers[carrier_idx].coordinate if index == 0 else plan[index - 1].order.coord
         target_coord = plan[index].order.coord
 
-        estimated_duration = self._estimated_duration_predictor.predict(tick, source_coord, target_coord)
-        actual_duration = self._actual_duration_predictor.sample(estimated_duration)
+        actual_duration = self._actual_duration_predictor.sample(tick, source_coord, target_coord)
         plan[index].actual_duration_from_last = actual_duration
-        plan[index].estimated_duration_from_last = estimated_duration
 
     def _register_events(self) -> None:
         register_handler = self._event_buffer.register_event_handler
