@@ -137,6 +137,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
 
         # Step 7: Create the carrier arrival events.
+        self._current_dest_arrival_tick: Dict[str, Optional[int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8: Init Env metrics.
@@ -192,6 +193,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     payload=carrier_arrival_payload
                 )
                 self._event_buffer.insert_event(carrier_arrival_event)
+                self._current_dest_arrival_tick[route.name] = carrier_arrival_event.tick
+            else:
+                self._current_dest_arrival_tick[route.name] = None
 
     def _init_metrics(self) -> None:
         self._total_oncall_num: int = 0
@@ -253,11 +257,23 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Interrupt and throw decision event
         if (tick + 1) % self._config["interrupt_cycle"] == 0 and len(self._oncall_order_buffer) > 0:
+            route_meta_info_dict = {}
+            for route in self._routes:
+                t = self._current_dest_arrival_tick[route.name]
+                route_meta_info_dict[route.name] = {
+                    "carrier_idx": route.carrier_idx,
+                    "current_destination_arrival_duration": None if t is None else t - tick  # TODO
+                }
+
             decision_event = self._event_buffer.gen_decision_event(
                 tick=tick,
                 payload=OncallRoutingPayload(
                     get_oncall_orders_func=lambda: list(self._oncall_order_buffer.values()),
-                    get_routes_info_func=lambda: self._routes,
+                    get_route_plan_dict_func=lambda: {
+                        _route.name: [_elem.order for _elem in _route.remaining_plan] for _route in self._routes
+                    },
+                    get_estimated_duration_predictor_func=lambda: self.estimated_duration_predictor,
+                    route_meta_info_dict=route_meta_info_dict
                 )
             )
             self._event_buffer.insert_event(decision_event)
@@ -492,6 +508,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 payload=carrier_arrival_payload
             )
             self._event_buffer.insert_event(carrier_arrival_event)
+            self._current_dest_arrival_tick[self._routes[route_idx].name] = carrier_arrival_event.tick
+        else:
+            self._current_dest_arrival_tick[self._routes[route_idx].name] = None
 
     def _on_action_received(self, event: CascadeEvent) -> None:
         actions = event.payload
@@ -561,3 +580,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         f"remaining plan: {len(route.remaining_plan)}"
                     )
         return is_done
+
+    @property
+    def estimated_duration_predictor(self) -> EstimatedDurationPredictor:
+        return self._estimated_duration_predictor

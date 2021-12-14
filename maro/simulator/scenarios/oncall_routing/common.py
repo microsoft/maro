@@ -3,10 +3,10 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List
 
+from .duration_time_predictor import EstimatedDurationPredictor
 from .order import Order
-from .route import Route
 
 
 class Events(Enum):
@@ -54,16 +54,24 @@ class OncallRoutingPayload(object):
     def __init__(
         self,
         get_oncall_orders_func: Callable[[], List[Order]],
-        get_routes_info_func: Callable[[], List[Route]]
+        get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]],
+        get_estimated_duration_predictor_func: Callable[[], EstimatedDurationPredictor],
+        route_meta_info_dict: dict
     ):
         self._get_oncall_orders_func: Callable[[], List[Order]] = get_oncall_orders_func
-        self._get_routes_info_func: Callable[[], List[Route]] = get_routes_info_func
+        self._get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]] = get_route_plan_dict_func
+        self._get_estimated_duration_predictor_func = get_estimated_duration_predictor_func
+        self.route_meta_info_dict = route_meta_info_dict
 
     @property
     def oncall_orders(self) -> List[Order]:
         return self._get_oncall_orders_func()
 
     @property
-    def routes_info(self) -> List[Route]:
+    def route_plan_dict(self) -> Dict[str, List[Order]]:
         # TODO: deep copy or?
-        return self._get_routes_info_func()
+        return self._get_route_plan_dict_func()
+
+    @property
+    def estimated_duration_predictor(self) -> EstimatedDurationPredictor:
+        return self._get_estimated_duration_predictor_func()

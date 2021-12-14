@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from maro.simulator import Env
 from maro.simulator.scenarios.oncall_routing import Order, Route
@@ -12,28 +12,39 @@ from maro.utils import set_seeds
 set_seeds(0)
 
 
-def get_greedy_action(order: Order, routes: List[Route], carriers_in_stop: List[bool]) -> Optional[Action]:
+def get_greedy_action(
+    order: Order,
+    route_meta_info_dict: dict,
+    route_plan_dict: Dict[str, List[Order]],
+    carriers_in_stop: List[bool]
+) -> Optional[Action]:
     min_distance: float = float("inf")
-    route_name: str = None
     insert_index: int = -1
-    for route in routes:
-        start = 0 if carriers_in_stop[route.carrier_idx] else 1
-        for idx in range(start, len(route.remaining_plan)):
-            distance = geo_distance_meter(order.coord, route.remaining_plan[idx].order.coord)
+    chosen_route_name: Optional[str] = None
+
+    for route_name in route_meta_info_dict:
+        carrier_idx = route_meta_info_dict[route_name]["carrier_idx"]
+        start = 0 if carriers_in_stop[carrier_idx] else 1
+        plan = route_plan_dict[route_name]
+
+        for i in range(start, len(plan)):
+            distance = geo_distance_meter(order.coord, plan[i].coord)
             if distance < min_distance:
                 min_distance = distance
-                route_name = route.name
-                insert_index = idx
+                chosen_route_name = route_name
+                insert_index = i
 
-    if route_name is None:
+    if chosen_route_name is None:
         return None
 
-    return Action(order_id=order.id, route_name=route_name, insert_index=insert_index)
+    return Action(order_id=order.id, route_name=chosen_route_name, insert_index=insert_index)
+
 
 # Greedy: assign each on-call order to the closest stop on existing route.
 if __name__ == "__main__":
     env = Env(
         scenario="oncall_routing", topology="example", start_tick=0, durations=1440,
+        options={"config_path": "C:/workspace/fedex_topology/example_sample/"}
     )
 
     # TODO: check the reset functionality
@@ -42,11 +53,15 @@ if __name__ == "__main__":
     while not is_done:
         assert isinstance(decision_event, OncallRoutingPayload)
         orders = decision_event.oncall_orders
-        routes = decision_event.routes_info
+        route_plan_dict = decision_event.route_plan_dict
         carriers_in_stop: List[bool] = (env.snapshot_list["carriers"][env.tick::"in_stop"] == 1).tolist()
+        route_meta_info_dict = decision_event.route_meta_info_dict
 
         # Call get_action one by one to get the action without considering segment index
-        actions: List[Action] = [get_greedy_action(order, routes, carriers_in_stop) for order in orders]
+        print(f"Processing {len(orders)} orders at tick {env.tick}.")
+        actions: List[Action] = [get_greedy_action(
+            order, route_meta_info_dict, route_plan_dict, carriers_in_stop
+        ) for order in orders]
         actions = [action for action in actions if action]
         # Add segment index if multiple orders are share
         actions = sorted(actions, key=lambda action: (action.route_name, action.insert_index))
