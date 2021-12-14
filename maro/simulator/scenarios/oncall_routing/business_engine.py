@@ -3,7 +3,7 @@
 
 import os
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from yaml import safe_load
 
@@ -13,14 +13,14 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.utils import random
-from maro.utils import convert_dottable
+from maro.utils import DottableDict, clone, convert_dottable
 
 from .carrier import Carrier
 from .common import (
     Action, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload, OncallRoutingPayload,
     OrderProcessingPayload
 )
-from .coordinate import Coordinate
+from .coordinate import Coordinate, CoordinateClipper, calculate_carrier_coord
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
 from .frame_builder import gen_oncall_routing_frame
 from .order import Order, OrderStatus
@@ -42,6 +42,29 @@ total_order_terminated(int): The total number of order that are terminated durin
 total_order_completed(int):
 pending_order_num(int): The number of orders pending in the plan that is waiting for service (w/o RTB Dummy Order).
 """
+
+
+def _get_staying_time(tick: int, plan: List[PlanElement], order_transition: DottableDict) -> int:
+    cur_coord = plan[0].order.coord
+    copied_orders: List[Order] = []
+    for i in range(len(plan)):
+        if plan[i].order.coord == cur_coord:
+            copied_orders.append(clone(plan[i].order))
+        else:
+            break
+
+    cur_tick = tick
+    processing_time = 0
+    for order in copied_orders:
+        order_status = order.get_status(cur_tick, order_transition)
+        if order_status != OrderStatus.DUMMY:
+            if order_status == OrderStatus.NOT_READY:
+                cur_tick = order.open_time - order_transition.buffer_before_open_time
+                processing_time = 0  # TODO
+            if order_transition.processing_proportion_to_quantity:
+                processing_time += order_transition.processing_time
+
+    return cur_tick + processing_time - tick
 
 
 class OncallRoutingBusinessEngine(AbsBusinessEngine):
@@ -75,23 +98,30 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = convert_dottable(safe_load(fp))
 
-        # Step 1: Init random seed
+        # Step 1: Init random seed & coordinate clipper & head quarter coordinate
         random.seed(self._config.seed)
+        self._coord_clipper = CoordinateClipper(keep_digit=self._config.data_loader_config.coordinate_keep_digit)
+        self._head_quarter_coord = Coordinate(self._config.station.latitude, self._config.station.longitude)
+        self._head_quarter_coord = self._coord_clipper.clip(self._head_quarter_coord)
 
         # Step 2: Init oncall order generator, oncall order buffer.
         print("Loading oncall orders.")
-        self._oncall_order_generator = get_oncall_generator(self._config_path, self._config.data_loader_config)
+        self._oncall_order_generator = get_oncall_generator(
+            self._config_path, self._config.data_loader_config, self._coord_clipper
+        )
         self._oncall_order_generator.reset()  # We have to call `reset()` to initialize oncall order generator
         self._oncall_order_buffer: Dict[str, Order] = {}
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
-        self._data_loader = get_data_loader(self._config_path, self._config.data_loader_config)
+        self._data_loader = get_data_loader(
+            self._config_path, self._config.data_loader_config, self._coord_clipper
+        )
         remaining_plan: Dict[str, List[PlanElement]] = self._load_route_plan()
 
         # Step 4: Init predictor.
         self._actual_duration_predictor = ActualDurationSampler()
-        self._estimated_duration_predictor = EstimatedDurationPredictor()
+        self._estimated_duration_predictor = EstimatedDurationPredictor(coord_clipper=self._coord_clipper)
 
         # Step 5: Init Frame and snapshot.
         route_num = len(self._route_name_list)
@@ -118,8 +148,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 name=carrier_name,
                 route_idx=idx,
                 route_name=route_name,
-                lat=self._config.station.latitude,
-                lng=self._config.station.longitude,
+                lat=self._head_quarter_coord.lat,
+                lng=self._head_quarter_coord.lng,
                 close_rtb=self._config.station.close_rtb,
             )
 
@@ -137,6 +167,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 self._refresh_plan_duration(tick=-1, route_idx=route.idx, index=i)
 
         # Step 7: Create the carrier arrival events.
+        self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}  # {route_name: (last coordinate, last tick)}
+        self._route_next_departure_dict: Dict[str, Optional[int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8: Init Env metrics.
@@ -146,13 +178,16 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
     def _load_route_plan(self) -> Dict[str, List[PlanElement]]:
-        remaining_plan: Dict[str, List[PlanElement]] = self._data_loader.generate_plan()  # TODO: load orders only
+        orders_dict = self._data_loader.generate_route_orders()
+        remaining_plan = {
+            route_name: [PlanElement(order) for order in orders] for route_name, orders in orders_dict.items()
+        }
 
         # TODO: fake head quarter order
         # The DUMMY order that represents the return-to-building event
         rtb_order = Order(
             order_id="dummy_rtb_order",
-            coordinate=Coordinate(lat=self._config.station.latitude, lng=self._config.station.longitude),
+            coordinate=self._head_quarter_coord,
             open_time=self._config.data_loader_config.start_tick,
             close_time=self._config.data_loader_config.end_tick,
             is_delivery=None,
@@ -181,6 +216,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def _load_carrier_arrival_event(self) -> None:
         """Put the first arrival event of each route into the event buffer."""
         for route in self._routes:
+            self._route_last_arrival[route.name] = (self._head_quarter_coord, 0)
+            self._route_next_departure_dict[route.name] = None
+
             if len(route.remaining_plan) > 0:
                 carrier_arrival_payload = CarrierArrivalPayload(route.carrier_idx)
                 carrier_arrival_event = self._event_buffer.gen_cascade_event(
@@ -250,11 +288,49 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Interrupt and throw decision event
         if (tick + 1) % self._config["interrupt_cycle"] == 0 and len(self._oncall_order_buffer) > 0:
+            route_meta_info_dict = {}
+            for route in self._routes:
+                if len(route.remaining_plan) == 0:
+                    estimated_duration_to_the_next_stop = None
+                    next_departure_tick = None
+                elif self._carriers[route.carrier_idx].in_stop:
+                    estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
+                        tick=tick,
+                        source_coordinate=self._route_last_arrival[route.name][0],
+                        target_coordinate=route.remaining_plan[0].order.coord
+                    )
+                    next_departure_tick = self._route_next_departure_dict[route.name]
+                else:
+                    last_coord, last_tick = self._route_last_arrival[route.name]
+                    next_coord = route.remaining_plan[0].order.coord
+                    act_duration = route.remaining_plan[0].actual_duration_from_last
+
+                    carrier_coord = calculate_carrier_coord(
+                        source_coord=last_coord, target_coord=next_coord, total_time=act_duration,
+                        passed_time=tick - last_tick
+                    )
+                    carrier_coord = self._coord_clipper.clip(carrier_coord)
+
+                    estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
+                        tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
+                    )
+                    next_departure_tick = None
+
+                route_meta_info_dict[route.name] = {
+                    "carrier_idx": route.carrier_idx,
+                    "estimated_duration_to_the_next_stop": estimated_duration_to_the_next_stop,
+                    "next_departure_tick": next_departure_tick
+                }
+
             decision_event = self._event_buffer.gen_decision_event(
                 tick=tick,
                 payload=OncallRoutingPayload(
                     get_oncall_orders_func=lambda: list(self._oncall_order_buffer.values()),
-                    get_routes_info_func=lambda: self._routes,
+                    get_route_plan_dict_func=lambda: {
+                        _route.name: [clone(_elem.order) for _elem in _route.remaining_plan] for _route in self._routes
+                    },
+                    get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
+                    route_meta_info_dict=route_meta_info_dict
                 )
             )
             self._event_buffer.insert_event(decision_event)
@@ -300,6 +376,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._reset_nodes(remaining_plan=remaining_plan)
 
         # Step 7
+        self._route_last_arrival: Dict[str, Tuple[Coordinate, int]] = {}
+        self._route_next_departure_dict: Dict[str, Optional[int]] = {}
         self._load_carrier_arrival_event()
 
         # Step 8
@@ -312,7 +390,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         target_coord = plan[index].order.coord
 
         estimated_duration = self._estimated_duration_predictor.predict(tick, source_coord, target_coord)
-        actual_duration = self._actual_duration_predictor.sample(tick, source_coord, target_coord, estimated_duration)
+        actual_duration = self._actual_duration_predictor.sample(estimated_duration)
         plan[index].actual_duration_from_last = actual_duration
         plan[index].estimated_duration_from_last = estimated_duration
 
@@ -342,6 +420,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         carrier_idx = payload.carrier_idx
         route_idx = self._carriers[carrier_idx].route_idx
+        route_name = self._routes[route_idx].name
         plan = self._routes[route_idx].remaining_plan
 
         assert len(plan) > 0, f"Expect valid plan elements but get empty plan: tick {event.tick}, carrier {carrier_idx}"
@@ -349,6 +428,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Update the location of the carrier.
         self._carriers[carrier_idx].in_stop = 1
         self._carriers[carrier_idx].update_coordinate(coord=plan[0].order.coord)
+
+        # Get the time that the carrier stays in the stop through simulation
+        staying_time = _get_staying_time(event.tick, plan, self._config.order_transition)
+        self._route_next_departure_dict[route_name] = event.tick + staying_time
 
         order_status = plan[0].order.get_status(event.tick, self._config.order_transition)
 
@@ -373,6 +456,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             )
             event.add_immediate_event(event=order_processing_event)
 
+        # `last_tick` will be update later when carrier departures
+        self._route_last_arrival[route_name] = (plan[0].order.coord, -1)
+
     def _on_order_processing(self, event: CascadeEvent) -> None:
         payload = event.payload
         assert isinstance(payload, OrderProcessingPayload)
@@ -389,7 +475,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         while len(plan) > 0 and plan[0].order.coord == carrier.coordinate:
             order: Order = plan[0].order
             # The accumulated processing time is ignored here
-            # due to the assumption that the processing start at the very begining.
+            # due to the assumption that the processing start at the very beginning.
             order_status = order.get_status(event.tick, self._config.order_transition)
 
             # Update performance statistics.
@@ -405,7 +491,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     tick=order.open_time - self._config.order_transition.buffer_before_open_time,
                     event_type=Events.ORDER_PROCESSING,
                     payload=order_processing_payload
-                )
+                )  # TODO: processing_time lost
                 self._event_buffer.insert_event(order_processing_event)
                 return
 
@@ -468,8 +554,10 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         carrier_idx = payload.carrier_idx
         route_idx = self._carriers[carrier_idx].route_idx
+        route_name = self._routes[route_idx].name
 
         self._carriers[carrier_idx].in_stop = 0
+        self._route_next_departure_dict[route_name] = None
 
         plan = self._routes[route_idx].remaining_plan
 
@@ -489,6 +577,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 payload=carrier_arrival_payload
             )
             self._event_buffer.insert_event(carrier_arrival_event)
+
+        # Update `last_time`
+        self._route_last_arrival[route_name] = (self._route_last_arrival[route_name][0], event.tick)
 
     def _on_action_received(self, event: CascadeEvent) -> None:
         actions = event.payload

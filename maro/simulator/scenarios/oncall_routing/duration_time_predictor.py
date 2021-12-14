@@ -3,10 +3,11 @@
 
 import math
 from dataclasses import dataclass
+from typing import Dict, Tuple
 
 from maro.simulator.utils import random
 
-from .coordinate import Coordinate
+from .coordinate import Coordinate, CoordinateClipper
 from .utils import EST_RAND_KEY, geo_distance_meter
 
 
@@ -16,15 +17,26 @@ class TimePredictionFeature:
 
 
 class EstimatedDurationPredictor:
+    def __init__(self, coord_clipper: CoordinateClipper) -> None:
+        self._cache: Dict[Tuple[Coordinate, Coordinate], int] = {}
+        self._coord_clipper = coord_clipper
+
     def predict(
         self,
         tick: int,
         source_coordinate: Coordinate,
         target_coordinate: Coordinate,
         feature: TimePredictionFeature = None
-    ) -> float:
-        distance = geo_distance_meter(source_coordinate, target_coordinate)
-        return math.ceil(max(1.0, distance / 200.0))  # TODO: fake
+    ) -> int:
+        source_coordinate = self._coord_clipper.clip(source_coordinate)
+        target_coordinate = self._coord_clipper.clip(target_coordinate)
+        min_coord = min(source_coordinate, target_coordinate)
+        max_coord = max(source_coordinate, target_coordinate)
+        key = (min_coord, max_coord)
+        if key not in self._cache:
+            distance = geo_distance_meter(source_coordinate, target_coordinate)
+            self._cache[key] = int(math.ceil(max(1.0, distance / 200.0)))  # TODO: fake
+        return self._cache[key]
 
     def reset(self):
         pass
@@ -33,16 +45,13 @@ class EstimatedDurationPredictor:
 class ActualDurationSampler:
     def sample(
         self,
-        tick: int,
-        source_coordinate: Coordinate,
-        target_coordinate: Coordinate,
-        estimated_arrival_time: float
-    ) -> float:
+        estimated_arrival_time: int
+    ) -> int:
         if estimated_arrival_time == 0.0:
             return estimated_arrival_time
         variance = estimated_arrival_time * 0.1
         noise = random[EST_RAND_KEY].normalvariate(mu=0.0, sigma=variance)
-        return math.ceil(max(1.0, noise + estimated_arrival_time))  # TODO: fake
+        return int(math.ceil(max(1.0, noise + estimated_arrival_time)))  # TODO: fake
 
     def reset(self):
         pass
