@@ -10,8 +10,8 @@ from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
 
 class AbsTrainer(object, metaclass=ABCMeta):
-    """
-    Policy trainer used to train policies.
+    """Policy trainer used to train policies. Trainer maintains several train workers and
+    controls training logics of them, while train workers take charge of specific policy updating.
     """
     def __init__(
         self,

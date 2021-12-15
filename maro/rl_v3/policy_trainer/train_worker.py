@@ -11,6 +11,10 @@ from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
 
 class AbsTrainWorker(object, metaclass=ABCMeta):
+    """The basic component for training a policy, which mainly takes charge of gradient computation and policy update.
+    In trainer, train worker hosts a policy, and trainer hosts several train workers. In gradient workers,
+    the train worker is an atomic representation of a policy, to perform parallel gradient computing.
+    """
     def __init__(
         self,
         name: str,
@@ -45,6 +49,11 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> List[Dict[str, Dict[int, Dict[str, torch.Tensor]]]]:
+        """Learn a batch of experience data from remote gradient workers.
+        The task queue client will first request available gradient workers from task queue. If all workers are busy,
+        it will keep waiting until at least 1 worker is available. Then the task queue client submits batch and state
+        to the assigned workers to compute gradients.
+        """
         assert self._task_queue_client is not None
         worker_id_list = self._task_queue_client.request_workers()
         batch_list = self._dispatch_batch(batch, len(worker_id_list))
@@ -67,6 +76,9 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _dispatch_batch(self, batch: MultiTransitionBatch, num_workers: int) -> List[MultiTransitionBatch]:
+        """Split experience data batch to several parts.
+        For on-policy algorithms, like PG, the batch is splitted into several complete trajectories.
+        For off-policy algorithms, like DQN, the batch is treated as independent data points and splitted evenly."""
         raise NotImplementedError
 
     @abstractmethod
