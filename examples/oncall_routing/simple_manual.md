@@ -45,7 +45,7 @@ An `EstimatedDurationPredictor` object used to predict the travel time between t
 
 ```python
 EstimatedDurationPredictor.predict(
-    tick: int,  # The tick to start traveling.
+    tick: int,  # The tick to start travelling.
     source_coordinate: Coordinate,
     target_coordinate: Coordinate,
 )
