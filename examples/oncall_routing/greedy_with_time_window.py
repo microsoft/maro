@@ -30,11 +30,11 @@ def _get_actions(running_env: Env, event: OncallRoutingPayload) -> List[Action]:
 
     actions = []
     for oncall_order in oncall_orders:
-        # Best result without violating any time windows
+        # Best result with violating any time windows
         min_distance_violate = float("inf")
         chosen_route_name_violate: Optional[str] = None
         insert_idx_violate = -1
-        # Best result with violating time windows
+        # Best result without violating time windows
         min_distance_no_violate = float("inf")
         chosen_route_name_no_violate: Optional[str] = None
         insert_idx_no_violate = -1
