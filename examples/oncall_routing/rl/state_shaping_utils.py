@@ -11,7 +11,7 @@ EST_ORDER_PROCESSING_TIME = 0 # Processing time for 1 order. Used to estimate th
 
 
 def get_expected_RTB_tick(orders: List[Order], start_tick: int, predictor: EstimatedDurationPredictor) -> int:
-    # The current predictor is time-independent, which is ignored here (could be used to accelerate the calculation).
+    # !: The current predictor is time-independent, which is ignored here (could be used to accelerate the calculation).
     tick = start_tick
     for src, dest in zip(orders[:-1], orders[1:]):
         # TODO: simulate the order status?
@@ -146,12 +146,12 @@ if __name__ == "__main__":
         start_time = datetime.now()
         state_info = get_state_info_dict(env.tick, decision_event, env.snapshot_list)
         end_time = datetime.now()
-        duration = (end_time - start_time).microseconds // 1000
+        duration = (end_time - start_time).total_seconds()
         print(
             f"Tick {env.tick}: "
             f"{len(decision_event.oncall_orders)} on-call orders, "
             f"{len(decision_event.route_plan_dict)} routes, "
-            f"time spent for state shaping: {duration} ms"
+            f"time spent for state shaping: {duration} s"
         )
 
         metrics, decision_event, is_done = env.step(None)
