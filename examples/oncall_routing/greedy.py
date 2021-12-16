@@ -46,7 +46,6 @@ if __name__ == "__main__":
         scenario="oncall_routing", topology="example", start_tick=0, durations=1440,
     )
 
-    # TODO: check the reset functionality
     env.reset(keep_seed=True)
     metrics, decision_event, is_done = env.step(None)
     while not is_done:
