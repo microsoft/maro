@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 from .duration_time_predictor import EstimatedDurationPredictor
 from .order import Order
@@ -56,22 +56,38 @@ class OncallRoutingPayload(object):
         get_oncall_orders_func: Callable[[], List[Order]],
         get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]],
         get_estimated_duration_predictor_func: Callable[[], EstimatedDurationPredictor],
-        route_meta_info_dict: dict
+        get_route_meta_info_dict: Callable[[], Dict[str, dict]]
     ):
         self._get_oncall_orders_func: Callable[[], List[Order]] = get_oncall_orders_func
         self._get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]] = get_route_plan_dict_func
         self._get_estimated_duration_predictor_func = get_estimated_duration_predictor_func
-        self.route_meta_info_dict = route_meta_info_dict
+        self._get_route_meta_info_dict = get_route_meta_info_dict
+
+        self._oncall_orders_cache: Optional[List[Order]] = None
+        self._route_plan_dict_cache: Optional[Dict[str, List[Order]]] = None
+        self._estimated_duration_predictor_cache: Optional[EstimatedDurationPredictor] = None
+        self._route_meta_info_dict_cache: Optional[Dict[str, dict]] = None
 
     @property
     def oncall_orders(self) -> List[Order]:
-        return self._get_oncall_orders_func()
+        if self._oncall_orders_cache is None:
+            self._oncall_orders_cache = self._get_oncall_orders_func()
+        return self._oncall_orders_cache
 
     @property
     def route_plan_dict(self) -> Dict[str, List[Order]]:
-        # TODO: deep copy or?
-        return self._get_route_plan_dict_func()
+        if self._route_plan_dict_cache is None:
+            self._route_plan_dict_cache = self._get_route_plan_dict_func()
+        return self._route_plan_dict_cache
 
     @property
     def estimated_duration_predictor(self) -> EstimatedDurationPredictor:
-        return self._get_estimated_duration_predictor_func()
+        if self._estimated_duration_predictor_cache is None:
+            self._estimated_duration_predictor_cache = self._get_estimated_duration_predictor_func()
+        return self._estimated_duration_predictor_cache
+
+    @property
+    def route_meta_info_dict(self) -> Dict[str, dict]:
+        if self._route_meta_info_dict_cache is None:
+            self._route_meta_info_dict_cache = self._get_route_meta_info_dict()
+        return self._route_meta_info_dict_cache

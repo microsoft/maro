@@ -3,6 +3,7 @@
 
 import os
 from collections import defaultdict
+from functools import partial
 from typing import Dict, List, Optional, Tuple
 
 from yaml import safe_load
@@ -302,41 +303,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
         # Interrupt and throw decision event
         if (tick + 1) % self._config["interrupt_cycle"] == 0 and len(self._oncall_order_buffer) > 0:
-            route_meta_info_dict = {}
-            for route in self._routes:
-                if len(route.remaining_plan) == 0:
-                    estimated_next_departure_tick = None
-                    estimated_duration_to_the_next_stop = None
-                elif self._carriers[route.carrier_idx].in_stop:
-                    estimated_next_departure_tick = self._route_next_departure_dict[route.name]
-                    estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
-                        tick=estimated_next_departure_tick,
-                        source_coordinate=self._route_last_arrival[route.name][0],
-                        target_coordinate=route.remaining_plan[0].order.coord
-                    )
-                else:
-                    estimated_next_departure_tick = None
-
-                    last_coord, last_tick = self._route_last_arrival[route.name]
-                    next_coord = route.remaining_plan[0].order.coord
-                    act_duration = route.remaining_plan[0].actual_duration_from_last
-
-                    carrier_coord = calculate_carrier_coord(
-                        source_coord=last_coord, target_coord=next_coord, total_time=act_duration,
-                        passed_time=tick - last_tick
-                    )
-                    carrier_coord = self._coord_clipper.clip(carrier_coord)
-
-                    estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
-                        tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
-                    )
-
-                route_meta_info_dict[route.name] = {
-                    "carrier_idx": route.carrier_idx,
-                    "estimated_duration_to_the_next_stop": estimated_duration_to_the_next_stop,
-                    "estimated_next_departure_tick": estimated_next_departure_tick
-                }
-
             decision_event = self._event_buffer.gen_decision_event(
                 tick=tick,
                 payload=OncallRoutingPayload(
@@ -345,7 +311,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         _route.name: [clone(_elem.order) for _elem in _route.remaining_plan] for _route in self._routes
                     },
                     get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
-                    route_meta_info_dict=route_meta_info_dict
+                    get_route_meta_info_dict=partial(self._get_route_meta_info_dict, tick)
                 )
             )
             self._event_buffer.insert_event(decision_event)
@@ -671,3 +637,46 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         f"remaining plan: {len(route.remaining_plan)}"
                     )
         return is_done
+
+    def _get_route_meta_info_dict(self, tick: int) -> Dict[str, dict]:
+        route_meta_info_dict = {}
+        for route in self._routes:
+            if len(route.remaining_plan) == 0:
+                estimated_next_departure_tick = None
+                estimated_duration_to_the_next_stop = None
+            elif self._carriers[route.carrier_idx].in_stop:
+                estimated_next_departure_tick = self._route_next_departure_dict[route.name]
+                estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
+                    tick=estimated_next_departure_tick,
+                    source_coordinate=self._route_last_arrival[route.name][0],
+                    target_coordinate=route.remaining_plan[0].order.coord
+                )
+            else:
+                estimated_next_departure_tick = None
+
+                last_coord, last_tick = self._route_last_arrival[route.name]
+                next_coord = route.remaining_plan[0].order.coord
+                act_duration = route.remaining_plan[0].actual_duration_from_last
+
+                carrier_coord = calculate_carrier_coord(
+                    source_coord=last_coord, target_coord=next_coord, total_time=act_duration,
+                    passed_time=tick - last_tick
+                )
+                carrier_coord = self._coord_clipper.clip(carrier_coord)
+
+                estimated_duration_to_the_next_stop = self._estimated_duration_predictor.predict(
+                    tick=tick, source_coordinate=carrier_coord, target_coordinate=next_coord
+                )
+
+            if self._carriers[route.carrier_idx].in_stop:
+                current_staying_stop_coordinate = self._route_last_arrival[route.name][0]
+            else:
+                current_staying_stop_coordinate = None
+
+            route_meta_info_dict[route.name] = {
+                "carrier_idx": route.carrier_idx,
+                "estimated_duration_to_the_next_stop": estimated_duration_to_the_next_stop,
+                "estimated_next_departure_tick": estimated_next_departure_tick,
+                "current_staying_stop_coordinate": current_staying_stop_coordinate
+            }
+        return route_meta_info_dict
