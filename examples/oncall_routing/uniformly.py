@@ -9,6 +9,8 @@ from maro.simulator.scenarios.oncall_routing import Order
 from maro.simulator.scenarios.oncall_routing.common import Action, OncallRoutingPayload
 from maro.utils import set_seeds
 
+from examples.oncall_routing.utils import refresh_segment_index
+
 set_seeds(0)
 
 
@@ -61,18 +63,7 @@ if __name__ == "__main__":
             order, route_meta_info_dict, route_plan_dict, carriers_in_stop
         ) for order in orders]
         actions = [action for action in actions if action]
-        # Add segment index if multiple orders are share
-        actions = sorted(actions, key=lambda action: (action.route_name, action.insert_index))
-        segment_index = 0
-        for idx in range(len(actions) - 1):
-            if (
-                actions[idx + 1].route_name == actions[idx].route_name
-                and actions[idx + 1].insert_index == actions[idx].insert_index
-            ):
-                segment_index += 1
-                actions[idx + 1].in_segment_order = segment_index
-            else:
-                segment_index = 0
+        actions = refresh_segment_index(actions)
 
         metrics, decision_event, is_done = env.step(actions)
 
