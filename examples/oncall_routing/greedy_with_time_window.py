@@ -86,7 +86,10 @@ def _get_actions(running_env: Env, event: OncallRoutingPayload) -> List[Action]:
                             )
 
                     # Violate current planned order time window
-                    if not planned_orders[j].open_time <= cur_tick <= planned_orders[j].close_time:
+                    if all([
+                        duration is not None,
+                        not planned_orders[j].open_time <= cur_tick <= planned_orders[j].close_time
+                    ]):
                         is_time_valid = False
                         break
 
