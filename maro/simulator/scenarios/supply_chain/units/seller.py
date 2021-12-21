@@ -4,7 +4,6 @@
 
 import numpy as np
 
-from .. import SellerDataModel
 from .extendunitbase import ExtendUnitBase
 from .. import SellerDataModel
 

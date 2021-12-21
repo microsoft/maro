@@ -5,6 +5,7 @@
 from typing import List, NamedTuple, Optional, Tuple, Union
 
 import networkx as nx
+
 from maro.backends.frame import FrameBase
 
 from .easy_config import EasyConfig, SkuInfo

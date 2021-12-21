@@ -2,9 +2,8 @@
 # Licensed under the MIT license.
 
 
-from .. import ManufactureAction, ManufactureDataModel
 from .extendunitbase import ExtendUnitBase
-from .. import ManufactureDataModel
+from .. import ManufactureAction, ManufactureDataModel
 
 
 class ManufactureUnit(ExtendUnitBase):
