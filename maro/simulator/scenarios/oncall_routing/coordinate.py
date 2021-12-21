@@ -35,7 +35,9 @@ def calculate_carrier_coord(
     total_time: int,
     passed_time: int
 ) -> Coordinate:
-    assert total_time != 0
+    if total_time == 0:
+        return source_coord
+    
     assert 0 <= passed_time <= total_time
 
     lat_gap = target_coord.lat - source_coord.lat
