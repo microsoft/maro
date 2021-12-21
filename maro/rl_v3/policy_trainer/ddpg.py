@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, List, Optional
 
 import torch
 
@@ -9,10 +9,10 @@ from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 from .abs_trainer import SingleTrainer
-from .train_worker import SingleTrainWorker
+from .abs_train_ops import SingleTrainOps
 
 
-class DDPGWorker(SingleTrainWorker):
+class DDPGTrainOps(SingleTrainOps):
     def __init__(
         self,
         name: str,
@@ -24,7 +24,7 @@ class DDPGWorker(SingleTrainWorker):
         critic_loss_coef: float = 0.1,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(DDPGWorker, self).__init__(name, device, enable_data_parallelism)
+        super(DDPGTrainOps, self).__init__(name, device, enable_data_parallelism)
 
         self._policy: Optional[ContinuousRLPolicy] = None
         self._target_policy: Optional[ContinuousRLPolicy] = None
@@ -74,6 +74,12 @@ class DDPGWorker(SingleTrainWorker):
 
         return grad_dict
 
+    def _dispatch_batch(self, batch: TransitionBatch, num_ops: int) -> List[TransitionBatch]:
+        raise NotImplementedError
+
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
+        raise NotImplementedError
+
     def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         self._q_critic_net.train()
         self._policy.train()
@@ -121,7 +127,7 @@ class DDPGWorker(SingleTrainWorker):
         self._policy.train()
         self._policy.apply_gradients(grad_dict["actor_grad"])
 
-    def get_worker_state_dict(self, scope: str = "all") -> dict:
+    def get_ops_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_policy_state()
@@ -131,13 +137,13 @@ class DDPGWorker(SingleTrainWorker):
             ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
         return ret_dict
 
-    def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
+    def set_ops_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
-            self._policy.set_policy_state(worker_state_dict["policy_state"])
-            self._target_policy.set_policy_state(worker_state_dict["target_policy_state"])
+            self._policy.set_policy_state(ops_state_dict["policy_state"])
+            self._target_policy.set_policy_state(ops_state_dict["target_policy_state"])
         if scope in ("all", "critic"):
-            self._q_critic_net.set_net_state(worker_state_dict["critic_state"])
-            self._target_q_critic_net.set_net_state(worker_state_dict["target_critic_state"])
+            self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
+            self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
@@ -215,13 +221,13 @@ class DDPG(SingleTrainer):
         self._q_value_loss_cls = q_value_loss_cls
 
     def _register_policy_impl(self, policy: ContinuousRLPolicy) -> None:
-        self._worker = DDPGWorker(
-            name="worker", device=self._device, get_q_critic_net_func=self._get_q_critic_net_func,
+        self._ops = DDPGTrainOps(
+            name="ops", device=self._device, get_q_critic_net_func=self._get_q_critic_net_func,
             reward_discount=self._reward_discount, q_value_loss_cls=self._q_value_loss_cls,
             soft_update_coef=self._soft_update_coef, critic_loss_coef=self._critic_loss_coef,
             enable_data_parallelism=self._enable_data_parallelism
         )
-        self._worker.register_policy(policy)
+        self._ops.register_policy(policy)
 
         self._replay_memory = RandomReplayMemory(
             capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
@@ -230,12 +236,12 @@ class DDPG(SingleTrainer):
 
     def train_step(self) -> None:
         for _ in range(self._num_epochs):
-            self._worker.set_batch(self._get_batch())
-            self._worker.update()
+            self._ops.set_batch(self._get_batch())
+            self._ops.update()
             self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._update_target_every:
-            self._worker.soft_update_target()
+            self._ops.soft_update_target()
             self._target_policy_version = self._policy_version

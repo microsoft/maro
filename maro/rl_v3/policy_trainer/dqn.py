@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import torch
 
@@ -8,10 +8,10 @@ from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 from .abs_trainer import SingleTrainer
-from .train_worker import SingleTrainWorker
+from .abs_train_ops import SingleTrainOps
 
 
-class DQNWorker(SingleTrainWorker):
+class DQNTrainOps(SingleTrainOps):
     def __init__(
         self,
         name: str,
@@ -21,7 +21,7 @@ class DQNWorker(SingleTrainWorker):
         double: bool = False,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(DQNWorker, self).__init__(name, device, enable_data_parallelism)
+        super(DQNTrainOps, self).__init__(name, device, enable_data_parallelism)
 
         self._reward_discount = reward_discount
         self._soft_update_coef = soft_update_coef
@@ -68,15 +68,21 @@ class DQNWorker(SingleTrainWorker):
 
         return {"grad": self._policy.get_gradients(loss)}
 
-    def get_worker_state_dict(self, scope: str = "all") -> dict:
+    def _dispatch_batch(self, batch: TransitionBatch, num_ops: int) -> List[TransitionBatch]:
+        raise NotImplementedError
+
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
+        raise NotImplementedError
+
+    def get_ops_state_dict(self, scope: str = "all") -> dict:
         return {
             "policy_state": self._policy.get_policy_state(),
             "target_policy_state": self._target_policy.get_policy_state()
         }
 
-    def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
-        self._policy.set_policy_state(worker_state_dict["policy_state"])
-        self._target_policy.set_policy_state(worker_state_dict["target_policy_state"])
+    def set_ops_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+        self._policy.set_policy_state(ops_state_dict["policy_state"])
+        self._target_policy.set_policy_state(ops_state_dict["target_policy_state"])
 
     def update(self) -> None:
         grad_dict = self._get_batch_grad(self._batch)
@@ -154,17 +160,17 @@ class DQN(SingleTrainer):
 
     def train_step(self) -> None:
         for _ in range(self._num_epochs):
-            self._worker.set_batch(self._get_batch())
-            self._worker.update()
+            self._ops.set_batch(self._get_batch())
+            self._ops.update()
         self._try_soft_update_target()
 
     def _register_policy_impl(self, policy: ValueBasedPolicy) -> None:
-        self._worker = DQNWorker(
-            name="worker", device=self._device, reward_discount=self._reward_discount,
+        self._ops = DQNTrainOps(
+            name="ops", device=self._device, reward_discount=self._reward_discount,
             soft_update_coef=self._soft_update_coef, double=self._double,
             enable_data_parallelism=self._enable_data_parallelism
         )
-        self._worker.register_policy(policy)
+        self._ops.register_policy(policy)
 
         self._replay_memory = RandomReplayMemory(
             capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
@@ -174,5 +180,5 @@ class DQN(SingleTrainer):
     def _try_soft_update_target(self) -> None:
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._update_target_every:
-            self._worker.soft_update_target()
+            self._ops.soft_update_target()
             self._target_policy_version = self._policy_version

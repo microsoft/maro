@@ -6,13 +6,13 @@ import torch
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl_v3.policy_trainer import MultiTrainer
-from maro.rl_v3.policy_trainer.train_worker import MultiTrainWorker
+from maro.rl_v3.policy_trainer.abs_train_ops import MultiTrainOps
 from maro.rl_v3.replay_memory import RandomMultiReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
-class DiscreteMADDPGWorker(MultiTrainWorker):
+class DiscreteMADDPGTrainOps(MultiTrainOps):
     """The discrete variant of MADDPG algorithm.
     Args:
         name (str): Name of the worker.
@@ -45,7 +45,7 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
         q_value_loss_func: Callable = None,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(DiscreteMADDPGWorker, self).__init__(name, device, enable_data_parallelism)
+        super(DiscreteMADDPGTrainOps, self).__init__(name, device, enable_data_parallelism)
 
         # Actor
         self._target_policies: Dict[int, DiscretePolicyGradient] = {}
@@ -120,7 +120,7 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
         return latest_actions, latest_action_logps
 
-    def get_worker_state_dict(self, scope: str = "all") -> dict:
+    def get_ops_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
 
         if scope in ("all", "actor"):
@@ -133,16 +133,16 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
         return ret_dict
 
-    def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
+    def set_ops_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
             for i in self._indexes:
-                self._policies[i].set_policy_state(worker_state_dict["policy_state"][i])
-                self._target_policies[i].set_policy_state(worker_state_dict["target_policy_state"][i])
+                self._policies[i].set_policy_state(ops_state_dict["policy_state"][i])
+                self._target_policies[i].set_policy_state(ops_state_dict["target_policy_state"][i])
         if scope in ("all", "critic"):
             indexes = [0] if self._shared_critic else self._indexes
             for i in indexes:
-                self._q_critic_nets[i].set_net_state(worker_state_dict["critic_state"][i])
-                self._target_q_critic_nets[i].set_net_state(worker_state_dict["target_critic_state"][i])
+                self._q_critic_nets[i].set_net_state(ops_state_dict["critic_state"][i])
+                self._target_q_critic_nets[i].set_net_state(ops_state_dict["target_critic_state"][i])
 
     def _get_critic_grad(
         self,
@@ -248,14 +248,14 @@ class DiscreteMADDPGWorker(MultiTrainWorker):
 
         return grad_dict
 
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_workers: int) -> List[Dict[str, object]]:
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
         raise NotImplementedError
 
-    def _dispatch_batch(self, batch: MultiTransitionBatch, num_workers: int) -> List[MultiTransitionBatch]:
+    def _dispatch_batch(self, batch: MultiTransitionBatch, num_ops: int) -> List[MultiTransitionBatch]:
         batch_size = batch.states.shape[0]
-        assert batch_size >= num_workers, \
-            f"Batch size should be greater than or equal to num_workers, but got {batch_size} and {num_workers}."
-        sub_batch_indexes = [range(batch_size)[i::num_workers] for i in range(num_workers)]
+        assert batch_size >= num_ops, \
+            f"Batch size should be greater than or equal to num_ops, but got {batch_size} and {num_ops}."
+        sub_batch_indexes = [range(batch_size)[i::num_ops] for i in range(num_ops)]
         sub_batches = [MultiTransitionBatch(
             policy_names=[],
             states=batch.states[indexes],
@@ -329,7 +329,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         )
 
         self._get_q_critic_net_func = get_q_critic_net_func
-        self._critic_worker: Optional[DiscreteMADDPGWorker] = None
+        self._critic_ops: Optional[DiscreteMADDPGTrainOps] = None
         self._group_size = group_size
         self._replay_memory_capacity = replay_memory_capacity
         self._target_policies: List[DiscretePolicyGradient] = []
@@ -348,36 +348,36 @@ class DistributedDiscreteMADDPG(MultiTrainer):
 
     def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
         if self._shared_critic:
-            self._critic_worker = DiscreteMADDPGWorker(
-                name="critic_worker",
+            self._critic_ops = DiscreteMADDPGTrainOps(
+                name="critic_ops",
                 reward_discount=self._reward_discount, get_q_critic_net_func=self._get_q_critic_net_func,
                 shared_critic=self._shared_critic, device=self._device,
                 enable_data_parallelism=self._enable_data_parallelism,
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
                 update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
             )
-            self._critic_worker.register_policies({})  # Register with empty policy dict to init the critic net
+            self._critic_ops.register_policies({})  # Register with empty policy dict to init the critic net
 
-        self._workers: List[DiscreteMADDPGWorker] = []
-        self._worker_indexes: List[List[int]] = []
+        self._ops_list: List[DiscreteMADDPGTrainOps] = []
+        self._ops_indexes: List[List[int]] = []
         cursor = 0
         while cursor < self.num_policies:
             cursor_end = min(cursor + self._group_size, self.num_policies)
             indexes = list(range(cursor, cursor_end))
 
-            worker = DiscreteMADDPGWorker(
-                name=f"actor_worker__{cursor}_{cursor_end - 1}",
+            ops = DiscreteMADDPGTrainOps(
+                name=f"actor_ops__{cursor}_{cursor_end - 1}",
                 reward_discount=self._reward_discount, get_q_critic_net_func=self._get_q_critic_net_func,
                 shared_critic=self._shared_critic, device=self._device,
                 enable_data_parallelism=self._enable_data_parallelism,
                 critic_loss_coef=self._critic_loss_coef, soft_update_coef=self._soft_update_coef,
                 update_target_every=self._update_target_every, q_value_loss_func=self._q_value_loss_func
             )
-            worker.register_policies({i: policies[i] for i in indexes})
+            ops.register_policies({i: policies[i] for i in indexes})
 
             cursor = cursor_end
-            self._workers.append(worker)
-            self._worker_indexes.append(indexes)
+            self._ops_list.append(ops)
+            self._ops_indexes.append(indexes)
 
         # Replay
         self._replay_memory = RandomMultiReplayMemory(
@@ -392,40 +392,40 @@ class DistributedDiscreteMADDPG(MultiTrainer):
             self._improve(self._get_batch())
 
     def _improve(self, batch: MultiTransitionBatch) -> None:
-        for worker in self._workers:
-            worker.set_batch(batch)
+        for ops in self._ops_list:
+            ops.set_batch(batch)
 
         # Collect next actions
         next_action_dict: Dict[int, torch.Tensor] = {}
-        for worker in self._workers:
-            next_action_dict.update(worker.get_target_action_dict())
+        for ops in self._ops_list:
+            next_action_dict.update(ops.get_target_action_dict())
         next_actions = [next_action_dict[i] for i in range(self.num_policies)]
 
         # Update critic
         if self._shared_critic:
-            self._critic_worker.set_batch(batch)
-            self._critic_worker.update_critics(next_actions=next_actions)
-            critic_state_dict = self._critic_worker.get_worker_state_dict(scope="critic")
+            self._critic_ops.set_batch(batch)
+            self._critic_ops.update_critics(next_actions=next_actions)
+            critic_state_dict = self._critic_ops.get_ops_state_dict(scope="critic")
 
-            # Sync latest critic to workers
-            for worker in self._workers:
-                worker.set_worker_state_dict(critic_state_dict, scope="critic")
+            # Sync latest critic to ops
+            for ops in self._ops_list:
+                ops.set_ops_state_dict(critic_state_dict, scope="critic")
         else:
-            for worker in self._workers:
-                worker.update_critics(next_actions=next_actions)
+            for ops in self._ops_list:
+                ops.update_critics(next_actions=next_actions)
 
         # Update actor
         latest_actions_dict = {}
         latest_action_logps_dict = {}
-        for worker in self._workers:
-            cur_action_dict, cur_logps_dict = worker.get_latest_action_dict()
+        for ops in self._ops_list:
+            cur_action_dict, cur_logps_dict = ops.get_latest_action_dict()
             latest_actions_dict.update(cur_action_dict)
             latest_action_logps_dict.update(cur_logps_dict)
         latest_actions = [latest_actions_dict[i] for i in range(self.num_policies)]
         latest_action_logps = [latest_action_logps_dict[i] for i in range(self.num_policies)]
 
-        for worker in self._workers:
-            worker.update_actors(latest_actions, latest_action_logps)
+        for ops in self._ops_list:
+            ops.update_actors(latest_actions, latest_action_logps)
 
         # Update version
         self._try_soft_update_target()
@@ -434,22 +434,22 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._update_target_every:
             if self._shared_critic:
-                self._critic_worker.soft_update_target()
+                self._critic_ops.soft_update_target()
 
-            for worker in self._workers:
-                worker.soft_update_target()
+            for ops in self._ops_list:
+                ops.soft_update_target()
 
             self._target_policy_version = self._policy_version
 
     def get_policy_state_dict(self) -> Dict[str, object]:
         policy_state_dict = {}
-        for worker in self._workers:
-            policy_state_dict.update(worker.get_policy_state_dict())
+        for ops in self._ops_list:
+            policy_state_dict.update(ops.get_policy_state_dict())
         return {name: policy_state_dict[i] for i, name in enumerate(self._policy_names)}
 
     def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
         assert len(policy_state_dict) == self.num_policies
 
-        for worker, indexes in zip(self._workers, self._worker_indexes):
+        for ops, indexes in zip(self._ops_list, self._ops_indexes):
             cur_dict = {i: policy_state_dict[self._policy_names[i]] for i in indexes}
-            worker.set_policy_state_dict(cur_dict)
+            ops.set_policy_state_dict(cur_dict)

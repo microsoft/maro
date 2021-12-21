@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 
 import numpy as np
 import torch
@@ -10,10 +10,10 @@ from maro.rl_v3.replay_memory import FIFOReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 
 from .abs_trainer import SingleTrainer
-from .train_worker import SingleTrainWorker
+from .abs_train_ops import SingleTrainOps
 
 
-class DiscreteActorCriticWorker(SingleTrainWorker):
+class DiscreteActorCriticTrainOps(SingleTrainOps):
     def __init__(
         self,
         name: str,
@@ -27,7 +27,7 @@ class DiscreteActorCriticWorker(SingleTrainWorker):
         min_logp: float = None,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(DiscreteActorCriticWorker, self).__init__(name, device, enable_data_parallelism)
+        super(DiscreteActorCriticTrainOps, self).__init__(name, device, enable_data_parallelism)
 
         self._get_v_critic_net_func = get_v_critic_net_func
         self._reward_discount = reward_discount
@@ -64,6 +64,12 @@ class DiscreteActorCriticWorker(SingleTrainWorker):
             grad_dict["critic_grad"] = self._get_critic_grad(batch)
 
         return grad_dict
+
+    def _dispatch_batch(self, batch: TransitionBatch, num_ops: int) -> List[TransitionBatch]:
+        raise NotImplementedError
+
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
+        raise NotImplementedError
 
     def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         states = ndarray_to_tensor(batch.states, self._device)  # s
@@ -121,7 +127,7 @@ class DiscreteActorCriticWorker(SingleTrainWorker):
         self._v_critic_net.train()
         self._v_critic_net.apply_gradients(grad_dict["critic_grad"])
 
-    def get_worker_state_dict(self, scope: str = "all") -> dict:
+    def get_ops_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_policy_state()
@@ -129,11 +135,11 @@ class DiscreteActorCriticWorker(SingleTrainWorker):
             ret_dict["critic_state"] = self._v_critic_net.get_net_state()
         return ret_dict
 
-    def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
+    def set_ops_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
-            self._policy.set_policy_state(worker_state_dict["policy_state"])
+            self._policy.set_policy_state(ops_state_dict["policy_state"])
         if scope in ("all", "critic"):
-            self._v_critic_net.set_net_state(worker_state_dict["critic_state"])
+            self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
 
 
 class DiscreteActorCritic(SingleTrainer):
@@ -203,13 +209,13 @@ class DiscreteActorCritic(SingleTrainer):
         self._critic_loss_cls = critic_loss_cls
 
     def _register_policy_impl(self, policy: DiscretePolicyGradient) -> None:
-        self._worker = DiscreteActorCriticWorker(
-            name="worker", device=self._device, get_v_critic_net_func=self._get_v_critic_net_func,
+        self._ops = DiscreteActorCriticTrainOps(
+            name="ops", device=self._device, get_v_critic_net_func=self._get_v_critic_net_func,
             reward_discount=self._reward_discount, critic_loss_coef=self._critic_loss_coef,
             critic_loss_cls=self._critic_loss_cls, clip_ratio=self._clip_ratio, lam=self._lam,
             min_logp=self._min_logp, enable_data_parallelism=self._enable_data_parallelism
         )
-        self._worker.register_policy(policy)
+        self._ops.register_policy(policy)
 
         self._replay_memory = FIFOReplayMemory(
             capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
@@ -217,6 +223,6 @@ class DiscreteActorCritic(SingleTrainer):
         )
 
     def train_step(self) -> None:
-        self._worker.set_batch(self._get_batch())
+        self._ops.set_batch(self._get_batch())
         for _ in range(self._grad_iters):
-            self._worker.update()
+            self._ops.update()
