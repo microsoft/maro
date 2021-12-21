@@ -7,8 +7,8 @@ from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
-from .abs_trainer import SingleTrainer
 from .abs_train_ops import SingleTrainOps
+from .abs_trainer import SingleTrainer
 
 
 class DQNTrainOps(SingleTrainOps):
