@@ -17,9 +17,10 @@ class TimePredictionFeature:
 
 
 class EstimatedDurationPredictor:
-    def __init__(self, coord_clipper: CoordinateClipper) -> None:
+    def __init__(self, coord_clipper: CoordinateClipper, duration_limit: int) -> None:
         self._cache: Dict[Tuple[Coordinate, Coordinate], int] = {}
         self._coord_clipper = coord_clipper
+        self._duration_limit = duration_limit
 
     def predict(
         self,
@@ -39,6 +40,7 @@ class EstimatedDurationPredictor:
             else:
                 distance = geo_distance_meter(source_coordinate, target_coordinate)
                 self._cache[key] = int(math.ceil(max(1.0, distance / 200.0)))  # TODO: fake
+                self._cache[key] = min(self._cache[key], self._duration_limit)  # TODO
         return self._cache[key]
 
     def reset(self):

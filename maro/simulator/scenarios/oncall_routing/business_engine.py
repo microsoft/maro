@@ -135,7 +135,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         remaining_plan: Dict[str, List[PlanElement]] = self._load_route_plan()
 
         # Step 4: Init predictor.
-        self._estimated_duration_predictor = EstimatedDurationPredictor(coord_clipper=self._coord_clipper)
+        self._estimated_duration_predictor = EstimatedDurationPredictor(
+            coord_clipper=self._coord_clipper, duration_limit=self._config.data_loader_config.duration_limit)
         self._actual_duration_predictor = ActualDurationSampler(self._estimated_duration_predictor)
 
         # Step 5: Init Frame and snapshot.
