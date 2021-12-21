@@ -138,8 +138,9 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         Args:
             loss (torch.Tensor): Loss used to update the policy.
         """
-        raise NotImplementedError
+        self.apply_gradients(self.get_gradients(loss))
 
+    @abstractmethod
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
         Get the gradients with respect to all parameters of the internal nets according to the given loss.
@@ -150,6 +151,10 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         Returns:
             A dict that contains gradients of the internal nets for all parameters.
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def apply_gradients(self, grad: dict) -> None:
         raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:

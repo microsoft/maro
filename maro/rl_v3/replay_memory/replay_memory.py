@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-from maro.rl_v3.utils import MultiTransitionBatch, SHAPE_CHECK_FLAG, TransitionBatch, match_shape
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG, MultiTransitionBatch, TransitionBatch, match_shape
 
 
 class AbsIndexScheduler(object, metaclass=ABCMeta):

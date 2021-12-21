@@ -7,15 +7,33 @@ from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
+from .abs_train_ops import SingleTrainOps
+
 
 class AbsTrainer(object, metaclass=ABCMeta):
+    """Policy trainer used to train policies. Trainer maintains several train workers and
+    controls training logics of them, while train workers take charge of specific policy updating.
     """
-    Policy trainer used to train policies.
-    """
-    def __init__(self, name: str, device: str = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        device: str = None,
+        enable_data_parallelism: bool = False,
+        train_batch_size: int = 128
+    ) -> None:
+        """
+        Args:
+            name (str): Name of the trainer
+            device (str): Device to store this trainer. If it is None, the device will be set to "cpu" if cuda is
+                unavailable and "cuda" otherwise. Defaults to None.
+            enable_data_parallelism (bool): Whether to enable data parallelism in this trainer.
+            train_batch_size (int): train batch size.
+        """
         self._name = name
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._enable_data_parallelism = enable_data_parallelism
+        self._train_batch_size = train_batch_size
 
         print(f"Creating trainer {self.__class__.__name__} {name} on device {self._device}")
 
@@ -55,39 +73,35 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains only one policy.
     """
-    def __init__(self, name: str, device: str = None) -> None:
-        super(SingleTrainer, self).__init__(name, device)
-        self._policy: Optional[RLPolicy] = None
-        self._replay_memory = Optional[ReplayMemory]
-
-    def record(
+    def __init__(
         self,
-        policy_name: str,  # TODO: need this?
-        transition_batch: TransitionBatch
+        name: str,
+        device: str = None,
+        enable_data_parallelism: bool = False,
+        train_batch_size: int = 128
     ) -> None:
+        super(SingleTrainer, self).__init__(name, device, enable_data_parallelism, train_batch_size)
+        self._policy_name: Optional[str] = None
+        self._replay_memory: Optional[ReplayMemory] = None
+        self._ops: Optional[SingleTrainOps] = None
+
+    def record(self, transition_batch: TransitionBatch) -> None:
         """
         Record the experiences collected by external modules.
 
         Args:
-            policy_name (str): The name of the policy that generates this batch.
             transition_batch (TransitionBatch): A TransitionBatch item that contains a batch of experiences.
         """
-        self._record_impl(
-            policy_name=policy_name,
-            transition_batch=transition_batch
-        )
-
-    def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
-        """
-        Implementation of `record`.
-        """
         self._replay_memory.put(transition_batch)
+
+    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
     def register_policy(self, policy: RLPolicy) -> None:
         """
         Register the policy and finish other related initializations.
         """
-        policy.to_device(self._device)
+        self._policy_name = policy.name
         self._register_policy_impl(policy)
 
     @abstractmethod
@@ -95,57 +109,52 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_policy_state_dict(self) -> Dict[str, object]:
-        return {self._policy.name: self._policy.get_policy_state()}
+        return {self._policy_name: self._ops.get_policy_state()}
 
     def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        assert len(policy_state_dict) == 1 and self._policy.name in policy_state_dict
-        self._policy.set_policy_state(policy_state_dict[self._policy.name])
+        assert len(policy_state_dict) == 1 and self._policy_name in policy_state_dict
+        self._ops.set_policy_state(policy_state_dict[self._policy_name])
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains multiple policies.
     """
-    def __init__(self, name: str, device: str = None) -> None:
-        super(MultiTrainer, self).__init__(name, device)
-        self._policy_dict: Dict[str, RLPolicy] = {}
-        self._policies: List[RLPolicy] = []
+
+    def __init__(
+        self,
+        name: str,
+        device: str = None,
+        enable_data_parallelism: bool = False,
+        train_batch_size: int = 128
+    ) -> None:
+        super(MultiTrainer, self).__init__(name, device, enable_data_parallelism, train_batch_size)
+        self._policy_names: List[str] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
 
     @property
-    def num_policies(self):
-        return len(self._policies)
+    def num_policies(self) -> int:
+        return len(self._policy_names)
 
-    def record(
-        self,
-        transition_batch: MultiTransitionBatch
-    ) -> None:
+    def record(self, transition_batch: MultiTransitionBatch) -> None:
         """
         Record the experiences collected by external modules.
 
         Args:
             transition_batch (MultiTransitionBatch): A TransitionBatch item that contains a batch of experiences.
         """
-        self._record_impl(transition_batch)
+        self._replay_memory.put(transition_batch)
 
-    @abstractmethod
-    def _record_impl(self, transition_batch: MultiTransitionBatch) -> None:
-        raise NotImplementedError
+    def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
     def register_policies(self, policies: List[RLPolicy]) -> None:
-        for policy in policies:
-            policy.to_device(self._device)
+        """
+        Register the policies and finish other related initializations.
+        """
+        self._policy_names = [policy.name for policy in policies]
         self._register_policies_impl(policies)
 
     @abstractmethod
     def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
-        pass
-
-    def get_policy_state_dict(self) -> Dict[str, object]:
-        return {policy_name: policy.get_policy_state() for policy_name, policy in self._policy_dict.items()}
-
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        assert len(policy_state_dict) == len(self._policy_dict)
-        for policy_name, policy_state in policy_state_dict.items():
-            assert policy_name in self._policy_dict
-            self._policy_dict[policy_name].set_policy_state(policy_state)
+        raise NotImplementedError

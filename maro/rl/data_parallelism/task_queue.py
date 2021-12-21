@@ -5,6 +5,8 @@ from collections import defaultdict
 from multiprocessing import Manager, Process, Queue, managers
 from typing import Dict, List
 
+import torch
+
 from maro.communication import Proxy, SessionMessage
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import DummyLogger, Logger
@@ -34,13 +36,21 @@ class TaskQueueClient(object):
         return worker_list
 
     # TODO: rename this method
-    def submit(self, worker_id_list: List, batch_list: List, policy_state: Dict, policy_name: str):
-        """Learn a batch of data on several grad workers."""
+    def submit(
+        self, worker_id_list: List, batch_list: List, tensor_dict_list: List, policy_state: Dict, policy_name: str,
+        scope: str = None
+    ) -> Dict[str, List[Dict[str, Dict[int, Dict[str, torch.Tensor]]]]]:
+        """Learn a batch of data on several grad workers.
+        For each policy, send a list of batch and state to grad workers, and receive a list of gradients.
+        The results is actually from train worker's `get_batch_grad()` method, with type:
+        Dict[str, Dict[int, Dict[str, torch.Tensor]]], which means {scope: {worker_id: {param_name: grad_value}}}"""
         msg_dict = defaultdict(lambda: defaultdict(dict))
         loss_info_by_policy = {policy_name: []}
-        for worker_id, batch in zip(worker_id_list, batch_list):
+        for worker_id, batch, tensor_dict in zip(worker_id_list, batch_list, tensor_dict_list):
             msg_dict[worker_id][MsgKey.GRAD_TASK][policy_name] = batch
+            msg_dict[worker_id][MsgKey.TENSOR][policy_name] = tensor_dict
             msg_dict[worker_id][MsgKey.POLICY_STATE][policy_name] = policy_state
+            msg_dict[worker_id][MsgKey.GRAD_SCOPE][policy_name] = scope
             # data-parallel by multiple remote gradient workers
             self._proxy.isend(SessionMessage(
                 MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
@@ -73,6 +83,21 @@ def task_queue(
     proxy_kwargs: dict = {},
     logger: Logger = DummyLogger()
 ):
+    """The queue to manage data parallel tasks. Task queue communicates with gradient workers,
+    maintaing the busy/idle status of workers. Clients send requests to task queue, and task queue
+    will assign available workers to the requests. Task queue follows the `producer-consumer` model,
+    consisting of two queues: task_pending, task_assigned. Besides, task queue supports task priority,
+    adding/deleting workers.
+
+    Args:
+        worker_ids (List[int]): Worker ids to initialize.
+        num_hosts (int): The number of policy hosts. Will be renamed in RL v3.
+        num_policies (int): The number of policies.
+        single_task_limit (float): The limit resource proportion for a single task to assign. Defaults to 0.5
+        group (str): Group name to initialize proxy. Defaults to DEFAULT_POLICY_GROUP.
+        proxy_kwargs (dict): Keyword arguments for proxy. Defaults to empty dict.
+        logger (Logger): Defaults to DummyLogger().
+    """
     num_workers = len(worker_ids)
     if num_hosts == 0:
         # for multi-process mode

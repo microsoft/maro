@@ -4,6 +4,7 @@ from typing import Optional
 import torch
 
 from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
+
 from .abs_net import AbsNet
 
 
