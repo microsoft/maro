@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
-
+import os
 from collections import namedtuple
 from importlib import import_module
 
@@ -193,7 +192,7 @@ class ConfigParser:
 
     def _parse_config(self):
         """Parse configurations."""
-        with open(self._config_path, "rt") as fp:
+        with open(os.path.join(self._config_path, "config.yml"), "rt") as fp:
             conf = safe_load(fp)
 
             # Read customized core part.
@@ -210,9 +209,6 @@ class ConfigParser:
             # . Copy other configurations first
             for sub_conf_name in ("skus", "topology", "grid"):
                 self._result.world[sub_conf_name] = world_def[sub_conf_name]
-
-            #
-            self._result.world["demands"] = world_def.get("demands", {})
 
             # . Copy facilities content different if without definition reference.
             # or copy from definition first, then override with current.
@@ -233,3 +229,13 @@ class ConfigParser:
                 self._result.world["facilities"].append(facility)
 
             self._result.settings = conf.get("settings", {})
+
+        # Parse demands from files if exist
+        self._result.world["demands"] = {}
+        for facility in self._result.world["facilities"]:
+            facility_name = facility["name"]
+            demand_file_path = os.path.join(self._config_path, f"demand__{facility_name}.yml")
+            if os.path.exists(demand_file_path):
+                with open(demand_file_path, "rt") as fp:
+                    demand = safe_load(fp)
+                    self._result.world["demands"][facility_name] = demand
