@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 from maro.simulator import Env
 from maro.simulator.scenarios.oncall_routing import Order
-from maro.simulator.scenarios.oncall_routing.common import Action, OncallRoutingPayload
+from maro.simulator.scenarios.oncall_routing.common import Action, AllocateAction, OncallRoutingPayload, PostponeAction
 from maro.utils import set_seeds
 
 from examples.oncall_routing.utils import refresh_segment_index
@@ -28,11 +28,11 @@ def get_random_action(
             available_route_names.append(route_name)
 
     if len(available_route_names) == 0:
-        return None
+        return PostponeAction(order_id=order.id)
 
     chosen_route_name = random.choice(available_route_names)
     chosen_carrier_idx = route_meta_info_dict[chosen_route_name]["carrier_idx"]
-    return Action(
+    return AllocateAction(
         order_id=order.id,
         route_name=chosen_route_name,
         insert_index=random.randint(
@@ -58,11 +58,9 @@ if __name__ == "__main__":
         route_meta_info_dict = decision_event.route_meta_info_dict
 
         # Call get_action one by one to get the action without considering segment index
-        print(f"Processing {len(orders)} orders at tick {env.tick}.")
         actions: List[Action] = [get_random_action(
             order, route_meta_info_dict, route_plan_dict, carriers_in_stop
         ) for order in orders]
-        actions = [action for action in actions if action]
         actions = refresh_segment_index(actions)
 
         metrics, decision_event, is_done = env.step(actions)
