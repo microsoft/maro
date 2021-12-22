@@ -9,7 +9,7 @@ from maro.simulator.scenarios.oncall_routing.common import Action, AllocateActio
 def refresh_segment_index(actions: List[Action]) -> List[Action]:
     # Add segment index if multiple orders are sharing a same insert index.
 
-    def _is_equal_segment(action1: Action, action2: Action) -> bool:
+    def _is_equal_segment(action1: AllocateAction, action2: AllocateAction) -> bool:
         return (action1.route_name, action1.insert_index) == (action2.route_name, action2.insert_index)
 
     postpone_actions = [action for action in actions if isinstance(action, PostponeAction)]

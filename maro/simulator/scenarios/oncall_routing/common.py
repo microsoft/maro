@@ -28,9 +28,6 @@ class PostponeAction(Action):
     def __init__(self, order_id: str) -> None:
         super().__init__(order_id)
 
-    def __repr__(self) -> str:
-        return "%s {order_id: %s}" % (self.__class__.__name__, self.order_id)
-
 
 class AllocateAction(Action):
     def __init__(self, order_id: str, route_name: str, insert_index: int, in_segment_order: int = 0) -> None:

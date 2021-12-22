@@ -18,7 +18,7 @@ from maro.utils import DottableDict, clone, convert_dottable
 
 from .carrier import Carrier
 from .common import (
-    Action, AllocateAction, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload,
+    AllocateAction, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload,
     OncallRoutingPayload, OrderProcessingPayload, PostponeAction
 )
 from .coordinate import Coordinate, CoordinateClipper, calculate_carrier_coord
@@ -576,14 +576,19 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         assert isinstance(actions, list)
 
         # Aggregate actions by route
-        action_by_route: Dict[str, List[Action]] = defaultdict(list)
+        action_by_route: Dict[str, List[AllocateAction]] = defaultdict(list)
         for action in actions:
-            assert isinstance(action, Action)
             if isinstance(action, PostponeAction):
                 self._postponed_order_ids.add(action.order_id)
-            else:
-                assert isinstance(action, AllocateAction)
+            elif isinstance(action, AllocateAction):
+                if action.order_id in self._postponed_order_ids:
+                    self._postponed_order_ids.remove(action.order_id)
+                    print(f"Reminder: Allocate on-call {action.order_id}, already postponed in current tick.")
+                elif action.order_id not in self._oncall_order_buffer:
+                    raise ValueError(f"Order id {action.order_id} not a valid on-call order id.")
                 action_by_route[action.route_name].append(action)
+            else:
+                raise ValueError(f"Invalid action type {type(action)}.")
 
         for route_name, actions in action_by_route.items():
             # Sort actions by: 1) insert index, 2) in-segment order

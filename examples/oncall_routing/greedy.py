@@ -38,7 +38,9 @@ def _get_actions(running_env: Env, event: OncallRoutingPayload) -> List[Action]:
                     min_duration, chosen_route_name, insert_idx = duration, route_name, i
 
         if chosen_route_name is not None:
-            actions.append(AllocateAction(order_id=oncall_order.id, route_name=chosen_route_name, insert_index=insert_idx))
+            actions.append(
+                AllocateAction(order_id=oncall_order.id, route_name=chosen_route_name, insert_index=insert_idx)
+            )
         else:
             actions.append(PostponeAction(order_id=oncall_order.id))
 
