@@ -1,9 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+import collections
 import os
 from collections import namedtuple
 from importlib import import_module
 
+import pandas as pd
 from yaml import safe_load
 
 DataModelDef = namedtuple("DataModelDef", ("alias", "module_path", "class_name", "class_type", "name_in_frame"))
@@ -234,8 +236,11 @@ class ConfigParser:
         self._result.world["demands"] = {}
         for facility in self._result.world["facilities"]:
             facility_name = facility["name"]
-            demand_file_path = os.path.join(self._config_path, f"demand__{facility_name}.yml")
+            demand_file_path = os.path.join(self._config_path, f"demand__{facility_name}.csv")
+            demand_dict = collections.defaultdict(dict)
             if os.path.exists(demand_file_path):
-                with open(demand_file_path, "rt") as fp:
-                    demand = safe_load(fp)
-                    self._result.world["demands"][facility_name] = demand
+                df = pd.read_csv(demand_file_path)
+                for _, row in df.iterrows():
+                    tick, sku_id, demand = row
+                    demand_dict[sku_id][tick] = demand
+                self._result.world["demands"][facility_name] = dict(demand_dict)
