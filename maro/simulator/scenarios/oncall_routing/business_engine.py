@@ -114,7 +114,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             self._config = convert_dottable(safe_load(fp))
 
         # Step 1: Init random seed & coordinate clipper & head quarter coordinate
-        random.seed(self._config.seed)
+        self._random_seed = self._config.seed
+        random.seed(self._random_seed)
         self._coord_clipper = CoordinateClipper(keep_digit=self._config.data_loader_config.coordinate_keep_digit)
         self._head_quarter_coord = Coordinate(self._config.station.latitude, self._config.station.longitude)
         self._head_quarter_coord = self._coord_clipper.clip(self._head_quarter_coord)
@@ -337,8 +338,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def reset(self, keep_seed: bool = False) -> None:
         # Step 1
-        new_seed = self._config.seed if keep_seed else random[GLOBAL_RAND_KEY].randint(0, 4095)
-        random.seed(new_seed)
+        if not keep_seed:
+            self._random_seed = random[GLOBAL_RAND_KEY].randint(0, 4095)
+        random.seed(self._random_seed)
 
         # Step 2
         self._oncall_order_generator.reset()
