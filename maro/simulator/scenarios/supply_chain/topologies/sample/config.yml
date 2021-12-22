@@ -287,6 +287,7 @@ world:
         - [10, 12]
         - [11, 12]
 
+
 settings:
   global_reward_weight_producer: 0.50
   global_reward_weight_consumer: 0.50

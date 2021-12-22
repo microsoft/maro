@@ -65,6 +65,9 @@ class FacilityBase(ABC):
     x: Optional[int] = None
     y: Optional[int] = None
 
+    # Real demands from outer files.
+    demand_from_file: Dict[int, Dict[int, int]] = {}  # {sku_id: {tick: demand}}
+
     def __init__(self):
         self.upstreams = {}
         self.downstreams = {}

@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+from typing import Dict
 
 import numpy as np
 
@@ -24,6 +24,7 @@ class SellerUnit(ExtendUnitBase):
         self.total_sold = 0
         self.total_demand = 0
         self.price = 0
+        self.demand_from_file: Dict[int, int] = {}  # {tick: demand}
 
         self.sale_hist = []
 
@@ -36,7 +37,10 @@ class SellerUnit(ExtendUnitBase):
         Returns:
             int: Demand number.
         """
-        return int(np.random.gamma(self.gamma))
+        if tick in self.demand_from_file:
+            return self.demand_from_file[tick]
+        else:
+            return int(np.random.gamma(self.gamma))
 
     def initialize(self):
         super(SellerUnit, self).initialize()
@@ -49,6 +53,8 @@ class SellerUnit(ExtendUnitBase):
         self.data_model.initialize(sku.price, sku.backlog_ratio)
 
         self.sale_hist = [self.gamma] * self.config["sale_hist_len"]
+
+        self.demand_from_file = self.facility.demand_from_file.get(self.product_id, {})
 
     def step(self, tick: int):
         demand = self.market_demand(tick)

@@ -123,9 +123,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         be_root = os.path.split(os.path.realpath(__file__))[0]
         core_config = os.path.join(be_root, "topologies", "core.yml")
 
-        config_path = os.path.join(self._config_path, "config.yml")
-
-        parser = ConfigParser(core_config, config_path)
+        parser = ConfigParser(core_config, self._config_path)
 
         conf = parser.parse()
 
