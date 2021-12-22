@@ -4,7 +4,7 @@
 import os
 from collections import defaultdict
 from functools import partial
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from yaml import safe_load
 
@@ -645,7 +645,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         else:
             # No oncall orders remaining decision.
             self._postponed_order_ids.clear()
-
 
     def post_step(self, tick: int) -> bool:
         is_done: bool = (tick + 1 == self._max_tick)
