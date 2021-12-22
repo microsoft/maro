@@ -16,17 +16,32 @@ class Events(Enum):
     ONCALL_RECEIVE = "oncall_receive"
 
 
-@dataclass
-class Action:
-    order_id: str
-    route_name: str
-    insert_index: int   # Insert before the i-th order of current remaining plan.
-    in_segment_order: int = 0  # Relative order of multiple on-call orders with same insert_index.
+class Action(object):
+    def __init__(self, order_id: str) -> None:
+        self.order_id = order_id
 
     def __repr__(self) -> str:
-        return (
-            f"Action(order_id: {self.order_id}, route_name: {self.route_name}, "
-            f"insert_index: {self.insert_index}, in_segment_order: {self.in_segment_order})"
+        return "%s {order_id: %s}" % (self.__class__.__name__, self.order_id)
+
+
+class PostponeAction(Action):
+    def __init__(self, order_id: str) -> None:
+        super().__init__(order_id)
+
+    def __repr__(self) -> str:
+        return "%s {order_id: %s}" % (self.__class__.__name__, self.order_id)
+
+
+class AllocateAction(Action):
+    def __init__(self, order_id: str, route_name: str, insert_index: int, in_segment_order: int = 0) -> None:
+        super().__init__(order_id)
+        self.route_name = route_name
+        self.insert_index = insert_index  # Insert before the i-th order of current remaining plan.
+        self.in_segment_order = in_segment_order  # Relative order of multiple on-call orders with same insert_index.
+
+    def __repr__(self) -> str:
+        return "%s {order_id: %s, route_name: %s, insert_index: %d, in_segment_order: %d}" % (
+            self.__class__.__name__, self.order_id, self.route_name, self.insert_index, self.in_segment_order
         )
 
 

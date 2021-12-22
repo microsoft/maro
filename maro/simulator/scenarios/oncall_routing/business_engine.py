@@ -4,7 +4,7 @@
 import os
 from collections import defaultdict
 from functools import partial
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from yaml import safe_load
 
@@ -18,8 +18,8 @@ from maro.utils import DottableDict, clone, convert_dottable
 
 from .carrier import Carrier
 from .common import (
-    Action, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload, OncallRoutingPayload,
-    OrderProcessingPayload
+    Action, AllocateAction, CarrierArrivalPayload, CarrierDeparturePayload, Events, OncallReceivePayload,
+    OncallRoutingPayload, OrderProcessingPayload, PostponeAction
 )
 from .coordinate import Coordinate, CoordinateClipper, calculate_carrier_coord
 from .duration_time_predictor import ActualDurationSampler, EstimatedDurationPredictor
@@ -126,6 +126,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         )
         self._oncall_order_generator.reset()  # We have to call `reset()` to initialize oncall order generator
         self._oncall_order_buffer: Dict[str, Order] = {}
+        self._postponed_order_ids: set = set()
 
         # Step 3: Init data loader, load route plan.
         print("Loading plans.")
@@ -578,7 +579,11 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         action_by_route: Dict[str, List[Action]] = defaultdict(list)
         for action in actions:
             assert isinstance(action, Action)
-            action_by_route[action.route_name].append(action)
+            if isinstance(action, PostponeAction):
+                self._postponed_order_ids.add(action.order_id)
+            else:
+                assert isinstance(action, AllocateAction)
+                action_by_route[action.route_name].append(action)
 
         for route_name, actions in action_by_route.items():
             # Sort actions by: 1) insert index, 2) in-segment order
@@ -618,6 +623,29 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             self._routes[route_idx].remaining_plan = new_plan
             for index in refresh_indexes:
                 self._refresh_plan_duration(tick=event.tick, route_idx=route_idx, index=index)
+
+        if len(self._oncall_order_buffer) > len(self._postponed_order_ids):
+            # There are still some oncall orders pending decision, create a new Pending Decision Event.
+            decision_event = self._event_buffer.gen_decision_event(
+                tick=event.tick,
+                payload=OncallRoutingPayload(
+                    get_oncall_orders_func=lambda: [
+                        order
+                        for order in self._oncall_order_buffer.values()
+                        if order.id not in self._postponed_order_ids
+                    ],
+                    get_route_plan_dict_func=lambda: {
+                        _route.name: [clone(_elem.order) for _elem in _route.remaining_plan] for _route in self._routes
+                    },
+                    get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
+                    get_route_meta_info_dict=partial(self._get_route_meta_info_dict, event.tick)
+                )
+            )
+            event.add_immediate_event(decision_event)
+        else:
+            # No oncall orders remaining decision.
+            self._postponed_order_ids.clear()
+
 
     def post_step(self, tick: int) -> bool:
         is_done: bool = (tick + 1 == self._max_tick)

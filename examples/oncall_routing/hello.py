@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.simulator import Env
-from maro.simulator.scenarios.oncall_routing.common import OncallRoutingPayload
+from maro.simulator.scenarios.oncall_routing.common import PostponeAction, OncallRoutingPayload
 
 
 if __name__ == "__main__":
@@ -20,6 +20,7 @@ if __name__ == "__main__":
             f"On-call Order Num: {len(orders)}, "
             f"{(orders[0].id, orders[0].coord) if len(orders) > 0 else ''}"
         )
-        metrics, decision_event, is_done = env.step(None)
+        actions = [PostponeAction(order_id=order.id) for order in orders]
+        metrics, decision_event, is_done = env.step(actions)
 
     print(metrics)

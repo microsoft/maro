@@ -63,7 +63,14 @@ Agents could use this predictor to predict the travel time between stops.
 
 ## Actions
 
-The actions are formulated as a list of `Action` objects. An `Action` object has four attributes:
+The actions given to the simulator are formulated as a list of `Action` objects.
+There are 2 types of valid `Action`: `AllocateAction` and `PostponeAction` respectively.
+
+The `PostponeAction` is used to indicate that we'll not allocate any route for this on-call order now, and the on-call request would be given again later. The `PostponeAction` has only 1 attribute:
+
+- `order_id (str)`: The ID of the on-call order to be processed.
+
+The `AllocateAction` is used when you want to insert an on-call order to a specific location of a specific route. An `Action` object has four attributes:
 
 - `order_id (str)`: The ID of the oncall order to be processed.
 - `route_name (str)`: The name of the route where the oncall order is to be inserted.
