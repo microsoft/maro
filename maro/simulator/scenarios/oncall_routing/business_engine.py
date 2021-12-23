@@ -558,6 +558,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             len(plan) > 0
             and plan[0].order.get_status(event.tick, self._config.order_transition) == OrderStatus.TERMINATED
         ):
+            self._total_order_terminated += 1
             plan.pop(0)
 
         # Add next carrier arrival event.
