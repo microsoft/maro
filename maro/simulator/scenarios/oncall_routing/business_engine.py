@@ -668,7 +668,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         _route.name: [clone(_elem.order) for _elem in _route.remaining_plan] for _route in self._routes
                     },
                     get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
-                    get_route_meta_info_dict_func=partial(self._get_route_meta_info_dict, event.tick)
+                    get_route_meta_info_dict_func=partial(self._get_route_meta_info_dict, event.tick),
+                    get_delayed_orders_func=lambda: [(clone(order), t) for order, t in self._delayed_orders]
                 )
             )
             event.add_immediate_event(decision_event)
