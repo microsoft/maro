@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
 import os
 from collections import defaultdict
 from functools import partial
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
@@ -42,6 +42,9 @@ total_order_delay_time(int): The total order delay time of all carriers.
 total_order_terminated(int): The total number of order that are terminated during the simulation.
 total_order_completed(int):
 pending_order_num(int): The number of orders pending in the plan that is waiting for service (w/o RTB Dummy Order).
+route_finish_tick(dict): The finish tick of each route. If a route is not finished by the end of the day, this value
+    would be -1.
+min_max_avg_order_cnt(list of int): The minimum, maximum, and average number of orders of all routes.
 """
 
 
@@ -196,6 +199,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
     def _load_route_plan(self) -> Dict[str, List[PlanElement]]:
+        self._delayed_orders: List[Tuple[Order, int]] = []
+
         orders_dict = self._data_loader.generate_route_orders()
         remaining_plan = {
             route_name: [PlanElement(order) for order in orders] for route_name, orders in orders_dict.items()
@@ -229,6 +234,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             # Add a DUMMY order to let the carrier return to building.
             plan.append(PlanElement(order=rtb_order))
         self._route_name_list: List[str] = sorted(list(remaining_plan.keys()))
+        self._route_finish_tick: Dict[str, int] = {route_name: -1 for route_name in self._route_name_list}
+        self._route_order_cnt = {route_name: len(plan) - 1 for route_name, plan in remaining_plan.items()}
         return remaining_plan
 
     def _load_carrier_arrival_event(self) -> None:
@@ -279,6 +286,12 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 "total_order_terminated": self._total_order_terminated,
                 "total_order_completed": self._total_order_completed,
                 "pending_order_num": self._pending_order_num,
+                "route_finish_tick": self._route_finish_tick,
+                "min_max_avg_order_cnt": [
+                    min(self._route_order_cnt.values()),
+                    max(self._route_order_cnt.values()),
+                    np.mean(list(self._route_order_cnt.values()))
+                ],
             }
         )
 
@@ -314,7 +327,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         _route.name: [clone(_elem.order) for _elem in _route.remaining_plan] for _route in self._routes
                     },
                     get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
-                    get_route_meta_info_dict=partial(self._get_route_meta_info_dict, tick)
+                    get_route_meta_info_dict_func=partial(self._get_route_meta_info_dict, tick),
+                    get_delayed_orders_func=lambda: [(clone(order), t) for order, t in self._delayed_orders],
                 )
             )
             self._event_buffer.insert_event(decision_event)
@@ -450,6 +464,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         carrier_idx = payload.carrier_idx
         carrier = self._carriers[carrier_idx]
         route_idx = self._carriers[carrier_idx].route_idx
+        route_name = self._routes[route_idx].name
         plan = self._routes[route_idx].remaining_plan
 
         # Handle the orders can be finished.
@@ -506,6 +521,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 carrier.total_delayed_time += event.tick + processing_time - order.close_time
                 self._total_order_delayed += 1
                 self._total_order_delay_time += event.tick + processing_time - order.close_time
+                self._delayed_orders.append((order, event.tick))
 
             self._total_order_completed += 1
             order.set_status(OrderStatus.COMPLETED)
@@ -539,6 +555,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 event.add_immediate_event(carrier_departure_event)
             else:  # Otherwise, create a departure event in the future
                 self._event_buffer.insert_event(carrier_departure_event)
+        else:
+            self._route_finish_tick[route_name] = event.tick
 
     def _on_carrier_departure(self, event: AtomEvent) -> None:
         payload = event.payload
@@ -570,6 +588,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 payload=carrier_arrival_payload
             )
             self._event_buffer.insert_event(carrier_arrival_event)
+        else:
+            self._route_finish_tick[route_name] = event.tick
 
         # Update `last_time`
         self._route_last_arrival[route_name] = (self._route_last_arrival[route_name][0], event.tick)
@@ -632,6 +652,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             for index in refresh_indexes:
                 self._refresh_plan_duration(tick=event.tick, route_idx=route_idx, index=index)
 
+            self._route_order_cnt[route_name] += len(actions)
+
         if len(self._oncall_order_buffer) > len(self._postponed_order_ids):
             # There are still some oncall orders pending decision, create a new Pending Decision Event.
             decision_event = self._event_buffer.gen_decision_event(
@@ -646,7 +668,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                         _route.name: [clone(_elem.order) for _elem in _route.remaining_plan] for _route in self._routes
                     },
                     get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
-                    get_route_meta_info_dict=partial(self._get_route_meta_info_dict, event.tick)
+                    get_route_meta_info_dict_func=partial(self._get_route_meta_info_dict, event.tick)
                 )
             )
             event.add_immediate_event(decision_event)

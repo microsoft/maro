@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 from .duration_time_predictor import EstimatedDurationPredictor
 from .order import Order
@@ -68,17 +68,20 @@ class OncallRoutingPayload(object):
         get_oncall_orders_func: Callable[[], List[Order]],
         get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]],
         get_estimated_duration_predictor_func: Callable[[], EstimatedDurationPredictor],
-        get_route_meta_info_dict: Callable[[], Dict[str, dict]]
+        get_route_meta_info_dict_func: Callable[[], Dict[str, dict]],
+        get_delayed_orders_func: Callable[[], List[Tuple[Order, int]]]
     ):
         self._get_oncall_orders_func: Callable[[], List[Order]] = get_oncall_orders_func
         self._get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]] = get_route_plan_dict_func
         self._get_estimated_duration_predictor_func = get_estimated_duration_predictor_func
-        self._get_route_meta_info_dict = get_route_meta_info_dict
+        self._get_route_meta_info_dict_func = get_route_meta_info_dict_func
+        self._get_delayed_orders_func = get_delayed_orders_func
 
         self._oncall_orders_cache: Optional[List[Order]] = None
         self._route_plan_dict_cache: Optional[Dict[str, List[Order]]] = None
         self._estimated_duration_predictor_cache: Optional[EstimatedDurationPredictor] = None
         self._route_meta_info_dict_cache: Optional[Dict[str, dict]] = None
+        self._delayed_orders_cache: Optional[List[Tuple[Order, int]]] = None
 
     @property
     def oncall_orders(self) -> List[Order]:
@@ -101,5 +104,11 @@ class OncallRoutingPayload(object):
     @property
     def route_meta_info_dict(self) -> Dict[str, dict]:
         if self._route_meta_info_dict_cache is None:
-            self._route_meta_info_dict_cache = self._get_route_meta_info_dict()
+            self._route_meta_info_dict_cache = self._get_route_meta_info_dict_func()
         return self._route_meta_info_dict_cache
+
+    @property
+    def delayed_orders(self) -> List[Tuple[Order, int]]:
+        if self._delayed_orders_cache is None:
+            self._delayed_orders_cache = self._get_delayed_orders_func()
+        return self._delayed_orders_cache

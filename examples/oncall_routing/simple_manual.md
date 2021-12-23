@@ -12,6 +12,7 @@ oncall_orders: List[Order]
 route_plan_dict: Dict[str, List[Route]]
 route_meta_info_dict: Dict[str, dict]
 estimated_duration_predictor: EstimatedDurationPredictor
+delayed_orders: List[Tuple[Order, int]]
 ```
 
 ### `oncall_orders`
@@ -54,6 +55,10 @@ EstimatedDurationPredictor.predict(
 Agents could use this predictor to predict the travel time between stops.
 
 *Currently, the returned predictor is time-independent.*
+
+### `delayed_orders`
+
+Contains a list of orders that have already been processed but delayed. Each element in this list is a tuple. The first value of this tuple is the `Order` object, and the second value is the tick that this order was processed. 
 
 ## More features from the Env
 
