@@ -69,19 +69,22 @@ class OncallRoutingPayload(object):
         get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]],
         get_estimated_duration_predictor_func: Callable[[], EstimatedDurationPredictor],
         get_route_meta_info_dict_func: Callable[[], Dict[str, dict]],
-        get_delayed_orders_func: Callable[[], List[Tuple[Order, int]]]
+        get_delayed_orders_func: Callable[[], List[Tuple[Order, int]]],
+        get_terminated_orders_func: Callable[[], List[Order]]
     ):
         self._get_oncall_orders_func: Callable[[], List[Order]] = get_oncall_orders_func
         self._get_route_plan_dict_func: Callable[[], Dict[str, List[Order]]] = get_route_plan_dict_func
         self._get_estimated_duration_predictor_func = get_estimated_duration_predictor_func
         self._get_route_meta_info_dict_func = get_route_meta_info_dict_func
         self._get_delayed_orders_func = get_delayed_orders_func
+        self._get_terminated_orders_func = get_terminated_orders_func
 
         self._oncall_orders_cache: Optional[List[Order]] = None
         self._route_plan_dict_cache: Optional[Dict[str, List[Order]]] = None
         self._estimated_duration_predictor_cache: Optional[EstimatedDurationPredictor] = None
         self._route_meta_info_dict_cache: Optional[Dict[str, dict]] = None
         self._delayed_orders_cache: Optional[List[Tuple[Order, int]]] = None
+        self._terminated_orders_cache: Optional[List[Order]] = None
 
     @property
     def oncall_orders(self) -> List[Order]:
@@ -112,3 +115,9 @@ class OncallRoutingPayload(object):
         if self._delayed_orders_cache is None:
             self._delayed_orders_cache = self._get_delayed_orders_func()
         return self._delayed_orders_cache
+
+    @property
+    def terminated_orders(self) -> List[Order]:
+        if self._terminated_orders_cache is None:
+            self._terminated_orders_cache = self._get_terminated_orders_func()
+        return self._terminated_orders_cache

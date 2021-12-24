@@ -200,6 +200,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
     def _load_route_plan(self) -> Dict[str, List[PlanElement]]:
         self._delayed_orders: List[Tuple[Order, int]] = []
+        self._terminated_orders: List[Order] = []
 
         orders_dict = self._data_loader.generate_route_orders()
         remaining_plan = {
@@ -287,6 +288,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 "total_order_completed": self._total_order_completed,
                 "pending_order_num": self._pending_order_num,
                 "route_finish_tick": self._route_finish_tick,
+                "route_order_cnt": self._route_order_cnt,
                 "min_max_avg_order_cnt": [
                     min(self._route_order_cnt.values()),
                     max(self._route_order_cnt.values()),
@@ -329,6 +331,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
                     get_route_meta_info_dict_func=partial(self._get_route_meta_info_dict, tick),
                     get_delayed_orders_func=lambda: [(clone(order), t) for order, t in self._delayed_orders],
+                    get_terminated_orders_func=lambda: [clone(order) for order in self._terminated_orders],
                 )
             )
             self._event_buffer.insert_event(decision_event)
@@ -509,6 +512,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
             elif order_status == OrderStatus.TERMINATED:
                 self._total_order_terminated += 1
+                self._terminated_orders.append(order)
                 plan.pop(0)
                 continue
 
@@ -577,6 +581,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             and plan[0].order.get_status(event.tick, self._config.order_transition) == OrderStatus.TERMINATED
         ):
             self._total_order_terminated += 1
+            self._terminated_orders.append(plan[0].order)
             plan.pop(0)
 
         # Add next carrier arrival event.
