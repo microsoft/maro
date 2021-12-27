@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import List
+from typing import List, Tuple
 
 from maro.backends.frame import NodeBase, node
 
+from . import Order
 from .plan_element import PlanElement
 
 
@@ -16,6 +17,7 @@ class Route(NodeBase):
         self._carrier_idx = None
         self._carrier_name = None
 
+        self.finished_orders: List[Tuple[Order, int]] = []
         self.remaining_plan: List[PlanElement] = []
 
     @property

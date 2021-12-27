@@ -181,6 +181,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 carrier_name=carrier_name,
             )
             # Step 6-1: Init route plan.
+            route.finished_orders = []
             route.remaining_plan = remaining_plan[route_name]
 
             # Step 6-2: Init duration between stops
@@ -348,6 +349,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         for route in self._routes:
             route.reset()
             # Step 6-1: Initialize route plan
+            route.finished_orders = []
             route.remaining_plan = remaining_plan[route.name]
             # Step 6-2: Initialize duration between stops
             for i in range(len(route.remaining_plan)):
@@ -483,7 +485,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             # Update performance statistics.
             if order_status == OrderStatus.DUMMY:
                 # TODO: if any logic for DUMMY
-                plan.pop(0)
+                self._routes[route_idx].finished_orders.append((plan.pop(0).order, event.tick))
                 continue
 
             elif order_status == OrderStatus.NOT_READY:
@@ -507,13 +509,13 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
 
             elif order_status == OrderStatus.COMPLETED:
                 print(f"{event.tick + processing_time} Order with wrong status in order processing: {order}, skip")
-                plan.pop(0)
+                self._routes[route_idx].finished_orders.append((plan.pop(0).order, event.tick))
                 continue
 
             elif order_status == OrderStatus.TERMINATED:
                 self._total_order_terminated += 1
                 self._terminated_orders.append(order)
-                plan.pop(0)
+                self._routes[route_idx].finished_orders.append((plan.pop(0).order, event.tick))
                 continue
 
             elif order_status == OrderStatus.READY_IN_ADVANCE:
@@ -541,7 +543,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
             if self._config.order_transition.processing_proportion_to_quantity:
                 processing_time += self._config.order_transition.processing_time
 
-            plan.pop(0)
+            self._routes[route_idx].finished_orders.append((plan.pop(0).order, event.tick))
 
         if processing_order and not self._config.order_transition.processing_proportion_to_quantity:
             processing_time = self._config.order_transition.processing_time
@@ -582,7 +584,7 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         ):
             self._total_order_terminated += 1
             self._terminated_orders.append(plan[0].order)
-            plan.pop(0)
+            self._routes[route_idx].finished_orders.append((plan.pop(0).order, event.tick))
 
         # Add next carrier arrival event.
         if len(plan) > 0:
@@ -674,7 +676,8 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                     },
                     get_estimated_duration_predictor_func=lambda: self._estimated_duration_predictor,
                     get_route_meta_info_dict_func=partial(self._get_route_meta_info_dict, event.tick),
-                    get_delayed_orders_func=lambda: [(clone(order), t) for order, t in self._delayed_orders]
+                    get_delayed_orders_func=lambda: [(clone(order), t) for order, t in self._delayed_orders],
+                    get_terminated_orders_func=lambda: [clone(order) for order in self._terminated_orders],
                 )
             )
             event.add_immediate_event(decision_event)
@@ -744,3 +747,6 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
                 "current_staying_stop_coordinate": current_staying_stop_coordinate
             }
         return route_meta_info_dict
+
+    def get_finished_orders_dict(self) -> Dict[str, List[Tuple[Order, int]]]:
+        return {route.name: route.finished_orders for route in self._routes}

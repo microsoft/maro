@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from enum import Enum
-from typing import Optional
+from typing import Optional, Tuple
 
 from maro.utils import DottableDict
 
@@ -57,6 +57,7 @@ class Order:
         self.creation_time: Optional[int] = None
         self.delay_buffer: Optional[int] = None  # TODO: keep the independent one or use a general setting
         self._status = status
+        self._last_update_status_tick = -1
 
     def get_status(self, tick: int, transition_config: DottableDict) -> OrderStatus:
         # TODO: fresh order status at each tick if needed
@@ -74,7 +75,12 @@ class Order:
             )
         ):
             self._status = OrderStatus.TERMINATED
+
+        self._last_update_status_tick = tick
         return self._status
+
+    def get_last_status_and_update_tick(self) -> Tuple[OrderStatus, int]:
+        return self._status, self._last_update_status_tick
 
     def set_status(self, var: OrderStatus) -> None:
         self._status = var
