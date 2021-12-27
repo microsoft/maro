@@ -10,22 +10,25 @@ from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
 
-class AbsTrainWorker(object, metaclass=ABCMeta):
+class AbsTrainOps(object, metaclass=ABCMeta):
     """The basic component for training a policy, which mainly takes charge of gradient computation and policy update.
     In trainer, train worker hosts a policy, and trainer hosts several train workers. In gradient workers,
     the train worker is an atomic representation of a policy, to perform parallel gradient computing.
     """
     def __init__(
         self,
-        name: str,
         device: torch.device,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(AbsTrainWorker, self).__init__()
-        self._name = name
+        super(AbsTrainOps, self).__init__()
+        self._name = None
         self._enable_data_parallelism = enable_data_parallelism
         self._task_queue_client: Optional[TaskQueueClient] = None
         self._device = device
+
+    @abstractmethod
+    def get_models(self):
+        raise NotImplementedError
 
     @property
     def name(self) -> str:
@@ -45,7 +48,7 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
 
     def _remote_learn(
         self,
-        batch: MultiTransitionBatch,
+        batch: Union[TransitionBatch, MultiTransitionBatch],
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> List[Dict[str, Dict[int, Dict[str, torch.Tensor]]]]:
@@ -59,11 +62,11 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
         batch_list = self._dispatch_batch(batch, len(worker_id_list))
         # TODO: implement _dispatch_tensor_dict
         tensor_dict_list = self._dispatch_tensor_dict(tensor_dict, len(worker_id_list))
-        worker_state = self.get_worker_state_dict()
-        worker_name = self.name
+        ops_state = self.get_ops_state_dict()
+        ops_name = self.name
         loss_info_by_name = self._task_queue_client.submit(
-            worker_id_list, batch_list, tensor_dict_list, worker_state, worker_name, scope)
-        return loss_info_by_name[worker_name]
+            worker_id_list, batch_list, tensor_dict_list, ops_state, ops_name, scope)
+        return loss_info_by_name[ops_name]
 
     @abstractmethod
     def get_batch_grad(
@@ -75,14 +78,18 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _dispatch_batch(self, batch: MultiTransitionBatch, num_workers: int) -> List[MultiTransitionBatch]:
+    def _dispatch_batch(
+        self,
+        batch: Union[TransitionBatch, MultiTransitionBatch],
+        num_ops: int
+    ) -> Union[List[TransitionBatch], List[MultiTransitionBatch]]:
         """Split experience data batch to several parts.
         For on-policy algorithms, like PG, the batch is splitted into several complete trajectories.
         For off-policy algorithms, like DQN, the batch is treated as independent data points and splitted evenly."""
         raise NotImplementedError
 
     @abstractmethod
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_workers: int) -> List[Dict[str, object]]:
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
         raise NotImplementedError
 
     def init_data_parallel(self, *args, **kwargs) -> None:
@@ -106,37 +113,31 @@ class AbsTrainWorker(object, metaclass=ABCMeta):
             self._task_queue_client = None
 
     @abstractmethod
-    def get_worker_state_dict(self, scope: str = "all") -> dict:
+    def get_ops_state_dict(self, scope: str = "all") -> dict:
         """
         Returns:
-            A dict that contains worker's state.
+            A dict that contains ops's state.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
-        """Set worker's state."""
+    def set_ops_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+        """Set ops's state."""
         raise NotImplementedError
 
 
-class SingleTrainWorker(AbsTrainWorker, metaclass=ABCMeta):
+class SingleTrainOps(AbsTrainOps, metaclass=ABCMeta):
     def __init__(
         self,
-        name: str,
+        policy: RLPolicy,
         device: torch.device,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(SingleTrainWorker, self).__init__(name, device, enable_data_parallelism)
+        super(SingleTrainOps, self).__init__(device, enable_data_parallelism)
+        self._policy = policy
+        self._name = self._policy.name
+        self._policy.to_device(self._device)
         self._batch: Optional[TransitionBatch] = None
-        self._policy: Optional[RLPolicy] = None
-
-    def register_policy(self, policy: RLPolicy) -> None:
-        policy.to_device(self._device)
-        self._register_policy_impl(policy)
-
-    @abstractmethod
-    def _register_policy_impl(self, policy: RLPolicy) -> None:
-        raise NotImplementedError
 
     def set_batch(self, batch: TransitionBatch) -> None:
         self._batch = batch
@@ -148,14 +149,14 @@ class SingleTrainWorker(AbsTrainWorker, metaclass=ABCMeta):
         self._policy.set_policy_state(policy_state)
 
 
-class MultiTrainWorker(AbsTrainWorker, metaclass=ABCMeta):
+class MultiTrainOps(AbsTrainOps, metaclass=ABCMeta):
     def __init__(
         self,
-        name: str,
+        policies: List[RLPolicy],
         device: torch.device,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(MultiTrainWorker, self).__init__(name, device, enable_data_parallelism)
+        super(MultiTrainOps, self).__init__(device, enable_data_parallelism)
         self._batch: Optional[MultiTransitionBatch] = None
         self._policies: Dict[int, RLPolicy] = {}
         self._indexes: List[int] = []

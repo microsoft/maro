@@ -1,56 +1,49 @@
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, List, Tuple
 
 import torch
 
 from maro.rl_v3.model import QNet
-from maro.rl_v3.policy import ContinuousRLPolicy, RLPolicy
+from maro.rl_v3.policy import ContinuousRLPolicy
 from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
+from .abs_train_ops import SingleTrainOps
 from .abs_trainer import SingleTrainer
-from .train_worker import SingleTrainWorker
 
 
-class DDPGWorker(SingleTrainWorker):
+class DDPGTrainOps(SingleTrainOps):
     def __init__(
         self,
         name: str,
+        policy: ContinuousRLPolicy,
+        q_critic_net: QNet,
         device: torch.device,
-        get_q_critic_net_func: Callable[[], QNet],
+        enable_data_parallelism: bool = False,
+        *,
         reward_discount: float,
         q_value_loss_cls: Callable = None,
         soft_update_coef: float = 1.0,
-        critic_loss_coef: float = 0.1,
-        enable_data_parallelism: bool = False
+        critic_loss_coef: float = 0.1
     ) -> None:
-        super(DDPGWorker, self).__init__(name, device, enable_data_parallelism)
-
-        self._policy: Optional[ContinuousRLPolicy] = None
-        self._target_policy: Optional[ContinuousRLPolicy] = None
-        self._q_critic_net: Optional[QNet] = None
-        self._target_q_critic_net: Optional[QNet] = None
-        self._get_q_critic_net_func = get_q_critic_net_func
-
-        self._reward_discount = reward_discount
-        self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
-        self._critic_loss_coef = critic_loss_coef
-        self._soft_update_coef = soft_update_coef
-
-    def _register_policy_impl(self, policy: RLPolicy) -> None:
         assert isinstance(policy, ContinuousRLPolicy)
+        super(DDPGTrainOps, self).__init__(name, device, enable_data_parallelism)
 
-        self._policy = policy
+        self.policy = policy
         self._target_policy = clone(self._policy)
         self._target_policy.set_name(f"target_{policy.name}")
         self._target_policy.eval()
         self._target_policy.to_device(self._device)
-
         self._q_critic_net = self._get_q_critic_net_func()
         self._q_critic_net.to(self._device)
         self._target_q_critic_net: QNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
         self._target_q_critic_net.to(self._device)
+
+        self._reward_discount = reward_discount
+        self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
+        self._critic_loss_coef = critic_loss_coef
+        self._soft_update_coef = soft_update_coef
 
     def get_batch_grad(
         self,
@@ -73,6 +66,12 @@ class DDPGWorker(SingleTrainWorker):
             grad_dict["actor_grad"] = self._get_actor_grad(batch)
 
         return grad_dict
+
+    def _dispatch_batch(self, batch: TransitionBatch, num_ops: int) -> List[TransitionBatch]:
+        raise NotImplementedError
+
+    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
+        raise NotImplementedError
 
     def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         self._q_critic_net.train()
@@ -121,7 +120,7 @@ class DDPGWorker(SingleTrainWorker):
         self._policy.train()
         self._policy.apply_gradients(grad_dict["actor_grad"])
 
-    def get_worker_state_dict(self, scope: str = "all") -> dict:
+    def get_ops_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_policy_state()
@@ -131,13 +130,13 @@ class DDPGWorker(SingleTrainWorker):
             ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
         return ret_dict
 
-    def set_worker_state_dict(self, worker_state_dict: dict, scope: str = "all") -> None:
+    def set_ops_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
-            self._policy.set_policy_state(worker_state_dict["policy_state"])
-            self._target_policy.set_policy_state(worker_state_dict["target_policy_state"])
+            self._policy.set_policy_state(ops_state_dict["policy_state"])
+            self._target_policy.set_policy_state(ops_state_dict["target_policy_state"])
         if scope in ("all", "critic"):
-            self._q_critic_net.set_net_state(worker_state_dict["critic_state"])
-            self._target_q_critic_net.set_net_state(worker_state_dict["target_critic_state"])
+            self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
+            self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
@@ -176,66 +175,40 @@ class DDPG(SingleTrainer):
     def __init__(
         self,
         name: str,
-        get_q_critic_net_func: Callable[[], QNet],
-        reward_discount: float,
-        q_value_loss_cls: Callable = None,
-        policy: ContinuousRLPolicy = None,
+        ops_creator: Dict[str, Callable],
+        dispatcher_address: Tuple[str, int] = None,
+        *,
+        state_dim: int,
+        action_dim: int,
+        replay_memory_size: int = 10000,
         random_overwrite: bool = False,
-        replay_memory_capacity: int = 10000,
         num_epochs: int = 1,
         update_target_every: int = 5,
-        soft_update_coef: float = 1.0,
         train_batch_size: int = 32,
-        critic_loss_coef: float = 0.1,
         device: str = None,
         enable_data_parallelism: bool = False
     ) -> None:
         super(DDPG, self).__init__(
-            name=name,
+            name, ops_creator,
+            dispatcher_address=dispatcher_address,
             device=device,
             enable_data_parallelism=enable_data_parallelism,
             train_batch_size=train_batch_size
         )
 
-        self._get_q_critic_net_func = get_q_critic_net_func
-
-        self._replay_memory_capacity = replay_memory_capacity
-        self._random_overwrite = random_overwrite
-        if policy is not None:
-            self.register_policy(policy)
-
         self._num_epochs = num_epochs
         self._policy_version = self._target_policy_version = 0
         self._update_target_every = update_target_every
-        self._soft_update_coef = soft_update_coef
-        self._train_batch_size = train_batch_size
-        self._reward_discount = reward_discount
-
-        self._critic_loss_coef = critic_loss_coef
-        self._q_value_loss_cls = q_value_loss_cls
-
-    def _register_policy_impl(self, policy: ContinuousRLPolicy) -> None:
-        self._worker = DDPGWorker(
-            name="worker", device=self._device, get_q_critic_net_func=self._get_q_critic_net_func,
-            reward_discount=self._reward_discount, q_value_loss_cls=self._q_value_loss_cls,
-            soft_update_coef=self._soft_update_coef, critic_loss_coef=self._critic_loss_coef,
-            enable_data_parallelism=self._enable_data_parallelism
-        )
-        self._worker.register_policy(policy)
 
         self._replay_memory = RandomReplayMemory(
-            capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
-            action_dim=policy.action_dim, random_overwrite=self._random_overwrite
+            replay_memory_size, state_dim, action_dim, random_overwrite=random_overwrite
         )
 
-    def train_step(self) -> None:
+    async def train_step(self) -> None:
         for _ in range(self._num_epochs):
-            self._worker.set_batch(self._get_batch())
-            self._worker.update()
-            self._try_soft_update_target()
-
-    def _try_soft_update_target(self) -> None:
-        self._policy_version += 1
-        if self._policy_version - self._target_policy_version == self._update_target_every:
-            self._worker.soft_update_target()
+            await self._ops.set_batch(self._get_batch())
+            await self._ops.update()
+            self._policy_version += 1
+            if self._policy_version - self._target_policy_version == self._update_target_every:
+                await self._ops.soft_update_target()
             self._target_policy_version = self._policy_version

@@ -9,29 +9,30 @@ from maro.rl.utils import MsgKey, MsgTag
 from maro.rl.workflows.helpers import from_env, get_logger, get_scenario_module
 
 if __name__ == "__main__":
-    host_id = f"POLICY_HOST.{from_env('HOSTID')}"
+    host_id = f"POLICY_HOST.{from_env('HOST_ID')}"
     peers = {"policy_manager": 1}
-    data_parallelism = from_env("DATAPARALLELISM", required=False, default=1)
+    data_parallelism = from_env("DATA_PARALLELISM", required=False, default=1)
     if data_parallelism > 1:
         peers["grad_worker"] = data_parallelism
         peers["task_queue"] = 1
 
-    policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")
-    group = from_env("POLICYGROUP")
+    policy_func_dict = getattr(get_scenario_module(from_env("SCENARIO_PATH")), "policy_func_dict")
+    group = from_env("POLICY_GROUP")
     policy_dict, checkpoint_path = {}, {}
+
+    logger = get_logger(from_env("LOG_PATH", required=False, default=os.getcwd()), from_env("JOB"), host_id)
 
     proxy = Proxy(
         group, "policy_host", peers,
         component_name=host_id,
-        redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
+        logger=logger,
+        redis_address=(from_env("REDIS_HOST"), from_env("REDIS_PORT")),
         max_peer_discovery_retries=50
     )
-    load_policy_dir = from_env("LOADDIR", required=False, default=None)
-    checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
-    if checkpoint_dir:
-        os.makedirs(checkpoint_dir, exist_ok=True)
-
-    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), host_id)
+    load_path = from_env("LOAD_PATH", required=False, default=None)
+    checkpoint_path = from_env("CHECKPOINT_PATH", required=False, default=None)
+    if checkpoint_path:
+        os.makedirs(checkpoint_path, exist_ok=True)
 
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:
@@ -41,9 +42,8 @@ if __name__ == "__main__":
         elif msg.tag == MsgTag.INIT_POLICIES:
             for id_ in msg.body[MsgKey.POLICY_IDS]:
                 policy_dict[id_] = policy_func_dict[id_](id_)
-                checkpoint_path[id_] = os.path.join(checkpoint_dir, id_) if checkpoint_dir else None
-                if load_policy_dir:
-                    path = os.path.join(load_policy_dir, id_)
+                if load_path:
+                    path = os.path.join(load_path, id_)
                     if os.path.exists(path):
                         policy_dict[id_].load(path)
                         logger.info(f"Loaded policy {id_} from {path}")
@@ -71,9 +71,10 @@ if __name__ == "__main__":
                         logger.info("learning from batch")
                         policy_dict[id_].learn(info)
 
-                if checkpoint_path[id_]:
-                    policy_dict[id_].save(checkpoint_path[id_])
-                    logger.info(f"Saved policy {id_} to {checkpoint_path[id_]}")
+                if checkpoint_path:
+                    save_path = os.path.join(checkpoint_path, id_)
+                    policy_dict[id_].save(save_path)
+                    logger.info(f"Saved policy {id_} to {save_path}")
 
             msg_body = {
                 MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.ROLLOUT_INFO]}

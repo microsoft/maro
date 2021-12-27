@@ -1,10 +1,10 @@
+import asyncio
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 
-from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.policy_trainer.train_worker import SingleTrainWorker
+from maro.rl_v3.distributed.remote import RemoteOps
 from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
@@ -75,14 +75,22 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def __init__(
         self,
         name: str,
+        ops_creator: Dict[str, Callable],
+        dispatcher_address: Tuple[str, int] = None,
         device: str = None,
         enable_data_parallelism: bool = False,
         train_batch_size: int = 128
     ) -> None:
         super(SingleTrainer, self).__init__(name, device, enable_data_parallelism, train_batch_size)
-        self._policy_name: Optional[str] = None
         self._replay_memory: Optional[ReplayMemory] = None
-        self._worker: Optional[SingleTrainWorker] = None
+        ops_name = [name for name in ops_creator if name.startswith(f"{self._name}.")]
+        if len(ops_name) > 1:
+            raise ValueError(f"trainer {self._name} cannot have more than one policy assigned to it")
+        ops_name = ops_name.pop()
+        if dispatcher_address:
+            self._ops = RemoteOps(ops_name, dispatcher_address)
+        else:
+            self._ops = ops_creator[ops_name](ops_name)
 
     def record(self, transition_batch: TransitionBatch) -> None:
         """
@@ -96,44 +104,44 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def register_policy(self, policy: RLPolicy) -> None:
-        """
-        Register the policy and finish other related initializations.
-        """
-        self._policy_name = policy.name
-        self._register_policy_impl(policy)
-
-    @abstractmethod
-    def _register_policy_impl(self, policy: RLPolicy) -> None:
-        raise NotImplementedError
-
     def get_policy_state_dict(self) -> Dict[str, object]:
-        return {self._policy_name: self._worker.get_policy_state()}
+        if not self._ops:
+            raise ValueError("'init_ops' needs to be called to create an ops instance first.")
+        return {self._ops.name: self._ops.get_policy_state()}
 
     def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        assert len(policy_state_dict) == 1 and self._policy_name in policy_state_dict
-        self._worker.set_policy_state(policy_state_dict[self._policy_name])
+        if not self._ops:
+            raise ValueError("'init_ops' needs to be called to create an ops instance first.")
+        assert len(policy_state_dict) == 1 and self._ops.name in policy_state_dict
+        self._ops.set_policy_state(policy_state_dict[self._ops.name])
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """
     Policy trainer that trains multiple policies.
     """
-
     def __init__(
         self,
         name: str,
+        ops_creator: Dict[str, Callable],
+        dispatcher_address: Tuple[str, int] = None,
         device: str = None,
         enable_data_parallelism: bool = False,
         train_batch_size: int = 128
     ) -> None:
         super(MultiTrainer, self).__init__(name, device, enable_data_parallelism, train_batch_size)
-        self._policy_names: List[str] = []
         self._replay_memory: Optional[MultiReplayMemory] = None
+        ops_names = [name for name in ops_creator if name.startswith(f"{self._name}.")]
+        if len(ops_names) < 2:
+            raise ValueError(f"trainer {self._name} cannot less than 2 policies assigned to it")
+        if dispatcher_address:
+            self._ops_list = [RemoteOps(ops_name, dispatcher_address) for ops_name in ops_names]
+        else:
+            self._ops_list = [ops_creator[ops_name](ops_name) for ops_name in ops_names]
 
     @property
     def num_policies(self) -> int:
-        return len(self._policy_names)
+        return len(self._ops_list)
 
     def record(self, transition_batch: MultiTransitionBatch) -> None:
         """
@@ -147,13 +155,22 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
-    def register_policies(self, policies: List[RLPolicy]) -> None:
-        """
-        Register the policies and finish other related initializations.
-        """
-        self._policy_names = [policy.name for policy in policies]
-        self._register_policies_impl(policies)
 
-    @abstractmethod
-    def _register_policies_impl(self, policies: List[RLPolicy]) -> None:
-        raise NotImplementedError
+class BatchTrainer:
+    def __init__(self, trainers: List[Union[SingleTrainer, MultiTrainer]]):
+        self._trainers = trainers
+        self._trainer_dict = {trainer.name: trainer for trainer in self._trainers}
+
+    def record(self, batch_by_trainer: dict):
+        for trainer_name, batch in batch_by_trainer.items():
+            self._trainer_dict[trainer_name].record(batch)
+
+    def train(self):
+        try:
+            asyncio.run(self._train())
+        except TypeError:
+            for trainer in self._trainers:
+                trainer.train_step()
+
+    async def _train(self):
+        await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
