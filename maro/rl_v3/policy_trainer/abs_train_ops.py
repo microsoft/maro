@@ -17,18 +17,15 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     """
     def __init__(
         self,
+        name: str,
         device: torch.device,
         enable_data_parallelism: bool = False
     ) -> None:
         super(AbsTrainOps, self).__init__()
-        self._name = None
+        self._name = name
         self._enable_data_parallelism = enable_data_parallelism
         self._task_queue_client: Optional[TaskQueueClient] = None
         self._device = device
-
-    @abstractmethod
-    def get_models(self):
-        raise NotImplementedError
 
     @property
     def name(self) -> str:
@@ -129,15 +126,21 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 class SingleTrainOps(AbsTrainOps, metaclass=ABCMeta):
     def __init__(
         self,
-        policy: RLPolicy,
+        name: str,
         device: torch.device,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(SingleTrainOps, self).__init__(device, enable_data_parallelism)
-        self._policy = policy
-        self._name = self._policy.name
-        self._policy.to_device(self._device)
+        super(SingleTrainOps, self).__init__(name, device, enable_data_parallelism)
         self._batch: Optional[TransitionBatch] = None
+        self._policy: Optional[RLPolicy] = None
+
+    def register_policy(self, policy: RLPolicy) -> None:
+        policy.to_device(self._device)
+        self._register_policy_impl(policy)
+
+    @abstractmethod
+    def _register_policy_impl(self, policy: RLPolicy) -> None:
+        raise NotImplementedError
 
     def set_batch(self, batch: TransitionBatch) -> None:
         self._batch = batch
@@ -152,11 +155,11 @@ class SingleTrainOps(AbsTrainOps, metaclass=ABCMeta):
 class MultiTrainOps(AbsTrainOps, metaclass=ABCMeta):
     def __init__(
         self,
-        policies: List[RLPolicy],
+        name: str,
         device: torch.device,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(MultiTrainOps, self).__init__(device, enable_data_parallelism)
+        super(MultiTrainOps, self).__init__(name, device, enable_data_parallelism)
         self._batch: Optional[MultiTransitionBatch] = None
         self._policies: Dict[int, RLPolicy] = {}
         self._indexes: List[int] = []

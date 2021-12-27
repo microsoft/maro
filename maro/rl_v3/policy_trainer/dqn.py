@@ -2,7 +2,7 @@ from typing import Callable, Dict, List, Tuple
 
 import torch
 
-from maro.rl_v3.policy import ValueBasedPolicy
+from maro.rl_v3.policy import RLPolicy, ValueBasedPolicy
 from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone

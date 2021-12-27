@@ -6,7 +6,7 @@ import torch
 
 from maro.rl.utils import discount_cumsum
 from maro.rl_v3.model import VNet
-from maro.rl_v3.policy import DiscretePolicyGradient
+from maro.rl_v3.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl_v3.replay_memory import FIFOReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 
