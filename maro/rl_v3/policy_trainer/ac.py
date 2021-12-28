@@ -192,7 +192,12 @@ class DiscreteActorCritic(SingleTrainer):
         self._grad_iters = grad_iters
         self._replay_memory = FIFOReplayMemory(replay_memory_size, state_dim, action_dim)
 
-    async def train_step(self):
+    def train_step(self):
+        self._ops.set_batch(self._get_batch())
+        for _ in range(self._grad_iters):
+            self._ops.update()
+
+    async def begin_train_step(self):
         self._ops.set_batch(self._get_batch())
         for _ in range(self._grad_iters):
             await asyncio.gather(self._ops.update())

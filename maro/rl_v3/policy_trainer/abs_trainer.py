@@ -4,7 +4,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import torch
 
-from maro.rl_v3.distributed.remote import RemoteOps
+from maro.rl_v3.distributed.remote_ops import RemoteOps
 from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
 from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
 
@@ -171,10 +171,10 @@ class BatchTrainer:
 
     def train(self) -> None:
         try:
-            asyncio.run(self._train_impl())
+            asyncio.run(self._train_in_parallel())
         except TypeError:
             for trainer in self._trainers:
                 trainer.train_step()
 
-    async def _train_impl(self) -> None:
-        await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
+    async def _train_in_parallel(self):
+        await asyncio.gather(*[trainer.begin_train_step() for trainer in self._trainers])

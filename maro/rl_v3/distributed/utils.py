@@ -1,6 +1,4 @@
-import asyncio
 import pickle
-from collections import Callable
 
 DEFAULT_MSG_ENCODING = "utf-8"
 
@@ -19,7 +17,3 @@ def pyobj_to_bytes(pyobj) -> bytes:
 
 def bytes_to_pyobj(bytes_: bytes) -> object:
     return pickle.loads(bytes_)
-
-
-def sync(async_func: Callable, *args, **kwargs) -> object:
-    return asyncio.get_event_loop().run_until_complete(async_func(*args, **kwargs))
