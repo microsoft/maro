@@ -1,12 +1,12 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple
 
 import torch
 
 from maro.rl_v3.distributed.remote import RemoteOps
 from maro.rl_v3.replay_memory import MultiReplayMemory, ReplayMemory
-from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
+from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
 
 
 class AbsTrainer(object, metaclass=ABCMeta):
@@ -41,7 +41,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         return self._name
 
     @abstractmethod
-    def train_step(self) -> None:
+    async def train_step(self) -> None:
         """
         Run a training step to update all the policies that this trainer is responsible for.
         """
@@ -75,22 +75,22 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def __init__(
         self,
         name: str,
-        ops_creator: Dict[str, Callable],
+        ops_creator: Dict[str, Callable],  # TODO
         dispatcher_address: Tuple[str, int] = None,
         device: str = None,
         enable_data_parallelism: bool = False,
         train_batch_size: int = 128
     ) -> None:
         super(SingleTrainer, self).__init__(name, device, enable_data_parallelism, train_batch_size)
+
         self._replay_memory: Optional[ReplayMemory] = None
-        ops_name = [name for name in ops_creator if name.startswith(f"{self._name}.")]
-        if len(ops_name) > 1:
+
+        ops_names = [ops_name for ops_name in ops_creator if ops_name.startswith(f"{self._name}.")]
+        if len(ops_names) > 1:
             raise ValueError(f"trainer {self._name} cannot have more than one policy assigned to it")
-        ops_name = ops_name.pop()
-        if dispatcher_address:
-            self._ops = RemoteOps(ops_name, dispatcher_address)
-        else:
-            self._ops = ops_creator[ops_name](ops_name)
+
+        ops_name = ops_names.pop()
+        self._ops = RemoteOps(ops_name, dispatcher_address) if dispatcher_address else ops_creator[ops_name](ops_name)
 
     def record(self, transition_batch: TransitionBatch) -> None:
         """
@@ -99,6 +99,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         Args:
             transition_batch (TransitionBatch): A TransitionBatch item that contains a batch of experiences.
         """
+        assert isinstance(transition_batch, TransitionBatch)
         self._replay_memory.put(transition_batch)
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
@@ -130,18 +131,21 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         train_batch_size: int = 128
     ) -> None:
         super(MultiTrainer, self).__init__(name, device, enable_data_parallelism, train_batch_size)
+
         self._replay_memory: Optional[MultiReplayMemory] = None
-        ops_names = [name for name in ops_creator if name.startswith(f"{self._name}.")]
-        if len(ops_names) < 2:
-            raise ValueError(f"trainer {self._name} cannot less than 2 policies assigned to it")
-        if dispatcher_address:
-            self._ops_list = [RemoteOps(ops_name, dispatcher_address) for ops_name in ops_names]
-        else:
-            self._ops_list = [ops_creator[ops_name](ops_name) for ops_name in ops_names]
+
+        ops_names = [ops_name for ops_name in ops_creator if ops_name.startswith(f"{self._name}.")]
+        # if len(ops_names) < 2:
+        #     raise ValueError(f"trainer {self._name} cannot less than 2 policies assigned to it")
+
+        self._ops_list = [
+            RemoteOps(ops_name, dispatcher_address) if dispatcher_address else ops_creator[ops_name](ops_name)
+            for ops_name in ops_names
+        ]
 
     @property
     def num_policies(self) -> int:
-        return len(self._ops_list)
+        return len(self._ops_list)  # TODO
 
     def record(self, transition_batch: MultiTransitionBatch) -> None:
         """
@@ -157,20 +161,20 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
 
 
 class BatchTrainer:
-    def __init__(self, trainers: List[Union[SingleTrainer, MultiTrainer]]):
+    def __init__(self, trainers: List[AbsTrainer]) -> None:
         self._trainers = trainers
         self._trainer_dict = {trainer.name: trainer for trainer in self._trainers}
 
-    def record(self, batch_by_trainer: dict):
+    def record(self, batch_by_trainer: Dict[str, AbsTransitionBatch]) -> None:
         for trainer_name, batch in batch_by_trainer.items():
             self._trainer_dict[trainer_name].record(batch)
 
-    def train(self):
+    def train(self) -> None:
         try:
-            asyncio.run(self._train())
+            asyncio.run(self._train_impl())
         except TypeError:
             for trainer in self._trainers:
                 trainer.train_step()
 
-    async def _train(self):
+    async def _train_impl(self) -> None:
         await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])

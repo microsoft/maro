@@ -4,12 +4,13 @@
 import importlib
 import os
 import sys
+from types import ModuleType
 from typing import List, Union
 
 from maro.utils import Logger
 
 
-def from_env(var_name, required=True, default=None):
+def from_env(var_name: str, required: bool = True, default: object = None) -> object:
     if var_name not in os.environ:
         if required:
             raise KeyError(f"Missing environment variable: {var_name}")
@@ -26,7 +27,7 @@ def from_env(var_name, required=True, default=None):
         return var
 
 
-def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int):
+def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int]:
     """Helper function to the policy evaluation schedule.
 
     Args:
@@ -51,21 +52,21 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int):
     return schedule
 
 
-def get_module(path: str):
+def get_module(path: str) -> ModuleType:
     path = os.path.normpath(path)
     sys.path.insert(0, os.path.dirname(path))
     return importlib.import_module(os.path.basename(path))
 
 
-def get_log_path(dir: str, job_name: str):
+def get_log_path(dir: str, job_name: str) -> str:
     return os.path.join(dir, f"{job_name}.log")
 
 
-def get_logger(dir: str, job_name: str, tag: str):
+def get_logger(dir: str, job_name: str, tag: str) -> Logger:
     return Logger(tag, dump_path=get_log_path(dir, job_name), dump_mode="a")
 
 
-def get_checkpoint_path(dir: str = None):
+def get_checkpoint_path(dir: str = None) -> str:
     if dir:
         os.makedirs(dir, exist_ok=True)
     return dir
