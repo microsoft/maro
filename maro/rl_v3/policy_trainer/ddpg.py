@@ -2,6 +2,7 @@ from typing import Callable, Dict, List, Tuple
 
 import torch
 
+from maro.rl_v3.distributed.remote_ops import RemoteOps
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
 from maro.rl_v3.replay_memory import RandomReplayMemory
@@ -205,10 +206,19 @@ class DDPG(SingleTrainer):
         )
 
     async def train_step(self) -> None:
-        for _ in range(self._num_epochs):
-            await self._ops.set_batch(self._get_batch())
-            await self._ops.update()
-            self._policy_version += 1
-            if self._policy_version - self._target_policy_version == self._update_target_every:
-                await self._ops.soft_update_target()
-            self._target_policy_version = self._policy_version
+        if isinstance(self._ops, RemoteOps):
+            for _ in range(self._num_epochs):
+                await self._ops.set_batch(self._get_batch())
+                await self._ops.update()
+                self._policy_version += 1
+                if self._policy_version - self._target_policy_version == self._update_target_every:
+                    await self._ops.soft_update_target()
+                    self._target_policy_version = self._policy_version
+        else:
+            for _ in range(self._num_epochs):
+                self._ops.set_batch(self._get_batch())
+                self._ops.update()
+                self._policy_version += 1
+                if self._policy_version - self._target_policy_version == self._update_target_every:
+                    self._ops.soft_update_target()
+                    self._target_policy_version = self._policy_version

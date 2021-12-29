@@ -4,11 +4,12 @@ from typing import Callable, Dict, List, Tuple
 import numpy as np
 import torch
 
-from maro.rl.utils import discount_cumsum
+from maro.rl_v3.distributed.remote_ops import RemoteOps
 from maro.rl_v3.model import VNet
-from maro.rl_v3.policy import DiscretePolicyGradient, RLPolicy
+from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.replay_memory import FIFOReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl_v3.utils.trajectory_computation import discount_cumsum
 
 from .abs_train_ops import SingleTrainOps
 from .abs_trainer import SingleTrainer
@@ -115,15 +116,16 @@ class DiscreteActorCriticOps(SingleTrainOps):
 
         return self.policy.get_gradients(actor_loss)
 
-    def update(self) -> None:
+    def update(self, iters: int) -> None:
         """
         Reference: https://tinyurl.com/2ezte4cr
         """
-        grad_dict = self._get_batch_grad(self._batch, scope="all")
-        self.policy.train()
-        self.policy.apply_gradients(grad_dict["actor_grad"])
-        self._v_critic_net.train()
-        self._v_critic_net.apply_gradients(grad_dict["critic_grad"])
+        for _ in range(iters):
+            grad_dict = self._get_batch_grad(self._batch, scope="all")
+            self.policy.train()
+            self.policy.apply_gradients(grad_dict["actor_grad"])
+            self._v_critic_net.train()
+            self._v_critic_net.apply_gradients(grad_dict["critic_grad"])
 
     def get_ops_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
@@ -192,12 +194,10 @@ class DiscreteActorCritic(SingleTrainer):
         self._grad_iters = grad_iters
         self._replay_memory = FIFOReplayMemory(replay_memory_size, state_dim, action_dim)
 
-    def train_step(self):
-        self._ops.set_batch(self._get_batch())
-        for _ in range(self._grad_iters):
-            self._ops.update()
-
-    async def begin_train_step(self):
-        self._ops.set_batch(self._get_batch())
-        for _ in range(self._grad_iters):
-            await asyncio.gather(self._ops.update())
+    async def train_step(self):
+        if isinstance(self._ops, RemoteOps):
+            await asyncio.gather(self._ops.set_batch(self._get_batch()))
+            await asyncio.gather(self._ops.update(self._grad_iters))
+        else:
+            self._ops.set_batch(self._get_batch())
+            self._ops.update(self._grad_iters)

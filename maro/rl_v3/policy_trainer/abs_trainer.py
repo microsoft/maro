@@ -159,6 +159,10 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
+    async def parallelize(self, ops_func_name: str, *args, **kwargs):
+        ret = [getattr(ops, ops_func_name)(*args, **kwargs) for ops in self._ops_list]
+        return await asyncio.gather(*ret) if isinstance(self._ops_list[0], RemoteOps) else ret
+
 
 class BatchTrainer:
     def __init__(self, trainers: List[AbsTrainer]) -> None:
@@ -170,11 +174,7 @@ class BatchTrainer:
             self._trainer_dict[trainer_name].record(batch)
 
     def train(self) -> None:
-        try:
-            asyncio.run(self._train_in_parallel())
-        except TypeError:
-            for trainer in self._trainers:
-                trainer.train_step()
+        asyncio.run(self._train_in_parallel())
 
     async def _train_in_parallel(self):
-        await asyncio.gather(*[trainer.begin_train_step() for trainer in self._trainers])
+        await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])

@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -387,60 +388,6 @@ class DistributedDiscreteMADDPG(MultiTrainer):
             agent_states_dims=[policy.state_dim for policy in policies]
         )
 
-    def train_step(self) -> None:
-        for _ in range(self._num_epoch):
-            self._improve(self._get_batch())
-
-    def _improve(self, batch: MultiTransitionBatch) -> None:
-        for ops in self._ops_list:
-            ops.set_batch(batch)
-
-        # Collect next actions
-        next_action_dict: Dict[int, torch.Tensor] = {}
-        for ops in self._ops_list:
-            next_action_dict.update(ops.get_target_action_dict())
-        next_actions = [next_action_dict[i] for i in range(self.num_policies)]
-
-        # Update critic
-        if self._shared_critic:
-            self._critic_ops.set_batch(batch)
-            self._critic_ops.update_critics(next_actions=next_actions)
-            critic_state_dict = self._critic_ops.get_ops_state_dict(scope="critic")
-
-            # Sync latest critic to ops
-            for ops in self._ops_list:
-                ops.set_ops_state_dict(critic_state_dict, scope="critic")
-        else:
-            for ops in self._ops_list:
-                ops.update_critics(next_actions=next_actions)
-
-        # Update actor
-        latest_actions_dict = {}
-        latest_action_logps_dict = {}
-        for ops in self._ops_list:
-            cur_action_dict, cur_logps_dict = ops.get_latest_action_dict()
-            latest_actions_dict.update(cur_action_dict)
-            latest_action_logps_dict.update(cur_logps_dict)
-        latest_actions = [latest_actions_dict[i] for i in range(self.num_policies)]
-        latest_action_logps = [latest_action_logps_dict[i] for i in range(self.num_policies)]
-
-        for ops in self._ops_list:
-            ops.update_actors(latest_actions, latest_action_logps)
-
-        # Update version
-        self._try_soft_update_target()
-
-    def _try_soft_update_target(self) -> None:
-        self._policy_version += 1
-        if self._policy_version - self._target_policy_version == self._update_target_every:
-            if self._shared_critic:
-                self._critic_ops.soft_update_target()
-
-            for ops in self._ops_list:
-                ops.soft_update_target()
-
-            self._target_policy_version = self._policy_version
-
     def get_policy_state_dict(self) -> Dict[str, object]:
         policy_state_dict = {}
         for ops in self._ops_list:
@@ -453,3 +400,40 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         for ops, indexes in zip(self._ops_list, self._ops_indexes):
             cur_dict = {i: policy_state_dict[self._policy_names[i]] for i in indexes}
             ops.set_policy_state_dict(cur_dict)
+
+    async def train_step(self):
+        for _ in range(self._num_epoch):
+            batch = self._get_batch()
+            await self.parallelize("set_batch", batch)
+
+            # Collect next actions
+            next_actions = await self.parallelize("get_target_action_dict")
+
+            # Update critic
+            if self._shared_critic:
+                await asyncio.gather(self._critic_ops.set_batch(batch))
+                await asyncio.gather(self._critic_ops.update_critics(next_actions=next_actions))
+                critic_state_dict = await asyncio.gather(self._critic_ops.get_ops_state_dict(scope="critic"))
+
+                # Sync latest critic to ops
+                await self.parallelize("set_ops_state_dict", critic_state_dict, scope="critic")
+            else:
+                await self.parallelize("update_critics", next_actions)
+
+            # Update actor
+            latest_action_info = await self.parallelize("get_latest_action_dict")
+            await self.parallelize(
+                "update_actors", [info[0] for info in latest_action_info], [info[1] for info in latest_action_info]
+            )
+
+            # Update version
+            self._try_soft_update_target()
+
+    async def _try_soft_update_target(self) -> None:
+        self._policy_version += 1
+        if self._policy_version - self._target_policy_version == self._update_target_every:
+            parallel_updates = [ops.soft_update_target() for ops in self._ops_list]
+            if self._shared_critic:
+                parallel_updates.append(self._critic_ops.soft_update_target())
+            await asyncio.gather(*parallel_updates)
+            self._target_policy_version = self._policy_version

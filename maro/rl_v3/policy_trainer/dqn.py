@@ -2,7 +2,8 @@ from typing import Callable, Dict, List, Tuple
 
 import torch
 
-from maro.rl_v3.policy import RLPolicy, ValueBasedPolicy
+from maro.rl_v3.distributed.remote_ops import RemoteOps
+from maro.rl_v3.policy import ValueBasedPolicy
 from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
@@ -153,11 +154,19 @@ class DQN(SingleTrainer):
         self._q_net_version = self._target_q_net_version = 0
 
     async def train_step(self) -> None:
-        for _ in range(self._num_epochs):
-            await self._ops.set_batch(self._get_batch())
-            await self._ops.update()
-
-        self._q_net_version += 1
-        if self._q_net_version - self._target_q_net_version == self._update_target_every:
-            await self._ops.soft_update_target()
-            self._target_q_net_version = self._q_net_version
+        if isinstance(self._ops, RemoteOps):
+            for _ in range(self._num_epochs):
+                await self._ops.set_batch(self._get_batch())
+                await self._ops.update()
+            self._q_net_version += 1
+            if self._q_net_version - self._target_q_net_version == self._update_target_every:
+                await self._ops.soft_update_target()
+                self._target_q_net_version = self._q_net_version
+        else:
+            for _ in range(self._num_epochs):
+                self._ops.set_batch(self._get_batch())
+                self._ops.update()
+            self._q_net_version += 1
+            if self._q_net_version - self._target_q_net_version == self._update_target_every:
+                self._ops.soft_update_target()
+                self._target_q_net_version = self._q_net_version

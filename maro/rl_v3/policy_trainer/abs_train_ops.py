@@ -122,6 +122,10 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         """Set ops's state."""
         raise NotImplementedError
 
+    @abstractmethod
+    def load(self, path):
+        pass
+
 
 class SingleTrainOps(AbsTrainOps, metaclass=ABCMeta):
     def __init__(

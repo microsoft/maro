@@ -5,6 +5,7 @@ from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
+from maro.rl_v3.policy_trainer.abs_train_ops import AbsTrainOps
 from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
 
 
@@ -12,7 +13,7 @@ class TrainOpsWorker(object):
     def __init__(
         self,
         idx: int,
-        ops_creator: Dict[str, Callable[[str], object]],  # TODO: Callable type?
+        ops_creator: Dict[str, Callable[[str], AbsTrainOps]],  # TODO: Callable type?
         router_host: str,
         router_port: int = 10001
     ) -> None:
@@ -33,7 +34,7 @@ class TrainOpsWorker(object):
         self._task_receiver.on_recv(self._compute)
         self._task_receiver.on_send(self.log_send_result)
 
-        self._ops_dict: Dict[str, object] = {}  # TODO: value type?
+        self._ops_dict: Dict[str, AbsTrainOps] = {}  # TODO: value type?
 
     def _compute(self, msg: list) -> None:
         ops_name = bytes_to_string(msg[1])
