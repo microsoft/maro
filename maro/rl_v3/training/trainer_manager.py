@@ -10,9 +10,10 @@ import numpy as np
 
 from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.training.trainer import AbsTrainer, MultiTrainer, SingleTrainer
-from maro.rl_v3.training.utils import extract_trainer_name
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
+
+from .trainer import AbsTrainer, MultiTrainer, SingleTrainer
+from .utils import extract_trainer_name
 
 
 class AbsTrainerManager(object, metaclass=ABCMeta):

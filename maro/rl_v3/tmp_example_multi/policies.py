@@ -1,12 +1,11 @@
 from maro.rl_v3.policy import DiscretePolicyGradient
+from maro.rl_v3.training.algorithms import DiscreteMADDPG, DiscreteMADDPGParams
 from maro.rl_v3.workflow import preprocess_get_policy_func_dict
 
 from .config import algorithm, running_mode
 from .nets import MyActorNet, MyMultiCriticNet
-from ..training.algorithms import DistributedDiscreteMADDPG
-from ..training.algorithms.maddpg import MADDPGParams
 
-ac_conf = MADDPGParams(
+ac_conf = DiscreteMADDPGParams(
     device="cpu",
     reward_discount=.0,
     num_epoch=10,
@@ -23,7 +22,7 @@ if algorithm == "discretemaddpg":
     }
 
     get_trainer_func_dict = {
-        f"{algorithm}_{i}": lambda name: DistributedDiscreteMADDPG(name=name, params=ac_conf)
+        f"{algorithm}_{i}": lambda name: DiscreteMADDPG(name=name, params=ac_conf)
         for i in range(4)
     }
 else:

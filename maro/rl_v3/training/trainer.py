@@ -7,8 +7,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
-from maro.rl_v3.utils.distributed import CoroutineWrapper, RemoteObj
+from maro.rl_v3.utils import AbsTransitionBatch, CoroutineWrapper, MultiTransitionBatch, RemoteObj, TransitionBatch
 
 from .replay_memory import MultiReplayMemory, ReplayMemory
 from .train_ops import AbsTrainOps

@@ -10,13 +10,9 @@ import torch
 
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
-from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
-from maro.rl_v3.utils.distributed import CoroutineWrapper
+from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
+from maro.rl_v3.utils import CoroutineWrapper, TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
-
-from ..train_ops import AbsTrainOps
-from ..trainer import SingleTrainer, TrainerParams
-from ..replay_memory import RandomReplayMemory
 
 
 @dataclass

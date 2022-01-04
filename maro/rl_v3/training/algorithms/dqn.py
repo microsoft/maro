@@ -7,10 +7,8 @@ from typing import Callable, Dict, List
 import torch
 
 from maro.rl_v3.policy import ValueBasedPolicy
-from maro.rl_v3.training.replay_memory import RandomReplayMemory
-from maro.rl_v3.training.train_ops import AbsTrainOps
-from maro.rl_v3.training.trainer import SingleTrainer, TrainerParams
-from maro.rl_v3.utils import ndarray_to_tensor, TransitionBatch
+from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
+from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 

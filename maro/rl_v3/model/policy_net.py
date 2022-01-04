@@ -5,6 +5,7 @@ import torch.nn
 from torch.distributions import Categorical
 
 from maro.rl_v3.utils import match_shape, SHAPE_CHECK_FLAG
+
 from .abs_net import AbsNet
 
 

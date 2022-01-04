@@ -10,16 +10,13 @@ import torch
 
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
-from maro.rl_v3.utils.distributed import RemoteObj
+from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, TrainerParams
+from maro.rl_v3.utils import MultiTransitionBatch, RemoteObj, ndarray_to_tensor
 from maro.utils import clone
-from ..replay_memory import RandomMultiReplayMemory
-from ..train_ops import AbsTrainOps
-from ..trainer import MultiTrainer, TrainerParams
 
 
 @dataclass
-class MADDPGParams(TrainerParams):
+class DiscreteMADDPGParams(TrainerParams):
     get_q_critic_net_func: Callable[[], MultiQNet] = None
     num_epoch: int = 10
     update_target_every: int = 5
@@ -261,9 +258,9 @@ class DiscreteMADDPGOps(AbsTrainOps):
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
 
-class DistributedDiscreteMADDPG(MultiTrainer):
-    def __init__(self, name: str, params: MADDPGParams) -> None:
-        super(DistributedDiscreteMADDPG, self).__init__(name, params)
+class DiscreteMADDPG(MultiTrainer):
+    def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
+        super(DiscreteMADDPG, self).__init__(name, params)
 
         self._params = params
 

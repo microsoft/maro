@@ -38,7 +38,7 @@ def coroutine(func) -> Callable:
     return func if asyncio.iscoroutinefunction(func) else coroutine_wrapper
 
 
-def remote_method(obj_name, func_name: str, dispatcher_address) -> Callable:
+def remote_method(obj_name: str, func_name: str, dispatcher_address) -> Callable:
     async def remote_call(*args, **kwargs) -> object:
         req = {"func": func_name, "args": args, "kwargs": kwargs}
         context = Context.instance()

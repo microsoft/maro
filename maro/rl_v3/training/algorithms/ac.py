@@ -10,11 +10,8 @@ import torch
 
 from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.training.replay_memory import FIFOReplayMemory
-from maro.rl_v3.training.train_ops import AbsTrainOps
-from maro.rl_v3.training.trainer import SingleTrainer, TrainerParams
-from maro.rl_v3.utils import AbsTransitionBatch, ndarray_to_tensor, TransitionBatch
-from maro.rl_v3.utils.trajectory_computation import discount_cumsum
+from maro.rl_v3.training import AbsTrainOps, FIFOReplayMemory, SingleTrainer, TrainerParams
+from maro.rl_v3.utils import AbsTransitionBatch, TransitionBatch, discount_cumsum, ndarray_to_tensor
 
 
 @dataclass

@@ -5,7 +5,7 @@ import numpy as np
 import scipy.signal
 
 
-def discount_cumsum(x, discount):
+def discount_cumsum(x, discount) -> np.ndarray:
     """
     Magic from rllab for computing discounted cumulative sums of vectors.
 
