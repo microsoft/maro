@@ -4,7 +4,6 @@ from torch import nn
 from torch.optim import Adam
 from torch.nn import NLLLoss
 
-
 SLEEP = 5
 
 

@@ -1,5 +1,4 @@
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.policy_trainer import DistributedDiscreteMADDPG
 from maro.rl_v3.workflow import preprocess_get_policy_func_dict
 
 from .config import algorithm, running_mode
@@ -11,22 +10,20 @@ ac_conf = {
 }
 
 # #####################################################################################################################
-if algorithm == "discrete_maddpg":
-    get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
-            name=name, policy_net=MyActorNet()) for i in range(4)
+if algorithm == "discretemaddpg":
+    train_param = {"device": "cpu", "get_q_critic_net_func": lambda: MyMultiCriticNet(), **ac_conf}
+    trainer_param_dict = {
+        f"{algorithm}_{i}": train_param
+        for i in range(4)
     }
-    get_trainer_func_dict = {
-        f"{algorithm}.{i}_trainer": lambda name: DistributedDiscreteMADDPG(
-            name=name, get_q_critic_net_func=lambda: MyMultiCriticNet(), device="cpu", **ac_conf
-        ) for i in range(4)
+
+    get_policy_func = lambda name: DiscretePolicyGradient(name=name, policy_net=MyActorNet())
+    get_policy_func_dict = {
+        f"{algorithm}_{i}.{i}": get_policy_func
+        for i in range(4)
     }
 else:
     raise ValueError
-
-policy2trainer = {
-    f"{algorithm}.{i}": f"{algorithm}.{i}_trainer" for i in range(4)
-}
 # #####################################################################################################################
 
 get_policy_func_dict = preprocess_get_policy_func_dict(

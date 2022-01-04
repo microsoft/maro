@@ -1,8 +1,7 @@
 import torch
 
-from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
+from maro.rl.exploration import epsilon_greedy, MultiLinearExplorationScheduler
 from maro.rl_v3.policy import DiscretePolicyGradient, ValueBasedPolicy
-from maro.rl_v3.policy_trainer import DQN, DiscreteActorCritic
 from maro.rl_v3.workflow import preprocess_get_policy_func_dict
 
 from .config import algorithm, running_mode
@@ -40,29 +39,31 @@ ac_conf = {
 
 # #####################################################################################################################
 if algorithm == "dqn":
-    get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: ValueBasedPolicy(
-            name=name, q_net=MyQNet(), **dqn_policy_conf) for i in range(4)
+    train_param = {"device": "cpu", **dqn_conf}
+    trainer_param_dict = {
+        f"{algorithm}_{i}": train_param
+        for i in range(4)
     }
-    get_trainer_func_dict = {
-        f"{algorithm}.{i}_trainer": lambda name: DQN(name=name, device="cpu", **dqn_conf) for i in range(4)
+
+    get_policy_func = lambda name: ValueBasedPolicy(name=name, q_net=MyQNet(), **dqn_policy_conf)
+    get_policy_func_dict = {
+        f"{algorithm}_{i}.{i}": get_policy_func
+        for i in range(4)
     }
 elif algorithm == "ac":
-    get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
-            name=name, policy_net=MyActorNet()) for i in range(4)
+    train_param = {"device": "cpu", "get_v_critic_net_func": lambda: MyCriticNet(), **ac_conf}
+    trainer_param_dict = {
+        f"{algorithm}_{i}": train_param
+        for i in range(4)
     }
-    get_trainer_func_dict = {
-        f"{algorithm}.{i}_trainer": lambda name: DiscreteActorCritic(
-            name=name, device="cpu", get_v_critic_net_func=lambda: MyCriticNet(), **ac_conf
-        ) for i in range(4)
+
+    get_policy_func = lambda name: DiscretePolicyGradient(name=name, policy_net=MyActorNet())
+    get_policy_func_dict = {
+        f"{algorithm}_{i}.{i}": get_policy_func
+        for i in range(4)
     }
 else:
     raise ValueError
-
-policy2trainer = {
-    f"{algorithm}.{i}": f"{algorithm}.{i}_trainer" for i in range(4)
-}
 # #####################################################################################################################
 
 get_policy_func_dict = preprocess_get_policy_func_dict(

@@ -2,8 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import torch
 
-from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
-
+from maro.rl_v3.utils import match_shape, SHAPE_CHECK_FLAG
 from .abs_net import AbsNet
 
 

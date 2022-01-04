@@ -5,5 +5,5 @@ from .discrete_rl_policy import DiscretePolicyGradient, DiscreteRLPolicy, ValueB
 __all__ = [
     "AbsPolicy", "DummyPolicy", "RLPolicy", "RuleBasedPolicy",
     "ContinuousRLPolicy",
-    "DiscretePolicyGradient", "DiscreteRLPolicy", "ValueBasedPolicy"
+    "DiscretePolicyGradient", "DiscreteRLPolicy", "ValueBasedPolicy",
 ]

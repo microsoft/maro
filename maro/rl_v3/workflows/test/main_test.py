@@ -3,11 +3,11 @@ import time
 
 import torch
 
-from maro.rl_v3.distributed.remote_ops import RemoteOps
-from maro.rl_v3.policy_trainer.abs_trainer import BatchTrainer
+from maro.rl_v3.training.trainer import BatchTrainer
+from maro.rl_v3.utils.distributed import RemoteObj, CoroutineAdapter
 from maro.rl_v3.workflows.test.ops_creator import ops_creator
 
-DISPATCHER_ADDRESS = ("127.0.0.1", 10000)
+DISPATCHER_ADDRESS = None # ("127.0.0.1", 10000)
 
 
 class SingleTrainer:
@@ -15,19 +15,16 @@ class SingleTrainer:
         self.name = name
         ops_name = [name for name in ops_creator if name.startswith(f"{self.name}.")].pop()
         if DISPATCHER_ADDRESS:
-            self._ops = RemoteOps(ops_name, DISPATCHER_ADDRESS)
+            self._ops = RemoteObj(ops_name, DISPATCHER_ADDRESS)
         else:
-            self._ops = ops_creator[ops_name](ops_name)
+            self._ops = CoroutineAdapter(ops_creator[ops_name](ops_name))
         self._data = None
 
     def load_data(self, data):
         self._data = data
 
     async def train_step(self):
-        if asyncio.iscoroutinefunction(self._ops.step):
-            await asyncio.gather(self._ops.step(self._data[0], self._data[1]))
-        else:
-            self._ops.step(self._data[0], self._data[1])
+        await asyncio.gather(self._ops.step(self._data[0], self._data[1]))
 
 
 class MultiTrainer:
@@ -35,9 +32,9 @@ class MultiTrainer:
         self.name = name
         ops_names = [name for name in ops_creator if name.startswith(f"{self.name}.")]
         if DISPATCHER_ADDRESS:
-            self._ops_list = [RemoteOps(ops_name, DISPATCHER_ADDRESS) for ops_name in ops_names]
+            self._ops_list = [RemoteObj(ops_name, DISPATCHER_ADDRESS) for ops_name in ops_names]
         else:
-            self._ops_list = [ops_creator[ops_name](ops_name) for ops_name in ops_names]
+            self._ops_list = [CoroutineAdapter(ops_creator[ops_name](ops_name)) for ops_name in ops_names]
         self._data = None
 
     def load_data(self, data):
@@ -45,11 +42,7 @@ class MultiTrainer:
 
     async def train_step(self):
         for _ in range(3):
-            await self.parallelize("step", self._data[0], self._data[1])
-
-    async def parallelize(self, ops_func_name: str, *args, **kwargs):
-        ret = [getattr(ops, ops_func_name)(*args, **kwargs) for ops in self._ops_list]
-        return await asyncio.gather(*ret) if isinstance(self._ops_list[0], RemoteOps) else ret
+            await asyncio.gather(*[ops.step(self._data[0], self._data[1]) for ops in self._ops_list])
 
 
 single_trainer = SingleTrainer("single", ops_creator)

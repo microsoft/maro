@@ -5,7 +5,7 @@ import os
 import time
 
 from maro.rl_v3.learning.helpers import get_rollout_finish_msg
-from maro.rl_v3.policy_trainer.abs_trainer import BatchTrainer
+from maro.rl_v3.training.trainer import BatchTrainer
 from maro.rl_v3.utils.common import from_env, get_eval_schedule, get_logger, get_module
 
 

@@ -1,25 +1,41 @@
-from typing import Callable, Dict, List, Tuple
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# TODO: DDPG has net been tested in a real test case
+
+from dataclasses import dataclass
+from typing import Callable, Dict, List
 
 import torch
 
-from maro.rl_v3.distributed.remote_ops import RemoteOps
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
-from maro.rl_v3.replay_memory import RandomReplayMemory
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl_v3.utils.distributed import CoroutineWrapper
 from maro.utils import clone
 
-from .abs_train_ops import SingleTrainOps
-from .abs_trainer import SingleTrainer
+from ..abs_train_ops import AbsTrainOps
+from ..trainer import SingleTrainer, TrainerParams
+from ..replay_memory import RandomReplayMemory
 
 
-class DDPGTrainOps(SingleTrainOps):
+@dataclass
+class DDPGParams(TrainerParams):
+    reward_discount: float = 0.9
+    num_epochs: int = 1
+    update_target_every: int = 5
+    q_value_loss_cls: Callable = None
+    soft_update_coef: float = 1.0
+    critic_loss_coef: float = 0.1
+    random_overwrite: bool = False
+
+
+class DDPGOps(AbsTrainOps):
     def __init__(
         self,
-        name: str,
-        policy: ContinuousRLPolicy,
-        q_critic_net: QNet,
-        device: torch.device,
+        device: str,
+        get_policy_func: Callable[[], ContinuousRLPolicy],
+        get_q_critic_net_func: Callable[[], QNet],
         enable_data_parallelism: bool = False,
         *,
         reward_discount: float,
@@ -27,15 +43,20 @@ class DDPGTrainOps(SingleTrainOps):
         soft_update_coef: float = 1.0,
         critic_loss_coef: float = 0.1
     ) -> None:
-        assert isinstance(policy, ContinuousRLPolicy)
-        super(DDPGTrainOps, self).__init__(name, device, enable_data_parallelism)
+        super(DDPGOps, self).__init__(
+            device=device,
+            is_single_scenario=True,
+            get_policy_func=get_policy_func,
+            enable_data_parallelism=enable_data_parallelism
+        )
 
-        self.policy = policy
+        assert isinstance(self._policy, ContinuousRLPolicy)
+
         self._target_policy = clone(self._policy)
-        self._target_policy.set_name(f"target_{policy.name}")
+        self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
         self._target_policy.to_device(self._device)
-        self._q_critic_net = self._get_q_critic_net_func()
+        self._q_critic_net = get_q_critic_net_func()
         self._q_critic_net.to(self._device)
         self._target_q_critic_net: QNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
@@ -52,8 +73,7 @@ class DDPGTrainOps(SingleTrainOps):
         tensor_dict: Dict[str, object] = None,
         scope: str = "all"
     ) -> Dict[str, Dict[str, torch.Tensor]]:
-        """
-        Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
+        """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
         """
 
         assert scope in ("all", "actor", "critic"), \
@@ -121,7 +141,7 @@ class DDPGTrainOps(SingleTrainOps):
         self._policy.train()
         self._policy.apply_gradients(grad_dict["actor_grad"])
 
-    def get_ops_state_dict(self, scope: str = "all") -> dict:
+    def get_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_policy_state()
@@ -131,7 +151,7 @@ class DDPGTrainOps(SingleTrainOps):
             ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
         return ret_dict
 
-    def set_ops_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
             self._policy.set_policy_state(ops_state_dict["policy_state"])
             self._target_policy.set_policy_state(ops_state_dict["target_policy_state"])
@@ -152,73 +172,73 @@ class DDPG(SingleTrainer):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 
     Args:
-        name (str): Unique identifier for the policy.
-        get_q_critic_net_func (Callable[[], QNet]): Function to get Q critic net.
-        reward_discount (float): Reward decay as defined in standard RL terminology.
-        q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
-            the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        policy (DiscretePolicyGradient): The policy to be trained.
-        random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
-            overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
-            wrap-around. Defaults to False.
-        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
-        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
-        update_target_every (int): Number of training rounds between policy target model updates.
-        soft_update_coef (float): Soft update coefficient, e.g., target_model = (soft_update_coef) * eval_model +
-            (1-soft_update_coef) * target_model. Defaults to 1.0.
-        train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
-        critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 1.0.
+        name (str): Unique identifier for the trainer.
+        get_policy_func_dict (Dict[str, Callable[[str], DiscretePolicyGradient]]): Dict of functions that used to
+            create policies.
         device (str): Identifier for the torch device. The policy will be moved to the specified device. If it is
             None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
         enable_data_parallelism (bool): Whether to enable data parallelism in this trainer. Defaults to False.
+        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
+        random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
+            overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
+            wrap-around. Defaults to False.
+        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
+        update_target_every (int): Number of training rounds between policy target model updates.
+
+        reward_discount (float): Reward decay as defined in standard RL terminology.
+        q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
+            the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
+        soft_update_coef (float): Soft update coefficient, e.g., target_model = (soft_update_coef) * eval_model +
+            (1-soft_update_coef) * target_model. Defaults to 1.0.
+        critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
     """
 
     def __init__(
         self,
         name: str,
-        ops_creator: Dict[str, Callable],
-        dispatcher_address: Tuple[str, int] = None,
-        *,
-        state_dim: int,
-        action_dim: int,
-        replay_memory_size: int = 10000,
-        random_overwrite: bool = False,
-        num_epochs: int = 1,
-        update_target_every: int = 5,
-        train_batch_size: int = 32,
+        get_policy_func_dict: Dict[str, Callable[[str], ContinuousRLPolicy]],
+        get_q_critic_net_func: Callable[[], QNet],
+        params: DDPGParams,
         device: str = None,
         enable_data_parallelism: bool = False
     ) -> None:
-        super(DDPG, self).__init__(
-            name, ops_creator,
-            dispatcher_address=dispatcher_address,
-            device=device,
-            enable_data_parallelism=enable_data_parallelism,
-            train_batch_size=train_batch_size
-        )
+        super(DDPG, self).__init__(name, get_policy_func_dict, params, params)
 
-        self._num_epochs = num_epochs
+        self._num_epochs = params.num_epochs
         self._policy_version = self._target_policy_version = 0
-        self._update_target_every = update_target_every
+        self._update_target_every = params.update_target_every
 
+        self._replay_memory_capacity = params.replay_memory_capacity
+        self._random_overwrite = params.random_overwrite
+
+        self._ops_params = {
+            "device": device,
+            "get_policy_func": self._get_policy_func,
+            "get_q_critic_net_func": get_q_critic_net_func,
+            "enable_data_parallelism": enable_data_parallelism,
+            "reward_discount": params.reward_discount,
+            "q_value_loss_cls": params.q_value_loss_cls,
+            "soft_update_coef": params.soft_update_coef,
+            "critic_loss_coef": params.critic_loss_coef,
+        }
+
+    def creator_local_ops(self, name: str = None) -> Dict[str, Callable[[str], AbsTrainOps]]:
+        return DDPGOps(**self._ops_params)
+
+    def build(self) -> None:
+        self._ops = CoroutineWrapper(self.create_local_ops())
         self._replay_memory = RandomReplayMemory(
-            replay_memory_size, state_dim, action_dim, random_overwrite=random_overwrite
+            capacity=self._replay_memory_capacity,
+            state_dim=self._ops.policy_state_dim,
+            action_dim=self._ops.policy_action_dim,
+            random_overwrite=self._random_overwrite
         )
 
     async def train_step(self) -> None:
-        if isinstance(self._ops, RemoteOps):
-            for _ in range(self._num_epochs):
-                await self._ops.set_batch(self._get_batch())
-                await self._ops.update()
-                self._policy_version += 1
-                if self._policy_version - self._target_policy_version == self._update_target_every:
-                    await self._ops.soft_update_target()
-                    self._target_policy_version = self._policy_version
-        else:
-            for _ in range(self._num_epochs):
-                self._ops.set_batch(self._get_batch())
-                self._ops.update()
-                self._policy_version += 1
-                if self._policy_version - self._target_policy_version == self._update_target_every:
-                    self._ops.soft_update_target()
-                    self._target_policy_version = self._policy_version
+        for _ in range(self._num_epochs):
+            await self._ops.set_batch(self._get_batch())
+            await self._ops.update()
+            self._policy_version += 1
+            if self._policy_version - self._target_policy_version == self._update_target_every:
+                await self._ops.soft_update_target()
+                self._target_policy_version = self._policy_version

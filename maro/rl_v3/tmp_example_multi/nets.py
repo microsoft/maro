@@ -4,7 +4,8 @@ import torch
 from torch.optim import Adam, RMSprop
 
 from maro.rl_v3.model import DiscretePolicyNet, FullyConnected, MultiQNet
-from maro.rl_v3.tmp_example_multi.config import action_shaping_conf, state_dim
+
+from .config import action_shaping_conf, state_dim
 
 actor_net_conf = {
     "input_dim": state_dim,

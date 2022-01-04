@@ -5,7 +5,7 @@ from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
-from maro.rl_v3.distributed.utils import bytes_to_pyobj, string_to_bytes
+from maro.rl_v3.utils.distributed import bytes_to_pyobj, string_to_bytes
 
 
 class Dispatcher(object):

@@ -64,9 +64,3 @@ def get_log_path(dir: str, job_name: str) -> str:
 
 def get_logger(dir: str, job_name: str, tag: str) -> Logger:
     return Logger(tag, dump_path=get_log_path(dir, job_name), dump_mode="a")
-
-
-def get_checkpoint_path(dir: str = None) -> str:
-    if dir:
-        os.makedirs(dir, exist_ok=True)
-    return dir
