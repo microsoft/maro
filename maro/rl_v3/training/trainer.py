@@ -4,47 +4,53 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
-from maro.rl_v3.utils.distributed import RemoteObj
+from maro.rl_v3.utils.distributed import CoroutineWrapper, RemoteObj
 
 from .replay_memory import MultiReplayMemory, ReplayMemory
+from .train_ops import AbsTrainOps
+from .utils import extract_trainer_name
 
 
 @dataclass
 class TrainerParams:
+    device: str = None
+    enable_data_parallelism: bool = False
     replay_memory_capacity: int = 10000
     batch_size: int = 128
+
+    @abstractmethod
+    def extract_ops_params(self) -> Dict[str, object]:
+        raise NotImplementedError
 
 
 class AbsTrainer(object, metaclass=ABCMeta):
     """Policy trainer used to train policies. Trainer maintains several train ops and
     controls training logics of them, while train ops take charge of specific policy updating.
     """
-    def __init__(
-        self,
-        name: str,
-        get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        params: TrainerParams,
-    ) -> None:
-        """
-        Args:
-            name (str): Name of the trainer.
-            get_policy_func_dict (Dict[str, Callable[[str], RLPolicy]]): Dict of functions that used to create policies.
-        """
+    def __init__(self, name: str, params: TrainerParams) -> None:
         self._name = name
-        self._get_policy_func_dict = get_policy_func_dict
-        self._params = params
-        print(f"Creating trainer {self.__class__.__name__} {name}.")
+        self._batch_size = params.batch_size
+
+        self._dispatcher_address: Optional[Tuple[str, int]] = None
+        print(f"Creating trainer {self.__class__.__name__} {self._name}.")
 
     @property
     def name(self) -> str:
         return self._name
 
     @abstractmethod
-    def train_step(self) -> None:
+    def register_get_policy_func_dict(
+        self,
+        global_get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]]
+    ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def train_step(self) -> None:
         """Run a training step to update all the policies that this trainer is responsible for.
         """
         raise NotImplementedError
@@ -68,35 +74,48 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def local(self) -> None:
-        # Create necessary ops for local training
+    def build(self) -> None:
         raise NotImplementedError
+
+    def set_dispatch_address(self, dispatcher_address: Tuple[str, int]) -> None:
+        self._dispatcher_address = dispatcher_address
 
     @abstractmethod
-    def create_local_ops(self, name: str = None):
+    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         raise NotImplementedError
 
-    def remote(self, dispatcher_address: Tuple[str, int]):
-        pass
+    def get_ops(self, ops_name: str) -> Union[RemoteObj, CoroutineWrapper]:
+        if self._dispatcher_address:
+            return RemoteObj(ops_name, self._dispatcher_address)
+        else:
+            return CoroutineWrapper(self._get_local_ops_by_name(ops_name))
 
 
 class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
-    """Policy trainer that trains only one policy."""
-    def __init__(
+    """Policy trainer that trains only one policy.
+    """
+    def __init__(self, name: str, params: TrainerParams) -> None:
+        super(SingleTrainer, self).__init__(name, params)
+
+        self._ops: Union[RemoteObj, CoroutineWrapper, None] = None  # To be created in `build()`
+        self._replay_memory: Optional[ReplayMemory] = None  # To be created in `build()`
+
+    def register_get_policy_func_dict(
         self,
-        name: str,
-        get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        params: TrainerParams
+        global_get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]]
     ) -> None:
-        if len(get_policy_func_dict) > 1:
-            raise ValueError(f"trainer {self._name} cannot have more than one policy assigned to it")
+        self._get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]] = {
+            policy_name: func for policy_name, func in global_get_policy_func_dict.items()
+            if extract_trainer_name(policy_name) == self.name
+        }
 
-        super(SingleTrainer, self).__init__(name, get_policy_func_dict, params)
+        if len(self._get_policy_func_dict) == 0:
+            raise ValueError(f"Trainer {self._name} has no policies")
+        if len(self._get_policy_func_dict) > 1:
+            raise ValueError(f"Trainer {self._name} cannot have more than one policy assigned to it")
 
-        self._replay_memory: Optional[ReplayMemory] = None
-        self._policy_name = list(get_policy_func_dict.keys())[0]
-        self._get_policy_func = get_policy_func_dict[self._policy_name]
-        self._ops = None
+        self._policy_name = list(self._get_policy_func_dict.keys())[0]
+        self._get_policy_func = lambda: self._get_policy_func_dict[self._policy_name](self._policy_name)
 
     def record(self, transition_batch: TransitionBatch) -> None:
         """Record the experiences collected by external modules.
@@ -108,7 +127,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._replay_memory.put(transition_batch)
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
-        return self._replay_memory.sample(batch_size if batch_size is not None else self._params.batch_size)
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def get_policy_state_dict(self) -> Dict[str, object]:
         if not self._ops:
@@ -121,25 +140,25 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         assert len(policy_state_dict) == 1 and self._ops.policy_name in policy_state_dict
         self._ops.set_policy_state(policy_state_dict[self._ops.policy_name])
 
-    def remote(self, dispatcher_address: Tuple[str, int]):
-        self._ops = RemoteObj(f"{self._policy_name}_ops", dispatcher_address)
-
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies.
     """
-    def __init__(
-        self,
-        name: str,
-        get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        params: TrainerParams
-    ) -> None:
-        super(MultiTrainer, self).__init__(name, get_policy_func_dict, params)
+    def __init__(self, name: str, params: TrainerParams) -> None:
+        super(MultiTrainer, self).__init__(name, params)
 
-        self._get_policy_func_dict = get_policy_func_dict
-        self._replay_memory: Optional[MultiReplayMemory] = None
-        self._policy_names = sorted(list(get_policy_func_dict.keys()))
-        self._ops_dict = {}
+        self._ops_dict: Dict[str, Union[RemoteObj, CoroutineWrapper]] = {}  # To be created in `build()`
+        self._replay_memory: Optional[MultiReplayMemory] = None  # To be created in `build()`
+
+    def register_get_policy_func_dict(
+        self,
+        global_get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]]
+    ) -> None:
+        self._get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]] = {
+            policy_name: func for policy_name, func in global_get_policy_func_dict.items()
+            if extract_trainer_name(policy_name) == self.name
+        }
+        self._policy_names = sorted(list(self._get_policy_func_dict.keys()))
 
     @property
     def num_policies(self) -> int:
@@ -154,13 +173,13 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         self._replay_memory.put(transition_batch)
 
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
-        return self._replay_memory.sample(batch_size if batch_size is not None else self._params.batch_size)
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def get_policy_state_dict(self) -> Dict[str, object]:
         if len(self._ops_dict) == 0:
             raise ValueError("'create_ops' needs to be called to create an ops instance first.")
 
-        return {name: ops.get_policy_state() for name, ops in self._ops_dict}
+        return {name: ops.get_policy_state() for name, ops in self._ops_dict.items()}
 
     def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
         if len(self._ops_dict) == 0:
@@ -169,9 +188,6 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         assert len(policy_state_dict) == len(self._ops_dict)
         for ops in self._ops_dict.values():
             ops.set_policy_state(policy_state_dict[ops.policy_name])
-
-    def remote(self, dispatcher_address: Tuple[str, int]):
-        self._ops_dict = {f"{name}_ops": RemoteObj(name, dispatcher_address) for name in self._get_policy_func_dict}
 
 
 class BatchTrainer:

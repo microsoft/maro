@@ -5,7 +5,7 @@ import asyncio
 import inspect
 import pickle
 from functools import wraps
-from typing import Tuple
+from typing import Callable, Tuple
 
 import zmq
 from zmq.asyncio import Context
@@ -30,7 +30,7 @@ def bytes_to_pyobj(bytes_: bytes) -> object:
     return pickle.loads(bytes_)
 
 
-def coroutine(func):
+def coroutine(func) -> Callable:
     """Wrap a synchronous callable to allow ``await``'ing it"""
     @wraps(func)
     async def coroutine_wrapper(*args, **kwargs):
@@ -38,8 +38,8 @@ def coroutine(func):
     return func if asyncio.iscoroutinefunction(func) else coroutine_wrapper
 
 
-def remote_method(obj_name, func_name: str, dispatcher_address):
-    async def remote_call(*args, **kwargs):
+def remote_method(obj_name, func_name: str, dispatcher_address) -> Callable:
+    async def remote_call(*args, **kwargs) -> object:
         req = {"func": func_name, "args": args, "kwargs": kwargs}
         context = Context.instance()
         sock = context.socket(zmq.REQ)
@@ -56,23 +56,22 @@ def remote_method(obj_name, func_name: str, dispatcher_address):
 
 
 class RemoteObj(object):
-    def __init__(self, name, dispatcher_address: Tuple[str, int]):
+    def __init__(self, name: str, dispatcher_address: Tuple[str, int]) -> None:
         self._name = name
-        # self._functions = {name for name, _ in inspect.getmembers(train_op_cls, lambda attr: inspect.isfunction(attr))}
         host, port = dispatcher_address
         self._dispatcher_address = f"tcp://{host}:{port}"
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
-    def __getattribute__(self, attr_name: str):
+    def __getattribute__(self, attr_name: str) -> object:
         # Ignore methods that belong to the parent class
         try:
             return super().__getattribute__(attr_name)
         except AttributeError:
             pass
-        
+
         if attr_name == "name":
             return getattr(self, attr_name)
 
@@ -80,10 +79,10 @@ class RemoteObj(object):
 
 
 class CoroutineWrapper(object):
-    def __init__(self, obj: object):
+    def __init__(self, obj: object) -> None:
         self._obj = obj
 
-    def __getattribute__(self, attr_name: str):
+    def __getattribute__(self, attr_name: str) -> object:
         # Ignore methods that belong to the parent class
         try:
             return super().__getattribute__(attr_name)

@@ -11,7 +11,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils.distributed import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
 
-from .abs_train_ops import AbsTrainOps
+from .train_ops import AbsTrainOps
 from .trainer import AbsTrainer
 
 

@@ -11,16 +11,16 @@ import torch
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
-from maro.rl_v3.utils.distributed import CoroutineWrapper, RemoteObj
+from maro.rl_v3.utils.distributed import RemoteObj
 from maro.utils import clone
-
-from ..abs_train_ops import AbsTrainOps
-from ..trainer import MultiTrainer, TrainerParams
 from ..replay_memory import RandomMultiReplayMemory
+from ..train_ops import AbsTrainOps
+from ..trainer import MultiTrainer, TrainerParams
 
 
 @dataclass
 class MADDPGParams(TrainerParams):
+    get_q_critic_net_func: Callable[[], MultiQNet] = None
     num_epoch: int = 10
     update_target_every: int = 5
     soft_update_coef: float = 0.5
@@ -29,77 +29,21 @@ class MADDPGParams(TrainerParams):
     critic_loss_coef: float = 1.0
     shared_critic: bool = False
 
+    def __post_init__(self) -> None:
+        assert self.get_q_critic_net_func is not None
 
-class DiscreteMADDPGSharedCriticOps(AbsTrainOps):
-    def __init__(
-        self,
-        device: str,
-        get_q_critic_net_func: Callable[[], MultiQNet],
-        agent_idx: int,
-        enable_data_parallelism: bool = False,
-        *,
-        shared_critic: bool = False,
-        reward_discount: float = 0.9,
-        critic_loss_coef: float = 1.0,
-        soft_update_coef: float = 0.5,
-        update_target_every: int = 5,
-        q_value_loss_func: Callable = None,
-    ) -> None:
-        super(DiscreteMADDPGOps, self).__init__(
-            device=device,
-            is_single_scenario=False,
-            enable_data_parallelism=enable_data_parallelism
-        )
-
-        assert isinstance(self._policy, DiscretePolicyGradient)
-
-        self._agent_idx = agent_idx
-        self._shared_critic = shared_critic
-
-        # Critic
-        self._q_critic_net: MultiQNet = get_q_critic_net_func()
-        self._q_critic_net.to(self._device)
-        self._target_q_critic_net: MultiQNet = clone(self._q_critic_net)
-        self._target_q_critic_net.eval()
-        self._target_q_critic_net.to(self._device)
-
-        #
-        self._reward_discount = reward_discount
-        self._critic_loss_coef = critic_loss_coef
-        self._q_value_loss_func = q_value_loss_func
-        self._update_target_every = update_target_every
-        self._soft_update_coef = soft_update_coef
-
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "critic_state": self._q_critic_net.get_net_state(),
-            "target_critic_state": self._target_q_critic_net.get_net_state()
+            "device": self.device,
+            "enable_data_parallelism": self.enable_data_parallelism,
+            "get_q_critic_net_func": self.get_q_critic_net_func,
+            "shared_critic": self.shared_critic,
+            "reward_discount": self.reward_discount,
+            "critic_loss_coef": self.critic_loss_coef,
+            "soft_update_coef": self.soft_update_coef,
+            "update_target_every": self.update_target_every,
+            "q_value_loss_func": self.q_value_loss_cls() if self.q_value_loss_cls is not None else torch.nn.MSELoss(),
         }
-
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
-        self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
-        self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
-
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
-        raise NotImplementedError
-
-    def _dispatch_batch(self, batch: MultiTransitionBatch, num_ops: int) -> List[MultiTransitionBatch]:
-        # batch_size = batch.states.shape[0]
-        # assert batch_size >= num_ops, \
-        #     f"Batch size should be greater than or equal to num_ops, but got {batch_size} and {num_ops}."
-        # sub_batch_indexes = [range(batch_size)[i::num_ops] for i in range(num_ops)]
-        # sub_batches = [MultiTransitionBatch(
-        #     policy_names=[],
-        #     states=batch.states[indexes],
-        #     actions=[action[indexes] for action in batch.actions],
-        #     rewards=[reward[indexes] for reward in batch.rewards],
-        #     terminals=batch.terminals[indexes],
-        #     next_states=batch.next_states[indexes],
-        #     agent_states=[state[indexes] for state in batch.agent_states],
-        #     next_agent_states=[state[indexes] for state in batch.next_agent_states]
-        # ) for indexes in sub_batch_indexes]
-        # return sub_batches
-        raise NotImplementedError
 
 
 class DiscreteMADDPGOps(AbsTrainOps):
@@ -109,6 +53,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_q_critic_net_func: Callable[[], MultiQNet],
         agent_idx: int,
+        create_actor: bool,
         enable_data_parallelism: bool = False,
         *,
         shared_critic: bool = False,
@@ -125,16 +70,20 @@ class DiscreteMADDPGOps(AbsTrainOps):
             enable_data_parallelism=enable_data_parallelism
         )
 
-        assert isinstance(self._policy, DiscretePolicyGradient)
-
         self._agent_idx = agent_idx
         self._shared_critic = shared_critic
 
         # Actor
-        self._target_policy: DiscretePolicyGradient = clone(self._policy)
-        self._target_policy.set_name(f"target_{self._policy.name}")
-        self._target_policy.eval()
-        self._target_policy.to_device(self._device)
+        self._create_actor = create_actor
+        if create_actor:
+            self._policy = get_policy_func()
+            assert isinstance(self._policy, DiscretePolicyGradient)
+
+            self._policy.to_device(self._device)
+            self._target_policy: DiscretePolicyGradient = clone(self._policy)
+            self._target_policy.set_name(f"target_{self._policy.name}")
+            self._target_policy.eval()
+            self._target_policy.to_device(self._device)
 
         # Critic
         self._q_critic_net: MultiQNet = get_q_critic_net_func()
@@ -306,56 +255,21 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._policy.apply_gradients(grads["actor_grads"])
 
     def soft_update_target(self) -> None:
-        self._target_policy.soft_update(self._policy, self._soft_update_coef)
+        if self._create_actor:
+            self._target_policy.soft_update(self._policy, self._soft_update_coef)
         if not self._shared_critic:
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
 
 class DistributedDiscreteMADDPG(MultiTrainer):
-    def __init__(
-        self,
-        name: str,
-        get_policy_func_dict: Dict[str, Callable[[str], DiscretePolicyGradient]],
-        get_q_critic_net_func: Callable[[], MultiQNet],
-        params: MADDPGParams,
-        device: str = None,
-        enable_data_parallelism: bool = False
-    ) -> None:
-        super(DistributedDiscreteMADDPG, self).__init__(name, get_policy_func_dict, params)
+    def __init__(self, name: str, params: MADDPGParams) -> None:
+        super(DistributedDiscreteMADDPG, self).__init__(name, params)
 
-        self._policy_name_to_index = {name: i for i, name in enumerate(self._policy_names)}
-        self._critic_ops: Union[DiscreteMADDPGOps, RemoteObj, None] = None
-        self._replay_memory_capacity = params.replay_memory_capacity
-        self._shared_critic = params.shared_critic
+        self._params = params
 
-        self._state_dim = get_q_critic_net_func().state_dim
+        self._state_dim = params.get_q_critic_net_func().state_dim
 
-        self._num_epoch = params.num_epoch
-        self._update_target_every = params.update_target_every
         self._policy_version = self._target_policy_version = 0
-
-        self._ops_param = {
-            "device": device,
-            "get_q_critic_net_func": get_q_critic_net_func,
-            "enable_data_parallelism": enable_data_parallelism,
-            "shared_critic": params.shared_critic,
-            "reward_discount": params.reward_discount,
-            "critic_loss_coef": params.critic_loss_coef,
-            "soft_update_coef": params.soft_update_coef,
-            "update_target_every": params.update_target_every,
-            "q_value_loss_func": params.q_value_loss_cls() if params.q_value_loss_cls else torch.nn.MSELoss(),
-        }
-
-        self._ops_list = []
-
-    def remote(self, dispatcher_address: Tuple[str, int]):
-        super().remote(dispatcher_address)
-        if self._shared_critic and dispatcher_address:
-            self._critic_ops = RemoteObj(f"{self._name}.shared_critic", dispatcher_address)
-
-    def train_step(self) -> None:
-        for _ in range(self._num_epoch):
-            self._improve(self._get_batch())
 
     def _improve(self, batch: MultiTransitionBatch) -> None:
         for ops in self._ops_list:
@@ -367,7 +281,7 @@ class DistributedDiscreteMADDPG(MultiTrainer):
             next_actions.append(ops.get_target_action())
 
         # Update critic
-        if self._shared_critic:
+        if self._params.shared_critic:
             self._critic_ops.set_batch(batch)
             self._critic_ops.update_critic(next_actions=next_actions)
             critic_state_dict = self._critic_ops.get_state_dict(scope="critic")
@@ -405,57 +319,64 @@ class DistributedDiscreteMADDPG(MultiTrainer):
         for policy_name, ops in zip(self._policy_names, self._ops_list):
             ops.set_policy_state(policy_state_dict[policy_name])
 
-    def create_local_ops(self, name: str = None) -> Dict[str, Callable[[str], AbsTrainOps]]:
-        if name:
-            if name.endswith(".shared_critic"):
-                cur_ops_param = {
-                    "get_policy_func": lambda: self._get_policy_func_dict[name](name),
-                    "agent_idx": -1,
-                    **self._ops_param,
-                    "shared_critic": False
-                }
-                return DiscreteMADDPGOps(**cur_ops_param)
-
-            if name not in self._get_policy_func_dict:
-                raise ValueError(f"Expected a name in {list(self._get_policy_func_dict.keys())}, got {name}")
-            param = {
-                "get_policy_func": self._get_policy_func_dict[name],
-                "agent_idx": self._policy_name_to_index[name],
-                **self._ops_param
-            }
-            return DiscreteMADDPGOps(**param)
-        else:
-            pass
-
     def build(self) -> None:
         self._ops_list: List[Union[RemoteObj, AbsTrainOps]] = []
         for i, policy_name in enumerate(self._policy_names):
-            cur_ops_name = f"ops_{i}"
-            self._ops_list.append(CoroutineWrapper(self.create_local_ops(name=cur_ops_name)))
+            self._ops_list.append(self.get_ops(f"ops_{i}"))
+
+        if self._params.shared_critic:
+            self._critic_ops = self.get_ops("critic_ops")
 
         self._replay_memory = RandomMultiReplayMemory(
-            capacity=self._replay_memory_capacity,
+            capacity=self._params.replay_memory_capacity,
             state_dim=self._state_dim,
             action_dims=[ops.policy_action_dim for ops in self._ops_list],
             agent_states_dims=[ops.policy_state_dim for ops in self._ops_list]
         )
 
+    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+        if ops_name == "critic_ops":
+            cur_ops_params = {
+                "get_policy_func": None,
+                "agent_idx": -1,
+                **self._params.extract_ops_params(),
+                "shared_critic": False,
+                "create_actor": False,
+            }
+
+            return DiscreteMADDPGOps(**cur_ops_params)
+        else:
+            i = int(ops_name.split("_")[1])
+            policy_name = self._policy_names[i]
+
+            cur_ops_params = {
+                "get_policy_func": lambda: self._get_policy_func_dict[policy_name](policy_name),
+                "agent_idx": i,
+                **self._params.extract_ops_params(),
+                "create_actor": True,
+            }
+            return DiscreteMADDPGOps(**cur_ops_params)
+
     async def train_step(self):
-        for _ in range(self._num_epoch):
+        for _ in range(self._params.num_epoch):
             batch = self._get_batch()
             await asyncio.gather(*[ops.set_batch(batch) for ops in self._ops_list])
 
             # Collect next actions
             next_actions = await asyncio.gather(*[ops.get_target_action() for ops in self._ops_list])
+            assert isinstance(next_actions, list) and all(isinstance(action, torch.Tensor) for action in next_actions)
 
             # Update critic
-            if self._shared_critic:
+            if self._params.shared_critic:
                 await asyncio.gather(self._critic_ops.set_batch(batch))
                 await asyncio.gather(self._critic_ops.update_critic(next_actions))
                 critic_state_dict = await asyncio.gather(self._critic_ops.get_state_dict(scope="critic"))
+                assert isinstance(critic_state_dict, list) and len(critic_state_dict) == 1
 
                 # Sync latest critic to ops
-                await asyncio.gather(*[ops.set_state_dict(critic_state_dict, scope="critic") for ops in self._ops_list])
+                await asyncio.gather(*[
+                    ops.set_state_dict(critic_state_dict[0], scope="critic") for ops in self._ops_list
+                ])
             else:
                 await asyncio.gather(*[ops.update_critic(next_actions) for ops in self._ops_list])
 
@@ -464,13 +385,13 @@ class DistributedDiscreteMADDPG(MultiTrainer):
             await asyncio.gather(*[ops.update_actor(*info) for ops, info in zip(self._ops_list, latest_action_info)])
 
             # Update version
-            self._try_soft_update_target()
+            await self._try_soft_update_target()
 
     async def _try_soft_update_target(self) -> None:
         self._policy_version += 1
-        if self._policy_version - self._target_policy_version == self._update_target_every:
+        if self._policy_version - self._target_policy_version == self._params.update_target_every:
             parallel_updates = [ops.soft_update_target() for ops in self._ops_list]
-            if self._shared_critic:
+            if self._params.shared_critic:
                 parallel_updates.append(self._critic_ops.soft_update_target())
             await asyncio.gather(*parallel_updates)
             self._target_policy_version = self._policy_version

@@ -11,11 +11,8 @@ import numpy as np
 from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.training.trainer import AbsTrainer, MultiTrainer, SingleTrainer
+from maro.rl_v3.training.utils import extract_trainer_name
 from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
-
-
-def extract_trainer_name(policy_name: str) -> str:
-    return policy_name.split(".")[0]
 
 
 class AbsTrainerManager(object, metaclass=ABCMeta):
@@ -61,7 +58,7 @@ class SimpleTrainerManager(AbsTrainerManager):
     def __init__(
         self,
         get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        trainer_param_dict: Dict[str, tuple],
+        get_trainer_func_dict: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
         dispatcher_address: Tuple[str, int] = None
     ) -> None:
@@ -70,8 +67,8 @@ class SimpleTrainerManager(AbsTrainerManager):
 
         Args:
             get_policy_func_dict (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create policies.
+            get_trainer_func_dict (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions used to create trainers.
             agent2policy (Dict[str, str]): Agent name to policy name mapping.
-            policy2trainer (Dict[str, str]): Policy name to trainer name mapping.
             dispatcher_address (Tuple[str, int]): The address of the dispatcher. This is used under only distributed
                 model. Defaults to None.
         """
@@ -79,16 +76,13 @@ class SimpleTrainerManager(AbsTrainerManager):
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._trainers: List[AbsTrainer] = []
-        for trainer_name, (trainer_cls, params) in trainer_param_dict.items():
-            cur_get_policy_func_dict = {
-                policy_name: func for policy_name, func in get_policy_func_dict.items()
-                if extract_trainer_name(policy_name) == trainer_name
-            }
-            trainer = trainer_cls(trainer_name, cur_get_policy_func_dict, params)
-            if dispatcher_address:
-                trainer.remote(dispatcher_address)
-            else:
-                trainer.build()
+        for trainer_name, func in get_trainer_func_dict.items():
+            trainer = func(trainer_name)
+            if dispatcher_address is not None:
+                trainer.set_dispatch_address(dispatcher_address)
+            trainer.register_get_policy_func_dict(get_policy_func_dict)
+            trainer.build()
+
             self._trainer_dict[trainer_name] = trainer
             self._trainers.append(trainer)
 

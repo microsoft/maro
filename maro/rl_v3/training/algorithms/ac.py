@@ -3,31 +3,58 @@
 
 import asyncio
 from dataclasses import dataclass
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 import torch
 
 from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.utils import AbsTransitionBatch, TransitionBatch, ndarray_to_tensor
-from maro.rl_v3.utils.distributed import CoroutineWrapper
+from maro.rl_v3.training.replay_memory import FIFOReplayMemory
+from maro.rl_v3.training.train_ops import AbsTrainOps
+from maro.rl_v3.training.trainer import SingleTrainer, TrainerParams
+from maro.rl_v3.utils import AbsTransitionBatch, ndarray_to_tensor, TransitionBatch
 from maro.rl_v3.utils.trajectory_computation import discount_cumsum
-
-from ..abs_train_ops import AbsTrainOps
-from ..trainer import SingleTrainer, TrainerParams
-from ..replay_memory import FIFOReplayMemory
 
 
 @dataclass
 class DiscreteActorCriticParams(TrainerParams):
+    """
+    get_v_critic_net_func (Callable[[], VNet]): Function to get V critic net.
+    reward_discount (float): Reward decay as defined in standard RL terminology. Defaults to 0.9.
+    grad_iters (int): Number of iterations to calculate gradients. Defaults to 1.
+    critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
+    critic_loss_cls (Callable): Loss function. Defaults to "mse".
+    clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
+        in which case the actor loss is calculated using the usual policy gradient theorem.
+    lam (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
+    min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
+        very large in magnitude and causing stability issues. Defaults to None, which means no lower bound.
+    """
+    get_v_critic_net_func: Callable[[], VNet] = None
     reward_discount: float = 0.9
     grad_iters: int = 1
     critic_loss_coef: float = 0.1
     critic_loss_cls: Callable = None
     clip_ratio: float = None
     lam: float = 0.9
-    min_logp: float = None
+    min_logp: Optional[float] = None
+
+    def __post_init__(self) -> None:
+        assert self.get_v_critic_net_func is not None
+
+    def extract_ops_params(self) -> Dict[str, object]:
+        return {
+            "device": self.device,
+            "enable_data_parallelism": self.enable_data_parallelism,
+            "get_v_critic_net_func": self.get_v_critic_net_func,
+            "reward_discount": self.reward_discount,
+            "critic_loss_coef": self.critic_loss_coef,
+            "critic_loss_cls": self.critic_loss_cls,
+            "clip_ratio": self.clip_ratio,
+            "lam": self.lam,
+            "min_logp": self.min_logp,
+        }
 
 
 class DiscreteActorCriticOps(AbsTrainOps):
@@ -168,61 +195,30 @@ class DiscreteActorCritic(SingleTrainer):
     References:
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
-
-    Args:
-        name (str): Unique identifier for the trainer.
-        get_policy_func_dict (Dict[str, Callable[[str], DiscretePolicyGradient]]): Dict of functions that used to
-            create policies.
-        get_v_critic_net_func (Callable[[], VNet]): Function to get V critic net.
-        device (str): Identifier for the torch device. The policy will be moved to the specified device. If it is
-            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
-        enable_data_parallelism (bool): Whether to enable data parallelism in this trainer. Defaults to False.
-        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
-        grad_iters (int): Number of iterations to calculate gradients. Defaults to 1.
-
-        reward_discount (float): Reward decay as defined in standard RL terminology. Defaults to 0.9.
-        critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
-        critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
-            the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
-            in which case the actor loss is calculated using the usual policy gradient theorem.
-        lam (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
-        min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
-            very large in magnitude and causing stability issues. Defaults to None, which means no lower bound.
     """
-    def __init__(
-        self,
-        name: str,
-        get_policy_func_dict: Dict[str, Callable[[str], DiscretePolicyGradient]],
-        get_v_critic_net_func: Callable[[], VNet],
-        params: DiscreteActorCriticParams,
-        device: str = None,
-        enable_data_parallelism: bool = False
-    ) -> None:
-        super(DiscreteActorCritic, self).__init__(name, get_policy_func_dict, params)
-        self._ops_params = {
-            "device": device,
-            "get_policy_func": self._get_policy_func,
-            "get_v_critic_net_func": get_v_critic_net_func,
-            "enable_data_parallelism": enable_data_parallelism,
-            "reward_discount": self._params.reward_discount,
-            "critic_loss_coef": self._params.critic_loss_coef,
-            "critic_loss_cls": self._params.critic_loss_cls,
-            "clip_ratio": self._params.clip_ratio,
-            "lam": self._params.lam,
-            "min_logp": self._params.min_logp,
-        }
+    def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
+        super(DiscreteActorCritic, self).__init__(name, params)
 
-    def create_local_ops(self, name: str = None) -> Dict[str, Callable[[str], AbsTrainOps]]:
-        return DiscreteActorCriticOps(**self._ops_params)
+        self._params = params
 
     def build(self) -> None:
-        self._ops = CoroutineWrapper(self.create_local_ops())
+        self._ops_params = {
+            "get_policy_func": self._get_policy_func,
+            **self._params.extract_ops_params(),
+        }
+
+        self._ops = self.get_ops(f"{self.name}_ops")
         self._replay_memory = FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim
         )
+
+    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+        if ops_name == f"{self.name}_ops":
+            return DiscreteActorCriticOps(**self._ops_params)
+        else:
+            raise ValueError(f"Unknown ops name {ops_name}")
 
     async def train_step(self):
         await asyncio.gather(self._ops.set_batch(self._get_batch()))
