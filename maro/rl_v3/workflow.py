@@ -1,7 +1,8 @@
 import time
 from typing import Callable, Dict, List
 
-from maro.rl_v3.learning import AbsEnvSampler, AbsTrainerManager, ExpElement
+from maro.rl_v3.learning import AbsEnvSampler, ExpElement
+from maro.rl_v3.training.trainer_manager import AbsTrainerManager
 from maro.rl_v3.policy import RLPolicy
 
 

@@ -9,26 +9,27 @@ from maro.rl.utils import MsgKey, MsgTag
 from maro.rl.workflows.helpers import from_env, get_logger, get_scenario_module
 
 if __name__ == "__main__":
-    # TODO: WORKERID in docker compose script.
-    policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")
-    worker_id = f"GRAD_WORKER.{from_env('WORKERID')}"
-    num_hosts = from_env("NUMHOSTS") if from_env("POLICYMANAGERTYPE") == "distributed" else 0
+    # TODO: WORKER_ID in docker compose script.
+    policy_func_dict = getattr(get_scenario_module(from_env("SCENARIO_PATH")), "policy_func_dict")
+    worker_id = f"GRAD_WORKER.{from_env('WORKER_ID')}"
+    num_hosts = from_env("NUM_HOSTS") if from_env("POLICY_MANAGER_TYPE") == "distributed" else 0
     max_cached_policies = from_env("MAXCACHED", required=False, default=10)
 
-    group = from_env("POLICYGROUP", required=False, default="learn")
+    group = from_env("POLICY_GROUP", required=False, default="learn")
     policy_dict = {}
     active_policies = []
     if num_hosts == 0:
         # no remote nodes for policy hosts
         num_hosts = len(policy_func_dict)
 
+    logger = get_logger(from_env("LOG_PATH", required=False, default=os.getcwd()), from_env("JOB"), worker_id)
+
     peers = {"policy_manager": 1, "policy_host": num_hosts, "task_queue": 1}
     proxy = Proxy(
-        group, "grad_worker", peers, component_name=worker_id,
-        redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
+        group, "grad_worker", peers, component_name=worker_id, logger=logger,
+        redis_address=(from_env("REDIS_HOST"), from_env("REDIS_PORT")),
         max_peer_discovery_retries=50
     )
-    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), worker_id)
 
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:

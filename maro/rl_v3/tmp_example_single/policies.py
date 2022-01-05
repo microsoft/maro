@@ -2,7 +2,7 @@ import torch
 
 from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
 from maro.rl_v3.policy import DiscretePolicyGradient, ValueBasedPolicy
-from maro.rl_v3.policy_trainer import DQN, DiscreteActorCritic
+from maro.rl_v3.training.algorithms import DQN, DiscreteActorCritic, DiscreteActorCriticParams, DQNParams
 from maro.rl_v3.workflow import preprocess_get_policy_func_dict
 
 from .config import algorithm, running_mode
@@ -20,49 +20,70 @@ dqn_policy_conf = {
     )],
     "warmup": 100
 }
-dqn_conf = {
-    "reward_discount": .0,
-    "update_target_every": 5,
-    "num_epochs": 10,
-    "soft_update_coef": 0.1,
-    "double": False,
-    "replay_memory_capacity": 10000,
-    "random_overwrite": False,
-    "train_batch_size": 32
-}
-ac_conf = {
-    "reward_discount": .0,
-    "grad_iters": 10,
-    "critic_loss_cls": torch.nn.SmoothL1Loss,
-    "min_logp": None,
-    "lam": .0
-}
+dqn_params = DQNParams(
+    device="cpu",
+    reward_discount=.0,
+    update_target_every=5,
+    num_epochs=10,
+    soft_update_coef=0.1,
+    double=False,
+    replay_memory_capacity=10000,
+    random_overwrite=False,
+    batch_size=32,
+)
+ac_params = DiscreteActorCriticParams(
+    device="cpu",
+    get_v_critic_net_func=lambda: MyCriticNet(),
+    reward_discount=.0,
+    grad_iters=10,
+    critic_loss_cls=torch.nn.SmoothL1Loss,
+    min_logp=None,
+    lam=.0,
+)
+
 
 # #####################################################################################################################
+def get_value_based_policy(name: str) -> ValueBasedPolicy:
+    return ValueBasedPolicy(name=name, q_net=MyQNet(), **dqn_policy_conf)
+
+
+def get_discrete_policy_gradient(name: str) -> DiscretePolicyGradient:
+    return DiscretePolicyGradient(name=name, policy_net=MyActorNet())
+
+
+def get_dqn(name: str) -> DQN:
+    return DQN(name=name, params=dqn_params)
+
+
+def get_ac(name: str) -> DiscreteActorCritic:
+    return DiscreteActorCritic(name=name, params=ac_params)
+
+
 if algorithm == "dqn":
+    get_policy_func = get_value_based_policy
     get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: ValueBasedPolicy(
-            name=name, q_net=MyQNet(), **dqn_policy_conf) for i in range(4)
+        f"{algorithm}_{i}.{i}": get_policy_func
+        for i in range(4)
     }
+
     get_trainer_func_dict = {
-        f"{algorithm}.{i}_trainer": lambda name: DQN(name=name, device="cpu", **dqn_conf) for i in range(4)
+        f"{algorithm}_{i}": get_dqn
+        for i in range(4)
     }
+
 elif algorithm == "ac":
+    get_policy_func = get_discrete_policy_gradient
     get_policy_func_dict = {
-        f"{algorithm}.{i}": lambda name: DiscretePolicyGradient(
-            name=name, policy_net=MyActorNet()) for i in range(4)
+        f"{algorithm}_{i}.{i}": get_policy_func
+        for i in range(4)
     }
+
     get_trainer_func_dict = {
-        f"{algorithm}.{i}_trainer": lambda name: DiscreteActorCritic(
-            name=name, device="cpu", get_v_critic_net_func=lambda: MyCriticNet(), **ac_conf
-        ) for i in range(4)
+        f"{algorithm}_{i}": get_ac
+        for i in range(4)
     }
 else:
     raise ValueError
-
-policy2trainer = {
-    f"{algorithm}.{i}": f"{algorithm}.{i}_trainer" for i in range(4)
-}
 # #####################################################################################################################
 
 get_policy_func_dict = preprocess_get_policy_func_dict(

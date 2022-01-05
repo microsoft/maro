@@ -11,5 +11,5 @@ __all__ = [
     "MultiQNet",
     "ContinuousPolicyNet", "DiscretePolicyNet", "PolicyNet",
     "ContinuousQNet", "DiscreteQNet", "QNet",
-    "VNet"
+    "VNet",
 ]
