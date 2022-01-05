@@ -64,15 +64,6 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        """Set policies' states.
-
-        Args:
-            policy_state_dict (Dict[str, object]): A double-deck dict with format: {policy_name: policy_state}.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def build(self) -> None:
         raise NotImplementedError
 
@@ -133,12 +124,6 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
             raise ValueError("'create_ops' needs to be called to create an ops instance first.")
         return {self._ops.policy_name: self._ops.get_policy_state()}
 
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        if not self._ops:
-            raise ValueError("'create_ops' needs to be called to create an ops instance first.")
-        assert len(policy_state_dict) == 1 and self._ops.policy_name in policy_state_dict
-        self._ops.set_policy_state(policy_state_dict[self._ops.policy_name])
-
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies.
@@ -146,7 +131,6 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     def __init__(self, name: str, params: TrainerParams) -> None:
         super(MultiTrainer, self).__init__(name, params)
 
-        self._ops_dict: Dict[str, Union[RemoteObj, CoroutineWrapper]] = {}  # To be created in `build()`
         self._replay_memory: Optional[MultiReplayMemory] = None  # To be created in `build()`
 
     def register_get_policy_func_dict(
@@ -161,7 +145,7 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
 
     @property
     def num_policies(self) -> int:
-        return len(self._ops_dict)
+        return len(self._policy_names)
 
     def record(self, transition_batch: MultiTransitionBatch) -> None:
         """Record the experiences collected by external modules.
@@ -173,20 +157,6 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
-
-    def get_policy_state_dict(self) -> Dict[str, object]:
-        if len(self._ops_dict) == 0:
-            raise ValueError("'create_ops' needs to be called to create an ops instance first.")
-
-        return {name: ops.get_policy_state() for name, ops in self._ops_dict.items()}
-
-    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
-        if len(self._ops_dict) == 0:
-            raise ValueError("'create_ops' needs to be called to create an ops instance first.")
-
-        assert len(policy_state_dict) == len(self._ops_dict)
-        for ops in self._ops_dict.values():
-            ops.set_policy_state(policy_state_dict[ops.policy_name])
 
 
 class BatchTrainer:

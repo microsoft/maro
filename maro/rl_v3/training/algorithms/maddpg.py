@@ -306,18 +306,15 @@ class DiscreteMADDPG(MultiTrainer):
 
     def build(self) -> None:
         self._actor_ops_list: List[Union[RemoteObj, AbsTrainOps]] = []
-        self._ops_dict = {}
         for i, policy_name in enumerate(self._policy_names):
             ops_name = f"ops_{i}"
             ops = self.get_ops(ops_name)
             self._actor_ops_list.append(ops)
-            self._ops_dict[ops_name] = ops
 
         if self._params.shared_critic:
             ops_name = "critic_ops"
             ops = self.get_ops(ops_name)
             self._critic_ops = ops
-            self._ops_dict[ops_name] = ops
 
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._params.replay_memory_capacity,
@@ -389,3 +386,9 @@ class DiscreteMADDPG(MultiTrainer):
                 parallel_updates.append(self._critic_ops.soft_update_target())
             await asyncio.gather(*parallel_updates)
             self._target_policy_version = self._policy_version
+
+    def get_policy_state_dict(self) -> Dict[str, object]:
+        if self.num_policies == 0:
+            raise ValueError("'create_ops' needs to be called to create an ops instance first.")
+
+        return {ops.policy_name: ops.get_policy_state() for ops in self._actor_ops_list}
