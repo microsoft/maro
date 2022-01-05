@@ -169,7 +169,7 @@ class DDPG(SingleTrainer):
 
     Args:
         name (str): Unique identifier for the trainer.
-        get_policy_func_dict (Dict[str, Callable[[str], DiscretePolicyGradient]]): Dict of functions that used to
+        policy_creator (Dict[str, Callable[[str], DiscretePolicyGradient]]): Dict of functions that used to
             create policies.
         device (str): Identifier for the torch device. The policy will be moved to the specified device. If it is
             None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.

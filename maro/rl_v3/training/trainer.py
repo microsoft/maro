@@ -41,9 +41,9 @@ class AbsTrainer(object, metaclass=ABCMeta):
         return self._name
 
     @abstractmethod
-    def register_get_policy_func_dict(
+    def register_policy_creator(
         self,
-        global_get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]]
+        global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
     ) -> None:
         raise NotImplementedError
 
@@ -89,22 +89,22 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._ops: Union[RemoteObj, CoroutineWrapper, None] = None  # To be created in `build()`
         self._replay_memory: Optional[ReplayMemory] = None  # To be created in `build()`
 
-    def register_get_policy_func_dict(
+    def register_policy_creator(
         self,
-        global_get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]]
+        global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
     ) -> None:
-        self._get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]] = {
-            policy_name: func for policy_name, func in global_get_policy_func_dict.items()
+        self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
+            policy_name: func for policy_name, func in global_policy_creator.items()
             if extract_trainer_name(policy_name) == self.name
         }
 
-        if len(self._get_policy_func_dict) == 0:
+        if len(self._policy_creator) == 0:
             raise ValueError(f"Trainer {self._name} has no policies")
-        if len(self._get_policy_func_dict) > 1:
+        if len(self._policy_creator) > 1:
             raise ValueError(f"Trainer {self._name} cannot have more than one policy assigned to it")
 
-        self._policy_name = list(self._get_policy_func_dict.keys())[0]
-        self._get_policy_func = lambda: self._get_policy_func_dict[self._policy_name](self._policy_name)
+        self._policy_name = list(self._policy_creator.keys())[0]
+        self._get_policy_func = lambda: self._policy_creator[self._policy_name](self._policy_name)
 
     def record(self, transition_batch: TransitionBatch) -> None:
         """Record the experiences collected by external modules.
@@ -132,15 +132,15 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         super(MultiTrainer, self).__init__(name, params)
         self._replay_memory: Optional[MultiReplayMemory] = None  # To be created in `build()`
 
-    def register_get_policy_func_dict(
+    def register_policy_creator(
         self,
-        global_get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]]
+        global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
     ) -> None:
-        self._get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]] = {
-            policy_name: func for policy_name, func in global_get_policy_func_dict.items()
+        self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
+            policy_name: func for policy_name, func in global_policy_creator.items()
             if extract_trainer_name(policy_name) == self.name
         }
-        self._policy_names = sorted(list(self._get_policy_func_dict.keys()))
+        self._policy_names = sorted(list(self._policy_creator.keys()))
 
     def record(self, transition_batch: MultiTransitionBatch) -> None:
         """Record the experiences collected by external modules.

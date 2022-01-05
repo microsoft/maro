@@ -327,7 +327,7 @@ class DiscreteMADDPG(MultiTrainer):
             policy_idx = self.get_policy_idx_from_ops_name(ops_name)
             policy_name = self._policy_names[policy_idx]
             return DiscreteMADDPGOps(
-                get_policy_func=lambda: self._get_policy_func_dict[policy_name](policy_name),
+                get_policy_func=lambda: self._policy_creator[policy_name](policy_name),
                 policy_idx=policy_idx,
                 create_actor=True,
                 **self._params.extract_ops_params()

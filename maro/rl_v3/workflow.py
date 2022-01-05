@@ -6,16 +6,15 @@ from maro.rl_v3.training.trainer_manager import AbsTrainerManager
 from maro.rl_v3.policy import RLPolicy
 
 
-def preprocess_get_policy_func_dict(
-    get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-    running_mode: str
+def preprocess_policy_creator(
+    policy_creator: Dict[str, Callable[[str], RLPolicy]], running_mode: str
 ) -> Dict[str, Callable[[str], RLPolicy]]:
     if running_mode == "centralized":
         print("Pre-create the policies under centralized mode.")
-        policy_dict = {name: get_policy_func(name) for name, get_policy_func in get_policy_func_dict.items()}
+        policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
         return {name: lambda name: policy_dict[name] for name in policy_dict}
     elif running_mode == "decentralized":
-        return get_policy_func_dict
+        return policy_creator
     else:
         raise ValueError(f"Invalid running mode {running_mode}.")
 

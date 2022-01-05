@@ -1,6 +1,6 @@
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.training.algorithms import DiscreteMADDPG, DiscreteMADDPGParams
-from maro.rl_v3.workflow import preprocess_get_policy_func_dict
+from maro.rl_v3.workflow import preprocess_policy_creator
 
 from .config import algorithm, running_mode
 from .nets import MyActorNet, MyMultiCriticNet
@@ -29,13 +29,12 @@ def get_maddpg(name: str) -> DiscreteMADDPG:
 
 
 if algorithm == "discrete_maddpg":
-    get_policy_func = get_discrete_policy_gradient
-    get_policy_func_dict = {
-        f"{algorithm}_{i}.{i}": get_policy_func
+    policy_creator = {
+        f"{algorithm}_{i}.{i}": get_discrete_policy_gradient
         for i in range(4)
     }
 
-    get_trainer_func_dict = {
+    trainer_creator = {
         f"{algorithm}_{i}": get_maddpg
         for i in range(4)
     }
@@ -43,6 +42,6 @@ else:
     raise ValueError
 # #####################################################################################################################
 
-get_policy_func_dict = preprocess_get_policy_func_dict(
-    get_policy_func_dict, running_mode
+policy_creator = preprocess_policy_creator(
+    policy_creator, running_mode
 )
