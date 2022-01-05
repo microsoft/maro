@@ -36,7 +36,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         """
         for policy_name, policy_state in policy_state_dict.items():
             policy = self._policy_dict[policy_name]
-            policy.set_policy_state(policy_state)
+            policy.set_state(policy_state)
 
     def choose_actions(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         """

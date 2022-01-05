@@ -149,8 +149,8 @@ class DDPGOps(AbsTrainOps):
 
     def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
-            self._policy.set_policy_state(ops_state_dict["policy_state"])
-            self._target_policy.set_policy_state(ops_state_dict["target_policy_state"])
+            self._policy.set_state(ops_state_dict["policy_state"])
+            self._target_policy.set_state(ops_state_dict["target_policy_state"])
         if scope in ("all", "critic"):
             self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
             self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
@@ -189,52 +189,35 @@ class DDPG(SingleTrainer):
         critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
     """
 
-    def __init__(
-        self,
-        name: str,
-        get_policy_func_dict: Dict[str, Callable[[str], ContinuousRLPolicy]],
-        get_q_critic_net_func: Callable[[], QNet],
-        params: DDPGParams,
-        device: str = None,
-        enable_data_parallelism: bool = False
-    ) -> None:
-        super(DDPG, self).__init__(name, get_policy_func_dict, params, params)
-
-        self._num_epochs = params.num_epochs
+    def __init__(self, name: str, params: DDPGParams) -> None:
+        super(DDPG, self).__init__(name, params)
+        self._params = params
         self._policy_version = self._target_policy_version = 0
-        self._update_target_every = params.update_target_every
-
-        self._replay_memory_capacity = params.replay_memory_capacity
-        self._random_overwrite = params.random_overwrite
-
-        self._ops_params = {
-            "device": device,
-            "get_policy_func": self._get_policy_func,
-            "get_q_critic_net_func": get_q_critic_net_func,
-            "enable_data_parallelism": enable_data_parallelism,
-            "reward_discount": params.reward_discount,
-            "q_value_loss_cls": params.q_value_loss_cls,
-            "soft_update_coef": params.soft_update_coef,
-            "critic_loss_coef": params.critic_loss_coef,
-        }
-
-    def creator_local_ops(self, name: str = None) -> Dict[str, Callable[[str], AbsTrainOps]]:
-        return DDPGOps(**self._ops_params)
+        self._q_net_version = self._target_q_net_version = 0
+        self._ops_name = f"{self._name}.ops"
 
     def build(self) -> None:
-        self._ops = CoroutineWrapper(self.create_local_ops())
+        self._ops_params = {
+            "get_policy_func": self._get_policy_func,
+            **self._params.extract_ops_params(),
+        }
+
+        self._ops = self.get_ops(self._ops_name)
         self._replay_memory = RandomReplayMemory(
-            capacity=self._replay_memory_capacity,
+            capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
-            random_overwrite=self._random_overwrite
+            random_overwrite=self._params.random_overwrite
         )
 
+    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+        return DDPGOps(**self._ops_params)
+
     async def train_step(self) -> None:
-        for _ in range(self._num_epochs):
+        for _ in range(self._params.num_epochs):
             await self._ops.set_batch(self._get_batch())
             await self._ops.update()
             self._policy_version += 1
-            if self._policy_version - self._target_policy_version == self._update_target_every:
+            if self._policy_version - self._target_policy_version == self._params.update_target_every:
                 await self._ops.soft_update_target()
                 self._target_policy_version = self._policy_version

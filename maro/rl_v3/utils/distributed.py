@@ -61,19 +61,12 @@ class RemoteObj(object):
         host, port = dispatcher_address
         self._dispatcher_address = f"tcp://{host}:{port}"
 
-    @property
-    def name(self) -> str:
-        return self._name
-
     def __getattribute__(self, attr_name: str) -> object:
         # Ignore methods that belong to the parent class
         try:
             return super().__getattribute__(attr_name)
         except AttributeError:
             pass
-
-        if attr_name == "name":
-            return getattr(self, attr_name)
 
         return remote_method(self._name, attr_name, self._dispatcher_address)
 

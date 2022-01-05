@@ -214,14 +214,14 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_policy_state(self) -> object:
+    def get_state(self) -> object:
         """
         Get the state of the policy.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def set_policy_state(self, policy_state: object) -> None:
+    def set_state(self, policy_state: object) -> None:
         """
         Set the state of the policy.
         """
