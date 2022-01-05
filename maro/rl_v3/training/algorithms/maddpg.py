@@ -374,7 +374,9 @@ class DiscreteMADDPG(MultiTrainer):
 
             # Update actor
             latest_action_info = await asyncio.gather(*[ops.get_latest_action() for ops in self._actor_ops_list])
-            await asyncio.gather(*[ops.update_actor(*info) for ops, info in zip(self._actor_ops_list, latest_action_info)])
+            await asyncio.gather(*[
+                ops.update_actor(*info) for ops, info in zip(self._actor_ops_list, latest_action_info)
+            ])
 
             # Update version
             await self._try_soft_update_target()
