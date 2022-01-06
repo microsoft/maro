@@ -36,7 +36,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         """
         for policy_name, policy_state in policy_state_dict.items():
             policy = self._policy_dict[policy_name]
-            policy.set_policy_state(policy_state)
+            policy.set_state(policy_state)
 
     def choose_actions(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         """
@@ -151,7 +151,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self,
         get_env_func: Callable[[], Env],
         #
-        get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
+        policy_creator: Dict[str, Callable[[str], RLPolicy]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         agent_wrapper_cls: Type[AbsAgentWrapper],
         reward_eval_delay: int = 0,
@@ -161,7 +161,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         Args:
             get_env_func (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create the learning Env.
-            get_policy_func_dict (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create policies.
+            policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create policies.
             agent2policy (Dict[Any, str]): Agent name to policy name mapping.
             agent_wrapper_cls (Type[AbsAgentWrapper]): Concrete AbsAgentWrapper type.
             reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
@@ -178,7 +178,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self._policy_dict: Dict[str, RLPolicy] = {
-            policy_name: func(policy_name) for policy_name, func in get_policy_func_dict.items()
+            policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
         self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
         self._agent2policy = agent2policy

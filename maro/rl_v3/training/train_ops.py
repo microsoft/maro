@@ -37,7 +37,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self._enable_data_parallelism = enable_data_parallelism
 
         # Create the policy and put it on the right device.
-        if is_single_scenario:
+        if self._is_single_scenario:
             self._policy = get_policy_func()
             self._policy.to_device(self._device)
 
@@ -143,7 +143,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self._batch = batch
 
     def get_policy_state(self) -> object:
-        return self._policy.get_policy_state()
+        return self._policy.name, self._policy.get_state()
 
     def set_policy_state(self, policy_state: object) -> None:
-        self._policy.set_policy_state(policy_state)
+        self._policy.set_state(policy_state)

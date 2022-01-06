@@ -19,14 +19,14 @@ class TrainOpsWorker(object):
     def __init__(
         self,
         idx: int,
-        get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
+        policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_param_dict: Dict[str, tuple],
         router_host: str,
         router_port: int = 10001
     ) -> None:
         # ZMQ sockets and streams
         self._id = f"worker.{idx}"
-        self._get_policy_func_dict = get_policy_func_dict
+        self._policy_creator = policy_creator
         self._trainer_param_dict = trainer_param_dict
         self._context = Context.instance()
         self._socket = self._context.socket(zmq.DEALER)
@@ -63,11 +63,11 @@ class TrainOpsWorker(object):
         trainer_name = name.split(".")[0]
         if trainer_name not in self._trainer_dict:
             trainer_cls, param = self._trainer_param_dict[trainer_name]
-            get_policy_func_dict = {
-                name: func for name, func in self._get_policy_func_dict.items() if name.startswith(trainer_name)
+            policy_creator = {
+                name: func for name, func in self._policy_creator.items() if name.startswith(trainer_name)
             }
             self._trainer_dict[trainer_name] = trainer_cls(
-                name=trainer_name, get_policy_func_dict=get_policy_func_dict, **param
+                name=trainer_name, policy_creator=policy_creator, **param
             )
         return self._trainer_dict[trainer_name].create_local_ops(name=name)
 

@@ -58,8 +58,8 @@ class AbsTrainerManager(object, metaclass=ABCMeta):
 class SimpleTrainerManager(AbsTrainerManager):
     def __init__(
         self,
-        get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        get_trainer_func_dict: Dict[str, Callable[[str], AbsTrainer]],
+        policy_creator: Dict[str, Callable[[str], RLPolicy]],
+        trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
         dispatcher_address: Tuple[str, int] = None
     ) -> None:
@@ -67,8 +67,8 @@ class SimpleTrainerManager(AbsTrainerManager):
         Simple trainer manager. Use this in centralized model.
 
         Args:
-            get_policy_func_dict (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create policies.
-            get_trainer_func_dict (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions used to create trainers.
+            policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
+            trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
             agent2policy (Dict[str, str]): Agent name to policy name mapping.
             dispatcher_address (Tuple[str, int]): The address of the dispatcher. This is used under only distributed
                 model. Defaults to None.
@@ -77,17 +77,17 @@ class SimpleTrainerManager(AbsTrainerManager):
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._trainers: List[AbsTrainer] = []
-        for trainer_name, func in get_trainer_func_dict.items():
+        for trainer_name, func in trainer_creator.items():
             trainer = func(trainer_name)
             if dispatcher_address is not None:
                 trainer.set_dispatch_address(dispatcher_address)
-            trainer.register_get_policy_func_dict(get_policy_func_dict)
+            trainer.register_policy_creator(policy_creator)
             trainer.build()
 
             self._trainer_dict[trainer_name] = trainer
             self._trainers.append(trainer)
 
-        self._policy_dict: Dict[str, RLPolicy] = {name: func(name) for name, func in get_policy_func_dict.items()}
+        self._policy_dict: Dict[str, RLPolicy] = {name: func(name) for name, func in policy_creator.items()}
         self._agent2policy = agent2policy
 
     def train(self) -> None:
@@ -97,7 +97,11 @@ class SimpleTrainerManager(AbsTrainerManager):
         await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
 
     def get_policy_states(self) -> Dict[str, Dict[str, object]]:
-        return {trainer.name: trainer.get_policy_state_dict() for trainer in self._trainers}
+        policy_state_list = asyncio.run(self._get_policy_states())
+        return dict((trainer.name, policy_state) for trainer, policy_state in zip(self._trainers, policy_state_list))
+
+    async def _get_policy_states(self):
+        return await asyncio.gather(*[trainer.get_policy_state() for trainer in self._trainers])
 
     def record_experiences(self, experiences: List[ExpElement]) -> None:
         for exp_element in experiences:  # Dispatch experiences to trainers tick by tick.

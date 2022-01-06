@@ -93,10 +93,10 @@ class ContinuousRLPolicy(RLPolicy):
     def train(self) -> None:
         self._policy_net.train()
 
-    def get_policy_state(self) -> object:
+    def get_state(self) -> object:
         return self._policy_net.get_net_state()
 
-    def set_policy_state(self, policy_state: object) -> None:
+    def set_state(self, policy_state: object) -> None:
         self._policy_net.set_net_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:

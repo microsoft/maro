@@ -174,14 +174,14 @@ class DiscreteActorCriticOps(AbsTrainOps):
     def get_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
-            ret_dict["policy_state"] = self._policy.get_policy_state()
+            ret_dict["policy_state"] = self._policy.get_state()
         if scope in ("all", "critic"):
             ret_dict["critic_state"] = self._v_critic_net.get_net_state()
         return ret_dict
 
     def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
-            self._policy.set_policy_state(ops_state_dict["policy_state"])
+            self._policy.set_state(ops_state_dict["policy_state"])
         if scope in ("all", "critic"):
             self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
 
@@ -195,8 +195,8 @@ class DiscreteActorCritic(SingleTrainer):
     """
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
         super(DiscreteActorCritic, self).__init__(name, params)
-
         self._params = params
+        self._ops_name = f"{self._name}.ops"
 
     def build(self) -> None:
         self._ops_params = {
@@ -204,7 +204,7 @@ class DiscreteActorCritic(SingleTrainer):
             **self._params.extract_ops_params(),
         }
 
-        self._ops = self.get_ops(f"{self.name}_ops")
+        self._ops = self.get_ops(self._ops_name)
         self._replay_memory = FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
@@ -212,10 +212,7 @@ class DiscreteActorCritic(SingleTrainer):
         )
 
     def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        if ops_name == f"{self.name}_ops":
-            return DiscreteActorCriticOps(**self._ops_params)
-        else:
-            raise ValueError(f"Unknown ops name {ops_name}")
+        return DiscreteActorCriticOps(**self._ops_params)
 
     async def train_step(self):
         await asyncio.gather(self._ops.set_batch(self._get_batch()))

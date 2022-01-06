@@ -3,7 +3,7 @@ import torch
 from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
 from maro.rl_v3.policy import DiscretePolicyGradient, ValueBasedPolicy
 from maro.rl_v3.training.algorithms import DQN, DiscreteActorCritic, DiscreteActorCriticParams, DQNParams
-from maro.rl_v3.workflow import preprocess_get_policy_func_dict
+from maro.rl_v3.workflow import preprocess_policy_creator
 
 from .config import algorithm, running_mode
 from .nets import MyActorNet, MyCriticNet, MyQNet
@@ -60,25 +60,23 @@ def get_ac(name: str) -> DiscreteActorCritic:
 
 
 if algorithm == "dqn":
-    get_policy_func = get_value_based_policy
-    get_policy_func_dict = {
-        f"{algorithm}_{i}.{i}": get_policy_func
+    policy_creator = {
+        f"{algorithm}_{i}.{i}": get_value_based_policy
         for i in range(4)
     }
 
-    get_trainer_func_dict = {
+    trainer_creator = {
         f"{algorithm}_{i}": get_dqn
         for i in range(4)
     }
 
 elif algorithm == "ac":
-    get_policy_func = get_discrete_policy_gradient
-    get_policy_func_dict = {
-        f"{algorithm}_{i}.{i}": get_policy_func
+    policy_creator = {
+        f"{algorithm}_{i}.{i}": get_discrete_policy_gradient
         for i in range(4)
     }
 
-    get_trainer_func_dict = {
+    trainer_creator = {
         f"{algorithm}_{i}": get_ac
         for i in range(4)
     }
@@ -86,6 +84,6 @@ else:
     raise ValueError
 # #####################################################################################################################
 
-get_policy_func_dict = preprocess_get_policy_func_dict(
-    get_policy_func_dict, running_mode
+policy_creator = preprocess_policy_creator(
+    policy_creator, running_mode
 )

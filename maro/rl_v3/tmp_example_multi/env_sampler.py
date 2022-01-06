@@ -9,7 +9,7 @@ from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEven
 from .config import (
     action_shaping_conf, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
 )
-from .policies import get_policy_func_dict
+from .policies import policy_creator
 
 
 class CIMEnvSampler(AbsEnvSampler):
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     algorithm = "dqn"
     env_sampler = CIMEnvSampler(
         get_env_func=lambda: Env(**env_conf),
-        get_policy_func_dict=get_policy_func_dict,
+        policy_creator=policy_creator,
         agent2policy={agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list},
         agent_wrapper_cls=SimpleAgentWrapper,
     )
