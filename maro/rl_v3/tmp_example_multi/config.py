@@ -35,4 +35,4 @@ state_dim = (
 )
 
 algorithm = "discrete_maddpg"
-running_mode = "centralized"
+running_mode = "decentralized"
