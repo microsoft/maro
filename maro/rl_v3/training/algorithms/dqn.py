@@ -114,8 +114,8 @@ class DQNOps(AbsTrainOps):
 
     def get_state_dict(self, scope: str = "all") -> dict:
         return {
-            "policy_state": self._policy.get_policy_state(),
-            "target_q_net_state": self._target_policy.get_policy_state()
+            "policy_state": self._policy.get_state(),
+            "target_q_net_state": self._target_policy.get_state()
         }
 
     def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:

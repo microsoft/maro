@@ -174,7 +174,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
     def get_state_dict(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
-            ret_dict["policy_state"] = self._policy.get_policy_state()
+            ret_dict["policy_state"] = self._policy.get_state()
         if scope in ("all", "critic"):
             ret_dict["critic_state"] = self._v_critic_net.get_net_state()
         return ret_dict

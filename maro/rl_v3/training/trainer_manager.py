@@ -67,8 +67,8 @@ class SimpleTrainerManager(AbsTrainerManager):
         Simple trainer manager. Use this in centralized model.
 
         Args:
-            policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions used to create policies.
-            get_trainer_func_dict (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions used to create trainers.
+            policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
+            trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
             agent2policy (Dict[str, str]): Agent name to policy name mapping.
             dispatcher_address (Tuple[str, int]): The address of the dispatcher. This is used under only distributed
                 model. Defaults to None.
