@@ -81,6 +81,7 @@ class SimpleTrainerManager(AbsTrainerManager):
             trainer = func(trainer_name)
             if dispatcher_address is not None:
                 trainer.set_dispatch_address(dispatcher_address)
+            trainer.register_agent2policy(agent2policy)
             trainer.register_policy_creator(policy_creator)
             trainer.build()
 
@@ -106,6 +107,17 @@ class SimpleTrainerManager(AbsTrainerManager):
     def record_experiences(self, experiences: List[ExpElement]) -> None:
         for exp_element in experiences:  # Dispatch experiences to trainers tick by tick.
             self._dispatch_experience(exp_element)
+
+    def _dispatch_experience_new(self, exp_element: ExpElement) -> None:
+        agent2trainer = {
+            agent_name: extract_trainer_name(policy_name)
+            for agent_name, policy_name in self._agent2policy.items()
+        }
+        exp_dict = exp_element.split_contents(agent2trainer)
+
+        for trainer_name, exp_elem in exp_dict.items():
+            trainer = self._trainer_dict[trainer_name]
+            trainer.record_new(exp_elem)
 
     def _dispatch_experience(self, exp_element: ExpElement) -> None:
         state = exp_element.state

@@ -3,7 +3,7 @@
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, RemoteObj, TransitionBatch
@@ -11,6 +11,7 @@ from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, RemoteObj, 
 from .replay_memory import MultiReplayMemory, ReplayMemory
 from .train_ops import AbsTrainOps
 from .utils import extract_trainer_name
+from ..learning import ExpElement
 
 
 @dataclass
@@ -40,6 +41,17 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def name(self) -> str:
         return self._name
 
+    @property
+    def agent_num(self) -> int:
+        return len(self._agent2policy)
+
+    def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
+        self._agent2policy = {
+            agent_name: policy_name
+            for agent_name, policy_name in agent2policy.items()
+            if extract_trainer_name(policy_name) == self.name
+        }
+
     @abstractmethod
     def register_policy_creator(
         self,
@@ -55,6 +67,10 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     @abstractmethod
     def build(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def record_new(self, exp_element: ExpElement) -> None:
         raise NotImplementedError
 
     def set_dispatch_address(self, dispatcher_address: Tuple[str, int]) -> None:
@@ -87,7 +103,6 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         super(SingleTrainer, self).__init__(name, params)
 
         self._ops: Union[RemoteObj, CoroutineWrapper, None] = None  # To be created in `build()`
-        self._replay_memory: Optional[ReplayMemory] = None  # To be created in `build()`
 
     def register_policy_creator(
         self,
@@ -115,8 +130,8 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         assert isinstance(transition_batch, TransitionBatch)
         self._replay_memory.put(transition_batch)
 
-    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
-        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
+    # def _get_batch(self, batch_size: int = None) -> TransitionBatch:
+    #     return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     async def get_policy_state(self) -> Dict[str, object]:
         if not self._ops:
