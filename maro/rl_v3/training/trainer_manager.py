@@ -97,8 +97,10 @@ class SimpleTrainerManager(AbsTrainerManager):
         await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
 
     def get_policy_states(self) -> Dict[str, Dict[str, object]]:
-        policy_state_list = asyncio.run(self._get_policy_states())
-        return dict((trainer.name, policy_state) for trainer, policy_state in zip(self._trainers, policy_state_list))
+        return {
+            policy_name: state for policy_state in asyncio.run(self._get_policy_states())
+            for policy_name, state in policy_state.items()
+        }
 
     async def _get_policy_states(self):
         return await asyncio.gather(*[trainer.get_policy_state() for trainer in self._trainers])

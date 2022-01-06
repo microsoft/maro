@@ -1,4 +1,4 @@
 from .dispatcher import Dispatcher
-from .abs_worker import AbsWorker
+from .worker import Worker
 
-__all__ = ["Dispatcher", "AbsWorker"]
+__all__ = ["Dispatcher", "Worker"]

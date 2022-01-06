@@ -4,8 +4,8 @@
 import os
 import time
 
-from maro.rl_v3.learning.helpers import get_rollout_finish_msg
-from maro.rl_v3.training.trainer import BatchTrainer
+from maro.rl_v3.rollout.helpers import get_rollout_finish_msg
+from maro.rl_v3.training.trainer_manager import SimpleTrainerManager
 from maro.rl_v3.utils.common import from_env, get_eval_schedule, get_logger, get_module
 
 
@@ -13,7 +13,8 @@ if __name__ == "__main__":
     # get user-defined scenario ingredients
     scenario = get_module(from_env("SCENARIO_PATH"))
     get_env_sampler = getattr(scenario, "get_env_sampler")
-    get_train_ops_func_dict = getattr(scenario, "get_train_ops_func_dict")
+    policy_creator = getattr(scenario, "policy_creator")
+    trainer_creator = getattr(scenario, "trainer_creator")
     post_collect = getattr(scenario, "post_collect", None)
     post_evaluate = getattr(scenario, "post_evaluate", None)
 
@@ -81,17 +82,7 @@ if __name__ == "__main__":
             dispatcher_address = (from_env("DISPATCHER_HOST"), from_env("DISPATCHER_PORT"))
         else:
             dispatcher_address = None
-        batch_trainer = BatchTrainer(
-            [
-                spec["type"](
-                    name,
-                    module_path=from_env("SCENARIO_PATH"),
-                    dospatcher_address=dispatcher_address,
-                    **spec["parameters"]
-                )
-                for name, spec in getattr(scenario, "trainer_specs").items()
-            ]
-        )
+        trainer_manager = SimpleTrainerManager(policy_creator, trainer_creator, dispatcher_address=dispatcher_address)
 
         # main loop
         for ep in range(1, num_episodes + 1):
@@ -101,7 +92,7 @@ if __name__ == "__main__":
             while not end_of_episode:
                 # experience collection
                 tc0 = time.time()
-                policy_state_dict = batch_trainer.get_state()
+                policy_state_dict = trainer_manager.get_policy_states()
                 rollout_data, trackers = rollout_manager.collect(ep, segment, policy_state_dict)
                 end_of_episode = rollout_manager.end_of_episode
 
@@ -110,8 +101,8 @@ if __name__ == "__main__":
 
                 collect_time += time.time() - tc0
                 tu0 = time.time()
-                batch_trainer.record(rollout_data)
-                batch_trainer.train()
+                trainer_manager.record(rollout_data)
+                trainer_manager.train()
                 training_time += time.time() - tu0
                 segment += 1
 
@@ -119,22 +110,8 @@ if __name__ == "__main__":
             logger.info(f"ep {ep} summary - collect time: {collect_time}, policy update time: {training_time}")
             if eval_schedule and ep == eval_schedule[eval_point_index]:
                 eval_point_index += 1
-                trackers = rollout_manager.evaluate(ep, batch_trainer.get_state())
+                trackers = rollout_manager.evaluate(ep, trainer_manager.get_policy_states())
                 if post_evaluate:
                     post_evaluate(trackers, ep)
 
         rollout_manager.exit()
-
-
-# # registry:
-# {
-#     "dqn.ops": some_fn,
-#     "ac.ops": some_Fn,
-#     "dqn2.ops": ...,
-#     "maddpg.actor0": some_Fn,
-#     "maddpg.actor1": some_fn,
-#     ....
-
-# }
-
-# agent2policy = {"agent0": "maddpg.actor1"}
