@@ -316,22 +316,24 @@ class DiscreteMADDPG(MultiTrainer):
 
     def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         if ops_name == self._shared_critic_ops_name:
-            return DiscreteMADDPGOps(
-                get_policy_func=None,
-                policy_idx=-1,
-                shared_critic=False,
-                create_actor=False,
-                **self._params.extract_ops_params()
-            )
+            params = {
+                **self._params.extract_ops_params(),
+                "get_policy_func": None,
+                "policy_idx": -1,
+                "shared_critic": False,
+                "create_actor": False,
+            }
+            return DiscreteMADDPGOps(**params)
         else:
             policy_idx = self.get_policy_idx_from_ops_name(ops_name)
             policy_name = self._policy_names[policy_idx]
-            return DiscreteMADDPGOps(
-                get_policy_func=lambda: self._policy_creator[policy_name](policy_name),
-                policy_idx=policy_idx,
-                create_actor=True,
-                **self._params.extract_ops_params()
-            )
+            params = {
+                **self._params.extract_ops_params(),
+                "get_policy_func": lambda: self._policy_creator[policy_name](policy_name),
+                "policy_idx": policy_idx,
+                "create_actor": True,
+            }
+            return DiscreteMADDPGOps(**params)
 
     async def train_step(self):
         for _ in range(self._params.num_epoch):
