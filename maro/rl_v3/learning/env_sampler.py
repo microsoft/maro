@@ -122,8 +122,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
 
 @dataclass
 class CacheElement:
-    """
-    The data structure used to store a cached value during experience collection.
+    """The data structure used to store a cached value during experience collection.
     """
     tick: int
     state: np.ndarray
@@ -133,10 +132,13 @@ class CacheElement:
 
 
 @dataclass
-class ExpElement(CacheElement):
+class ExpElement:
+    """Stores the complete information for a tick. ExpElement is an extension of CacheElement.
     """
-    Stores the complete information for a tick. ExpElement is an extension of CacheElement.
-    """
+    tick: int
+    state: np.ndarray
+    agent_state_dict: Dict[Any, np.ndarray]
+    action_dict: Dict[Any, np.ndarray]
     reward_dict: Dict[Any, float]
     terminal_dict: Dict[Any, bool]
     next_state: Optional[np.ndarray]
@@ -314,7 +316,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 state=cache_element.state,
                 agent_state_dict=cache_element.agent_state_dict,
                 action_dict=cache_element.action_dict,
-                env_action_dict=cache_element.env_action_dict,
                 reward_dict=reward_dict,
                 terminal_dict={},  # Will be processed later in `_post_polish_experiences()`
                 next_state=next_state,
@@ -343,7 +344,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             for key, value in latest_agent_state_dict.items():
                 if key not in experiences[i].next_agent_state_dict:
                     experiences[i].next_agent_state_dict[key] = value
-            latest_agent_state_dict.update(experiences[i].next_agent_state_dict)
+            latest_agent_state_dict.update(experiences[i].agent_state_dict)
         return experiences
 
     def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:
