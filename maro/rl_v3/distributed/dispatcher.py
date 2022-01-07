@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from typing import Callable, Dict
 
 import zmq
@@ -5,7 +8,7 @@ from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
-from maro.rl_v3.utils.distributed import bytes_to_pyobj, string_to_bytes
+from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
 
 
 class Dispatcher(object):
@@ -37,16 +40,20 @@ class Dispatcher(object):
         # bookkeeping
         self._num_workers = num_workers
         self._hash_fn = hash_fn
-        self._ops2node: Dict[str, int] = {}
+        self._obj2node: Dict[str, int] = {}
 
     def _route_request_to_compute_node(self, msg: list) -> None:
-        ops_name, _, req = msg
-        print(f"Received request from {ops_name}")
-        if ops_name not in self._ops2node:
-            self._ops2node[ops_name] = self._hash_fn(ops_name) % self._num_workers
-            print(f"Placing {ops_name} at worker node {self._ops2node[ops_name]}")
-        worker_id = f'worker.{self._ops2node[ops_name]}'
-        self._router.send_multipart([string_to_bytes(worker_id), b"", ops_name, b"", req])
+        obj_name = bytes_to_string(msg[0])
+        req = bytes_to_pyobj(msg[-1])
+        obj_type = req["type"]
+        print(f"Received request {req['func']} from {obj_name}")
+        if obj_name not in self._obj2node:
+            self._obj2node[obj_name] = self._hash_fn(obj_name) % self._num_workers
+            print(f"Placing {obj_name} at worker node {self._obj2node[obj_name]}")
+        worker_id = f'{obj_type}_worker.{self._obj2node[obj_name]}'
+        self._router.send_multipart(
+            [string_to_bytes(worker_id), b"", string_to_bytes(obj_name), b"", pyobj_to_bytes(req)]
+        )
 
     def _send_result_to_requester(self, msg: list) -> None:
         worker_id, _, result = msg[:3]
@@ -63,9 +70,9 @@ class Dispatcher(object):
 
     @staticmethod
     def log_route_request(msg: list, status: object) -> None:
-        worker_id, _, ops_name, _, req = msg
+        worker_id, _, obj_name, _, req = msg
         req = bytes_to_pyobj(req)
-        print(f"Routed {ops_name}'s request {req['func']} to worker node {worker_id}")
+        print(f"Routed {obj_name}'s request {req['func']} to worker node {worker_id}")
 
     @staticmethod
     def log_send_result(msg: list, status: object) -> None:

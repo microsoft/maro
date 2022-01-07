@@ -2,7 +2,7 @@ import time
 from typing import Callable, Dict, List
 
 from maro.rl_v3.learning import AbsEnvSampler, ExpElement
-from maro.rl_v3.training.trainer_manager import AbsTrainerManager
+from maro.rl_v3.training.trainer_manager import SimpleTrainerManager
 from maro.rl_v3.policy import RLPolicy
 
 
@@ -21,7 +21,9 @@ def preprocess_policy_creator(
 
 def run_workflow_centralized_mode(
     get_env_sampler_func: Callable[[], AbsEnvSampler],
-    get_trainer_manager_func: Callable[[], AbsTrainerManager],
+    policy_creator,
+    trainer_creator,
+    agent2policy,
     num_episodes: int,
     num_steps: int = -1,
     post_collect: Callable[[List[dict], int, int], None] = None,
@@ -29,7 +31,10 @@ def run_workflow_centralized_mode(
     running_mode: str = "decentralized"
 ):
     env_sampler = get_env_sampler_func()
-    trainer_manager = get_trainer_manager_func()
+    dispatcher_address = ("127.0.0.1", 10000)
+    trainer_manager = SimpleTrainerManager(
+        policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address
+    )
 
     assert running_mode in ("centralized", "decentralized")
 

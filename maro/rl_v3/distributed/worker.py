@@ -8,7 +8,7 @@ from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
-from maro.rl_v3.utils.distributed import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
+from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
 
 
 class Worker(object):
@@ -29,7 +29,7 @@ class Worker(object):
         self._socket.identity = string_to_bytes(self._id)
         self._router_address = f"tcp://{router_host}:{router_port}"
         self._socket.connect(self._router_address)
-        print(f"Successfully connected to dispatcher at {self._router_address}")
+        print(f"Connected to dispatcher at {self._router_address}")
         self._socket.send_multipart([b"", b"READY"])
         self._task_receiver = ZMQStream(self._socket)
         self._event_loop = IOLoop.current()
@@ -49,8 +49,10 @@ class Worker(object):
             creator_fn = self._obj_creator if isinstance(self._obj_creator, Callable) else self._obj_creator[obj_name]
             self._obj_dict[obj_name] = creator_fn()
             print(f"Created object {obj_name} at worker {self._id}")
+            print(type(self._obj_dict[obj_name]))
 
         func_name, args, kwargs = req["func"], req["args"], req["kwargs"]
+        print(func_name)
         func = getattr(self._obj_dict[obj_name], func_name)
         result = func(*args, **kwargs)
         self._task_receiver.send_multipart([b"", msg[1], b"", pyobj_to_bytes(result)])

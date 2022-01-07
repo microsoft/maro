@@ -25,4 +25,4 @@ class OpsCreator(object):
             trainer = self._trainer_creator[trainer_name](trainer_name)
             trainer.register_policy_creator(self._policy_creator)
             self._trainer_dict[trainer_name] = trainer
-        return partial(self._trainer_dict[trainer_name].get_ops, ops_name)
+        return partial(self._trainer_dict[trainer_name].get_local_ops_by_name, ops_name)

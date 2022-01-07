@@ -15,72 +15,73 @@
       "metadata": {
         "description": "Tier of your Azure Container Registry."
       },
-      "defaultValue": "Basic",
+      "defaultValue": "Standard",
       "allowedValues": [
         "Basic",
         "Standard",
         "Premium"
       ]
     },
-    "agentCount": {
+    "systemPoolVMCount": {
       "type": "int",
       "metadata": {
-        "description": "The number of nodes for the cluster."
+        "description": "The number of VMs allocated for running the k8s system components."
       },
       "minValue": 1,
       "maxValue": 50
     },
-    "agentVMSize": {
+    "systemPoolVMSize": {
       "type": "string",
       "metadata": {
-        "description": "The size of the Virtual Machine."
+        "description": "Virtual Machine size for running the k8s system components."
       }
     },
-    "clusterName": {
+    "userPoolName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the Managed Cluster resource."
+        "description": "Name of the user node pool."
       }
     },
-    "fileShareName": {
+    "userPoolVMCount": {
+      "type": "int",
+      "metadata": {
+        "description": "The number of VMs allocated for running the user appplication."
+      },
+      "minValue": 1,
+      "maxValue": 50
+    },
+    "userPoolVMSize": {
       "type": "string",
       "metadata": {
-        "description": "The name of the file share."
+        "description": "Virtual Machine size for running the user application."
+      }
+    },
+    "aksName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Managed Cluster resource."
       }
     },
     "location": {
       "type": "string",
       "metadata": {
-        "description": "The location of the Managed Cluster resource."
+        "description": "Location of the Managed Cluster resource."
       }
     },
     "storageAccountName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the storgae account."
+        "description": "Azure storage account name."
       }
     },
-    "virtualNetworkName": {
+    "fileShareName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the virtual network."
+        "description": "Azure file share name."
       }
     }
   },
-  "variables": {
-    "snetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('virtualNetworkName'), 'default')]",
-    "stvmId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
-    "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
-  },
   "resources": [
-    {
-      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
-      "apiVersion": "2020-08-01-preview",
-      "name": "[concat(parameters('storageAccountName'), '/default/', parameters('fileShareName'))]",
-      "dependsOn": [
-        "[variables('stvmId')]"
-      ]
-    },
     {
       "name": "[parameters('acrName')]",
       "type": "Microsoft.ContainerRegistry/registries",
@@ -93,25 +94,31 @@
       }
     },
     {
-      "name": "[parameters('clusterName')]",
+      "name": "[parameters('aksName')]",
       "type": "Microsoft.ContainerService/managedClusters",
       "apiVersion": "2020-03-01",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[variables('vnetId')]"
-      ],
       "properties": {
         "dnsPrefix": "maro",
         "agentPoolProfiles": [
           {
-            "name": "systempool",
+            "name": "system",
             "osDiskSizeGB": 0,
-            "count": "[parameters('agentCount')]",
-            "vmSize": "[parameters('agentVMSize')]",
+            "count": "[parameters('systemPoolVMCount')]",
+            "vmSize": "[parameters('systemPoolVMSize')]",
             "osType": "Linux",
             "storageProfile": "ManagedDisks",
-            "vnetsnetId": "[variables('snetId')]",
             "mode": "System",
+            "type": "VirtualMachineScaleSets"
+          },
+          {
+            "name": "[parameters('userPoolName')]",
+            "osDiskSizeGB": 0,
+            "count": "[parameters('userPoolVMCount')]",
+            "vmSize": "[parameters('userPoolVMSize')]",
+            "osType": "Linux",
+            "storageProfile": "ManagedDisks",
+            "mode": "User",
             "type": "VirtualMachineScaleSets"
           }
         ],
@@ -139,25 +146,12 @@
       }
     },
     {
-      "name": "[parameters('virtualNetworkName')]",
-      "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2020-04-01",
-      "location": "[parameters('location')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.1.0.0/16"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "default",
-            "properties": {
-              "addressPrefix": "10.1.0.0/16"
-            }
-          }
-        ]
-      }
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "apiVersion": "2020-08-01-preview",
+      "name": "[concat(parameters('storageAccountName'), '/default/', parameters('fileShareName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
     }
   ]
 }

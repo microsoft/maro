@@ -8,7 +8,7 @@ from random import choices
 from typing import Dict, List, Tuple
 
 from maro.utils import DummyLogger, Logger
-from maro.rl_v3.utils.distributed import RemoteObj
+from maro.rl_v3.distributed import RemoteObj
 
 from .env_sampler import ExpElement
 

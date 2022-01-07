@@ -314,7 +314,7 @@ class DiscreteMADDPG(MultiTrainer):
             agent_states_dims=[ops.policy_state_dim for ops in self._actor_ops_list]
         )
 
-    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         if ops_name == self._shared_critic_ops_name:
             return DiscreteMADDPGOps(
                 get_policy_func=None,

@@ -157,7 +157,7 @@ class DQN(SingleTrainer):
             random_overwrite=self._params.random_overwrite
         )
 
-    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DQNOps(**self._ops_params)
 
     async def train_step(self) -> None:

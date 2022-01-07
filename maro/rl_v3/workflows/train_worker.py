@@ -9,4 +9,4 @@ from maro.rl_v3.utils.common import from_env, get_module
 scenario = get_module(from_env("SCENARIO_PATH"))
 policy_creator = getattr(scenario, "policy_creator")
 trainer_creator = getattr(scenario, "trainer_creator")
-Worker(from_env("ID"), OpsCreator(policy_creator, trainer_creator), "127.0.0.1").start()
+Worker("train", from_env("ID"), OpsCreator(policy_creator, trainer_creator), from_env("DISPATCHER_HOST")).start()

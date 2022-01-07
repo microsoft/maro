@@ -5,8 +5,9 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional, Tuple, Union
 
+from maro.rl_v3.distributed import RemoteObj
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, RemoteObj, TransitionBatch
+from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, TransitionBatch
 
 from .replay_memory import MultiReplayMemory, ReplayMemory
 from .train_ops import AbsTrainOps
@@ -54,21 +55,21 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def build(self) -> None:
+    async def build(self) -> None:
         raise NotImplementedError
 
     def set_dispatch_address(self, dispatcher_address: Tuple[str, int]) -> None:
         self._dispatcher_address = dispatcher_address
 
     @abstractmethod
-    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         raise NotImplementedError
 
     def get_ops(self, ops_name: str) -> Union[RemoteObj, CoroutineWrapper]:
         if self._dispatcher_address:
-            return RemoteObj(ops_name, self._dispatcher_address)
+            return RemoteObj(ops_name, "train", self._dispatcher_address)
         else:
-            return CoroutineWrapper(self._get_local_ops_by_name(ops_name))
+            return CoroutineWrapper(self.get_local_ops_by_name(ops_name))
 
     @abstractmethod
     async def get_policy_state(self) -> Dict[str, object]:
