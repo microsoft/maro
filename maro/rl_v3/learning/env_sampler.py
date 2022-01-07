@@ -172,7 +172,7 @@ class ExpElement:
             ret[trainer_name].action_dict[agent_name] = self.action_dict[agent_name]
             ret[trainer_name].reward_dict[agent_name] = self.reward_dict[agent_name]
             ret[trainer_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
-            if self.next_agent_state_dict is not None:
+            if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict:
                 ret[trainer_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
         return ret
 

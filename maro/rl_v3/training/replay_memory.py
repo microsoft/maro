@@ -137,43 +137,6 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
     def action_dim(self) -> int:
         return self._action_dim
 
-    def put_new(
-        self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        terminals: np.ndarray,
-        next_states: np.ndarray,
-    ) -> None:
-        batch_size = len(states)
-        if SHAPE_CHECK_FLAG:
-            assert 0 < batch_size <= self._capacity
-            assert match_shape(states, (batch_size, self._state_dim))
-            assert match_shape(actions, (batch_size, self._action_dim))
-            assert match_shape(rewards, (batch_size,))
-            assert match_shape(terminals, (batch_size,))
-            assert match_shape(next_states, (batch_size, self._state_dim))
-
-        self._put_by_indexes_new(
-            self._get_put_indexes(batch_size),
-            states, actions, rewards, terminals, next_states
-        )
-
-    def _put_by_indexes_new(
-        self,
-        indexes: np.ndarray,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        terminals: np.ndarray,
-        next_states: np.ndarray,
-    ) -> None:
-        self._states[indexes] = states
-        self._actions[indexes] = actions
-        self._rewards[indexes] = rewards
-        self._terminals[indexes] = terminals
-        self._next_states[indexes] = next_states
-
     def put(self, transition_batch: TransitionBatch) -> None:
         batch_size = len(transition_batch.states)
         if SHAPE_CHECK_FLAG:
@@ -201,7 +164,6 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return TransitionBatch(
-            policy_name='',
             states=self._states[indexes],
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
@@ -328,7 +290,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return MultiTransitionBatch(
-            policy_names=[],
             states=self._states[indexes],
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],

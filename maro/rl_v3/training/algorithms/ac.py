@@ -198,15 +198,10 @@ class DiscreteActorCritic(SingleTrainer):
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
         super(DiscreteActorCritic, self).__init__(name, params)
         self._params = params
+        self._ops_params = {}
         self._ops_name = f"{self._name}.ops"
 
-        self._policy_state_dim = self._ops.policy_state_dim
-        self._policy_action_dim = self._ops.policy_action_dim
-        self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
-            capacity=self._params.replay_memory_capacity,
-            state_dim=self._policy_state_dim,
-            action_dim=self._policy_action_dim
-        ))
+        self._replay_memory_dict = {}
 
     def build(self) -> None:
         self._ops_params = {
@@ -215,16 +210,26 @@ class DiscreteActorCritic(SingleTrainer):
         }
         self._ops = self.get_ops(self._ops_name)
 
-    def record_new(self, exp_element: ExpElement) -> None:
+        self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
+            capacity=self._params.replay_memory_capacity,
+            state_dim=self._ops.policy_state_dim,
+            action_dim=self._ops.policy_action_dim
+        ))
+
+    def record(self, exp_element: ExpElement) -> None:
         for agent_name in exp_element.agent_names:
             memory = self._replay_memory_dict[agent_name]
-            memory.put_new(
+            transition_batch = TransitionBatch(
                 states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
                 actions=np.expand_dims(exp_element.action_dict[agent_name], axis=0),
                 rewards=np.array([exp_element.reward_dict[agent_name]]),
                 terminals=np.array([exp_element.terminal_dict[agent_name]]),
-                next_states=np.expand_dims(exp_element.next_agent_state_dict[agent_name], axis=0),
+                next_states=np.expand_dims(
+                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
+                    axis=0,
+                ),
             )
+            memory.put(transition_batch)
 
     def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DiscreteActorCriticOps(**self._ops_params)
