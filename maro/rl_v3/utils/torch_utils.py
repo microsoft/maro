@@ -1,4 +1,7 @@
-from typing import Union
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -40,3 +43,11 @@ def ndarray_to_tensor(array: np.ndarray, device: torch.device) -> torch.Tensor:
         A tensor with same shape and values.
     """
     return torch.from_numpy(array).to(device)
+
+
+def average_grads(grad_list: List[dict]):
+    """Obtain the average of a list of gradients."""
+    return {
+        param_name: torch.mean(torch.stack([grad[param_name] for grad in grad_list]), dim=0)
+        for param_name in grad_list[0]
+    }

@@ -6,9 +6,8 @@ from typing import Callable, Dict, List
 
 import torch
 
-from maro.rl.utils import average_grads
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
+from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch, average_grads
 
 
 class AbsTrainOps(object, metaclass=ABCMeta):

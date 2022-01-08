@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     # Batching trainers for parallelism
     if train_mode == "parallel":
-        dispatcher_address = (from_env("DISPATCHER_HOST"), from_env("DISPATCHER_PORT"))
+        dispatcher_address = (from_env("DISPATCHER_HOST"), from_env("DISPATCHER_FRONTEND_PORT"))
     else:
         dispatcher_address = None
     trainer_manager = SimpleTrainerManager(
@@ -53,13 +53,15 @@ if __name__ == "__main__":
         while not end_of_episode:
             # experience collection
             tc0 = time.time()
-            env_sampler.set_policy_states(trainer_manager.get_policy_states())
-            result = env_sampler.sample(num_steps=num_steps, return_rollout_info=False)
+            policy_states = {
+                policy_name: state for policy_state in trainer_manager.get_policy_states().values()
+                for policy_name, state in policy_state.items()
+            }
+            env_sampler.set_policy_states(policy_states)
+            result = env_sampler.sample(num_steps=num_steps)
             experiences = result["experiences"]
             trackers = [result["tracker"]]
-            logger.info(
-                get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
-            )
+            logger.info(get_rollout_finish_msg(ep))
             end_of_episode = result["end_of_episode"]
 
             if post_collect:
@@ -77,6 +79,10 @@ if __name__ == "__main__":
         logger.info(f"ep {ep} summary - collect time: {collect_time}, policy update time: {training_time}")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
-            trackers = env_sampler.test(trainer_manager.get_policy_states())
+            policy_states = {
+                policy_name: state for policy_state in trainer_manager.get_policy_states().values()
+                for policy_name, state in policy_state.items()
+            }
+            trackers = env_sampler.test(policy_states)
             if post_evaluate:
-                post_evaluate(trackers, ep)
+                post_evaluate([trackers], ep)

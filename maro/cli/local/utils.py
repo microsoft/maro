@@ -142,10 +142,11 @@ def get_docker_compose_yml(config: dict, context: str, dockerfile_path: str, ima
             f"{config['log_path']}:{config_parser.get_mnt_path_in_container('logs')}",
             f"{config['checkpoint_path']}:{config_parser.get_mnt_path_in_container('checkpoints')}",
             f"{config['load_path']}:{config_parser.get_mnt_path_in_container('loadpoint')}",
+            "/home/yaqiu/maro/maro/rl_v3:/maro/maro/rl_v3"
         ]
     }
     job = config["job"]
-    redis_host = f"{job}.redis"
+    # redis_host = f"{job}.redis"
     manifest = {"version": "3.9"}
     manifest["services"] = {
         component: {
@@ -153,16 +154,13 @@ def get_docker_compose_yml(config: dict, context: str, dockerfile_path: str, ima
             **{
                 "container_name": f"{job}.{component}",
                 "command": f"python3 {config_parser.get_script_path(component, containerized=True)}",
-                "environment": config_parser.format_env_vars(
-                    {**env, "REDIS_HOST": redis_host, "REDIS_PORT": "6379"},
-                    mode="docker-compose"
-                )
+                "environment": config_parser.format_env_vars(env, mode="docker-compose")
             }
         }
         for component, env in config_parser.get_rl_component_env_vars(config, containerized=True).items()
     }
-    if config["mode"] != "single":
-        manifest["services"]["redis"] = {"image": "redis", "container_name": redis_host}
+    # if config["mode"] != "single":
+    #     manifest["services"]["redis"] = {"image": "redis", "container_name": redis_host}
 
     return manifest
 

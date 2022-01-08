@@ -4,7 +4,7 @@ from typing import Callable, Dict, List, Tuple
 import numpy as np
 import torch
 
-from maro.rl.exploration import epsilon_greedy
+from maro.rl_v3.exploration import epsilon_greedy
 from maro.rl_v3.model import DiscretePolicyNet, DiscreteQNet
 from maro.rl_v3.utils import match_shape, ndarray_to_tensor
 from maro.utils import clone

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import socket
 from typing import Callable, Dict
 
 import zmq
@@ -14,7 +15,6 @@ from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_by
 class Dispatcher(object):
     def __init__(
         self,
-        host: str,
         num_workers: int,
         frontend_port: int = 10000,
         backend_port: int = 10001,
@@ -23,10 +23,11 @@ class Dispatcher(object):
         # ZMQ sockets and streams
         self._context = Context.instance()
         self._req_socket = self._context.socket(zmq.ROUTER)
-        self._req_socket.bind(f"tcp://{host}:{frontend_port}")
+        self._ip_address = socket.gethostbyname(socket.gethostname())
+        self._req_socket.bind(f"tcp://{self._ip_address}:{frontend_port}")
         self._req_receiver = ZMQStream(self._req_socket)
         self._route_socket = self._context.socket(zmq.ROUTER)
-        self._route_socket.bind(f"tcp://{host}:{backend_port}")
+        self._route_socket.bind(f"tcp://{self._ip_address}:{backend_port}")
         self._router = ZMQStream(self._route_socket)
 
         self._event_loop = IOLoop.current()

@@ -90,6 +90,7 @@ def get_rl_component_env_vars(config, containerized: bool = False):
             "MODE": "single",
             "NUM_EPISODES": str(config["num_episodes"]),
             "EVAL_SCHEDULE": str(config["eval_schedule"]),
+            "TRAINING_MODE": config["training_mode"], 
             **get_path_env(config, containerized=containerized)
         }
     }
@@ -97,12 +98,22 @@ def get_rl_component_env_vars(config, containerized: bool = False):
         component_env["main"]["NUM_STEPS"] = str(config["num_steps"])
 
     if config["training_mode"] == "parallel":
-        dispatcher_host = config["distributed"]["dispatcher_host"]
+        dispatcher_host = f"{config['job']}.{config['distributed']['dispatcher_host']}"
+        dispatcher_frontend_port = str(config["distributed"]["dispatcher_frontend_port"])
+        dispatcher_backend_port = str(config["distributed"]["dispatcher_backend_port"])
         num_workers = config["distributed"]["num_train_workers"]
-        component_env["dispatcher"] = {"DISPATCHER_HOST": dispatcher_host, "NUM_WORKERS": str(num_workers)}
+        component_env["main"].update({
+            "DISPATCHER_HOST": dispatcher_host, "DISPATCHER_FRONTEND_PORT": dispatcher_frontend_port
+        })
+        component_env["dispatcher"] = {
+            "NUM_WORKERS": str(num_workers),
+            "DISPATCHER_FRONTEND_PORT": dispatcher_frontend_port,
+            "DISPATCHER_BACKEND_PORT": dispatcher_backend_port
+        }
         component_env.update({
             f"train_worker-{i}": {
-                "ID": i, "DISPATCHER_HOST": dispatcher_host, **get_path_env(config, containerized=containerized)
+                "ID": str(i), "DISPATCHER_HOST": dispatcher_host, "DISPATCHER_BACKEND_PORT": dispatcher_backend_port,
+                **get_path_env(config, containerized=containerized)
             }
             for i in range(num_workers)
         })

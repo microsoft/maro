@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import socket
 from typing import Callable, Tuple
 
 import zmq
@@ -15,7 +16,8 @@ class Client(object):
         self._client.setsockopt_string(zmq.IDENTITY, name)
         self._client.setsockopt(zmq.LINGER, 0)
         host, port = dispatcher_address
-        self._dispatcher_address = f"tcp://{host}:{port}"
+        self._dispatcher_ip = socket.gethostbyname(host)
+        self._dispatcher_address = f"tcp://{self._dispatcher_ip}:{port}"
         self._client.connect(self._dispatcher_address)
 
     async def send(self, req: dict):

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import socket
 from typing import Callable, Dict, Union
 
 import zmq
@@ -27,7 +28,8 @@ class Worker(object):
         self._context = Context.instance()
         self._socket = self._context.socket(zmq.DEALER)
         self._socket.identity = string_to_bytes(self._id)
-        self._router_address = f"tcp://{router_host}:{router_port}"
+        self._router_ip = socket.gethostbyname(router_host) 
+        self._router_address = f"tcp://{self._router_ip}:{router_port}"
         self._socket.connect(self._router_address)
         print(f"Connected to dispatcher at {self._router_address}")
         self._socket.send_multipart([b"", b"READY"])
