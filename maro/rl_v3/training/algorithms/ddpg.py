@@ -4,10 +4,12 @@
 # TODO: DDPG has net been tested in a real test case
 
 from dataclasses import dataclass
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
+import numpy as np
 import torch
 
+from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
 from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
@@ -17,6 +19,21 @@ from maro.utils import clone
 
 @dataclass
 class DDPGParams(TrainerParams):
+    """
+    get_q_critic_net_func (Callable[[], QNet]): Function to get Q critic net.
+    reward_discount (float): Reward decay as defined in standard RL terminology.
+    num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
+    update_target_every (int): Number of training rounds between policy target model updates.
+    q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
+        the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
+    soft_update_coef (float): Soft update coefficient, e.g., target_model = (soft_update_coef) * eval_model +
+        (1-soft_update_coef) * target_model. Defaults to 1.0.
+    critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
+    random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
+        overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
+        wrap-around. Defaults to False.
+    """
+    get_q_critic_net_func: Callable[[], QNet] = None,
     reward_discount: float = 0.9
     num_epochs: int = 1
     update_target_every: int = 5
@@ -24,6 +41,20 @@ class DDPGParams(TrainerParams):
     soft_update_coef: float = 1.0
     critic_loss_coef: float = 0.1
     random_overwrite: bool = False
+
+    def __post_init__(self) -> None:
+        assert self.get_q_critic_net_func is not None
+
+    def extract_ops_params(self) -> Dict[str, object]:
+        return {
+            "device": self.device,
+            "enable_data_parallelism": self.enable_data_parallelism,
+            "get_q_critic_net_func": self.get_q_critic_net_func,
+            "reward_discount": self.reward_discount,
+            "q_value_loss_cls": self.q_value_loss_cls,
+            "soft_update_coef": self.soft_update_coef,
+            "critic_loss_coef": self.critic_loss_coef,
+        }
 
 
 class DDPGOps(AbsTrainOps):
@@ -159,6 +190,10 @@ class DDPGOps(AbsTrainOps):
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
+    def set_batch(self, batch: TransitionBatch) -> None:
+        assert self._is_valid_transition_batch(batch)
+        self._batch = batch
+
 
 class DDPG(SingleTrainer):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
@@ -166,35 +201,15 @@ class DDPG(SingleTrainer):
     References:
         https://arxiv.org/pdf/1509.02971.pdf
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
-
-    Args:
-        name (str): Unique identifier for the trainer.
-        policy_creator (Dict[str, Callable[[str], DiscretePolicyGradient]]): Dict of functions that used to
-            create policies.
-        device (str): Identifier for the torch device. The policy will be moved to the specified device. If it is
-            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
-        enable_data_parallelism (bool): Whether to enable data parallelism in this trainer. Defaults to False.
-        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
-        random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
-            overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
-            wrap-around. Defaults to False.
-        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
-        update_target_every (int): Number of training rounds between policy target model updates.
-
-        reward_discount (float): Reward decay as defined in standard RL terminology.
-        q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
-            the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        soft_update_coef (float): Soft update coefficient, e.g., target_model = (soft_update_coef) * eval_model +
-            (1-soft_update_coef) * target_model. Defaults to 1.0.
-        critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
     """
 
     def __init__(self, name: str, params: DDPGParams) -> None:
         super(DDPG, self).__init__(name, params)
         self._params = params
         self._policy_version = self._target_policy_version = 0
-        self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"
+
+        self._replay_memory: Optional[RandomReplayMemory] = None
 
     def build(self) -> None:
         self._ops_params = {
@@ -203,6 +218,7 @@ class DDPG(SingleTrainer):
         }
 
         self._ops = self.get_ops(self._ops_name)
+
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
@@ -210,14 +226,32 @@ class DDPG(SingleTrainer):
             random_overwrite=self._params.random_overwrite
         )
 
+    def record(self, exp_element: ExpElement) -> None:
+        for agent_name in exp_element.agent_names:
+            transition_batch = TransitionBatch(
+                states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
+                actions=np.expand_dims(exp_element.action_dict[agent_name], axis=0),
+                rewards=np.array([exp_element.reward_dict[agent_name]]),
+                terminals=np.array([exp_element.terminal_dict[agent_name]]),
+                next_states=np.expand_dims(
+                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
+                    axis=0,
+                ),
+            )
+            self._replay_memory.put(transition_batch)
+
     def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DDPGOps(**self._ops_params)
+
+    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     async def train_step(self) -> None:
         for _ in range(self._params.num_epochs):
             await self._ops.set_batch(self._get_batch())
             await self._ops.update()
-            self._policy_version += 1
-            if self._policy_version - self._target_policy_version == self._params.update_target_every:
-                await self._ops.soft_update_target()
-                self._target_policy_version = self._policy_version
+
+        self._policy_version += 1
+        if self._policy_version - self._target_policy_version == self._params.update_target_every:
+            await self._ops.soft_update_target()
+            self._target_policy_version = self._policy_version
