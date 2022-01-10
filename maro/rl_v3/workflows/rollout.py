@@ -5,7 +5,6 @@ import os
 
 from maro.rl_v3.utils.common import from_env, get_logger, get_module
 
-
 if __name__ == "__main__":
     mode = from_env("MODE")
     env_sampler = getattr(get_module(from_env("SCENARIO_PATH")), "get_env_sampler")()

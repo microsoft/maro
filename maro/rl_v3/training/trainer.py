@@ -9,7 +9,6 @@ from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import CoroutineWrapper, RemoteObj
 
-from .replay_memory import MultiReplayMemory
 from .train_ops import AbsTrainOps
 from .utils import extract_trainer_name
 

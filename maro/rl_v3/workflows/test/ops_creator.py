@@ -1,8 +1,8 @@
 import time
 
 from torch import nn
-from torch.optim import Adam
 from torch.nn import NLLLoss
+from torch.optim import Adam
 
 SLEEP = 5
 
@@ -52,7 +52,7 @@ class TrainOps2:
 
 
 ops_creator = {
-    "single.ops": lambda name: TrainOps(name, Model(5, 2)), 
+    "single.ops": lambda name: TrainOps(name, Model(5, 2)),
     "multi.ops0": lambda name: TrainOps2(name, Model(7, 3)),
     "multi.ops1": lambda name: TrainOps2(name, Model(7, 3)),
     "multi.ops2": lambda name: TrainOps2(name, Model(7, 3))

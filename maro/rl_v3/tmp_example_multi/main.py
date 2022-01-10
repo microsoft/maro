@@ -8,7 +8,6 @@ from .config import algorithm, env_conf, running_mode
 from .env_sampler import CIMEnvSampler
 from .policies import policy_creator, trainer_creator
 
-
 if __name__ == "__main__":
     run_workflow_centralized_mode(
         get_env_sampler_func=lambda: CIMEnvSampler(
