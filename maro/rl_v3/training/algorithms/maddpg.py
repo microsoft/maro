@@ -3,15 +3,16 @@
 
 import asyncio
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
 
+from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, TrainerParams
-from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
+from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, RemoteObj, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -266,6 +267,13 @@ class DiscreteMADDPG(MultiTrainer):
         self._policy_version = self._target_policy_version = 0
         self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
 
+        self._actor_ops_list = []
+        self._critic_ops: Union[RemoteObj, CoroutineWrapper, None] = None
+
+        self._policy2agent: Dict[str, Any] = {}
+
+        self._replay_memory: Optional[RandomMultiReplayMemory] = None
+
     def _improve(self, batch: MultiTransitionBatch) -> None:
         for ops in self._actor_ops_list:
             ops.set_batch(batch)
@@ -313,6 +321,43 @@ class DiscreteMADDPG(MultiTrainer):
             action_dims=[ops.policy_action_dim for ops in self._actor_ops_list],
             agent_states_dims=[ops.policy_state_dim for ops in self._actor_ops_list]
         )
+
+        assert len(self._agent2policy.keys()) == len(self._agent2policy.values())  # agent <=> policy
+        self._policy2agent = {policy_name: agent_name for agent_name, policy_name in self._agent2policy.items()}
+
+    def record(self, exp_element: ExpElement) -> None:
+        assert exp_element.num_agents == len(self._agent2policy.keys())
+
+        actions = []
+        rewards = []
+        agent_states = []
+        terminals = []
+        next_agent_states = []
+        for policy_name in self._policy_names:
+            agent_name = self._policy2agent[policy_name]
+            actions.append(np.expand_dims(exp_element.action_dict[agent_name], axis=0))
+            rewards.append(np.array([exp_element.reward_dict[agent_name]]))
+            agent_states.append(np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0))
+            terminals.append(exp_element.terminal_dict[agent_name])
+            next_agent_states.append(np.expand_dims(
+                exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]), axis=0
+            ))
+
+        transition_batch = MultiTransitionBatch(
+            states=np.expand_dims(exp_element.state, axis=0),
+            actions=actions,
+            rewards=rewards,
+            next_states=np.expand_dims(
+                exp_element.next_state if exp_element.next_state is not None else exp_element.state, axis=0
+            ),
+            agent_states=agent_states,
+            next_agent_states=next_agent_states,
+            terminals=np.array(terminals)
+        )
+        self._replay_memory.put(transition_batch)
+
+    def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         if ops_name == self._shared_critic_ops_name:

@@ -2,8 +2,8 @@ import time
 from typing import Callable, Dict, List
 
 from maro.rl_v3.learning import AbsEnvSampler, ExpElement
-from maro.rl_v3.training.trainer_manager import AbsTrainerManager
 from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.training.trainer_manager import AbsTrainerManager
 
 
 def preprocess_policy_creator(
@@ -58,12 +58,11 @@ def run_workflow_centralized_mode(
 
             print(f"Huoran log: collect_time = {collect_time}, policy_update_time = {policy_update_time}")
 
-            trainer_policy_states = trainer_manager.get_policy_states()
-            policy_states = {}
-            for v in trainer_policy_states.values():
-                policy_states.update(v)
-
             if running_mode == "decentralized":
+                trainer_policy_states = trainer_manager.get_policy_states()
+                policy_states = {}
+                for v in trainer_policy_states.values():
+                    policy_states.update(v)
                 env_sampler.set_policy_states(policy_states)
 
             # tracker = env_sampler.test(policy_state_dict=policy_states)

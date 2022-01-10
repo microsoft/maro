@@ -2,10 +2,12 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
+import numpy as np
 import torch
 
+from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import ValueBasedPolicy
 from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
@@ -140,8 +142,11 @@ class DQN(SingleTrainer):
     def __init__(self, name: str, params: DQNParams) -> None:
         super(DQN, self).__init__(name, params)
         self._params = params
+        self._ops_params = {}
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"
+
+        self._replay_memory: Optional[RandomReplayMemory] = None
 
     def build(self) -> None:
         self._ops_params = {
@@ -157,8 +162,25 @@ class DQN(SingleTrainer):
             random_overwrite=self._params.random_overwrite
         )
 
+    def record(self, exp_element: ExpElement) -> None:
+        for agent_name in exp_element.agent_names:
+            transition_batch = TransitionBatch(
+                states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
+                actions=np.expand_dims(exp_element.action_dict[agent_name], axis=0),
+                rewards=np.array([exp_element.reward_dict[agent_name]]),
+                terminals=np.array([exp_element.terminal_dict[agent_name]]),
+                next_states=np.expand_dims(
+                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
+                    axis=0,
+                ),
+            )
+            self._replay_memory.put(transition_batch)
+
     def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DQNOps(**self._ops_params)
+
+    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     async def train_step(self) -> None:
         for _ in range(self._params.num_epochs):
