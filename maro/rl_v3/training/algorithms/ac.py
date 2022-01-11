@@ -116,17 +116,12 @@ class DiscreteActorCriticOps(AbsTrainOps):
         raise NotImplementedError
 
     def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        states = ndarray_to_tensor(batch.states, self._device)  # s
-
         self._policy.train()
         self._v_critic_net.train()
 
+        states = ndarray_to_tensor(batch.states, self._device)  # s
         state_values = self._v_critic_net.v_values(states)
-        values = state_values.detach().numpy()
-        values = np.concatenate([values, values[-1:]])
-        rewards = np.concatenate([batch.rewards, values[-1:]])
-
-        returns = ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1], self._device)
+        returns = ndarray_to_tensor(batch.returns, self._device)
         critic_loss = self._critic_loss_func(state_values, returns)
 
         return self._v_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
@@ -136,20 +131,13 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
         actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
+        advantages = ndarray_to_tensor(self._batch.advantages, self._device)
 
         if self._clip_ratio is not None:
             self._policy.eval()
             logps_old = self._policy.get_state_action_logps(states, actions)
         else:
             logps_old = None
-
-        state_values = self._v_critic_net.v_values(states)
-        values = state_values.detach().numpy()
-        values = np.concatenate([values, values[-1:]])
-        rewards = np.concatenate([batch.rewards, values[-1:]])
-
-        deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
-        advantages = ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam), self._device)
 
         action_probs = self._policy.get_action_probs(states)
         logps = torch.log(action_probs.gather(1, actions).squeeze())
@@ -186,6 +174,23 @@ class DiscreteActorCriticOps(AbsTrainOps):
             self._policy.set_state(ops_state_dict["policy_state"])
         if scope in ("all", "critic"):
             self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
+
+    def set_batch(self, batch: TransitionBatch) -> None:
+        assert self._is_valid_transition_batch(batch)
+        self._batch = batch
+
+        # Preprocess returns
+        self._batch.calc_returns(self._reward_discount)
+
+        # Preprocess advantages
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        state_values = self._v_critic_net.v_values(states)
+        values = state_values.detach().numpy()
+        values = np.concatenate([values, values[-1:]])
+        rewards = np.concatenate([batch.rewards, values[-1:]])
+        deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
+        advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
+        self._batch.advantages = advantages
 
 
 class DiscreteActorCritic(SingleTrainer):
@@ -234,8 +239,8 @@ class DiscreteActorCritic(SingleTrainer):
     def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DiscreteActorCriticOps(**self._ops_params)
 
-    def _get_batch(self, agent_name: str, batch_size: int = None) -> TransitionBatch:
-        return self._replay_memory_dict[agent_name].sample(batch_size if batch_size is not None else self._batch_size)
+    def _get_batch(self, agent_name: str) -> TransitionBatch:
+        return self._replay_memory_dict[agent_name].sample(-1)  # Use all entries in the replay memory
 
     async def train_step(self):
         for agent_name in self._replay_memory_dict:

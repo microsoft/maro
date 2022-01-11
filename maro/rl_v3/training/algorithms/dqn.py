@@ -133,6 +133,10 @@ class DQNOps(AbsTrainOps):
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
+    def set_batch(self, batch: TransitionBatch) -> None:
+        assert self._is_valid_transition_batch(batch)
+        self._batch = batch
+
 
 class DQN(SingleTrainer):
     """The Deep-Q-Networks algorithm.

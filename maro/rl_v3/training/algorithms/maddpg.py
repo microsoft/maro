@@ -258,6 +258,10 @@ class DiscreteMADDPGOps(AbsTrainOps):
         if not self._shared_critic:
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
+    def set_batch(self, batch: MultiTransitionBatch) -> None:
+        assert self._is_valid_transition_batch(batch)
+        self._batch = batch
+
 
 class DiscreteMADDPG(MultiTrainer):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
