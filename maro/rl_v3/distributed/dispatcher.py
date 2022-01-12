@@ -9,7 +9,11 @@ from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
-from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
+from maro.utils import Logger
+
+from .utils import bytes_to_pyobj, bytes_to_string, string_to_bytes
+
+logger = Logger("dispatcher")
 
 
 class Dispatcher(object):
@@ -47,21 +51,23 @@ class Dispatcher(object):
         obj_name = bytes_to_string(msg[0])
         req = bytes_to_pyobj(msg[-1])
         obj_type = req["type"]
-        print(f"Received request {req['func']} from {obj_name}")
+        logger.info(f"Received request {req['func']} from {obj_name}")
         if obj_name not in self._obj2node:
-            self._obj2node[obj_name] = self._hash_fn(obj_name) % self._num_workers
-            print(f"Placing {obj_name} at worker node {self._obj2node[obj_name]}")
-        worker_id = f'{obj_type}_worker.{self._obj2node[obj_name]}'
-        self._router.send_multipart(
-            [string_to_bytes(worker_id), b"", string_to_bytes(obj_name), b"", pyobj_to_bytes(req)]
-        )
+            worker_idx = self._hash_fn(obj_name) % self._num_workers
+            worker_id = f"{obj_type}_worker.{worker_idx}"
+            self._obj2node[obj_name] = worker_id
+            logger.info(f"Placing {obj_name} at worker node {self._obj2node[obj_name]}")
+        else:
+            worker_id = self._obj2node[obj_name]
+
+        self._router.send_multipart([string_to_bytes(worker_id), msg[0], msg[-1]])
 
     def _send_result_to_requester(self, msg: list) -> None:
-        worker_id, _, result = msg[:3]
-        if result != b"READY":
-            self._req_receiver.send_multipart(msg[2:])
+        worker_id = msg[0]
+        if msg[1] == b"READY":
+            logger.info(f"{bytes_to_string(worker_id)} ready")
         else:
-            print(f"{worker_id} ready")
+            self._req_receiver.send_multipart(msg[1:])
 
     def start(self) -> None:
         self._event_loop.start()
@@ -71,10 +77,10 @@ class Dispatcher(object):
 
     @staticmethod
     def log_route_request(msg: list, status: object) -> None:
-        worker_id, _, obj_name, _, req = msg
+        worker_id, obj_name, req = msg
         req = bytes_to_pyobj(req)
-        print(f"Routed {obj_name}'s request {req['func']} to worker node {worker_id}")
+        logger.info(f"Routed {obj_name}'s request {req['func']} to worker node {worker_id}")
 
     @staticmethod
     def log_send_result(msg: list, status: object) -> None:
-        print(f"Returned result for {msg[0]}")
+        logger.info(f"Returned result for {msg[0]}")

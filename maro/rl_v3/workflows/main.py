@@ -86,3 +86,6 @@ if __name__ == "__main__":
             trackers = env_sampler.test(policy_states)
             if post_evaluate:
                 post_evaluate([trackers], ep)
+    
+    for trainer_name, trainer in trainer_manager._trainer_dict.items():
+        logger.info(f"trainer_name = {trainer_name}, retries = {trainer._ops._client._retries}")

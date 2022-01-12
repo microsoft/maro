@@ -9,7 +9,11 @@ from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
+from maro.utils import Logger
+
 from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
+
+logger = Logger("train_worker")
 
 
 class Worker(object):
@@ -31,9 +35,9 @@ class Worker(object):
         self._router_ip = socket.gethostbyname(router_host) 
         self._router_address = f"tcp://{self._router_ip}:{router_port}"
         self._socket.connect(self._router_address)
-        print(f"Connected to dispatcher at {self._router_address}")
-        self._socket.send_multipart([b"", b"READY"])
+        logger.info(f"Connected to dispatcher at {self._router_address}")
         self._task_receiver = ZMQStream(self._socket)
+        self._task_receiver.send(b"READY")
         self._event_loop = IOLoop.current()
 
         # register handlers
@@ -43,21 +47,18 @@ class Worker(object):
         self._obj_dict: Dict[str, object] = {}
 
     def _compute(self, msg: list) -> None:
-        obj_name = bytes_to_string(msg[1])
-        req = bytes_to_pyobj(msg[-1])
+        obj_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
         assert isinstance(req, dict)
 
         if obj_name not in self._obj_dict:
             creator_fn = self._obj_creator if isinstance(self._obj_creator, Callable) else self._obj_creator[obj_name]
             self._obj_dict[obj_name] = creator_fn()
-            print(f"Created object {obj_name} at worker {self._id}")
-            print(type(self._obj_dict[obj_name]))
+            logger.info(f"Created object {obj_name} at worker {self._id}")
 
         func_name, args, kwargs = req["func"], req["args"], req["kwargs"]
-        print(func_name)
         func = getattr(self._obj_dict[obj_name], func_name)
         result = func(*args, **kwargs)
-        self._task_receiver.send_multipart([b"", msg[1], b"", pyobj_to_bytes(result)])
+        self._task_receiver.send_multipart([msg[0], pyobj_to_bytes(result)])
 
     def start(self) -> None:
         self._event_loop.start()
@@ -67,4 +68,4 @@ class Worker(object):
 
     @staticmethod
     def log_send_result(msg: list, status: object) -> None:
-        print(f"Returning result for {msg[1]}")
+        logger.info(f"Returning result for {msg[0]}")

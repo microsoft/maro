@@ -10,7 +10,10 @@ scenario = get_module(from_env("SCENARIO_PATH"))
 policy_creator = getattr(scenario, "policy_creator")
 trainer_creator = getattr(scenario, "trainer_creator")
 worker = Worker(
-    "train", from_env("ID"), OpsCreator(policy_creator, trainer_creator), from_env("DISPATCHER_HOST"),
+    "train",
+    from_env("ID"),
+    OpsCreator(policy_creator, trainer_creator),
+    from_env("DISPATCHER_HOST"),
     router_port=from_env("DISPATCHER_BACKEND_PORT")    
 )
 
