@@ -3,7 +3,10 @@
 
 import os
 import time
+from typing import Callable, Dict, List
 
+from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.rollout.helpers import get_rollout_finish_msg
 from maro.rl_v3.training.trainer_manager import SimpleTrainerManager
 from maro.rl_v3.utils.common import from_env, get_eval_schedule, get_logger, get_module
@@ -19,7 +22,16 @@ if __name__ == "__main__":
     post_collect = getattr(scenario, "post_collect", None)
     post_evaluate = getattr(scenario, "post_evaluate", None)
 
-    mode = from_env("MODE")
+    rollout_mode, train_mode = from_env("ROLLOUT_MODE"), from_env("TRAIN_MODE")
+    assert rollout_mode in {"simple", "parallel"}
+    assert train_mode in {"simple", "parallel"}
+    if train_mode == "parallel" or rollout_mode == "parallel":
+        dispatcher_address = (from_env("DISPATCHER_HOST"), from_env("DISPATCHER_FRONTEND_PORT"))
+    else:
+        dispatcher_address = None
+        policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
+        policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
+
     env_sampler = get_env_sampler()
     num_episodes = from_env("NUM_EPISODES")
     num_steps = from_env("NUM_STEPS", required=False, default=-1)
@@ -33,15 +45,6 @@ if __name__ == "__main__":
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
-    train_mode = from_env("TRAINING_MODE", required=True)
-    if train_mode not in {"simple", "parallel"}:
-        raise ValueError(f"Unsupported training mode: {train_mode}. Supported modes: simple, parallel")
-
-    # Batching trainers for parallelism
-    if train_mode == "parallel":
-        dispatcher_address = (from_env("DISPATCHER_HOST"), from_env("DISPATCHER_FRONTEND_PORT"))
-    else:
-        dispatcher_address = None
     trainer_manager = SimpleTrainerManager(
         policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address
     )
@@ -53,20 +56,22 @@ if __name__ == "__main__":
         while not end_of_episode:
             # experience collection
             tc0 = time.time()
-            policy_states = {
-                policy_name: state for policy_state in trainer_manager.get_policy_states().values()
-                for policy_name, state in policy_state.items()
-            }
-            env_sampler.set_policy_states(policy_states)
+            if train_mode == "parallel":
+                policy_states = {
+                    policy_name: state for policy_state in trainer_manager.get_policy_states().values()
+                    for policy_name, state in policy_state.items()
+                }
+                env_sampler.set_policy_states(policy_states)
+
             result = env_sampler.sample(num_steps=num_steps)
-            experiences = result["experiences"]
+            experiences: List[ExpElement] = result["experiences"]
             trackers = [result["tracker"]]
             logger.info(get_rollout_finish_msg(ep))
-            end_of_episode = result["end_of_episode"]
+            end_of_episode: bool = result["end_of_episode"]
 
             if post_collect:
                 post_collect(trackers, ep, segment)
-            
+
             collect_time += time.time() - tc0
 
             tu0 = time.time()

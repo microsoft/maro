@@ -135,9 +135,9 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         """Set ops's state."""
         raise NotImplementedError
 
+    @abstractmethod
     def set_batch(self, batch: AbsTransitionBatch) -> None:
-        assert self._is_valid_transition_batch(batch)
-        self._batch = batch
+        raise NotImplementedError
 
     def get_policy_state(self) -> object:
         return self._policy.name, self._policy.get_state()

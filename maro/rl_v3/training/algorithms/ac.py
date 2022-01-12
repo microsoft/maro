@@ -2,12 +2,14 @@
 # Licensed under the MIT license.
 
 import asyncio
+import collections
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
 import numpy as np
 import torch
 
+from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.training import AbsTrainOps, FIFOReplayMemory, SingleTrainer, TrainerParams
@@ -114,17 +116,12 @@ class DiscreteActorCriticOps(AbsTrainOps):
         raise NotImplementedError
 
     def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        states = ndarray_to_tensor(batch.states, self._device)  # s
-
         self._policy.train()
         self._v_critic_net.train()
 
+        states = ndarray_to_tensor(batch.states, self._device)  # s
         state_values = self._v_critic_net.v_values(states)
-        values = state_values.detach().numpy()
-        values = np.concatenate([values, values[-1:]])
-        rewards = np.concatenate([batch.rewards, values[-1:]])
-
-        returns = ndarray_to_tensor(discount_cumsum(rewards, self._reward_discount)[:-1], self._device)
+        returns = ndarray_to_tensor(batch.returns, self._device)
         critic_loss = self._critic_loss_func(state_values, returns)
 
         return self._v_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
@@ -134,20 +131,13 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
         actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
+        advantages = ndarray_to_tensor(self._batch.advantages, self._device)
 
         if self._clip_ratio is not None:
             self._policy.eval()
             logps_old = self._policy.get_state_action_logps(states, actions)
         else:
             logps_old = None
-
-        state_values = self._v_critic_net.v_values(states)
-        values = state_values.detach().numpy()
-        values = np.concatenate([values, values[-1:]])
-        rewards = np.concatenate([batch.rewards, values[-1:]])
-
-        deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
-        advantages = ndarray_to_tensor(discount_cumsum(deltas, self._reward_discount * self._lam), self._device)
 
         action_probs = self._policy.get_action_probs(states)
         logps = torch.log(action_probs.gather(1, actions).squeeze())
@@ -185,6 +175,23 @@ class DiscreteActorCriticOps(AbsTrainOps):
         if scope in ("all", "critic"):
             self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
 
+    def set_batch(self, batch: TransitionBatch) -> None:
+        assert self._is_valid_transition_batch(batch)
+        self._batch = batch
+
+        # Preprocess returns
+        self._batch.calc_returns(self._reward_discount)
+
+        # Preprocess advantages
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        state_values = self._v_critic_net.v_values(states)
+        values = state_values.detach().numpy()
+        values = np.concatenate([values, values[-1:]])
+        rewards = np.concatenate([batch.rewards, values[-1:]])
+        deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
+        advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
+        self._batch.advantages = advantages
+
 
 class DiscreteActorCritic(SingleTrainer):
     """Actor Critic algorithm with separate policy and value models.
@@ -198,19 +205,40 @@ class DiscreteActorCritic(SingleTrainer):
         self._params = params
         self._ops_name = f"{self._name}.ops"
 
+        self._replay_memory_dict = {}
+
     async def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
         state_dim = await self._ops.policy_state_dim()
         action_dim = await self._ops.policy_action_dim()
-        self._replay_memory = FIFOReplayMemory(
+        self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=state_dim,
             action_dim=action_dim
-        )
+        ))
+
+    def record(self, exp_element: ExpElement) -> None:
+        for agent_name in exp_element.agent_names:
+            memory = self._replay_memory_dict[agent_name]
+            transition_batch = TransitionBatch(
+                states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
+                actions=np.expand_dims(exp_element.action_dict[agent_name], axis=0),
+                rewards=np.array([exp_element.reward_dict[agent_name]]),
+                terminals=np.array([exp_element.terminal_dict[agent_name]]),
+                next_states=np.expand_dims(
+                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
+                    axis=0,
+                ),
+            )
+            memory.put(transition_batch)
 
     def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DiscreteActorCriticOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
+    def _get_batch(self, agent_name: str) -> TransitionBatch:
+        return self._replay_memory_dict[agent_name].sample(-1)  # Use all entries in the replay memory
+
     async def train_step(self):
-        await asyncio.gather(self._ops.set_batch(self._get_batch()))
-        await asyncio.gather(self._ops.update(self._params.grad_iters))
+        for agent_name in self._replay_memory_dict:
+            await asyncio.gather(self._ops.set_batch(self._get_batch(agent_name)))
+            await asyncio.gather(self._ops.update(self._params.grad_iters))

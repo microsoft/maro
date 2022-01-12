@@ -35,4 +35,3 @@ state_dim = (
 )
 
 algorithm = "ac"
-running_mode = "decentralized"

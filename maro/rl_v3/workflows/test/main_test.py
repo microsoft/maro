@@ -4,10 +4,10 @@ import time
 import torch
 
 from maro.rl_v3.training.trainer import BatchTrainer
-from maro.rl_v3.utils.distributed import RemoteObj, CoroutineAdapter
+from maro.rl_v3.utils.distributed import CoroutineAdapter, RemoteObj
 from maro.rl_v3.workflows.test.ops_creator import ops_creator
 
-DISPATCHER_ADDRESS = None # ("127.0.0.1", 10000)
+DISPATCHER_ADDRESS = None  # ("127.0.0.1", 10000)
 
 
 class SingleTrainer:

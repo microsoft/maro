@@ -3,17 +3,19 @@ from typing import List
 
 import numpy as np
 
+from . import discount_cumsum
 from .objects import SHAPE_CHECK_FLAG
 
 
 @dataclass
 class TransitionBatch:
-    policy_name: str
     states: np.ndarray  # 2D
     actions: np.ndarray  # 2D
     rewards: np.ndarray  # 1D
     next_states: np.ndarray  # 2D
     terminals: np.ndarray  # 1D
+    returns: np.ndarray = None  # 1D
+    advantages: np.ndarray = None  # 1D
 
     def __post_init__(self) -> None:
         if SHAPE_CHECK_FLAG:
@@ -23,10 +25,12 @@ class TransitionBatch:
             assert self.next_states.shape == self.states.shape
             assert len(self.terminals.shape) == 1 and self.terminals.shape[0] == self.states.shape[0]
 
+    def calc_returns(self, discount_factor: float) -> None:
+        self.returns = discount_cumsum(self.rewards, discount_factor)
+
 
 @dataclass
 class MultiTransitionBatch:
-    policy_names: List[str]
     states: np.ndarray  # 2D
     actions: List[np.ndarray]  # 2D
     rewards: List[np.ndarray]  # 1D

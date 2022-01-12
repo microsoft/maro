@@ -3,9 +3,8 @@ import torch
 from maro.rl_v3.exploration import MultiLinearExplorationScheduler, epsilon_greedy
 from maro.rl_v3.policy import DiscretePolicyGradient, ValueBasedPolicy
 from maro.rl_v3.training.algorithms import DQN, DiscreteActorCritic, DiscreteActorCriticParams, DQNParams
-from maro.rl_v3.workflow import preprocess_policy_creator
 
-from .config import algorithm, running_mode
+from .config import algorithm
 from .nets import MyActorNet, MyCriticNet, MyQNet
 
 dqn_policy_conf = {
@@ -68,6 +67,3 @@ elif algorithm == "ac":
     trainer_creator = {f"{algorithm}_{i}": get_ac for i in range(4)}
 else:
     raise ValueError
-# #####################################################################################################################
-
-policy_creator = preprocess_policy_creator(policy_creator, running_mode)

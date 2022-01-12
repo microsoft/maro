@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import collections
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
@@ -122,8 +125,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
 
 @dataclass
 class CacheElement:
-    """
-    The data structure used to store a cached value during experience collection.
+    """The data structure used to store a cached value during experience collection.
     """
     tick: int
     state: np.ndarray
@@ -133,14 +135,46 @@ class CacheElement:
 
 
 @dataclass
-class ExpElement(CacheElement):
+class ExpElement:
+    """Stores the complete information for a tick. ExpElement is an extension of CacheElement.
     """
-    Stores the complete information for a tick. ExpElement is an extension of CacheElement.
-    """
+    tick: int
+    state: np.ndarray
+    agent_state_dict: Dict[Any, np.ndarray]
+    action_dict: Dict[Any, np.ndarray]
     reward_dict: Dict[Any, float]
     terminal_dict: Dict[Any, bool]
     next_state: Optional[np.ndarray]
     next_agent_state_dict: Optional[Dict[Any, np.ndarray]]
+
+    @property
+    def agent_names(self) -> list:
+        return sorted(self.agent_state_dict.keys())
+
+    @property
+    def num_agents(self) -> int:
+        return len(self.agent_state_dict)
+
+    def split_contents(self, agent2trainer: Dict[Any, str]) -> Dict[str, ExpElement]:
+        ret = collections.defaultdict(lambda: ExpElement(
+            tick=self.tick,
+            state=self.state,
+            agent_state_dict={},
+            action_dict={},
+            reward_dict={},
+            terminal_dict={},
+            next_state=self.next_state,
+            next_agent_state_dict=None if self.next_agent_state_dict is None else {}
+        ))
+        for agent_name in self.agent_names:
+            trainer_name = agent2trainer[agent_name]
+            ret[trainer_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
+            ret[trainer_name].action_dict[agent_name] = self.action_dict[agent_name]
+            ret[trainer_name].reward_dict[agent_name] = self.reward_dict[agent_name]
+            ret[trainer_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
+            if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict:
+                ret[trainer_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
+        return ret
 
 
 class AbsEnvSampler(object, metaclass=ABCMeta):
@@ -314,7 +348,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 state=cache_element.state,
                 agent_state_dict=cache_element.agent_state_dict,
                 action_dict=cache_element.action_dict,
-                env_action_dict=cache_element.env_action_dict,
                 reward_dict=reward_dict,
                 terminal_dict={},  # Will be processed later in `_post_polish_experiences()`
                 next_state=next_state,
@@ -343,7 +376,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             for key, value in latest_agent_state_dict.items():
                 if key not in experiences[i].next_agent_state_dict:
                     experiences[i].next_agent_state_dict[key] = value
-            latest_agent_state_dict.update(experiences[i].next_agent_state_dict)
+            latest_agent_state_dict.update(experiences[i].agent_state_dict)
         return experiences
 
     def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:

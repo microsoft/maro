@@ -3,16 +3,12 @@
 
 import asyncio
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict
 from typing import Callable, Dict, List, Tuple
-
-import numpy as np
 
 from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch
 
-from .trainer import AbsTrainer, MultiTrainer, SingleTrainer
+from .trainer import AbsTrainer
 from .utils import extract_trainer_name
 
 
@@ -77,14 +73,12 @@ class SimpleTrainerManager(AbsTrainerManager):
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._trainers: List[AbsTrainer] = []
-        self._build(trainer_creator, policy_creator, dispatcher_address=dispatcher_address)
         self._agent2policy = agent2policy
-
-    def _build(self, trainer_creator, policy_creator, dispatcher_address=None):
         for trainer_name, func in trainer_creator.items():
             trainer = func(trainer_name)
             if dispatcher_address is not None:
                 trainer.set_dispatch_address(dispatcher_address)
+            trainer.register_agent2policy(self._agent2policy)
             trainer.register_policy_creator(policy_creator)
             self._trainer_dict[trainer_name] = trainer
             self._trainers.append(trainer)
@@ -106,89 +100,12 @@ class SimpleTrainerManager(AbsTrainerManager):
             self._dispatch_experience(exp_element)
 
     def _dispatch_experience(self, exp_element: ExpElement) -> None:
-        state = exp_element.state
-        agent_state_dict = exp_element.agent_state_dict
-        action_dict = exp_element.action_dict
-        reward_dict = exp_element.reward_dict
-        terminal_dict = exp_element.terminal_dict
-        next_state = exp_element.next_state
-        next_agent_state_dict = exp_element.next_agent_state_dict
+        agent2trainer = {
+            agent_name: extract_trainer_name(policy_name)
+            for agent_name, policy_name in self._agent2policy.items()
+        }
+        exp_dict = exp_element.split_contents(agent2trainer)
 
-        if next_state is None:
-            next_state = state
-
-        # Aggregate experiences by trainer
-        trainer_buffer = defaultdict(list)
-        for agent_name, agent_state in agent_state_dict.items():
-            policy_name = self._agent2policy[agent_name]
-            trainer_name = extract_trainer_name(policy_name)
-            action = action_dict[agent_name]
-            reward = reward_dict[agent_name]
-            trainer_buffer[trainer_name].append((
-                policy_name,
-                agent_state,
-                action,
-                reward,
-                next_agent_state_dict[agent_name] if agent_name in next_agent_state_dict else agent_state,
-                terminal_dict[agent_name]
-            ))
-
-        for trainer_name, exps in trainer_buffer.items():
-            if trainer_name not in self._trainer_dict:
-                continue
+        for trainer_name, exp_elem in exp_dict.items():
             trainer = self._trainer_dict[trainer_name]
-            if isinstance(trainer, SingleTrainer):
-                assert len(exps) == 1, f"SingleTrainer must has exactly one policy. Currently, it has {len(exps)}."
-
-                policy_name: str = exps[0][0]
-                agent_state: np.ndarray = exps[0][1]
-                action: np.ndarray = exps[0][2]
-                reward: float = exps[0][3]
-                next_agent_state: np.ndarray = exps[0][4]
-                terminal: bool = exps[0][5]
-
-                batch = TransitionBatch(
-                    policy_name=policy_name,
-                    states=np.expand_dims(agent_state, axis=0),
-                    actions=np.expand_dims(action, axis=0),
-                    rewards=np.array([reward]),
-                    next_states=np.expand_dims(next_agent_state, axis=0),
-                    terminals=np.array([terminal])
-                )
-                trainer.record(transition_batch=batch)
-            elif isinstance(trainer, MultiTrainer):
-                policy_names: List[str] = []
-                actions: List[np.ndarray] = []
-                rewards: List[np.ndarray] = []
-                terminals: List[bool] = []
-                agent_states: List[np.ndarray] = []
-                next_agent_states: List[np.ndarray] = []
-
-                for exp in exps:
-                    policy_name: str = exp[0]
-                    agent_state: np.ndarray = exp[1]
-                    action: np.ndarray = exp[2]
-                    reward: float = exp[3]
-                    next_agent_state: np.ndarray = exp[4]
-                    terminal: bool = exp[5]
-
-                    policy_names.append(policy_name)
-                    actions.append(np.expand_dims(action, axis=0))
-                    rewards.append(np.array([reward]))
-                    terminals.append(terminal)
-                    agent_states.append(np.expand_dims(agent_state, axis=0))
-                    next_agent_states.append(np.expand_dims(next_agent_state, axis=0))
-
-                batch = MultiTransitionBatch(
-                    policy_names=policy_names,
-                    states=np.expand_dims(state, axis=0),
-                    actions=actions,
-                    rewards=rewards,
-                    next_states=np.expand_dims(next_state, axis=0),
-                    agent_states=agent_states,
-                    next_agent_states=next_agent_states,
-                    terminals=np.array(terminals)
-                )
-                trainer.record(batch)
-            else:
-                raise ValueError
+            trainer.record(exp_elem)

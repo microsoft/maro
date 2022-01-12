@@ -73,16 +73,6 @@ def get_path_env(config, containerized: bool = False):
     return env
 
 
-def get_common_env_vars(config, containerized: bool = False):
-    env = {
-        "JOB": config["job"],
-        "MODE": config['mode'],
-        **get_path_env(config, containerized=containerized)
-    }
-
-    return env
-
-
 def get_rl_component_env_vars(config, containerized: bool = False):
     component_env = {
         "main": {
@@ -90,14 +80,15 @@ def get_rl_component_env_vars(config, containerized: bool = False):
             "MODE": "single",
             "NUM_EPISODES": str(config["num_episodes"]),
             "EVAL_SCHEDULE": str(config["eval_schedule"]),
-            "TRAINING_MODE": config["training_mode"], 
+            "ROLLOUT_MODE": config["rollout_mode"],
+            "TRAIN_MODE": config["train_mode"],
             **get_path_env(config, containerized=containerized)
         }
     }
     if "num_steps" in config:
         component_env["main"]["NUM_STEPS"] = str(config["num_steps"])
 
-    if config["training_mode"] == "parallel":
+    if config["train_mode"] == "parallel":
         dispatcher_host = f"{config['job']}.{config['distributed']['dispatcher_host']}"
         dispatcher_frontend_port = str(config["distributed"]["dispatcher_frontend_port"])
         dispatcher_backend_port = str(config["distributed"]["dispatcher_backend_port"])

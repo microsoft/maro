@@ -149,7 +149,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
 
-    def _put_by_indexes(self, indexes: np.ndarray, transition_batch: TransitionBatch):
+    def _put_by_indexes(self, indexes: np.ndarray, transition_batch: TransitionBatch) -> None:
         self._states[indexes] = transition_batch.states
         self._actions[indexes] = transition_batch.actions
         self._rewards[indexes] = transition_batch.rewards
@@ -164,7 +164,6 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return TransitionBatch(
-            policy_name='',
             states=self._states[indexes],
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
@@ -291,7 +290,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return MultiTransitionBatch(
-            policy_names=[],
             states=self._states[indexes],
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],

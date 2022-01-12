@@ -6,10 +6,11 @@ scenario_path: "/home/yaqiu/maro/examples/rl/cim"
 load_path: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
 checkpoint_path: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
 log_path: "/home/yaqiu/maro/examples/rl/logs"
-training_mode: parallel
-mode: sync  # single, sync, async
+rollout_mode: simple
+train_mode: parallel
 num_episodes: 20
 eval_schedule: 5
+# mode: sync  # single, sync, async
 # sync:
 #   num_rollouts: 3
 #   num_eval_rollouts: 1
