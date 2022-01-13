@@ -3,21 +3,60 @@
 
 import os
 import time
-from typing import List
+from types import ModuleType
+from typing import Callable, Dict, List
 
-from maro.rl_v3.learning import ExpElement
-from maro.rl_v3.training.trainer_manager import SimpleTrainerManager
+from maro.rl_v3.learning import AbsEnvSampler, ExpElement
+from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.training import AbsTrainer, SimpleTrainerManager
 from maro.rl_v3.utils.common import from_env, get_eval_schedule, get_logger, get_module
+
+
+class ScenarioAttr(object):
+    def __init__(self, scenario_module: ModuleType) -> None:
+        super(ScenarioAttr, self).__init__()
+        self._scenario_module = scenario_module
+
+    @property
+    def env_sampler(self) -> AbsEnvSampler:
+        return getattr(scenario, "get_env_sampler")()
+
+    @property
+    def agent2policy(self) -> Dict[str, str]:
+        return getattr(scenario, "agent2policy")
+
+    @property
+    def policy_creator(self) -> Dict[str, Callable[[str], RLPolicy]]:
+        return getattr(scenario, "policy_creator")
+
+    @property
+    def trainer_creator(self) -> Dict[str, Callable[[str], AbsTrainer]]:
+        return getattr(scenario, "trainer_creator")
+
+    @property
+    def post_collect(self) -> Callable[[list, int, int], None]:
+        return getattr(scenario, "post_collect", None)
+
+    @property
+    def post_evaluate(self) -> Callable[[list, int], None]:
+        return getattr(scenario, "post_evaluate", None)
+
+
+def _get_scenario_path() -> str:
+    path = from_env("SCENARIO_PATH")
+    assert isinstance(path, str)
+    return path
+
 
 if __name__ == "__main__":
     # get user-defined scenario ingredients
-    scenario = get_module(from_env("SCENARIO_PATH"))
-    get_env_sampler = getattr(scenario, "get_env_sampler")
-    agent2policy = getattr(scenario, "agent2policy")
-    policy_creator = getattr(scenario, "policy_creator")
-    trainer_creator = getattr(scenario, "trainer_creator")
-    post_collect = getattr(scenario, "post_collect", None)
-    post_evaluate = getattr(scenario, "post_evaluate", None)
+    scenario = get_module(_get_scenario_path())
+    scenario_attr = ScenarioAttr(scenario)
+    agent2policy = scenario_attr.agent2policy
+    policy_creator = scenario_attr.policy_creator
+    trainer_creator = scenario_attr.trainer_creator
+    post_collect = scenario_attr.post_collect
+    post_evaluate = scenario_attr.post_evaluate
 
     rollout_mode, train_mode = from_env("ROLLOUT_MODE"), from_env("TRAIN_MODE")
     assert rollout_mode in {"simple", "parallel"}
@@ -29,16 +68,24 @@ if __name__ == "__main__":
         policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
-    env_sampler = get_env_sampler()
+    env_sampler = scenario_attr.env_sampler
     num_episodes = from_env("NUM_EPISODES")
     num_steps = from_env("NUM_STEPS", required=False, default=-1)
+    assert isinstance(num_episodes, int)
+    assert isinstance(num_steps, int)
 
     load_path = from_env("LOAD_PATH", required=False, default=None)
     checkpoint_path = from_env("CHECKPOINT_PATH", required=False, default=None)
-    logger = get_logger(from_env("LOG_PATH", required=False, default=os.getcwd()), from_env("JOB"), "MAIN")
+    log_path = from_env("LOG_PATH", required=False, default=os.getcwd())
+    job_path = from_env("JOB")
+    assert isinstance(log_path, str)
+    assert isinstance(job_path, str)
+    logger = get_logger(log_path, job_path, "MAIN")
 
     # evaluation schedule
-    eval_schedule = get_eval_schedule(from_env("EVAL_SCHEDULE", required=False, default=None), num_episodes)
+    eval_schedule_config = from_env("EVAL_SCHEDULE", required=False, default=None)
+    assert isinstance(eval_schedule_config, int) or isinstance(eval_schedule_config, list)
+    eval_schedule = get_eval_schedule(eval_schedule_config, num_episodes)
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 

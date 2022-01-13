@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-def post_collect(trackers, ep, segment):
+def post_collect(trackers: list, ep: int, segment: int) -> None:
     # print the env metric from each rollout worker
     for tracker in trackers:
         print(f"env summary (episode {ep}, segment {segment}): {tracker['env_metric']}")
@@ -14,7 +14,7 @@ def post_collect(trackers, ep, segment):
         print(f"average env summary (episode {ep}, segment {segment}): {avg_metric}")
 
 
-def post_evaluate(trackers, ep):
+def post_evaluate(trackers: list, ep: int) -> None:
     # print the env metric from each rollout worker
     for tracker in trackers:
         print(f"env summary (episode {ep}): {tracker['env_metric']}")
