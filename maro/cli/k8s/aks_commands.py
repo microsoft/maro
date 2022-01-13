@@ -5,23 +5,24 @@ import base64
 import json
 import os
 import shutil
-import yaml
 from os.path import abspath, dirname, expanduser, join
+
+import yaml
 
 # from maro.cli.k8s.executors.k8s_executor import K8sExecutor
 # from maro.cli.utils.azure.acr import list_acr_repositories, login_acr
+from maro.cli.utils import docker as docker_utils
+from maro.cli.utils.azure import storage as azure_storage_utils
 from maro.cli.utils.azure.aks import attach_acr
 from maro.cli.utils.azure.deployment import create_deployment
 from maro.cli.utils.azure.general import connect_to_aks, get_acr_push_permissions, set_env_credentials
 from maro.cli.utils.azure.resource_group import create_resource_group, delete_resource_group
-from maro.cli.utils.azure import storage as azure_storage_utils
 # from maro.cli.utils.azure.vm import list_vm_sizes
+from maro.cli.utils.common import show_log
 from maro.cli.utils.config_parser import get_rl_component_env_vars
 # from maro.cli.utils.deployment_validator import DeploymentValidator
 # from maro.cli.utils.details_reader import DetailsReader
 # from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils import docker as docker_utils
-from maro.cli.utils.common import show_log
 # from maro.cli.utils.name_creator import NameCreator
 # from maro.cli.utils.path_convertor import PathConvertor
 # from maro.cli.utils.subprocess import Subprocess

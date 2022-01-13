@@ -15,7 +15,7 @@ def image_exists(image_name: str):
 
 def build_image(context: str, docker_file_path: str, image_name: str):
     client = docker.from_env()
-    with open(docker_file_path, "r") as fp:
+    with open(docker_file_path, "r"):
         client.images.build(
             path=context,
             tag=image_name,
