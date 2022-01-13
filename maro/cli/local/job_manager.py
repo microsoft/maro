@@ -13,7 +13,6 @@ from maro.cli.local.utils import (
 )
 from maro.cli.utils.docker import build_image, image_exists
 
-
 if __name__ == "__main__":
     redis_port = int(os.getenv("REDIS_PORT", default=19999))
     redis_conn = redis.Redis(host="localhost", port=redis_port)

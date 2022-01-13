@@ -208,13 +208,9 @@ def start_rl_job_in_containers(config, image_name: str, redis_host: str, network
 
 
 def start_rl_job_in_foreground(config: dict, python_path: str, port: int = 20000):
-    if config["mode"] != "single":
-        start_redis(port)
     procs = [exec(f"python {cmd}", env, debug=True) for cmd, env in get_proc_specs(config, port, python_path).values()]
     for proc in procs:
         proc.communicate()
-    if config["mode"] != "single":
-        stop_redis(port)
 
 
 def start_rl_job_with_docker_compose(config: dict, context: str, dockerfile_path: str, image_name: str):

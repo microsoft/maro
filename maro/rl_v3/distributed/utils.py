@@ -3,7 +3,6 @@
 
 import pickle
 
-
 # serialization and deserialization for messaging
 DEFAULT_MSG_ENCODING = "utf-8"
 

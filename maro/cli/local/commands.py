@@ -37,6 +37,7 @@ JOB_LS_TEMPLATE = "{JOB:12}{STATUS:15}{STARTED:20}"
 
 logger = CliLogger(name="MARO-LOCAL")
 
+
 # helper functions
 def get_redis_conn(port=None):
     if port is None:

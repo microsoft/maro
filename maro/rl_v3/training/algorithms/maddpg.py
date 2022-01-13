@@ -321,7 +321,7 @@ class DiscreteMADDPG(MultiTrainer):
         if self._params.shared_critic:
             self._critic_ops = self.get_ops(self._shared_critic_ops_name)
 
-        agent_state_dims = await asyncio.gather(*[ops.policy_state_dim() for ops in self._actor_ops_list]) 
+        agent_state_dims = await asyncio.gather(*[ops.policy_state_dim() for ops in self._actor_ops_list])
         action_dims = await asyncio.gather(*[ops.policy_action_dim() for ops in self._actor_ops_list])
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._params.replay_memory_capacity,

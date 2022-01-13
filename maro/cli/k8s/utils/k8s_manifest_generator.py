@@ -3,7 +3,7 @@
 
 from typing import List
 
-from maro.cli.utils.config_parser import format_env_vars, get_script_path, get_mnt_path_in_container
+from maro.cli.utils.config_parser import format_env_vars, get_mnt_path_in_container, get_script_path
 
 
 def get_job_manifest(agent_pool_name: str, component_name: str, container_spec: dict, volumes: List[dict]):

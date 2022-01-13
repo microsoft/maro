@@ -32,7 +32,7 @@ class Worker(object):
         self._context = Context.instance()
         self._socket = self._context.socket(zmq.DEALER)
         self._socket.identity = string_to_bytes(self._id)
-        self._router_ip = socket.gethostbyname(router_host) 
+        self._router_ip = socket.gethostbyname(router_host)
         self._router_address = f"tcp://{self._router_ip}:{router_port}"
         self._socket.connect(self._router_address)
         logger.info(f"Connected to dispatcher at {self._router_address}")

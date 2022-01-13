@@ -46,7 +46,7 @@ def format_env_vars(env: dict, mode: str = "proc"):
 
 def get_mnt_path_in_container(which: str):
     if which not in {"scenario", "loadpoint", "checkpoints", "logs"}:
-        raise ValueError(f"'which' parameter must be one of 'scenario', 'loadpoint', 'checkpoints', 'logs'")
+        raise ValueError("'which' parameter must be one of 'scenario', 'loadpoint', 'checkpoints', 'logs'")
 
     return f"/{which}"
 

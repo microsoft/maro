@@ -7,9 +7,9 @@ from typing import Callable, Tuple
 import zmq
 from zmq.asyncio import Context, Poller
 
-from .utils import bytes_to_pyobj, pyobj_to_bytes 
-
 from maro.utils import Logger
+
+from .utils import bytes_to_pyobj, pyobj_to_bytes
 
 logger = Logger("client")
 

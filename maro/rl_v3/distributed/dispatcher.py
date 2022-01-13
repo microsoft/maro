@@ -37,13 +37,12 @@ class Dispatcher(object):
         self._event_loop = IOLoop.current()
 
         # register handlers
-        self._req_receiver.on_recv(self._route_request_to_compute_node)
-        self._req_receiver.on_send(self.log_send_result)
         self._router.on_recv(self._send_result_to_requester)
         self._router.on_send(self.log_route_request)
 
         # bookkeeping
         self._num_workers = num_workers
+        self._num_checkedin_workers = 0
         self._hash_fn = hash_fn
         self._obj2node: Dict[str, int] = {}
 
@@ -66,6 +65,10 @@ class Dispatcher(object):
         worker_id = msg[0]
         if msg[1] == b"READY":
             logger.info(f"{bytes_to_string(worker_id)} ready")
+            self._num_checkedin_workers += 1
+            if self._num_checkedin_workers == self._num_workers:
+                self._req_receiver.on_recv(self._route_request_to_compute_node)
+                self._req_receiver.on_send(self.log_send_result)
         else:
             self._req_receiver.send_multipart(msg[1:])
 

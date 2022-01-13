@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
@@ -10,7 +13,7 @@ from .config import (
     action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
     vessel_attributes
 )
-from .policies import policy_creator
+from .policy_trainer import policy_creator
 
 
 class CIMEnvSampler(AbsEnvSampler):
@@ -26,7 +29,7 @@ class CIMEnvSampler(AbsEnvSampler):
             port_snapshots[ticks: [port_idx] + list(future_port_list): port_attributes],
             vessel_snapshots[tick: vessel_idx: vessel_attributes]
         ])
-        return None, {port_idx: state}
+        return state, {port_idx: state}
 
     def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: DecisionEvent) -> Dict[Any, object]:
         action_space = action_shaping_conf["action_space"]

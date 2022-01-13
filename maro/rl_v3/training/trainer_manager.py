@@ -92,7 +92,7 @@ class SimpleTrainerManager(AbsTrainerManager):
         policy_state_list = asyncio.run(self._gather("get_policy_state"))
         return dict((trainer.name, policy_state) for trainer, policy_state in zip(self._trainers, policy_state_list))
 
-    async def _gather(self, coroutine_name):
+    async def _gather(self, coroutine_name: str) -> list:
         return await asyncio.gather(*[getattr(trainer, coroutine_name)() for trainer in self._trainers])
 
     def record_experiences(self, experiences: List[ExpElement]) -> None:

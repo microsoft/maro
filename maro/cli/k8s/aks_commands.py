@@ -8,24 +8,24 @@ import shutil
 import yaml
 from os.path import abspath, dirname, expanduser, join
 
-#from maro.cli.k8s.executors.k8s_executor import K8sExecutor
-#from maro.cli.utils.azure.acr import list_acr_repositories, login_acr
+# from maro.cli.k8s.executors.k8s_executor import K8sExecutor
+# from maro.cli.utils.azure.acr import list_acr_repositories, login_acr
 from maro.cli.utils.azure.aks import attach_acr
 from maro.cli.utils.azure.deployment import create_deployment
 from maro.cli.utils.azure.general import connect_to_aks, get_acr_push_permissions, set_env_credentials
 from maro.cli.utils.azure.resource_group import create_resource_group, delete_resource_group
 from maro.cli.utils.azure import storage as azure_storage_utils
-#from maro.cli.utils.azure.vm import list_vm_sizes
+# from maro.cli.utils.azure.vm import list_vm_sizes
 from maro.cli.utils.config_parser import get_rl_component_env_vars
-from maro.cli.utils.deployment_validator import DeploymentValidator
-from maro.cli.utils.details_reader import DetailsReader
-from maro.cli.utils.details_writer import DetailsWriter
+# from maro.cli.utils.deployment_validator import DeploymentValidator
+# from maro.cli.utils.details_reader import DetailsReader
+# from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils import docker as docker_utils
 from maro.cli.utils.common import show_log
-from maro.cli.utils.name_creator import NameCreator
-from maro.cli.utils.path_convertor import PathConvertor
-from maro.cli.utils.subprocess import Subprocess
-from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
+# from maro.cli.utils.name_creator import NameCreator
+# from maro.cli.utils.path_convertor import PathConvertor
+# from maro.cli.utils.subprocess import Subprocess
+# from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
@@ -34,7 +34,7 @@ from .utils import k8s, k8s_manifest_generator
 # metadata
 CLI_K8S_PATH = dirname(abspath(__file__))
 TEMPLATE_PATH = join(CLI_K8S_PATH, "test_template.json")
-#TEMPLATE_PATH = join(CLI_K8S_PATH, "lib", "modes", "aks", "create_aks_cluster", "template.json")
+# TEMPLATE_PATH = join(CLI_K8S_PATH, "lib", "modes", "aks", "create_aks_cluster", "template.json")
 NVIDIA_PLUGIN_PATH = join(CLI_K8S_PATH, "create_nvidia_plugin", "nvidia-device-plugin.yml")
 LOCAL_ROOT = expanduser("~/.maro/aks")
 DEPLOYMENT_CONF_PATH = os.path.join(LOCAL_ROOT, "conf.json")
@@ -52,6 +52,7 @@ NO_JOB_MSG = "No job named {} has been scheduled. Use 'maro aks job add' to add 
 JOB_EXISTS_MSG = "A job named {} has already been scheduled."
 
 logger = CliLogger(name=__name__)
+
 
 # helper functions
 def get_resource_group_name(deployment_name: str):
@@ -187,7 +188,7 @@ def init(deployment_conf_path: str, **kwargs):
         connect_to_aks(resource_group_name, aks_name)
 
         # build and tag docker image locally and push to the Azure Container Registry
-        logger.info(f"Preparing docker image...")
+        logger.info("Preparing docker image...")
         prepare_docker_image_and_push_to_acr(DOCKER_IMAGE_NAME, LOCAL_MARO_ROOT, DOCKER_FILE_PATH, acr_name)
 
         # start the Redis service in the k8s cluster in the deployment namespace and expose it
@@ -234,7 +235,7 @@ def add_job(conf_path: dict, **kwargs):
 
     resource_group_name = deployment_conf["resource_group"]
     resource_name = deployment_conf["resources"]
-    fileshare = azure_storage_utils.get_fileshare(resource_name["storageAccountName"], resource_name["fileShareName"])    
+    fileshare = azure_storage_utils.get_fileshare(resource_name["storageAccountName"], resource_name["fileShareName"])
     job_dir = azure_storage_utils.get_directory(fileshare, job_name)
     job_path_in_share = f"{resource_name['fileShareName']}/{job_name}"
     scenario_path = job_conf['scenario_path']
@@ -243,7 +244,7 @@ def add_job(conf_path: dict, **kwargs):
     azure_storage_utils.get_directory(job_dir, "checkpoints")
     azure_storage_utils.get_directory(job_dir, "logs")
 
-    # Define mount volumes, i.e., scenario code, checkpoints, logs and load point 
+    # Define mount volumes, i.e., scenario code, checkpoints, logs and load point
     volumes = [
         k8s_manifest_generator.get_azurefile_volume_spec(name, f"{job_path_in_share}/{name}", K8S_SECRET_NAME)
         for name in ["scenario", "logs", "checkpoints"]
@@ -361,9 +362,9 @@ def exit(**kwargs):
 
 #         Args:
 #             replicas (int): desired number of MARO Node in specific node_size.
-#             node_size (str): size of the MARO Node VM, see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes
-#                 for reference.
-
+#             node_size (str): size of the MARO Node VM, see
+#                 https://docs.microsoft.com/en-us/azure/virtual-machines/sizes for reference.
+#
 #         Returns:
 #             None.
 #         """

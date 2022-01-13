@@ -5,7 +5,6 @@ import asyncio
 import importlib
 import inspect
 import os
-import pickle
 import sys
 from functools import wraps
 from types import ModuleType

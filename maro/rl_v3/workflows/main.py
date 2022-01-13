@@ -3,14 +3,11 @@
 
 import os
 import time
-from typing import Callable, Dict, List
+from typing import List
 
 from maro.rl_v3.learning import ExpElement
-from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.rollout.helpers import get_rollout_finish_msg
 from maro.rl_v3.training.trainer_manager import SimpleTrainerManager
 from maro.rl_v3.utils.common import from_env, get_eval_schedule, get_logger, get_module
-
 
 if __name__ == "__main__":
     # get user-defined scenario ingredients
@@ -66,7 +63,7 @@ if __name__ == "__main__":
             result = env_sampler.sample(num_steps=num_steps)
             experiences: List[ExpElement] = result["experiences"]
             trackers = [result["tracker"]]
-            logger.info(get_rollout_finish_msg(ep))
+            logger.info(f"Roll-out finished (episode: {ep})")
             end_of_episode: bool = result["end_of_episode"]
 
             if post_collect:
@@ -91,6 +88,3 @@ if __name__ == "__main__":
             trackers = env_sampler.test(policy_states)
             if post_evaluate:
                 post_evaluate([trackers], ep)
-    
-    for trainer_name, trainer in trainer_manager._trainer_dict.items():
-        logger.info(f"trainer_name = {trainer_name}, retries = {trainer._ops._client._retries}")

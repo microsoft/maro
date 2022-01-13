@@ -356,7 +356,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         experiences = self._post_polish_experiences(experiences)
 
-        return { 
+        return {
             "end_of_episode": not self._agent_state_dict,
             "experiences": experiences,
             "tracker": self._tracker

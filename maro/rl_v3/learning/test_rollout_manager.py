@@ -2,7 +2,7 @@ from maro.rl_v3.learning import SimpleAgentWrapper
 from maro.rl_v3.learning.rollout_manager import MultiProcessRolloutManager
 from maro.rl_v3.tmp_example_single.config import algorithm, env_conf
 from maro.rl_v3.tmp_example_single.env_sampler import CIMEnvSampler
-from maro.rl_v3.tmp_example_single.policies import get_policy_func_dict
+from examples.rl.cim.ac import get_policy_func_dict
 from maro.simulator import Env
 
 
