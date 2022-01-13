@@ -14,8 +14,6 @@ from maro.utils import Logger
 from .utils import bytes_to_pyobj, bytes_to_string, string_to_bytes
 
 
-
-
 class Dispatcher(object):
     def __init__(
         self,

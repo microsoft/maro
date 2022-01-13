@@ -39,6 +39,6 @@ def create_resource_group(subscription: str, resource_group: str, location: str)
     return resource_client.resource_groups.create_or_update(resource_group, {"location": location})
 
 
-def delete_resource_group(subscription: str, resource_group: str):
+def delete_resource_group_under_subscription(subscription: str, resource_group: str):
     resource_client = get_resource_client(subscription)
     return resource_client.resource_groups.begin_delete(resource_group)

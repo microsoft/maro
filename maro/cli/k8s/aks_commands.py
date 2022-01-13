@@ -16,7 +16,7 @@ from maro.cli.utils.azure import storage as azure_storage_utils
 from maro.cli.utils.azure.aks import attach_acr
 from maro.cli.utils.azure.deployment import create_deployment
 from maro.cli.utils.azure.general import connect_to_aks, get_acr_push_permissions, set_env_credentials
-from maro.cli.utils.azure.resource_group import create_resource_group, delete_resource_group
+from maro.cli.utils.azure.resource_group import create_resource_group, delete_resource_group_under_subscription
 # from maro.cli.utils.azure.vm import list_vm_sizes
 from maro.cli.utils.common import show_log
 from maro.cli.utils.config_parser import get_rl_component_env_vars
@@ -209,11 +209,11 @@ def init(deployment_conf_path: str, **kwargs):
         # If failed, remove details folder, then raise
         shutil.rmtree(LOCAL_ROOT)
         logger.error_red(f"Deployment {name} failed due to {e}, rolling back...")
-        delete_resource_group(subscription, resource_group_name)
+        delete_resource_group_under_subscription(subscription, resource_group_name)
     except KeyboardInterrupt:
         shutil.rmtree(LOCAL_ROOT)
         logger.error_red(f"Deployment {name} aborted, rolling back...")
-        delete_resource_group(subscription, resource_group_name)
+        delete_resource_group_under_subscription(subscription, resource_group_name)
 
 
 def add_job(conf_path: dict, **kwargs):
@@ -338,7 +338,7 @@ def exit(**kwargs):
 
     name = deployment_conf["name"]
     set_env_credentials(LOCAL_ROOT, f"sp-{name}")
-    delete_resource_group(deployment_conf["subscription"], deployment_conf["resource_group"])
+    delete_resource_group_under_subscription(deployment_conf["subscription"], deployment_conf["resource_group"])
 
 
 # class K8sAksExecutor(K8sExecutor):
