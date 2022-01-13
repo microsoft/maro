@@ -14,7 +14,7 @@ class OpsCreator(object):
         self,
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]]
-    ):
+    ) -> None:
         self._policy_creator = policy_creator
         self._trainer_creator = trainer_creator
         self._trainer_dict = {}
