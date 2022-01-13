@@ -5,7 +5,7 @@ import socket
 from typing import Callable, Tuple
 
 import zmq
-from zmq.asyncio import Context, Poller
+from zmq.asyncio import Context
 
 from maro.utils import Logger
 
@@ -26,19 +26,18 @@ class Client(object):
         self._dispatcher_address = f"tcp://{self._dispatcher_ip}:{port}"
         self._socket.connect(self._dispatcher_address)
         logger.info(f"connected to {self._dispatcher_address}")
-        self._poller = Poller()
-        self._poller.register(self._socket, zmq.POLLIN)
         self._retries = 0
 
     async def get_response(self, req: dict):
         await self._socket.send(pyobj_to_bytes(req))
         logger.info(f"sent request {req['func']} for {self._name}")
         while True:
-            events = await self._poller.poll(timeout=10)
-            if self._socket in dict(events):
-                result = await self._socket.recv_multipart()
+            try:
+                result = await self._socket.recv_multipart(flags=zmq.NOBLOCK)
                 logger.info(f"received result for request {req['func']} for {self._name}")
                 return bytes_to_pyobj(result[0])
+            except zmq.ZMQError:
+                continue
 
     def close(self):
         self._socket.close()
