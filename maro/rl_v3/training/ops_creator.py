@@ -5,8 +5,8 @@ from functools import partial
 from typing import Callable, Dict
 
 from maro.rl_v3.policy import RLPolicy
-from . import AbsTrainOps
 
+from . import AbsTrainOps
 from .trainer import AbsTrainer
 
 

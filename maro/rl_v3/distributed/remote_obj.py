@@ -15,7 +15,7 @@ logger = Logger("client")
 
 
 class Client(object):
-    def __init__(self, name, dispatcher_address: Tuple[str, int]):
+    def __init__(self, name: str, dispatcher_address: Tuple[str, int]) -> None:
         self._name = name
         self._socket = Context.instance().socket(zmq.DEALER)
         self._socket.setsockopt_string(zmq.IDENTITY, name)
@@ -28,7 +28,7 @@ class Client(object):
         logger.info(f"connected to {self._dispatcher_address}")
         self._retries = 0
 
-    async def get_response(self, req: dict):
+    async def get_response(self, req: dict) -> object:
         await self._socket.send(pyobj_to_bytes(req))
         logger.info(f"sent request {req['func']} for {self._name}")
         while True:
