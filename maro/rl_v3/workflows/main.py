@@ -3,50 +3,13 @@
 
 import os
 import time
-from types import ModuleType
-from typing import Callable, Dict, List
+from typing import List
 
-from maro.rl_v3.learning import AbsEnvSampler, ExpElement
-from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.training import AbsTrainer, SimpleTrainerManager
-from maro.rl_v3.utils.common import from_env, get_eval_schedule, get_logger, get_module
+from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.training import SimpleTrainerManager
+from maro.rl_v3.utils.common import from_env, from_env_as_int, get_eval_schedule, get_logger, get_module
 
-
-class ScenarioAttr(object):
-    def __init__(self, scenario_module: ModuleType) -> None:
-        super(ScenarioAttr, self).__init__()
-        self._scenario_module = scenario_module
-
-    @property
-    def env_sampler(self) -> AbsEnvSampler:
-        return getattr(scenario, "get_env_sampler")()
-
-    @property
-    def agent2policy(self) -> Dict[str, str]:
-        return getattr(scenario, "agent2policy")
-
-    @property
-    def policy_creator(self) -> Dict[str, Callable[[str], RLPolicy]]:
-        return getattr(scenario, "policy_creator")
-
-    @property
-    def trainer_creator(self) -> Dict[str, Callable[[str], AbsTrainer]]:
-        return getattr(scenario, "trainer_creator")
-
-    @property
-    def post_collect(self) -> Callable[[list, int, int], None]:
-        return getattr(scenario, "post_collect", None)
-
-    @property
-    def post_evaluate(self) -> Callable[[list, int], None]:
-        return getattr(scenario, "post_evaluate", None)
-
-
-def _get_scenario_path() -> str:
-    path = from_env("SCENARIO_PATH")
-    assert isinstance(path, str)
-    return path
-
+from .utils import ScenarioAttr, _get_scenario_path
 
 if __name__ == "__main__":
     # get user-defined scenario ingredients
@@ -58,7 +21,7 @@ if __name__ == "__main__":
     post_collect = scenario_attr.post_collect
     post_evaluate = scenario_attr.post_evaluate
 
-    rollout_mode, train_mode = from_env("ROLLOUT_MODE"), from_env("TRAIN_MODE")
+    rollout_mode, train_mode = str(from_env("ROLLOUT_MODE")), str(from_env("TRAIN_MODE"))
     assert rollout_mode in {"simple", "parallel"}
     assert train_mode in {"simple", "parallel"}
     if train_mode == "parallel" or rollout_mode == "parallel":
@@ -69,17 +32,13 @@ if __name__ == "__main__":
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
     env_sampler = scenario_attr.env_sampler
-    num_episodes = from_env("NUM_EPISODES")
-    num_steps = from_env("NUM_STEPS", required=False, default=-1)
-    assert isinstance(num_episodes, int)
-    assert isinstance(num_steps, int)
+    num_episodes = from_env_as_int("NUM_EPISODES")
+    num_steps = from_env_as_int("NUM_STEPS", required=False, default=-1)
 
     load_path = from_env("LOAD_PATH", required=False, default=None)
     checkpoint_path = from_env("CHECKPOINT_PATH", required=False, default=None)
-    log_path = from_env("LOG_PATH", required=False, default=os.getcwd())
-    job_path = from_env("JOB")
-    assert isinstance(log_path, str)
-    assert isinstance(job_path, str)
+    log_path = str(from_env("LOG_PATH", required=False, default=os.getcwd()))
+    job_path = str(from_env("JOB"))
     logger = get_logger(log_path, job_path, "MAIN")
 
     # evaluation schedule
@@ -102,7 +61,8 @@ if __name__ == "__main__":
             tc0 = time.time()
             if train_mode == "parallel":
                 policy_states = {
-                    policy_name: state for policy_state in trainer_manager.get_policy_states().values()
+                    policy_name: state
+                    for policy_state in trainer_manager.get_policy_states().values()
                     for policy_name, state in policy_state.items()
                 }
                 env_sampler.set_policy_states(policy_states)
@@ -129,7 +89,8 @@ if __name__ == "__main__":
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             policy_states = {
-                policy_name: state for policy_state in trainer_manager.get_policy_states().values()
+                policy_name: state
+                for policy_state in trainer_manager.get_policy_states().values()
                 for policy_name, state in policy_state.items()
             }
             trackers = env_sampler.test(policy_states)

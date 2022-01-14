@@ -30,6 +30,12 @@ def from_env(var_name: str, required: bool = True, default: object = None) -> ob
         return var
 
 
+def from_env_as_int(var_name: str, required: bool = True, default: object = None) -> int:
+    ret = from_env(var_name, required, default)
+    assert isinstance(ret, int)
+    return ret
+
+
 def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int]:
     """Helper function to the policy evaluation schedule.
 
