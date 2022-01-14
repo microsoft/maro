@@ -323,6 +323,8 @@ class DiscreteMADDPG(MultiTrainer):
 
         agent_state_dims = await asyncio.gather(*[ops.policy_state_dim() for ops in self._actor_ops_list])
         action_dims = await asyncio.gather(*[ops.policy_action_dim() for ops in self._actor_ops_list])
+        assert isinstance(action_dims, list)
+        assert isinstance(agent_state_dims, list)
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._state_dim,
@@ -369,22 +371,25 @@ class DiscreteMADDPG(MultiTrainer):
 
     def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         if ops_name == self._shared_critic_ops_name:
-            return DiscreteMADDPGOps(
-                **self._ops_params,
-                get_policy_func=None,
-                policy_idx=-1,
-                shared_critic=False,
-                create_actor=False,
-            )
+            ops_params = dict(self._ops_params)
+            ops_params.update({
+                "get_policy_func": None,
+                "policy_idx": -1,
+                "shared_critic": False,
+                "create_actor": False,
+            })
+            return DiscreteMADDPGOps(**ops_params)
         else:
             policy_idx = self.get_policy_idx_from_ops_name(ops_name)
             policy_name = self._policy_names[policy_idx]
-            return DiscreteMADDPGOps(
-                **self._ops_params,
-                get_policy_func=lambda: self._policy_creator[policy_name](policy_name),
-                policy_idx=policy_idx,
-                create_actor=True,
-            )
+
+            ops_params = dict(self._ops_params)
+            ops_params.update({
+                "get_policy_func": lambda: self._policy_creator[policy_name](policy_name),
+                "policy_idx": policy_idx,
+                "create_actor": True,
+            })
+            return DiscreteMADDPGOps(**ops_params)
 
     async def train_step(self):
         for _ in range(self._params.num_epoch):
