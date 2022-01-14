@@ -4,8 +4,7 @@
 from maro.rl_v3.distributed import Worker
 from maro.rl_v3.training.ops_creator import OpsCreator
 from maro.rl_v3.utils.common import from_env, from_env_as_int, get_module
-
-from .utils import ScenarioAttr, _get_scenario_path
+from maro.rl_v3.workflows.utils import ScenarioAttr, _get_scenario_path
 
 scenario = get_module(_get_scenario_path())
 scenario_attr = ScenarioAttr(scenario)
