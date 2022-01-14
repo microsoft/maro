@@ -22,18 +22,6 @@
         "Premium"
       ]
     },
-    "adminPublicKey": {
-      "type": "string",
-      "metadata": {
-        "description": "Configure all linux machines with the SSH RSA public key string. Your key should include three parts, for example 'ssh-rsa AAAAB...snip...UcyupgH azureuser@linuxvm'"
-      }
-    },
-    "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "User name for the Linux Virtual Machines."
-      }
-    },
     "agentCount": {
       "type": "int",
       "metadata": {
@@ -127,16 +115,6 @@
             "type": "VirtualMachineScaleSets"
           }
         ],
-        "linuxProfile": {
-          "adminUsername": "[parameters('adminUsername')]",
-          "ssh": {
-            "publicKeys": [
-              {
-                "keyData": "[parameters('adminPublicKey')]"
-              }
-            ]
-          }
-        },
         "networkProfile": {
           "networkPlugin": "azure",
           "loadBalancerSku": "standard"

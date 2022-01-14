@@ -203,22 +203,18 @@ class DiscreteActorCritic(SingleTrainer):
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
         super(DiscreteActorCritic, self).__init__(name, params)
         self._params = params
-        self._ops_params = {}
         self._ops_name = f"{self._name}.ops"
 
         self._replay_memory_dict = {}
 
-    def build(self) -> None:
-        self._ops_params = {
-            "get_policy_func": self._get_policy_func,
-            **self._params.extract_ops_params(),
-        }
+    async def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
-
+        state_dim = await self._ops.policy_state_dim()
+        action_dim = await self._ops.policy_action_dim()
         self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
-            state_dim=self._ops.policy_state_dim,
-            action_dim=self._ops.policy_action_dim
+            state_dim=state_dim,
+            action_dim=action_dim
         ))
 
     def record(self, exp_element: ExpElement) -> None:
@@ -236,8 +232,8 @@ class DiscreteActorCritic(SingleTrainer):
             )
             memory.put(transition_batch)
 
-    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DiscreteActorCriticOps(**self._ops_params)
+    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+        return DiscreteActorCriticOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
     def _get_batch(self, agent_name: str) -> TransitionBatch:
         return self._replay_memory_dict[agent_name].sample(-1)  # Use all entries in the replay memory

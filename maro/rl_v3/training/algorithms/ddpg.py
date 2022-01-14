@@ -33,7 +33,7 @@ class DDPGParams(TrainerParams):
         overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
         wrap-around. Defaults to False.
     """
-    get_q_critic_net_func: Callable[[], QNet] = None,
+    get_q_critic_net_func: Callable[[], QNet] = None
     reward_discount: float = 0.9
     num_epochs: int = 1
     update_target_every: int = 5
@@ -211,18 +211,14 @@ class DDPG(SingleTrainer):
 
         self._replay_memory: Optional[RandomReplayMemory] = None
 
-    def build(self) -> None:
-        self._ops_params = {
-            "get_policy_func": self._get_policy_func,
-            **self._params.extract_ops_params(),
-        }
-
+    async def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
-
+        state_dim = await self._ops.policy_state_dim()
+        action_dim = await self._ops.policy_action_dim()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
-            state_dim=self._ops.policy_state_dim,
-            action_dim=self._ops.policy_action_dim,
+            state_dim=state_dim,
+            action_dim=action_dim,
             random_overwrite=self._params.random_overwrite
         )
 
@@ -240,8 +236,8 @@ class DDPG(SingleTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DDPGOps(**self._ops_params)
+    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+        return DDPGOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)

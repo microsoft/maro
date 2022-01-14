@@ -26,7 +26,7 @@ class AbsTrainerManager(object, metaclass=ABCMeta):
         self._train_impl()
 
     @abstractmethod
-    async def _train_impl(self) -> None:
+    def _train_impl(self) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -73,32 +73,27 @@ class SimpleTrainerManager(AbsTrainerManager):
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._trainers: List[AbsTrainer] = []
+        self._agent2policy = agent2policy
         for trainer_name, func in trainer_creator.items():
             trainer = func(trainer_name)
             if dispatcher_address is not None:
                 trainer.set_dispatch_address(dispatcher_address)
-            trainer.register_agent2policy(agent2policy)
+            trainer.register_agent2policy(self._agent2policy)
             trainer.register_policy_creator(policy_creator)
-            trainer.build()
-
             self._trainer_dict[trainer_name] = trainer
             self._trainers.append(trainer)
 
-        self._policy_dict: Dict[str, RLPolicy] = {name: func(name) for name, func in policy_creator.items()}
-        self._agent2policy = agent2policy
+        asyncio.run(self._gather("build"))
 
-    def train(self) -> None:
-        asyncio.run(self._train_impl())
-
-    async def _train_impl(self) -> None:
-        await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
+    def _train_impl(self) -> None:
+        asyncio.run(self._gather("train_step"))
 
     def get_policy_states(self) -> Dict[str, Dict[str, object]]:
-        policy_state_list = asyncio.run(self._get_policy_states())
+        policy_state_list = asyncio.run(self._gather("get_policy_state"))
         return dict((trainer.name, policy_state) for trainer, policy_state in zip(self._trainers, policy_state_list))
 
-    async def _get_policy_states(self):
-        return await asyncio.gather(*[trainer.get_policy_state() for trainer in self._trainers])
+    async def _gather(self, coroutine_name: str) -> list:
+        return await asyncio.gather(*[getattr(trainer, coroutine_name)() for trainer in self._trainers])
 
     def record_experiences(self, experiences: List[ExpElement]) -> None:
         for exp_element in experiences:  # Dispatch experiences to trainers tick by tick.

@@ -6,9 +6,8 @@ from typing import Callable, Dict, List
 
 import torch
 
-from maro.rl.utils import average_grads
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
+from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch, average_grads
 
 
 class AbsTrainOps(object, metaclass=ABCMeta):
@@ -45,11 +44,9 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     def policy_name(self) -> str:
         return self._policy.name
 
-    @property
     def policy_state_dim(self) -> int:
         return self._policy.state_dim
 
-    @property
     def policy_action_dim(self) -> int:
         return self._policy.action_dim
 

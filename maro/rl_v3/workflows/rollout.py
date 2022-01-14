@@ -7,11 +7,13 @@ from maro.rl_v3.utils.common import from_env, get_logger, get_module
 
 if __name__ == "__main__":
     mode = from_env("MODE")
-    env_sampler = getattr(get_module(from_env("SCENARIO_PATH")), "get_env_sampler")()
+    env_sampler = getattr(get_module(str(from_env("SCENARIO_PATH"))), "get_env_sampler")()
     if mode == "sync":
         worker_id = from_env("WORKER_ID")
         logger = get_logger(
-            from_env("LOG_PATH", required=False, default=os.getcwd()), from_env("JOB"), f"ROLLOUT-WORKER.{worker_id}"
+            str(from_env("LOG_PATH", required=False, default=os.getcwd())),
+            str(from_env("JOB")),
+            f"ROLLOUT-WORKER.{worker_id}",
         )
         env_sampler.worker(
             from_env("ROLLOUT_GROUP"), worker_id,
@@ -26,7 +28,9 @@ if __name__ == "__main__":
         num_steps = from_env("NUM_STEPS", required=False, default=-1)
         actor_id = from_env("ACTOR_ID")
         logger = get_logger(
-            from_env("LOG_PATH", required=False, default=os.getcwd()), from_env("JOB"), f"ACTOR.{actor_id}"
+            str(from_env("LOG_PATH", required=False, default=os.getcwd())),
+            str(from_env("JOB")),
+            f"ACTOR.{actor_id}"
         )
         env_sampler.actor(
             from_env("GROUP"), actor_id, num_episodes,

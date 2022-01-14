@@ -8,11 +8,12 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 
+from maro.rl_v3.distributed import RemoteObj
 from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, TrainerParams
-from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, RemoteObj, ndarray_to_tensor
+from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -267,6 +268,7 @@ class DiscreteMADDPG(MultiTrainer):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
         super(DiscreteMADDPG, self).__init__(name, params)
         self._params = params
+        self._ops_params = self._params.extract_ops_params()
         self._state_dim = params.get_q_critic_net_func().state_dim
         self._policy_version = self._target_policy_version = 0
         self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
@@ -314,16 +316,20 @@ class DiscreteMADDPG(MultiTrainer):
         # Update version
         self._try_soft_update_target()
 
-    def build(self) -> None:
+    async def build(self) -> None:
         self._actor_ops_list = [self.get_ops(f"{self._name}.actor_{i}_ops") for i in range(len(self._policy_names))]
         if self._params.shared_critic:
             self._critic_ops = self.get_ops(self._shared_critic_ops_name)
 
+        agent_state_dims = await asyncio.gather(*[ops.policy_state_dim() for ops in self._actor_ops_list])
+        action_dims = await asyncio.gather(*[ops.policy_action_dim() for ops in self._actor_ops_list])
+        assert isinstance(action_dims, list)
+        assert isinstance(agent_state_dims, list)
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._state_dim,
-            action_dims=[ops.policy_action_dim for ops in self._actor_ops_list],
-            agent_states_dims=[ops.policy_state_dim for ops in self._actor_ops_list]
+            action_dims=action_dims,
+            agent_states_dims=agent_state_dims
         )
 
         assert len(self._agent2policy.keys()) == len(self._agent2policy.values())  # agent <=> policy
@@ -363,26 +369,27 @@ class DiscreteMADDPG(MultiTrainer):
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         if ops_name == self._shared_critic_ops_name:
-            params = {
-                **self._params.extract_ops_params(),
+            ops_params = dict(self._ops_params)
+            ops_params.update({
                 "get_policy_func": None,
                 "policy_idx": -1,
                 "shared_critic": False,
                 "create_actor": False,
-            }
-            return DiscreteMADDPGOps(**params)
+            })
+            return DiscreteMADDPGOps(**ops_params)
         else:
             policy_idx = self.get_policy_idx_from_ops_name(ops_name)
             policy_name = self._policy_names[policy_idx]
-            params = {
-                **self._params.extract_ops_params(),
+
+            ops_params = dict(self._ops_params)
+            ops_params.update({
                 "get_policy_func": lambda: self._policy_creator[policy_name](policy_name),
                 "policy_idx": policy_idx,
                 "create_actor": True,
-            }
-            return DiscreteMADDPGOps(**params)
+            })
+            return DiscreteMADDPGOps(**ops_params)
 
     async def train_step(self):
         for _ in range(self._params.num_epoch):

@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM python:3.7.12-buster
 WORKDIR /maro
 
 # Install Apt packages
@@ -9,7 +9,7 @@ RUN apt-get install -y gcc
 RUN apt-get install -y libcurl4 libcurl4-openssl-dev libssl-dev curl
 RUN apt-get install -y libzmq3-dev
 RUN apt-get install -y python3-pip
-RUN apt-get install -y python3-dev libpython3.6-dev python-numpy
+RUN apt-get install -y python3-dev libpython3.7-dev python-numpy
 RUN rm -rf /var/lib/apt/lists/*
 
 # Install Python packages

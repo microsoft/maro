@@ -1,15 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import time
-from os import makedirs
-from os.path import dirname, join, realpath
 
-log_dir = join(dirname(realpath(__file__)), "log", str(time.time()))
-makedirs(log_dir, exist_ok=True)
-
-
-def post_collect(trackers, ep, segment):
+def post_collect(trackers: list, ep: int, segment: int) -> None:
     # print the env metric from each rollout worker
     for tracker in trackers:
         print(f"env summary (episode {ep}, segment {segment}): {tracker['env_metric']}")
@@ -21,7 +14,7 @@ def post_collect(trackers, ep, segment):
         print(f"average env summary (episode {ep}, segment {segment}): {avg_metric}")
 
 
-def post_evaluate(trackers, ep):
+def post_evaluate(trackers: list, ep: int) -> None:
     # print the env metric from each rollout worker
     for tracker in trackers:
         print(f"env summary (episode {ep}): {tracker['env_metric']}")

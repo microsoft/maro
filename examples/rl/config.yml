@@ -2,29 +2,28 @@
 # Licensed under the MIT license.
 
 job: cim
-scenario_dir: "/maro/examples/cim"
-load_policy_dir: "/maro/examples/checkpoints/cim"
-checkpoint_dir: "/maro/examples/checkpoints/cim"
-log_dir: "/maro/examples/logs"
-mode: sync  # single, sync, async
-num_episodes: 5
+scenario_path: "/home/yaqiu/maro/examples/rl/cim"
+load_path: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
+checkpoint_path: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
+log_path: "/home/yaqiu/maro/examples/rl/logs"
+rollout_mode: simple
+train_mode: parallel
+num_episodes: 20
 eval_schedule: 5
-sync:
-  num_rollouts: 3
-  num_eval_rollouts: 1
-  rollout_type: distributed   # multi-process, distributed
-  distributed:
-    min_finished_workers: 2
-    max_extra_recv_tries: 1
-    extra_recv_timeout: 200
-async:
-  max_lag: 3
-  num_rollouts: 3
-policy_manager:
-  type: distributed   # simple, multi-process, distributed
-  distributed:
-    num_hosts: 2
-data_parallelism: 1
-redis:
-  host: maro
-  port: 6379
+# mode: sync  # single, sync, async
+# sync:
+#   num_rollouts: 3
+#   num_eval_rollouts: 1
+#   rollout_type: distributed   # multi-process, distributed
+#   distributed:
+#     min_finished_workers: 2
+#     max_extra_recv_tries: 1
+#     extra_recv_timeout: 200
+# async:
+#   max_lag: 3
+#   num_rollouts: 3
+distributed:
+  dispatcher_host: dispatcher
+  dispatcher_frontend_port: 10000
+  dispatcher_backend_port: 10001
+  num_train_workers: 2

@@ -146,23 +146,19 @@ class DQN(SingleTrainer):
     def __init__(self, name: str, params: DQNParams) -> None:
         super(DQN, self).__init__(name, params)
         self._params = params
-        self._ops_params = {}
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"
 
         self._replay_memory: Optional[RandomReplayMemory] = None
 
-    def build(self) -> None:
-        self._ops_params = {
-            "get_policy_func": self._get_policy_func,
-            **self._params.extract_ops_params(),
-        }
-
+    async def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
+        state_dim = await self._ops.policy_state_dim()
+        action_dim = await self._ops.policy_action_dim()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
-            state_dim=self._ops.policy_state_dim,
-            action_dim=self._ops.policy_action_dim,
+            state_dim=state_dim,
+            action_dim=action_dim,
             random_overwrite=self._params.random_overwrite
         )
 
@@ -180,8 +176,8 @@ class DQN(SingleTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def _get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DQNOps(**self._ops_params)
+    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+        return DQNOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)

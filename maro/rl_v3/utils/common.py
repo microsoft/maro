@@ -1,11 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import asyncio
 import importlib
+import inspect
 import os
 import sys
+from functools import wraps
 from types import ModuleType
-from typing import List, Union
+from typing import Callable, List, Union
 
 from maro.utils import Logger
 
@@ -25,6 +28,12 @@ def from_env(var_name: str, required: bool = True, default: object = None) -> ob
         return float(var)
     except ValueError:
         return var
+
+
+def from_env_as_int(var_name: str, required: bool = True, default: object = None) -> int:
+    ret = from_env(var_name, required, default)
+    assert isinstance(ret, int)
+    return ret
 
 
 def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int]:
@@ -64,3 +73,26 @@ def get_log_path(dir: str, job_name: str) -> str:
 
 def get_logger(dir: str, job_name: str, tag: str) -> Logger:
     return Logger(tag, dump_path=get_log_path(dir, job_name), dump_mode="a")
+
+
+def coroutine(func) -> Callable:
+    """Wrap a synchronous callable to allow ``await``'ing it"""
+    @wraps(func)
+    async def coroutine_wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return func if asyncio.iscoroutinefunction(func) else coroutine_wrapper
+
+
+class CoroutineWrapper(object):
+    def __init__(self, obj: object) -> None:
+        self._obj = obj
+
+    def __getattribute__(self, attr_name: str) -> object:
+        # Ignore methods that belong to the parent class
+        try:
+            return super().__getattribute__(attr_name)
+        except AttributeError:
+            pass
+
+        attr = getattr(self._obj, attr_name)
+        return coroutine(attr) if inspect.ismethod(attr) else attr
