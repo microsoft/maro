@@ -181,9 +181,7 @@ class Env(AbsEnv):
         Args:
             seed (int): Seed to set.
         """
-
-        if seed is not None:
-            random.seed(seed)
+        self._business_engine.set_seed(seed)
 
     @property
     def metrics(self) -> dict:
