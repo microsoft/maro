@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import inspect
 import socket
 from typing import Callable, Tuple
 
@@ -15,17 +16,17 @@ logger = Logger("client")
 
 
 class Client(object):
-    def __init__(self, name: str, dispatcher_address: Tuple[str, int]) -> None:
+    def __init__(self, name: str, address: Tuple[str, int]) -> None:
         self._name = name
         self._socket = Context.instance().socket(zmq.DEALER)
         self._socket.setsockopt_string(zmq.IDENTITY, name)
         self._socket.setsockopt(zmq.LINGER, 0)
-        host, port = dispatcher_address
+        host, port = address
         self._dispatcher_ip = socket.gethostbyname(host)
         logger.info(f"dispatcher ip: {self._dispatcher_ip}")
-        self._dispatcher_address = f"tcp://{self._dispatcher_ip}:{port}"
-        self._socket.connect(self._dispatcher_address)
-        logger.info(f"connected to {self._dispatcher_address}")
+        self._address = f"tcp://{self._dispatcher_ip}:{port}"
+        self._socket.connect(self._address)
+        logger.info(f"connected to {self._address}")
         self._retries = 0
 
     async def get_response(self, req: dict) -> object:
@@ -43,20 +44,26 @@ class Client(object):
         self._socket.close()
 
 
-def remote_method(obj_type: str, func_name: str, client: Client) -> Callable:
+# annotations to indicate that an function / method can be called remotely
+def remote():
+    def remote_anotate(func):
+        return func
+    return remote_anotate
+
+
+def remote_method(obj_state, func_name: str, client: Client) -> Callable:
     async def remote_call(*args, **kwargs) -> object:
-        req = {"type": obj_type, "func": func_name, "args": args, "kwargs": kwargs}
+        req = {"state": obj_state, "func": func_name, "args": args, "kwargs": kwargs}
         return await client.get_response(req)
 
     return remote_call
 
 
 class RemoteObj(object):
-    def __init__(self, name: str, obj_type: str, dispatcher_address: Tuple[str, int]) -> None:
-        assert obj_type in {"rollout", "train"}
+    def __init__(self, obj: object, name: str, address: Tuple[str, int]) -> None:
+        self._obj = obj
         self._name = name
-        self._obj_type = obj_type
-        self._client = Client(self._name, dispatcher_address)
+        self._client = Client(self._name, address)
 
     def __getattribute__(self, attr_name: str) -> object:
         # Ignore methods that belong to the parent class
@@ -65,7 +72,11 @@ class RemoteObj(object):
         except AttributeError:
             pass
 
-        return remote_method(self._obj_type, attr_name, self._client)
+        attr = self._obj.getattr(attr_name)
+        if inspect.ismethod(attr) and attr.__name__ != "remote_anotate" and attr.__module__ == "remote_obj":
+            return remote_method(self._obj.get_state(), attr_name, self._client)
+
+        return attr
 
     def exit(self):
         self._client.close()

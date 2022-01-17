@@ -8,10 +8,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 
-from maro.rl_v3.distributed import RemoteObj
-from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.distributed import RemoteObj, remote
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
+from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, TrainerParams
 from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
@@ -111,7 +111,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         logps = self._policy.get_state_action_logps(agent_state, action)
         return action, logps
 
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_state()
@@ -121,7 +121,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
             ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
         return ret_dict
 
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
             self._policy.set_state(ops_state_dict["policy_state"])
             self._target_policy.set_state(ops_state_dict["target_policy_state"])
@@ -178,6 +178,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_critic_net.unfreeze()
         return self._policy.get_gradients(actor_loss)
 
+    @remote
     def get_batch_grad(
         self,
         batch: MultiTransitionBatch,
@@ -231,7 +232,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def update_critic(self, next_actions: List[torch.Tensor]) -> None:
         assert not self._shared_critic
 
-        grads = self._get_batch_grad(
+        grads = self.get_batch_grad(
             self._batch,
             tensor_dict={"next_actions": next_actions},
             scope="critic"
@@ -241,7 +242,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_critic_net.apply_gradients(grads["critic_grads"])
 
     def update_actor(self, latest_action: torch.Tensor, latest_action_logp: torch.Tensor) -> None:
-        grads = self._get_batch_grad(
+        grads = self.get_batch_grad(
             self._batch,
             tensor_dict={
                 "latest_action": latest_action,
@@ -293,11 +294,11 @@ class DiscreteMADDPG(MultiTrainer):
         if self._params.shared_critic:
             self._critic_ops.set_batch(batch)
             self._critic_ops.update_critic(next_actions=next_actions)
-            critic_state_dict = self._critic_ops.get_state_dict(scope="critic")
+            critic_state_dict = self._critic_ops.get_state(scope="critic")
 
             # Sync latest critic to ops
             for ops in self._actor_ops_list:
-                ops.set_state_dict(critic_state_dict, scope="critic")
+                ops.set_state(critic_state_dict, scope="critic")
         else:
             for ops in self._actor_ops_list:
                 ops.update_critic(next_actions=next_actions)
@@ -404,12 +405,12 @@ class DiscreteMADDPG(MultiTrainer):
             if self._params.shared_critic:
                 await asyncio.gather(self._critic_ops.set_batch(batch))
                 await asyncio.gather(self._critic_ops.update_critic(next_actions))
-                critic_state_dict = await asyncio.gather(self._critic_ops.get_state_dict(scope="critic"))
+                critic_state_dict = await asyncio.gather(self._critic_ops.get_state(scope="critic"))
                 assert isinstance(critic_state_dict, list) and len(critic_state_dict) == 1
 
                 # Sync latest critic to ops
                 await asyncio.gather(*[
-                    ops.set_state_dict(critic_state_dict[0], scope="critic") for ops in self._actor_ops_list
+                    ops.set_state(critic_state_dict[0], scope="critic") for ops in self._actor_ops_list
                 ])
             else:
                 await asyncio.gather(*[ops.update_critic(next_actions) for ops in self._actor_ops_list])

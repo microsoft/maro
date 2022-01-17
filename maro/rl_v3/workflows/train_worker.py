@@ -10,11 +10,9 @@ scenario = get_module(_get_scenario_path())
 scenario_attr = ScenarioAttr(scenario)
 
 worker = Worker(
-    "train",
     from_env_as_int("ID"),
     OpsCreator(scenario_attr.policy_creator, scenario_attr.trainer_creator),
     str(from_env("DISPATCHER_HOST")),
     router_port=from_env_as_int("DISPATCHER_BACKEND_PORT")
 )
-
 worker.start()

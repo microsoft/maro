@@ -28,6 +28,20 @@ class TransitionBatch:
     def calc_returns(self, discount_factor: float) -> None:
         self.returns = discount_cumsum(self.rewards, discount_factor)
 
+    def split(self, k: int):
+        return [
+            TransitionBatch(
+                self.states[i::k],
+                self.actions[i::k],
+                self.rewards[i::k],
+                self.next_states[i::k],
+                self.terminals[i::k],    
+                returns=self.returns[i::k] if self.returns else None,
+                advantages=self.advantages[i::k] if self.advantages else None
+            )
+            for i in range(k)
+        ]
+
 
 @dataclass
 class MultiTransitionBatch:

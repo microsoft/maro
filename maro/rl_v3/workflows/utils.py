@@ -1,7 +1,7 @@
 from types import ModuleType
 from typing import Callable, Dict
 
-from maro.rl_v3.learning import AbsEnvSampler
+from maro.rl_v3.rollout import AbsEnvSampler
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.training import AbsTrainer
 from maro.rl_v3.utils.common import from_env
@@ -13,8 +13,8 @@ class ScenarioAttr(object):
         self._scenario_module = scenario_module
 
     @property
-    def env_sampler(self) -> AbsEnvSampler:
-        return getattr(self._scenario_module, "get_env_sampler")()
+    def get_env_sampler(self) -> AbsEnvSampler:
+        return getattr(self._scenario_module, "get_env_sampler")
 
     @property
     def agent2policy(self) -> Dict[str, str]:

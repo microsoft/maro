@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from maro.rl_v3.distributed import RemoteObj
-from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import CoroutineWrapper
 
@@ -17,7 +17,6 @@ from .utils import extract_trainer_name
 @dataclass
 class TrainerParams:
     device: str = None
-    enable_data_parallelism: bool = False
     replay_memory_capacity: int = 10000
     batch_size: int = 128
 
@@ -82,10 +81,11 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_ops(self, ops_name: str) -> Union[RemoteObj, CoroutineWrapper]:
+        ops = self.get_local_ops_by_name(ops_name)
         if self._dispatcher_address:
-            return RemoteObj(ops_name, "train", self._dispatcher_address)
+            return RemoteObj(ops, ops_name, self._dispatcher_address)
         else:
-            return CoroutineWrapper(self.get_local_ops_by_name(ops_name))
+            return CoroutineWrapper(ops)
 
     @abstractmethod
     async def get_policy_state(self) -> Dict[str, object]:

@@ -2,25 +2,21 @@
 # Licensed under the MIT license.
 
 import socket
-from typing import Callable, Dict
+from collections import deque
 
 import zmq
 from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
-from maro.utils import Logger
-
-from .utils import bytes_to_pyobj, bytes_to_string, string_to_bytes
+from .utils import string_to_bytes
 
 
-class Dispatcher(object):
+class Dispatcher():
     def __init__(
         self,
-        num_workers: int,
         frontend_port: int = 10000,
-        backend_port: int = 10001,
-        hash_fn: Callable[[str], int] = hash
+        backend_port: int = 10001
     ) -> None:
         # ZMQ sockets and streams
         self._context = Context.instance()
@@ -36,37 +32,26 @@ class Dispatcher(object):
         # register handlers
         self._router.on_recv(self._send_result_to_requester)
 
-        # bookkeeping
-        self._num_workers = num_workers
-        self._num_checkedin_workers = 0
-        self._hash_fn = hash_fn
-        self._obj2node: Dict[str, int] = {}
-
-        self._logger = Logger("dispatcher")
+        # workers
+        self._available_workers = deque()
+        self._worker_ready = False
 
     def _route_request_to_compute_node(self, msg: list) -> None:
-        obj_name = bytes_to_string(msg[0])
-        req = bytes_to_pyobj(msg[-1])
-        obj_type = req["type"]
-        if obj_name not in self._obj2node:
-            worker_idx = self._hash_fn(obj_name) % self._num_workers
-            worker_id = f"{obj_type}_worker.{worker_idx}"
-            self._obj2node[obj_name] = worker_id
-            self._logger.info(f"Placing {obj_name} at worker node {self._obj2node[obj_name]}")
-        else:
-            worker_id = self._obj2node[obj_name]
-
+        worker_id = self._available_workers.popleft()
         self._router.send_multipart([string_to_bytes(worker_id), msg[0], msg[-1]])
+        if not self._available_workers:
+            # stop receiving compute requests until at least one worker becomes available
+            self._workers_ready = False
+            self._req_receiver.stop_on_recv()
 
     def _send_result_to_requester(self, msg: list) -> None:
-        worker_id = msg[0]
-        if msg[1] == b"READY":
-            self._logger.info(f"{bytes_to_string(worker_id)} ready")
-            self._num_checkedin_workers += 1
-            if self._num_checkedin_workers == self._num_workers:
-                self._req_receiver.on_recv(self._route_request_to_compute_node)
-        else:
+        if msg[1] != b"READY":
             self._req_receiver.send_multipart(msg[1:])
+
+        self._available_workers.append(msg[0])
+        if not self._worker_ready:
+            self._worker_ready = True
+            self._req_receiver.on_recv(self._route_request_to_compute_node)
 
     def start(self) -> None:
         self._event_loop.start()

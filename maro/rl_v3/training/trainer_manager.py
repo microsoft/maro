@@ -5,7 +5,7 @@ import asyncio
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, List, Tuple
 
-from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.policy import RLPolicy
 
 from .trainer import AbsTrainer
@@ -83,7 +83,8 @@ class SimpleTrainerManager(AbsTrainerManager):
             self._trainer_dict[trainer_name] = trainer
             self._trainers.append(trainer)
 
-        asyncio.run(self._gather("build"))
+        for trainer in self._trainers:
+            trainer.build()
 
     def _train_impl(self) -> None:
         asyncio.run(self._gather("train_step"))

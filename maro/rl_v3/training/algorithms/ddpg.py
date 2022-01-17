@@ -9,9 +9,10 @@ from typing import Callable, Dict, List, Optional
 import numpy as np
 import torch
 
-from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.distributed import remote
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
+from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
@@ -63,18 +64,17 @@ class DDPGOps(AbsTrainOps):
         device: str,
         get_policy_func: Callable[[], ContinuousRLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
-        enable_data_parallelism: bool = False,
         *,
         reward_discount: float,
         q_value_loss_cls: Callable = None,
         soft_update_coef: float = 1.0,
-        critic_loss_coef: float = 0.1
+        critic_loss_coef: float = 0.1,
+        data_parallelism: int = 1,
     ) -> None:
         super(DDPGOps, self).__init__(
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func,
-            enable_data_parallelism=enable_data_parallelism
+            get_policy_func=get_policy_func
         )
 
         assert isinstance(self._policy, ContinuousRLPolicy)
@@ -94,6 +94,9 @@ class DDPGOps(AbsTrainOps):
         self._critic_loss_coef = critic_loss_coef
         self._soft_update_coef = soft_update_coef
 
+        self._data_parallelism = data_parallelism
+
+    @remote
     def get_batch_grad(
         self,
         batch: TransitionBatch,
@@ -160,15 +163,15 @@ class DDPGOps(AbsTrainOps):
         return self._q_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
 
     def update(self) -> None:
-        grad_dict = self._get_batch_grad(self._batch, scope="critic")
+        grad_dict = self.get_batch_grad(self._batch, scope="critic")
         self._q_critic_net.train()
         self._q_critic_net.apply_gradients(grad_dict["critic_grad"])
 
-        grad_dict = self._get_batch_grad(self._batch, scope="actor")
+        grad_dict = self.get_batch_grad(self._batch, scope="actor")
         self._policy.train()
         self._policy.apply_gradients(grad_dict["actor_grad"])
 
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_state()
@@ -178,7 +181,7 @@ class DDPGOps(AbsTrainOps):
             ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
         return ret_dict
 
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
             self._policy.set_state(ops_state_dict["policy_state"])
             self._target_policy.set_state(ops_state_dict["target_policy_state"])

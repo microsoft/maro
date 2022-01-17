@@ -7,8 +7,9 @@ from typing import Callable, Dict, List, Optional
 import numpy as np
 import torch
 
-from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.distributed import remote
 from maro.rl_v3.policy import ValueBasedPolicy
+from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
 from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
@@ -52,17 +53,16 @@ class DQNOps(AbsTrainOps):
         self,
         device: str,
         get_policy_func: Callable[[], ValueBasedPolicy],
-        enable_data_parallelism: bool = False,
         *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
         double: bool = False,
+        data_parallelism: bool = 1
     ) -> None:
         super(DQNOps, self).__init__(
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func,
-            enable_data_parallelism=enable_data_parallelism
+            get_policy_func=get_policy_func
         )
 
         assert isinstance(self._policy, ValueBasedPolicy)
@@ -77,6 +77,9 @@ class DQNOps(AbsTrainOps):
         self._target_policy.eval()
         self._target_policy.to_device(self._device)
 
+        self._data_parallelism = data_parallelism
+
+    @remote
     def get_batch_grad(
         self,
         batch: TransitionBatch,
@@ -114,18 +117,18 @@ class DQNOps(AbsTrainOps):
     def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
         raise NotImplementedError
 
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def get_state(self, scope: str = "all") -> dict:
         return {
             "policy_state": self._policy.get_state(),
             "target_q_net_state": self._target_policy.get_state()
         }
 
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         self._policy.set_state(ops_state_dict["policy_state"])
         self._target_policy.set_state(ops_state_dict["target_q_net_state"])
 
     def update(self) -> None:
-        grad_dict = self._get_batch_grad(self._batch)
+        grad_dict = self.get_batch_grad(self._batch)
 
         self._policy.train()
         self._policy.apply_gradients(grad_dict["grad"])
@@ -151,10 +154,10 @@ class DQN(SingleTrainer):
 
         self._replay_memory: Optional[RandomReplayMemory] = None
 
-    async def build(self) -> None:
+    def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
-        state_dim = await self._ops.policy_state_dim()
-        action_dim = await self._ops.policy_action_dim()
+        state_dim = self._ops.policy_state_dim()
+        action_dim = self._ops.policy_action_dim()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=state_dim,

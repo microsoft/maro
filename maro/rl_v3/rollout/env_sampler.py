@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from __future__ import annotations
 
 import collections
@@ -9,6 +12,7 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type
 import numpy as np
 import torch
 
+from maro.rl_v3.distributed import remote
 from maro.rl_v3.policy import RLPolicy
 from maro.simulator import Env
 
@@ -274,6 +278,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @remote
     def sample(  # TODO: check logic with qiuyang
         self,
         policy_state_dict: Dict[str, object] = None,

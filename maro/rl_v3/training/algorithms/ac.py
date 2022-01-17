@@ -9,11 +9,12 @@ from typing import Callable, Dict, List, Optional
 import numpy as np
 import torch
 
-from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.distributed import remote
 from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
+from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, FIFOReplayMemory, SingleTrainer, TrainerParams
-from maro.rl_v3.utils import AbsTransitionBatch, TransitionBatch, discount_cumsum, ndarray_to_tensor
+from maro.rl_v3.utils import AbsTransitionBatch, TransitionBatch, average_grads, discount_cumsum, ndarray_to_tensor
 
 
 @dataclass
@@ -37,7 +38,8 @@ class DiscreteActorCriticParams(TrainerParams):
     critic_loss_cls: Callable = None
     clip_ratio: float = None
     lam: float = 0.9
-    min_logp: Optional[float] = None
+    min_logp: Optional[float] = None,
+    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_v_critic_net_func is not None
@@ -45,7 +47,6 @@ class DiscreteActorCriticParams(TrainerParams):
     def extract_ops_params(self) -> Dict[str, object]:
         return {
             "device": self.device,
-            "enable_data_parallelism": self.enable_data_parallelism,
             "get_v_critic_net_func": self.get_v_critic_net_func,
             "reward_discount": self.reward_discount,
             "critic_loss_coef": self.critic_loss_coef,
@@ -62,20 +63,18 @@ class DiscreteActorCriticOps(AbsTrainOps):
         device: str,
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_v_critic_net_func: Callable[[], VNet],
-        enable_data_parallelism: bool = False,
         *,
         reward_discount: float = 0.9,
         critic_loss_coef: float = 0.1,
         critic_loss_cls: Callable = None,
         clip_ratio: float = None,
         lam: float = 0.9,
-        min_logp: float = None,
+        min_logp: float = None
     ) -> None:
         super(DiscreteActorCriticOps, self).__init__(
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func,
-            enable_data_parallelism=enable_data_parallelism
+            get_policy_func=get_policy_func
         )
 
         assert isinstance(self._policy, DiscretePolicyGradient)
@@ -89,6 +88,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net = get_v_critic_net_func()
         self._v_critic_net.to(self._device)
 
+    @remote
     def get_batch_grad(
         self,
         batch: TransitionBatch,
@@ -151,17 +151,15 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
         return self._policy.get_gradients(actor_loss)
 
-    def update(self, grad_iters: int) -> None:
+    def update(self, grad_dict: dict) -> None:
         """Reference: https://tinyurl.com/2ezte4cr
         """
-        for _ in range(grad_iters):
-            grad_dict = self._get_batch_grad(self._batch, scope="all")
-            self._policy.train()
-            self._policy.apply_gradients(grad_dict["actor_grad"])
-            self._v_critic_net.train()
-            self._v_critic_net.apply_gradients(grad_dict["critic_grad"])
+        self._policy.train()
+        self._policy.apply_gradients(grad_dict["actor_grad"])
+        self._v_critic_net.train()
+        self._v_critic_net.apply_gradients(grad_dict["critic_grad"])
 
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_state()
@@ -169,7 +167,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
             ret_dict["critic_state"] = self._v_critic_net.get_net_state()
         return ret_dict
 
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
             self._policy.set_state(ops_state_dict["policy_state"])
         if scope in ("all", "critic"):
@@ -204,13 +202,12 @@ class DiscreteActorCritic(SingleTrainer):
         super(DiscreteActorCritic, self).__init__(name, params)
         self._params = params
         self._ops_name = f"{self._name}.ops"
-
         self._replay_memory_dict = {}
 
-    async def build(self) -> None:
+    def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
-        state_dim = await self._ops.policy_state_dim()
-        action_dim = await self._ops.policy_action_dim()
+        state_dim = self._ops.policy_state_dim()
+        action_dim = self._ops.policy_action_dim()
         self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=state_dim,
@@ -240,5 +237,9 @@ class DiscreteActorCritic(SingleTrainer):
 
     async def train_step(self):
         for agent_name in self._replay_memory_dict:
-            await asyncio.gather(self._ops.set_batch(self._get_batch(agent_name)))
-            await asyncio.gather(self._ops.update(self._params.grad_iters))
+            batch = self._get_batch(agent_name)
+            for _ in range(self._params.grad_iters):
+                if self._params.data_parallelism > 1:
+                    batches: List[TransitionBatch] = batch.split(self._params.data_parallelism)
+                grad_list = await asyncio.gather(*[self._ops.get_batch_grad(batch, scope="all") for batch in batches])
+                self._ops.update(average_grads(grad_list))

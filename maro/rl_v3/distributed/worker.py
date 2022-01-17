@@ -17,13 +17,12 @@ from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_by
 class Worker(object):
     def __init__(
         self,
-        type: str,
         idx: int,
         obj_creator: Union[Callable, Dict[str, Callable]],
         router_host: str,
         router_port: int = 10001
     ) -> None:
-        self._id = f"{type}_worker.{idx}"
+        self._id = f"worker.{idx}"
         self._logger = Logger(self._id)
         self._obj_creator = obj_creator
 
@@ -53,9 +52,9 @@ class Worker(object):
             self._obj_dict[obj_name] = creator_fn()
             self._logger.info(f"Created object {obj_name} at worker {self._id}")
 
-        func_name, args, kwargs = req["func"], req["args"], req["kwargs"]
-        func = getattr(self._obj_dict[obj_name], func_name)
-        result = func(*args, **kwargs)
+        self._obj_dict[obj_name].set_state(req["obj_state"])
+        func = getattr(self._obj_dict[obj_name], req["func"])
+        result = func(*req["args"], **req["kwargs"])
         self._task_receiver.send_multipart([msg[0], pyobj_to_bytes(result)])
 
     def start(self) -> None:

@@ -5,7 +5,7 @@ import os
 import time
 from typing import List
 
-from maro.rl_v3.learning import ExpElement
+from maro.rl_v3.rollout import BatchEnvSampler, ExpElement
 from maro.rl_v3.training import SimpleTrainerManager
 from maro.rl_v3.utils.common import from_env, from_env_as_int, get_eval_schedule, get_logger, get_module
 from maro.rl_v3.workflows.utils import ScenarioAttr, _get_scenario_path
@@ -23,14 +23,17 @@ if __name__ == "__main__":
     rollout_mode, train_mode = str(from_env("ROLLOUT_MODE")), str(from_env("TRAIN_MODE"))
     assert rollout_mode in {"simple", "parallel"}
     assert train_mode in {"simple", "parallel"}
-    if train_mode == "parallel" or rollout_mode == "parallel":
+    if train_mode == "parallel":
         dispatcher_address = (from_env("DISPATCHER_HOST"), from_env("DISPATCHER_FRONTEND_PORT"))
     else:
         dispatcher_address = None
+
+    if train_mode == "simple" and rollout_mode == "simple":
         policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
-    env_sampler = scenario_attr.env_sampler
+    env_sampler = scenario_attr.get_env_sampler()
+
     num_episodes = from_env_as_int("NUM_EPISODES")
     num_steps = from_env_as_int("NUM_STEPS", required=False, default=-1)
 
