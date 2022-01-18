@@ -20,20 +20,6 @@ if __name__ == "__main__":
     post_collect = scenario_attr.post_collect
     post_evaluate = scenario_attr.post_evaluate
 
-    rollout_mode, train_mode = str(from_env("ROLLOUT_MODE")), str(from_env("TRAIN_MODE"))
-    assert rollout_mode in {"simple", "parallel"}
-    assert train_mode in {"simple", "parallel"}
-    if train_mode == "parallel":
-        dispatcher_address = (from_env("DISPATCHER_HOST"), from_env("DISPATCHER_FRONTEND_PORT"))
-    else:
-        dispatcher_address = None
-
-    if train_mode == "simple" and rollout_mode == "simple":
-        policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
-        policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
-
-    env_sampler = scenario_attr.get_env_sampler()
-
     num_episodes = from_env_as_int("NUM_EPISODES")
     num_steps = from_env_as_int("NUM_STEPS", required=False, default=-1)
 
@@ -42,6 +28,30 @@ if __name__ == "__main__":
     log_path = str(from_env("LOG_PATH", required=False, default=os.getcwd()))
     job_path = str(from_env("JOB"))
     logger = get_logger(log_path, job_path, "MAIN")
+
+    rollout_mode, train_mode = str(from_env("ROLLOUT_MODE")), str(from_env("TRAIN_MODE"))
+    assert rollout_mode in {"simple", "parallel"} and train_mode in {"simple", "parallel"}
+    if train_mode == "parallel":
+        dispatcher_address = (from_env("DISPATCHER_HOST"), from_env_as_int("DISPATCHER_FRONTEND_PORT"))
+    else:
+        dispatcher_address = None
+
+    is_single_thread = train_mode == "simple" and rollout_mode == "simple"
+    if is_single_thread:
+        policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
+        policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
+
+    if rollout_mode == "simple":
+        env_sampler = scenario_attr.get_env_sampler()
+    else:
+        env_sampler = BatchEnvSampler(
+            from_env_as_int("ROLLOUT_PARALLELISM"),
+            (from_env("ROLLOUT_PROXY_HOST"), from_env_as_int("ROLLOUT_PROXY_FRONTEND_PORT")),
+            min_env_samples=from_env_as_int("MIN_ENV_SAMPLES", required=False, default=None),
+            grace_factor=from_env("GRACE_FACTOR", required=False, default=None),
+            eval_parallelism=from_env_as_int("EVAL_PARALLELISM", required=False, default=1),
+            logger=logger
+        )
 
     # evaluation schedule
     eval_schedule_config = from_env("EVAL_SCHEDULE", required=False, default=None)
@@ -61,22 +71,14 @@ if __name__ == "__main__":
         while not end_of_episode:
             # experience collection
             tc0 = time.time()
-            if train_mode == "parallel":
-                policy_states = {
-                    policy_name: state
-                    for policy_state in trainer_manager.get_policy_states().values()
-                    for policy_name, state in policy_state.items()
-                }
-                env_sampler.set_policy_states(policy_states)
-
-            result = env_sampler.sample(num_steps=num_steps)
+            policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
+            result = env_sampler.sample(policy_state=policy_state, num_steps=num_steps)
             experiences: List[ExpElement] = result["experiences"]
-            trackers = [result["tracker"]]
             logger.info(f"Roll-out finished (episode: {ep})")
             end_of_episode: bool = result["end_of_episode"]
 
             if post_collect:
-                post_collect(trackers, ep, segment)
+                post_collect(result["info"], ep, segment)
 
             collect_time += time.time() - tc0
 
@@ -90,11 +92,7 @@ if __name__ == "__main__":
         logger.info(f"ep {ep} summary - collect time: {collect_time}, policy update time: {training_time}")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
-            policy_states = {
-                policy_name: state
-                for policy_state in trainer_manager.get_policy_states().values()
-                for policy_name, state in policy_state.items()
-            }
-            trackers = env_sampler.test(policy_states)
+            policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
+            result = env_sampler.test(policy_state=policy_state)
             if post_evaluate:
-                post_evaluate([trackers], ep)
+                post_evaluate(result["info"], ep)

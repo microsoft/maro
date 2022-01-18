@@ -4,17 +4,18 @@
 import asyncio
 import collections
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, Optional
 
 import numpy as np
 import torch
 
-from maro.rl_v3.distributed import remote
 from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, FIFOReplayMemory, SingleTrainer, TrainerParams
-from maro.rl_v3.utils import AbsTransitionBatch, TransitionBatch, average_grads, discount_cumsum, ndarray_to_tensor
+from maro.rl_v3.utils import TransitionBatch, average_grads, discount_cumsum, ndarray_to_tensor
+
+from ..train_ops import RemoteOps, remote
 
 
 @dataclass
@@ -38,7 +39,7 @@ class DiscreteActorCriticParams(TrainerParams):
     critic_loss_cls: Callable = None
     clip_ratio: float = None
     lam: float = 0.9
-    min_logp: Optional[float] = None,
+    min_logp: Optional[float] = None
     data_parallelism: int = 1
 
     def __post_init__(self) -> None:
@@ -89,34 +90,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net.to(self._device)
 
     @remote
-    def get_batch_grad(
-        self,
-        batch: TransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        """Reference: https://tinyurl.com/2ezte4cr
-        """
-        assert scope in ("all", "actor", "critic"), \
-            f"Unrecognized scope {scope}. Excepting 'all', 'actor', or 'critic'."
-
-        grad_dict = {}
-        if scope in ("all", "actor"):
-            grad_dict["actor_grad"] = self._get_actor_grad(batch)
-
-        if scope in ("all", "critic"):
-            grad_dict["critic_grad"] = self._get_critic_grad(batch)
-
-        return grad_dict
-
-    def _dispatch_batch(self, batch: AbsTransitionBatch, num_sub_batches: int) -> List[AbsTransitionBatch]:
-        raise NotImplementedError
-
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_sub_batches: int) -> List[Dict[str, object]]:
-        raise NotImplementedError
-
-    def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        self._policy.train()
+    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         self._v_critic_net.train()
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
@@ -126,12 +100,14 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
         return self._v_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
 
-    def _get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    @remote
+    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         assert isinstance(self._policy, DiscretePolicyGradient)
+        self._policy.train()
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
         actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
-        advantages = ndarray_to_tensor(self._batch.advantages, self._device)
+        advantages = ndarray_to_tensor(batch.advantages, self._device)
 
         if self._clip_ratio is not None:
             self._policy.eval()
@@ -151,13 +127,17 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
         return self._policy.get_gradients(actor_loss)
 
-    def update(self, grad_dict: dict) -> None:
+    def update_critic(self, grad_dict: dict) -> None:
+        """Reference: https://tinyurl.com/2ezte4cr
+        """
+        self._v_critic_net.train()
+        self._v_critic_net.apply_gradients(grad_dict)
+
+    def update_actor(self, grad_dict: dict) -> None:
         """Reference: https://tinyurl.com/2ezte4cr
         """
         self._policy.train()
-        self._policy.apply_gradients(grad_dict["actor_grad"])
-        self._v_critic_net.train()
-        self._v_critic_net.apply_gradients(grad_dict["critic_grad"])
+        self._policy.apply_gradients(grad_dict)
 
     def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
@@ -173,12 +153,10 @@ class DiscreteActorCriticOps(AbsTrainOps):
         if scope in ("all", "critic"):
             self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
 
-    def set_batch(self, batch: TransitionBatch) -> None:
+    def preprocess_batch(self, batch: TransitionBatch) -> None:
         assert self._is_valid_transition_batch(batch)
-        self._batch = batch
-
         # Preprocess returns
-        self._batch.calc_returns(self._reward_discount)
+        batch.calc_returns(self._reward_discount)
 
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, self._device)  # s
@@ -188,7 +166,8 @@ class DiscreteActorCriticOps(AbsTrainOps):
         rewards = np.concatenate([batch.rewards, values[-1:]])
         deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
         advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
-        self._batch.advantages = advantages
+        batch.advantages = advantages
+        return batch
 
 
 class DiscreteActorCritic(SingleTrainer):
@@ -237,9 +216,15 @@ class DiscreteActorCritic(SingleTrainer):
 
     async def train_step(self):
         for agent_name in self._replay_memory_dict:
-            batch = self._get_batch(agent_name)
+            batch = self._ops.preprocess_batch(self._get_batch(agent_name))
             for _ in range(self._params.grad_iters):
-                if self._params.data_parallelism > 1:
-                    batches: List[TransitionBatch] = batch.split(self._params.data_parallelism)
-                grad_list = await asyncio.gather(*[self._ops.get_batch_grad(batch, scope="all") for batch in batches])
-                self._ops.update(average_grads(grad_list))
+                batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
+                critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
+                if isinstance(self._ops, RemoteOps):
+                    critic_grad_list = await asyncio.gather(*critic_grad_list)
+
+                self._ops.update_critic(average_grads(critic_grad_list))
+                actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
+                if isinstance(self._ops, RemoteOps):
+                    actor_grad_list = await asyncio.gather(*actor_grad_list)
+                self._ops.update_actor(average_grads(actor_grad_list))

@@ -3,6 +3,7 @@
 
 import asyncio
 from abc import ABCMeta, abstractmethod
+from itertools import chain
 from typing import Callable, Dict, List, Tuple
 
 from maro.rl_v3.rollout import ExpElement
@@ -30,7 +31,7 @@ class AbsTrainerManager(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_policy_states(self) -> Dict[str, Dict[str, object]]:
+    def get_policy_state(self) -> Dict[str, Dict[str, object]]:
         """
         Get policies' states.
 
@@ -83,30 +84,25 @@ class SimpleTrainerManager(AbsTrainerManager):
             self._trainer_dict[trainer_name] = trainer
             self._trainers.append(trainer)
 
+        self._agent2trainer = {
+            agent_name: extract_trainer_name(policy_name)
+            for agent_name, policy_name in self._agent2policy.items()
+        }
+
         for trainer in self._trainers:
             trainer.build()
 
     def _train_impl(self) -> None:
-        asyncio.run(self._gather("train_step"))
+        async def train_step() -> list:
+            return await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
+        asyncio.run(train_step())
 
-    def get_policy_states(self) -> Dict[str, Dict[str, object]]:
-        policy_state_list = asyncio.run(self._gather("get_policy_state"))
-        return dict((trainer.name, policy_state) for trainer, policy_state in zip(self._trainers, policy_state_list))
-
-    async def _gather(self, coroutine_name: str) -> list:
-        return await asyncio.gather(*[getattr(trainer, coroutine_name)() for trainer in self._trainers])
+    def get_policy_state(self) -> Dict[str, Dict[str, object]]:
+        return dict(chain(*[trainer.get_policy_state().items() for trainer in self._trainers]))
 
     def record_experiences(self, experiences: List[ExpElement]) -> None:
         for exp_element in experiences:  # Dispatch experiences to trainers tick by tick.
-            self._dispatch_experience(exp_element)
-
-    def _dispatch_experience(self, exp_element: ExpElement) -> None:
-        agent2trainer = {
-            agent_name: extract_trainer_name(policy_name)
-            for agent_name, policy_name in self._agent2policy.items()
-        }
-        exp_dict = exp_element.split_contents(agent2trainer)
-
-        for trainer_name, exp_elem in exp_dict.items():
-            trainer = self._trainer_dict[trainer_name]
-            trainer.record(exp_elem)
+            exp_dict = exp_element.split_contents(self._agent2trainer)
+            for trainer_name, exp_elem in exp_dict.items():
+                trainer = self._trainer_dict[trainer_name]
+                trainer.record(exp_elem)

@@ -117,6 +117,7 @@ def get_ac(name: str, *, state_dim: int) -> DiscreteActorCritic:
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=None,
             lam=.0,
+            data_parallelism=2
         )
     )
 

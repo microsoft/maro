@@ -7,14 +7,10 @@ from maro.utils.utils import LOCAL_MARO_ROOT
 
 DEFAULT_SCRIPT = {
     "main": "main.py",
-    # "rolloutworker": "rollout.py",
-    # "policyhost": "policy_host.py",
-    # "policyserver": "policy_manager.py",
-    # "actor": "rollout.py",
-    # "task_queue": "task_queue.py",
-    # "gradworker": "grad_worker.py"
-    "train_worker": "train_worker.py",
-    "dispatcher": "dispatcher.py"
+    "rollout_proxy": "rollout_proxy.py",
+    "rollout_worker": "rollout_worker.py",
+    "dispatcher": "dispatcher.py",
+    "train_worker": "train_worker.py"
 }
 MARO_ROOT_IN_CONTAINER = "/maro"
 
@@ -80,24 +76,55 @@ def get_rl_component_env_vars(config, containerized: bool = False):
             "MODE": "single",
             "NUM_EPISODES": str(config["num_episodes"]),
             "EVAL_SCHEDULE": str(config["eval_schedule"]),
-            "ROLLOUT_MODE": config["rollout_mode"],
-            "TRAIN_MODE": config["train_mode"],
+            "ROLLOUT_MODE": config["rollout"]["mode"],
+            "TRAIN_MODE": config["training"]["mode"],
             **get_path_env(config, containerized=containerized)
         }
     }
     if "num_steps" in config:
         component_env["main"]["NUM_STEPS"] = str(config["num_steps"])
 
-    if config["train_mode"] == "parallel":
-        dispatcher_host = f"{config['job']}.{config['distributed']['dispatcher_host']}"
-        dispatcher_frontend_port = str(config["distributed"]["dispatcher_frontend_port"])
-        dispatcher_backend_port = str(config["distributed"]["dispatcher_backend_port"])
-        num_workers = config["distributed"]["num_train_workers"]
+    if config["rollout"]["mode"] == "parallel":
+        proxy_host = f"{config['job']}.{config['rollout']['proxy']['host']}"
+        proxy_frontend_port = str(config["rollout"]["proxy"]["frontend"])
+        proxy_backend_port = str(config["rollout"]["proxy"]["backend"])
+        num_rollout_workers = config["rollout"]["proxy"]["num_workers"]
+        component_env["main"].update({
+            "ROLLOUT_PARALLELISM": config["rollout"]["parallelism"],
+            "ROLLOUT_PROXY_HOST": proxy_host,
+            "ROLLOUT_PROXY_FRONTEND_PORT": proxy_frontend_port
+        })
+
+        # optional settings for parallel rollout
+        if "eval_parallelism" in config["rollout"]:
+            component_env["main"]["EVAL_PARALLELISM"] = config["rollout"]["eval_parallelism"]
+        if "min_env_samples" in config["rollout"]:
+            component_env["main"]["MIN_ENV_SAMPLES"] = config["rollout"]["min_env_samples"]
+        if "grace_factor" in config["rollout"]:
+            component_env["main"]["GRACE_FACTOR"] = config["rollout"]["grace_factor"]
+
+        component_env["rollout_proxy"] = {
+            "NUM_ROLLOUT_WORKERS": num_rollout_workers,
+            "ROLLOUT_PROXY_FRONTEND_PORT": proxy_frontend_port,
+            "ROLLOUT_PROXY_BACKEND_PORT": proxy_backend_port
+        }
+        component_env.update({
+            f"rollout_worker-{i}": {
+                "ID": str(i), "ROLLOUT_PROXY_HOST": proxy_host, "ROLLOUT_PROXY_BACKEND_PORT": proxy_backend_port,
+                **get_path_env(config, containerized=containerized)
+            }
+            for i in range(num_rollout_workers)
+        })
+
+    if config["training"]["mode"] == "parallel":
+        dispatcher_host = f"{config['job']}.{config['training']['dispatching']['host']}"
+        dispatcher_frontend_port = str(config["training"]["dispatching"]["frontend"])
+        dispatcher_backend_port = str(config["training"]["dispatching"]["backend"])
+        num_workers = config["training"]["dispatching"]["num_workers"]
         component_env["main"].update({
             "DISPATCHER_HOST": dispatcher_host, "DISPATCHER_FRONTEND_PORT": dispatcher_frontend_port
         })
         component_env["dispatcher"] = {
-            "NUM_WORKERS": str(num_workers),
             "DISPATCHER_FRONTEND_PORT": dispatcher_frontend_port,
             "DISPATCHER_BACKEND_PORT": dispatcher_backend_port
         }
@@ -110,61 +137,3 @@ def get_rl_component_env_vars(config, containerized: bool = False):
         })
 
     return component_env
-
-    # if "DATA_PARALLELISM" in common and int(common["DATA_PARALLELISM"]) > 1:
-    #     component_env["task_queue"] = common
-    #     component_env.update({
-    #         f"gradworker-{worker_id}": {**common, "WORKER_ID": str(worker_id)}
-    #         for worker_id in range(int(common["DATA_PARALLELISM"]))
-    #     })
-
-    # if config["mode"] == "sync":
-    #     env = {
-    #         "ROLLOUT_TYPE": config["sync"]["rollout_type"],
-    #         "NUM_EPISODES": str(config["num_episodes"]),
-    #         "NUM_ROLLOUTS": str(config["sync"]["num_rollouts"])
-    #     }
-
-    #     if "num_steps" in config:
-    #         env["NUM_STEPS"] = str(config["num_steps"])
-    #     if "eval_schedule" in config:
-    #         env["EVAL_SCHEDULE"] = str(config["eval_schedule"])
-    #     if config["sync"]["rollout_type"] == "distributed":
-    #         env["ROLLOUT_GROUP"] = "-".join([config["job"], "rollout"])
-    #         if "min_finished_workers" in config["sync"]["distributed"]:
-    #             env["MIN_FINISHED_WORKERS"] = str(config["sync"]["distributed"]["min_finished_workers"])
-    #         if "max_extra_recv_tries" in config["sync"]["distributed"]:
-    #             env["MAX_EXTRA_RECV_TRIES"] = str(config["sync"]["distributed"]["max_extra_recv_tries"])
-    #         if "extra_recv_timeout" in config["sync"]["distributed"]:
-    #             env["MAX_RECV_TIMEO"] = str(config["sync"]["distributed"]["extra_recv_timeout"])
-    #         component_env.update({
-    #             f"rolloutworker-{worker_id}":
-    #                 {**common, "WORKER_ID": str(worker_id), "ROLLOUT_GROUP": "-".join([config["job"], "rollout"])}
-    #             for worker_id in range(config["sync"]["num_rollouts"])
-    #         })
-
-    #     if "num_eval_rollouts" in config["sync"]:
-    #         env["NUM_EVAL_ROLLOUTS"] = str(config["sync"]["num_eval_rollouts"])
-
-    #     component_env["main"] = {**common, **env}
-    #     return component_env
-
-    # if config["mode"] == "async":
-    #     for actor_id in range(config["async"]["num_rollouts"]):
-    #         actor_env = {
-    #             "ACTOR_ID": str(actor_id),
-    #             "GROUP": config["job"],
-    #             "NUM_EPISODES": str(config["num_episodes"])
-    #         }
-    #         if "num_steps" in config:
-    #             actor_env["NUM_STEPS"] = config["num_steps"]
-    #         component_env[f"actor-{actor_id}"] = {**common, **actor_env}
-
-    #     server_env = {"GROUP": config["job"], "NUM_ROLLOUTS": str(config["async"]["num_rollouts"])}
-    #     if "max_lag" in config["async"]:
-    #         server_env["MAX_LAG"] = str(config["async"]["max_lag"])
-    #     component_env["policyserver"] = {**common, **server_env}
-
-    #     return component_env
-
-    # raise ValueError(f"'mode' must be 'single', 'sync' or 'async', got {config['mode']}")

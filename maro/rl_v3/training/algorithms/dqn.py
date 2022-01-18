@@ -1,18 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import asyncio
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, Optional
 
 import numpy as np
 import torch
 
-from maro.rl_v3.distributed import remote
 from maro.rl_v3.policy import ValueBasedPolicy
 from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
-from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl_v3.utils import TransitionBatch, average_grads, ndarray_to_tensor
 from maro.utils import clone
+
+from ..train_ops import RemoteOps, remote
 
 
 @dataclass
@@ -37,11 +39,11 @@ class DQNParams(TrainerParams):
     soft_update_coef: float = 0.1
     double: bool = False
     random_overwrite: bool = False
+    data_parallelism: int = 1
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
             "device": self.device,
-            "enable_data_parallelism": self.enable_data_parallelism,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
             "double": self.double,
@@ -56,8 +58,7 @@ class DQNOps(AbsTrainOps):
         *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
-        double: bool = False,
-        data_parallelism: bool = 1
+        double: bool = False
     ) -> None:
         super(DQNOps, self).__init__(
             device=device,
@@ -77,17 +78,9 @@ class DQNOps(AbsTrainOps):
         self._target_policy.eval()
         self._target_policy.to_device(self._device)
 
-        self._data_parallelism = data_parallelism
-
     @remote
-    def get_batch_grad(
-        self,
-        batch: TransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        assert scope == "all", f"Unrecognized scope {scope}. Excepting 'all'."
-
+    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+        assert self._is_valid_transition_batch(batch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)
         next_states = ndarray_to_tensor(batch.next_states, self._device)
@@ -109,13 +102,7 @@ class DQNOps(AbsTrainOps):
         q_values = self._policy.q_values_tensor(states, actions)
         loss: torch.Tensor = self._loss_func(q_values, target_q_values)
 
-        return {"grad": self._policy.get_gradients(loss)}
-
-    def _dispatch_batch(self, batch: TransitionBatch, num_ops: int) -> List[TransitionBatch]:
-        raise NotImplementedError
-
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
-        raise NotImplementedError
+        return self._policy.get_gradients(loss)
 
     def get_state(self, scope: str = "all") -> dict:
         return {
@@ -127,18 +114,12 @@ class DQNOps(AbsTrainOps):
         self._policy.set_state(ops_state_dict["policy_state"])
         self._target_policy.set_state(ops_state_dict["target_q_net_state"])
 
-    def update(self) -> None:
-        grad_dict = self.get_batch_grad(self._batch)
-
+    def update(self, grad_dict: dict) -> None:
         self._policy.train()
-        self._policy.apply_gradients(grad_dict["grad"])
+        self._policy.apply_gradients(grad_dict)
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
-
-    def set_batch(self, batch: TransitionBatch) -> None:
-        assert self._is_valid_transition_batch(batch)
-        self._batch = batch
 
 
 class DQN(SingleTrainer):
@@ -187,10 +168,14 @@ class DQN(SingleTrainer):
 
     async def train_step(self) -> None:
         for _ in range(self._params.num_epochs):
-            await self._ops.set_batch(self._get_batch())
-            await self._ops.update()
+            batch = self._get_batch()
+            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
+            grad_list = [self._ops.get_batch_grad(batch) for batch in batches]
+            if isinstance(self._ops, RemoteOps):
+                grad_list = await asyncio.gather(*grad_list)
+            self._ops.update(average_grads(grad_list))
 
         self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
-            await self._ops.soft_update_target()
+            self._ops.soft_update_target()
             self._target_q_net_version = self._q_net_version

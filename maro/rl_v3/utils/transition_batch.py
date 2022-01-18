@@ -36,8 +36,8 @@ class TransitionBatch:
                 self.rewards[i::k],
                 self.next_states[i::k],
                 self.terminals[i::k],    
-                returns=self.returns[i::k] if self.returns else None,
-                advantages=self.advantages[i::k] if self.advantages else None
+                returns=self.returns[i::k] if self.returns is not None else None,
+                advantages=self.advantages[i::k] if self.advantages is not None else None
             )
             for i in range(k)
         ]

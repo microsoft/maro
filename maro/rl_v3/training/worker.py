@@ -2,29 +2,36 @@
 # Licensed under the MIT license.
 
 import socket
-from typing import Callable, Dict, Union
+from typing import Callable, Dict
 
 import zmq
 from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
+from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
 from maro.utils import Logger
 
-from .utils import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes, string_to_bytes
+from .train_ops import AbsTrainOps
+from .trainer import AbsTrainer
 
 
-class Worker(object):
+class TrainOpsWorker(object):
     def __init__(
         self,
         idx: int,
-        obj_creator: Union[Callable, Dict[str, Callable]],
+        policy_creator: Dict[str, Callable[[str], RLPolicy]],
+        trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         router_host: str,
         router_port: int = 10001
     ) -> None:
         self._id = f"worker.{idx}"
         self._logger = Logger(self._id)
-        self._obj_creator = obj_creator
+
+        self._policy_creator = policy_creator
+        self._trainer_creator = trainer_creator
+        self._trainer_dict: Dict[str, AbsTrainer] = {}
 
         # ZMQ sockets and streams
         self._context = Context.instance()
@@ -41,19 +48,24 @@ class Worker(object):
         # register handlers
         self._task_receiver.on_recv(self._compute)
 
-        self._obj_dict: Dict[str, object] = {}
+        self._ops_dict: Dict[str, AbsTrainOps] = {}
 
     def _compute(self, msg: list) -> None:
-        obj_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
+        ops_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
         assert isinstance(req, dict)
+        
+        if ops_name not in self._ops_dict:
+            trainer_name = ops_name.split(".")[0]
+            if trainer_name not in self._trainer_dict:
+                trainer = self._trainer_creator[trainer_name](trainer_name)
+                trainer.register_policy_creator(self._policy_creator)
+                self._trainer_dict[trainer_name] = trainer
 
-        if obj_name not in self._obj_dict:
-            creator_fn = self._obj_creator if isinstance(self._obj_creator, Callable) else self._obj_creator[obj_name]
-            self._obj_dict[obj_name] = creator_fn()
-            self._logger.info(f"Created object {obj_name} at worker {self._id}")
+            self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops_by_name(ops_name)
+            self._logger.info(f"Created ops {ops_name} at {self._id}")
 
-        self._obj_dict[obj_name].set_state(req["obj_state"])
-        func = getattr(self._obj_dict[obj_name], req["func"])
+        self._ops_dict[ops_name].set_state(req["state"])
+        func = getattr(self._ops_dict[ops_name], req["func"])
         result = func(*req["args"], **req["kwargs"])
         self._task_receiver.send_multipart([msg[0], pyobj_to_bytes(result)])
 

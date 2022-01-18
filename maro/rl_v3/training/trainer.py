@@ -5,12 +5,10 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from maro.rl_v3.distributed import RemoteObj
 from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import CoroutineWrapper
 
-from .train_ops import AbsTrainOps
+from .train_ops import AbsTrainOps, RemoteOps
 from .utils import extract_trainer_name
 
 
@@ -66,7 +64,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    async def build(self) -> None:
+    def build(self) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -80,15 +78,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         raise NotImplementedError
 
-    def get_ops(self, ops_name: str) -> Union[RemoteObj, CoroutineWrapper]:
+    def get_ops(self, ops_name: str) -> Union[RemoteOps, AbsTrainOps]:
         ops = self.get_local_ops_by_name(ops_name)
-        if self._dispatcher_address:
-            return RemoteObj(ops, ops_name, self._dispatcher_address)
-        else:
-            return CoroutineWrapper(ops)
+        return RemoteOps(ops, ops_name, self._dispatcher_address) if self._dispatcher_address else ops
 
     @abstractmethod
-    async def get_policy_state(self) -> Dict[str, object]:
+    def get_policy_state(self) -> Dict[str, object]:
         """Get policies' states.
 
         Returns:
@@ -103,7 +98,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def __init__(self, name: str, params: TrainerParams) -> None:
         super(SingleTrainer, self).__init__(name, params)
 
-        self._ops: Union[RemoteObj, CoroutineWrapper, None] = None  # To be created in `build()`
+        self._ops: Union[RemoteOps, None] = None  # To be created in `build()`
 
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_name: Optional[str] = None
@@ -126,10 +121,10 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._policy_name = list(self._policy_creator.keys())[0]
         self._get_policy_func = lambda: self._policy_creator[self._policy_name](self._policy_name)
 
-    async def get_policy_state(self) -> Dict[str, object]:
+    def get_policy_state(self) -> Dict[str, object]:
         if not self._ops:
             raise ValueError("'build' needs to be called to create an ops instance first.")
-        policy_name, state = await self._ops.get_policy_state()
+        policy_name, state = self._ops.get_policy_state()
         return {policy_name: state}
 
 
@@ -152,5 +147,5 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         self._policy_names = sorted(list(self._policy_creator.keys()))
 
     @abstractmethod
-    async def get_policy_state(self) -> Dict[str, object]:
+    def get_policy_state(self) -> Dict[str, object]:
         raise NotImplementedError

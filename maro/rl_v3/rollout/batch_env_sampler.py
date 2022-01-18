@@ -1,74 +1,126 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import asyncio
+import socket
 import time
-from asyncio.tasks import FIRST_COMPLETED
-from random import choices
+from itertools import chain
 from typing import Dict, List, Tuple
 
+import zmq
+from zmq import Context, Poller
+
+from maro.rl_v3.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.utils import DummyLogger, Logger
-from maro.rl_v3.distributed import RemoteObj
 
 from .env_sampler import ExpElement
+
+
+class BatchClient(object):
+    def __init__(self, name: str, address: Tuple[str, int]) -> None:
+        self._name = name
+        host, port = address
+        self._dispatcher_ip = socket.gethostbyname(host)
+        self._address = f"tcp://{self._dispatcher_ip}:{port}"
+        self._poller = Poller()
+        self._logger = Logger("batch_request_client")
+
+    def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: int = None) -> None:
+        if min_replies is None:
+            min_replies = parallelism
+
+        start_time = time.time()
+        results = []
+        req["parallelism"] = parallelism
+        self._socket.send(pyobj_to_bytes(req))
+        self._logger.info(f"{self._name} sent request")
+        while len(results) < min_replies:
+            result = self._socket.recv_multipart()
+            results.append(bytes_to_pyobj(result[0]))
+
+        if grace_factor is not None:
+            countdown = int((time.time() - start_time) * grace_factor) * 1000  # milliseconds
+            self._logger.info(f"allowing {countdown / 1000} seconds for remaining results")
+            while len(results) < parallelism and countdown > 0:
+                start = time.time()
+                event = dict(self._poller.poll(countdown))
+                if self._socket in event:
+                    result = self._socket.recv_multipart()
+                    results.append(bytes_to_pyobj(result[0]))
+                countdown -= time.time() - start
+
+        self._logger.info(f"{self._name} received {min_replies} results")
+        return results
+
+    def close(self):
+        self._poller.unregister(self._socket)
+        self._socket.disconnect(self._address)
+        self._socket.close()
+
+    def connect(self):
+        self._socket = Context.instance().socket(zmq.DEALER)
+        self._socket.setsockopt_string(zmq.IDENTITY, self._name)
+        self._socket.setsockopt(zmq.LINGER, 0)
+        self._socket.connect(self._address)
+        self._logger.info(f"connected to {self._address}")
+        self._poller.register(self._socket, zmq.POLLIN)
 
 
 class BatchEnvSampler:
     def __init__(
         self,
-        num_samplers: int,
+        parallelism: int,
         remote_address: Tuple[str, int],
-        num_steps: int = -1,
         min_env_samples: int = None,
-        collect_time_watermark: float = None,
-        num_eval_samples: int = 1,
-        prefix: str = "env_sampler", 
+        grace_factor: float = None,
+        eval_parallelism: int = 1,
         logger: Logger = DummyLogger()
     ) -> None:
-        if num_eval_samples > num_samplers:
-            raise ValueError("num_eval_workers cannot exceed the number of available workers")
+        if eval_parallelism > parallelism:
+            raise ValueError(f"eval_parallelism cannot exceed the number of available workers: {parallelism}")
 
         super(BatchEnvSampler, self).__init__()
+        self._client = BatchClient("batch_env_sampler", remote_address)
         self._logger = logger
-        self._remote_samplers = [RemoteObj(f"{prefix}.{i}", remote_address) for i in range(num_samplers)]
-        self._num_steps = num_steps
-        self._min_env_samples = min_env_samples
-        self._collect_time_watermark = collect_time_watermark
-        self._num_eval_samples = num_eval_samples
+        self._parallelism = parallelism
+        self._min_env_samples = min_env_samples if min_env_samples is not None else self._parallelism
+        self._grace_factor = grace_factor
+        self._eval_parallelism = eval_parallelism
 
-    async def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:
-        await asyncio.gather(*[sampler.set_policy_states(policy_state_dict) for sampler in self._remote_samplers])
+        self._ep = 0
+        self._segment = 0
 
-    async def sample(
-        self, ep: int, segment: int, policy_state: Dict[str, object]
+    def sample(
+        self, policy_state: Dict[str, object] = None, num_steps: int = -1
     ) -> Tuple[List[List[ExpElement]], List[dict]]:
-        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment})")
-        if self._min_env_samples is None:
-            results = await asyncio.gather(
-                *[sampler.sample(policy_state, num_steps=self._num_steps) for sampler in self._remote_samplers]
-            )
-        else:
-            start_time = time.time()
-            results = []
-            pending = {
-                asyncio.create_task(sampler.sample(policy_state, num_steps=self._num_steps))
-                for sampler in self._remote_samplers
-            }
-            while len(results) < self._min_env_samples:
-                cur_done, pending = await asyncio.wait(pending, return_when=FIRST_COMPLETED)
-                results.extend([task.result() for task in cur_done])
-
-            if self._collect_time_watermark is not None:
-                extra_wait_time = (time.time() - start_time) * self._collect_time_watermark
-                extra_done, pending = await asyncio.wait(pending, timeout=extra_wait_time)
-                results.extend([task.result() for task in extra_done])
-                for task in pending:
-                    task.cancel()
-
+        self._logger.info(f"Collecting simulation data (episode {self._ep}, segment {self._segment})")
+        self._client.connect()
+        req = {
+            "type": "sample", "policy_state": policy_state, "num_steps": num_steps, "parallelism": self._parallelism
+        }
+        results = self._client.collect(
+            req, self._parallelism,
+            min_replies=self._min_env_samples,
+            grace_factor=self._grace_factor
+        )
+        self._client.close()
         self._end_of_episode = any(res["end_of_episode"] for res in results)
-        return [res["experiences"] for res in results], [res["tracker"] for res in results]
+        if self._end_of_episode:
+            self._ep += 1
+            self._segment = 0
+        merged_experiences = list(chain(*[res["experiences"] for res in results]))
+        return {
+            "end_of_episode": self._end_of_episode,
+            "experiences": merged_experiences,
+            "info": [res["info"] for res in results]
+        }
 
-    async def test(self, policy_state: Dict[str, object]) -> List[dict]:
-        samplers = choices(self._remote_samplers, k=self._num_eval_samples)
-        results = await asyncio.wait(*[sampler.test(policy_state) for sampler in samplers])
-        return [res["tracker"] for res in results]
+    def test(self, policy_state: Dict[str, object] = None) -> List[dict]:
+        self._client.connect()
+        req = {
+            "type": "test",
+            "policy_state": policy_state,
+            "parallelism": self._eval_parallelism
+        }
+        results = self._client.collect(req, self._eval_parallelism)
+        self._client.close()
+        return {"info": [res["info"] for res in results]}

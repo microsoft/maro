@@ -88,5 +88,6 @@ def get_dqn(name: str) -> DQN:
             replay_memory_capacity=10000,
             random_overwrite=False,
             batch_size=32,
+            data_parallelism=2
         )
     )

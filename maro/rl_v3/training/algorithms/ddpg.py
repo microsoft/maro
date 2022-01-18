@@ -3,19 +3,21 @@
 
 # TODO: DDPG has net been tested in a real test case
 
+import asyncio
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, Optional
 
 import numpy as np
 import torch
 
-from maro.rl_v3.distributed import remote
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
 from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
-from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl_v3.utils import TransitionBatch, average_grads, ndarray_to_tensor
 from maro.utils import clone
+
+from ..train_ops import RemoteOps, remote
 
 
 @dataclass
@@ -42,6 +44,7 @@ class DDPGParams(TrainerParams):
     soft_update_coef: float = 1.0
     critic_loss_coef: float = 0.1
     random_overwrite: bool = False
+    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_q_critic_net_func is not None
@@ -49,7 +52,6 @@ class DDPGParams(TrainerParams):
     def extract_ops_params(self) -> Dict[str, object]:
         return {
             "device": self.device,
-            "enable_data_parallelism": self.enable_data_parallelism,
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "reward_discount": self.reward_discount,
             "q_value_loss_cls": self.q_value_loss_cls,
@@ -59,6 +61,7 @@ class DDPGParams(TrainerParams):
 
 
 class DDPGOps(AbsTrainOps):
+    """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html"""
     def __init__(
         self,
         device: str,
@@ -68,8 +71,7 @@ class DDPGOps(AbsTrainOps):
         reward_discount: float,
         q_value_loss_cls: Callable = None,
         soft_update_coef: float = 1.0,
-        critic_loss_coef: float = 0.1,
-        data_parallelism: int = 1,
+        critic_loss_coef: float = 0.1
     ) -> None:
         super(DDPGOps, self).__init__(
             device=device,
@@ -94,55 +96,11 @@ class DDPGOps(AbsTrainOps):
         self._critic_loss_coef = critic_loss_coef
         self._soft_update_coef = soft_update_coef
 
-        self._data_parallelism = data_parallelism
-
     @remote
-    def get_batch_grad(
-        self,
-        batch: TransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
-        """
-
-        assert scope in ("all", "actor", "critic"), \
-            f"Unrecognized scope {scope}. Excepting 'all', 'actor', or 'critic'."
-
-        grad_dict = {}
-        if scope in ("all", "critic"):
-            grad_dict["critic_grad"] = self._get_critic_grad(batch)
-
-        if scope in ("all", "actor"):
-            grad_dict["actor_grad"] = self._get_actor_grad(batch)
-
-        return grad_dict
-
-    def _dispatch_batch(self, batch: TransitionBatch, num_ops: int) -> List[TransitionBatch]:
-        raise NotImplementedError
-
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
-        raise NotImplementedError
-
-    def _get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        assert self._is_valid_transition_batch(batch)
         self._q_critic_net.train()
-        self._policy.train()
-
         states = ndarray_to_tensor(batch.states, self._device)  # s
-
-        policy_loss = -self._q_critic_net.q_values(
-            states=states,  # s
-            actions=self._policy.get_actions_tensor(states)  # miu(s)
-        ).mean()  # -Q(s, miu(s))
-
-        return self._policy.get_gradients(policy_loss)
-
-    def _get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        self._q_critic_net.train()
-        self._policy.train()
-
-        states = ndarray_to_tensor(batch.states, self._device)  # s
-
         next_states = ndarray_to_tensor(batch.next_states, self._device)  # s'
         actions = ndarray_to_tensor(batch.actions, self._device)  # a
         rewards = ndarray_to_tensor(batch.rewards, self._device)  # r
@@ -162,14 +120,26 @@ class DDPGOps(AbsTrainOps):
 
         return self._q_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
 
-    def update(self) -> None:
-        grad_dict = self.get_batch_grad(self._batch, scope="critic")
-        self._q_critic_net.train()
-        self._q_critic_net.apply_gradients(grad_dict["critic_grad"])
-
-        grad_dict = self.get_batch_grad(self._batch, scope="actor")
+    @remote
+    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        assert self._is_valid_transition_batch(batch)
         self._policy.train()
-        self._policy.apply_gradients(grad_dict["actor_grad"])
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+
+        policy_loss = -self._q_critic_net.q_values(
+            states=states,  # s
+            actions=self._policy.get_actions_tensor(states)  # miu(s)
+        ).mean()  # -Q(s, miu(s))
+
+        return self._policy.get_gradients(policy_loss)
+
+    def update_critic(self, grad_dict: dict) -> None:
+        self._q_critic_net.train()
+        self._q_critic_net.apply_gradients(grad_dict)
+
+    def update_actor(self, grad_dict: dict) -> None:
+        self._policy.train()
+        self._policy.apply_gradients(grad_dict)
 
     def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
@@ -192,10 +162,6 @@ class DDPGOps(AbsTrainOps):
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
-
-    def set_batch(self, batch: TransitionBatch) -> None:
-        assert self._is_valid_transition_batch(batch)
-        self._batch = batch
 
 
 class DDPG(SingleTrainer):
@@ -247,10 +213,20 @@ class DDPG(SingleTrainer):
 
     async def train_step(self) -> None:
         for _ in range(self._params.num_epochs):
-            await self._ops.set_batch(self._get_batch())
-            await self._ops.update()
+            batch = self._get_batch()
+            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
+            # update critic
+            critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
+            if isinstance(self._ops, RemoteOps):
+                critic_grad_list = await asyncio.gather(*critic_grad_list)
+            self._ops.update_critic(average_grads(critic_grad_list))
+            # update actor
+            actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
+            if isinstance(self._ops, RemoteOps):
+                actor_grad_list = await asyncio.gather(*actor_grad_list)
+            self._ops.update_actor(average_grads(actor_grad_list))
 
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
-            await self._ops.soft_update_target()
+            self._ops.soft_update_target()
             self._target_policy_version = self._policy_version
