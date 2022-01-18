@@ -314,7 +314,7 @@ class DiscreteMADDPG(MultiTrainer):
             if any(isinstance(ops, RemoteOps) for ops in self._actor_ops_list):
                 actor_grad_list = await asyncio.gather(*actor_grad_list)
             for ops, actor_grad in zip(self._actor_ops_list, actor_grad_list):
-                ops.update_actor(actor_grad) 
+                ops.update_actor(actor_grad)
 
             # Update version
             self._try_soft_update_target()

@@ -53,7 +53,7 @@ class TrainOpsWorker(object):
     def _compute(self, msg: list) -> None:
         ops_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
         assert isinstance(req, dict)
-        
+
         if ops_name not in self._ops_dict:
             trainer_name = ops_name.split(".")[0]
             if trainer_name not in self._trainer_dict:

@@ -5,8 +5,8 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.rollout import ExpElement
 
 from .train_ops import AbsTrainOps, RemoteOps
 from .utils import extract_trainer_name
