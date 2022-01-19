@@ -4,7 +4,7 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 from itertools import chain
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, Iterable, List, Tuple
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.rollout import ExpElement
@@ -93,16 +93,17 @@ class SimpleTrainerManager(AbsTrainerManager):
             trainer.build()
 
     def _train_impl(self) -> None:
-        async def train_step() -> list:
+        async def train_step() -> Iterable:
             return await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
         asyncio.run(train_step())
 
     def get_policy_state(self) -> Dict[str, Dict[str, object]]:
         return dict(chain(*[trainer.get_policy_state().items() for trainer in self._trainers]))
 
-    def record_experiences(self, experiences: List[ExpElement]) -> None:
-        for exp_element in experiences:  # Dispatch experiences to trainers tick by tick.
-            exp_dict = exp_element.split_contents(self._agent2trainer)
-            for trainer_name, exp_elem in exp_dict.items():
-                trainer = self._trainer_dict[trainer_name]
-                trainer.record(exp_elem)
+    def record_experiences(self, experiences: List[List[ExpElement]]) -> None:
+        for env_idx, env_experience in enumerate(experiences):
+            for exp_element in env_experience:  # Dispatch experiences to trainers tick by tick.
+                exp_dict = exp_element.split_contents(self._agent2trainer)
+                for trainer_name, exp_elem in exp_dict.items():
+                    trainer = self._trainer_dict[trainer_name]
+                    trainer.record(env_idx, exp_elem)

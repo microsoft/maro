@@ -73,7 +73,7 @@ if __name__ == "__main__":
             tc0 = time.time()
             policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
             result = env_sampler.sample(policy_state=policy_state, num_steps=num_steps)
-            experiences: List[ExpElement] = result["experiences"]
+            experiences: List[List[ExpElement]] = result["experiences"]
             logger.info(f"Roll-out finished (episode: {ep})")
             end_of_episode: bool = result["end_of_episode"]
 

@@ -3,7 +3,7 @@ from typing import Union
 from .objects import SHAPE_CHECK_FLAG
 from .torch_utils import average_grads, match_shape, ndarray_to_tensor
 from .trajectory_computation import discount_cumsum
-from .transition_batch import MultiTransitionBatch, TransitionBatch
+from .transition_batch import MultiTransitionBatch, TransitionBatch, merge_transition_batches
 
 AbsTransitionBatch = Union[TransitionBatch, MultiTransitionBatch]
 
@@ -12,5 +12,5 @@ __all__ = [
     "SHAPE_CHECK_FLAG",
     "average_grads", "match_shape", "ndarray_to_tensor",
     "discount_cumsum",
-    "AbsTransitionBatch", "MultiTransitionBatch", "TransitionBatch",
+    "AbsTransitionBatch", "MultiTransitionBatch", "TransitionBatch", "merge_transition_batches",
 ]

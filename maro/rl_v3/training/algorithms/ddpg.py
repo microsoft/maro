@@ -13,11 +13,9 @@ import torch
 from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
 from maro.rl_v3.rollout import ExpElement
-from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
-from maro.rl_v3.utils import TransitionBatch, average_grads, ndarray_to_tensor
+from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl_v3.utils import average_grads, ndarray_to_tensor, TransitionBatch
 from maro.utils import clone
-
-from ..train_ops import RemoteOps, remote
 
 
 @dataclass
@@ -182,8 +180,8 @@ class DDPG(SingleTrainer):
 
     async def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
-        state_dim = await self._ops.policy_state_dim()
-        action_dim = await self._ops.policy_action_dim()
+        state_dim = self._ops.policy_state_dim()
+        action_dim = self._ops.policy_action_dim()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=state_dim,
@@ -191,7 +189,7 @@ class DDPG(SingleTrainer):
             random_overwrite=self._params.random_overwrite
         )
 
-    def record(self, exp_element: ExpElement) -> None:
+    def record(self, env_idx: int, exp_element: ExpElement) -> None:
         for agent_name in exp_element.agent_names:
             transition_batch = TransitionBatch(
                 states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),

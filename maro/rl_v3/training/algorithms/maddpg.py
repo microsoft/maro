@@ -11,11 +11,9 @@ import torch
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.rollout import ExpElement
-from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, TrainerParams
+from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
 from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
-
-from ..train_ops import RemoteOps, remote
 
 
 @dataclass
@@ -227,7 +225,7 @@ class DiscreteMADDPG(MultiTrainer):
         assert len(self._agent2policy.keys()) == len(self._agent2policy.values())  # agent <=> policy
         self._policy2agent = {policy_name: agent_name for agent_name, policy_name in self._agent2policy.items()}
 
-    def record(self, exp_element: ExpElement) -> None:
+    def record(self, env_idx: int, exp_element: ExpElement) -> None:
         assert exp_element.num_agents == len(self._agent2policy.keys())
 
         actions = []
