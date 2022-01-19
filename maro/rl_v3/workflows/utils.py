@@ -12,9 +12,8 @@ class ScenarioAttr(object):
         super(ScenarioAttr, self).__init__()
         self._scenario_module = scenario_module
 
-    @property
-    def env_sampler_creator(self) -> Callable[[], AbsEnvSampler]:
-        return getattr(self._scenario_module, "env_sampler_creator")
+    def get_env_sampler(self, policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> AbsEnvSampler:
+        return getattr(self._scenario_module, "env_sampler_creator")(policy_creator)
 
     @property
     def agent2policy(self) -> Dict[str, str]:
