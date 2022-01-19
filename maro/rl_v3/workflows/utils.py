@@ -13,8 +13,8 @@ class ScenarioAttr(object):
         self._scenario_module = scenario_module
 
     @property
-    def get_env_sampler(self) -> AbsEnvSampler:
-        return getattr(self._scenario_module, "get_env_sampler")
+    def env_sampler_creator(self) -> Callable[[], AbsEnvSampler]:
+        return getattr(self._scenario_module, "env_sampler_creator")
 
     @property
     def agent2policy(self) -> Dict[str, str]:

@@ -362,7 +362,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         return {
             "end_of_episode": not self._agent_state_dict,
             "experiences": [experiences],
-            "info": self._tracker
+            "info": [self._tracker],
         }
 
     def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
@@ -401,7 +401,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             _, event, terminal = self._env.step(list(env_action_dict.values()))
             if not terminal:
                 _, agent_state_dict = self._get_global_and_agent_state(event)
-        return {"info": self._tracker}
+        return {"info": [self._tracker]}
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:

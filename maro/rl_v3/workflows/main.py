@@ -42,7 +42,7 @@ if __name__ == "__main__":
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
     if rollout_mode == "simple":
-        env_sampler = scenario_attr.get_env_sampler()
+        env_sampler = scenario_attr.env_sampler_creator()
     else:
         env_sampler = BatchEnvSampler(
             from_env_as_int("ROLLOUT_PARALLELISM"),
