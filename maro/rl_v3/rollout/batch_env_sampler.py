@@ -111,7 +111,7 @@ class BatchEnvSampler:
         return {
             "end_of_episode": self._end_of_episode,
             "experiences": merged_experiences,
-            "info": [res["info"] for res in results]
+            "info": [res["info"][0] for res in results]
         }
 
     def test(self, policy_state: Dict[str, object] = None) -> List[dict]:
@@ -123,4 +123,4 @@ class BatchEnvSampler:
         }
         results = self._client.collect(req, self._eval_parallelism)
         self._client.close()
-        return {"info": [res["info"] for res in results]}
+        return {"info": [res["info"][0] for res in results]}
