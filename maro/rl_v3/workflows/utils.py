@@ -4,8 +4,8 @@
 from types import ModuleType
 from typing import Callable, Dict
 
-from maro.rl_v3.rollout import AbsEnvSampler
 from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.rollout import AbsEnvSampler
 from maro.rl_v3.training import AbsTrainer
 from maro.rl_v3.utils.common import from_env
 

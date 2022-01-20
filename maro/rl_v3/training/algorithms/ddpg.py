@@ -14,7 +14,7 @@ from maro.rl_v3.model import QNet
 from maro.rl_v3.policy import ContinuousRLPolicy
 from maro.rl_v3.rollout import ExpElement
 from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl_v3.utils import average_grads, ndarray_to_tensor, TransitionBatch
+from maro.rl_v3.utils import TransitionBatch, average_grads, ndarray_to_tensor
 from maro.utils import clone
 
 

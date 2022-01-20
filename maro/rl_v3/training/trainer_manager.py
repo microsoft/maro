@@ -7,6 +7,7 @@ from typing import Callable, Dict, Iterable, List, Tuple
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.rollout import ExpElement
+
 from .trainer import AbsTrainer
 from .utils import extract_trainer_name
 
