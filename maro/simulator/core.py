@@ -14,7 +14,6 @@ from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
-from .utils import random
 from .utils.common import tick_to_frame_index
 
 

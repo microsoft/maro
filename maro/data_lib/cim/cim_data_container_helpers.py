@@ -31,7 +31,7 @@ class CimDataContainerWrapper:
         self._init_data_container()
 
         self._random_seed: Optional[int] = None
-        self._need_refresh: bool = False
+        self._re_init_data_cntr_flag: bool = False
 
     def _init_data_container(self, topology_seed: int = None):
         if not os.path.exists(self._config_path):
@@ -52,20 +52,19 @@ class CimDataContainerWrapper:
     def reset(self, keep_seed: bool) -> None:
         """Reset data container internal state
         """
-        if not keep_seed:  # Generate a new random seed and then refresh
+        if not keep_seed:
             self._random_seed = random[ROUTE_INIT_RAND_KEY].randint(0, DATA_CONTAINER_INIT_SEED_LIMIT - 1)
+            self._re_init_data_cntr_flag = True
+
+        if self._re_init_data_cntr_flag:
             self._init_data_container(self._random_seed)
-            self._need_refresh = False
+            self._re_init_data_cntr_flag = False
         else:
-            if self._need_refresh:  # The random seed has been manually update. Refresh.
-                self._init_data_container(self._random_seed)
-                self._need_refresh = False
-            else:
-                self._data_cntr.reset()
+            self._data_cntr.reset()  # Reset the data container with reproduce-ability
 
     def set_seed(self, random_seed: int) -> None:
         self._random_seed = random_seed
-        self._need_refresh = True
+        self._re_init_data_cntr_flag = True
 
     def __getattr__(self, name):
         return getattr(self._data_cntr, name)
