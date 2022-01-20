@@ -180,6 +180,7 @@ class Env(AbsEnv):
         Args:
             seed (int): Seed to set.
         """
+        assert seed is not None and isinstance(seed, int)
         self._business_engine.set_seed(seed)
 
     @property
