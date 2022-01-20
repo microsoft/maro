@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from __future__ import annotations
 
 import collections
@@ -30,7 +33,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         self._policy_dict = policy_dict
         self._agent2policy = agent2policy
 
-    def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:
+    def set_policy_state(self, policy_state_dict: Dict[str, object]) -> None:
         """
         Set policies' states.
 
@@ -276,14 +279,14 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     def sample(  # TODO: check logic with qiuyang
         self,
-        policy_state_dict: Dict[str, object] = None,
+        policy_state: Dict[str, object] = None,
         num_steps: int = -1
     ) -> dict:
         """
         Sample experiences.
 
         Args:
-            policy_state_dict (Dict[str, object]): Policy states dict. If it is not None, then we need to update all
+            policy_state (Dict[str, object]): Policy state dict. If it is not None, then we need to update all
                 policies according to the latest policy states, then start the experience collection.
             num_steps (int): Number of collecting steps. Defaults to -1, which means unlimited number of steps.
 
@@ -301,8 +304,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             event = None
 
         # Update policy state if necessary
-        if policy_state_dict is not None:
-            self.set_policy_states(policy_state_dict)
+        if policy_state is not None:
+            self.set_policy_state(policy_state)
 
         # Collect experience
         self._agent_wrapper.explore()
@@ -358,8 +361,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         return {
             "end_of_episode": not self._agent_state_dict,
-            "experiences": experiences,
-            "tracker": self._tracker
+            "experiences": [experiences],
+            "info": [self._tracker],
         }
 
     def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
@@ -379,13 +382,13 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             latest_agent_state_dict.update(experiences[i].agent_state_dict)
         return experiences
 
-    def set_policy_states(self, policy_state_dict: Dict[str, object]) -> None:
-        self._agent_wrapper.set_policy_states(policy_state_dict)
+    def set_policy_state(self, policy_state_dict: Dict[str, object]) -> None:
+        self._agent_wrapper.set_policy_state(policy_state_dict)
 
-    def test(self, policy_state_dict: Dict[str, object] = None) -> dict:
+    def test(self, policy_state: Dict[str, object] = None) -> dict:
         self._env = self._test_env
-        if policy_state_dict is not None:
-            self.set_policy_states(policy_state_dict)
+        if policy_state is not None:
+            self.set_policy_state(policy_state)
 
         self._agent_wrapper.exploit()
         self._env.reset()
@@ -398,7 +401,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             _, event, terminal = self._env.step(list(env_action_dict.values()))
             if not terminal:
                 _, agent_state_dict = self._get_global_and_agent_state(event)
-        return self._tracker
+        return {"info": [self._tracker]}
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:

@@ -1,16 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import asyncio
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, Optional
 
 import numpy as np
 import torch
 
-from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.policy import ValueBasedPolicy
-from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
-from maro.rl_v3.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl_v3.rollout import ExpElement
+from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl_v3.utils import TransitionBatch, average_grads, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -36,11 +37,11 @@ class DQNParams(TrainerParams):
     soft_update_coef: float = 0.1
     double: bool = False
     random_overwrite: bool = False
+    data_parallelism: int = 1
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
             "device": self.device,
-            "enable_data_parallelism": self.enable_data_parallelism,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
             "double": self.double,
@@ -52,17 +53,15 @@ class DQNOps(AbsTrainOps):
         self,
         device: str,
         get_policy_func: Callable[[], ValueBasedPolicy],
-        enable_data_parallelism: bool = False,
         *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
-        double: bool = False,
+        double: bool = False
     ) -> None:
         super(DQNOps, self).__init__(
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func,
-            enable_data_parallelism=enable_data_parallelism
+            get_policy_func=get_policy_func
         )
 
         assert isinstance(self._policy, ValueBasedPolicy)
@@ -77,14 +76,9 @@ class DQNOps(AbsTrainOps):
         self._target_policy.eval()
         self._target_policy.to_device(self._device)
 
-    def get_batch_grad(
-        self,
-        batch: TransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        assert scope == "all", f"Unrecognized scope {scope}. Excepting 'all'."
-
+    @remote
+    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+        assert self._is_valid_transition_batch(batch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)
         next_states = ndarray_to_tensor(batch.next_states, self._device)
@@ -106,36 +100,24 @@ class DQNOps(AbsTrainOps):
         q_values = self._policy.q_values_tensor(states, actions)
         loss: torch.Tensor = self._loss_func(q_values, target_q_values)
 
-        return {"grad": self._policy.get_gradients(loss)}
+        return self._policy.get_gradients(loss)
 
-    def _dispatch_batch(self, batch: TransitionBatch, num_ops: int) -> List[TransitionBatch]:
-        raise NotImplementedError
-
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
-        raise NotImplementedError
-
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def get_state(self, scope: str = "all") -> dict:
         return {
             "policy_state": self._policy.get_state(),
             "target_q_net_state": self._target_policy.get_state()
         }
 
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         self._policy.set_state(ops_state_dict["policy_state"])
         self._target_policy.set_state(ops_state_dict["target_q_net_state"])
 
-    def update(self) -> None:
-        grad_dict = self._get_batch_grad(self._batch)
-
+    def update(self, grad_dict: dict) -> None:
         self._policy.train()
-        self._policy.apply_gradients(grad_dict["grad"])
+        self._policy.apply_gradients(grad_dict)
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
-
-    def set_batch(self, batch: TransitionBatch) -> None:
-        assert self._is_valid_transition_batch(batch)
-        self._batch = batch
 
 
 class DQN(SingleTrainer):
@@ -148,21 +130,15 @@ class DQN(SingleTrainer):
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"
-
-        self._replay_memory: Optional[RandomReplayMemory] = None
-
-    async def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
-        state_dim = await self._ops.policy_state_dim()
-        action_dim = await self._ops.policy_action_dim()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
-            state_dim=state_dim,
-            action_dim=action_dim,
+            state_dim=self._ops.policy_state_dim(),
+            action_dim=self._ops.policy_action_dim(),
             random_overwrite=self._params.random_overwrite
         )
 
-    def record(self, exp_element: ExpElement) -> None:
+    def record(self, env_idx: int, exp_element: ExpElement) -> None:
         for agent_name in exp_element.agent_names:
             transition_batch = TransitionBatch(
                 states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
@@ -184,10 +160,14 @@ class DQN(SingleTrainer):
 
     async def train_step(self) -> None:
         for _ in range(self._params.num_epochs):
-            await self._ops.set_batch(self._get_batch())
-            await self._ops.update()
+            batch = self._get_batch()
+            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
+            grad_list = [self._ops.get_batch_grad(batch) for batch in batches]
+            if isinstance(self._ops, RemoteOps):
+                grad_list = await asyncio.gather(*grad_list)
+            self._ops.update(average_grads(grad_list))
 
         self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
-            await self._ops.soft_update_target()
+            self._ops.soft_update_target()
             self._target_q_net_version = self._q_net_version

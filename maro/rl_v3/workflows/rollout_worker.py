@@ -1,9 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl_v3.distributed import Worker
+from maro.rl_v3.rollout import RolloutWorker
 from maro.rl_v3.utils.common import from_env, from_env_as_int, get_module
+from maro.rl_v3.workflows.utils import ScenarioAttr, _get_scenario_path
 
-scenario = get_module(str(from_env("SCENARIO_PATH")))
-env_sampler_creator = getattr(scenario, "env_sampler_creator")
-Worker("rollout", from_env_as_int("ID"), env_sampler_creator, "127.0.0.1").start()
+if __name__ == "__main__":
+    scenario = get_module(_get_scenario_path())
+    scenario_attr = ScenarioAttr(scenario)
+    policy_creator = scenario_attr.policy_creator
+
+    worker = RolloutWorker(
+        idx=from_env_as_int("ID"),
+        env_sampler_creator=lambda: scenario_attr.get_env_sampler(policy_creator),
+        router_host=str(from_env("ROLLOUT_PROXY_HOST")),
+        router_port=from_env_as_int("ROLLOUT_PROXY_BACKEND_PORT")
+    )
+    worker.start()

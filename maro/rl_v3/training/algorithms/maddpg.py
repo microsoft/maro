@@ -8,12 +8,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 
-from maro.rl_v3.distributed import RemoteObj
-from maro.rl_v3.learning import ExpElement
 from maro.rl_v3.model import MultiQNet
 from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, TrainerParams
-from maro.rl_v3.utils import CoroutineWrapper, MultiTransitionBatch, ndarray_to_tensor
+from maro.rl_v3.rollout import ExpElement
+from maro.rl_v3.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
+from maro.rl_v3.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -27,6 +26,7 @@ class DiscreteMADDPGParams(TrainerParams):
     q_value_loss_cls: Callable = None
     critic_loss_coef: float = 1.0
     shared_critic: bool = False
+    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_q_critic_net_func is not None
@@ -34,7 +34,6 @@ class DiscreteMADDPGParams(TrainerParams):
     def extract_ops_params(self) -> Dict[str, object]:
         return {
             "device": self.device,
-            "enable_data_parallelism": self.enable_data_parallelism,
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "shared_critic": self.shared_critic,
             "reward_discount": self.reward_discount,
@@ -53,7 +52,6 @@ class DiscreteMADDPGOps(AbsTrainOps):
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
         create_actor: bool,
-        enable_data_parallelism: bool = False,
         *,
         shared_critic: bool = False,
         reward_discount: float = 0.9,
@@ -65,8 +63,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         super(DiscreteMADDPGOps, self).__init__(
             device=device,
             is_single_scenario=False,
-            get_policy_func=get_policy_func,
-            enable_data_parallelism=enable_data_parallelism
+            get_policy_func=get_policy_func
         )
 
         self._policy_idx = policy_idx
@@ -98,20 +95,20 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._update_target_every = update_target_every
         self._soft_update_coef = soft_update_coef
 
-    def get_target_action(self) -> torch.Tensor:
-        agent_state = ndarray_to_tensor(self._batch.agent_states[self._policy_idx], self._device)
+    def get_target_action(self, batch: MultiTransitionBatch) -> torch.Tensor:
+        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
         return self._target_policy.get_actions_tensor(agent_state)
 
-    def get_latest_action(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_latest_action(self, batch: MultiTransitionBatch) -> Tuple[torch.Tensor, torch.Tensor]:
         assert isinstance(self._policy, DiscretePolicyGradient)
 
-        agent_state = ndarray_to_tensor(self._batch.agent_states[self._policy_idx], self._device)
+        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
         self._policy.train()
         action = self._policy.get_actions_tensor(agent_state)
         logps = self._policy.get_state_action_logps(agent_state, action)
         return action, logps
 
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_state()
@@ -121,7 +118,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
             ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
         return ret_dict
 
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
             self._policy.set_state(ops_state_dict["policy_state"])
             self._target_policy.set_state(ops_state_dict["target_policy_state"])
@@ -129,16 +126,17 @@ class DiscreteMADDPGOps(AbsTrainOps):
             self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
             self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
 
-    def _get_critic_grad(
+    @remote
+    def get_critic_grad(
         self,
         batch: MultiTransitionBatch,
         next_actions: List[torch.Tensor]
     ) -> Dict[str, torch.Tensor]:
         assert not self._shared_critic
+        assert isinstance(next_actions, list) and all(isinstance(action, torch.Tensor) for action in next_actions)
 
         states = ndarray_to_tensor(batch.states, self._device)  # x
         actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
-
         next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
         rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), self._device)  # r
         terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
@@ -159,12 +157,15 @@ class DiscreteMADDPGOps(AbsTrainOps):
         critic_loss = self._q_value_loss_func(q_values, target_q_values.detach()) * self._critic_loss_coef
         return self._q_critic_net.get_gradients(critic_loss)
 
-    def _get_actor_grad(
+    @remote
+    def get_actor_grad(
         self,
         batch: MultiTransitionBatch,
         latest_action: torch.Tensor,
         latest_action_logp: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
+        assert isinstance(latest_action, torch.Tensor)
+        assert isinstance(latest_action_logp, torch.Tensor)
         states = ndarray_to_tensor(batch.states, self._device)  # x
         actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
         actions[self._policy_idx] = latest_action
@@ -178,90 +179,19 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_critic_net.unfreeze()
         return self._policy.get_gradients(actor_loss)
 
-    def get_batch_grad(
-        self,
-        batch: MultiTransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        assert scope in ("all", "actor", "critic"), \
-            f"Unrecognized scope {scope}. Excepting 'all', 'actor', or 'critic'."
-
-        if tensor_dict is None:
-            tensor_dict = {}
-
-        grad_dict = {}
-        if scope in ("all", "critic"):
-            next_actions = tensor_dict["next_actions"]
-            assert isinstance(next_actions, list)
-            assert all(isinstance(action, torch.Tensor) for action in next_actions)
-
-            grad_dict["critic_grads"] = self._get_critic_grad(batch, next_actions)
-        if scope in ("all", "actor"):
-            latest_action = tensor_dict["latest_action"]
-            latest_action_logp = tensor_dict["latest_action_logp"]
-            assert isinstance(latest_action, torch.Tensor)
-            assert isinstance(latest_action_logp, torch.Tensor)
-
-            grad_dict["actor_grads"] = self._get_actor_grad(batch, latest_action, latest_action_logp)
-
-        return grad_dict
-
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_ops: int) -> List[Dict[str, object]]:
-        raise NotImplementedError
-
-    def _dispatch_batch(self, batch: MultiTransitionBatch, num_ops: int) -> List[MultiTransitionBatch]:
-        # batch_size = batch.states.shape[0]
-        # assert batch_size >= num_ops, \
-        #     f"Batch size should be greater than or equal to num_ops, but got {batch_size} and {num_ops}."
-        # sub_batch_indexes = [range(batch_size)[i::num_ops] for i in range(num_ops)]
-        # sub_batches = [MultiTransitionBatch(
-        #     policy_names=[],
-        #     states=batch.states[indexes],
-        #     actions=[action[indexes] for action in batch.actions],
-        #     rewards=[reward[indexes] for reward in batch.rewards],
-        #     terminals=batch.terminals[indexes],
-        #     next_states=batch.next_states[indexes],
-        #     agent_states=[state[indexes] for state in batch.agent_states],
-        #     next_agent_states=[state[indexes] for state in batch.next_agent_states]
-        # ) for indexes in sub_batch_indexes]
-        # return sub_batches
-        raise NotImplementedError
-
-    def update_critic(self, next_actions: List[torch.Tensor]) -> None:
-        assert not self._shared_critic
-
-        grads = self._get_batch_grad(
-            self._batch,
-            tensor_dict={"next_actions": next_actions},
-            scope="critic"
-        )
-
+    def update_critic(self, grad_dict: dict) -> None:
         self._q_critic_net.train()
-        self._q_critic_net.apply_gradients(grads["critic_grads"])
+        self._q_critic_net.apply_gradients(grad_dict)
 
-    def update_actor(self, latest_action: torch.Tensor, latest_action_logp: torch.Tensor) -> None:
-        grads = self._get_batch_grad(
-            self._batch,
-            tensor_dict={
-                "latest_action": latest_action,
-                "latest_action_logp": latest_action_logp
-            },
-            scope="actor"
-        )
-
+    def update_actor(self, grad_dict: dict) -> None:
         self._policy.train()
-        self._policy.apply_gradients(grads["actor_grads"])
+        self._policy.apply_gradients(grad_dict)
 
     def soft_update_target(self) -> None:
         if self._create_actor:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
         if not self._shared_critic:
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
-
-    def set_batch(self, batch: MultiTransitionBatch) -> None:
-        assert self._is_valid_transition_batch(batch)
-        self._batch = batch
 
 
 class DiscreteMADDPG(MultiTrainer):
@@ -273,69 +203,23 @@ class DiscreteMADDPG(MultiTrainer):
         self._policy_version = self._target_policy_version = 0
         self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
 
-        self._actor_ops_list = []
-        self._critic_ops: Union[RemoteObj, CoroutineWrapper, None] = None
-
-        self._policy2agent: Dict[str, Any] = {}
-
-        self._replay_memory: Optional[RandomMultiReplayMemory] = None
-
-    def _improve(self, batch: MultiTransitionBatch) -> None:
-        for ops in self._actor_ops_list:
-            ops.set_batch(batch)
-
-        # Collect next actions
-        next_actions: List[torch.Tensor] = []
-        for i, ops in enumerate(self._actor_ops_list):
-            next_actions.append(ops.get_target_action())
-
-        # Update critic
-        if self._params.shared_critic:
-            self._critic_ops.set_batch(batch)
-            self._critic_ops.update_critic(next_actions=next_actions)
-            critic_state_dict = self._critic_ops.get_state_dict(scope="critic")
-
-            # Sync latest critic to ops
-            for ops in self._actor_ops_list:
-                ops.set_state_dict(critic_state_dict, scope="critic")
-        else:
-            for ops in self._actor_ops_list:
-                ops.update_critic(next_actions=next_actions)
-
-        # Update actor
-        latest_actions: List[torch.Tensor] = []
-        latest_action_logps: List[torch.Tensor] = []
-        for i, ops in enumerate(self._actor_ops_list):
-            cur_action, cur_logps = ops.get_latest_action()
-            latest_actions.append(cur_action)
-            latest_action_logps.append(cur_logps)
-
-        for i, ops in enumerate(self._actor_ops_list):
-            ops.update_actor(latest_actions[i], latest_action_logps[i])
-
-        # Update version
-        self._try_soft_update_target()
-
-    async def build(self) -> None:
         self._actor_ops_list = [self.get_ops(f"{self._name}.actor_{i}_ops") for i in range(len(self._policy_names))]
         if self._params.shared_critic:
             self._critic_ops = self.get_ops(self._shared_critic_ops_name)
+        else:
+            self._critic_ops = None
 
-        agent_state_dims = await asyncio.gather(*[ops.policy_state_dim() for ops in self._actor_ops_list])
-        action_dims = await asyncio.gather(*[ops.policy_action_dim() for ops in self._actor_ops_list])
-        assert isinstance(action_dims, list)
-        assert isinstance(agent_state_dims, list)
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._state_dim,
-            action_dims=action_dims,
-            agent_states_dims=agent_state_dims
+            action_dims=[ops.policy_action_dim() for ops in self._actor_ops_list],
+            agent_states_dims=[ops.policy_state_dim() for ops in self._actor_ops_list]
         )
 
         assert len(self._agent2policy.keys()) == len(self._agent2policy.values())  # agent <=> policy
         self._policy2agent = {policy_name: agent_name for agent_name, policy_name in self._agent2policy.items()}
 
-    def record(self, exp_element: ExpElement) -> None:
+    def record(self, env_idx: int, exp_element: ExpElement) -> None:
         assert exp_element.num_agents == len(self._agent2policy.keys())
 
         actions = []
@@ -394,49 +278,53 @@ class DiscreteMADDPG(MultiTrainer):
     async def train_step(self):
         for _ in range(self._params.num_epoch):
             batch = self._get_batch()
-            await asyncio.gather(*[ops.set_batch(batch) for ops in self._actor_ops_list])
-
             # Collect next actions
-            next_actions = await asyncio.gather(*[ops.get_target_action() for ops in self._actor_ops_list])
-            assert isinstance(next_actions, list) and all(isinstance(action, torch.Tensor) for action in next_actions)
+            next_actions = [ops.get_target_action(batch) for ops in self._actor_ops_list]
 
             # Update critic
             if self._params.shared_critic:
-                await asyncio.gather(self._critic_ops.set_batch(batch))
-                await asyncio.gather(self._critic_ops.update_critic(next_actions))
-                critic_state_dict = await asyncio.gather(self._critic_ops.get_state_dict(scope="critic"))
+                critic_grad = self._critic_ops.get_critic_grad(batch, next_actions)
+                if isinstance(self._critic_ops, RemoteOps):
+                    critic_grad = await asyncio.gather(critic_grad)
+                self._critic_ops.update_critic(critic_grad)
+                critic_state_dict = self._critic_ops.get_state(scope="critic")
                 assert isinstance(critic_state_dict, list) and len(critic_state_dict) == 1
 
                 # Sync latest critic to ops
-                await asyncio.gather(*[
-                    ops.set_state_dict(critic_state_dict[0], scope="critic") for ops in self._actor_ops_list
-                ])
+                for ops in self._actor_ops_list:
+                    ops.set_state(critic_state_dict[0], scope="critic")
             else:
-                await asyncio.gather(*[ops.update_critic(next_actions) for ops in self._actor_ops_list])
+                critic_grad_list = [ops.get_critic_grad(batch, next_actions) for ops in self._actor_ops_list]
+                if any(isinstance(ops, RemoteOps) for ops in self._actor_ops_list):
+                    critic_grad_list = await asyncio.gather(*critic_grad_list)
 
-            # Update actor
-            latest_action_info = await asyncio.gather(*[ops.get_latest_action() for ops in self._actor_ops_list])
-            await asyncio.gather(*[
-                ops.update_actor(*info) for ops, info in zip(self._actor_ops_list, latest_action_info)
-            ])
+                for ops, critic_grad in zip(self._actor_ops_list, critic_grad_list):
+                    ops.update_critic(critic_grad)
+
+            # Update actors
+            actor_grad_list = [ops.get_actor_grad(batch, *ops.get_latest_action(batch)) for ops in self._actor_ops_list]
+            if any(isinstance(ops, RemoteOps) for ops in self._actor_ops_list):
+                actor_grad_list = await asyncio.gather(*actor_grad_list)
+            for ops, actor_grad in zip(self._actor_ops_list, actor_grad_list):
+                ops.update_actor(actor_grad)
 
             # Update version
-            await self._try_soft_update_target()
+            self._try_soft_update_target()
 
-    async def _try_soft_update_target(self) -> None:
+    def _try_soft_update_target(self) -> None:
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
-            parallel_updates = [ops.soft_update_target() for ops in self._actor_ops_list]
+            for ops in self._actor_ops_list:
+                ops.soft_update_target()
             if self._params.shared_critic:
-                parallel_updates.append(self._critic_ops.soft_update_target())
-            await asyncio.gather(*parallel_updates)
+                self._critic_ops.soft_update_target()
             self._target_policy_version = self._policy_version
 
-    async def get_policy_state(self) -> Dict[str, object]:
+    def get_policy_state(self) -> Dict[str, object]:
         if not self._actor_ops_list:
             raise ValueError("'build' needs to be called to create an actor ops first.")
 
-        return dict(await asyncio.gather(*[ops.get_policy_state() for ops in self._actor_ops_list]))
+        return dict([ops.get_policy_state() for ops in self._actor_ops_list])
 
     @staticmethod
     def get_policy_idx_from_ops_name(ops_name):

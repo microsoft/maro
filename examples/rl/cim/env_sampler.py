@@ -1,11 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
 
-from maro.rl_v3.learning import AbsEnvSampler, CacheElement, SimpleAgentWrapper
+from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.rollout import AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
@@ -13,7 +14,6 @@ from .config import (
     action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
     vessel_attributes
 )
-from .policy_trainer import policy_creator
 
 
 class CIMEnvSampler(AbsEnvSampler):
@@ -79,10 +79,13 @@ class CIMEnvSampler(AbsEnvSampler):
 
 
 agent2policy = {agent: f"{algorithm}_{agent}.{agent}" for agent in Env(**env_conf).agent_idx_list}
-get_env_sampler=lambda: CIMEnvSampler(
-    get_env_func=lambda: Env(**env_conf),
-    policy_creator=policy_creator,
-    agent2policy=agent2policy,
-    agent_wrapper_cls=SimpleAgentWrapper,
-    device="cpu"
-)
+
+
+def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> CIMEnvSampler:
+    return CIMEnvSampler(
+        get_env_func=lambda: Env(**env_conf),
+        policy_creator=policy_creator,
+        agent2policy=agent2policy,
+        agent_wrapper_cls=SimpleAgentWrapper,
+        device="cpu"
+    )

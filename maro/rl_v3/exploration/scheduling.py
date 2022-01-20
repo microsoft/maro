@@ -16,18 +16,18 @@ class AbsExplorationScheduler(ABC):
             the policy is instantiated with will be used as the initial value. Defaults to None.
     """
 
-    def __init__(self, exploration_params: dict, param_name: str, initial_value=None):
+    def __init__(self, exploration_params: dict, param_name: str, initial_value: float = None) -> None:
         super().__init__()
         self._exploration_params = exploration_params
         self.param_name = param_name
         if initial_value is not None:
             self._exploration_params[self.param_name] = initial_value
 
-    def get_value(self):
+    def get_value(self) -> float:
         return self._exploration_params[self.param_name]
 
     @abstractmethod
-    def step(self):
+    def step(self) -> None:
         raise NotImplementedError
 
 
@@ -53,7 +53,7 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
         final_value: float,
         start_ep: int = 1,
         initial_value: float = None,
-    ):
+    ) -> None:
         super().__init__(exploration_params, param_name, initial_value=initial_value)
         self.final_value = final_value
         if last_ep > 1:
@@ -61,7 +61,7 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
         else:
             self.delta = 0
 
-    def step(self):
+    def step(self) -> None:
         if self._exploration_params[self.param_name] == self.final_value:
             return
 
@@ -97,7 +97,7 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         final_value: float,
         start_ep: int = 1,
         initial_value: float = None
-    ):
+    ) -> None:
         # validate splits
         splits = [(start_ep, initial_value)] + splits + [(last_ep, final_value)]
         splits.sort()
@@ -112,7 +112,7 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         self._split_index = 1
         self._delta = (self._splits[1][1] - self._exploration_params[self.param_name]) / (self._splits[1][0] - start_ep)
 
-    def step(self):
+    def step(self) -> None:
         if self._split_index == len(self._splits):
             return
 
@@ -125,13 +125,13 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
                     (self._splits[self._split_index][1] - self._splits[self._split_index - 1][1]) /
                     (self._splits[self._split_index][0] - self._splits[self._split_index - 1][0])
                 )
-
-
-if __name__ == "__main__":
-    exploration_params = {"epsilon": 0.6}
-    scheduler = MultiLinearExplorationScheduler(
-        exploration_params, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0
-    )
-    for ep in range(1, scheduler.last_ep + 1):
-        print(f"ep = {ep}, value = {exploration_params['epsilon']}")
-        scheduler.step()
+#
+#
+# if __name__ == "__main__":
+#     exploration_params = {"epsilon": 0.6}
+#     scheduler = MultiLinearExplorationScheduler(
+#         exploration_params, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0
+#     )
+#     for ep in range(1, scheduler.last_ep + 1):
+#         print(f"ep = {ep}, value = {exploration_params['epsilon']}")
+#         scheduler.step()

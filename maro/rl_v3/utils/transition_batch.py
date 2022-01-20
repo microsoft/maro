@@ -28,6 +28,20 @@ class TransitionBatch:
     def calc_returns(self, discount_factor: float) -> None:
         self.returns = discount_cumsum(self.rewards, discount_factor)
 
+    def split(self, k: int):
+        return [
+            TransitionBatch(
+                self.states[i::k],
+                self.actions[i::k],
+                self.rewards[i::k],
+                self.next_states[i::k],
+                self.terminals[i::k],
+                returns=self.returns[i::k] if self.returns is not None else None,
+                advantages=self.advantages[i::k] if self.advantages is not None else None
+            )
+            for i in range(k)
+        ]
+
 
 @dataclass
 class MultiTransitionBatch:
@@ -57,3 +71,15 @@ class MultiTransitionBatch:
             assert len(self.next_agent_states) == len(self.agent_states)
             for i in range(len(self.next_agent_states)):
                 assert self.agent_states[i].shape == self.next_agent_states[i].shape
+
+
+def merge_transition_batches(batch_list: List[TransitionBatch]) -> TransitionBatch:
+    return TransitionBatch(
+        states=np.concatenate([batch.states for batch in batch_list], axis=0),
+        actions=np.concatenate([batch.actions for batch in batch_list], axis=0),
+        rewards=np.concatenate([batch.rewards for batch in batch_list], axis=0),
+        next_states=np.concatenate([batch.next_states for batch in batch_list], axis=0),
+        terminals=np.concatenate([batch.terminals for batch in batch_list]),
+        returns=np.concatenate([batch.returns for batch in batch_list]),
+        advantages=np.concatenate([batch.advantages for batch in batch_list]),
+    )

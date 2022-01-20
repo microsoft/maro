@@ -1,14 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import asyncio
 import importlib
-import inspect
 import os
+import pickle
+import socket
 import sys
-from functools import wraps
 from types import ModuleType
-from typing import Callable, List, Union
+from typing import List, Union
 
 from maro.utils import Logger
 
@@ -33,6 +32,12 @@ def from_env(var_name: str, required: bool = True, default: object = None) -> ob
 def from_env_as_int(var_name: str, required: bool = True, default: object = None) -> int:
     ret = from_env(var_name, required, default)
     assert isinstance(ret, int)
+    return ret
+
+
+def from_env_as_float(var_name: str, required: bool = True, default: object = None) -> float:
+    ret = from_env(var_name, required, default)
+    assert isinstance(ret, float)
     return ret
 
 
@@ -75,24 +80,25 @@ def get_logger(dir: str, job_name: str, tag: str) -> Logger:
     return Logger(tag, dump_path=get_log_path(dir, job_name), dump_mode="a")
 
 
-def coroutine(func) -> Callable:
-    """Wrap a synchronous callable to allow ``await``'ing it"""
-    @wraps(func)
-    async def coroutine_wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return func if asyncio.iscoroutinefunction(func) else coroutine_wrapper
+# serialization and deserialization for messaging
+DEFAULT_MSG_ENCODING = "utf-8"
 
 
-class CoroutineWrapper(object):
-    def __init__(self, obj: object) -> None:
-        self._obj = obj
+def string_to_bytes(s: str) -> bytes:
+    return s.encode(DEFAULT_MSG_ENCODING)
 
-    def __getattribute__(self, attr_name: str) -> object:
-        # Ignore methods that belong to the parent class
-        try:
-            return super().__getattribute__(attr_name)
-        except AttributeError:
-            pass
 
-        attr = getattr(self._obj, attr_name)
-        return coroutine(attr) if inspect.ismethod(attr) else attr
+def bytes_to_string(bytes_: bytes) -> str:
+    return bytes_.decode(DEFAULT_MSG_ENCODING)
+
+
+def pyobj_to_bytes(pyobj) -> bytes:
+    return pickle.dumps(pyobj)
+
+
+def bytes_to_pyobj(bytes_: bytes) -> object:
+    return pickle.loads(bytes_)
+
+
+def get_ip_address() -> str:
+    return socket.gethostbyname(socket.gethostname())

@@ -1,8 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .dispatcher import Dispatcher
-from .remote_obj import Client, RemoteObj
-from .worker import Worker
+from .abs_dispatcher import AbsDispatcher
+from .abs_worker import AbsWorker
 
-__all__ = ["Client", "Dispatcher", "RemoteObj", "Worker"]
+__all__ = [
+    "AbsDispatcher", "AbsWorker",
+]

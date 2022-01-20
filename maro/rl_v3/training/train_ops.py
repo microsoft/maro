@@ -1,13 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import inspect
+import socket
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict, List
+from typing import Callable, Tuple
 
 import torch
+import zmq
+from zmq.asyncio import Context
 
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch, average_grads
+from maro.rl_v3.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
+from maro.rl_v3.utils.common import bytes_to_pyobj, pyobj_to_bytes
+from maro.utils import Logger
 
 
 class AbsTrainOps(object, metaclass=ABCMeta):
@@ -18,8 +24,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self,
         device: str,
         is_single_scenario: bool,
-        get_policy_func: Callable[[], RLPolicy],
-        enable_data_parallelism: bool = False,
+        get_policy_func: Callable[[], RLPolicy]
     ) -> None:
         """
         Args:
@@ -27,13 +32,11 @@ class AbsTrainOps(object, metaclass=ABCMeta):
                 None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
             is_single_scenario (bool): Identifier of whether this ops is used under a single trainer or a multi trainer.
             get_policy_func (Callable[[], RLPolicy]): Function used to create the policy of this ops.
-            enable_data_parallelism (bool): Whether to enable data parallelism in this trainer. Defaults to False.
         """
         super(AbsTrainOps, self).__init__()
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._is_single_scenario = is_single_scenario
-        self._enable_data_parallelism = enable_data_parallelism
 
         # Create the policy and put it on the right device.
         if self._is_single_scenario:
@@ -57,73 +60,8 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         return isinstance(batch, TransitionBatch) if self._is_single_scenario \
             else isinstance(batch, MultiTransitionBatch)
 
-    def _get_batch_grad(
-        self,
-        batch: AbsTransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        """Calculate the gradients of the given batch, with the auxiliary tensors.
-
-        Args:
-            batch (AbsTransitionBatch): The training batch.
-            tensor_dict (Dict[str, object]): Auxiliary tensors used in the calculation. Defaults to None.
-            scope (str): The scope of the parts that should be calculated. Defaults to 'all'.
-
-        Returns:
-            A dict with format: {part identifier: {param name: gradient}}
-        """
-        if self._enable_data_parallelism:
-            gradients = self._remote_learn(batch, tensor_dict, scope)
-            return average_grads(gradients)
-        else:
-            return self.get_batch_grad(batch, tensor_dict, scope)
-
-    def _remote_learn(
-        self,
-        batch: AbsTransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> List[Dict[str, Dict[int, Dict[str, torch.Tensor]]]]:
-        """Learn a batch of experience data from remote gradient workers.
-        The task queue client will first request available gradient workers from task queue. If all workers are busy,
-        it will keep waiting until at least 1 worker is available. Then the task queue client submits batch and state
-        to the assigned workers to compute gradients.
-        """
-        pass  # TODO
-
     @abstractmethod
-    def get_batch_grad(
-        self,
-        batch: AbsTransitionBatch,
-        tensor_dict: Dict[str, object] = None,
-        scope: str = "all"
-    ) -> Dict[str, Dict[str, torch.Tensor]]:
-        """The actual logic of gradients calculation.
-
-        Args:
-            batch (AbsTransitionBatch): The training batch.
-            tensor_dict (Dict[str, object]): Auxiliary tensors used in the calculation. Defaults to None.
-            scope (str): The scope of the parts that should be calculated. Defaults to 'all'.
-
-        Returns:
-            A dict with format: {part identifier: {param name: gradient}}
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _dispatch_batch(self, batch: AbsTransitionBatch, num_sub_batches: int) -> List[AbsTransitionBatch]:
-        """Divide experience data batch to several parts.
-        For on-policy algorithms, like PG, the batch is divided into several complete trajectories.
-        For off-policy algorithms, like DQN, the batch is treated as independent data points and divided evenly."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def _dispatch_tensor_dict(self, tensor_dict: Dict[str, object], num_sub_batches: int) -> List[Dict[str, object]]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_state_dict(self, scope: str = "all") -> dict:
+    def get_state(self, scope: str = "all") -> dict:
         """
         Returns:
             A dict that contains ops's state.
@@ -131,12 +69,8 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def set_state_dict(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         """Set ops's state."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def set_batch(self, batch: AbsTransitionBatch) -> None:
         raise NotImplementedError
 
     def get_policy_state(self) -> object:
@@ -144,3 +78,75 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 
     def set_policy_state(self, policy_state: object) -> None:
         self._policy.set_state(policy_state)
+
+
+# annotation to indicate that an function / method can be called remotely
+def remote(func):
+    def remote_anotate(*args, **kwargs):
+        return func(*args, **kwargs)
+    return remote_anotate
+
+
+class AsyncClient(object):
+    def __init__(self, name: str, address: Tuple[str, int]) -> None:
+        self._name = name
+        host, port = address
+        self._dispatcher_ip = socket.gethostbyname(host)
+        self._address = f"tcp://{self._dispatcher_ip}:{port}"
+        self._logger = Logger("client")
+
+    async def send_request(self, req: dict) -> None:
+        await self._socket.send(pyobj_to_bytes(req))
+        self._logger.info(f"{self._name} sent request {req['func']}")
+
+    async def get_response(self) -> object:
+        while True:
+            try:
+                result = await self._socket.recv_multipart(flags=zmq.NOBLOCK)
+                self._logger.info(f"{self._name} received result")
+                return bytes_to_pyobj(result[0])
+            except zmq.ZMQError:
+                continue
+
+    def close(self):
+        self._socket.disconnect(self._address)
+        self._socket.close()
+
+    def connect(self):
+        self._socket = Context.instance().socket(zmq.DEALER)
+        self._socket.setsockopt_string(zmq.IDENTITY, self._name)
+        self._socket.setsockopt(zmq.LINGER, 0)
+        self._socket.connect(self._address)
+        self._logger.info(f"connected to {self._address}")
+
+
+class RemoteOps(object):
+    def __init__(self, ops: AbsTrainOps, name: str, address: Tuple[str, int]) -> None:
+        self._ops = ops
+        self._name = name
+        self._client = AsyncClient(self._name, address)
+        self._client.connect()
+
+    def __getattribute__(self, attr_name: str) -> object:
+        def remote_method(ops_state, func_name: str, client: AsyncClient) -> Callable:
+            async def remote_call(*args, **kwargs) -> object:
+                req = {"state": ops_state, "func": func_name, "args": args, "kwargs": kwargs}
+                await client.send_request(req)
+                return await client.get_response()
+
+            return remote_call
+
+        # Ignore methods that belong to the parent class
+        try:
+            return super().__getattribute__(attr_name)
+        except AttributeError:
+            pass
+
+        attr = getattr(self._ops, attr_name)
+        if inspect.ismethod(attr) and attr.__name__ == "remote_anotate":
+            return remote_method(self._ops.get_state(), attr_name, self._client)
+
+        return attr
+
+    def exit(self):
+        self._client.close()
