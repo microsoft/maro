@@ -224,8 +224,9 @@ class DiscreteActorCritic(SingleTrainer):
             if isinstance(self._ops, RemoteOps):
                 critic_grad_list = await asyncio.gather(*critic_grad_list)
 
-            self._ops.update_critic(average_grads(critic_grad_list))
             actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
             if isinstance(self._ops, RemoteOps):
                 actor_grad_list = await asyncio.gather(*actor_grad_list)
+
+            self._ops.update_critic(average_grads(critic_grad_list))
             self._ops.update_actor(average_grads(actor_grad_list))
