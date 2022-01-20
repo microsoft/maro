@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from .batch_env_sampler import BatchEnvSampler
-from .batch_proxy import BatchProxy
+from .dispatcher import RolloutDispatcher
 from .env_sampler import AbsAgentWrapper, AbsEnvSampler, CacheElement, ExpElement, SimpleAgentWrapper
 from .worker import RolloutWorker
 
@@ -10,7 +10,7 @@ __all__ = [
     "AbsAgentWrapper",
     "AbsEnvSampler",
     "BatchEnvSampler",
-    "BatchProxy",
+    "RolloutDispatcher",
     "CacheElement",
     "ExpElement",
     "SimpleAgentWrapper",

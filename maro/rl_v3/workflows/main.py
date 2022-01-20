@@ -6,8 +6,10 @@ import time
 from typing import List
 
 from maro.rl_v3.rollout import BatchEnvSampler, ExpElement
-from maro.rl_v3.training import SimpleTrainerManager
-from maro.rl_v3.utils.common import from_env, from_env_as_int, get_eval_schedule, get_logger, get_module
+from maro.rl_v3.training import TrainerManager
+from maro.rl_v3.utils.common import (
+    from_env, from_env_as_float, from_env_as_int, get_eval_schedule, get_logger, get_module
+)
 from maro.rl_v3.workflows.utils import ScenarioAttr, _get_scenario_path
 
 if __name__ == "__main__":
@@ -42,13 +44,13 @@ if __name__ == "__main__":
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
     if rollout_mode == "simple":
-        env_sampler = scenario_attr.env_sampler_creator()
+        env_sampler = scenario_attr.get_env_sampler(policy_creator)
     else:
         env_sampler = BatchEnvSampler(
-            from_env_as_int("ROLLOUT_PARALLELISM"),
-            (from_env("ROLLOUT_PROXY_HOST"), from_env_as_int("ROLLOUT_PROXY_FRONTEND_PORT")),
+            parallelism=from_env_as_int("ROLLOUT_PARALLELISM"),
+            remote_address=(str(from_env("ROLLOUT_PROXY_HOST")), from_env_as_int("ROLLOUT_PROXY_FRONTEND_PORT")),
             min_env_samples=from_env_as_int("MIN_ENV_SAMPLES", required=False, default=None),
-            grace_factor=from_env("GRACE_FACTOR", required=False, default=None),
+            grace_factor=from_env_as_float("GRACE_FACTOR", required=False, default=None),
             eval_parallelism=from_env_as_int("EVAL_PARALLELISM", required=False, default=1),
             logger=logger
         )
@@ -60,7 +62,7 @@ if __name__ == "__main__":
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
-    trainer_manager = SimpleTrainerManager(
+    trainer_manager = TrainerManager(
         policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address
     )
 
@@ -73,7 +75,7 @@ if __name__ == "__main__":
             tc0 = time.time()
             policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
             result = env_sampler.sample(policy_state=policy_state, num_steps=num_steps)
-            experiences: List[ExpElement] = result["experiences"]
+            experiences: List[List[ExpElement]] = result["experiences"]
             logger.info(f"Roll-out finished (episode: {ep})")
             end_of_episode: bool = result["end_of_episode"]
 

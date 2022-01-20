@@ -68,7 +68,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def record(self, exp_element: ExpElement) -> None:
+    def record(self, env_idx: int, exp_element: ExpElement) -> None:
         raise NotImplementedError
 
     def set_dispatch_address(self, dispatcher_address: Tuple[str, int]) -> None:

@@ -1,8 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from types import ModuleType
 from typing import Callable, Dict
 
-from maro.rl_v3.rollout import AbsEnvSampler
 from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.rollout import AbsEnvSampler
 from maro.rl_v3.training import AbsTrainer
 from maro.rl_v3.utils.common import from_env
 
@@ -12,9 +15,8 @@ class ScenarioAttr(object):
         super(ScenarioAttr, self).__init__()
         self._scenario_module = scenario_module
 
-    @property
-    def env_sampler_creator(self) -> Callable[[], AbsEnvSampler]:
-        return getattr(self._scenario_module, "env_sampler_creator")
+    def get_env_sampler(self, policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> AbsEnvSampler:
+        return getattr(self._scenario_module, "env_sampler_creator")(policy_creator)
 
     @property
     def agent2policy(self) -> Dict[str, str]:

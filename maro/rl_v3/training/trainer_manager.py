@@ -2,9 +2,8 @@
 # Licensed under the MIT license.
 
 import asyncio
-from abc import ABCMeta, abstractmethod
 from itertools import chain
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, Iterable, List, Tuple
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.rollout import ExpElement
@@ -13,46 +12,7 @@ from .trainer import AbsTrainer
 from .utils import extract_trainer_name
 
 
-class AbsTrainerManager(object, metaclass=ABCMeta):
-    """
-    Use TrainerManager to manage all policy trainers and handle the training process.
-    """
-    def __init__(self) -> None:
-        super(AbsTrainerManager, self).__init__()
-
-    def train(self) -> None:
-        """
-        Run a new round of training.
-        """
-        self._train_impl()
-
-    @abstractmethod
-    def _train_impl(self) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_policy_state(self) -> Dict[str, Dict[str, object]]:
-        """
-        Get policies' states.
-
-        Returns:
-            A double-deck dict with format: {trainer_name: {policy_name: policy_state}}
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def record_experiences(self, experiences: List[ExpElement]) -> None:
-        """
-        Record experiences collected from external modules (for example, EnvSampler).
-
-        Args:
-            experiences (List[ExpElement]): List of experiences. Each ExpElement stores the complete information for a
-                tick. Please refers to the definition of ExpElement for detailed explanation of ExpElement.
-        """
-        raise NotImplementedError
-
-
-class SimpleTrainerManager(AbsTrainerManager):
+class TrainerManager(object):
     def __init__(
         self,
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
@@ -61,7 +21,7 @@ class SimpleTrainerManager(AbsTrainerManager):
         dispatcher_address: Tuple[str, int] = None
     ) -> None:
         """
-        Simple trainer manager. Use this in centralized model.
+        Trainer manager.
 
         Args:
             policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
@@ -70,7 +30,7 @@ class SimpleTrainerManager(AbsTrainerManager):
             dispatcher_address (Tuple[str, int]): The address of the dispatcher. This is used under only distributed
                 model. Defaults to None.
         """
-        super(SimpleTrainerManager, self).__init__()
+        super(TrainerManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._trainers: List[AbsTrainer] = []
@@ -92,17 +52,29 @@ class SimpleTrainerManager(AbsTrainerManager):
         for trainer in self._trainers:
             trainer.build()
 
-    def _train_impl(self) -> None:
-        async def train_step() -> list:
+    def train(self) -> None:
+        async def train_step() -> Iterable:
             return await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
         asyncio.run(train_step())
 
     def get_policy_state(self) -> Dict[str, Dict[str, object]]:
+        """Get policies' states.
+
+        Returns:
+            A double-deck dict with format: {trainer_name: {policy_name: policy_state}}
+        """
         return dict(chain(*[trainer.get_policy_state().items() for trainer in self._trainers]))
 
-    def record_experiences(self, experiences: List[ExpElement]) -> None:
-        for exp_element in experiences:  # Dispatch experiences to trainers tick by tick.
-            exp_dict = exp_element.split_contents(self._agent2trainer)
-            for trainer_name, exp_elem in exp_dict.items():
-                trainer = self._trainer_dict[trainer_name]
-                trainer.record(exp_elem)
+    def record_experiences(self, experiences: List[List[ExpElement]]) -> None:
+        """Record experiences collected from external modules (for example, EnvSampler).
+
+        Args:
+            experiences (List[ExpElement]): List of experiences. Each ExpElement stores the complete information for a
+                tick. Please refers to the definition of ExpElement for detailed explanation of ExpElement.
+        """
+        for env_idx, env_experience in enumerate(experiences):
+            for exp_element in env_experience:  # Dispatch experiences to trainers tick by tick.
+                exp_dict = exp_element.split_contents(self._agent2trainer)
+                for trainer_name, exp_elem in exp_dict.items():
+                    trainer = self._trainer_dict[trainer_name]
+                    trainer.record(env_idx, exp_elem)

@@ -361,7 +361,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         return {
             "end_of_episode": not self._agent_state_dict,
-            "experiences": experiences,
+            "experiences": [experiences],
             "info": [self._tracker],
         }
 

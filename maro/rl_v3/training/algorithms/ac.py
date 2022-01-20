@@ -4,7 +4,7 @@
 import asyncio
 import collections
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 import torch
@@ -12,10 +12,10 @@ import torch
 from maro.rl_v3.model import VNet
 from maro.rl_v3.policy import DiscretePolicyGradient
 from maro.rl_v3.rollout import ExpElement
-from maro.rl_v3.training import AbsTrainOps, FIFOReplayMemory, SingleTrainer, TrainerParams
-from maro.rl_v3.utils import TransitionBatch, average_grads, discount_cumsum, ndarray_to_tensor
-
-from ..train_ops import RemoteOps, remote
+from maro.rl_v3.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl_v3.utils import (
+    TransitionBatch, average_grads, discount_cumsum, merge_transition_batches, ndarray_to_tensor
+)
 
 
 @dataclass
@@ -153,7 +153,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         if scope in ("all", "critic"):
             self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
 
-    def preprocess_batch(self, batch: TransitionBatch) -> None:
+    def preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
         assert self._is_valid_transition_batch(batch)
         # Preprocess returns
         batch.calc_returns(self._reward_discount)
@@ -181,7 +181,7 @@ class DiscreteActorCritic(SingleTrainer):
         super(DiscreteActorCritic, self).__init__(name, params)
         self._params = params
         self._ops_name = f"{self._name}.ops"
-        self._replay_memory_dict = {}
+        self._replay_memory_dict: Dict[Any, FIFOReplayMemory] = {}
 
     def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
@@ -193,9 +193,9 @@ class DiscreteActorCritic(SingleTrainer):
             action_dim=action_dim
         ))
 
-    def record(self, exp_element: ExpElement) -> None:
+    def record(self, env_idx: int, exp_element: ExpElement) -> None:
         for agent_name in exp_element.agent_names:
-            memory = self._replay_memory_dict[agent_name]
+            memory = self._replay_memory_dict[(env_idx, agent_name)]
             transition_batch = TransitionBatch(
                 states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
                 actions=np.expand_dims(exp_element.action_dict[agent_name], axis=0),
@@ -211,20 +211,22 @@ class DiscreteActorCritic(SingleTrainer):
     def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DiscreteActorCriticOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
-    def _get_batch(self, agent_name: str) -> TransitionBatch:
-        return self._replay_memory_dict[agent_name].sample(-1)  # Use all entries in the replay memory
-
     async def train_step(self):
-        for agent_name in self._replay_memory_dict:
-            batch = self._ops.preprocess_batch(self._get_batch(agent_name))
-            for _ in range(self._params.grad_iters):
-                batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-                critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
-                if isinstance(self._ops, RemoteOps):
-                    critic_grad_list = await asyncio.gather(*critic_grad_list)
+        batch_list = []
+        for memory in self._replay_memory_dict.values():
+            batch = self._ops.preprocess_batch(memory.sample(-1))  # Use all entries in the replay memory
+            batch_list.append(batch)
+        batch = merge_transition_batches(batch_list)
 
-                self._ops.update_critic(average_grads(critic_grad_list))
-                actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
-                if isinstance(self._ops, RemoteOps):
-                    actor_grad_list = await asyncio.gather(*actor_grad_list)
-                self._ops.update_actor(average_grads(actor_grad_list))
+        for _ in range(self._params.grad_iters):
+            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
+            critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
+            if isinstance(self._ops, RemoteOps):
+                critic_grad_list = await asyncio.gather(*critic_grad_list)
+
+            actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
+            if isinstance(self._ops, RemoteOps):
+                actor_grad_list = await asyncio.gather(*actor_grad_list)
+
+            self._ops.update_critic(average_grads(critic_grad_list))
+            self._ops.update_actor(average_grads(actor_grad_list))

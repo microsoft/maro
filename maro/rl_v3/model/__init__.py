@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from .abs_net import AbsNet
 from .fc_block import FullyConnected
 from .multi_q_net import MultiQNet

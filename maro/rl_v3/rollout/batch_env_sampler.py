@@ -12,8 +12,6 @@ from zmq import Context, Poller
 from maro.rl_v3.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.utils import DummyLogger, Logger
 
-from .env_sampler import ExpElement
-
 
 class BatchClient(object):
     def __init__(self, name: str, address: Tuple[str, int]) -> None:
@@ -24,7 +22,7 @@ class BatchClient(object):
         self._poller = Poller()
         self._logger = Logger("batch_request_client")
 
-    def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: int = None) -> None:
+    def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: int = None) -> List[dict]:
         if min_replies is None:
             min_replies = parallelism
 
@@ -45,7 +43,9 @@ class BatchClient(object):
                 event = dict(self._poller.poll(countdown))
                 if self._socket in event:
                     result = self._socket.recv_multipart()
-                    results.append(bytes_to_pyobj(result[0]))
+                    result = bytes_to_pyobj(result[0])
+                    assert isinstance(result, dict)
+                    results.append(result)
                 countdown -= time.time() - start
 
         self._logger.info(f"{self._name} received {min_replies} results")
@@ -91,7 +91,7 @@ class BatchEnvSampler:
 
     def sample(
         self, policy_state: Dict[str, object] = None, num_steps: int = -1
-    ) -> Tuple[List[List[ExpElement]], List[dict]]:
+    ) -> dict:
         self._logger.info(f"Collecting simulation data (episode {self._ep}, segment {self._segment})")
         self._client.connect()
         req = {
@@ -107,14 +107,15 @@ class BatchEnvSampler:
         if self._end_of_episode:
             self._ep += 1
             self._segment = 0
-        merged_experiences = list(chain(*[res["experiences"] for res in results]))
+
+        merged_experiences = list(chain(*[res["experiences"] for res in results]))  # List[List[ExpElement]]
         return {
             "end_of_episode": self._end_of_episode,
             "experiences": merged_experiences,
             "info": [res["info"][0] for res in results]
         }
 
-    def test(self, policy_state: Dict[str, object] = None) -> List[dict]:
+    def test(self, policy_state: Dict[str, object] = None) -> dict:
         self._client.connect()
         req = {
             "type": "test",
@@ -123,4 +124,6 @@ class BatchEnvSampler:
         }
         results = self._client.collect(req, self._eval_parallelism)
         self._client.close()
-        return {"info": [res["info"][0] for res in results]}
+        return {
+            "info": [res["info"][0] for res in results]
+        }

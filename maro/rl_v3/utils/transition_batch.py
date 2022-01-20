@@ -71,3 +71,15 @@ class MultiTransitionBatch:
             assert len(self.next_agent_states) == len(self.agent_states)
             for i in range(len(self.next_agent_states)):
                 assert self.agent_states[i].shape == self.next_agent_states[i].shape
+
+
+def merge_transition_batches(batch_list: List[TransitionBatch]) -> TransitionBatch:
+    return TransitionBatch(
+        states=np.concatenate([batch.states for batch in batch_list], axis=0),
+        actions=np.concatenate([batch.actions for batch in batch_list], axis=0),
+        rewards=np.concatenate([batch.rewards for batch in batch_list], axis=0),
+        next_states=np.concatenate([batch.next_states for batch in batch_list], axis=0),
+        terminals=np.concatenate([batch.terminals for batch in batch_list]),
+        returns=np.concatenate([batch.returns for batch in batch_list]),
+        advantages=np.concatenate([batch.advantages for batch in batch_list]),
+    )

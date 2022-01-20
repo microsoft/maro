@@ -10,11 +10,9 @@ import torch
 
 from maro.rl_v3.policy import ValueBasedPolicy
 from maro.rl_v3.rollout import ExpElement
-from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, SingleTrainer, TrainerParams
+from maro.rl_v3.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
 from maro.rl_v3.utils import TransitionBatch, average_grads, ndarray_to_tensor
 from maro.utils import clone
-
-from ..train_ops import RemoteOps, remote
 
 
 @dataclass
@@ -146,7 +144,7 @@ class DQN(SingleTrainer):
             random_overwrite=self._params.random_overwrite
         )
 
-    def record(self, exp_element: ExpElement) -> None:
+    def record(self, env_idx: int, exp_element: ExpElement) -> None:
         for agent_name in exp_element.agent_names:
             transition_batch = TransitionBatch(
                 states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
