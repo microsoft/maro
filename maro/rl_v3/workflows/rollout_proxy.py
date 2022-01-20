@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from maro.rl_v3.rollout import RolloutDispatcher
 from maro.rl_v3.utils.common import from_env_as_int
 

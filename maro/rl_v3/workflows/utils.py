@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from types import ModuleType
 from typing import Callable, Dict
 

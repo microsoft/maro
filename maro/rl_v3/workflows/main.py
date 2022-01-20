@@ -7,7 +7,9 @@ from typing import List
 
 from maro.rl_v3.rollout import BatchEnvSampler, ExpElement
 from maro.rl_v3.training import SimpleTrainerManager
-from maro.rl_v3.utils.common import from_env, from_env_as_int, get_eval_schedule, get_logger, get_module
+from maro.rl_v3.utils.common import (
+    from_env, from_env_as_float, from_env_as_int, get_eval_schedule, get_logger, get_module
+)
 from maro.rl_v3.workflows.utils import ScenarioAttr, _get_scenario_path
 
 if __name__ == "__main__":
@@ -45,10 +47,10 @@ if __name__ == "__main__":
         env_sampler = scenario_attr.get_env_sampler(policy_creator)
     else:
         env_sampler = BatchEnvSampler(
-            from_env_as_int("ROLLOUT_PARALLELISM"),
-            (from_env("ROLLOUT_PROXY_HOST"), from_env_as_int("ROLLOUT_PROXY_FRONTEND_PORT")),
+            parallelism=from_env_as_int("ROLLOUT_PARALLELISM"),
+            remote_address=(str(from_env("ROLLOUT_PROXY_HOST")), from_env_as_int("ROLLOUT_PROXY_FRONTEND_PORT")),
             min_env_samples=from_env_as_int("MIN_ENV_SAMPLES", required=False, default=None),
-            grace_factor=from_env("GRACE_FACTOR", required=False, default=None),
+            grace_factor=from_env_as_float("GRACE_FACTOR", required=False, default=None),
             eval_parallelism=from_env_as_int("EVAL_PARALLELISM", required=False, default=1),
             logger=logger
         )

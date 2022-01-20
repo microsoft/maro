@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from typing import Union
 
 from .objects import SHAPE_CHECK_FLAG
