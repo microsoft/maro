@@ -223,35 +223,35 @@ Install MARO from Source
 
   * C++ Compiler
 
-   * Linux or Mac OS X: ``gcc``
-   * Windows: `Build Tools for Visual Studio 2017 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15>`_
+    * Linux or Mac OS X: ``gcc``
+    * Windows: `Build Tools for Visual Studio 2017 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15>`_
 
 *
   Enable Virtual Environment
 
 
   *
-   Mac OS / Linux
+    Mac OS / Linux
 
-   .. code-block:: sh
+    .. code-block:: sh
 
-     # If your environment is not clean, create a virtual environment firstly.
-     python -m venv maro_venv
-     source ./maro_venv/bin/activate
+      # If your environment is not clean, create a virtual environment firstly.
+      python -m venv maro_venv
+      source ./maro_venv/bin/activate
 
   *
-   Windows
+    Windows
 
-   .. code-block:: powershell
+    .. code-block:: powershell
 
-     # If your environment is not clean, create a virtual environment firstly.
-     python -m venv maro_venv
+      # If your environment is not clean, create a virtual environment firstly.
+      python -m venv maro_venv
 
-     # You may need this for SecurityError in PowerShell.
-     Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
+      # You may need this for SecurityError in PowerShell.
+      Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
 
-     # Activate the virtual environment.
-     .\maro_venv\Scripts\activate
+      # Activate the virtual environment.
+      .\maro_venv\Scripts\activate
 
 *
   Install MARO
@@ -263,20 +263,20 @@ Install MARO from Source
 
 
   *
-   Mac OS / Linux
+    Mac OS / Linux
 
-   .. code-block:: sh
+    .. code-block:: sh
 
-     # Install MARO from source.
-     bash scripts/install_maro.sh
+      # Install MARO from source.
+      bash scripts/install_maro.sh
 
   *
-   Windows
+    Windows
 
-   .. code-block:: powershell
+    .. code-block:: powershell
 
-     # Install MARO from source.
-     .\scripts\install_maro.bat
+      # Install MARO from source.
+      .\scripts\install_maro.bat
 
 *
   *Notes: If your package is not found, remember to set your PYTHONPATH*
@@ -307,7 +307,7 @@ Quick Example
   metrics, decision_event, is_done = env.step(None)
 
   while not is_done:
-     metrics, decision_event, is_done = env.step(None)
+      metrics, decision_event, is_done = env.step(None)
 
   print(f"environment metrics: {env.metrics}")
 
@@ -318,10 +318,10 @@ Quick Example
 
   # Enable environment dump feature, when initializing the environment instance
   env = Env(scenario="cim",
-         topology="toy.5p_ssddd_l0.0",
-         start_tick=0,
-         durations=100,
-         options={"enable-dump-snapshot": "./dump_data"})
+            topology="toy.5p_ssddd_l0.0",
+            start_tick=0,
+            durations=100,
+            options={"enable-dump-snapshot": "./dump_data"})
 
   # Inspect environment with the dump data
   maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
@@ -378,30 +378,30 @@ Run Playground
 
 
   *
-   Mac OS / Linux
+    Mac OS / Linux
 
-   .. code-block:: sh
+    .. code-block:: sh
 
-     # Build playground image.
-     bash ./scripts/build_playground.sh
+      # Build playground image.
+      bash ./scripts/build_playground.sh
 
-     # Run playground container.
-     # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-     # Jupyter lab with maro -> http://127.0.0.1:40010
-     docker run -p 40009:40009 -p 40010:40010 maro2020/playground
+      # Run playground container.
+      # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+      # Jupyter lab with maro -> http://127.0.0.1:40010
+      docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
   *
-   Windows
+    Windows
 
-   .. code-block:: powershell
+    .. code-block:: powershell
 
-     # Build playground image.
-     .\scripts\build_playground.bat
+      # Build playground image.
+      .\scripts\build_playground.bat
 
-     # Run playground container.
-     # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-     # Jupyter lab with maro -> http://127.0.0.1:40010
-     docker run -p 40009:40009 -p 40010:40010 maro2020/playground
+      # Run playground container.
+      # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+      # Jupyter lab with maro -> http://127.0.0.1:40010
+      docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
 Contributing
 ------------
