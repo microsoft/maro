@@ -4,7 +4,7 @@
 import asyncio
 import collections
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import torch
@@ -153,7 +153,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         if scope in ("all", "critic"):
             self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
 
-    def preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
+    def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
         assert self._is_valid_transition_batch(batch)
         # Preprocess returns
         batch.calc_returns(self._reward_discount)
@@ -168,6 +168,9 @@ class DiscreteActorCriticOps(AbsTrainOps):
         advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
         batch.advantages = advantages
         return batch
+
+    def preprocess_and_merge_batches(self, batch_list: List[TransitionBatch]) -> TransitionBatch:
+        return merge_transition_batches([self._preprocess_batch(batch) for batch in batch_list])
 
 
 class DiscreteActorCritic(SingleTrainer):
@@ -210,13 +213,12 @@ class DiscreteActorCritic(SingleTrainer):
     def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
         return DiscreteActorCriticOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
-    async def train_step(self):
-        batch_list = []
-        for memory in self._replay_memory_dict.values():
-            batch = self._ops.preprocess_batch(memory.sample(-1))  # Use all entries in the replay memory
-            batch_list.append(batch)
-        batch = merge_transition_batches(batch_list)
+    def _get_batch(self) -> TransitionBatch:
+        batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
+        return self._ops.preprocess_and_merge_batches(batch_list)
 
+    async def train_step(self):
+        batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
             critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
