@@ -6,7 +6,7 @@ import time
 from typing import List
 
 from maro.rl_v3.rollout import BatchEnvSampler, ExpElement
-from maro.rl_v3.training import SimpleTrainerManager
+from maro.rl_v3.training import TrainerManager
 from maro.rl_v3.utils.common import (
     from_env, from_env_as_float, from_env_as_int, get_eval_schedule, get_logger, get_module
 )
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
-    trainer_manager = SimpleTrainerManager(
+    trainer_manager = TrainerManager(
         policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address
     )
 
