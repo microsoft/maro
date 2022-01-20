@@ -49,9 +49,6 @@ class TrainerManager(object):
             for agent_name, policy_name in self._agent2policy.items()
         }
 
-        for trainer in self._trainers:
-            trainer.build()
-
     def train(self) -> None:
         async def train_step() -> Iterable:
             return await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])

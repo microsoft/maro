@@ -64,10 +64,6 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def build(self) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
         raise NotImplementedError
 
