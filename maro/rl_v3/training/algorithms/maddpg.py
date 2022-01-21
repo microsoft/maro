@@ -3,7 +3,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -26,7 +26,6 @@ class DiscreteMADDPGParams(TrainerParams):
     q_value_loss_cls: Callable = None
     critic_loss_coef: float = 1.0
     shared_critic: bool = False
-    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_q_critic_net_func is not None
@@ -110,7 +109,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
     def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
-        if scope in ("all", "actor"):
+        if scope in ("all", "actor") and self._create_actor:
             ret_dict["policy_state"] = self._policy.get_state()
             ret_dict["target_policy_state"] = self._target_policy.get_state()
         if scope in ("all", "critic"):
@@ -119,7 +118,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         return ret_dict
 
     def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor"):
+        if scope in ("all", "actor") and self._create_actor:
             self._policy.set_state(ops_state_dict["policy_state"])
             self._target_policy.set_state(ops_state_dict["target_policy_state"])
         if scope in ("all", "critic"):
@@ -161,11 +160,9 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def get_actor_grad(
         self,
         batch: MultiTransitionBatch,
-        latest_action: torch.Tensor,
-        latest_action_logp: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
-        assert isinstance(latest_action, torch.Tensor)
-        assert isinstance(latest_action_logp, torch.Tensor)
+        latest_action, latest_action_logp = self.get_latest_action(batch)
+
         states = ndarray_to_tensor(batch.states, self._device)  # x
         actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
         actions[self._policy_idx] = latest_action
@@ -203,6 +200,12 @@ class DiscreteMADDPG(MultiTrainer):
         self._policy_version = self._target_policy_version = 0
         self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
 
+        self._actor_ops_list = []
+        self._critic_ops = None
+        self._replay_memory = None
+        self._policy2agent = {}
+
+    def build(self) -> None:
         self._actor_ops_list = [self.get_ops(f"{self._name}.actor_{i}_ops") for i in range(len(self._policy_names))]
         if self._params.shared_critic:
             self._critic_ops = self.get_ops(self._shared_critic_ops_name)
@@ -222,17 +225,19 @@ class DiscreteMADDPG(MultiTrainer):
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
         assert exp_element.num_agents == len(self._agent2policy.keys())
 
+        if min(exp_element.terminal_dict.values()) != max(exp_element.terminal_dict.values()):
+            raise ValueError("The 'terminal` flag of all agents must be identical.")
+        terminal_flag = min(exp_element.terminal_dict.values())
+
         actions = []
         rewards = []
         agent_states = []
-        terminals = []
         next_agent_states = []
         for policy_name in self._policy_names:
             agent_name = self._policy2agent[policy_name]
             actions.append(np.expand_dims(exp_element.action_dict[agent_name], axis=0))
             rewards.append(np.array([exp_element.reward_dict[agent_name]]))
             agent_states.append(np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0))
-            terminals.append(exp_element.terminal_dict[agent_name])
             next_agent_states.append(np.expand_dims(
                 exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]), axis=0
             ))
@@ -246,7 +251,7 @@ class DiscreteMADDPG(MultiTrainer):
             ),
             agent_states=agent_states,
             next_agent_states=next_agent_states,
-            terminals=np.array(terminals)
+            terminals=np.array([terminal_flag])
         )
         self._replay_memory.put(transition_batch)
 
@@ -283,16 +288,16 @@ class DiscreteMADDPG(MultiTrainer):
 
             # Update critic
             if self._params.shared_critic:
-                critic_grad = self._critic_ops.get_critic_grad(batch, next_actions)
+                critic_grad = [self._critic_ops.get_critic_grad(batch, next_actions)]
                 if isinstance(self._critic_ops, RemoteOps):
-                    critic_grad = await asyncio.gather(critic_grad)
-                self._critic_ops.update_critic(critic_grad)
+                    critic_grad = await asyncio.gather(*critic_grad)
+                assert isinstance(critic_grad, list) and isinstance(critic_grad[0], dict)
+                self._critic_ops.update_critic(critic_grad[0])
                 critic_state_dict = self._critic_ops.get_state(scope="critic")
-                assert isinstance(critic_state_dict, list) and len(critic_state_dict) == 1
 
                 # Sync latest critic to ops
                 for ops in self._actor_ops_list:
-                    ops.set_state(critic_state_dict[0], scope="critic")
+                    ops.set_state(critic_state_dict, scope="critic")
             else:
                 critic_grad_list = [ops.get_critic_grad(batch, next_actions) for ops in self._actor_ops_list]
                 if any(isinstance(ops, RemoteOps) for ops in self._actor_ops_list):
@@ -302,7 +307,7 @@ class DiscreteMADDPG(MultiTrainer):
                     ops.update_critic(critic_grad)
 
             # Update actors
-            actor_grad_list = [ops.get_actor_grad(batch, *ops.get_latest_action(batch)) for ops in self._actor_ops_list]
+            actor_grad_list = [ops.get_actor_grad(batch) for ops in self._actor_ops_list]
             if any(isinstance(ops, RemoteOps) for ops in self._actor_ops_list):
                 actor_grad_list = await asyncio.gather(*actor_grad_list)
             for ops, actor_grad in zip(self._actor_ops_list, actor_grad_list):
@@ -324,7 +329,11 @@ class DiscreteMADDPG(MultiTrainer):
         if not self._actor_ops_list:
             raise ValueError("'build' needs to be called to create an actor ops first.")
 
-        return dict([ops.get_policy_state() for ops in self._actor_ops_list])
+        ret_policy_state = {}
+        for ops in self._actor_ops_list:
+            policy_name, state = ops.get_policy_state()
+            ret_policy_state[policy_name] = state
+        return ret_policy_state
 
     @staticmethod
     def get_policy_idx_from_ops_name(ops_name):

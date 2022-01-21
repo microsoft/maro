@@ -41,6 +41,7 @@ class TrainerManager(object):
                 trainer.set_dispatch_address(dispatcher_address)
             trainer.register_agent2policy(self._agent2policy)
             trainer.register_policy_creator(policy_creator)
+            trainer.build()
             self._trainer_dict[trainer_name] = trainer
             self._trainers.append(trainer)
 

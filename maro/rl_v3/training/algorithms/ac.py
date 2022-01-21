@@ -40,7 +40,6 @@ class DiscreteActorCriticParams(TrainerParams):
     clip_ratio: float = None
     lam: float = 0.9
     min_logp: Optional[float] = None
-    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_v_critic_net_func is not None
@@ -185,6 +184,9 @@ class DiscreteActorCritic(SingleTrainer):
         self._params = params
         self._ops_name = f"{self._name}.ops"
 
+        self._replay_memory_dict: Dict[Any, FIFOReplayMemory] = {}
+
+    def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
 
         state_dim = self._ops.policy_state_dim()

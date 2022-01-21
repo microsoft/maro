@@ -17,6 +17,7 @@ class TrainerParams:
     device: str = None
     replay_memory_capacity: int = 10000
     batch_size: int = 128
+    data_parallelism: int = 1
 
     @abstractmethod
     def extract_ops_params(self) -> Dict[str, object]:
@@ -55,6 +56,10 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self,
         global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
     ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def build(self) -> None:
         raise NotImplementedError
 
     @abstractmethod
