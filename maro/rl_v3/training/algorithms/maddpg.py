@@ -160,11 +160,9 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def get_actor_grad(
         self,
         batch: MultiTransitionBatch,
-        latest_action: torch.Tensor,
-        latest_action_logp: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
-        assert isinstance(latest_action, torch.Tensor)
-        assert isinstance(latest_action_logp, torch.Tensor)
+        latest_action, latest_action_logp = self.get_latest_action(batch)
+
         states = ndarray_to_tensor(batch.states, self._device)  # x
         actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
         actions[self._policy_idx] = latest_action
@@ -253,7 +251,7 @@ class DiscreteMADDPG(MultiTrainer):
             ),
             agent_states=agent_states,
             next_agent_states=next_agent_states,
-            terminals=np.array(terminal_flag)
+            terminals=np.array([terminal_flag])
         )
         self._replay_memory.put(transition_batch)
 
@@ -309,7 +307,7 @@ class DiscreteMADDPG(MultiTrainer):
                     ops.update_critic(critic_grad)
 
             # Update actors
-            actor_grad_list = [ops.get_actor_grad(batch, *ops.get_latest_action(batch)) for ops in self._actor_ops_list]
+            actor_grad_list = [ops.get_actor_grad(batch) for ops in self._actor_ops_list]
             if any(isinstance(ops, RemoteOps) for ops in self._actor_ops_list):
                 actor_grad_list = await asyncio.gather(*actor_grad_list)
             for ops, actor_grad in zip(self._actor_ops_list, actor_grad_list):
