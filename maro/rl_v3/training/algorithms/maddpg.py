@@ -3,7 +3,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -26,7 +26,6 @@ class DiscreteMADDPGParams(TrainerParams):
     q_value_loss_cls: Callable = None
     critic_loss_coef: float = 1.0
     shared_critic: bool = False
-    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_q_critic_net_func is not None
@@ -222,17 +221,19 @@ class DiscreteMADDPG(MultiTrainer):
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
         assert exp_element.num_agents == len(self._agent2policy.keys())
 
+        if min(exp_element.terminal_dict.values()) != max(exp_element.terminal_dict.values()):
+            raise ValueError("The 'terminal` flag of all agents must be identical.")
+        terminal_flag = min(exp_element.terminal_dict.values())
+
         actions = []
         rewards = []
         agent_states = []
-        terminals = []
         next_agent_states = []
         for policy_name in self._policy_names:
             agent_name = self._policy2agent[policy_name]
             actions.append(np.expand_dims(exp_element.action_dict[agent_name], axis=0))
             rewards.append(np.array([exp_element.reward_dict[agent_name]]))
             agent_states.append(np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0))
-            terminals.append(exp_element.terminal_dict[agent_name])
             next_agent_states.append(np.expand_dims(
                 exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]), axis=0
             ))
@@ -246,7 +247,7 @@ class DiscreteMADDPG(MultiTrainer):
             ),
             agent_states=agent_states,
             next_agent_states=next_agent_states,
-            terminals=np.array(terminals)
+            terminals=np.array(terminal_flag)
         )
         self._replay_memory.put(transition_batch)
 
@@ -324,7 +325,11 @@ class DiscreteMADDPG(MultiTrainer):
         if not self._actor_ops_list:
             raise ValueError("'build' needs to be called to create an actor ops first.")
 
-        return dict([ops.get_policy_state() for ops in self._actor_ops_list])
+        ret_policy_state = {}
+        for ops in self._actor_ops_list:
+            policy_name, state = ops.get_policy_state()
+            ret_policy_state[policy_name] = state
+        return ret_policy_state
 
     @staticmethod
     def get_policy_idx_from_ops_name(ops_name):

@@ -37,7 +37,6 @@ class DQNParams(TrainerParams):
     soft_update_coef: float = 0.1
     double: bool = False
     random_overwrite: bool = False
-    data_parallelism: int = 1
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {

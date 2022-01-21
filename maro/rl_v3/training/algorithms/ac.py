@@ -40,7 +40,6 @@ class DiscreteActorCriticParams(TrainerParams):
     clip_ratio: float = None
     lam: float = 0.9
     min_logp: Optional[float] = None
-    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_v_critic_net_func is not None

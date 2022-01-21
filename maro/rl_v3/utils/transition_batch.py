@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -28,30 +30,33 @@ class TransitionBatch:
     def calc_returns(self, discount_factor: float) -> None:
         self.returns = discount_cumsum(self.rewards, discount_factor)
 
-    def split(self, k: int):
-        return [
-            TransitionBatch(
-                self.states[i::k],
-                self.actions[i::k],
-                self.rewards[i::k],
-                self.next_states[i::k],
-                self.terminals[i::k],
-                returns=self.returns[i::k] if self.returns is not None else None,
-                advantages=self.advantages[i::k] if self.advantages is not None else None
-            )
-            for i in range(k)
-        ]
+    def make_kth_sub_batch(self, i: int, k: int) -> TransitionBatch:
+        return TransitionBatch(
+            states=self.states[i::k],
+            actions=self.actions[i::k],
+            rewards=self.rewards[i::k],
+            next_states=self.next_states[i::k],
+            terminals=self.terminals[i::k],
+            returns=self.returns[i::k] if self.returns is not None else None,
+            advantages=self.advantages[i::k] if self.advantages is not None else None
+        )
+
+    def split(self, k: int) -> List[TransitionBatch]:
+        return [self.make_kth_sub_batch(i, k) for i in range(k)]
 
 
 @dataclass
 class MultiTransitionBatch:
     states: np.ndarray  # 2D
-    actions: List[np.ndarray]  # 2D
-    rewards: List[np.ndarray]  # 1D
+    actions: List[np.ndarray]  # List of 2D
+    rewards: List[np.ndarray]  # List of 1D
     next_states: np.ndarray  # 2D
-    agent_states: List[np.ndarray]  # 2D
-    next_agent_states: List[np.ndarray]  # 2D
+    agent_states: List[np.ndarray]  # List of 2D
+    next_agent_states: List[np.ndarray]  # List of 2D
     terminals: np.ndarray  # 1D
+
+    returns: Optional[List[np.ndarray]] = None  # List of 1D
+    advantages: Optional[List[np.ndarray]] = None  # List of 1D
 
     def __post_init__(self) -> None:
         if SHAPE_CHECK_FLAG:
@@ -71,6 +76,27 @@ class MultiTransitionBatch:
             assert len(self.next_agent_states) == len(self.agent_states)
             for i in range(len(self.next_agent_states)):
                 assert self.agent_states[i].shape == self.next_agent_states[i].shape
+
+    def calc_returns(self, discount_factor: float) -> None:
+        self.returns = [discount_cumsum(reward, discount_factor) for reward in self.rewards]
+
+    def make_kth_sub_batch(self, i: int, k: int) -> MultiTransitionBatch:
+        states = self.states[i::k]
+        actions = [action[i::k] for action in self.actions]
+        rewards = [reward[i::k] for reward in self.rewards]
+        next_states = self.next_states[i::k]
+        agent_states = [state[i::k] for state in self.agent_states]
+        next_agent_states = [state[i::k] for state in self.next_agent_states]
+        terminals = self.terminals[i::k]
+        returns = None if self.returns is None else [r[i::k] for r in self.returns]
+        advantages = None if self.advantages is None else [advantage[i::k] for advantage in self.advantages]
+        return MultiTransitionBatch(
+            states, actions, rewards, next_states, agent_states,
+            next_agent_states, terminals, returns, advantages
+        )
+
+    def split(self, k: int) -> List[MultiTransitionBatch]:
+        return [self.make_kth_sub_batch(i, k) for i in range(k)]
 
 
 def merge_transition_batches(batch_list: List[TransitionBatch]) -> TransitionBatch:

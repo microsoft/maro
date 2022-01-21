@@ -42,7 +42,6 @@ class DDPGParams(TrainerParams):
     soft_update_coef: float = 1.0
     critic_loss_coef: float = 0.1
     random_overwrite: bool = False
-    data_parallelism: int = 1
 
     def __post_init__(self) -> None:
         assert self.get_q_critic_net_func is not None
