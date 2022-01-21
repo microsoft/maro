@@ -59,6 +59,10 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
+    def build(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def train_step(self) -> None:
         """Run a training step to update all the policies that this trainer is responsible for.
         """

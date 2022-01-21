@@ -202,6 +202,12 @@ class DiscreteMADDPG(MultiTrainer):
         self._policy_version = self._target_policy_version = 0
         self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
 
+        self._actor_ops_list = []
+        self._critic_ops = None
+        self._replay_memory = None
+        self._policy2agent = {}
+
+    def build(self) -> None:
         self._actor_ops_list = [self.get_ops(f"{self._name}.actor_{i}_ops") for i in range(len(self._policy_names))]
         if self._params.shared_critic:
             self._critic_ops = self.get_ops(self._shared_critic_ops_name)

@@ -184,6 +184,9 @@ class DiscreteActorCritic(SingleTrainer):
         self._params = params
         self._ops_name = f"{self._name}.ops"
 
+        self._replay_memory_dict: Dict[Any, FIFOReplayMemory] = {}
+
+    def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
 
         state_dim = self._ops.policy_state_dim()

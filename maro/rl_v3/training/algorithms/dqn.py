@@ -129,6 +129,10 @@ class DQN(SingleTrainer):
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"
+
+        self._replay_memory: Optional[RandomReplayMemory] = None
+
+    def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
