@@ -109,7 +109,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
     def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
-        if scope in ("all", "actor"):
+        if scope in ("all", "actor") and self._create_actor:
             ret_dict["policy_state"] = self._policy.get_state()
             ret_dict["target_policy_state"] = self._target_policy.get_state()
         if scope in ("all", "critic"):
@@ -118,7 +118,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         return ret_dict
 
     def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor"):
+        if scope in ("all", "actor") and self._create_actor:
             self._policy.set_state(ops_state_dict["policy_state"])
             self._target_policy.set_state(ops_state_dict["target_policy_state"])
         if scope in ("all", "critic"):
@@ -288,16 +288,16 @@ class DiscreteMADDPG(MultiTrainer):
 
             # Update critic
             if self._params.shared_critic:
-                critic_grad = self._critic_ops.get_critic_grad(batch, next_actions)
+                critic_grad = [self._critic_ops.get_critic_grad(batch, next_actions)]
                 if isinstance(self._critic_ops, RemoteOps):
-                    critic_grad = await asyncio.gather(critic_grad)
-                self._critic_ops.update_critic(critic_grad)
+                    critic_grad = await asyncio.gather(*critic_grad)
+                assert isinstance(critic_grad, list) and isinstance(critic_grad[0], dict)
+                self._critic_ops.update_critic(critic_grad[0])
                 critic_state_dict = self._critic_ops.get_state(scope="critic")
-                assert isinstance(critic_state_dict, list) and len(critic_state_dict) == 1
 
                 # Sync latest critic to ops
                 for ops in self._actor_ops_list:
-                    ops.set_state(critic_state_dict[0], scope="critic")
+                    ops.set_state(critic_state_dict, scope="critic")
             else:
                 critic_grad_list = [ops.get_critic_grad(batch, next_actions) for ops in self._actor_ops_list]
                 if any(isinstance(ops, RemoteOps) for ops in self._actor_ops_list):
