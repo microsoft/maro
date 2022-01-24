@@ -45,6 +45,7 @@ class TrainOpsWorker(AbsWorker):
             self._logger.info(f"Created ops {ops_name} at {self._id}")
 
         self._ops_dict[ops_name].set_state(req["state"])
+        self._logger.info(f"executing function {req['func']} on ops {ops_name}")
         func = getattr(self._ops_dict[ops_name], req["func"])
         result = func(*req["args"], **req["kwargs"])
         self._receiver.send_multipart([msg[0], pyobj_to_bytes(result)])

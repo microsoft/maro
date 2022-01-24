@@ -49,7 +49,7 @@ class MyActorNet(DiscretePolicyNet):
     def unfreeze(self) -> None:
         self.unfreeze_all_parameters()
 
-    def step(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def step(self, loss: torch.Tensor):
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()

@@ -78,7 +78,7 @@ class CIMEnvSampler(AbsEnvSampler):
         self._tracker["env_metric"] = self._env.metrics
 
 
-agent2policy = {agent: f"{algorithm}_{agent}.{agent}" for agent in Env(**env_conf).agent_idx_list}
+agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in Env(**env_conf).agent_idx_list}
 
 
 def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> CIMEnvSampler:

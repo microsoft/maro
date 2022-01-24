@@ -95,7 +95,7 @@ class AsyncClient(object):
         host, port = address
         self._dispatcher_ip = socket.gethostbyname(host)
         self._address = f"tcp://{self._dispatcher_ip}:{port}"
-        self._logger = Logger("client")
+        self._logger = Logger(self._name)
 
     async def send_request(self, req: dict) -> None:
         await self._socket.send(pyobj_to_bytes(req))
@@ -130,19 +130,20 @@ class RemoteOps(object):
         self._client.connect()
 
     def __getattribute__(self, attr_name: str) -> object:
-        def remote_method(ops_state, func_name: str, client: AsyncClient) -> Callable:
-            async def remote_call(*args, **kwargs) -> object:
-                req = {"state": ops_state, "func": func_name, "args": args, "kwargs": kwargs}
-                await client.send_request(req)
-                return await client.get_response()
-
-            return remote_call
-
         # Ignore methods that belong to the parent class
         try:
             return super().__getattribute__(attr_name)
         except AttributeError:
             pass
+
+        def remote_method(ops_state, func_name: str, client: AsyncClient) -> Callable:
+            async def remote_call(*args, **kwargs) -> object:
+                req = {"state": ops_state, "func": func_name, "args": args, "kwargs": kwargs}
+                await client.send_request(req)
+                response = await client.get_response()
+                return response
+
+            return remote_call
 
         attr = getattr(self._ops, attr_name)
         if inspect.ismethod(attr) and attr.__name__ == "remote_anotate":

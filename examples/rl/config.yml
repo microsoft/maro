@@ -2,10 +2,10 @@
 # Licensed under the MIT license.
 
 job: cim
-scenario_path: "/home/ysqyang/projects/maro/examples/rl/vm_scheduling"
-load_path: "/home/ysqyang/projects/maro/examples/rl/checkpoints/vm_scheduling"
-# checkpoint_path: "/home/ysqyang/projects/maro/examples/rl/checkpoints/cim"
-# log_path: "/home/ysqyang/projects/maro/examples/rl/logs"
+scenario_path: "/home/yaqiu/maro/examples/rl/vm_scheduling"
+load_path: "/home/yaqiu/maro/examples/rl/checkpoints/vm_scheduling"
+checkpoint_path: "/home/yaqiu/maro/examples/rl/checkpoints/vm_scheduling"
+log_path: "/home/yaqiu/maro/examples/rl/logs"
 num_episodes: 20
 num_steps: -1
 eval_schedule: 5
@@ -21,9 +21,9 @@ rollout:
     backend: 20001
     num_workers: 3
 training:
-  mode: simple  # simple, parallel
+  mode: parallel  # simple, parallel
   dispatching:   # ignored under simple mode
     host: dispatcher
     frontend: 10000
     backend: 10001
-    num_workers: 3
+    num_workers: 2

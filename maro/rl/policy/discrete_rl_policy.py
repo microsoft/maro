@@ -109,6 +109,9 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             actions = ndarray_to_tensor(actions, self._device)
         return actions.unsqueeze(1)  # [B, 1]
 
+    def step(self, loss: torch.Tensor) -> None:
+        return self._q_net.step(loss)
+
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         return self._q_net.get_gradients(loss)
 
