@@ -154,6 +154,10 @@ class AbsBusinessEngine(ABC):
         """Reset states business engine."""
         pass
 
+    @abstractmethod
+    def set_seed(self, seed: int) -> None:
+        raise NotImplementedError
+
     def post_step(self, tick: int) -> bool:
         """This method will be called at the end of each tick, used to post-process for each tick,
         for complex business logic with many events, it maybe not easy to determine
