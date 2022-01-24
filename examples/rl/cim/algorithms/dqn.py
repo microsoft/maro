@@ -6,10 +6,10 @@ from typing import Dict
 import torch
 from torch.optim import RMSprop
 
-from maro.rl_v3.exploration import MultiLinearExplorationScheduler, epsilon_greedy
-from maro.rl_v3.model import DiscreteQNet, FullyConnected
-from maro.rl_v3.policy import ValueBasedPolicy
-from maro.rl_v3.training.algorithms import DQN, DQNParams
+from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
+from maro.rl.model import DiscreteQNet, FullyConnected
+from maro.rl.policy import ValueBasedPolicy
+from maro.rl.training.algorithms import DQN, DQNParams
 
 
 q_net_conf = {
@@ -21,14 +21,14 @@ q_net_conf = {
     "head": True,
     "dropout_p": 0.0
 }
-q_net_optim_conf = (RMSprop, {"lr": 0.05})
+learning_rate = 0.05
 
 
 class MyQNet(DiscreteQNet):
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(MyQNet, self).__init__(state_dim=state_dim, action_num=action_num)
         self._fc = FullyConnected(input_dim=state_dim, output_dim=action_num, **q_net_conf)
-        self._optim = q_net_optim_conf[0](self._fc.parameters(), **q_net_optim_conf[1])
+        self._optim = RMSprop(self._fc.parameters(), lr=learning_rate)
 
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
         return self._fc(states)
@@ -58,7 +58,7 @@ class MyQNet(DiscreteQNet):
         self.unfreeze_all_parameters()
 
 
-def get_value_based_policy(name: str, *, state_dim: int, action_num: int) -> ValueBasedPolicy:
+def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
     return ValueBasedPolicy(
         name=name,
         q_net=MyQNet(state_dim, action_num),

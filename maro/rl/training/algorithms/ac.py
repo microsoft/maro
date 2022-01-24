@@ -219,17 +219,21 @@ class DiscreteActorCritic(SingleTrainer):
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
         return self._ops.preprocess_and_merge_batches(batch_list)
 
-    async def train_step(self):
+    async def train_step_remote(self):
+        assert isinstance(self._ops, RemoteOps)
+        batch = self._get_batch()
+        for _ in range(self._params.grad_iters):
+            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
+            critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
+            actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
+            self._ops.update_critic(average_grads(critic_grad_list))
+            self._ops.update_actor(average_grads(actor_grad_list))
+
+    def train_step(self):
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
             critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
-            if isinstance(self._ops, RemoteOps):
-                critic_grad_list = await asyncio.gather(*critic_grad_list)
-
             actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
-            if isinstance(self._ops, RemoteOps):
-                actor_grad_list = await asyncio.gather(*actor_grad_list)
-
             self._ops.update_critic(average_grads(critic_grad_list))
             self._ops.update_actor(average_grads(actor_grad_list))

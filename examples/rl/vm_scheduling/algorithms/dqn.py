@@ -28,15 +28,16 @@ q_net_lr_scheduler_params = {"T_0": 500, "T_mult": 2}
 
 
 class MyQNet(DiscreteQNet):
-    def __init__(self, state_dim: int, action_num: int) -> None:
+    def __init__(self, state_dim: int, action_num: int, num_features: int) -> None:
         super(MyQNet, self).__init__(state_dim=state_dim, action_num=action_num)
-        self._fc = FullyConnected(input_dim=state_dim, output_dim=action_num, **q_net_conf)
+        self._num_features = num_features
+        self._fc = FullyConnected(input_dim=num_features, output_dim=action_num, **q_net_conf)
         self._optim = SGD(self._fc.parameters(), lr=q_net_learning_rate)
         self._lr_scheduler = CosineAnnealingWarmRestarts(self._optim, **q_net_lr_scheduler_params)
 
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
-        masks = states[:, self._state_dim:]
-        q_for_all_actions = self.fc(states[:, :self._state_dim])
+        masks = states[:, self._num_features:]
+        q_for_all_actions = self._fc(states[:, :self._num_features])
         return q_for_all_actions + (masks - 1) * 1e8
 
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -65,22 +66,23 @@ class MyQNet(DiscreteQNet):
 
 
 class MaskedEpsGreedy:
-    def __init__(self, state_dim: int) -> None:
+    def __init__(self, state_dim: int, num_features: int) -> None:
         self._state_dim = state_dim
+        self._num_features = num_features
 
     def __call__(self, states, actions, num_actions, *, epsilon):
-        masks = states[:, self._state_dim:]
+        masks = states[:, self._num_features:]
         return np.array([
             action if np.random.random() > epsilon else np.random.choice(np.where(mask == 1)[0])
             for action, mask in zip(actions, masks)
         ])
 
 
-def get_value_based_policy(name: str, *, state_dim: int, action_num: int) -> ValueBasedPolicy:
+def get_policy(state_dim: int, action_num: int, num_features: int, name: str) -> ValueBasedPolicy:
     return ValueBasedPolicy(
         name=name,
-        q_net=MyQNet(state_dim, action_num),
-        exploration_strategy=(MaskedEpsGreedy(state_dim), {"epsilon": 0.4}),
+        q_net=MyQNet(state_dim, action_num, num_features),
+        exploration_strategy=(MaskedEpsGreedy(state_dim, num_features), {"epsilon": 0.4}),
         exploration_scheduling_options=[(
             "epsilon", MultiLinearExplorationScheduler, {
                 "splits": [(100, 0.32)],

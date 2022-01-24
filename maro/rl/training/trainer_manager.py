@@ -35,10 +35,11 @@ class TrainerManager(object):
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._trainers: List[AbsTrainer] = []
         self._agent2policy = agent2policy
+        self._dispatcher_address = dispatcher_address
         for trainer_name, func in trainer_creator.items():
             trainer = func(trainer_name)
-            if dispatcher_address is not None:
-                trainer.set_dispatch_address(dispatcher_address)
+            if self._dispatcher_address:
+                trainer.set_dispatch_address(self._dispatcher_address)
             trainer.register_agent2policy(self._agent2policy)
             trainer.register_policy_creator(policy_creator)
             trainer.build()
@@ -51,9 +52,13 @@ class TrainerManager(object):
         }
 
     def train(self) -> None:
-        async def train_step() -> Iterable:
-            return await asyncio.gather(*[trainer.train_step() for trainer in self._trainers])
-        asyncio.run(train_step())
+        if self._dispatcher_address:
+            async def train_step() -> Iterable:
+                return await asyncio.gather(*[trainer.train_step_remote() for trainer in self._trainers])
+            asyncio.run(train_step())
+        else:
+            for trainer in self._trainers:
+                trainer.train_step()
 
     def get_policy_state(self) -> Dict[str, Dict[str, object]]:
         """Get policies' states.

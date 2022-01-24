@@ -17,7 +17,7 @@ MARO_ROOT_IN_CONTAINER = "/maro"
 
 def get_script_path(component: str, containerized: bool = False):
     root = MARO_ROOT_IN_CONTAINER if containerized else LOCAL_MARO_ROOT
-    workflow_path = join(root, "maro", "rl_v3", "workflows")
+    workflow_path = join(root, "maro", "rl", "workflows")
     return join(workflow_path, DEFAULT_SCRIPT[component.split("-")[0]])
 
 

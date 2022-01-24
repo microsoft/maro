@@ -14,7 +14,8 @@ env_conf = {
 
 num_pms = Env(**env_conf).business_engine._pm_amount
 pm_window_size = 1
-state_dim = 2 * num_pms * pm_window_size + 4
+num_features = 2 * num_pms * pm_window_size + 4
+state_dim = num_features + num_pms + 1 
 
 pm_attributes = ["cpu_cores_capacity", "memory_capacity", "cpu_cores_allocated", "memory_allocated"]
 # vm_attributes = ["cpu_cores_requirement", "memory_requirement", "lifetime", "remain_time", "total_income"]
@@ -40,4 +41,4 @@ test_reward_shaping_conf = {
 
 test_seed = 1024
 
-algorithm = "ac"  # "dqn" or "ac"
+algorithm = "dqn"  # "dqn" or "ac"

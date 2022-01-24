@@ -7,9 +7,9 @@ from typing import Dict, List
 import torch
 from torch.optim import Adam, RMSprop
 
-from maro.rl_v3.model import DiscretePolicyNet, FullyConnected, MultiQNet
-from maro.rl_v3.policy import DiscretePolicyGradient
-from maro.rl_v3.training.algorithms import DiscreteMADDPG, DiscreteMADDPGParams
+from maro.rl.model import DiscretePolicyNet, FullyConnected, MultiQNet
+from maro.rl.policy import DiscretePolicyGradient
+from maro.rl.training.algorithms import DiscreteMADDPG, DiscreteMADDPGParams
 
 
 actor_net_conf = {
@@ -27,8 +27,8 @@ critic_net_conf = {
     "batch_norm": True,
     "head": True
 }
-actor_optim_conf = (Adam, {"lr": 0.001})
-critic_optim_conf = (RMSprop, {"lr": 0.001})
+actor_learning_rate = 0.001
+critic_learning_rate = 0.001
 
 
 # #####################################################################################################################
@@ -36,7 +36,7 @@ class MyActorNet(DiscretePolicyNet):
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(MyActorNet, self).__init__(state_dim=state_dim, action_num=action_num)
         self._actor = FullyConnected(input_dim=state_dim, output_dim=action_num, **actor_net_conf)
-        self._actor_optim = actor_optim_conf[0](self._actor.parameters(), **actor_optim_conf[1])
+        self._actor_optim = Adam(self._actor.parameters(), lr=actor_learning_rate)
 
     def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
         return self._actor(states)
@@ -72,7 +72,7 @@ class MyMultiCriticNet(MultiQNet):
     def __init__(self, state_dim: int, action_dims: List[int]) -> None:
         super(MyMultiCriticNet, self).__init__(state_dim=state_dim, action_dims=action_dims)
         self._critic = FullyConnected(input_dim=state_dim + sum(action_dims), **critic_net_conf)
-        self._critic_optim = critic_optim_conf[0](self._critic.parameters(), **critic_optim_conf[1])
+        self._critic_optim = RMSprop(self._critic.parameters(), critic_learning_rate)
 
     def _get_q_values(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
         return self._critic(torch.cat([states] + actions, dim=1)).squeeze(-1)
@@ -108,11 +108,11 @@ def get_multi_critic_net(state_dim: int, action_dims: List[int]) -> MyMultiCriti
     return MyMultiCriticNet(state_dim, action_dims)
 
 
-def get_discrete_policy_gradient(name: str, *, state_dim: int, action_num: int) -> DiscretePolicyGradient:
+def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 
-def get_maddpg(name: str, *, state_dim: int, action_dims: List[int]) -> DiscreteMADDPG:
+def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMADDPG:
     return DiscreteMADDPG(
         name=name,
         params=DiscreteMADDPGParams(

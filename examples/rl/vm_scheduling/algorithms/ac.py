@@ -32,14 +32,15 @@ critic_learning_rate = 0.001
 
 
 class MyActorNet(DiscretePolicyNet):
-    def __init__(self, state_dim: int, action_num: int) -> None:
+    def __init__(self, state_dim: int, action_num: int, num_features: int) -> None:
         super(MyActorNet, self).__init__(state_dim=state_dim, action_num=action_num)
-        self._actor = FullyConnected(input_dim=state_dim, output_dim=action_num, **actor_net_conf)
+        self._num_features = num_features
+        self._actor = FullyConnected(input_dim=num_features, output_dim=action_num, **actor_net_conf)
         self._actor_optim = Adam(self._actor.parameters(), lr=actor_learning_rate)
 
     def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
-        features, masks = states[:, :self._state_dim], states[:, self._state_dim:]
-        masks += 1e-8  # this is to prevent zero probability and infinite logP. 
+        features, masks = states[:, :self._num_features], states[:, self._num_features:]
+        masks += 1e-8  # this is to prevent zero probability and infinite logP.
         return self._actor(features) * masks
 
     def freeze(self) -> None:
@@ -70,13 +71,14 @@ class MyActorNet(DiscretePolicyNet):
 
 
 class MyCriticNet(VNet):
-    def __init__(self, state_dim: int) -> None:
+    def __init__(self, state_dim: int, num_features: int) -> None:
         super(MyCriticNet, self).__init__(state_dim=state_dim)
-        self._critic = FullyConnected(input_dim=state_dim, **critic_net_conf)
+        self._num_features = num_features
+        self._critic = FullyConnected(input_dim=num_features, output_dim=1, **critic_net_conf)
         self._critic_optim = SGD(self._critic.parameters(), lr=critic_learning_rate)
 
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
-        features, masks = states[:, :self._state_dim], states[:, self._state_dim:]
+        features, masks = states[:, :self._num_features], states[:, self._num_features:]
         masks += 1e-8  # this is to prevent zero probability and infinite logP. 
         return self._critic(features).squeeze(-1)
 
@@ -107,16 +109,16 @@ class MyCriticNet(VNet):
         self.unfreeze_all_parameters()
 
 
-def get_discrete_policy_gradient(name: str, *, state_dim: int, action_num: int) -> DiscretePolicyGradient:
-    return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
+def get_policy(state_dim: int, action_num: int, num_features: int, name: str) -> DiscretePolicyGradient:
+    return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num, num_features))
 
 
-def get_ac(name: str, *, state_dim: int) -> DiscreteActorCritic:
+def get_ac(state_dim: int, num_features: int, name: str) -> DiscreteActorCritic:
     return DiscreteActorCritic(
         name=name,
         params=DiscreteActorCriticParams(
             device="cpu",
-            get_v_critic_net_func=lambda: MyCriticNet(state_dim),
+            get_v_critic_net_func=lambda: MyCriticNet(state_dim, num_features),
             reward_discount=0.9,
             grad_iters=100,
             critic_loss_cls=torch.nn.MSELoss,

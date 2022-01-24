@@ -188,10 +188,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def __init__(
         self,
         get_env: Callable[[], Env],
-        #
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        agent_wrapper_cls: Type[AbsAgentWrapper],
+        agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
         get_test_env: Callable[[], Env] = None,
         device: str = None

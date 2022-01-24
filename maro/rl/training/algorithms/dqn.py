@@ -94,11 +94,10 @@ class DQNOps(AbsTrainOps):
                 self._target_policy.exploit()
                 actions = self._target_policy.get_actions_tensor(next_states)
                 next_q_values = self._target_policy.q_values_tensor(next_states, actions)
-        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
 
+        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
         q_values = self._policy.q_values_tensor(states, actions)
         loss: torch.Tensor = self._loss_func(q_values, target_q_values)
-
         return self._policy.get_gradients(loss)
 
     def get_state(self, scope: str = "all") -> dict:

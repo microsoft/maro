@@ -9,21 +9,21 @@ from typing import Any, Callable, Dict, Optional, Tuple
 import numpy as np
 
 from maro.rl.policy import RLPolicy
-from maro.rl.rollout import AbsEnvSampler, CacheElement, SimpleAgentWrapper
+from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
 vm_path = dirname(realpath(__file__))
 sys.path.insert(0, vm_path)
 from config import (
-    algorithm, env_conf, pm_attributes, pm_window_size, reward_shaping_conf, num_features, seed, test_env_conf,
+    algorithm, env_conf, num_features, pm_attributes, pm_window_size, reward_shaping_conf, seed, test_env_conf,
     test_reward_shaping_conf, test_seed
 )
 
 
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, get_policy_func_dict, agent2policy, get_test_env=None):
-        super().__init__(get_env, get_policy_func_dict, agent2policy, get_test_env=get_test_env)
+    def __init__(self, get_env, policy_creator, agent2policy, get_test_env=None):
+        super().__init__(get_env, policy_creator, agent2policy, get_test_env=get_test_env)
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
 
@@ -61,7 +61,7 @@ class VMEnvSampler(AbsEnvSampler):
         if action_dict["AGENT"] == self.num_pms:
             return {"AGENT": PostponeAction(vm_id=event.vm_id, postpone_step=1)}
         else:
-            return {"AGENT": AllocateAction(vm_id=event.vm_id, pm_id=action_dict["AGENT"])}
+            return {"AGENT": AllocateAction(vm_id=event.vm_id, pm_id=action_dict["AGENT"][0])}
 
     def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionPayload, tick: int) -> Dict[Any, float]:
         action = env_action_dict["AGENT"]
@@ -120,20 +120,18 @@ class VMEnvSampler(AbsEnvSampler):
             self._tracker["action_sequence"] = []
 
         action = cache_element.action_dict["AGENT"]
-        if cache_element.event:
+        if cache_element.state:
             mask = cache_element.state[num_features:]
-            self._tracker["actions_by_core_requirement"][self.event.vm_cpu_cores_requirement].append([action, mask])
+            self._tracker["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append([action, mask])
         self._tracker["action_sequence"].append(action)
 
 
-agent2policy = {"AGENT": algorithm}
+agent2policy = {"AGENT": f"{algorithm}.policy"}
 
 def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> VMEnvSampler:
     return VMEnvSampler(
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
         agent2policy=agent2policy,
-        get_test_env=lambda: Env(**test_env_conf),
-        agent_wrapper_cls=SimpleAgentWrapper,
-        device="cpu"
+        get_test_env=lambda: Env(**test_env_conf)
     )
