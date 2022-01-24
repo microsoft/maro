@@ -388,6 +388,9 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
         # Step 8
         self._init_metrics()
 
+    def set_seed(self, seed: int) -> None:
+        self._random_seed = seed
+
     def _refresh_plan_duration(self, tick: int, route_idx: int, index: int = 0) -> None:
         carrier_idx = self._routes[route_idx].carrier_idx
         plan = self._routes[route_idx].remaining_plan
