@@ -24,7 +24,6 @@ class DiscreteActorCriticParams(TrainerParams):
     get_v_critic_net_func (Callable[[], VNet]): Function to get V critic net.
     reward_discount (float): Reward decay as defined in standard RL terminology. Defaults to 0.9.
     grad_iters (int): Number of iterations to calculate gradients. Defaults to 1.
-    critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
     critic_loss_cls (Callable): Loss function. Defaults to "mse".
     clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
         in which case the actor loss is calculated using the usual policy gradient theorem.
@@ -35,7 +34,6 @@ class DiscreteActorCriticParams(TrainerParams):
     get_v_critic_net_func: Callable[[], VNet] = None
     reward_discount: float = 0.9
     grad_iters: int = 1
-    critic_loss_coef: float = 0.1
     critic_loss_cls: Callable = None
     clip_ratio: float = None
     lam: float = 0.9
@@ -49,7 +47,6 @@ class DiscreteActorCriticParams(TrainerParams):
             "device": self.device,
             "get_v_critic_net_func": self.get_v_critic_net_func,
             "reward_discount": self.reward_discount,
-            "critic_loss_coef": self.critic_loss_coef,
             "critic_loss_cls": self.critic_loss_cls,
             "clip_ratio": self.clip_ratio,
             "lam": self.lam,
@@ -65,7 +62,6 @@ class DiscreteActorCriticOps(AbsTrainOps):
         get_v_critic_net_func: Callable[[], VNet],
         *,
         reward_discount: float = 0.9,
-        critic_loss_coef: float = 0.1,
         critic_loss_cls: Callable = None,
         clip_ratio: float = None,
         lam: float = 0.9,
@@ -80,7 +76,6 @@ class DiscreteActorCriticOps(AbsTrainOps):
         assert isinstance(self._policy, DiscretePolicyGradient)
 
         self._reward_discount = reward_discount
-        self._critic_loss_coef = critic_loss_coef
         self._critic_loss_func = critic_loss_cls() if critic_loss_cls is not None else torch.nn.MSELoss()
         self._clip_ratio = clip_ratio
         self._lam = lam
@@ -88,19 +83,27 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net = get_v_critic_net_func()
         self._v_critic_net.to(self._device)
 
-    @remote
-    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         self._v_critic_net.train()
-
         states = ndarray_to_tensor(batch.states, self._device)  # s
         state_values = self._v_critic_net.v_values(states)
         returns = ndarray_to_tensor(batch.returns, self._device)
-        critic_loss = self._critic_loss_func(state_values, returns)
-
-        return self._v_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
+        return self._critic_loss_func(state_values, returns)
 
     @remote
-    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
+
+    def update_critic(self, batch: TransitionBatch) -> None:
+        self._policy.step(self._get_critic_loss(batch))
+
+    def update_critic_with_grad(self, grad_dict: dict) -> None:
+        """Reference: https://tinyurl.com/2ezte4cr
+        """
+        self._v_critic_net.train()
+        self._v_critic_net.apply_gradients(grad_dict)
+
+    def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
         assert isinstance(self._policy, DiscretePolicyGradient)
         self._policy.train()
 
@@ -124,15 +127,16 @@ class DiscreteActorCriticOps(AbsTrainOps):
         else:
             actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
 
-        return self._policy.get_gradients(actor_loss)
+        return actor_loss
 
-    def update_critic(self, grad_dict: dict) -> None:
-        """Reference: https://tinyurl.com/2ezte4cr
-        """
-        self._v_critic_net.train()
-        self._v_critic_net.apply_gradients(grad_dict)
+    @remote
+    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        return self._policy.get_gradients(self._get_actor_loss(batch))
 
-    def update_actor(self, grad_dict: dict) -> None:
+    def update_actor(self, batch: TransitionBatch) -> None:
+        self._policy.step(self._get_actor_loss(batch))
+
+    def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Reference: https://tinyurl.com/2ezte4cr
         """
         self._policy.train()
@@ -188,13 +192,10 @@ class DiscreteActorCritic(SingleTrainer):
 
     def build(self) -> None:
         self._ops = self.get_ops(self._ops_name)
-
-        state_dim = self._ops.policy_state_dim()
-        action_dim = self._ops.policy_action_dim()
         self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
-            state_dim=state_dim,
-            action_dim=action_dim
+            state_dim=self._ops.policy_state_dim,
+            action_dim=self._ops.policy_action_dim
         ))
 
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
@@ -219,21 +220,19 @@ class DiscreteActorCritic(SingleTrainer):
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
         return self._ops.preprocess_and_merge_batches(batch_list)
 
-    async def train_step_remote(self):
+    def train(self):
+        assert not isinstance(self._ops, RemoteOps)
+        batch = self._get_batch()
+        for _ in range(self._params.grad_iters):
+            self._ops.update_critic(batch)
+            self._ops.update_actor(batch)
+
+    async def train_as_task(self):
         assert isinstance(self._ops, RemoteOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
             critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
             actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
-            self._ops.update_critic(average_grads(critic_grad_list))
-            self._ops.update_actor(average_grads(actor_grad_list))
-
-    def train_step(self):
-        batch = self._get_batch()
-        for _ in range(self._params.grad_iters):
-            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
-            actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
-            self._ops.update_critic(average_grads(critic_grad_list))
-            self._ops.update_actor(average_grads(actor_grad_list))
+            self._ops.update_critic_with_grad(average_grads(critic_grad_list))
+            self._ops.update_actor_with_grad(average_grads(actor_grad_list))

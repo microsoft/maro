@@ -29,7 +29,6 @@ class DDPGParams(TrainerParams):
         the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
     soft_update_coef (float): Soft update coefficient, e.g., target_model = (soft_update_coef) * eval_model +
         (1-soft_update_coef) * target_model. Defaults to 1.0.
-    critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 0.1.
     random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
         overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
         wrap-around. Defaults to False.
@@ -40,7 +39,6 @@ class DDPGParams(TrainerParams):
     update_target_every: int = 5
     q_value_loss_cls: Callable = None
     soft_update_coef: float = 1.0
-    critic_loss_coef: float = 0.1
     random_overwrite: bool = False
 
     def __post_init__(self) -> None:
@@ -52,8 +50,7 @@ class DDPGParams(TrainerParams):
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "reward_discount": self.reward_discount,
             "q_value_loss_cls": self.q_value_loss_cls,
-            "soft_update_coef": self.soft_update_coef,
-            "critic_loss_coef": self.critic_loss_coef,
+            "soft_update_coef": self.soft_update_coef
         }
 
 
@@ -67,8 +64,7 @@ class DDPGOps(AbsTrainOps):
         *,
         reward_discount: float,
         q_value_loss_cls: Callable = None,
-        soft_update_coef: float = 1.0,
-        critic_loss_coef: float = 0.1
+        soft_update_coef: float = 1.0
     ) -> None:
         super(DDPGOps, self).__init__(
             device=device,
@@ -90,11 +86,9 @@ class DDPGOps(AbsTrainOps):
 
         self._reward_discount = reward_discount
         self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
-        self._critic_loss_coef = critic_loss_coef
         self._soft_update_coef = soft_update_coef
 
-    @remote
-    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         assert self._is_valid_transition_batch(batch)
         self._q_critic_net.train()
         states = ndarray_to_tensor(batch.states, self._device)  # s
@@ -111,14 +105,22 @@ class DDPGOps(AbsTrainOps):
 
         # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
-
         q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
-        critic_loss = self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
-
-        return self._q_critic_net.get_gradients(critic_loss * self._critic_loss_coef)
+        return self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
 
     @remote
-    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        return self._q_critic_net.get_gradients(self._get_critic_loss(batch))
+
+    def update_critic_with_grad(self, grad_dict: dict) -> None:
+        self._q_critic_net.train()
+        self._q_critic_net.apply_gradients(grad_dict)
+
+    def update_critic(self, batch: TransitionBatch) -> None:
+        self._q_critic_net.train()
+        self._q_critic_net.step(self._get_critic_loss(batch))
+
+    def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
         assert self._is_valid_transition_batch(batch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)  # s
@@ -128,15 +130,19 @@ class DDPGOps(AbsTrainOps):
             actions=self._policy.get_actions_tensor(states)  # miu(s)
         ).mean()  # -Q(s, miu(s))
 
-        return self._policy.get_gradients(policy_loss)
+        return policy_loss
 
-    def update_critic(self, grad_dict: dict) -> None:
-        self._q_critic_net.train()
-        self._q_critic_net.apply_gradients(grad_dict)
+    @remote
+    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        return self._policy.get_gradients(self._get_actor_loss(batch))
 
-    def update_actor(self, grad_dict: dict) -> None:
+    def update_actor_with_grad(self, grad_dict: dict) -> None:
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
+
+    def update_actor(self, batch: TransitionBatch) -> None:
+        self._policy.train()
+        self._policy.step(self._get_actor_loss(batch))
 
     def get_state(self, scope: str = "all") -> dict:
         ret_dict = {}
@@ -181,8 +187,8 @@ class DDPG(SingleTrainer):
         self._ops = self.get_ops(self._ops_name)
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
-            state_dim=self._ops.policy_state_dim(),
-            action_dim=self._ops.policy_action_dim(),
+            state_dim=self._ops.policy_state_dim,
+            action_dim=self._ops.policy_action_dim,
             random_overwrite=self._params.random_overwrite
         )
 
@@ -206,22 +212,32 @@ class DDPG(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    async def train_step(self) -> None:
+    def train(self) -> None:
+        assert not isinstance(self._ops, RemoteOps)
+        for _ in range(self._params.num_epochs):
+            batch = self._get_batch()
+            self._ops.update_critic(batch)
+            self._ops.update_actor(batch)
+
+        self._policy_version += 1
+        self._try_soft_update_target()
+
+    async def train_as_task(self) -> None:
+        assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
             # update critic
-            critic_grad_list = [self._ops.get_critic_grad(batch) for batch in batches]
-            if isinstance(self._ops, RemoteOps):
-                critic_grad_list = await asyncio.gather(*critic_grad_list)
-            self._ops.update_critic(average_grads(critic_grad_list))
+            critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
+            self._ops.update_critic_with_grad(average_grads(critic_grad_list))
             # update actor
-            actor_grad_list = [self._ops.get_actor_grad(batch) for batch in batches]
-            if isinstance(self._ops, RemoteOps):
-                actor_grad_list = await asyncio.gather(*actor_grad_list)
-            self._ops.update_actor(average_grads(actor_grad_list))
+            actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
+            self._ops.update_actor_with_grad(average_grads(actor_grad_list))
 
         self._policy_version += 1
+        self._try_soft_update_target()
+
+    def _try_soft_update_target(self) -> None:
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             self._ops.soft_update_target()
             self._target_policy_version = self._policy_version

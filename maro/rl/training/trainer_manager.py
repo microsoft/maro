@@ -54,11 +54,11 @@ class TrainerManager(object):
     def train(self) -> None:
         if self._dispatcher_address:
             async def train_step() -> Iterable:
-                return await asyncio.gather(*[trainer.train_step_remote() for trainer in self._trainers])
+                return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainers])
             asyncio.run(train_step())
         else:
             for trainer in self._trainers:
-                trainer.train_step()
+                trainer.train()
 
     def get_policy_state(self) -> Dict[str, Dict[str, object]]:
         """Get policies' states.

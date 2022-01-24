@@ -16,6 +16,7 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
     def __init__(self) -> None:
         super(AbsNet, self).__init__()
 
+    @abstractmethod
     def step(self, loss: torch.Tensor) -> None:
         """
         Run a training step to update its own parameters according to the given loss.
@@ -23,7 +24,7 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         Args:
             loss (torch.tensor): Loss used to update the model.
         """
-        self.apply_gradients(self.get_gradients(loss))
+        raise NotImplementedError
 
     @abstractmethod
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:

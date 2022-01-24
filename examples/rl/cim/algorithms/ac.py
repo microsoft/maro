@@ -34,7 +34,7 @@ class MyActorNet(DiscretePolicyNet):
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(MyActorNet, self).__init__(state_dim=state_dim, action_num=action_num)
         self._actor = FullyConnected(input_dim=state_dim, output_dim=action_num, **actor_net_conf)
-        self._actor_optim = Adam(self._actor.parameters(), lr=actor_learning_rate)
+        self._optim = Adam(self._actor.parameters(), lr=actor_learning_rate)
 
     def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
         return self._actor(states)
@@ -45,55 +45,65 @@ class MyActorNet(DiscretePolicyNet):
     def unfreeze(self) -> None:
         self.unfreeze_all_parameters()
 
+    def step(self, loss: torch.Tensor) -> None:
+        self._optim.zero_grad()
+        loss.backward()
+        self._optim.step()
+
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        self._actor_optim.zero_grad()
+        self._optim.zero_grad()
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
 
     def apply_gradients(self, grad: dict) -> None:
         for name, param in self.named_parameters():
             param.grad = grad[name]
-        self._actor_optim.step()
+        self._optim.step()
 
     def get_net_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "actor_optim": self._actor_optim.state_dict()
+            "optim": self._optim.state_dict()
         }
 
     def set_net_state(self, net_state: dict) -> None:
         self.load_state_dict(net_state["network"])
-        self._actor_optim.load_state_dict(net_state["actor_optim"])
+        self._optim.load_state_dict(net_state["optim"])
 
 
 class MyCriticNet(VNet):
     def __init__(self, state_dim: int) -> None:
         super(MyCriticNet, self).__init__(state_dim=state_dim)
         self._critic = FullyConnected(input_dim=state_dim, **critic_net_conf)
-        self._critic_optim = RMSprop(self._critic.parameters(), lr=critic_learning_rate)
+        self._optim = RMSprop(self._critic.parameters(), lr=critic_learning_rate)
 
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
         return self._critic(states).squeeze(-1)
 
+    def step(self, loss: torch.Tensor) -> None:
+        self._optim.zero_grad()
+        loss.backward()
+        self._optim.step()
+
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        self._critic_optim.zero_grad()
+        self._optim.zero_grad()
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
 
     def apply_gradients(self, grad: dict) -> None:
         for name, param in self.named_parameters():
             param.grad = grad[name]
-        self._critic_optim.step()
+        self._optim.step()
 
     def get_net_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "critic_optim": self._critic_optim.state_dict()
+            "optim": self._optim.state_dict()
         }
 
     def set_net_state(self, net_state: dict) -> None:
         self.load_state_dict(net_state["network"])
-        self._critic_optim.load_state_dict(net_state["critic_optim"])
+        self._optim.load_state_dict(net_state["optim"])
 
     def freeze(self) -> None:
         self.freeze_all_parameters()

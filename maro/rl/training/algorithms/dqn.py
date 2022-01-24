@@ -75,8 +75,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy.eval()
         self._target_policy.to_device(self._device)
 
-    @remote
-    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+    def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
         assert self._is_valid_transition_batch(batch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)
@@ -97,8 +96,19 @@ class DQNOps(AbsTrainOps):
 
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
         q_values = self._policy.q_values_tensor(states, actions)
-        loss: torch.Tensor = self._loss_func(q_values, target_q_values)
-        return self._policy.get_gradients(loss)
+        return self._loss_func(q_values, target_q_values)
+
+    @remote
+    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+        return self._policy.get_gradients(self._get_batch_loss(batch))
+
+    def update_with_grad(self, grad_dict: dict) -> None:
+        self._policy.train()
+        self._policy.apply_gradients(grad_dict)
+
+    def update(self, batch: TransitionBatch) -> None:
+        self._policy.train()
+        self._policy.step(self._get_batch_loss(batch))
 
     def get_state(self, scope: str = "all") -> dict:
         return {
@@ -109,10 +119,6 @@ class DQNOps(AbsTrainOps):
     def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         self._policy.set_state(ops_state_dict["policy_state"])
         self._target_policy.set_state(ops_state_dict["target_q_net_state"])
-
-    def update(self, grad_dict: dict) -> None:
-        self._policy.train()
-        self._policy.apply_gradients(grad_dict)
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
@@ -135,8 +141,8 @@ class DQN(SingleTrainer):
         self._ops = self.get_ops(self._ops_name)
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
-            state_dim=self._ops.policy_state_dim(),
-            action_dim=self._ops.policy_action_dim(),
+            state_dim=self._ops.policy_state_dim,
+            action_dim=self._ops.policy_action_dim,
             random_overwrite=self._params.random_overwrite
         )
 
@@ -160,16 +166,26 @@ class DQN(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    async def train_step(self) -> None:
+    def train(self) -> None:
+        assert not isinstance(self._ops, RemoteOps)
+        for _ in range(self._params.num_epochs):
+            self._ops.update(self._get_batch())
+
+        self._q_net_version += 1
+        self._try_soft_update_target()
+
+    async def train_as_task(self) -> None:
+        assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            grad_list = [self._ops.get_batch_grad(batch) for batch in batches]
-            if isinstance(self._ops, RemoteOps):
-                grad_list = await asyncio.gather(*grad_list)
-            self._ops.update(average_grads(grad_list))
+            grad_list = await asyncio.gather(*[self._ops.get_batch_grad(batch) for batch in batches])
+            self._ops.update_with_grad(average_grads(grad_list))
 
         self._q_net_version += 1
+        self._try_soft_update_target()
+
+    def _try_soft_update_target(self):
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
             self._ops.soft_update_target()
             self._target_q_net_version = self._q_net_version

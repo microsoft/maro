@@ -167,6 +167,9 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         return self._policy_net.get_actions(states, exploring)
 
+    def step(self, loss: torch.Tensor) -> None:
+        self._policy_net.step(loss)
+
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         return self._policy_net.get_gradients(loss)
 

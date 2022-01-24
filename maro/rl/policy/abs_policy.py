@@ -131,6 +131,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         """
         self._is_exploring = False
 
+    @abstractmethod
     def step(self, loss: torch.Tensor) -> None:
         """
         Run a training step to update the policy.
@@ -138,7 +139,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         Args:
             loss (torch.Tensor): Loss used to update the policy.
         """
-        self.apply_gradients(self.get_gradients(loss))
+        raise NotImplementedError
 
     @abstractmethod
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
