@@ -14,7 +14,6 @@ from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
-from .utils import random
 from .utils.common import tick_to_frame_index
 
 
@@ -181,9 +180,8 @@ class Env(AbsEnv):
         Args:
             seed (int): Seed to set.
         """
-
-        if seed is not None:
-            random.seed(seed)
+        assert seed is not None and isinstance(seed, int)
+        self._business_engine.set_seed(seed)
 
     @property
     def metrics(self) -> dict:

@@ -438,6 +438,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         self._cpu_reader.reset()
 
+    def set_seed(self, seed: int) -> None:
+        pass
+
     def _init_frame(self):
         self._frame = build_frame(
             snapshots_num=self.calc_max_snapshots(),
