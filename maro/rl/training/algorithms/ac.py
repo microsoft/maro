@@ -13,9 +13,7 @@ from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl.utils import (
-    TransitionBatch, average_grads, discount_cumsum, merge_transition_batches, ndarray_to_tensor
-)
+from maro.rl.utils import TransitionBatch, average_grads, discount_cumsum, merge_transition_batches, ndarray_to_tensor
 
 
 @dataclass

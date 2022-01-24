@@ -8,7 +8,7 @@ from typing import Callable, Tuple
 
 import torch
 import zmq
-from zmq.asyncio import Context
+from zmq.asyncio import Context, Poller
 
 from maro.rl.policy import RLPolicy
 from maro.rl.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
@@ -103,12 +103,11 @@ class AsyncClient(object):
 
     async def get_response(self) -> object:
         while True:
-            try:
-                result = await self._socket.recv_multipart(flags=zmq.NOBLOCK)
+            events = await self._poller.poll(timeout=100)
+            if self._socket in dict(events):
+                result = await self._socket.recv_multipart()
                 self._logger.info(f"{self._name} received result")
                 return bytes_to_pyobj(result[0])
-            except zmq.ZMQError:
-                continue
 
     def close(self):
         self._socket.disconnect(self._address)
@@ -120,6 +119,8 @@ class AsyncClient(object):
         self._socket.setsockopt(zmq.LINGER, 0)
         self._socket.connect(self._address)
         self._logger.info(f"connected to {self._address}")
+        self._poller = Poller()
+        self._poller.register(self._socket, zmq.POLLIN)
 
 
 class RemoteOps(object):

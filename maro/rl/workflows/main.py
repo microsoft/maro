@@ -7,9 +7,7 @@ from typing import List
 
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainerManager
-from maro.rl.utils.common import (
-    from_env, from_env_as_float, from_env_as_int, get_eval_schedule, get_logger, get_module
-)
+from maro.rl.utils.common import from_env, from_env_as_float, from_env_as_int, get_eval_schedule, get_logger, get_module
 from maro.rl.workflows.utils import ScenarioAttr, _get_scenario_path
 
 if __name__ == "__main__":
