@@ -20,6 +20,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     """
     Agent wrapper is used to manager agents & policies during experiences collection.
     """
+
     def __init__(
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
@@ -185,6 +186,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     """
     Simulation data collector and policy evaluator.
     """
+
     def __init__(
         self,
         get_env: Callable[[], Env],

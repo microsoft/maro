@@ -13,6 +13,7 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
     """
     Base class for all Torch net classes. It has the interfaces for both training and inference.
     """
+
     def __init__(self) -> None:
         super(AbsNet, self).__init__()
 

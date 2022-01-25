@@ -57,6 +57,7 @@ class DummyPolicy(AbsPolicy):
     """
     Dummy policy that takes no actions.
     """
+
     def __init__(self) -> None:
         super(DummyPolicy, self).__init__(name='DUMMY_POLICY', trainable=False)
 
@@ -68,6 +69,7 @@ class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
     """
     Rule-based policy. The user should implement the rule of this policy, and a rule-based policy is not trainable.
     """
+
     def __init__(self, name: str) -> None:
         super(RuleBasedPolicy, self).__init__(name=name, trainable=False)
 
@@ -83,6 +85,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     """
     Reinforcement learning policy.
     """
+
     def __init__(
         self,
         name: str,

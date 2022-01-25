@@ -15,6 +15,7 @@ class QNet(AbsNet, metaclass=ABCMeta):
     """
     Net for Q functions.
     """
+
     def __init__(self, state_dim: int, action_dim: int) -> None:
         """
         Args:
@@ -76,6 +77,7 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
     """
     Net for Q functions with discrete actions.
     """
+
     def __init__(self, state_dim: int, action_num: int) -> None:
         """
         Args:
@@ -123,5 +125,6 @@ class ContinuousQNet(QNet, metaclass=ABCMeta):
     """
     Net for Q functions with continuous actions.
     """
+
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(ContinuousQNet, self).__init__(state_dim=state_dim, action_dim=action_dim)

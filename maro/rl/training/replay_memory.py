@@ -343,37 +343,3 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
 
     def _get_forbid_last(self) -> bool:
         return not self._terminals[self._idx_scheduler.get_last_index()]
-
-
-# if __name__ == '__main__':
-    # memory = FIFOReplayMemory(capacity=10, state_dim=5, action_dim=3)
-    # for i in range(1, 10):
-    #     print(f"\nput i")
-    #     memory.put(
-    #         states=np.ones((i, 5)),
-    #         actions=np.ones((i, 3)),
-    #         rewards=np.ones(i),
-    #         terminals=np.zeros(i),
-    #         next_states=np.ones((i, 5))
-    #     )
-    #
-    #     print(memory._idx_scheduler._head, memory._idx_scheduler._tail, memory._idx_scheduler._size)
-    #     if i % 3 == 0:
-    #         memory.sample()
-    #         print(memory._idx_scheduler._head, memory._idx_scheduler._tail, memory._idx_scheduler._size)
-    #
-    # memory = RandomReplayMemory(capacity=10, state_dim=5, action_dim=3, random_overwrite=True)
-    # for i in range(1, 10):
-    #     print(f"\nput i")
-    #     memory.put(
-    #         states=np.ones((i, 5)),
-    #         actions=np.ones((i, 3)),
-    #         rewards=np.ones(i),
-    #         terminals=np.zeros(i),
-    #         next_states=np.ones((i, 5))
-    #     )
-    #
-    #     print(memory._idx_scheduler._size, memory._idx_scheduler._ptr)
-    #     if i % 3 == 0:
-    #         memory.sample(3)
-    #         print(memory._idx_scheduler._size, memory._idx_scheduler._ptr)

@@ -43,6 +43,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     """
     Valued-based policy.
     """
+
     def __init__(
         self,
         name: str,
@@ -148,6 +149,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     """
     Policy gradient policy that generates discrete actions.
     """
+
     def __init__(
         self,
         name: str,

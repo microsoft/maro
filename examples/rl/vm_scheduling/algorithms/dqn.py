@@ -40,7 +40,7 @@ class MyQNet(DiscreteQNet):
         q_for_all_actions = self._fc(states[:, :self._num_features])
         return q_for_all_actions + (masks - 1) * 1e8
 
-    def step(self, loss: torch.Tensor):
+    def step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()

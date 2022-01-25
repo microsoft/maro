@@ -13,9 +13,7 @@ from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
-vm_path = dirname(realpath(__file__))
-sys.path.insert(0, vm_path)
-from config import (
+from .config import (
     algorithm, env_conf, num_features, pm_attributes, pm_window_size, reward_shaping_conf, seed, test_env_conf,
     test_reward_shaping_conf, test_seed
 )
