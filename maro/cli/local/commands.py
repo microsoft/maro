@@ -13,7 +13,7 @@ import redis
 import yaml
 
 from maro.cli.utils.common import close_by_pid, show_log
-from maro.rl_v3.utils.common import get_log_path
+from maro.rl.utils.common import get_log_path
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 

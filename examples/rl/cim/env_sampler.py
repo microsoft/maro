@@ -5,8 +5,8 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
 
-from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.rollout import AbsEnvSampler, CacheElement, SimpleAgentWrapper
+from maro.rl.policy import RLPolicy
+from maro.rl.rollout import AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
@@ -57,7 +57,7 @@ class CIMEnvSampler(AbsEnvSampler):
 
         return {port_idx: Action(vsl_idx, int(port_idx), actual_action, action_type)}
 
-    def _get_reward(self, env_action_dict: Dict[Any, object], tick: int) -> Dict[Any, float]:
+    def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionEvent, tick: int) -> Dict[Any, float]:
         start_tick = tick + 1
         ticks = list(range(start_tick, start_tick + reward_shaping_conf["time_window"]))
 
@@ -78,14 +78,12 @@ class CIMEnvSampler(AbsEnvSampler):
         self._tracker["env_metric"] = self._env.metrics
 
 
-agent2policy = {agent: f"{algorithm}_{agent}.{agent}" for agent in Env(**env_conf).agent_idx_list}
+agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in Env(**env_conf).agent_idx_list}
 
 
 def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> CIMEnvSampler:
     return CIMEnvSampler(
-        get_env_func=lambda: Env(**env_conf),
+        get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
-        agent2policy=agent2policy,
-        agent_wrapper_cls=SimpleAgentWrapper,
-        device="cpu"
+        agent2policy=agent2policy
     )

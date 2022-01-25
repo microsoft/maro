@@ -141,8 +141,7 @@ def get_docker_compose_yml(config: dict, context: str, dockerfile_path: str, ima
             f"{config['scenario_path']}:{config_parser.get_mnt_path_in_container('scenario')}",
             f"{config['log_path']}:{config_parser.get_mnt_path_in_container('logs')}",
             f"{config['checkpoint_path']}:{config_parser.get_mnt_path_in_container('checkpoints')}",
-            f"{config['load_path']}:{config_parser.get_mnt_path_in_container('loadpoint')}",
-            "/home/yaqiu/maro/maro/rl_v3:/maro/maro/rl_v3"
+            f"{config['load_path']}:{config_parser.get_mnt_path_in_container('loadpoint')}"
         ]
     }
     job = config["job"]

@@ -2,15 +2,15 @@
 # Licensed under the MIT license.
 
 job: cim
-scenario_path: "/home/yaqiu/maro/examples/rl/cim"
-load_path: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
-checkpoint_path: "/home/yaqiu/maro/examples/rl/checkpoints/cim"
-log_path: "/home/yaqiu/maro/examples/rl/logs"
+scenario_path: "/path/to/your/scenario"
+load_path: "/path/to/your/models"
+checkpoint_path: "/path/to/your/checkpoint/folder"
+log_path: "/path/to/your/log/folder"
 num_episodes: 20
 num_steps: -1
 eval_schedule: 5
 rollout:
-  mode: parallel   # simple, parallel
+  mode: simple   # simple, parallel
   parallelism: 3
   eval_parallelism: 1
   min_env_samples: 2
@@ -21,7 +21,7 @@ rollout:
     backend: 20001
     num_workers: 3
 training:
-  mode: parallel  # simple, parallel
+  mode: simple  # simple, parallel
   dispatching:   # ignored under simple mode
     host: dispatcher
     frontend: 10000
