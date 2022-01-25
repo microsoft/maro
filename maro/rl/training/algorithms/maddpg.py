@@ -285,8 +285,8 @@ class DiscreteMADDPG(MultiTrainer):
             return DiscreteMADDPGOps(**ops_params)
 
     def train(self):
-        assert isinstance(self._critic_ops, RemoteOps)
-        assert all(isinstance(ops, RemoteOps) for ops in self._actor_ops_list)
+        assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
+        assert all(isinstance(ops, DiscreteMADDPGOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
             batch = self._get_batch()
             # Collect next actions
@@ -312,7 +312,7 @@ class DiscreteMADDPG(MultiTrainer):
             self._try_soft_update_target()
 
     async def train_as_task(self):
-        assert isinstance(self._critic_ops, RemoteOps)
+        assert not self._params.shared_critic or isinstance(self._critic_ops, RemoteOps)
         assert all(isinstance(ops, RemoteOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
             batch = self._get_batch()

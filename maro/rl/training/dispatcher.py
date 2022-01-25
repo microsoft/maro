@@ -25,6 +25,5 @@ class TrainOpsDispatcher(AbsDispatcher):
             self._req_endpoint.send_multipart(msg[1:])
 
         self._available_workers.append(msg[0])
-        if not self._worker_ready:
-            self._worker_ready = True
-            self._req_endpoint.on_recv(self._route_request_to_compute_node)
+        self._worker_ready = True
+        self._req_endpoint.on_recv(self._route_request_to_compute_node)

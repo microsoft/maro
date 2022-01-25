@@ -404,5 +404,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 _, agent_state_dict = self._get_global_and_agent_state(event)
         return {"info": [self._tracker]}
 
+    @abstractmethod
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        pass
+        raise NotImplementedError

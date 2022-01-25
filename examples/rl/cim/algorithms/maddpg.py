@@ -82,6 +82,11 @@ class MyMultiCriticNet(MultiQNet):
     def _get_q_values(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
         return self._critic(torch.cat([states] + actions, dim=1)).squeeze(-1)
 
+    def step(self, loss: torch.Tensor) -> None:
+        self._optim.zero_grad()
+        loss.backward()
+        self._optim.step()
+
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         self._optim.zero_grad()
         loss.backward()
@@ -125,6 +130,6 @@ def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMAD
             reward_discount=.0,
             num_epoch=10,
             get_q_critic_net_func=partial(get_multi_critic_net, state_dim, action_dims),
-            # shared_critic=True,
+            shared_critic=False
         )
     )

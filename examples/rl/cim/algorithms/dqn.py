@@ -42,8 +42,6 @@ class MyQNet(DiscreteQNet):
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         self._optim.zero_grad()
         loss.backward()
-        print(f"sleeping for 5 seconds...")
-        time.sleep(5)
         return {name: param.grad for name, param in self.named_parameters()}
 
     def apply_gradients(self, grad: dict) -> None:
@@ -90,7 +88,7 @@ def get_dqn(name: str) -> DQN:
             device="cpu",
             reward_discount=.0,
             update_target_every=5,
-            num_epochs=1,
+            num_epochs=10,
             soft_update_coef=0.1,
             double=False,
             replay_memory_capacity=10000,

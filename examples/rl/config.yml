@@ -10,7 +10,7 @@ num_episodes: 20
 num_steps: -1
 eval_schedule: 5
 rollout:
-  mode: parallel   # simple, parallel
+  mode: simple   # simple, parallel
   parallelism: 3
   eval_parallelism: 1
   min_env_samples: 2
@@ -21,9 +21,9 @@ rollout:
     backend: 20001
     num_workers: 3
 training:
-  mode: parallel  # simple, parallel
+  mode: simple  # simple, parallel
   dispatching:   # ignored under simple mode
     host: dispatcher
     frontend: 10000
     backend: 10001
-    num_workers: 5
+    num_workers: 3
