@@ -150,8 +150,8 @@ class DDPGOps(AbsTrainOps):
             ret_dict["policy_state"] = self._policy.get_state()
             ret_dict["target_policy_state"] = self._target_policy.get_state()
         if scope in ("all", "critic"):
-            ret_dict["critic_state"] = self._q_critic_net.get_net_state()
-            ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
+            ret_dict["critic_state"] = self._q_critic_net.get_state()
+            ret_dict["target_critic_state"] = self._target_q_critic_net.get_state()
         return ret_dict
 
     def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
@@ -159,8 +159,8 @@ class DDPGOps(AbsTrainOps):
             self._policy.set_state(ops_state_dict["policy_state"])
             self._target_policy.set_state(ops_state_dict["target_policy_state"])
         if scope in ("all", "critic"):
-            self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
-            self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
+            self._q_critic_net.set_state(ops_state_dict["critic_state"])
+            self._target_q_critic_net.set_state(ops_state_dict["target_critic_state"])
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)

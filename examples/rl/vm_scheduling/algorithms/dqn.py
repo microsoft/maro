@@ -55,10 +55,10 @@ class MyQNet(DiscreteQNet):
             param.grad = grad[name]
         self._optim.step()
 
-    def get_net_state(self) -> object:
+    def get_state(self) -> object:
         return {"network": self.state_dict(), "optim": self._optim.state_dict()}
 
-    def set_net_state(self, net_state: object) -> None:
+    def set_state(self, net_state: object) -> None:
         assert isinstance(net_state, dict)
         self.load_state_dict(net_state["network"])
         self._optim.load_state_dict(net_state["optim"])

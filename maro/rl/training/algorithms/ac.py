@@ -93,7 +93,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
 
     def update_critic(self, batch: TransitionBatch) -> None:
-        self._policy.step(self._get_critic_loss(batch))
+        self._v_critic_net.step(self._get_critic_loss(batch))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
         """Reference: https://tinyurl.com/2ezte4cr
@@ -145,14 +145,14 @@ class DiscreteActorCriticOps(AbsTrainOps):
         if scope in ("all", "actor"):
             ret_dict["policy_state"] = self._policy.get_state()
         if scope in ("all", "critic"):
-            ret_dict["critic_state"] = self._v_critic_net.get_net_state()
+            ret_dict["critic_state"] = self._v_critic_net.get_state()
         return ret_dict
 
     def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
         if scope in ("all", "actor"):
             self._policy.set_state(ops_state_dict["policy_state"])
         if scope in ("all", "critic"):
-            self._v_critic_net.set_net_state(ops_state_dict["critic_state"])
+            self._v_critic_net.set_state(ops_state_dict["critic_state"])
 
     def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
         assert self._is_valid_transition_batch(batch)

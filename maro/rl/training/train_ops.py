@@ -110,6 +110,7 @@ class AsyncClient(object):
                 return bytes_to_pyobj(result[0])
 
     def close(self):
+        self._poller.unregister(self._socket)
         self._socket.disconnect(self._address)
         self._socket.close()
 

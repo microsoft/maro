@@ -103,24 +103,6 @@ class DiscreteMADDPGOps(AbsTrainOps):
         logps = self._policy.get_state_action_logps(agent_state, action)
         return action, logps
 
-    def get_state(self, scope: str = "all") -> dict:
-        ret_dict = {}
-        if scope in ("all", "actor") and self._create_actor:
-            ret_dict["policy_state"] = self._policy.get_state()
-            ret_dict["target_policy_state"] = self._target_policy.get_state()
-        if scope in ("all", "critic"):
-            ret_dict["critic_state"] = self._q_critic_net.get_net_state()
-            ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
-        return ret_dict
-
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor") and self._create_actor:
-            self._policy.set_state(ops_state_dict["policy_state"])
-            self._target_policy.set_state(ops_state_dict["target_policy_state"])
-        if scope in ("all", "critic"):
-            self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
-            self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
-
     def _get_critic_loss(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> torch.Tensor:
         assert not self._shared_critic
         assert isinstance(next_actions, list) and all(isinstance(action, torch.Tensor) for action in next_actions)
@@ -194,6 +176,24 @@ class DiscreteMADDPGOps(AbsTrainOps):
         if not self._shared_critic:
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
+    def get_state(self, scope: str = "all") -> dict:
+        ret_dict = {}
+        if scope in ("all", "actor") and self._create_actor:
+            ret_dict["policy"] = self._policy.get_state()
+            ret_dict["target_policy"] = self._target_policy.get_state()
+        if scope in ("all", "critic"):
+            ret_dict["critic"] = self._q_critic_net.get_state()
+            ret_dict["target_critic"] = self._target_q_critic_net.get_state()
+        return ret_dict
+
+    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
+        if scope in ("all", "actor") and self._create_actor:
+            self._policy.set_state(ops_state_dict["policy"])
+            self._target_policy.set_state(ops_state_dict["target_policy"])
+        if scope in ("all", "critic"):
+            self._q_critic_net.set_state(ops_state_dict["critic"])
+            self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
+
 
 class DiscreteMADDPG(MultiTrainer):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
@@ -205,12 +205,14 @@ class DiscreteMADDPG(MultiTrainer):
         self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
 
         self._actor_ops_list = []
+        self._actor_ops_dict = {}
         self._critic_ops = None
         self._replay_memory = None
         self._policy2agent = {}
 
     def build(self) -> None:
         self._actor_ops_list = [self.get_ops(f"{self._name}.actor_{i}_ops") for i in range(len(self._policy_names))]
+        self._actor_ops_dict = {ops.name: ops for ops in self._actor_ops_list}
         if self._params.shared_critic:
             self._critic_ops = self.get_ops(self._shared_critic_ops_name)
         else:
@@ -353,14 +355,34 @@ class DiscreteMADDPG(MultiTrainer):
             self._target_policy_version = self._policy_version
 
     def get_policy_state(self) -> Dict[str, object]:
-        if not self._actor_ops_list:
-            raise ValueError("'build' needs to be called to create an actor ops first.")
-
+        self._assert_ops_exists()
         ret_policy_state = {}
         for ops in self._actor_ops_list:
             policy_name, state = ops.get_policy_state()
             ret_policy_state[policy_name] = state
         return ret_policy_state
+
+    def load(self, path: str):
+        self._assert_ops_exists()
+        trainer_state = torch.load(path)
+        for ops_name, ops_state in trainer_state.items():
+            if ops_name == self._critic_ops.name:
+                self._critic_ops.set_state(ops_state)
+            else:
+                self._actor_ops_dict[ops_name].set_state(torch.load(path))
+
+    def save(self, path: str):
+        self._assert_ops_exists()
+        trainer_state = {ops.name: ops.get_state() for ops in self._actor_ops_list}
+        if self._params.shared_critic:
+            trainer_state[self._critic_ops.name] = self._critic_ops.get_state()
+        torch.save(trainer_state, path)
+
+    def _assert_ops_exists(self):
+        if not self._actor_ops_list:
+            raise ValueError("Call 'DiscreteMADDPG.build' to create actor ops first.")
+        if self._params.shared_critic and not self._critic_ops:
+            raise ValueError("Call 'DiscreteMADDPG.build' to create the critic ops first.")
 
     @staticmethod
     def get_policy_idx_from_ops_name(ops_name):

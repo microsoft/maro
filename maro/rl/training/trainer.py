@@ -5,6 +5,8 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+import torch
+
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
 
@@ -95,6 +97,14 @@ class AbsTrainer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def load(self, path: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def save(self, path: str):
+        raise NotImplementedError
+
 
 class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy.
@@ -126,10 +136,21 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._get_policy_func = lambda: self._policy_creator[self._policy_name](self._policy_name)
 
     def get_policy_state(self) -> Dict[str, object]:
-        if not self._ops:
-            raise ValueError("'build' needs to be called to create an ops instance first.")
+        self._assert_ops_exists()
         policy_name, state = self._ops.get_policy_state()
         return {policy_name: state}
+
+    def load(self, path: str):
+        self._assert_ops_exists()
+        self._ops.set_state(torch.load(path))
+
+    def save(self, path: str):
+        self._assert_ops_exists()
+        torch.save(self._ops.get_state(), path)
+
+    def _assert_ops_exists(self) -> None:
+        if not self._ops:
+            raise ValueError("'build' needs to be called to create an ops instance first.")
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):

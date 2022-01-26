@@ -63,6 +63,9 @@ if __name__ == "__main__":
     trainer_manager = TrainerManager(
         policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address
     )
+    if load_path:
+        trainer_manager.load(load_path)
+        logger.info(f"Loaded trainer states from {load_path}")
 
     # main loop
     for ep in range(1, num_episodes + 1):
@@ -74,7 +77,6 @@ if __name__ == "__main__":
             policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
             result = env_sampler.sample(policy_state=policy_state, num_steps=num_steps)
             experiences: List[List[ExpElement]] = result["experiences"]
-            logger.info(f"Roll-out finished (episode: {ep})")
             end_of_episode: bool = result["end_of_episode"]
 
             if post_collect:
@@ -82,14 +84,19 @@ if __name__ == "__main__":
 
             collect_time += time.time() - tc0
 
+            logger.info(f"Roll-out completed for episode {ep}. Training started...")
             tu0 = time.time()
             trainer_manager.record_experiences(experiences)
             trainer_manager.train()
+            if checkpoint_path:
+                pth = os.path.join(checkpoint_path, ep)
+                trainer_manager.save(pth)
+                logger.info(f"All trainer states saved under {pth}")
             training_time += time.time() - tu0
             segment += 1
 
         # performance details
-        logger.info(f"ep {ep} summary - collect time: {collect_time}, policy update time: {training_time}")
+        logger.info(f"ep {ep} roll-out time: {collect_time}, training time: {training_time}")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             policy_state = trainer_manager.get_policy_state() if not is_single_thread else None

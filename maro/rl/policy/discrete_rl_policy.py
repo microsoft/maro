@@ -131,10 +131,10 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         self._q_net.train()
 
     def get_state(self) -> object:
-        return self._q_net.get_net_state()
+        return self._q_net.get_state()
 
     def set_state(self, policy_state: object) -> None:
-        self._q_net.set_net_state(policy_state)
+        self._q_net.set_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, ValueBasedPolicy)
@@ -192,10 +192,10 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         self._policy_net.train()
 
     def get_state(self) -> object:
-        return self._policy_net.get_net_state()
+        return self._policy_net.get_state()
 
     def set_state(self, policy_state: object) -> None:
-        self._policy_net.set_net_state(policy_state)
+        self._policy_net.set_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, DiscretePolicyGradient)

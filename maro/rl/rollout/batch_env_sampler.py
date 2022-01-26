@@ -92,7 +92,12 @@ class BatchEnvSampler:
     def sample(
         self, policy_state: Dict[str, object] = None, num_steps: int = -1
     ) -> dict:
-        self._logger.info(f"Collecting simulation data (episode {self._ep}, segment {self._segment})")
+        if self._end_of_episode:
+            self._ep += 1
+            self._segment = 1
+        else:
+            self._segment += 1
+        self._logger.info(f"Collecting roll-out data for episode {self._ep}, segment {self._segment}")
         self._client.connect()
         req = {
             "type": "sample", "policy_state": policy_state, "num_steps": num_steps, "parallelism": self._parallelism
@@ -104,10 +109,6 @@ class BatchEnvSampler:
         )
         self._client.close()
         self._end_of_episode = any(res["end_of_episode"] for res in results)
-        if self._end_of_episode:
-            self._ep += 1
-            self._segment = 0
-
         merged_experiences = list(chain(*[res["experiences"] for res in results]))  # List[List[ExpElement]]
         return {
             "end_of_episode": self._end_of_episode,
