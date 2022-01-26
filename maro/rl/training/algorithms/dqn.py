@@ -50,6 +50,7 @@ class DQNParams(TrainerParams):
 class DQNOps(AbsTrainOps):
     def __init__(
         self,
+        name: str,
         device: str,
         get_policy_func: Callable[[], ValueBasedPolicy],
         *,
@@ -58,6 +59,7 @@ class DQNOps(AbsTrainOps):
         double: bool = False
     ) -> None:
         super(DQNOps, self).__init__(
+            name=name,
             device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func
@@ -110,15 +112,15 @@ class DQNOps(AbsTrainOps):
         self._policy.train()
         self._policy.step(self._get_batch_loss(batch))
 
-    def get_state(self, scope: str = "all") -> dict:
+    def get_state(self) -> dict:
         return {
-            "policy_state": self._policy.get_state(),
-            "target_q_net_state": self._target_policy.get_state()
+            "policy": self._policy.get_state(),
+            "target_q_net": self._target_policy.get_state()
         }
 
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        self._policy.set_state(ops_state_dict["policy_state"])
-        self._target_policy.set_state(ops_state_dict["target_q_net_state"])
+    def set_state(self, ops_state_dict: dict) -> None:
+        self._policy.set_state(ops_state_dict["policy"])
+        self._target_policy.set_state(ops_state_dict["target_q_net"])
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
@@ -160,8 +162,8 @@ class DQN(SingleTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DQNOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        return DQNOps(name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)

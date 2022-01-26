@@ -26,8 +26,7 @@ if __name__ == "__main__":
     load_path = from_env("LOAD_PATH", required=False, default=None)
     checkpoint_path = from_env("CHECKPOINT_PATH", required=False, default=None)
     log_path = str(from_env("LOG_PATH", required=False, default=os.getcwd()))
-    job_path = str(from_env("JOB"))
-    logger = get_logger(log_path, job_path, "MAIN")
+    logger = get_logger(log_path, str(from_env("JOB")), "MAIN")
 
     rollout_mode, train_mode = str(from_env("ROLLOUT_MODE")), str(from_env("TRAIN_MODE"))
     assert rollout_mode in {"simple", "parallel"} and train_mode in {"simple", "parallel"}
@@ -61,11 +60,11 @@ if __name__ == "__main__":
     eval_point_index = 0
 
     trainer_manager = TrainerManager(
-        policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address
+        policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address, logger=logger
     )
     if load_path:
-        trainer_manager.load(load_path)
-        logger.info(f"Loaded trainer states from {load_path}")
+        loaded = trainer_manager.load(load_path)
+        logger.info(f"Loaded states for {loaded} from {load_path}")
 
     # main loop
     for ep in range(1, num_episodes + 1):
@@ -89,14 +88,14 @@ if __name__ == "__main__":
             trainer_manager.record_experiences(experiences)
             trainer_manager.train()
             if checkpoint_path:
-                pth = os.path.join(checkpoint_path, ep)
+                pth = os.path.join(checkpoint_path, str(ep))
                 trainer_manager.save(pth)
                 logger.info(f"All trainer states saved under {pth}")
             training_time += time.time() - tu0
             segment += 1
 
         # performance details
-        logger.info(f"ep {ep} roll-out time: {collect_time}, training time: {training_time}")
+        logger.info(f"ep {ep} - roll-out time: {collect_time}, training time: {training_time}")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             policy_state = trainer_manager.get_policy_state() if not is_single_thread else None

@@ -141,7 +141,8 @@ def get_docker_compose_yml(config: dict, context: str, dockerfile_path: str, ima
             f"{config['scenario_path']}:{config_parser.get_mnt_path_in_container('scenario')}",
             f"{config['log_path']}:{config_parser.get_mnt_path_in_container('logs')}",
             f"{config['checkpoint_path']}:{config_parser.get_mnt_path_in_container('checkpoints')}",
-            f"{config['load_path']}:{config_parser.get_mnt_path_in_container('loadpoint')}"
+            f"{config['load_path']}:{config_parser.get_mnt_path_in_container('loadpoint')}",
+            "/home/yaqiu/maro/maro/rl:/maro/maro/rl"
         ]
     }
     job = config["job"]
@@ -158,8 +159,6 @@ def get_docker_compose_yml(config: dict, context: str, dockerfile_path: str, ima
         }
         for component, env in config_parser.get_rl_component_env_vars(config, containerized=True).items()
     }
-    # if config["mode"] != "single":
-    #     manifest["services"]["redis"] = {"image": "redis", "container_name": redis_host}
 
     return manifest
 

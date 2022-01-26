@@ -13,7 +13,7 @@ from zmq.asyncio import Context, Poller
 from maro.rl.policy import RLPolicy
 from maro.rl.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
-from maro.utils import Logger
+from maro.utils import DummyLogger, Logger
 
 
 class AbsTrainOps(object, metaclass=ABCMeta):
@@ -22,6 +22,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     """
     def __init__(
         self,
+        name: str,
         device: str,
         is_single_scenario: bool,
         get_policy_func: Callable[[], RLPolicy]
@@ -34,6 +35,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
             get_policy_func (Callable[[], RLPolicy]): Function used to create the policy of this ops.
         """
         super(AbsTrainOps, self).__init__()
+        self._name = name
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._is_single_scenario = is_single_scenario
@@ -44,8 +46,8 @@ class AbsTrainOps(object, metaclass=ABCMeta):
             self._policy.to_device(self._device)
 
     @property
-    def policy_name(self) -> str:
-        return self._policy.name
+    def name(self) -> str:
+        return self._name
 
     @property
     def policy_state_dim(self) -> int:
@@ -63,7 +65,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
             else isinstance(batch, MultiTransitionBatch)
 
     @abstractmethod
-    def get_state(self, scope: str = "all") -> dict:
+    def get_state(self) -> dict:
         """
         Returns:
             A dict that contains ops's state.
@@ -71,7 +73,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
+    def set_state(self, ops_state_dict: dict) -> None:
         """Set ops's state."""
         raise NotImplementedError
 
@@ -90,23 +92,23 @@ def remote(func):
 
 
 class AsyncClient(object):
-    def __init__(self, name: str, address: Tuple[str, int]) -> None:
+    def __init__(self, name: str, address: Tuple[str, int], logger: Logger = None) -> None:
         self._name = name
         host, port = address
         self._dispatcher_ip = socket.gethostbyname(host)
         self._address = f"tcp://{self._dispatcher_ip}:{port}"
-        self._logger = Logger(self._name)
+        self._logger = DummyLogger() if logger is None else logger
 
     async def send_request(self, req: dict) -> None:
         await self._socket.send(pyobj_to_bytes(req))
-        self._logger.info(f"{self._name} sent request {req['func']}")
+        self._logger.debug(f"{self._name} sent request {req['func']}")
 
     async def get_response(self) -> object:
         while True:
             events = await self._poller.poll(timeout=100)
             if self._socket in dict(events):
                 result = await self._socket.recv_multipart()
-                self._logger.info(f"{self._name} received result")
+                self._logger.debug(f"{self._name} received result")
                 return bytes_to_pyobj(result[0])
 
     def close(self):
@@ -119,16 +121,15 @@ class AsyncClient(object):
         self._socket.setsockopt_string(zmq.IDENTITY, self._name)
         self._socket.setsockopt(zmq.LINGER, 0)
         self._socket.connect(self._address)
-        self._logger.info(f"connected to {self._address}")
+        self._logger.debug(f"connected to {self._address}")
         self._poller = Poller()
         self._poller.register(self._socket, zmq.POLLIN)
 
 
 class RemoteOps(object):
-    def __init__(self, ops: AbsTrainOps, name: str, address: Tuple[str, int]) -> None:
+    def __init__(self, ops: AbsTrainOps, address: Tuple[str, int], logger: Logger = None) -> None:
         self._ops = ops
-        self._name = name
-        self._client = AsyncClient(self._name, address)
+        self._client = AsyncClient(self._ops.name, address, logger=logger)
         self._client.connect()
 
     def __getattribute__(self, attr_name: str) -> object:

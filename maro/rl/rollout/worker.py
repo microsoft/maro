@@ -5,6 +5,7 @@ from typing import Callable
 
 from maro.rl.distributed import AbsWorker
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
+from maro.utils import Logger
 
 from .env_sampler import AbsEnvSampler
 
@@ -15,10 +16,11 @@ class RolloutWorker(AbsWorker):
         idx: int,
         env_sampler_creator: Callable[[], AbsEnvSampler],
         router_host: str,
-        router_port: int = 10001
+        router_port: int = 10001,
+        logger: Logger = None
     ) -> None:
         super(RolloutWorker, self).__init__(
-            idx=idx, router_host=router_host, router_port=router_port
+            idx=idx, router_host=router_host, router_port=router_port, logger=logger
         )
         self._env_sampler = env_sampler_creator()
 

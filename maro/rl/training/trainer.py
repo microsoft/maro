@@ -9,6 +9,7 @@ import torch
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
+from maro.utils import Logger
 
 from .train_ops import AbsTrainOps, RemoteOps
 from .utils import extract_trainer_name
@@ -35,6 +36,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._batch_size = params.batch_size
         self._agent2policy = {}
         self._dispatcher_address: Optional[Tuple[str, int]] = None
+        self._logger = None
 
     @property
     def name(self) -> str:
@@ -43,6 +45,9 @@ class AbsTrainer(object, metaclass=ABCMeta):
     @property
     def agent_num(self) -> int:
         return len(self._agent2policy)
+
+    def register_logger(self, logger: Logger):
+        self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
         self._agent2policy = {
@@ -81,12 +86,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._dispatcher_address = dispatcher_address
 
     @abstractmethod
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
         raise NotImplementedError
 
-    def get_ops(self, ops_name: str) -> Union[RemoteOps, AbsTrainOps]:
-        ops = self.get_local_ops_by_name(ops_name)
-        return RemoteOps(ops, ops_name, self._dispatcher_address) if self._dispatcher_address else ops
+    def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
+        ops = self.get_local_ops_by_name(name)
+        return RemoteOps(ops, self._dispatcher_address, logger=self._logger) if self._dispatcher_address else ops
 
     @abstractmethod
     def get_policy_state(self) -> Dict[str, object]:

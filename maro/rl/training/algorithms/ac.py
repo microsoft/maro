@@ -55,6 +55,7 @@ class DiscreteActorCriticParams(TrainerParams):
 class DiscreteActorCriticOps(AbsTrainOps):
     def __init__(
         self,
+        name: str,
         device: str,
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_v_critic_net_func: Callable[[], VNet],
@@ -66,6 +67,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         min_logp: float = None
     ) -> None:
         super(DiscreteActorCriticOps, self).__init__(
+            name=name,
             device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func
@@ -140,19 +142,15 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
-    def get_state(self, scope: str = "all") -> dict:
-        ret_dict = {}
-        if scope in ("all", "actor"):
-            ret_dict["policy_state"] = self._policy.get_state()
-        if scope in ("all", "critic"):
-            ret_dict["critic_state"] = self._v_critic_net.get_state()
-        return ret_dict
+    def get_state(self) -> dict:
+        return {
+            "policy": self._policy.get_state(),
+            "critic": self._v_critic_net.get_state()
+        }
 
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor"):
-            self._policy.set_state(ops_state_dict["policy_state"])
-        if scope in ("all", "critic"):
-            self._v_critic_net.set_state(ops_state_dict["critic_state"])
+    def set_state(self, ops_state_dict: dict) -> None:
+        self._policy.set_state(ops_state_dict["policy"])
+        self._v_critic_net.set_state(ops_state_dict["critic"])
 
     def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
         assert self._is_valid_transition_batch(batch)
@@ -211,8 +209,8 @@ class DiscreteActorCritic(SingleTrainer):
             )
             memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DiscreteActorCriticOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        return DiscreteActorCriticOps(name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
     def _get_batch(self) -> TransitionBatch:
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]

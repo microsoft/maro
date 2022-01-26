@@ -44,6 +44,7 @@ class DiscreteMADDPGParams(TrainerParams):
 class DiscreteMADDPGOps(AbsTrainOps):
     def __init__(
         self,
+        name: str,
         device: str,
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_q_critic_net_func: Callable[[], MultiQNet],
@@ -57,6 +58,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         q_value_loss_func: Callable = None,
     ) -> None:
         super(DiscreteMADDPGOps, self).__init__(
+            name=name,
             device=device,
             is_single_scenario=False,
             get_policy_func=get_policy_func
@@ -176,23 +178,33 @@ class DiscreteMADDPGOps(AbsTrainOps):
         if not self._shared_critic:
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
-    def get_state(self, scope: str = "all") -> dict:
-        ret_dict = {}
-        if scope in ("all", "actor") and self._create_actor:
-            ret_dict["policy"] = self._policy.get_state()
-            ret_dict["target_policy"] = self._target_policy.get_state()
-        if scope in ("all", "critic"):
-            ret_dict["critic"] = self._q_critic_net.get_state()
-            ret_dict["target_critic"] = self._target_q_critic_net.get_state()
-        return ret_dict
+    def get_critic_state(self) -> dict:
+        return {
+            "critic": self._q_critic_net.get_state(),
+            "target_critic": self._target_q_critic_net.get_state()
+        }
 
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor") and self._create_actor:
+    def set_critic_state(self, ops_state_dict: dict) -> dict:
+        self._q_critic_net.set_state(ops_state_dict["critic"])
+        self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
+
+    def get_actor_state(self) -> dict:
+        if self._create_actor:
+            return {"policy": self._policy.get_state(), "target_policy": self._target_policy.get_state()}
+        else:
+            return {}
+
+    def set_actor_state(self, ops_state_dict: dict) -> None:
+        if self._create_actor:
             self._policy.set_state(ops_state_dict["policy"])
             self._target_policy.set_state(ops_state_dict["target_policy"])
-        if scope in ("all", "critic"):
-            self._q_critic_net.set_state(ops_state_dict["critic"])
-            self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
+
+    def get_state(self) -> dict:
+        return {**self.get_actor_state(), **self.get_critic_state()}
+
+    def set_state(self, ops_state_dict: dict) -> None:
+        self.set_critic_state(ops_state_dict)
+        self.set_actor_state(ops_state_dict)
 
 
 class DiscreteMADDPG(MultiTrainer):
@@ -264,8 +276,8 @@ class DiscreteMADDPG(MultiTrainer):
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        if ops_name == self._shared_critic_ops_name:
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        if name == self._shared_critic_ops_name:
             ops_params = dict(self._ops_params)
             ops_params.update({
                 "get_policy_func": None,
@@ -273,9 +285,9 @@ class DiscreteMADDPG(MultiTrainer):
                 "shared_critic": False,
                 "create_actor": False,
             })
-            return DiscreteMADDPGOps(**ops_params)
+            return DiscreteMADDPGOps(name=name, **ops_params)
         else:
-            policy_idx = self.get_policy_idx_from_ops_name(ops_name)
+            policy_idx = self.get_policy_idx_from_ops_name(name)
             policy_name = self._policy_names[policy_idx]
 
             ops_params = dict(self._ops_params)
@@ -284,7 +296,7 @@ class DiscreteMADDPG(MultiTrainer):
                 "policy_idx": policy_idx,
                 "create_actor": True,
             })
-            return DiscreteMADDPGOps(**ops_params)
+            return DiscreteMADDPGOps(name=name, **ops_params)
 
     def train(self):
         assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
@@ -297,10 +309,10 @@ class DiscreteMADDPG(MultiTrainer):
             # Update critic
             if self._params.shared_critic:
                 self._critic_ops.update_critic(batch, next_actions)
-                critic_state_dict = self._critic_ops.get_state(scope="critic")
+                critic_state_dict = self._critic_ops.get_critic_state()
                 # Sync latest critic to ops
                 for ops in self._actor_ops_list:
-                    ops.set_state(critic_state_dict, scope="critic")
+                    ops.set_critic_state(critic_state_dict)
             else:
                 for ops in self._actor_ops_list:
                     ops.update_critic(batch, next_actions)
@@ -326,10 +338,10 @@ class DiscreteMADDPG(MultiTrainer):
                 critic_grad = await asyncio.gather(*[self._critic_ops.get_critic_grad(batch, next_actions)])
                 assert isinstance(critic_grad, list) and isinstance(critic_grad[0], dict)
                 self._critic_ops.update_critic_with_grad(critic_grad[0])
-                critic_state_dict = self._critic_ops.get_state(scope="critic")
+                critic_state_dict = self._critic_ops.get_critic_state()
                 # Sync latest critic to ops
                 for ops in self._actor_ops_list:
-                    ops.set_state(critic_state_dict, scope="critic")
+                    ops.set_critic_state(critic_state_dict)
             else:
                 critic_grad_list = await asyncio.gather(
                     *[ops.get_critic_grad(batch, next_actions) for ops in self._actor_ops_list]

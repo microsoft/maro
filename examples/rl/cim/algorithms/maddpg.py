@@ -130,6 +130,6 @@ def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMAD
             reward_discount=.0,
             num_epoch=10,
             get_q_critic_net_func=partial(get_multi_critic_net, state_dim, action_dims),
-            shared_critic=False
+            shared_critic=True
         )
     )

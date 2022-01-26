@@ -130,7 +130,10 @@ def get_rl_component_env_vars(config, containerized: bool = False):
         }
         component_env.update({
             f"train_worker-{i}": {
-                "ID": str(i), "DISPATCHER_HOST": dispatcher_host, "DISPATCHER_BACKEND_PORT": dispatcher_backend_port,
+                "ID": str(i),
+                "JOB": config["job"],
+                "DISPATCHER_HOST": dispatcher_host,
+                "DISPATCHER_BACKEND_PORT": dispatcher_backend_port,
                 **get_path_env(config, containerized=containerized)
             }
             for i in range(num_workers)

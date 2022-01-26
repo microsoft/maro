@@ -3,7 +3,7 @@
 
 import os
 
-FILE_SUFFIX = ".ckpt"
+FILE_SUFFIX = "ckpt"
 
 
 def extract_trainer_name(policy_name: str) -> str:
@@ -11,4 +11,4 @@ def extract_trainer_name(policy_name: str) -> str:
 
 
 def get_trainer_state_path(dir: str, trainer_name: str):
-    return os.path.join(dir, trainer_name, FILE_SUFFIX)
+    return os.path.join(dir, f"{trainer_name}.{FILE_SUFFIX}")

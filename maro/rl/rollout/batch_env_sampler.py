@@ -88,6 +88,7 @@ class BatchEnvSampler:
 
         self._ep = 0
         self._segment = 0
+        self._end_of_episode = True
 
     def sample(
         self, policy_state: Dict[str, object] = None, num_steps: int = -1

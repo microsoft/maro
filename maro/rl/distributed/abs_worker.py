@@ -10,7 +10,7 @@ from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
 from maro.rl.utils.common import string_to_bytes
-from maro.utils import Logger
+from maro.utils import DummyLogger, Logger
 
 
 class AbsWorker(object):
@@ -18,12 +18,13 @@ class AbsWorker(object):
         self,
         idx: int,
         router_host: str,
-        router_port: int = 10001
+        router_port: int = 10001,
+        logger: Logger = None
     ) -> None:
         super(AbsWorker, self).__init__()
 
         self._id = f"worker.{idx}"
-        self._logger = Logger(self._id)
+        self._logger = DummyLogger() if logger is None else logger
 
         # ZMQ sockets and streams
         self._context = Context.instance()
