@@ -87,6 +87,7 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
     Returns:
         An iterator over the series of exploration rates from episode 0 to ``max_iter`` - 1.
     """
+
     def __init__(
         self,
         exploration_params: dict,

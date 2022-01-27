@@ -31,6 +31,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
     """Policy trainer used to train policies. Trainer maintains several train ops and
     controls training logics of them, while train ops take charge of specific policy updating.
     """
+
     def __init__(self, name: str, params: TrainerParams) -> None:
         self._name = name
         self._batch_size = params.batch_size
@@ -114,6 +115,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
 class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy.
     """
+
     def __init__(self, name: str, params: TrainerParams) -> None:
         super(SingleTrainer, self).__init__(name, params)
 
@@ -161,6 +163,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies.
     """
+
     def __init__(self, name: str, params: TrainerParams) -> None:
         super(MultiTrainer, self).__init__(name, params)
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}

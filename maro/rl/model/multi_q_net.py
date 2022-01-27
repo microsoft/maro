@@ -15,6 +15,7 @@ class MultiQNet(AbsNet, metaclass=ABCMeta):
     """
     Net for multi-agent Q functions.
     """
+
     def __init__(self, state_dim: int, action_dims: List[int]) -> None:
         """
         Args:

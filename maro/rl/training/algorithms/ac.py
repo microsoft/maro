@@ -179,6 +179,7 @@ class DiscreteActorCritic(SingleTrainer):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
     """
+
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
         super(DiscreteActorCritic, self).__init__(name, params)
         self._params = params
@@ -218,19 +219,21 @@ class DiscreteActorCritic(SingleTrainer):
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
         return self._ops.preprocess_and_merge_batches(batch_list)
 
-    def train(self):
-        assert not isinstance(self._ops, RemoteOps)
+    def train(self) -> None:
+        assert isinstance(self._ops, DiscreteActorCriticOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
 
-    async def train_as_task(self):
+    async def train_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
             critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
             actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
+            assert isinstance(critic_grad_list, list)
+            assert isinstance(actor_grad_list, list)
             self._ops.update_critic_with_grad(average_grads(critic_grad_list))
             self._ops.update_actor_with_grad(average_grads(actor_grad_list))

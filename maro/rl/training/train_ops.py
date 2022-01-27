@@ -20,6 +20,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     """The basic component for training a policy, which takes charge of gradient computation and policy update.
     Each ops is used for training a single policy. An ops is an atomic unit in the distributed mode.
     """
+
     def __init__(
         self,
         name: str,
@@ -88,6 +89,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 def remote(func):
     def remote_anotate(*args, **kwargs):
         return func(*args, **kwargs)
+
     return remote_anotate
 
 

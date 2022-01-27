@@ -10,7 +10,6 @@ from .transition_batch import MultiTransitionBatch, TransitionBatch, merge_trans
 
 AbsTransitionBatch = Union[TransitionBatch, MultiTransitionBatch]
 
-
 __all__ = [
     "SHAPE_CHECK_FLAG",
     "average_grads", "match_shape", "ndarray_to_tensor",

@@ -49,7 +49,7 @@ class MyActorNet(DiscretePolicyNet):
     def unfreeze(self) -> None:
         self.unfreeze_all_parameters()
 
-    def step(self, loss: torch.Tensor):
+    def step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()
@@ -84,10 +84,10 @@ class MyCriticNet(VNet):
 
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
         features, masks = states[:, :self._num_features], states[:, self._num_features:]
-        masks += 1e-8  # this is to prevent zero probability and infinite logP. 
+        masks += 1e-8  # this is to prevent zero probability and infinite logP.
         return self._critic(features).squeeze(-1)
 
-    def step(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()

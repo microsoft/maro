@@ -131,6 +131,7 @@ class DQN(SingleTrainer):
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
     """
+
     def __init__(self, name: str, params: DQNParams) -> None:
         super(DQN, self).__init__(name, params)
         self._params = params
@@ -169,11 +170,10 @@ class DQN(SingleTrainer):
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def train(self) -> None:
-        assert not isinstance(self._ops, RemoteOps)
+        assert isinstance(self._ops, DQNOps)
         for _ in range(self._params.num_epochs):
             self._ops.update(self._get_batch())
 
-        self._q_net_version += 1
         self._try_soft_update_target()
 
     async def train_as_task(self) -> None:
@@ -182,12 +182,13 @@ class DQN(SingleTrainer):
             batch = self._get_batch()
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
             grad_list = await asyncio.gather(*[self._ops.get_batch_grad(batch) for batch in batches])
+            assert isinstance(grad_list, list)
             self._ops.update_with_grad(average_grads(grad_list))
 
-        self._q_net_version += 1
         self._try_soft_update_target()
 
-    def _try_soft_update_target(self):
+    def _try_soft_update_target(self) -> None:
+        self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
             self._ops.soft_update_target()
             self._target_q_net_version = self._q_net_version
