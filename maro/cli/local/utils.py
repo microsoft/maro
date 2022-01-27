@@ -158,8 +158,6 @@ def get_docker_compose_yml(config: dict, context: str, dockerfile_path: str, ima
         }
         for component, env in config_parser.get_rl_component_env_vars(config, containerized=True).items()
     }
-    # if config["mode"] != "single":
-    #     manifest["services"]["redis"] = {"image": "redis", "container_name": redis_host}
 
     return manifest
 

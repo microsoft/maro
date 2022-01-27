@@ -62,13 +62,13 @@ class MyActorNet(DiscretePolicyNet):
             param.grad = grad[name]
         self._optim.step()
 
-    def get_net_state(self) -> dict:
+    def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
             "optim": self._optim.state_dict()
         }
 
-    def set_net_state(self, net_state: dict) -> None:
+    def set_state(self, net_state: dict) -> None:
         self.load_state_dict(net_state["network"])
         self._optim.load_state_dict(net_state["optim"])
 
@@ -97,13 +97,13 @@ class MyMultiCriticNet(MultiQNet):
             param.grad = grad[name]
         self._optim.step()
 
-    def get_net_state(self) -> dict:
+    def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
             "optim": self._optim.state_dict()
         }
 
-    def set_net_state(self, net_state: dict) -> None:
+    def set_state(self, net_state: dict) -> None:
         self.load_state_dict(net_state["network"])
         self._optim.load_state_dict(net_state["optim"])
 

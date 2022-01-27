@@ -6,6 +6,7 @@ from typing import Callable, Dict
 from maro.rl.distributed import AbsWorker
 from maro.rl.policy import RLPolicy
 from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
+from maro.utils import Logger
 
 from .train_ops import AbsTrainOps
 from .trainer import AbsTrainer
@@ -18,10 +19,11 @@ class TrainOpsWorker(AbsWorker):
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         router_host: str,
-        router_port: int = 10001
+        router_port: int = 10001,
+        logger: Logger = None
     ) -> None:
         super(TrainOpsWorker, self).__init__(
-            idx=idx, router_host=router_host, router_port=router_port
+            idx=idx, router_host=router_host, router_port=router_port, logger=logger
         )
 
         self._policy_creator = policy_creator

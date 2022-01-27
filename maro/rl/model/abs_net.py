@@ -48,14 +48,14 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_net_state(self) -> object:
+    def get_state(self) -> object:
         """
         Get the net's state.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def set_net_state(self, net_state: object) -> None:
+    def set_state(self, net_state: object) -> None:
         """
         Set the net's state.
         """

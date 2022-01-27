@@ -5,8 +5,11 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+import torch
+
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
+from maro.utils import Logger
 
 from .train_ops import AbsTrainOps, RemoteOps
 from .utils import extract_trainer_name
@@ -34,6 +37,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._batch_size = params.batch_size
         self._agent2policy = {}
         self._dispatcher_address: Optional[Tuple[str, int]] = None
+        self._logger = None
 
     @property
     def name(self) -> str:
@@ -42,6 +46,9 @@ class AbsTrainer(object, metaclass=ABCMeta):
     @property
     def agent_num(self) -> int:
         return len(self._agent2policy)
+
+    def register_logger(self, logger: Logger) -> None:
+        self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
         self._agent2policy = {
@@ -80,12 +87,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._dispatcher_address = dispatcher_address
 
     @abstractmethod
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
         raise NotImplementedError
 
-    def get_ops(self, ops_name: str) -> Union[RemoteOps, AbsTrainOps]:
-        ops = self.get_local_ops_by_name(ops_name)
-        return RemoteOps(ops, ops_name, self._dispatcher_address) if self._dispatcher_address else ops
+    def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
+        ops = self.get_local_ops_by_name(name)
+        return RemoteOps(ops, self._dispatcher_address, logger=self._logger) if self._dispatcher_address else ops
 
     @abstractmethod
     def get_policy_state(self) -> Dict[str, object]:
@@ -94,6 +101,14 @@ class AbsTrainer(object, metaclass=ABCMeta):
         Returns:
             A double-deck dict with format: {policy_name: policy_state}.
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def load(self, path: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def save(self, path: str) -> None:
         raise NotImplementedError
 
 
@@ -128,10 +143,21 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         self._get_policy_func = lambda: self._policy_creator[self._policy_name](self._policy_name)
 
     def get_policy_state(self) -> Dict[str, object]:
-        if not self._ops:
-            raise ValueError("'build' needs to be called to create an ops instance first.")
+        self._assert_ops_exists()
         policy_name, state = self._ops.get_policy_state()
         return {policy_name: state}
+
+    def load(self, path: str) -> None:
+        self._assert_ops_exists()
+        self._ops.set_state(torch.load(path))
+
+    def save(self, path: str) -> None:
+        self._assert_ops_exists()
+        torch.save(self._ops.get_state(), path)
+
+    def _assert_ops_exists(self) -> None:
+        if not self._ops:
+            raise ValueError("'build' needs to be called to create an ops instance first.")
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):

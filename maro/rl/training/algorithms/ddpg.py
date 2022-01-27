@@ -59,6 +59,7 @@ class DDPGOps(AbsTrainOps):
 
     def __init__(
         self,
+        name: str,
         device: str,
         get_policy_func: Callable[[], ContinuousRLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
@@ -68,6 +69,7 @@ class DDPGOps(AbsTrainOps):
         soft_update_coef: float = 1.0
     ) -> None:
         super(DDPGOps, self).__init__(
+            name=name,
             device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func
@@ -145,23 +147,19 @@ class DDPGOps(AbsTrainOps):
         self._policy.train()
         self._policy.step(self._get_actor_loss(batch))
 
-    def get_state(self, scope: str = "all") -> dict:
-        ret_dict = {}
-        if scope in ("all", "actor"):
-            ret_dict["policy_state"] = self._policy.get_state()
-            ret_dict["target_policy_state"] = self._target_policy.get_state()
-        if scope in ("all", "critic"):
-            ret_dict["critic_state"] = self._q_critic_net.get_net_state()
-            ret_dict["target_critic_state"] = self._target_q_critic_net.get_net_state()
-        return ret_dict
+    def get_state(self) -> dict:
+        return {
+            "policy": self._policy.get_state(),
+            "target_policy": self._target_policy.get_state(),
+            "critic": self._q_critic_net.get_state(),
+            "target_critic": self._target_q_critic_net.get_state()
+        }
 
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor"):
-            self._policy.set_state(ops_state_dict["policy_state"])
-            self._target_policy.set_state(ops_state_dict["target_policy_state"])
-        if scope in ("all", "critic"):
-            self._q_critic_net.set_net_state(ops_state_dict["critic_state"])
-            self._target_q_critic_net.set_net_state(ops_state_dict["target_critic_state"])
+    def set_state(self, ops_state_dict: dict) -> None:
+        self._policy.set_state(ops_state_dict["policy"])
+        self._target_policy.set_state(ops_state_dict["target_policy"])
+        self._q_critic_net.set_state(ops_state_dict["critic"])
+        self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
@@ -207,8 +205,8 @@ class DDPG(SingleTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DDPGOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        return DDPGOps(name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)

@@ -41,4 +41,4 @@ test_reward_shaping_conf = {
 
 test_seed = 1024
 
-algorithm = "dqn"  # "dqn" or "ac"
+algorithm = "ac"  # "dqn" or "ac"
