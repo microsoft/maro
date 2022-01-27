@@ -284,7 +284,7 @@ class DiscreteMADDPG(MultiTrainer):
             })
             return DiscreteMADDPGOps(**ops_params)
 
-    def train(self):
+    def train(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
         assert all(isinstance(ops, DiscreteMADDPGOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
@@ -308,10 +308,9 @@ class DiscreteMADDPG(MultiTrainer):
                 ops.update_actor(batch)
 
             # Update version
-            self._policy_version += 1
             self._try_soft_update_target()
 
-    async def train_as_task(self):
+    async def train_as_task(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, RemoteOps)
         assert all(isinstance(ops, RemoteOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
@@ -341,10 +340,10 @@ class DiscreteMADDPG(MultiTrainer):
                 ops.update_actor_with_grad(actor_grad)
 
             # Update version
-            self._policy_version += 1
             self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
+        self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             for ops in self._actor_ops_list:
                 ops.soft_update_target()
@@ -363,6 +362,6 @@ class DiscreteMADDPG(MultiTrainer):
         return ret_policy_state
 
     @staticmethod
-    def get_policy_idx_from_ops_name(ops_name):
+    def get_policy_idx_from_ops_name(ops_name) -> int:
         _, sub_name = ops_name.split(".")
         return int(sub_name.split("_")[1])

@@ -56,6 +56,7 @@ class DDPGParams(TrainerParams):
 
 class DDPGOps(AbsTrainOps):
     """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html"""
+
     def __init__(
         self,
         device: str,
@@ -213,13 +214,12 @@ class DDPG(SingleTrainer):
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def train(self) -> None:
-        assert not isinstance(self._ops, RemoteOps)
+        assert isinstance(self._ops, DDPGOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
 
-        self._policy_version += 1
         self._try_soft_update_target()
 
     async def train_as_task(self) -> None:
@@ -229,15 +229,17 @@ class DDPG(SingleTrainer):
             batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
             # update critic
             critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
+            assert isinstance(critic_grad_list, list)
             self._ops.update_critic_with_grad(average_grads(critic_grad_list))
             # update actor
             actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
+            assert isinstance(actor_grad_list, list)
             self._ops.update_actor_with_grad(average_grads(actor_grad_list))
 
-        self._policy_version += 1
         self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
+        self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             self._ops.soft_update_target()
             self._target_policy_version = self._policy_version

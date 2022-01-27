@@ -55,6 +55,7 @@ class TrainerManager(object):
         if self._dispatcher_address:
             async def train_step() -> Iterable:
                 return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainers])
+
             asyncio.run(train_step())
         else:
             for trainer in self._trainers:

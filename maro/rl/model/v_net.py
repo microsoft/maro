@@ -14,6 +14,7 @@ class VNet(AbsNet, metaclass=ABCMeta):
     """
     Net for V functions.
     """
+
     def __init__(self, state_dim: int) -> None:
         super(VNet, self).__init__()
         self._state_dim = state_dim
