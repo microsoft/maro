@@ -47,7 +47,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def agent_num(self) -> int:
         return len(self._agent2policy)
 
-    def register_logger(self, logger: Logger):
+    def register_logger(self, logger: Logger) -> None:
         self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
@@ -104,11 +104,11 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def load(self, path: str):
+    def load(self, path: str) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def save(self, path: str):
+    def save(self, path: str) -> None:
         raise NotImplementedError
 
 
@@ -147,11 +147,11 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         policy_name, state = self._ops.get_policy_state()
         return {policy_name: state}
 
-    def load(self, path: str):
+    def load(self, path: str) -> None:
         self._assert_ops_exists()
         self._ops.set_state(torch.load(path))
 
-    def save(self, path: str):
+    def save(self, path: str) -> None:
         self._assert_ops_exists()
         torch.save(self._ops.get_state(), path)
 

@@ -184,7 +184,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
             "target_critic": self._target_q_critic_net.get_state()
         }
 
-    def set_critic_state(self, ops_state_dict: dict) -> dict:
+    def set_critic_state(self, ops_state_dict: dict) -> None:
         self._q_critic_net.set_state(ops_state_dict["critic"])
         self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
 
@@ -373,7 +373,7 @@ class DiscreteMADDPG(MultiTrainer):
             ret_policy_state[policy_name] = state
         return ret_policy_state
 
-    def load(self, path: str):
+    def load(self, path: str) -> None:
         self._assert_ops_exists()
         trainer_state = torch.load(path)
         for ops_name, ops_state in trainer_state.items():
@@ -382,14 +382,14 @@ class DiscreteMADDPG(MultiTrainer):
             else:
                 self._actor_ops_dict[ops_name].set_state(torch.load(path))
 
-    def save(self, path: str):
+    def save(self, path: str) -> None:
         self._assert_ops_exists()
         trainer_state = {ops.name: ops.get_state() for ops in self._actor_ops_list}
         if self._params.shared_critic:
             trainer_state[self._critic_ops.name] = self._critic_ops.get_state()
         torch.save(trainer_state, path)
 
-    def _assert_ops_exists(self):
+    def _assert_ops_exists(self) -> None:
         if not self._actor_ops_list:
             raise ValueError("Call 'DiscreteMADDPG.build' to create actor ops first.")
         if self._params.shared_critic and not self._critic_ops:

@@ -84,7 +84,7 @@ class TrainerManager(object):
                     trainer = self._trainer_dict[trainer_name]
                     trainer.record(env_idx, exp_elem)
 
-    def load(self, path: Dict[str, str]):
+    def load(self, path: str) -> List[str]:
         loaded = []
         for trainer_name, trainer in self._trainer_dict.items():
             pth = get_trainer_state_path(path, trainer_name)
@@ -94,7 +94,7 @@ class TrainerManager(object):
 
         return loaded
 
-    def save(self, path: str):
+    def save(self, path: str) -> None:
         os.makedirs(path, exist_ok=True)
         for trainer_name, trainer in self._trainer_dict.items():
             trainer.save(get_trainer_state_path(path, trainer_name))
