@@ -210,7 +210,9 @@ class DiscreteActorCritic(SingleTrainer):
             memory.put(transition_batch)
 
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
-        return DiscreteActorCriticOps(name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+        return DiscreteActorCriticOps(
+            name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params()
+        )
 
     def _get_batch(self) -> TransitionBatch:
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
