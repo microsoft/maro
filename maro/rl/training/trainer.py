@@ -17,6 +17,14 @@ from .utils import extract_trainer_name
 
 @dataclass
 class TrainerParams:
+    """Common trainer parameters.
+
+    device (str, default=None): Name of the device to store this trainer. If it is None, the device will be
+        automatically determined according to GPU availability.
+    replay_memory_capacity (int, default=100000): Maximum capacity of the replay memory.
+    batch_size (int, default=128): Training batch size.
+    data_parallelism (int, default=1): Degree of data parallelism.
+    """
     device: str = None
     replay_memory_capacity: int = 10000
     batch_size: int = 128
@@ -24,14 +32,26 @@ class TrainerParams:
 
     @abstractmethod
     def extract_ops_params(self) -> Dict[str, object]:
+        """Extract parameters that should be passed to the train ops.
+
+        Returns:
+            params (Dict[str, object]): Parameter dict.
+        """
         raise NotImplementedError
 
 
 class AbsTrainer(object, metaclass=ABCMeta):
-    """Policy trainer used to train policies. Trainer maintains several train ops and
+    """Policy trainer used to train policies. Trainer maintains a group of train ops and
     controls training logics of them, while train ops take charge of specific policy updating.
-    """
 
+    Trainer will hold one or more replay memories to store the experiences, and it will also maintain a duplication
+    of all policies it trains. However, trainer will not do any actual computations. All computations will be
+    done in the train ops.
+
+    Args:
+        name (str): Name of the trainer.
+        params (TrainerParams): Trainer's parameters.
+    """
     def __init__(self, name: str, params: TrainerParams) -> None:
         self._name = name
         self._batch_size = params.batch_size
@@ -51,6 +71,13 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
+        """Register the agent to policy dict that correspond to the current trainer. A valid policy name should start
+        with the name of its trainer. For example, "DQN.POLICY_NAME". Therefore, we could identify which policies
+        should be registered to the current trainer according to the policy's name.
+
+        Args:
+            agent2policy (Dict[Any, str]): Agent name to policy name mapping.
+        """
         self._agent2policy = {
             agent_name: policy_name
             for agent_name, policy_name in agent2policy.items()
@@ -62,10 +89,18 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self,
         global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
     ) -> None:
+        """Register the policy creator. Only keep the creators of the policies that the current trainer need to train.
+
+        Args:
+            global_policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict that contains the creators for all
+                policies.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def build(self) -> None:
+        """Build the trainer. This has to be called before the trainer can actually run.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -75,22 +110,52 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     async def train_as_task(self) -> None:
-        """Run a training step to update all the policies that this trainer is responsible for.
+        """Run a training step, in the async fashion, to update all the policies that this trainer is responsible for.
         """
         raise NotImplementedError
 
     @abstractmethod
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
+        """Record rollout experiences in the replay memory.
+
+        Args:
+            env_idx (int): The index of the environment that generates this batch of experiences. This is used
+                when there are more than one environments collecting experiences in parallel.
+            exp_element (ExpElement): Experiences.
+        """
         raise NotImplementedError
 
     def set_dispatch_address(self, dispatcher_address: Tuple[str, int]) -> None:
+        """Set the dispatcher address.
+
+        Args:
+            dispatcher_address (Tuple[str, int]): Dispatcher address (host and port).
+        """
         self._dispatcher_address = dispatcher_address
 
     @abstractmethod
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        """Generate a train ops according to the given ops name.
+
+        Args:
+            name (str): Ops name.
+
+        Returns:
+            ops (AbsTrainOps): The local ops.
+        """
         raise NotImplementedError
 
     def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
+        """Generate the ops according to the given ops name. This ops could be a RemoteOps or a AbsTrainOps. If the
+            dispatcher address is None, it means the trainer runs in single node mode, so the ops should be a local
+            train ops. Otherwise, it should be a RemoteOps.
+
+        Args:
+            name (str): Ops name.
+
+        Returns:
+            ops (Union[RemoteOps, AbsTrainOps]): The ops.
+        """
         ops = self.get_local_ops_by_name(name)
         return RemoteOps(ops, self._dispatcher_address, logger=self._logger) if self._dispatcher_address else ops
 

@@ -13,6 +13,17 @@ from maro.utils import Logger
 
 
 def from_env(var_name: str, required: bool = True, default: object = None) -> object:
+    """Retrieve environment variables.
+
+    Args:
+        var_name (str): Variable name.
+        required (bool, default=True): If is variable is necessarily required.
+        default (object, default=None): If the variable is necessarily required and can not be found in the environment,
+            use this default value.
+
+    Returns:
+        The environment variable.
+    """
     if var_name not in os.environ:
         if required:
             raise KeyError(f"Missing environment variable: {var_name}")
@@ -29,13 +40,17 @@ def from_env(var_name: str, required: bool = True, default: object = None) -> ob
         return var
 
 
-def from_env_as_int(var_name: str, required: bool = True, default: object = None) -> int:
+def from_env_as_int(var_name: str, required: bool = True, default: int = None) -> int:
+    """Retrieve integer environment variables.
+    """
     ret = from_env(var_name, required, default)
     assert isinstance(ret, int)
     return ret
 
 
-def from_env_as_float(var_name: str, required: bool = True, default: object = None) -> float:
+def from_env_as_float(var_name: str, required: bool = True, default: float = None) -> float:
+    """Retrieve float environment variables.
+    """
     ret = from_env(var_name, required, default)
     assert isinstance(ret, float)
     return ret
@@ -67,17 +82,25 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int
 
 
 def get_module(path: str) -> ModuleType:
+    """Load module at the given path.
+
+    Args:
+        path (str): Module path.
+
+    Returns:
+        module (ModuleType)
+    """
     path = os.path.normpath(path)
     sys.path.insert(0, os.path.dirname(path))
     return importlib.import_module(os.path.basename(path))
 
 
-def get_log_path(dir: str, job_name: str) -> str:
-    return os.path.join(dir, f"{job_name}.log")
+def get_log_path(dir_path: str, job_name: str) -> str:
+    return os.path.join(dir_path, f"{job_name}.log")
 
 
-def get_logger(dir: str, job_name: str, tag: str) -> Logger:
-    return Logger(tag, dump_path=get_log_path(dir, job_name), dump_mode="a")
+def get_logger(dir_path: str, job_name: str, tag: str) -> Logger:
+    return Logger(tag, dump_path=get_log_path(dir_path, job_name), dump_mode="a")
 
 
 # serialization and deserialization for messaging

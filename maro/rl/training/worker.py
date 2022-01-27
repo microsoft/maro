@@ -13,6 +13,15 @@ from .trainer import AbsTrainer
 
 
 class TrainOpsWorker(AbsWorker):
+    """Train ops worker that used to hold a mirror of the trainer / policy to run training logics.
+
+    Args:
+        idx (int): Index of this rollout worker.
+        policy_creator (Dict[str, Callable[[str], RLPolicy]]): Function used to create the mirror of the policy.
+        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Function used to create the mirror of the trainer.
+        router_host (str): Host of the rollout router.
+        router_port (int, default=10001): Port of the rollout router.
+    """
     def __init__(
         self,
         idx: int,

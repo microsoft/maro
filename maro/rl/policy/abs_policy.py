@@ -13,31 +13,28 @@ from maro.rl.utils import SHAPE_CHECK_FLAG, match_shape, ndarray_to_tensor
 
 
 class AbsPolicy(object, metaclass=ABCMeta):
-    """
-    Policy. A policy takes states as inputs and generates actions as outputs. A policy cannot update itself. It has to
-    be updated by external trainers through public interfaces.
+    """Policy class. A policy takes states as inputs and generates actions as outputs. A policy cannot
+        update itself. It has to be updated by external trainers through public interfaces.
+
+    Args:
+        name (str): Name of this policy.
+        trainable (bool): Whether this policy is trainable.
     """
 
     def __init__(self, name: str, trainable: bool) -> None:
-        """
-        Args:
-            name (str): Name of this policy.
-            trainable (bool): Whether this policy is trainable.
-        """
         super(AbsPolicy, self).__init__()
         self._name = name
         self._trainable = trainable
 
     @abstractmethod
     def get_actions(self, states: object) -> object:
-        """
-        Get actions according to states.
+        """Get actions according to states.
 
         Args:
             states (object): States.
 
         Returns:
-            Actions.
+            actions (object): Actions.
         """
         raise NotImplementedError
 
@@ -54,20 +51,18 @@ class AbsPolicy(object, metaclass=ABCMeta):
 
 
 class DummyPolicy(AbsPolicy):
-    """
-    Dummy policy that takes no actions.
+    """Dummy policy that takes no actions.
     """
 
     def __init__(self) -> None:
         super(DummyPolicy, self).__init__(name='DUMMY_POLICY', trainable=False)
 
-    def get_actions(self, states: object) -> object:
+    def get_actions(self, states: object) -> None:
         return None
 
 
 class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
-    """
-    Rule-based policy. The user should implement the rule of this policy, and a rule-based policy is not trainable.
+    """Rule-based policy. The user should define the rule of this policy, and a rule-based policy is not trainable.
     """
 
     def __init__(self, name: str) -> None:
@@ -82,8 +77,13 @@ class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
 
 
 class RLPolicy(AbsPolicy, metaclass=ABCMeta):
-    """
-    Reinforcement learning policy.
+    """Reinforcement learning policy.
+
+    Args:
+        name (str): Name of the policy.
+        state_dim (int): Dimension of states.
+        action_dim (int): Dimension of actions.
+        trainable (bool, default=True): Whether this policy is trainable.
     """
 
     def __init__(
@@ -93,13 +93,6 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         action_dim: int,
         trainable: bool = True
     ) -> None:
-        """
-        Args:
-            name (str): Name of the policy.
-            state_dim (int): Dimension of states.
-            action_dim (int): Dimension of actions.
-            trainable (bool): Whether this policy is trainable. Defaults to True.
-        """
         super(RLPolicy, self).__init__(name=name, trainable=trainable)
         self._state_dim = state_dim
         self._action_dim = action_dim
@@ -117,27 +110,23 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @property
     def is_exploring(self) -> bool:
-        """
-        Whether this policy is under exploring mode.
+        """Whether this policy is under exploring mode.
         """
         return self._is_exploring
 
     def explore(self) -> None:
-        """
-        Set the policy to exploring mode.
+        """Set the policy to exploring mode.
         """
         self._is_exploring = True
 
     def exploit(self) -> None:
-        """
-        Set the policy to exploiting mode.
+        """Set the policy to exploiting mode.
         """
         self._is_exploring = False
 
     @abstractmethod
     def step(self, loss: torch.Tensor) -> None:
-        """
-        Run a training step to update the policy.
+        """Run a training step to update the policy according to the given loss.
 
         Args:
             loss (torch.Tensor): Loss used to update the policy.
@@ -146,33 +135,36 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        """
-        Get the gradients with respect to all parameters of the internal nets according to the given loss.
+        """Get the gradients with respect to all parameters of the internal nets according to the given loss.
 
         Args:
             loss (torch.tensor): Loss used to update the model.
 
         Returns:
-            A dict that contains gradients of the internal nets for all parameters.
+            grad (Dict[str, torch.Tensor]): A dict that contains gradients of the internal nets for all parameters.
         """
         raise NotImplementedError
 
     @abstractmethod
     def apply_gradients(self, grad: dict) -> None:
+        """Apply gradients to the net to update all parameters.
+
+        Args:
+            grad (Dict[str, torch.Tensor]): A dict that contains gradients for all parameters.
+        """
         raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
         return self.get_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
 
     def get_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
-        """
-        Get actions according to states. Takes torch.Tensor as inputs and returns torch.Tensor.
+        """Get actions according to states. Takes torch.Tensor as inputs and returns torch.Tensor.
 
         Args:
             states (torch.Tensor): States.
 
         Returns:
-            Actions, a torch.Tensor.
+            actions (torch.Tensor): Actions.
         """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
@@ -185,56 +177,51 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
+        """Implementation of `get_action_tensor`.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def freeze(self) -> None:
-        """
-        (Partially) freeze the current model. The users should write their own strategy to determine the list of
+        """(Partially) freeze the current model. The users should write their own strategy to determine the list of
         parameters to freeze.
         """
         raise NotImplementedError
 
     @abstractmethod
     def unfreeze(self) -> None:
-        """
-        (Partially) unfreeze the current model. The users should write their own strategy to determine the list of
+        """(Partially) unfreeze the current model. The users should write their own strategy to determine the list of
         parameters to unfreeze.
         """
         raise NotImplementedError
 
     @abstractmethod
     def eval(self) -> None:
-        """
-        Switch the policy to evaluating mode.
+        """Switch the policy to evaluating mode.
         """
         raise NotImplementedError
 
     @abstractmethod
     def train(self) -> None:
-        """
-        Switch the policy to training mode.
+        """Switch the policy to training mode.
         """
         raise NotImplementedError
 
     @abstractmethod
     def get_state(self) -> object:
-        """
-        Get the state of the policy.
+        """Get the state of the policy.
         """
         raise NotImplementedError
 
     @abstractmethod
     def set_state(self, policy_state: object) -> None:
-        """
-        Set the state of the policy.
+        """Set the state of the policy.
         """
         raise NotImplementedError
 
     @abstractmethod
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
-        """
-        Soft update the policy's parameters according to another policy.
+        """Soft update the policy's parameters according to another policy.
 
         Args:
             other_policy (AbsNet): The source policy. Must has same type with the current policy.
@@ -245,8 +232,18 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     def _shape_check(
         self,
         states: torch.Tensor,
-        actions: Optional[torch.Tensor] = None
+        actions: torch.Tensor = None
     ) -> bool:
+        """Check whether the states and actions have valid shapes.
+
+        Args:
+            states (torch.Tensor): State tensor.
+            actions (torch.Tensor, default=None): Action tensor. If it is None, it means we only check state tensor's
+                shape.
+
+        Returns:
+            valid_flag (bool): whether the states and actions have valid shapes.
+        """
         if not SHAPE_CHECK_FLAG:
             return True
         else:
@@ -262,9 +259,23 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
+        """Check whether the generated actions tensor is valid, i.e., has matching shape with states tensor.
+
+        Args:
+            states (torch.Tensor): State tensor.
+            actions (torch.Tensor): Action tensor.
+
+        Returns:
+            valid_flag (bool): whether the actions tensor is valid.
+        """
         raise NotImplementedError
 
     def to_device(self, device: torch.device) -> None:
+        """Assign the current policy to a specific device.
+
+        Args:
+            device (torch.device): The target device.
+        """
         if self._device is None:
             self._device = device
             self._to_device_impl(device)
@@ -279,10 +290,6 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _to_device_impl(self, device: torch.device) -> None:
+        """Implementation of `to_device`.
+        """
         pass
-
-
-if __name__ == '__main__':
-    data = [AbsPolicy('Jack', True), AbsPolicy('Tom', True), DummyPolicy(), DummyPolicy()]
-    for policy in data:
-        print(policy.name)

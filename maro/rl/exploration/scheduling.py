@@ -12,8 +12,8 @@ class AbsExplorationScheduler(ABC):
         exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
             scheduler is applied.
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
-        initial_value: Initial value for the exploration parameter. If None, the value from the original dictionary
-            the policy is instantiated with will be used as the initial value. Defaults to None.
+        initial_value (float, default=None): Initial value for the exploration parameter. If None, the value from
+            the original dictionary the policy is instantiated with will be used as the initial value.
     """
 
     def __init__(self, exploration_params: dict, param_name: str, initial_value: float = None) -> None:
@@ -39,9 +39,9 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
         last_ep (int): Last episode.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
-        start_ep (int): starting episode. Defaults to 1.
-        initial_value: Initial value for the exploration parameter. If None, the value from the original dictionary
-            the policy is instantiated with will be used as the initial value. Defaults to None.
+        start_ep (int, default=1): starting episode.
+        initial_value (float, default=None): Initial value for the exploration parameter. If None, the value from
+            the original dictionary the policy is instantiated with will be used as the initial value.
     """
 
     def __init__(
@@ -80,9 +80,9 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
             cannot be two points with the same first element (episode), or a ``ValueError`` will be raised.
         last_ep (int): Last episode.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
-        start_ep (int): starting episode. Defaults to 1.
-        initial_value: Initial value for the exploration parameter. If None, the value from the original dictionary
-            the policy is instantiated with will be used as the initial value. Defaults to None.
+        start_ep (int, default=1): starting episode.
+        initial_value (float, default=None): Initial value for the exploration parameter. If None, the value from
+            the original dictionary the policy is instantiated with will be used as the initial value.
 
     Returns:
         An iterator over the series of exploration rates from episode 0 to ``max_iter`` - 1.
@@ -126,13 +126,3 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
                     (self._splits[self._split_index][1] - self._splits[self._split_index - 1][1]) /
                     (self._splits[self._split_index][0] - self._splits[self._split_index - 1][0])
                 )
-#
-#
-# if __name__ == "__main__":
-#     exploration_params = {"epsilon": 0.6}
-#     scheduler = MultiLinearExplorationScheduler(
-#         exploration_params, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0
-#     )
-#     for ep in range(1, scheduler.last_ep + 1):
-#         print(f"ep = {ep}, value = {exploration_params['epsilon']}")
-#         scheduler.step()

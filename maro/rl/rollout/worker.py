@@ -11,6 +11,14 @@ from .env_sampler import AbsEnvSampler
 
 
 class RolloutWorker(AbsWorker):
+    """Rollout worker that used to hold a mirror of the environment and run the interactive rollout.
+
+    Args:
+        idx (int): Index of this rollout worker.
+        env_sampler_creator (Callable[[], AbsEnvSampler]): Function used to create the mirror of the environment.
+        router_host (str): Host of the rollout router.
+        router_port (int, default=10001): Port of the rollout router.
+    """
     def __init__(
         self,
         idx: int,
@@ -25,6 +33,11 @@ class RolloutWorker(AbsWorker):
         self._env_sampler = env_sampler_creator()
 
     def _compute(self, msg: list) -> None:
+        """Forward the request to the environment and then send the results back to the requester.
+
+        Args:
+            msg (list): Message list.
+        """
         req = bytes_to_pyobj(msg[-1])
         assert isinstance(req, dict)
 

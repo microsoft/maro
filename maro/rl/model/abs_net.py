@@ -10,8 +10,7 @@ import torch.nn
 
 
 class AbsNet(torch.nn.Module, metaclass=ABCMeta):
-    """
-    Base class for all Torch net classes. It has the interfaces for both training and inference.
+    """Base class for all Torch net classes.
     """
 
     def __init__(self) -> None:
@@ -19,8 +18,7 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
 
     @abstractmethod
     def step(self, loss: torch.Tensor) -> None:
-        """
-        Run a training step to update its own parameters according to the given loss.
+        """Run a training step to update the net's parameters according to the given loss.
 
         Args:
             loss (torch.tensor): Loss used to update the model.
@@ -29,41 +27,48 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
 
     @abstractmethod
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        """
-        Get the gradients with respect to all parameters according to the given loss.
+        """Get the gradients with respect to all parameters according to the given loss.
 
         Args:
-            loss (torch.tensor): Loss used to update the model.
+            loss (torch.tensor): Loss used to compute gradients.
 
         Returns:
-            A dict that contains gradients for all parameters.
+            Gradients (Dict[str, torch.Tensor]): A dict that contains gradients for all parameters.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def apply_gradients(self, grad: dict) -> None:
+    def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
+        """Apply gradients to the net to update all parameters.
+
+        Args:
+            grad (Dict[str, torch.Tensor]): A dict that contains gradients for all parameters.
+        """
         raise NotImplementedError
 
-    def _forward_unimplemented(self, *input: Any) -> None:  # TODO
+    def _forward_unimplemented(self, *input: Any) -> None:
         pass
 
     @abstractmethod
     def get_state(self) -> object:
-        """
-        Get the net's state.
+        """Get the net's state.
+
+        Returns:
+            state (object): A object that contains the net's state.
         """
         raise NotImplementedError
 
     @abstractmethod
     def set_state(self, net_state: object) -> None:
-        """
-        Set the net's state.
+        """Set the net's state.
+
+        Args:
+            net_state (object): A object that contains the net's state.
         """
         raise NotImplementedError
 
     def soft_update(self, other_model: AbsNet, tau: float) -> None:
-        """
-        Soft update the net's parameters according to another net.
+        """Soft update the net's parameters according to another net.
 
         Args:
             other_model (AbsNet): The source net. Must has same type with the current net.
@@ -78,30 +83,26 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
 
     @abstractmethod
     def freeze(self) -> None:
-        """
-        (Partially) freeze the current model. The users should write their own strategy to determine the list of
+        """(Partially) freeze the current model. The users should write their own strategy to determine the list of
         parameters to freeze.
         """
         raise NotImplementedError
 
     @abstractmethod
     def unfreeze(self) -> None:
-        """
-        (Partially) unfreeze the current model. The users should write their own strategy to determine the list of
+        """(Partially) unfreeze the current model. The users should write their own strategy to determine the list of
         parameters to unfreeze.
         """
         raise NotImplementedError
 
     def freeze_all_parameters(self) -> None:
-        """
-        Freeze all parameters.
+        """Freeze all parameters.
         """
         for p in self.parameters():
             p.requires_grad = False
 
     def unfreeze_all_parameters(self) -> None:
-        """
-        Unfreeze all parameters.
+        """Unfreeze all parameters.
         """
         for p in self.parameters():
             p.requires_grad = True

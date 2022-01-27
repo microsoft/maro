@@ -14,6 +14,13 @@ from maro.utils import DummyLogger, Logger
 
 
 class AbsWorker(object):
+    """Worker that used to run a specific job remotely.
+
+    Args:
+        idx (int): Index of this rollout worker.
+        router_host (str): Host of the rollout router.
+        router_port (int, default=10001): Port of the rollout router.
+    """
     def __init__(
         self,
         idx: int,
@@ -46,10 +53,19 @@ class AbsWorker(object):
 
     @abstractmethod
     def _compute(self, msg: list) -> None:
+        """Defines the concrete logic of this worker.
+
+        Args:
+            msg (list): Message list sent by the dispatcher.
+        """
         raise NotImplementedError
 
     def start(self) -> None:
+        """Start the worker.
+        """
         self._event_loop.start()
 
     def stop(self) -> None:
+        """Stop the worker.
+        """
         self._event_loop.stop()

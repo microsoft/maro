@@ -6,6 +6,13 @@ from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 
 
 class RolloutDispatcher(AbsDispatcher):
+    """Rollout dispatcher. Used to process rollout requests.
+
+    Args:
+        num_workers (int): Expected number of workers.
+        frontend_port (int, default=20000): Frontend port, which is used to communicate with requesters.
+        backend_port (int, default=20001): Backend port, which is used to communicate with workers.
+    """
     def __init__(self, num_workers: int, frontend_port: int = 20000, backend_port: int = 20001) -> None:
         super(RolloutDispatcher, self).__init__(frontend_port=frontend_port, backend_port=backend_port)
         self._num_workers = num_workers

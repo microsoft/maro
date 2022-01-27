@@ -33,6 +33,16 @@ def _parse_action_range(
 
 
 class ContinuousRLPolicy(RLPolicy):
+    """Continuous policy.
+
+    Args:
+        name (str): Name of the policy.
+        action_range (Tuple[Union[float, List[float]], Union[float, List[float]]]): Value range of actions.
+            Both the lower bound and the upper bound could be float or array. If it is an array, it should contain
+            the bound for every dimension. If it is a float, it will be broadcast to all dimensions.
+        policy_net (ContinuousPolicyNet): The core net of this policy.
+        trainable (bool, default=True): Whether this policy is trainable.
+    """
     def __init__(
         self,
         name: str,
@@ -40,15 +50,6 @@ class ContinuousRLPolicy(RLPolicy):
         policy_net: ContinuousPolicyNet,
         trainable: bool = True
     ) -> None:
-        """
-        Args:
-            name (str): Name of the policy.
-            action_range: Value range of actions. Both the lower bound and the upper bound could be float or array. If
-                it is an array, it should contain the bound for every dimension. If it is a float, it will be
-                broadcast to all dimensions.
-            policy_net (ContinuousPolicyNet): The core net of this policy.
-            trainable (bool): Whether this policy is trainable. Defaults to True.
-        """
         assert isinstance(policy_net, ContinuousPolicyNet)
 
         super(ContinuousRLPolicy, self).__init__(

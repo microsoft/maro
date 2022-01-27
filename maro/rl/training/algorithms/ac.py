@@ -20,14 +20,15 @@ from maro.rl.utils import TransitionBatch, average_grads, discount_cumsum, merge
 class DiscreteActorCriticParams(TrainerParams):
     """
     get_v_critic_net_func (Callable[[], VNet]): Function to get V critic net.
-    reward_discount (float): Reward decay as defined in standard RL terminology. Defaults to 0.9.
-    grad_iters (int): Number of iterations to calculate gradients. Defaults to 1.
-    critic_loss_cls (Callable): Loss function. Defaults to "mse".
-    clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
-        in which case the actor loss is calculated using the usual policy gradient theorem.
-    lam (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
-    min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
-        very large in magnitude and causing stability issues. Defaults to None, which means no lower bound.
+    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
+    grad_iters (int, default=1): Number of iterations to calculate gradients.
+    critic_loss_cls (Callable, default=None): Critic loss function. If it is None, use MSE.
+    clip_ratio (float, default=None): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf).
+        If it is None, the actor loss is calculated using the usual policy gradient theorem.
+    lam (float, default=0.9): Lambda value for generalized advantage estimation (TD-Lambda).
+    min_logp (float, default=None): Lower bound for clamping logP values during learning.
+        This is to prevent logP from becoming very large in magnitude and causing stability issues.
+        If it is None, it means no lower bound.
     """
     get_v_critic_net_func: Callable[[], VNet] = None
     reward_discount: float = 0.9
@@ -53,6 +54,8 @@ class DiscreteActorCriticParams(TrainerParams):
 
 
 class DiscreteActorCriticOps(AbsTrainOps):
+    """Reference: https://tinyurl.com/2ezte4cr
+    """
     def __init__(
         self,
         name: str,
@@ -84,6 +87,14 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net.to(self._device)
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
+        """Get the critic loss of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The critic loss of the batch.
+        """
         self._v_critic_net.train()
         states = ndarray_to_tensor(batch.states, self._device)  # s
         state_values = self._v_critic_net.v_values(states)
@@ -92,18 +103,42 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
     @remote
     def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        """Get the critic gradients of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            grad (torch.Tensor): The critic gradients of the batch.
+        """
         return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
 
     def update_critic(self, batch: TransitionBatch) -> None:
+        """Update the critic according to the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+        """
         self._v_critic_net.step(self._get_critic_loss(batch))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
-        """Reference: https://tinyurl.com/2ezte4cr
+        """Update the critic according to the given gradients.
+
+        Args:
+            grad_dict (dict): Gradients.
         """
         self._v_critic_net.train()
         self._v_critic_net.apply_gradients(grad_dict)
 
     def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
+        """Get the actor loss of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The actor loss of the batch.
+        """
         assert isinstance(self._policy, DiscretePolicyGradient)
         self._policy.train()
 
@@ -131,13 +166,29 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
     @remote
     def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        """Get the actor gradients of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            grad (torch.Tensor): The actor gradients of the batch.
+        """
         return self._policy.get_gradients(self._get_actor_loss(batch))
 
     def update_actor(self, batch: TransitionBatch) -> None:
+        """Update the actor according to the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+        """
         self._policy.step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
-        """Reference: https://tinyurl.com/2ezte4cr
+        """Update the actor according to the given gradients.
+
+        Args:
+            grad_dict (dict): Gradients.
         """
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
@@ -153,6 +204,14 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net.set_state(ops_state_dict["critic"])
 
     def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
+        """Preprocess the batch to get the return & advantages.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            The updated batch.
+        """
         assert self._is_valid_transition_batch(batch)
         # Preprocess returns
         batch.calc_returns(self._reward_discount)
@@ -169,6 +228,14 @@ class DiscreteActorCriticOps(AbsTrainOps):
         return batch
 
     def preprocess_and_merge_batches(self, batch_list: List[TransitionBatch]) -> TransitionBatch:
+        """Preprocess batches and then merge all batches into a big one.
+
+        Args:
+            batch_list (List[TransitionBatch]): List of batches.
+
+        Returns:
+            The merged batch.
+        """
         return merge_transition_batches([self._preprocess_batch(batch) for batch in batch_list])
 
 

@@ -12,7 +12,14 @@ from maro.rl.utils.common import get_ip_address
 
 
 class AbsDispatcher(object):
-    def __init__(self, frontend_port: int, backend_port) -> None:
+    """Dispatcher. Dispatcher receives job requests, dispatch job requests to proper workers, and then forward the
+        results from the worker to the requester.
+
+    Args:
+        frontend_port (int): Frontend port, which is used to communicate with requesters.
+        backend_port (int): Backend port, which is used to communicate with workers.
+    """
+    def __init__(self, frontend_port: int, backend_port: int) -> None:
         super(AbsDispatcher, self).__init__()
 
         # ZMQ sockets and streams
@@ -31,14 +38,28 @@ class AbsDispatcher(object):
 
     @abstractmethod
     def _route_request_to_compute_node(self, msg: list) -> None:
+        """Dispatch the job request to workers.
+
+        Args:
+            msg (list): Message.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def _send_result_to_requester(self, msg: list) -> None:
+        """Send the results from workers to requesters.
+
+        Args:
+            msg (list): Message.
+        """
         raise NotImplementedError
 
     def start(self) -> None:
+        """Start the dispatcher.
+        """
         self._event_loop.start()
 
     def stop(self) -> None:
+        """Stop the dispatcher.
+        """
         self._event_loop.stop()

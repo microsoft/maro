@@ -57,7 +57,7 @@ class MyActorNet(DiscretePolicyNet):
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
 
-    def apply_gradients(self, grad: dict) -> None:
+    def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
         for name, param in self.named_parameters():
             param.grad = grad[name]
         self._optim.step()
@@ -92,7 +92,7 @@ class MyMultiCriticNet(MultiQNet):
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
 
-    def apply_gradients(self, grad: dict) -> None:
+    def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
         for name, param in self.named_parameters():
             param.grad = grad[name]
         self._optim.step()

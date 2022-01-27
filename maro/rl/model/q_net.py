@@ -12,16 +12,14 @@ from .abs_net import AbsNet
 
 
 class QNet(AbsNet, metaclass=ABCMeta):
-    """
-    Net for Q functions.
+    """Net for Q functions.
+
+    Args:
+        state_dim (int): Dimension of states.
+        action_dim (int): Dimension of actions.
     """
 
     def __init__(self, state_dim: int, action_dim: int) -> None:
-        """
-        Args:
-            state_dim (int): Dimension of states.
-            action_dim (int): Dimension of actions.
-        """
         super(QNet, self).__init__()
         self._state_dim = state_dim
         self._action_dim = action_dim
@@ -34,7 +32,17 @@ class QNet(AbsNet, metaclass=ABCMeta):
     def action_dim(self) -> int:
         return self._action_dim
 
-    def _shape_check(self, states: torch.Tensor, actions: Optional[torch.Tensor] = None) -> bool:
+    def _shape_check(self, states: torch.Tensor, actions: torch.Tensor = None) -> bool:
+        """Check whether the states and actions have valid shapes.
+
+        Args:
+            states (torch.Tensor): State tensor.
+            actions (torch.Tensor, default=None): Action tensor. If it is None, it means we only check state tensor's
+                shape.
+
+        Returns:
+            valid_flag (bool): whether the states and actions have valid shapes.
+        """
         if not SHAPE_CHECK_FLAG:
             return True
         else:
@@ -46,15 +54,14 @@ class QNet(AbsNet, metaclass=ABCMeta):
             return True
 
     def q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        """
-        Get Q-values according to states and actions.
+        """Get Q-values according to states and actions.
 
         Args:
             states (torch.Tensor): States.
             actions (torch.Tensor): Actions.
 
         Returns:
-            Q-values with shape [batch_size]
+            q (torch.Tensor): Q-values with shape [batch_size].
         """
         assert self._shape_check(states=states, actions=actions), \
             f"States or action shape check failed. Expecting: " \
@@ -67,23 +74,20 @@ class QNet(AbsNet, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        """
-        Implementation of `q_values`.
+        """Implementation of `q_values`.
         """
         raise NotImplementedError
 
 
 class DiscreteQNet(QNet, metaclass=ABCMeta):
-    """
-    Net for Q functions with discrete actions.
+    """Net for Q functions with discrete actions.
+
+    Args:
+        state_dim (int): Dimension of states.
+        action_num (int): Number of actions.
     """
 
     def __init__(self, state_dim: int, action_num: int) -> None:
-        """
-        Args:
-            state_dim (int): Dimension of states.
-            action_num (int): Number of actions.
-        """
         super(DiscreteQNet, self).__init__(state_dim=state_dim, action_dim=1)
         self._action_num = action_num
 
@@ -92,14 +96,13 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
         return self._action_num
 
     def q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
-        """
-        Get Q-values for all actions according to states.
+        """Get Q-values for all actions according to states.
 
         Args:
             states (torch.Tensor): States.
 
         Returns:
-            Q-values for all actions. The returned value has the shape [batch_size, action_num]
+            q (torch.Tensor): Q-values for all actions. The returned value has the shape [batch_size, action_num].
         """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
@@ -115,15 +118,17 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
-        """
-        Implementation of `q_values_for_all_actions`.
+        """Implementation of `q_values_for_all_actions`.
         """
         raise NotImplementedError
 
 
 class ContinuousQNet(QNet, metaclass=ABCMeta):
-    """
-    Net for Q functions with continuous actions.
+    """Net for Q functions with continuous actions.
+
+    Args:
+        state_dim (int): Dimension of states.
+        action_dim (int): Dimension of actions.
     """
 
     def __init__(self, state_dim: int, action_dim: int) -> None:

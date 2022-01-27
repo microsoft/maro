@@ -22,16 +22,17 @@ from maro.utils import clone
 class DDPGParams(TrainerParams):
     """
     get_q_critic_net_func (Callable[[], QNet]): Function to get Q critic net.
-    reward_discount (float): Reward decay as defined in standard RL terminology.
-    num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
-    update_target_every (int): Number of training rounds between policy target model updates.
-    q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
-        the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-    soft_update_coef (float): Soft update coefficient, e.g., target_model = (soft_update_coef) * eval_model +
-        (1-soft_update_coef) * target_model. Defaults to 1.0.
-    random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
-        overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
-        wrap-around. Defaults to False.
+    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
+    num_epochs (int, default=1): Number of training epochs per call to ``learn``.
+    update_target_every (int, default=5): Number of training rounds between policy target model updates.
+    q_value_loss_cls (str, default=None): A string indicating a loss class provided by torch.nn or a custom
+        loss class for the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``.
+        If it is None, use MSE.
+    soft_update_coef (float, default=1.0): Soft update coefficient, e.g.,
+        target_model = (soft_update_coef) * eval_model + (1-soft_update_coef) * target_model.
+    random_overwrite (bool, default=False): This specifies overwrite behavior when the replay memory capacity
+        is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
+        sequentially with wrap-around.
     """
     get_q_critic_net_func: Callable[[], QNet] = None
     reward_discount: float = 0.9
@@ -55,7 +56,8 @@ class DDPGParams(TrainerParams):
 
 
 class DDPGOps(AbsTrainOps):
-    """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html"""
+    """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
+    """
 
     def __init__(
         self,
@@ -92,6 +94,14 @@ class DDPGOps(AbsTrainOps):
         self._soft_update_coef = soft_update_coef
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
+        """Get the critic loss of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The critic loss of the batch.
+        """
         assert self._is_valid_transition_batch(batch)
         self._q_critic_net.train()
         states = ndarray_to_tensor(batch.states, self._device)  # s
@@ -113,17 +123,43 @@ class DDPGOps(AbsTrainOps):
 
     @remote
     def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        """Get the critic gradients of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            grad (torch.Tensor): The critic gradients of the batch.
+        """
         return self._q_critic_net.get_gradients(self._get_critic_loss(batch))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
+        """Update the critic according to the given gradients.
+
+        Args:
+            grad_dict (dict): Gradients.
+        """
         self._q_critic_net.train()
         self._q_critic_net.apply_gradients(grad_dict)
 
     def update_critic(self, batch: TransitionBatch) -> None:
+        """Update the critic according to the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+        """
         self._q_critic_net.train()
         self._q_critic_net.step(self._get_critic_loss(batch))
 
     def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
+        """Get the actor loss of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The actor loss of the batch.
+        """
         assert self._is_valid_transition_batch(batch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)  # s
@@ -137,13 +173,31 @@ class DDPGOps(AbsTrainOps):
 
     @remote
     def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        """Get the actor gradients of the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            grad (torch.Tensor): The actor gradients of the batch.
+        """
         return self._policy.get_gradients(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
+        """Update the actor according to the given gradients.
+
+        Args:
+            grad_dict (dict): Gradients.
+        """
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
     def update_actor(self, batch: TransitionBatch) -> None:
+        """Update the actor according to the given batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+        """
         self._policy.train()
         self._policy.step(self._get_actor_loss(batch))
 
@@ -162,6 +216,8 @@ class DDPGOps(AbsTrainOps):
         self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
 
     def soft_update_target(self) -> None:
+        """Soft update the target policy and target critic.
+        """
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
@@ -237,6 +293,8 @@ class DDPG(SingleTrainer):
         self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
+        """Soft update the target policy and target critic.
+        """
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             self._ops.soft_update_target()

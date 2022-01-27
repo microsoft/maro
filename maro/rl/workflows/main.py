@@ -11,7 +11,10 @@ from maro.rl.utils.common import from_env, from_env_as_float, from_env_as_int, g
 from maro.rl.workflows.utils import ScenarioAttr, _get_scenario_path
 
 if __name__ == "__main__":
-    # get user-defined scenario ingredients
+    """Main process of the training workflow.
+    """
+
+    # Get user-defined scenario attributes.
     scenario = get_module(_get_scenario_path())
     scenario_attr = ScenarioAttr(scenario)
     agent2policy = scenario_attr.agent2policy
@@ -31,12 +34,14 @@ if __name__ == "__main__":
     rollout_mode, train_mode = str(from_env("ROLLOUT_MODE")), str(from_env("TRAIN_MODE"))
     assert rollout_mode in {"simple", "parallel"} and train_mode in {"simple", "parallel"}
     if train_mode == "parallel":
+        # If training under parallel mode, retrieve dispatcher address from the environment.
         dispatcher_address = (from_env("DISPATCHER_HOST"), from_env_as_int("DISPATCHER_FRONTEND_PORT"))
     else:
         dispatcher_address = None
 
     is_single_thread = train_mode == "simple" and rollout_mode == "simple"
     if is_single_thread:
+        # If running in single thread mode, create policy instances here and reuse then in rollout and training.
         policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
@@ -71,7 +76,7 @@ if __name__ == "__main__":
         collect_time = training_time = 0
         segment, end_of_episode = 1, False
         while not end_of_episode:
-            # experience collection
+            # Experience collection
             tc0 = time.time()
             policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
             result = env_sampler.sample(policy_state=policy_state, num_steps=num_steps)

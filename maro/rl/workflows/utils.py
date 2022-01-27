@@ -11,6 +11,9 @@ from maro.rl.utils.common import from_env
 
 
 class ScenarioAttr(object):
+    """Helper class to read scenario attributes from the environment. Attributes that retrieved through
+    ScenarioAttr could have more clear type hints.
+    """
     def __init__(self, scenario_module: ModuleType) -> None:
         super(ScenarioAttr, self).__init__()
         self._scenario_module = scenario_module

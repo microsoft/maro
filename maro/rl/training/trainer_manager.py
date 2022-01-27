@@ -15,6 +15,16 @@ from .utils import extract_trainer_name, get_trainer_state_path
 
 
 class TrainerManager(object):
+    """
+    Trainer manager.
+
+    Args:
+        policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
+        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
+        agent2policy (Dict[str, str]): Agent name to policy name mapping.
+        dispatcher_address (Tuple[str, int], default=None): The address of the dispatcher. This is used under
+            only distributed model.
+    """
     def __init__(
         self,
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
@@ -23,16 +33,6 @@ class TrainerManager(object):
         dispatcher_address: Tuple[str, int] = None,
         logger: Logger = None
     ) -> None:
-        """
-        Trainer manager.
-
-        Args:
-            policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
-            trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
-            agent2policy (Dict[str, str]): Agent name to policy name mapping.
-            dispatcher_address (Tuple[str, int]): The address of the dispatcher. This is used under only distributed
-                model. Defaults to None.
-        """
         super(TrainerManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
@@ -54,6 +54,8 @@ class TrainerManager(object):
         }
 
     def train(self) -> None:
+        """Run a training round.
+        """
         if self._dispatcher_address:
             async def train_step() -> Iterable:
                 return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainer_dict.values()])

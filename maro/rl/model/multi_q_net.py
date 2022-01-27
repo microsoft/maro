@@ -12,16 +12,15 @@ from .abs_net import AbsNet
 
 
 class MultiQNet(AbsNet, metaclass=ABCMeta):
-    """
-    Net for multi-agent Q functions.
+    """Net for multi-agent Q functions.
+
+    Args:
+        state_dim (int): Dimension of states.
+        action_dims (List[int]): Dimensions of Dimension of multi-agents' actions. Its length equals to the
+            number of agents.
     """
 
     def __init__(self, state_dim: int, action_dims: List[int]) -> None:
-        """
-        Args:
-            state_dim (int): Dimension of states
-            action_dims (List[int]): Dimension of multi-agents' actions
-        """
         super(MultiQNet, self).__init__()
         self._state_dim = state_dim
         self._action_dims = action_dims
@@ -38,7 +37,17 @@ class MultiQNet(AbsNet, metaclass=ABCMeta):
     def agent_num(self) -> int:
         return len(self._action_dims)
 
-    def _shape_check(self, states: torch.Tensor, actions: Optional[List[torch.Tensor]] = None) -> bool:
+    def _shape_check(self, states: torch.Tensor, actions: List[torch.Tensor] = None) -> bool:
+        """Check whether the states and actions have valid shapes.
+
+        Args:
+            states (torch.Tensor): State tensor.
+            actions (List[torch.Tensor], default=None): Action tensors. It length must be equal to the number of agents.
+                If it is None, it means we only check state tensor's shape.
+
+        Returns:
+            valid_flag (bool): whether the states and actions have valid shapes.
+        """
         if not SHAPE_CHECK_FLAG:
             return True
         else:
@@ -53,15 +62,14 @@ class MultiQNet(AbsNet, metaclass=ABCMeta):
             return True
 
     def q_values(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
-        """
-        Get Q-values according to states and actions.
+        """Get Q-values according to states and actions.
 
         Args:
             states (torch.Tensor): States.
             actions (List[torch.Tensor]): List of actions.
 
         Returns:
-            Q-values with shape [batch_size]
+            q (torch.Tensor): Q-values with shape [batch_size].
         """
         assert self._shape_check(states, actions)  # TODO: add error messages
         q = self._get_q_values(states, actions)
@@ -71,7 +79,6 @@ class MultiQNet(AbsNet, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_q_values(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
-        """
-        Implementation of `q_values`.
+        """Implementation of `q_values`.
         """
         raise NotImplementedError

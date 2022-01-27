@@ -10,24 +10,61 @@ from maro.rl.utils import SHAPE_CHECK_FLAG, MultiTransitionBatch, TransitionBatc
 
 
 class AbsIndexScheduler(object, metaclass=ABCMeta):
+    """Scheduling indexes for read and write requests. This is used as an inner module of the replay memory.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+    """
     def __init__(self, capacity: int) -> None:
         super(AbsIndexScheduler, self).__init__()
         self._capacity = capacity
 
     @abstractmethod
     def get_put_indexes(self, batch_size: int) -> np.ndarray:
+        """Generate a list of indexes to the replay memory for writing. In other words, when the replay memory
+        need to write a batch, the scheduler should provides a set of proper indexes for the replay memory to
+        write.
+
+        Args:
+            batch_size (int): The required batch size.
+
+        Returns:
+            indexes (np.ndarray): The list of indexes.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+        """Generate a list of indexes to the replay memory for sampling. In other words, when the replay memory
+        need to sample a batch, the scheduler should provides a set of proper indexes for the replay memory to
+        read.
+
+        Args:
+            batch_size (int, default=None): The required batch size. If it is None, return all records.
+            forbid_last (bool, default=False): Whether the latest element is allowed to be sampled.
+
+        Returns:
+            indexes (np.ndarray): The list of indexes.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_last_index(self) -> int:
+        """Get the index of the latest element in the memory.
+
+        Returns:
+            index (int): The index of the latest element in the memory.
+        """
         raise NotImplementedError
 
 
 class RandomIndexScheduler(AbsIndexScheduler):
+    """Index scheduler that returns random indexes when sampling.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+        random_overwrite (bool): When it is necessary to overwrite outdated records, use random overwrite or not.
+    """
     def __init__(self, capacity: int, random_overwrite: bool) -> None:
         super(RandomIndexScheduler, self).__init__(capacity)
         self._random_overwrite = random_overwrite
@@ -59,6 +96,11 @@ class RandomIndexScheduler(AbsIndexScheduler):
 
 
 class FIFOIndexScheduler(AbsIndexScheduler):
+    """First-in-first-out index scheduler.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+    """
     def __init__(self, capacity: int) -> None:
         super(FIFOIndexScheduler, self).__init__(capacity)
         self._head = self._tail = 0
@@ -95,6 +137,13 @@ class FIFOIndexScheduler(AbsIndexScheduler):
 
 
 class AbsReplayMemory(object, metaclass=ABCMeta):
+    """Abstract class for all replay memory. Defines a set of fundamental interfaces.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+        state_dim (int): Dimension of states.
+        idx_scheduler (AbsIndexScheduler): The index scheduler.
+    """
     def __init__(self, capacity: int, state_dim: int, idx_scheduler: AbsIndexScheduler) -> None:
         super(AbsReplayMemory, self).__init__()
         self._capacity = capacity
@@ -110,13 +159,25 @@ class AbsReplayMemory(object, metaclass=ABCMeta):
         return self._state_dim
 
     def _get_put_indexes(self, batch_size: int) -> np.ndarray:
+        """Please refers to the doc string in AbsIndexScheduler.
+        """
         return self._idx_scheduler.get_put_indexes(batch_size)
 
     def _get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+        """Please refers to the doc string in AbsIndexScheduler.
+        """
         return self._idx_scheduler.get_sample_indexes(batch_size, forbid_last)
 
 
 class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
+    """Replay memory to store single agent's experiences.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+        state_dim (int): Dimension of states.
+        action_dim (int): Dimension of actions.
+        idx_scheduler (AbsIndexScheduler): The index scheduler.
+    """
     def __init__(
         self,
         capacity: int,
@@ -138,6 +199,11 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         return self._action_dim
 
     def put(self, transition_batch: TransitionBatch) -> None:
+        """Store a transition batch into the memory.
+
+        Args:
+            transition_batch (TransitionBatch): The transition batch.
+        """
         batch_size = len(transition_batch.states)
         if SHAPE_CHECK_FLAG:
             assert 0 < batch_size <= self._capacity
@@ -150,6 +216,12 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
 
     def _put_by_indexes(self, indexes: np.ndarray, transition_batch: TransitionBatch) -> None:
+        """Store a transition batch into the memory at the give indexes.
+
+        Args:
+            indexes (np.ndarray): The indexes to put the batch.
+            transition_batch (TransitionBatch): The transition batch.
+        """
         self._states[indexes] = transition_batch.states
         self._actions[indexes] = transition_batch.actions
         self._rewards[indexes] = transition_batch.rewards
@@ -157,10 +229,26 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._next_states[indexes] = transition_batch.next_states
 
     def sample(self, batch_size: int = None) -> TransitionBatch:
+        """Returns a sampled batch.
+
+        Args:
+            batch_size (int, default=None): The required batch size. If it is None, returns all records.
+
+        Returns:
+            batch (TransitionBatch): The sampled batch.
+        """
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
+        """Returns a sampled batch contains records at the give indexes.
+
+        Args:
+            indexes (np.ndarray): The indexes to put the batch.
+
+        Returns:
+            batch (TransitionBatch): The sampled batch.
+        """
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return TransitionBatch(
@@ -214,6 +302,15 @@ class FIFOReplayMemory(ReplayMemory):
 
 
 class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
+    """Replay memory to store multiple agents' experiences.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+        state_dim (int): Dimension of states.
+        action_dims (List[int]): Dimensions of actions.
+        idx_scheduler (AbsIndexScheduler): The index scheduler.
+        agent_states_dims (List[int]): Dimensions of agent states.
+    """
     def __init__(
         self,
         capacity: int,
@@ -250,6 +347,11 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         return self._agent_num
 
     def put(self, transition_batch: MultiTransitionBatch) -> None:
+        """Store a transition batch into the memory.
+
+        Args:
+            transition_batch (MultiTransitionBatch): The transition batch.
+        """
         batch_size = len(transition_batch.states)
         if SHAPE_CHECK_FLAG:
             assert 0 < batch_size <= self._capacity
@@ -271,6 +373,12 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
 
     def _put_by_indexes(self, indexes: np.ndarray, transition_batch: MultiTransitionBatch):
+        """Store a transition batch into the memory at the give indexes.
+
+        Args:
+            indexes (np.ndarray): The indexes to put the batch.
+            transition_batch (MultiTransitionBatch): The transition batch.
+        """
         self._states[indexes] = transition_batch.states
         for i in range(self.agent_num):
             self._actions[i][indexes] = transition_batch.actions[i]
@@ -283,10 +391,26 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             self._next_agent_states[i][indexes] = transition_batch.next_agent_states[i]
 
     def sample(self, batch_size: int = None) -> MultiTransitionBatch:
+        """Returns a sampled batch.
+
+        Args:
+            batch_size (int, default=None): The required batch size. If it is None, returns all records.
+
+        Returns:
+            batch (MultiTransitionBatch): The sampled batch.
+        """
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> MultiTransitionBatch:
+        """Returns a sampled batch contains records at the give indexes.
+
+        Args:
+            indexes (np.ndarray): The indexes to put the batch.
+
+        Returns:
+            batch (MultiTransitionBatch): The sampled batch.
+        """
         assert all([0 <= idx < self._capacity for idx in indexes])
 
         return MultiTransitionBatch(

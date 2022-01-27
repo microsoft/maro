@@ -18,6 +18,16 @@ from maro.utils import clone
 
 @dataclass
 class DiscreteMADDPGParams(TrainerParams):
+    """
+    get_q_critic_net_func (Callable[[], MultiQNet]): Function to get multi Q critic net.
+    num_epochs (int, default=10): Number of training epochs.
+    update_target_every (int, default=5): Number of gradient steps between target model updates.
+    soft_update_coef (float, default=0.5): Soft update coefficient, e.g.,
+        target_model = (soft_update_coef) * eval_model + (1-soft_update_coef) * target_model.
+    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
+    q_value_loss_cls (Callable, default=None): Critic loss function. If it is None, use MSE.
+    shared_critic (bool, default=False): Whether different policies use shared critic or individual policies.
+    """
     get_q_critic_net_func: Callable[[], MultiQNet] = None
     num_epoch: int = 10
     update_target_every: int = 5
@@ -93,10 +103,27 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._soft_update_coef = soft_update_coef
 
     def get_target_action(self, batch: MultiTransitionBatch) -> torch.Tensor:
+        """Get the target policies' actions according to the batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+
+        Returns:
+            actions (torch.Tensor): Target policies' actions.
+        """
         agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
         return self._target_policy.get_actions_tensor(agent_state)
 
     def get_latest_action(self, batch: MultiTransitionBatch) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Get the latest actions and corresponding log-probabilities according to the batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+
+        Returns:
+            actions (torch.Tensor): Target policies' actions.
+            logps (torch.Tensor): Log-probabilities.
+        """
         assert isinstance(self._policy, DiscretePolicyGradient)
 
         agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
@@ -106,6 +133,15 @@ class DiscreteMADDPGOps(AbsTrainOps):
         return action, logps
 
     def _get_critic_loss(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> torch.Tensor:
+        """Get the critic loss of the given batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+            next_actions (List[torch.Tensor]): List of next actions of all policies.
+
+        Returns:
+            loss (torch.Tensor): The critic loss of the batch.
+        """
         assert not self._shared_critic
         assert isinstance(next_actions, list) and all(isinstance(action, torch.Tensor) for action in next_actions)
 
@@ -136,17 +172,45 @@ class DiscreteMADDPGOps(AbsTrainOps):
         batch: MultiTransitionBatch,
         next_actions: List[torch.Tensor]
     ) -> Dict[str, torch.Tensor]:
+        """Get the critic gradients of the given batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+            next_actions (List[torch.Tensor]): List of next actions of all policies.
+
+        Returns:
+            grad (torch.Tensor): The critic gradients of the batch.
+        """
         return self._q_critic_net.get_gradients(self._get_critic_loss(batch, next_actions))
 
     def update_critic(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> None:
+        """Update the critic according to the given batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+            next_actions (List[torch.Tensor]): List of next actions of all policies.
+        """
         self._q_critic_net.train()
         self._q_critic_net.step(self._get_critic_loss(batch, next_actions))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
+        """Update the critic according to the given gradients.
+
+        Args:
+            grad_dict (dict): Gradients.
+        """
         self._q_critic_net.train()
         self._q_critic_net.apply_gradients(grad_dict)
 
     def _get_actor_loss(self, batch: MultiTransitionBatch) -> torch.Tensor:
+        """Get the actor loss of the given batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The actor loss of the batch.
+        """
         latest_action, latest_action_logp = self.get_latest_action(batch)
         states = ndarray_to_tensor(batch.states, self._device)  # x
         actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
@@ -162,17 +226,37 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
     @remote
     def get_actor_grad(self, batch: MultiTransitionBatch) -> Dict[str, torch.Tensor]:
+        """Get the actor gradients of the given batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+
+        Returns:
+            grad (torch.Tensor): The actor gradients of the batch.
+        """
         return self._policy.get_gradients(self._get_actor_loss(batch))
 
     def update_actor(self, batch: MultiTransitionBatch) -> None:
+        """Update the actor according to the given batch.
+
+        Args:
+            batch (MultiTransitionBatch): Batch.
+        """
         self._policy.train()
         self._policy.step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
+        """Update the actor according to the given gradients.
+
+        Args:
+            grad_dict (dict): Gradients.
+        """
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
     def soft_update_target(self) -> None:
+        """Soft update the target policies and target critics.
+        """
         if self._create_actor:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
         if not self._shared_critic:
@@ -357,6 +441,8 @@ class DiscreteMADDPG(MultiTrainer):
             self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
+        """Soft update the target policies and target critics.
+        """
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             for ops in self._actor_ops_list:
@@ -396,6 +482,6 @@ class DiscreteMADDPG(MultiTrainer):
             raise ValueError("Call 'DiscreteMADDPG.build' to create the critic ops first.")
 
     @staticmethod
-    def get_policy_idx_from_ops_name(ops_name) -> int:
+    def get_policy_idx_from_ops_name(ops_name: str) -> int:
         _, sub_name = ops_name.split(".")
         return int(sub_name.split("_")[1])

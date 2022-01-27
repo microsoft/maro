@@ -7,6 +7,12 @@ from maro.rl.distributed import AbsDispatcher
 
 
 class TrainOpsDispatcher(AbsDispatcher):
+    """Train ops dispatcher.
+
+    Args:
+        frontend_port (int, default=10000): Frontend port, which is used to communicate with requesters.
+        backend_port (int, default=10001): Backend port, which is used to communicate with workers.
+    """
     def __init__(self, frontend_port: int = 10000, backend_port: int = 10001) -> None:
         super(TrainOpsDispatcher, self).__init__(frontend_port=frontend_port, backend_port=backend_port)
         self._available_workers = deque()
