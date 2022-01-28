@@ -12,7 +12,7 @@ from maro.rl.utils.common import get_ip_address
 
 
 class AbsDispatcher(object):
-    """Dispatcher. Dispatcher receives job requests, dispatch job requests to proper workers, and then forward the
+    """Dispatcher. Dispatcher receives job requests, dispatches job requests to proper workers, and then forwards the
         results from the worker to the requester.
 
     Args:
@@ -24,13 +24,18 @@ class AbsDispatcher(object):
 
         # ZMQ sockets and streams
         self._context = Context.instance()
-        self._req_socket = self._context.socket(zmq.ROUTER)
         self._ip_address = get_ip_address()
+
+        # Request socket. Used to communicate with requesters.
+        self._req_socket = self._context.socket(zmq.ROUTER)
         self._req_socket.bind(f"tcp://{self._ip_address}:{frontend_port}")
         self._req_endpoint = ZMQStream(self._req_socket)
+
+        # Dispatch socket. Used to communicate with workers.
         self._dispatch_socket = self._context.socket(zmq.ROUTER)
         self._dispatch_socket.bind(f"tcp://{self._ip_address}:{backend_port}")
         self._dispatch_endpoint = ZMQStream(self._dispatch_socket)
+
         self._event_loop = IOLoop.current()
 
         # register handlers

@@ -123,7 +123,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
 
 @dataclass
 class CacheElement:
-    """Stores cached values during experience collection.
+    """Stores cached values during experience collection (rollout).
     """
     tick: int
     event: object

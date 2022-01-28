@@ -16,7 +16,7 @@ from .utils import extract_trainer_name, get_trainer_state_path
 
 class TrainerManager(object):
     """
-    Trainer manager.
+    Trainer manager. Manage and schedule all trainers to train policies.
 
     Args:
         policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
@@ -39,13 +39,13 @@ class TrainerManager(object):
         self._agent2policy = agent2policy
         self._dispatcher_address = dispatcher_address
         for trainer_name, func in trainer_creator.items():
-            trainer = func(trainer_name)
+            trainer = func(trainer_name)  # Create the trainer instance
             if self._dispatcher_address:
                 trainer.set_dispatch_address(self._dispatcher_address)
             trainer.register_agent2policy(self._agent2policy)
             trainer.register_policy_creator(policy_creator)
             trainer.register_logger(logger)
-            trainer.build()
+            trainer.build()  # `build()` must be called after `register_policy_creator()`
             self._trainer_dict[trainer_name] = trainer
 
         self._agent2trainer = {
