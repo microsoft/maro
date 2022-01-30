@@ -18,13 +18,11 @@ class TrainOpsWorker(AbsWorker):
         idx: int,
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
-        router_host: str,
-        router_port: int = 10001,
+        proxy_host: str,
+        proxy_port: int = 10001,
         logger: Logger = None
     ) -> None:
-        super(TrainOpsWorker, self).__init__(
-            idx=idx, router_host=router_host, router_port=router_port, logger=logger
-        )
+        super(TrainOpsWorker, self).__init__(idx=idx, proxy_host=proxy_host, proxy_port=proxy_port, logger=logger)
 
         self._policy_creator = policy_creator
         self._trainer_creator = trainer_creator
@@ -33,20 +31,24 @@ class TrainOpsWorker(AbsWorker):
         self._ops_dict: Dict[str, AbsTrainOps] = {}
 
     def _compute(self, msg: list) -> None:
-        ops_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
-        assert isinstance(req, dict)
+        if msg[-1] == b"EXIT":
+            self._stream.send(b"EXIT_ACK")
+            self.stop()
+        else:
+            ops_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
+            assert isinstance(req, dict)
 
-        if ops_name not in self._ops_dict:
-            trainer_name = ops_name.split(".")[0]
-            if trainer_name not in self._trainer_dict:
-                trainer = self._trainer_creator[trainer_name](trainer_name)
-                trainer.register_policy_creator(self._policy_creator)
-                self._trainer_dict[trainer_name] = trainer
+            if ops_name not in self._ops_dict:
+                trainer_name = ops_name.split(".")[0]
+                if trainer_name not in self._trainer_dict:
+                    trainer = self._trainer_creator[trainer_name](trainer_name)
+                    trainer.register_policy_creator(self._policy_creator)
+                    self._trainer_dict[trainer_name] = trainer
 
-            self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops_by_name(ops_name)
-            self._logger.info(f"Created ops {ops_name} at {self._id}")
+                self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops_by_name(ops_name)
+                self._logger.info(f"Created ops {ops_name} at {self._id}")
 
-        self._ops_dict[ops_name].set_state(req["state"])
-        func = getattr(self._ops_dict[ops_name], req["func"])
-        result = func(*req["args"], **req["kwargs"])
-        self._receiver.send_multipart([msg[0], pyobj_to_bytes(result)])
+            self._ops_dict[ops_name].set_state(req["state"])
+            func = getattr(self._ops_dict[ops_name], req["func"])
+            result = func(*req["args"], **req["kwargs"])
+            self._stream.send_multipart([msg[0], pyobj_to_bytes(result)])

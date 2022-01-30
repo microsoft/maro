@@ -12,7 +12,7 @@ from zmq.asyncio import Context, Poller
 
 from maro.rl.policy import RLPolicy
 from maro.rl.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
-from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
+from maro.rl.utils.common import bytes_to_pyobj, get_ip_address_by_hostname, pyobj_to_bytes
 from maro.utils import DummyLogger, Logger
 
 
@@ -26,7 +26,8 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         name: str,
         device: str,
         is_single_scenario: bool,
-        get_policy_func: Callable[[], RLPolicy]
+        get_policy_func: Callable[[], RLPolicy],
+        parallelism: int = 1
     ) -> None:
         """
         Args:
@@ -46,6 +47,8 @@ class AbsTrainOps(object, metaclass=ABCMeta):
             self._policy = get_policy_func()
             self._policy.to_device(self._device)
 
+        self._parallelism = parallelism
+
     @property
     def name(self) -> str:
         return self._name
@@ -57,6 +60,10 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     @property
     def policy_action_dim(self) -> int:
         return self._policy.action_dim
+
+    @property
+    def parallelism(self) -> int:
+        return self._parallelism
 
     def _is_valid_transition_batch(self, batch: AbsTransitionBatch) -> bool:
         """Used to check the transition batch's type. If this ops is used under a single trainer, the batch should be
@@ -95,11 +102,12 @@ def remote(func):
 
 class AsyncClient(object):
     def __init__(self, name: str, address: Tuple[str, int], logger: Logger = None) -> None:
+        self._logger = DummyLogger() if logger is None else logger
         self._name = name
         host, port = address
-        self._dispatcher_ip = socket.gethostbyname(host)
-        self._address = f"tcp://{self._dispatcher_ip}:{port}"
-        self._logger = DummyLogger() if logger is None else logger
+        self._proxy_ip = get_ip_address_by_hostname(host)
+        self._address = f"tcp://{self._proxy_ip}:{port}"
+        self._logger.info(f"Proxy address: {self._address}")
 
     async def send_request(self, req: dict) -> None:
         await self._socket.send(pyobj_to_bytes(req))
@@ -123,9 +131,12 @@ class AsyncClient(object):
         self._socket.setsockopt_string(zmq.IDENTITY, self._name)
         self._socket.setsockopt(zmq.LINGER, 0)
         self._socket.connect(self._address)
-        self._logger.debug(f"connected to {self._address}")
+        self._logger.info(f"connected to {self._address}")
         self._poller = Poller()
         self._poller.register(self._socket, zmq.POLLIN)
+
+    async def exit(self):
+        await self._socket.send(b"EXIT")
 
 
 class RemoteOps(object):
@@ -141,9 +152,15 @@ class RemoteOps(object):
         except AttributeError:
             pass
 
-        def remote_method(ops_state, func_name: str, client: AsyncClient) -> Callable:
+        def remote_method(ops_state, func_name: str, desired_parallelism: int, client: AsyncClient) -> Callable:
             async def remote_call(*args, **kwargs) -> object:
-                req = {"state": ops_state, "func": func_name, "args": args, "kwargs": kwargs}
+                req = {
+                    "state": ops_state,
+                    "func": func_name,
+                    "args": args,
+                    "kwargs": kwargs,
+                    "desired_parallelism": desired_parallelism
+                }
                 await client.send_request(req)
                 response = await client.get_response()
                 return response
@@ -152,9 +169,9 @@ class RemoteOps(object):
 
         attr = getattr(self._ops, attr_name)
         if inspect.ismethod(attr) and attr.__name__ == "remote_anotate":
-            return remote_method(self._ops.get_state(), attr_name, self._client)
+            return remote_method(self._ops.get_state(), attr_name, self._ops.parallelism, self._client)
 
         return attr
 
-    def exit(self):
-        self._client.close()
+    async def exit(self):
+        await self._client.exit()

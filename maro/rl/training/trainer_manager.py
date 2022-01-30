@@ -20,7 +20,7 @@ class TrainerManager(object):
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
-        dispatcher_address: Tuple[str, int] = None,
+        proxy_address: Tuple[str, int] = None,
         logger: Logger = None
     ) -> None:
         """
@@ -30,18 +30,18 @@ class TrainerManager(object):
             policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
             trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
             agent2policy (Dict[str, str]): Agent name to policy name mapping.
-            dispatcher_address (Tuple[str, int]): The address of the dispatcher. This is used under only distributed
-                model. Defaults to None.
+            proxy_address (Tuple[str, int]): The address of the proxy. This is used only in distributed mode.
+                Defaults to None.
         """
         super(TrainerManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._agent2policy = agent2policy
-        self._dispatcher_address = dispatcher_address
+        self._proxy_address = proxy_address
         for trainer_name, func in trainer_creator.items():
             trainer = func(trainer_name)
-            if self._dispatcher_address:
-                trainer.set_dispatch_address(self._dispatcher_address)
+            if self._proxy_address:
+                trainer.set_proxy_address(self._proxy_address)
             trainer.register_agent2policy(self._agent2policy)
             trainer.register_policy_creator(policy_creator)
             trainer.register_logger(logger)
@@ -54,7 +54,7 @@ class TrainerManager(object):
         }
 
     def train(self) -> None:
-        if self._dispatcher_address:
+        if self._proxy_address:
             async def train_step() -> Iterable:
                 return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainer_dict.values()])
             asyncio.run(train_step())
@@ -98,3 +98,9 @@ class TrainerManager(object):
         os.makedirs(path, exist_ok=True)
         for trainer_name, trainer in self._trainer_dict.items():
             trainer.save(get_trainer_state_path(path, trainer_name))
+
+    def exit(self):
+        if self._proxy_address:
+            async def exit_all() -> Iterable:
+                return await asyncio.gather(*[trainer.exit() for trainer in self._trainer_dict.values()])
+            asyncio.run(exit_all())

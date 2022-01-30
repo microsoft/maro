@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import asyncio
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional
 
@@ -11,7 +10,7 @@ import torch
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, average_grads, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -43,7 +42,7 @@ class DQNParams(TrainerParams):
             "device": self.device,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
-            "double": self.double,
+            "double": self.double
         }
 
 
@@ -53,6 +52,7 @@ class DQNOps(AbsTrainOps):
         name: str,
         device: str,
         get_policy_func: Callable[[], ValueBasedPolicy],
+        parallelism: int = 1,
         *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
@@ -62,7 +62,8 @@ class DQNOps(AbsTrainOps):
             name=name,
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func
+            get_policy_func=get_policy_func,
+            parallelism=parallelism
         )
 
         assert isinstance(self._policy, ValueBasedPolicy)
@@ -164,7 +165,10 @@ class DQN(SingleTrainer):
             self._replay_memory.put(transition_batch)
 
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
-        return DQNOps(name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+        return DQNOps(
+            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism
+            **self._params.extract_ops_params()
+        )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
@@ -180,10 +184,7 @@ class DQN(SingleTrainer):
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
-            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            grad_list = await asyncio.gather(*[self._ops.get_batch_grad(batch) for batch in batches])
-            assert isinstance(grad_list, list)
-            self._ops.update_with_grad(average_grads(grad_list))
+            self._ops.update_with_grad(await self._ops.get_batch_grad(batch))
 
         self._try_soft_update_target()
 

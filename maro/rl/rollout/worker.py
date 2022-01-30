@@ -15,19 +15,21 @@ class RolloutWorker(AbsWorker):
         self,
         idx: int,
         env_sampler_creator: Callable[[], AbsEnvSampler],
-        router_host: str,
-        router_port: int = 10001,
+        proxy_host: str,
+        proxy_port: int = 10001,
         logger: Logger = None
     ) -> None:
-        super(RolloutWorker, self).__init__(
-            idx=idx, router_host=router_host, router_port=router_port, logger=logger
-        )
+        super(RolloutWorker, self).__init__(idx=idx, proxy_host=proxy_host, proxy_port=proxy_port, logger=logger)
         self._env_sampler = env_sampler_creator()
 
     def _compute(self, msg: list) -> None:
-        req = bytes_to_pyobj(msg[-1])
-        assert isinstance(req, dict)
-
-        func = getattr(self._env_sampler, req["func"])
-        result = func(*req["args"], **req["kwargs"])
-        self._receiver.send_multipart([msg[0], pyobj_to_bytes(result)])
+        if msg[-1] == b"EXIT":
+            self._stream.send(b"EXIT_ACK")
+            self._logger.info("Exiting event loop...")
+            self.stop()
+        else:
+            req = bytes_to_pyobj(msg[-1])
+            assert isinstance(req, dict)
+            func = getattr(self._env_sampler, req["func"])
+            result = func(*req["args"], **req["kwargs"])
+            self._stream.send_multipart([msg[0], pyobj_to_bytes(result)])

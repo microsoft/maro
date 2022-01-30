@@ -13,13 +13,13 @@ import redis
 import yaml
 
 from maro.cli.utils.common import close_by_pid, show_log
-from maro.rl.utils.common import get_log_path
+from maro.rl.workflows.config import ConfigParser
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
 from .utils import (
-    JobStatus, RedisHashKey, start_redis, start_redis_container, start_rl_job_in_foreground,
-    start_rl_job_with_docker_compose, stop_redis, stop_redis_container, stop_rl_job_with_docker_compose
+    JobStatus, RedisHashKey, start_redis, start_rl_job, start_rl_job_with_docker_compose, stop_redis,
+    stop_rl_job_with_docker_compose, term
 )
 
 # metadata
@@ -28,7 +28,6 @@ SESSION_STATE_PATH = join(LOCAL_ROOT, "session.json")
 DOCKERFILE_PATH = join(LOCAL_MARO_ROOT, "docker_files", "dev.df")
 DOCKER_IMAGE_NAME = "maro-local"
 DOCKER_NETWORK = "MAROLOCAL"
-REDIS_CONTAINER_NAME = "maro-local-redis"
 
 # display
 NO_JOB_MANAGER_MSG = """No job manager found. Run "maro local init" to start the job manager first."""
@@ -57,19 +56,21 @@ def get_redis_conn(port=None):
 
 
 # Functions executed on CLI commands
-def run(conf_path: str, containerize: bool = False, port: int = 20000, **kwargs):
+def run(conf_path: str, containerize: bool = False, **kwargs):
     # Load job configuration file
-    with open(conf_path, "r") as fr:
-        conf = yaml.safe_load(fr)
-
+    parser = ConfigParser(conf_path)
+    env_by_component = parser.to_env(containerize=containerize)
     if containerize:
+        path_mapping = parser.get_path_mapping(containerize=True)
         try:
-            start_rl_job_with_docker_compose(conf, LOCAL_MARO_ROOT, DOCKERFILE_PATH, DOCKER_IMAGE_NAME)
+            start_rl_job_with_docker_compose(
+                parser.config, LOCAL_MARO_ROOT, DOCKERFILE_PATH, DOCKER_IMAGE_NAME, env_by_component, path_mapping
+            )
         except KeyboardInterrupt:
-            stop_rl_job_with_docker_compose(conf)
+            stop_rl_job_with_docker_compose(parser.config["job"])
     else:
         try:
-            start_rl_job_in_foreground(conf, LOCAL_MARO_ROOT, port=port)
+            procs = start_rl_job(parser.to_env(), LOCAL_MARO_ROOT)
         except KeyboardInterrupt:
             sys.exit(1)
 
@@ -91,10 +92,7 @@ def init(
         )
         return
 
-    if containerize:
-        start_redis_container(port, REDIS_CONTAINER_NAME, DOCKER_NETWORK)
-    else:
-        start_redis(port)
+    start_redis(port)
 
     # Start job manager
     command = ["python", join(dirname(abspath(__file__)), 'job_manager.py')]
@@ -109,9 +107,7 @@ def init(
             "REDIS_PORT": str(port),
             "LOCAL_MARO_ROOT": LOCAL_MARO_ROOT,
             "DOCKER_IMAGE_NAME": DOCKER_IMAGE_NAME,
-            "DOCKERFILE_PATH": DOCKERFILE_PATH,
-            "DOCKER_NETWORK": DOCKER_NETWORK,
-            "REDIS_CONTAINER_NAME": REDIS_CONTAINER_NAME
+            "DOCKERFILE_PATH": DOCKERFILE_PATH
         }
     )
 
@@ -147,10 +143,7 @@ def exit(**kwargs):
     close_by_pid(int(session_state["job_manager_pid"]))
 
     # Stop Redis
-    if session_state["containerized"]:
-        stop_redis_container(REDIS_CONTAINER_NAME, DOCKER_NETWORK)
-    else:
-        stop_redis(session_state["port"])
+    stop_redis(session_state["port"])
 
     # Remove dump folder.
     shutil.rmtree(LOCAL_ROOT, True)
@@ -226,9 +219,7 @@ def get_job_logs(job_name: str, tail: int = -1, **kwargs):
         return
 
     conf = json.loads(redis_conn.hget(RedisHashKey.JOB_CONF, job_name))
-    if "log_dir" in conf:
-        log_path = get_log_path(conf['log_dir'], conf["job"])
-        show_log(log_path, tail=tail)
+    show_log(conf["log_path"], tail=tail)
 
 
 def list_jobs(**kwargs):

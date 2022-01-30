@@ -8,17 +8,17 @@ from tornado.ioloop import IOLoop
 from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
-from maro.rl.utils.common import get_ip_address
+from maro.rl.utils.common import get_own_ip_address
 
 
-class AbsDispatcher(object):
+class AbsProxy(object):
     def __init__(self, frontend_port: int, backend_port) -> None:
-        super(AbsDispatcher, self).__init__()
+        super(AbsProxy, self).__init__()
 
         # ZMQ sockets and streams
         self._context = Context.instance()
         self._req_socket = self._context.socket(zmq.ROUTER)
-        self._ip_address = get_ip_address()
+        self._ip_address = get_own_ip_address()
         self._req_socket.bind(f"tcp://{self._ip_address}:{frontend_port}")
         self._req_endpoint = ZMQStream(self._req_socket)
         self._dispatch_socket = self._context.socket(zmq.ROUTER)

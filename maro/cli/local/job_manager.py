@@ -8,10 +8,9 @@ import time
 
 import redis
 
-from maro.cli.local.utils import (
-    JobStatus, RedisHashKey, poll, start_rl_job_in_background, start_rl_job_in_containers, term
-)
+from maro.cli.local.utils import JobStatus, RedisHashKey, poll, start_rl_job, start_rl_job_in_containers, term
 from maro.cli.utils.docker import build_image, image_exists
+from maro.rl.workflows.config import ConfigParser
 
 if __name__ == "__main__":
     redis_port = int(os.getenv("REDIS_PORT", default=19999))
@@ -19,12 +18,10 @@ if __name__ == "__main__":
     started, max_running = {}, int(os.getenv("MAX_RUNNING", default=1))
     query_every = int(os.getenv("QUERY_EVERY", default=5))
     sigterm_timeout = int(os.getenv("SIGTERM_TIMEOUT", default=3))
-    containerized = os.getenv("CONTAINERIZE", default="False") == "True"
+    containerize = os.getenv("CONTAINERIZE", default="False") == "True"
     local_maro_root = os.getenv("LOCAL_MARO_ROOT")
-    docker_file_path = os.getenv("DEFAULT_DOCKERFILE_PATH")
-    docker_image_name = os.getenv("DEFAULT_DOCKER_IMAGE_NAME")
-    docker_network = os.getenv("DEFAULT_DOCKER_NETWORK")
-    redis_host = os.getenv("DEFAULT_REDIS_CONTAINER_NAME")
+    docker_file_path = os.getenv("DOCKERFILE_PATH")
+    docker_image_name = os.getenv("DOCKER_IMAGE_NAME")
 
     # thread to monitor a job
     def monitor(job_name):
@@ -76,19 +73,22 @@ if __name__ == "__main__":
                     pending.append((job_name, json.loads(redis_conn.hget(RedisHashKey.JOB_CONF, job_name))))
 
             for job_name, conf in pending[:max(0, max_running - num_running)]:
-                if containerized and not image_exists(docker_image_name):
+                if containerize and not image_exists(docker_image_name):
                     redis_conn.hset(
                         RedisHashKey.JOB_DETAILS, job_name, json.dumps({"status": JobStatus.IMAGE_BUILDING})
                     )
                     build_image(local_maro_root, docker_file_path, docker_image_name)
 
-                if containerized:
+                parser = ConfigParser(conf)
+                env_by_component = parser.to_env(containerize=containerize)
+                if containerize:
+                    path_mapping = parser.get_path_mapping(containerize=True)
                     started[job_name] = start_rl_job_in_containers(
-                        conf, docker_image_name, redis_host, network=docker_network
+                        conf, docker_image_name, env_by_component, path_mapping
                     )
                     details["containers"] = started[job_name]
                 else:
-                    started[job_name] = start_rl_job_in_background(conf, redis_port, local_maro_root)
+                    started[job_name] = start_rl_job(env_by_component, local_maro_root, background=True)
                     details["pids"] = [proc.pid for proc in started[job_name]]
                 details = {"status": JobStatus.RUNNING, "start_time": time.time()}
                 redis_conn.hset(RedisHashKey.JOB_DETAILS, job_name, json.dumps(details))

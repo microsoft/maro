@@ -4,6 +4,7 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from numpy import isin
 
 import torch
 
@@ -36,7 +37,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._name = name
         self._batch_size = params.batch_size
         self._agent2policy = {}
-        self._dispatcher_address: Optional[Tuple[str, int]] = None
+        self._proxy_address: Optional[Tuple[str, int]] = None
         self._logger = None
 
     @property
@@ -83,8 +84,8 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
         raise NotImplementedError
 
-    def set_dispatch_address(self, dispatcher_address: Tuple[str, int]) -> None:
-        self._dispatcher_address = dispatcher_address
+    def set_proxy_address(self, proxy_address: Tuple[str, int]) -> None:
+        self._proxy_address = proxy_address
 
     @abstractmethod
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
@@ -92,7 +93,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
         ops = self.get_local_ops_by_name(name)
-        return RemoteOps(ops, self._dispatcher_address, logger=self._logger) if self._dispatcher_address else ops
+        return RemoteOps(ops, self._proxy_address, logger=self._logger) if self._proxy_address else ops
 
     @abstractmethod
     def get_policy_state(self) -> Dict[str, object]:
@@ -109,6 +110,10 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     @abstractmethod
     def save(self, path: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def exit(self):
         raise NotImplementedError
 
 
@@ -149,6 +154,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def load(self, path: str) -> None:
         self._assert_ops_exists()
+        print(f"loading from path {path}")
         self._ops.set_state(torch.load(path))
 
     def save(self, path: str) -> None:
@@ -158,6 +164,10 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
     def _assert_ops_exists(self) -> None:
         if not self._ops:
             raise ValueError("'build' needs to be called to create an ops instance first.")
+
+    async def exit(self):
+        if isinstance(self._ops, RemoteOps):
+            await self._ops.exit()
 
 
 class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
@@ -181,4 +191,8 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
 
     @abstractmethod
     def get_policy_state(self) -> Dict[str, object]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def exit(self):
         raise NotImplementedError

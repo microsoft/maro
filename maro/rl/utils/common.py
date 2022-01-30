@@ -46,9 +46,8 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int
 
     Args:
         sch (Union[int, List[int]]): Evaluation schedule. If it is an int, it is treated as the number of episodes
-            between two adjacent evaluations. For example, if the total number of episodes is 20 and ``sch`` is 6,
-            this will return [6, 12, 18] if ``final`` is False or [6, 12, 18, 20] otherwise. If it is a list, it will
-            return a sorted version of the list (with the last episode appended if ``final`` is True).
+            between two adjacent evaluations. For example, if the total number of episodes is 20 and ``sch`` is 5,
+            this will return [5, 10, 15, 20]. If it is a list, it will return a sorted version of the list.
         num_episodes (int): Total number of learning episodes.
 
     Returns:
@@ -72,14 +71,6 @@ def get_module(path: str) -> ModuleType:
     return importlib.import_module(os.path.basename(path))
 
 
-def get_log_path(dir: str, job_name: str) -> str:
-    return os.path.join(dir, f"{job_name}.log")
-
-
-def get_logger(dir: str, job_name: str, tag: str) -> Logger:
-    return Logger(tag, dump_path=get_log_path(dir, job_name), dump_mode="a")
-
-
 # serialization and deserialization for messaging
 DEFAULT_MSG_ENCODING = "utf-8"
 
@@ -100,5 +91,13 @@ def bytes_to_pyobj(bytes_: bytes) -> object:
     return pickle.loads(bytes_)
 
 
-def get_ip_address() -> str:
+def get_own_ip_address() -> str:
     return socket.gethostbyname(socket.gethostname())
+
+
+def get_ip_address_by_hostname(host: str) -> str:
+    while True:
+        try:
+            return socket.gethostbyname(host)
+        except:
+            continue

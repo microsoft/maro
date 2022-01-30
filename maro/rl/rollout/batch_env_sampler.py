@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import socket
 import time
 from itertools import chain
 from typing import Dict, List, Tuple
@@ -9,18 +8,18 @@ from typing import Dict, List, Tuple
 import zmq
 from zmq import Context, Poller
 
-from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
+from maro.rl.utils.common import bytes_to_pyobj, get_ip_address_by_hostname, pyobj_to_bytes
 from maro.utils import DummyLogger, Logger
 
 
 class BatchClient(object):
-    def __init__(self, name: str, address: Tuple[str, int]) -> None:
+    def __init__(self, name: str, address: Tuple[str, int], logger: Logger = None) -> None:
         self._name = name
         host, port = address
-        self._dispatcher_ip = socket.gethostbyname(host)
-        self._address = f"tcp://{self._dispatcher_ip}:{port}"
+        self._proxy_ip = get_ip_address_by_hostname(host)
+        self._address = f"tcp://{self._proxy_ip}:{port}"
         self._poller = Poller()
-        self._logger = Logger("batch_request_client")
+        self._logger = logger
 
     def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: int = None) -> List[dict]:
         if min_replies is None:
@@ -30,14 +29,14 @@ class BatchClient(object):
         results = []
         req["parallelism"] = parallelism
         self._socket.send(pyobj_to_bytes(req))
-        self._logger.info(f"{self._name} sent request")
+        self._logger.debug(f"{self._name} sent request")
         while len(results) < min_replies:
             result = self._socket.recv_multipart()
             results.append(bytes_to_pyobj(result[0]))
 
         if grace_factor is not None:
             countdown = int((time.time() - start_time) * grace_factor) * 1000  # milliseconds
-            self._logger.info(f"allowing {countdown / 1000} seconds for remaining results")
+            self._logger.debug(f"allowing {countdown / 1000} seconds for remaining results")
             while len(results) < parallelism and countdown > 0:
                 start = time.time()
                 event = dict(self._poller.poll(countdown))
@@ -48,7 +47,7 @@ class BatchClient(object):
                     results.append(result)
                 countdown -= time.time() - start
 
-        self._logger.info(f"{self._name} received {min_replies} results")
+        self._logger.debug(f"{self._name} received {len(results)} results")
         return results
 
     def close(self):
@@ -57,30 +56,35 @@ class BatchClient(object):
         self._socket.close()
 
     def connect(self):
-        self._socket = Context.instance().socket(zmq.DEALER)
+        self._context = Context.instance()
+        self._socket = self._context.socket(zmq.DEALER)
         self._socket.setsockopt_string(zmq.IDENTITY, self._name)
         self._socket.setsockopt(zmq.LINGER, 0)
         self._socket.connect(self._address)
         self._logger.info(f"connected to {self._address}")
         self._poller.register(self._socket, zmq.POLLIN)
 
+    def exit(self):
+        self._socket.send(b"EXIT")
+
 
 class BatchEnvSampler:
     def __init__(
         self,
         parallelism: int,
-        remote_address: Tuple[str, int],
+        proxy_address: Tuple[str, int],
         min_env_samples: int = None,
         grace_factor: float = None,
         eval_parallelism: int = 1,
-        logger: Logger = DummyLogger()
+        logger: Logger = None
     ) -> None:
         if eval_parallelism > parallelism:
             raise ValueError(f"eval_parallelism cannot exceed the number of available workers: {parallelism}")
 
         super(BatchEnvSampler, self).__init__()
-        self._client = BatchClient("batch_env_sampler", remote_address)
-        self._logger = logger
+        self._logger = logger if logger else DummyLogger()
+        self._client = BatchClient("batch_env_sampler", proxy_address, logger=logger)
+
         self._parallelism = parallelism
         self._min_env_samples = min_env_samples if min_env_samples is not None else self._parallelism
         self._grace_factor = grace_factor
@@ -129,3 +133,7 @@ class BatchEnvSampler:
         return {
             "info": [res["info"][0] for res in results]
         }
+
+    def exit(self):
+        self._client.connect()
+        self._client.exit()

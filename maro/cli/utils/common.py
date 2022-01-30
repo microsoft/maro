@@ -111,3 +111,22 @@ def show_log(log_path: str, tail: int = -1, logger: Logger = None):
     else:
         for line in get_last_k_lines(log_path, tail):
             print_fn(line)
+
+
+def format_env_vars(env: dict, mode: str = "proc"):
+    if mode == "proc":
+        return env
+
+    if mode == "docker":
+        env_opt_list = []
+        for key, val in env.items():
+            env_opt_list.extend(["--env", f"{key}={val}"])
+        return env_opt_list
+
+    if mode == "docker-compose":
+        return [f"{key}={val}" for key, val in env.items()]
+
+    if mode == "k8s":
+        return [{"name": key, "value": val} for key, val in env.items()]
+
+    raise ValueError(f"'mode' should be one of 'proc', 'docker', 'docker-compose', 'k8s', got {mode}")

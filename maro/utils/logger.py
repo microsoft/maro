@@ -61,7 +61,7 @@ FORMAT_NAME_TO_STDOUT_FORMAT = {
 PROGRESS = 60
 logging.addLevelName(PROGRESS, "PROGRESS")
 
-level_map = {
+LEVEL_MAP = {
     "DEBUG": logging.DEBUG,
     "INFO": logging.INFO,
     "WARN": logging.WARN,
@@ -98,17 +98,19 @@ class Logger(object):
             to a file.
         dump_mode (str): Write log file mode. Defaults to ``w``. Use ``a`` to append log.
         stdout_level (str): the logging level of the stdout handler. Defaults to ``INFO``.
+        file_level (str): the logging level of the file handler. Defaults to ``DEBUG``.
     """
 
     def __init__(
         self, tag: str, format_: LogFormat = LogFormat.simple, dump_path: str = None, dump_mode: str = 'w',
-        stdout_level="INFO"
+        stdout_level="INFO", file_level="DEBUG"
     ):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
             if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
             FORMAT_NAME_TO_FILE_FORMAT[format_]
-        self._stdout_level = stdout_level
+        self._stdout_level = LEVEL_MAP[stdout_level]
+        self._file_level = LEVEL_MAP[file_level]
         self._logger = logging.getLogger(tag)
         self._logger.setLevel(logging.DEBUG)
 
@@ -116,7 +118,7 @@ class Logger(object):
             os.makedirs(os.path.dirname(dump_path), exist_ok=True)
             # File handler
             fh = logging.FileHandler(filename=dump_path, mode=dump_mode, encoding="utf-8")
-            fh.setLevel(logging.DEBUG)
+            fh.setLevel(self._file_level)
             if self._file_format is not None:
                 fh.setFormatter(self._file_format)
             self._logger.addHandler(fh)
