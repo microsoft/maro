@@ -16,8 +16,8 @@ class AbsWorker(object):
     def __init__(
         self,
         idx: int,
-        proxy_host: str,
-        proxy_port: int = 10001,
+        producer_host: str,
+        producer_port: int,
         logger: Logger = None
     ) -> None:
         super(AbsWorker, self).__init__()
@@ -30,10 +30,10 @@ class AbsWorker(object):
         self._socket = self._context.socket(zmq.DEALER)
         self._socket.identity = string_to_bytes(self._id)
 
-        self._proxy_ip = get_ip_address_by_hostname(proxy_host)
-        self._proxy_address = f"tcp://{self._proxy_ip}:{proxy_port}"
-        self._socket.connect(self._proxy_address)
-        self._logger.info(f"Connected to proxy at {self._proxy_address}")
+        self._producer_ip = get_ip_address_by_hostname(producer_host)
+        self._producer_address = f"tcp://{self._producer_ip}:{producer_port}"
+        self._socket.connect(self._producer_address)
+        self._logger.info(f"Connected to producer at {self._producer_address}")
 
         self._stream = ZMQStream(self._socket)
         self._stream.send(b"READY")

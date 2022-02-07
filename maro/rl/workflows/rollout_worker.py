@@ -22,8 +22,8 @@ if __name__ == "__main__":
     worker = RolloutWorker(
         idx=worker_idx,
         env_sampler_creator=lambda: scenario_attr.get_env_sampler(policy_creator),
-        proxy_host=str(from_env("ROLLOUT_PROXY_HOST")),
-        proxy_port=from_env_as_int("ROLLOUT_PROXY_BACKEND_PORT"),
+        producer_host=str(from_env("ROLLOUT_CONTROLLER_HOST")),
+        producer_port=from_env_as_int("ROLLOUT_CONTROLLER_PORT"),
         logger=logger
     )
     worker.start()

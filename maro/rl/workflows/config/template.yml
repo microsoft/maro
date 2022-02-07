@@ -12,14 +12,14 @@ main:
     stdout: INFO   # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG
 rollout:
-  parallelism: 10
-  eval_parallelism: 1
-  min_env_samples: 8
-  grace_factor: 0.2
-  proxy:   # ignored if parallelism = 1
-    host: rollout_proxy
-    frontend: 20000
-    backend: 20001
+  parallelism: 
+    sampling: 10
+    eval: 1  # defaults to 1 if not provided
+    min_env_samples: 8  # ignored if parallelism.training == 1
+    grace_factor: 0.2  # ignored if parallelism.training == 1
+    controller:  # ignored if parallelism.training == 1
+      host: "127.0.0.1"   # ignored if run in containerized environments
+      port: 20000
   logging:
     stdout: INFO   # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG

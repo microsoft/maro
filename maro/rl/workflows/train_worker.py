@@ -22,8 +22,8 @@ if __name__ == "__main__":
         idx=from_env_as_int("ID"),
         policy_creator=scenario_attr.policy_creator,
         trainer_creator=scenario_attr.trainer_creator,
-        proxy_host=str(from_env("TRAIN_PROXY_HOST")),
-        proxy_port=from_env_as_int("TRAIN_PROXY_BACKEND_PORT"),
+        producer_host=str(from_env("TRAIN_PROXY_HOST")),
+        producer_port=from_env_as_int("TRAIN_PROXY_BACKEND_PORT"),
         logger=logger
     )
     worker.start()

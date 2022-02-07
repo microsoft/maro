@@ -28,7 +28,9 @@ def main(scenario: ScenarioAttr):
     checkpoint_path = from_env("CHECKPOINT_PATH", required=False, default=None)
     checkpoint_interval = from_env_as_int("CHECKPOINT_INTERVAL", required=False, default=1)
 
-    rollout_parallelism = from_env_as_int("ROLLOUT_PARALLELISM")
+    env_sampling_parallelism = from_env_as_int("ENV_SAMPLE_PARALLELISM", required=False, default=1)
+    env_eval_parallelism = from_env_as_int("ENV_EVAL_PARALLELISM", required=False, default=1)
+    rollout_parallelism = max(env_sampling_parallelism, env_eval_parallelism)
     train_mode = from_env("TRAIN_MODE")
 
     agent2policy = scenario.agent2policy
@@ -43,11 +45,11 @@ def main(scenario: ScenarioAttr):
         env_sampler = scenario.get_env_sampler(policy_creator)
     else:
         env_sampler = BatchEnvSampler(
-            parallelism=from_env_as_int("ROLLOUT_PARALLELISM"),
-            proxy_address=(from_env("ROLLOUT_PROXY_HOST"), from_env_as_int("ROLLOUT_PROXY_FRONTEND_PORT")),
+            sampling_parallelism=env_sampling_parallelism,
+            port=from_env_as_int("ROLLOUT_CONTROLLER_PORT"),
             min_env_samples=from_env("MIN_ENV_SAMPLES", required=False, default=None),
             grace_factor=from_env("GRACE_FACTOR", required=False, default=None),
-            eval_parallelism=from_env_as_int("EVAL_PARALLELISM", required=False, default=1),
+            eval_parallelism=env_eval_parallelism,
             logger=logger
         )
 
@@ -103,7 +105,7 @@ def main(scenario: ScenarioAttr):
         logger.info(f"ep {ep} - roll-out time: {collect_time}, training time: {training_time}")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
-            result = env_sampler.test(
+            result = env_sampler.eval(
                 policy_state=trainer_manager.get_policy_state() if not is_single_thread else None
             )
             if scenario.post_evaluate:
