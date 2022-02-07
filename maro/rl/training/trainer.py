@@ -8,6 +8,8 @@ from numpy import isin
 
 import torch
 
+import torch
+
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.utils import Logger
@@ -154,7 +156,6 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def load(self, path: str) -> None:
         self._assert_ops_exists()
-        print(f"loading from path {path}")
         self._ops.set_state(torch.load(path))
 
     def save(self, path: str) -> None:

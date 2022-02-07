@@ -3,7 +3,6 @@
 
 # TODO: DDPG has net been tested in a real test case
 
-import asyncio
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional
 

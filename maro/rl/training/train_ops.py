@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import inspect
-import socket
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Tuple
 
@@ -131,7 +130,7 @@ class AsyncClient(object):
         self._socket.setsockopt_string(zmq.IDENTITY, self._name)
         self._socket.setsockopt(zmq.LINGER, 0)
         self._socket.connect(self._address)
-        self._logger.info(f"connected to {self._address}")
+        self._logger.debug(f"connected to {self._address}")
         self._poller = Poller()
         self._poller.register(self._socket, zmq.POLLIN)
 
