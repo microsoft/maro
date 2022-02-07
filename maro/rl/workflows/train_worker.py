@@ -9,10 +9,10 @@ from maro.utils import Logger
 if __name__ == "__main__":
     scenario = get_module(_get_scenario_path())
     scenario_attr = ScenarioAttr(scenario)
-    
+
     worker_idx = from_env_as_int("ID")
     logger = Logger(
-        f"TRAIN-WORKER.{worker_idx}", 
+        f"TRAIN-WORKER.{worker_idx}",
         dump_path=from_env("LOG_PATH"),
         dump_mode="a",
         stdout_level=from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),

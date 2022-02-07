@@ -113,7 +113,7 @@ class BatchEnvSampler:
             "type": "sample",
             "policy_state": policy_state,
             "num_steps": num_steps,
-            "index": (self._ep, self._segment)     
+            "index": (self._ep, self._segment)
         }
         results = self._client.collect(
             req, self._sampling_parallelism,
