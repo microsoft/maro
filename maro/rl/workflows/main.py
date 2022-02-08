@@ -17,7 +17,7 @@ def main(scenario: ScenarioAttr):
     num_steps = from_env_as_int("NUM_STEPS", required=False, default=-1)
 
     logger = Logger(
-        "MAIN", 
+        "MAIN",
         dump_path=from_env("LOG_PATH"),
         dump_mode="a",
         stdout_level=from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),
