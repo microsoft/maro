@@ -59,7 +59,7 @@ def get_redis_conn(port=None):
 def run(conf_path: str, containerize: bool = False, **kwargs):
     # Load job configuration file
     parser = ConfigParser(conf_path)
-    env_by_component = parser.to_env(containerize=containerize)
+    env_by_component = parser.as_env(containerize=containerize)
     if containerize:
         path_mapping = parser.get_path_mapping(containerize=True)
         try:
@@ -70,7 +70,7 @@ def run(conf_path: str, containerize: bool = False, **kwargs):
             stop_rl_job_with_docker_compose(parser.config["job"])
     else:
         try:
-            procs = start_rl_job(parser.to_env(), LOCAL_MARO_ROOT)
+            procs = start_rl_job(parser.as_env(), LOCAL_MARO_ROOT)
         except KeyboardInterrupt:
             sys.exit(1)
 

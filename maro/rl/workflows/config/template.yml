@@ -30,7 +30,7 @@ training:
     path: "/path/to/your/checkpoint/folder"
     interval: 10
   proxy:   # ignored under simple mode
-    host: train_proxy
+    host: "127.0.0.1"
     frontend: 10000
     backend: 10001
   num_workers: 10

@@ -80,7 +80,7 @@ if __name__ == "__main__":
                     build_image(local_maro_root, docker_file_path, docker_image_name)
 
                 parser = ConfigParser(conf)
-                env_by_component = parser.to_env(containerize=containerize)
+                env_by_component = parser.as_env(containerize=containerize)
                 if containerize:
                     path_mapping = parser.get_path_mapping(containerize=True)
                     started[job_name] = start_rl_job_in_containers(

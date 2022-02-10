@@ -91,8 +91,11 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self._policy.set_state(policy_state)
 
 
-# annotation to indicate that an function / method can be called remotely
 def remote(func):
+    """Annotation to indicate that a function / method can be called remotely.
+
+    This annotation takes effect only when an ``AbsTrainOps`` object is wrapped by a ``RemoteOps``.
+    """
     def remote_anotate(*args, **kwargs):
         return func(*args, **kwargs)
 
@@ -100,6 +103,13 @@ def remote(func):
 
 
 class AsyncClient(object):
+    """Facility used by a ``RemoteOps`` instance to communicate asynchronously with ``TrainingProxy``.
+
+    Args:
+        name (str): Name of the client.
+        address (Tuple[str, int]): Address (host and port) of the training proxy.
+        logger (Logger, default=None): logger.
+    """
     def __init__(self, name: str, address: Tuple[str, int], logger: Logger = None) -> None:
         self._logger = DummyLogger() if logger is None else logger
         self._name = name
@@ -109,10 +119,22 @@ class AsyncClient(object):
         self._logger.info(f"Proxy address: {self._address}")
 
     async def send_request(self, req: dict) -> None:
+        """Send a request to the proxy in asynchronous fashion.
+
+        This is a coroutine and is executed asynchronously with calls to other AsyncClients' ``send_request`` calls.
+
+        Args:
+            req (dict): Request that contains task specifications and parameters.
+        """
         await self._socket.send(pyobj_to_bytes(req))
         self._logger.debug(f"{self._name} sent request {req['func']}")
 
     async def get_response(self) -> object:
+        """Waits for a result in asynchronous fashion.
+
+        This is a coroutine and is executed asynchronously with calls to other AsyncClients' ``get_response`` calls.
+        This ensures that all clients' tasks are sent out as soon as possible before the waiting for results starts.
+        """
         while True:
             events = await self._poller.poll(timeout=100)
             if self._socket in dict(events):
@@ -121,11 +143,15 @@ class AsyncClient(object):
                 return bytes_to_pyobj(result[0])
 
     def close(self):
+        """Close the connection to the proxy.
+        """
         self._poller.unregister(self._socket)
         self._socket.disconnect(self._address)
         self._socket.close()
 
     def connect(self):
+        """Establish the connection to the proxy.
+        """
         self._socket = Context.instance().socket(zmq.DEALER)
         self._socket.setsockopt_string(zmq.IDENTITY, self._name)
         self._socket.setsockopt(zmq.LINGER, 0)
@@ -135,10 +161,25 @@ class AsyncClient(object):
         self._poller.register(self._socket, zmq.POLLIN)
 
     async def exit(self):
+        """Send EXIT signals to the proxy indicating no more tasks.
+        """
         await self._socket.send(b"EXIT")
 
 
 class RemoteOps(object):
+    """Wrapper for ``AbsTrainOps``.
+
+    RemoteOps provides similar interfaces to ``AbsTrainOps``. Any method annotated by the remote decorator in the
+    definition of the train ops is transformed to a remote method. Calling this method invokes using the internal
+    ``AsyncClient`` to send the required task parameters to a ``TrainingProxy`` that handles task dispatching and
+    result collection. Methods not annotated by the decorator are not affected.
+
+    Args:
+        ops (AbsTrainOps): An ``AbsTrainOps`` instance to be wrapped. Any method annotated by the remote decorator in
+            its definition is transformed to a remote function call.
+        address (Tuple[str, int]): Address (host and port) of the training proxy.
+        logger (Logger, default=None): logger.
+    """
     def __init__(self, ops: AbsTrainOps, address: Tuple[str, int], logger: Logger = None) -> None:
         self._ops = ops
         self._client = AsyncClient(self._ops.name, address, logger=logger)
@@ -173,4 +214,6 @@ class RemoteOps(object):
         return attr
 
     async def exit(self):
+        """Close the internal task client.
+        """
         await self._client.exit()

@@ -10,6 +10,15 @@ from maro.utils import Logger
 
 
 class TrainingProxy(AbsProxy):
+    """Intermediary between trainers and workers.
+
+    The proxy receives compute tasks from multiple ``AbsTrainOps`` instances, forwards them to a set of back-end
+    ``TrainOpsWorker``s to be processed and returns the results to the clients.
+
+    Args:
+        frontend_port (int): Network port for communicating with clients (task producers).
+        backend_port (int): Network port for communicating with back-end workers (task consumers).
+    """
     def __init__(self, frontend_port: int = 10000, backend_port: int = 10001) -> None:
         super(TrainingProxy, self).__init__(frontend_port=frontend_port, backend_port=backend_port)
         self._available_workers = deque()
@@ -20,6 +29,14 @@ class TrainingProxy(AbsProxy):
         self._logger = Logger("TRAIN-PROXY")
 
     def _route_request_to_compute_node(self, msg: list) -> None:
+        """
+        Here we use a least-recently-used (LRU) routing strategy to select workers for a task while making the best
+        effort to satisfy the task's desired parallelism. For example, consider a task that specifies a desired
+        parallelism K (for gradient computation). If there are more than K workers in the ``_available_workers`` queue,
+        the first, i.e., the least recently used, K of them will be selected to process the task. If there are fewer
+        than K workers in the queue, all workers will be popped from the queue to process the task. In this case, the
+        desired parallelism cannot be satisfied, but waiting is avoided.
+        """
         if msg[-1] == b"EXIT":
             self._connected_ops.remove(msg[0])
             # if all clients (ops) have signaled exit, tell the workers to terminate

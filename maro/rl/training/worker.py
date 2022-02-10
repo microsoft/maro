@@ -13,6 +13,18 @@ from .trainer import AbsTrainer
 
 
 class TrainOpsWorker(AbsWorker):
+    """Worker that executes methods defined in a subclass of ``AbsTrainOps`` and annotated as "remote" on demand.
+
+    Args:
+        idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
+            so that the proxy can keep track of its connection status.
+        policy_creator (Dict[str, Callable[[str], RLPolicy]]): User-defined function registry that can be used to create
+            an "RLPolicy" instance with a name in the registry. This is required to create train ops instances.
+        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): User-defined function registry that can be used to
+            create an "AbsTrainer" instance with a name in the registry. This is required to create train ops instances.
+        proxy_host (str): IP address of the proxy host to connect to.
+        proxy_port (int, default=10001): Port of the proxy host to connect to.
+    """
     def __init__(
         self,
         idx: int,
@@ -31,6 +43,11 @@ class TrainOpsWorker(AbsWorker):
         self._ops_dict: Dict[str, AbsTrainOps] = {}
 
     def _compute(self, msg: list) -> None:
+        """Execute a method defined by some train ops and annotated as "remote".
+
+        Args:
+            msg (list): Multi-part message containing task specifications and parameters.
+        """
         if msg[-1] == b"EXIT":
             self._stream.send(b"EXIT_ACK")
             self.stop()

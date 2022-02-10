@@ -65,12 +65,6 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int
     return schedule
 
 
-def get_module(path: str) -> ModuleType:
-    path = os.path.normpath(path)
-    sys.path.insert(0, os.path.dirname(path))
-    return importlib.import_module(os.path.basename(path))
-
-
 # serialization and deserialization for messaging
 DEFAULT_MSG_ENCODING = "utf-8"
 

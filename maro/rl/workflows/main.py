@@ -7,17 +7,17 @@ from typing import List
 
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainerManager
-from maro.rl.utils.common import from_env, from_env_as_int, get_eval_schedule, get_module
-from maro.rl.workflows.utils import ScenarioAttr, _get_scenario_path
+from maro.rl.utils.common import from_env, from_env_as_int, get_eval_schedule
+from maro.rl.workflows.scenario import Scenario
 from maro.utils import Logger
 
 
-def main(scenario: ScenarioAttr):
+def main(scenario: Scenario):
     num_episodes = from_env_as_int("NUM_EPISODES")
     num_steps = from_env_as_int("NUM_STEPS", required=False, default=-1)
 
     logger = Logger(
-        "MAIN", 
+        "MAIN",
         dump_path=from_env("LOG_PATH"),
         dump_mode="a",
         stdout_level=from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),
@@ -118,5 +118,5 @@ def main(scenario: ScenarioAttr):
 
 if __name__ == "__main__":
     # get user-defined scenario ingredients
-    scenario = ScenarioAttr(get_module(_get_scenario_path()))
+    scenario = Scenario(from_env("SCENARIO_PATH"))
     main(scenario)

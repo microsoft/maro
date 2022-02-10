@@ -13,6 +13,14 @@ from maro.utils import DummyLogger, Logger
 
 
 class AbsWorker(object):
+    """Abstract worker class to process a compute task in distributed fashion.
+
+    Args:
+        idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
+            so that the task producer can keep track of its connection status.
+        producer_host (str): IP address of the task producer host to connect to.
+        producer_port (int, default=10001): Port of the task producer host to connect to.
+    """
     def __init__(
         self,
         idx: int,
@@ -45,10 +53,21 @@ class AbsWorker(object):
 
     @abstractmethod
     def _compute(self, msg: list) -> None:
+        """The task processing logic is defined here.
+
+        Args:
+            msg (list): Multi-part message containing task specifications and parameters.
+        """
         raise NotImplementedError
 
     def start(self) -> None:
+        """Start a Tornado event loop.
+
+        Calling this enters the worker into an event loop where it starts doing its job. 
+        """
         self._event_loop.start()
 
     def stop(self) -> None:
+        """Stop the currently running event loop.
+        """
         self._event_loop.stop()

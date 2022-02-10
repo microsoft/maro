@@ -203,11 +203,11 @@ class ConfigParser:
             raise KeyError(
                 f"{self._validation_err_pfx}: fields under section '{component}.logging' must be 'stdout' or 'file'"
             )
-        valid_loggings = set(LEVEL_MAP.keys())
+        valid_log_levels = set(LEVEL_MAP.keys())
         for key, val in level_dict.items():
-            if val not in valid_loggings:
+            if val not in valid_log_levels:
                 raise ValueError(
-                    f"{self._validation_err_pfx}: '{component}.logging.{key}' must be one of {valid_loggings}."
+                    f"{self._validation_err_pfx}: '{component}.logging.{key}' must be one of {valid_log_levels}."
                 )
 
     def get_path_mapping(self, containerize: bool = False) -> dict:
@@ -233,21 +233,24 @@ class ConfigParser:
 
         return path_map
 
-    def to_env(self, containerize: bool = False) -> dict:
+    def as_env(self, containerize: bool = False) -> dict:
         """Generate environment variables for the workflow scripts.
-        
+
+        A doubly-nested dictionary is returned that contains the environment variables for each distributed component.
+
         Args:
             containerize (bool): If true, the generated environment variables are to be used in a containerized
                 environment. Only path-related environment variables are affected by this flag. See the docstring
                 for ``get_path_mappings`` for details. Defaults to False.
         """
         path_mapping = self.get_path_mapping(containerize=containerize)
+        scenario_path = path_mapping[self._config["scenario_path"]]
         env = {
             "main": {
                 "JOB": self._config["job"],
                 "NUM_EPISODES": str(self._config["main"]["num_episodes"]),
                 "TRAIN_MODE": self._config["training"]["mode"],
-                "SCENARIO_PATH": path_mapping[self._config["scenario_path"]]
+                "SCENARIO_PATH": scenario_path
             }
         }
 
@@ -296,7 +299,7 @@ class ConfigParser:
                     "ID": str(i),
                     "ROLLOUT_CONTROLLER_HOST": self._get_rollout_controller_host(containerize=containerize),
                     "ROLLOUT_CONTROLLER_PORT": rollout_controller_port,
-                    "SCENARIO_PATH": path_mapping[self._config["scenario_path"]]
+                    "SCENARIO_PATH": scenario_path
                 }
                 if "logging" in self._config["rollout"]:
                     env[worker_id].update({
@@ -323,7 +326,7 @@ class ConfigParser:
                     "ID": str(i),
                     "TRAIN_PROXY_HOST": producer_host,
                     "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port,
-                    "SCENARIO_PATH": path_mapping[self._config["scenario_path"]]
+                    "SCENARIO_PATH": scenario_path
                 }
                 if "logging" in self._config["training"]:
                     env[worker_id].update({

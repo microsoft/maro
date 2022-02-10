@@ -109,8 +109,8 @@ class Logger(object):
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
             if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
             FORMAT_NAME_TO_FILE_FORMAT[format_]
-        self._stdout_level = LEVEL_MAP[stdout_level]
-        self._file_level = LEVEL_MAP[file_level]
+        self._stdout_level = LEVEL_MAP[stdout_level] if isinstance(stdout_level, str) else stdout_level
+        self._file_level = LEVEL_MAP[file_level] if isinstance(file_level, str) else file_level
         self._logger = logging.getLogger(tag)
         self._logger.setLevel(logging.DEBUG)
 

@@ -269,7 +269,7 @@ def add_job(conf_path: dict, **kwargs):
             ADDRESS_REGISTRY_NAME, REDIS_HOST, deployment_conf["name"], ADDRESS_REGISTRY_PORT
         ), job_name
     )
-    for component_name, env in parser.to_env(containerize=True).items():
+    for component_name, env in parser.as_env(containerize=True).items():
         container_spec = k8s_manifest_generator.get_container_spec(
             get_docker_image_name_in_acr(resource_name["acrName"], DOCKER_IMAGE_NAME),
             component_name,

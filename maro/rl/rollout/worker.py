@@ -11,6 +11,16 @@ from .env_sampler import AbsEnvSampler
 
 
 class RolloutWorker(AbsWorker):
+    """Worker that hosts an environment simulator and executes roll-out on demand for sampling and evaluation purposes.
+
+    Args:
+        idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
+            so that the parallel roll-out controller can keep track of its connection status.
+        env_sampler_creator (Callable[[dict], AbsEnvSampler]): User-defined function to create an ``AbsEnvSampler``
+            for roll-out purposes. 
+        producer_host (str): IP address of the parallel task controller host to connect to.
+        producer_port (int, default=10001): Port of the parallel task controller host to connect to.
+    """
     def __init__(
         self,
         idx: int,
@@ -23,6 +33,11 @@ class RolloutWorker(AbsWorker):
         self._env_sampler = env_sampler_creator()
 
     def _compute(self, msg: list) -> None:
+        """Perform a full or partial episode of roll-out for sampling or evaluation.
+
+        Args:
+            msg (list): Multi-part message containing roll-out specifications and parameters.
+        """
         if msg[-1] == b"EXIT":
             self._logger.info("Exiting event loop...")
             self.stop()

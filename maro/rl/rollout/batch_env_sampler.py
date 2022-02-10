@@ -13,6 +13,12 @@ from maro.utils import DummyLogger, Logger
 
 
 class ParallelTaskController(object):
+    """Controller that sends identical tasks to a set of remote workers and collect results from them.
+
+    Args:
+        port (int, default=20000): Network port the controller uses to talk to the remote workers.
+        logger (Logger, default=None): Optional logger for logging key events.
+    """
     def __init__(self, port: int = 20000, logger: Logger = None) -> None:
         self._ip = get_own_ip_address()
         self._context = Context.instance()
@@ -38,6 +44,21 @@ class ParallelTaskController(object):
         return rep["result"] if rep["index"] == index else None
 
     def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: int = None) -> List[dict]:
+        """Send a task request to a set of remote workers and collect the results.
+
+        Args:
+            req (dict): Request containing task specifications and parameters.
+            parallelism (int): Number of workers to send the task to.
+            min_replies (int, default=None): The minimum number of results to collect in one round of remote
+                sampling. If None, it defaults to the value of ``parallelism``.
+            grace_factor (float, default=None): Factor that determines the additional wait time after receiving the
+                minimum required replies (as determined by ``min_replies``). For example, if the minimum required
+                replies are received in T seconds, it will allow an additional T * grace_factor seconds to collect
+                the remaining results.
+
+        Returns:
+            A list of results. Each element in the list is a dict that contains results from a worker.
+        """
         self._wait_for_workers_ready(parallelism)
         if min_replies is None:
             min_replies = parallelism
@@ -69,6 +90,8 @@ class ParallelTaskController(object):
         return results
 
     def exit(self):
+        """Signal the remote workers to exit and terminate the connections.
+        """
         for worker_id in self._workers:
             self._task_endpoint.send_multipart([worker_id, b"EXIT"])
         self._task_endpoint.close()
@@ -76,6 +99,23 @@ class ParallelTaskController(object):
 
 
 class BatchEnvSampler:
+    """Facility that samples from multiple copies of an environment in parallel.
+
+    No environment is created here. Instead, it uses a ParallelTaskController to send roll-out requests to a set of
+    remote workers and collect results from them.
+
+    Args:
+        sampling_parallelism (int): Parallelism for sampling from the environment.
+        port (int): Network port that the internal ``ParallelTaskController`` uses to talk to the remote workers.
+        min_env_samples (int, default=None): The minimum number of results to collect in one round of remote sampling.
+            If it is None, it defaults to the value of ``sampling_parallelism``.
+        grace_factor (float, default=None): Factor that determines the additional wait time after receiving the minimum
+            required env samples (as determined by ``min_env_samples``). For example, if the minimum required samples
+            are received in T seconds, it will allow an additional T * grace_factor seconds to collect the remaining
+            results.
+        eval_parallelism (int, default=1): Parallelism for policy evaluation on remote workers.
+        logger (Logger, default=None): Optional logger for logging key events.
+    """
     def __init__(
         self,
         sampling_parallelism: int,
