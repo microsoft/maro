@@ -12,7 +12,7 @@ main:
     stdout: INFO   # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG
 rollout:
-  parallelism: 
+  parallelism:
     sampling: 10
     eval: 1  # defaults to 1 if not provided
     min_env_samples: 8  # ignored if parallelism.training == 1

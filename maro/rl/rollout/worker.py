@@ -29,7 +29,9 @@ class RolloutWorker(AbsWorker):
         producer_port: int = 20000,
         logger: Logger = None
     ) -> None:
-        super(RolloutWorker, self).__init__(idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger)
+        super(RolloutWorker, self).__init__(
+            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger
+        )
         self._env_sampler = env_sampler_creator()
 
     def _compute(self, msg: list) -> None:

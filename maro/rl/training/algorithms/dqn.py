@@ -166,7 +166,9 @@ class DQN(SingleTrainer):
 
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
         return DQNOps(
-            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism
+            name=name,
+            get_policy_func=self._get_policy_func,
+            parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params()
         )
 

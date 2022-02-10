@@ -10,7 +10,7 @@ if __name__ == "__main__":
     scenario_attr = Scenario(from_env("SCENARIO_PATH"))
     worker_idx = from_env_as_int("ID")
     logger = Logger(
-        f"TRAIN-WORKER.{worker_idx}", 
+        f"TRAIN-WORKER.{worker_idx}",
         dump_path=from_env("LOG_PATH"),
         dump_mode="a",
         stdout_level=from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),

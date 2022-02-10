@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     worker_idx = from_env_as_int("ID")
     logger = Logger(
-        f"ROLLOUT-WORKER.{worker_idx}", 
+        f"ROLLOUT-WORKER.{worker_idx}",
         dump_path=from_env("LOG_PATH"),
         dump_mode="a",
         stdout_level=from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),

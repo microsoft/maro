@@ -34,7 +34,9 @@ class TrainOpsWorker(AbsWorker):
         producer_port: int = 10001,
         logger: Logger = None
     ) -> None:
-        super(TrainOpsWorker, self).__init__(idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger)
+        super(TrainOpsWorker, self).__init__(
+            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger
+        )
 
         self._policy_creator = policy_creator
         self._trainer_creator = trainer_creator

@@ -9,8 +9,6 @@ import sys
 from types import ModuleType
 from typing import List, Union
 
-from maro.utils import Logger
-
 
 def from_env(var_name: str, required: bool = True, default: object = None) -> object:
     if var_name not in os.environ:
@@ -93,5 +91,5 @@ def get_ip_address_by_hostname(host: str) -> str:
     while True:
         try:
             return socket.gethostbyname(host)
-        except:
+        except Exception:
             continue

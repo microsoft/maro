@@ -64,15 +64,15 @@ class TrainingProxy(AbsProxy):
             self._workers_ready = False
             self._req_endpoint.stop_on_recv()
 
-    def _send_result_to_requester(self, msg: list) -> None: 
+    def _send_result_to_requester(self, msg: list) -> None:
         if msg[1] == b"EXIT_ACK":
-            self._logger.info(f"Exiting event loop...")
+            self._logger.info("Exiting event loop...")
             self.stop()
             return
 
         if msg[1] != b"READY":
             ops_name = msg[1]
-            self._result_cache[ops_name].append(bytes_to_pyobj(msg[-1])) 
+            self._result_cache[ops_name].append(bytes_to_pyobj(msg[-1]))
             if len(self._result_cache[ops_name]) == self._expected_num_results[ops_name]:
                 aggregated_result = average_grads(self._result_cache[ops_name])
                 self._logger.info(f"Aggregated {len(self._result_cache[ops_name])} results for {ops_name}")

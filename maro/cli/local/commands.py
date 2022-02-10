@@ -19,7 +19,7 @@ from maro.utils.utils import LOCAL_MARO_ROOT
 
 from .utils import (
     JobStatus, RedisHashKey, start_redis, start_rl_job, start_rl_job_with_docker_compose, stop_redis,
-    stop_rl_job_with_docker_compose, term
+    stop_rl_job_with_docker_compose
 )
 
 # metadata
@@ -70,7 +70,7 @@ def run(conf_path: str, containerize: bool = False, **kwargs):
             stop_rl_job_with_docker_compose(parser.config["job"])
     else:
         try:
-            procs = start_rl_job(parser.as_env(), LOCAL_MARO_ROOT)
+            start_rl_job(parser.as_env(), LOCAL_MARO_ROOT)
         except KeyboardInterrupt:
             sys.exit(1)
 

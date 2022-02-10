@@ -78,7 +78,7 @@ class ConfigParser:
 
     def _validate_rollout_section(self):
         if "rollout" not in self._config or not isinstance(self._config["rollout"], dict):
-            raise KeyError(f"{self._validation_err_pfx}: missing section 'rollout'")  
+            raise KeyError(f"{self._validation_err_pfx}: missing section 'rollout'")
 
         # validate parallel rollout config
         if "parallelism" in self._config["rollout"]:
@@ -174,7 +174,7 @@ class ConfigParser:
         try:
             ipaddress.ip_address(proxy_section["host"])
         except ValueError:
-            raise ValueError(f"{self._validation_err_pfx}: 'training.proxy.host' is not a valid IP address") 
+            raise ValueError(f"{self._validation_err_pfx}: 'training.proxy.host' is not a valid IP address")
 
         if "frontend" not in proxy_section:
             raise KeyError(f"{self._validation_err_pfx}: missing field 'frontend' under section 'proxy'")
