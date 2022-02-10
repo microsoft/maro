@@ -19,7 +19,6 @@ from maro.cli.utils.azure.general import connect_to_aks, get_acr_push_permission
 from maro.cli.utils.azure.resource_group import create_resource_group, delete_resource_group_under_subscription
 # from maro.cli.utils.azure.vm import list_vm_sizes
 from maro.cli.utils.common import show_log
-from maro.cli.utils.config_parser import get_rl_component_env_vars
 # from maro.cli.utils.deployment_validator import DeploymentValidator
 # from maro.cli.utils.details_reader import DetailsReader
 # from maro.cli.utils.details_writer import DetailsWriter
@@ -27,6 +26,7 @@ from maro.cli.utils.config_parser import get_rl_component_env_vars
 # from maro.cli.utils.path_convertor import PathConvertor
 # from maro.cli.utils.subprocess import Subprocess
 # from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
+from maro.rl.workflows.config import ConfigParser
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
@@ -221,8 +221,8 @@ def add_job(conf_path: dict, **kwargs):
         logger.error_red(NO_DEPLOYMENT_MSG)
         return
 
-    with open(conf_path, "r") as fp:
-        job_conf = yaml.safe_load(fp)
+    parser = ConfigParser(conf_path)
+    job_conf = parser.config
 
     job_name = job_conf["job"]
     local_job_path = get_local_job_path(job_name)
@@ -251,8 +251,8 @@ def add_job(conf_path: dict, **kwargs):
         for name in ["scenario", "logs", "checkpoints"]
     ]
 
-    if "load_path" in job_conf:
-        load_dir = job_conf['load_path']
+    if "load_path" in job_conf["training"]:
+        load_dir = job_conf["training"]["load_path"]
         logger.info(f"Uploading local directory {load_dir}...")
         azure_storage_utils.upload_to_fileshare(job_dir, load_dir, name="loadpoint")
         volumes.append(
@@ -269,12 +269,10 @@ def add_job(conf_path: dict, **kwargs):
             ADDRESS_REGISTRY_NAME, REDIS_HOST, deployment_conf["name"], ADDRESS_REGISTRY_PORT
         ), job_name
     )
-    for component_name, env in get_rl_component_env_vars(job_conf, containerized=True).items():
+    for component_name, env in parser.as_env(containerize=True).items():
         container_spec = k8s_manifest_generator.get_container_spec(
             get_docker_image_name_in_acr(resource_name["acrName"], DOCKER_IMAGE_NAME),
             component_name,
-            ADDRESS_REGISTRY_NAME,
-            ADDRESS_REGISTRY_PORT,
             env,
             volumes
         )

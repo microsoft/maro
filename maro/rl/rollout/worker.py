@@ -11,36 +11,45 @@ from .env_sampler import AbsEnvSampler
 
 
 class RolloutWorker(AbsWorker):
-    """Rollout worker that used to hold a mirror of the environment and run the interactive rollout.
+    """Worker that hosts an environment simulator and executes roll-out on demand for sampling and evaluation purposes.
 
     Args:
-        idx (int): Index of this rollout worker.
-        env_sampler_creator (Callable[[], AbsEnvSampler]): Function used to create the mirror of the environment.
-        router_host (str): Host of the rollout router.
-        router_port (int, default=10001): Port of the rollout router.
+        idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
+            so that the parallel roll-out controller can keep track of its connection status.
+        env_sampler_creator (Callable[[dict], AbsEnvSampler]): User-defined function to create an ``AbsEnvSampler``
+            for roll-out purposes.
+        producer_host (str): IP address of the parallel task controller host to connect to.
+        producer_port (int, default=10001): Port of the parallel task controller host to connect to.
     """
     def __init__(
         self,
         idx: int,
         env_sampler_creator: Callable[[], AbsEnvSampler],
-        router_host: str,
-        router_port: int = 10001,
+        producer_host: str,
+        producer_port: int = 20000,
         logger: Logger = None
     ) -> None:
         super(RolloutWorker, self).__init__(
-            idx=idx, router_host=router_host, router_port=router_port, logger=logger
+            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger
         )
         self._env_sampler = env_sampler_creator()
 
     def _compute(self, msg: list) -> None:
-        """Forward the request to the environment and then send the results back to the requester.
+        """Perform a full or partial episode of roll-out for sampling or evaluation.
 
         Args:
-            msg (list): Message list.
+            msg (list): Multi-part message containing roll-out specifications and parameters.
         """
-        req = bytes_to_pyobj(msg[-1])
-        assert isinstance(req, dict)
+        if msg[-1] == b"EXIT":
+            self._logger.info("Exiting event loop...")
+            self.stop()
+        else:
+            req = bytes_to_pyobj(msg[-1])
+            assert isinstance(req, dict)
+            assert req["type"] in {"sample", "eval"}
+            if req["type"] == "sample":
+                result = self._env_sampler.sample(policy_state=req["policy_state"], num_steps=req["num_steps"])
+            else:
+                result = self._env_sampler.eval(policy_state=req["policy_state"])
 
-        func = getattr(self._env_sampler, req["func"])
-        result = func(*req["args"], **req["kwargs"])
-        self._receiver.send_multipart([msg[0], pyobj_to_bytes(result)])
+            self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))

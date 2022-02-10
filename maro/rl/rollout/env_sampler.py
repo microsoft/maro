@@ -394,16 +394,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         self._agent_wrapper.set_policy_state(policy_state_dict)
 
-    def test(self, policy_state: Dict[str, object] = None) -> dict:
-        """Run testing and returns the testing results.
-
-        Args:
-            policy_state (Dict[str, object], default=None): Double-deck dict with format: {policy_name: policy_state}.
-                If it is not None, it means we need to update all policies' state according to policy_state.
-
-        Returns:
-            A dict contains testing results.
-        """
+    def eval(self, policy_state: Dict[str, object] = None) -> dict:
         self._env = self._test_env
         if policy_state is not None:
             self.set_policy_state(policy_state)

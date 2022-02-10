@@ -7,53 +7,50 @@ from typing import List
 
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainerManager
-from maro.rl.utils.common import from_env, from_env_as_float, from_env_as_int, get_eval_schedule, get_logger, get_module
-from maro.rl.workflows.utils import ScenarioAttr, _get_scenario_path
+from maro.rl.utils.common import from_env, from_env_as_int, get_eval_schedule
+from maro.rl.workflows.scenario import Scenario
+from maro.utils import Logger
 
-if __name__ == "__main__":
-    """Main process of the training workflow.
-    """
 
-    # Get user-defined scenario attributes.
-    scenario = get_module(_get_scenario_path())
-    scenario_attr = ScenarioAttr(scenario)
-    agent2policy = scenario_attr.agent2policy
-    policy_creator = scenario_attr.policy_creator
-    trainer_creator = scenario_attr.trainer_creator
-    post_collect = scenario_attr.post_collect
-    post_evaluate = scenario_attr.post_evaluate
-
+def main(scenario: Scenario):
     num_episodes = from_env_as_int("NUM_EPISODES")
     num_steps = from_env_as_int("NUM_STEPS", required=False, default=-1)
 
+    logger = Logger(
+        "MAIN",
+        dump_path=from_env("LOG_PATH"),
+        dump_mode="a",
+        stdout_level=from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),
+        file_level=from_env("LOG_LEVEL_FILE", required=False, default="CRITICAL")
+    )
+
     load_path = from_env("LOAD_PATH", required=False, default=None)
     checkpoint_path = from_env("CHECKPOINT_PATH", required=False, default=None)
-    log_path = str(from_env("LOG_PATH", required=False, default=os.getcwd()))
-    logger = get_logger(log_path, str(from_env("JOB")), "MAIN")
+    checkpoint_interval = from_env_as_int("CHECKPOINT_INTERVAL", required=False, default=1)
 
-    rollout_mode, train_mode = str(from_env("ROLLOUT_MODE")), str(from_env("TRAIN_MODE"))
-    assert rollout_mode in {"simple", "parallel"} and train_mode in {"simple", "parallel"}
-    if train_mode == "parallel":
-        # If training under parallel mode, retrieve dispatcher address from the environment.
-        dispatcher_address = (from_env("DISPATCHER_HOST"), from_env_as_int("DISPATCHER_FRONTEND_PORT"))
-    else:
-        dispatcher_address = None
+    env_sampling_parallelism = from_env_as_int("ENV_SAMPLE_PARALLELISM", required=False, default=1)
+    env_eval_parallelism = from_env_as_int("ENV_EVAL_PARALLELISM", required=False, default=1)
+    rollout_parallelism = max(env_sampling_parallelism, env_eval_parallelism)
+    train_mode = from_env("TRAIN_MODE")
 
-    is_single_thread = train_mode == "simple" and rollout_mode == "simple"
+    agent2policy = scenario.agent2policy
+    policy_creator = scenario.policy_creator
+    trainer_creator = scenario.trainer_creator
+    is_single_thread = train_mode == "simple" and rollout_parallelism == 1
     if is_single_thread:
         # If running in single thread mode, create policy instances here and reuse then in rollout and training.
         policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
-    if rollout_mode == "simple":
-        env_sampler = scenario_attr.get_env_sampler(policy_creator)
+    if rollout_parallelism == 1:
+        env_sampler = scenario.get_env_sampler(policy_creator)
     else:
         env_sampler = BatchEnvSampler(
-            parallelism=from_env_as_int("ROLLOUT_PARALLELISM"),
-            remote_address=(str(from_env("ROLLOUT_PROXY_HOST")), from_env_as_int("ROLLOUT_PROXY_FRONTEND_PORT")),
-            min_env_samples=from_env_as_int("MIN_ENV_SAMPLES", required=False, default=None),
-            grace_factor=from_env_as_float("GRACE_FACTOR", required=False, default=None),
-            eval_parallelism=from_env_as_int("EVAL_PARALLELISM", required=False, default=1),
+            sampling_parallelism=env_sampling_parallelism,
+            port=from_env_as_int("ROLLOUT_CONTROLLER_PORT"),
+            min_env_samples=from_env("MIN_ENV_SAMPLES", required=False, default=None),
+            grace_factor=from_env("GRACE_FACTOR", required=False, default=None),
+            eval_parallelism=env_eval_parallelism,
             logger=logger
         )
 
@@ -65,7 +62,11 @@ if __name__ == "__main__":
     eval_point_index = 0
 
     trainer_manager = TrainerManager(
-        policy_creator, trainer_creator, agent2policy, dispatcher_address=dispatcher_address, logger=logger
+        policy_creator, trainer_creator, agent2policy,
+        proxy_address=None if train_mode == "simple" else (
+            from_env("TRAIN_PROXY_HOST"), from_env_as_int("TRAIN_PROXY_FRONTEND_PORT")
+        ),
+        logger=logger
     )
     if load_path:
         loaded = trainer_manager.load(load_path)
@@ -78,13 +79,15 @@ if __name__ == "__main__":
         while not end_of_episode:
             # Experience collection
             tc0 = time.time()
-            policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
-            result = env_sampler.sample(policy_state=policy_state, num_steps=num_steps)
+            result = env_sampler.sample(
+                policy_state=trainer_manager.get_policy_state() if not is_single_thread else None,
+                num_steps=num_steps
+            )
             experiences: List[List[ExpElement]] = result["experiences"]
             end_of_episode: bool = result["end_of_episode"]
 
-            if post_collect:
-                post_collect(result["info"], ep, segment)
+            if scenario.post_collect:
+                scenario.post_collect(result["info"], ep, segment)
 
             collect_time += time.time() - tc0
 
@@ -92,7 +95,7 @@ if __name__ == "__main__":
             tu0 = time.time()
             trainer_manager.record_experiences(experiences)
             trainer_manager.train()
-            if checkpoint_path:
+            if checkpoint_path and ep % checkpoint_interval == 0:
                 pth = os.path.join(checkpoint_path, str(ep))
                 trainer_manager.save(pth)
                 logger.info(f"All trainer states saved under {pth}")
@@ -103,7 +106,18 @@ if __name__ == "__main__":
         logger.info(f"ep {ep} - roll-out time: {collect_time}, training time: {training_time}")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
-            policy_state = trainer_manager.get_policy_state() if not is_single_thread else None
-            result = env_sampler.test(policy_state=policy_state)
-            if post_evaluate:
-                post_evaluate(result["info"], ep)
+            result = env_sampler.eval(
+                policy_state=trainer_manager.get_policy_state() if not is_single_thread else None
+            )
+            if scenario.post_evaluate:
+                scenario.post_evaluate(result["info"], ep)
+
+    if isinstance(env_sampler, BatchEnvSampler):
+        env_sampler.exit()
+    trainer_manager.exit()
+
+
+if __name__ == "__main__":
+    # get user-defined scenario ingredients
+    scenario = Scenario(from_env("SCENARIO_PATH"))
+    main(scenario)

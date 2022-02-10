@@ -1,0 +1,39 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+job: your_job_name
+scenario_path: "/path/to/your/scenario"
+log_path: "/path/to/your/log/folder"
+main:
+  num_episodes: 100
+  num_steps: -1
+  eval_schedule: 10
+  logging:
+    stdout: INFO   # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+    file: DEBUG
+rollout:
+  parallelism:
+    sampling: 10
+    eval: 1  # defaults to 1 if not provided
+    min_env_samples: 8  # ignored if parallelism.training == 1
+    grace_factor: 0.2  # ignored if parallelism.training == 1
+    controller:  # ignored if parallelism.training == 1
+      host: "127.0.0.1"   # ignored if run in containerized environments
+      port: 20000
+  logging:
+    stdout: INFO   # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+    file: DEBUG
+training:
+  mode: simple  # simple, parallel
+  load_path: "/path/to/your/models"
+  checkpointing:
+    path: "/path/to/your/checkpoint/folder"
+    interval: 10
+  proxy:   # ignored under simple mode
+    host: "127.0.0.1"  # ignored if run in containerized environments
+    frontend: 10000
+    backend: 10001
+  num_workers: 10
+  logging:
+    stdout: INFO   # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+    file: DEBUG

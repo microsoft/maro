@@ -13,26 +13,29 @@ from .trainer import AbsTrainer
 
 
 class TrainOpsWorker(AbsWorker):
-    """Train ops worker that used to hold a mirror of the trainer / policy to run training logics.
+    """Worker that executes methods defined in a subclass of ``AbsTrainOps`` and annotated as "remote" on demand.
 
     Args:
-        idx (int): Index of this rollout worker.
-        policy_creator (Dict[str, Callable[[str], RLPolicy]]): Function used to create the mirror of the policy.
-        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Function used to create the mirror of the trainer.
-        router_host (str): Host of the rollout router.
-        router_port (int, default=10001): Port of the rollout router.
+        idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
+            so that the proxy can keep track of its connection status.
+        policy_creator (Dict[str, Callable[[str], RLPolicy]]): User-defined function registry that can be used to create
+            an "RLPolicy" instance with a name in the registry. This is required to create train ops instances.
+        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): User-defined function registry that can be used to
+            create an "AbsTrainer" instance with a name in the registry. This is required to create train ops instances.
+        proxy_host (str): IP address of the proxy host to connect to.
+        proxy_port (int, default=10001): Port of the proxy host to connect to.
     """
     def __init__(
         self,
         idx: int,
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
-        router_host: str,
-        router_port: int = 10001,
+        producer_host: str,
+        producer_port: int = 10001,
         logger: Logger = None
     ) -> None:
         super(TrainOpsWorker, self).__init__(
-            idx=idx, router_host=router_host, router_port=router_port, logger=logger
+            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger
         )
 
         self._policy_creator = policy_creator
@@ -42,20 +45,29 @@ class TrainOpsWorker(AbsWorker):
         self._ops_dict: Dict[str, AbsTrainOps] = {}
 
     def _compute(self, msg: list) -> None:
-        ops_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
-        assert isinstance(req, dict)
+        """Execute a method defined by some train ops and annotated as "remote".
 
-        if ops_name not in self._ops_dict:
-            trainer_name = ops_name.split(".")[0]
-            if trainer_name not in self._trainer_dict:
-                trainer = self._trainer_creator[trainer_name](trainer_name)
-                trainer.register_policy_creator(self._policy_creator)
-                self._trainer_dict[trainer_name] = trainer
+        Args:
+            msg (list): Multi-part message containing task specifications and parameters.
+        """
+        if msg[-1] == b"EXIT":
+            self._stream.send(b"EXIT_ACK")
+            self.stop()
+        else:
+            ops_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
+            assert isinstance(req, dict)
 
-            self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops_by_name(ops_name)
-            self._logger.info(f"Created ops {ops_name} at {self._id}")
+            if ops_name not in self._ops_dict:
+                trainer_name = ops_name.split(".")[0]
+                if trainer_name not in self._trainer_dict:
+                    trainer = self._trainer_creator[trainer_name](trainer_name)
+                    trainer.register_policy_creator(self._policy_creator)
+                    self._trainer_dict[trainer_name] = trainer
 
-        self._ops_dict[ops_name].set_state(req["state"])
-        func = getattr(self._ops_dict[ops_name], req["func"])
-        result = func(*req["args"], **req["kwargs"])
-        self._receiver.send_multipart([msg[0], pyobj_to_bytes(result)])
+                self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops_by_name(ops_name)
+                self._logger.info(f"Created ops {ops_name} at {self._id}")
+
+            self._ops_dict[ops_name].set_state(req["state"])
+            func = getattr(self._ops_dict[ops_name], req["func"])
+            result = func(*req["args"], **req["kwargs"])
+            self._stream.send_multipart([msg[0], pyobj_to_bytes(result)])

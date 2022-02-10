@@ -25,3 +25,4 @@ htmlcov/
 .coverage
 *supply_chain_*/
 examples/supply_chain/docker-compose.yml
+examples/rl/config.yml
