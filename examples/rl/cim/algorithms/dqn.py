@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import time
 from typing import Dict
 
 import torch
@@ -11,7 +10,6 @@ from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.training.algorithms import DQN, DQNParams
-
 
 q_net_conf = {
     "hidden_dims": [256, 128, 64, 32],

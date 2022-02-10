@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import asyncio
 import collections
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
@@ -13,7 +12,7 @@ from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, average_grads, discount_cumsum, merge_transition_batches, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, discount_cumsum, merge_transition_batches, ndarray_to_tensor
 
 
 @dataclass
@@ -48,16 +47,18 @@ class DiscreteActorCriticParams(TrainerParams):
             "critic_loss_cls": self.critic_loss_cls,
             "clip_ratio": self.clip_ratio,
             "lam": self.lam,
-            "min_logp": self.min_logp,
+            "min_logp": self.min_logp
         }
 
 
 class DiscreteActorCriticOps(AbsTrainOps):
     def __init__(
         self,
+        name: str,
         device: str,
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_v_critic_net_func: Callable[[], VNet],
+        parallelism: int = 1,
         *,
         reward_discount: float = 0.9,
         critic_loss_cls: Callable = None,
@@ -66,9 +67,11 @@ class DiscreteActorCriticOps(AbsTrainOps):
         min_logp: float = None
     ) -> None:
         super(DiscreteActorCriticOps, self).__init__(
+            name=name,
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func
+            get_policy_func=get_policy_func,
+            parallelism=parallelism
         )
 
         assert isinstance(self._policy, DiscretePolicyGradient)
@@ -140,19 +143,15 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
-    def get_state(self, scope: str = "all") -> dict:
-        ret_dict = {}
-        if scope in ("all", "actor"):
-            ret_dict["policy_state"] = self._policy.get_state()
-        if scope in ("all", "critic"):
-            ret_dict["critic_state"] = self._v_critic_net.get_state()
-        return ret_dict
+    def get_state(self) -> dict:
+        return {
+            "policy": self._policy.get_state(),
+            "critic": self._v_critic_net.get_state()
+        }
 
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor"):
-            self._policy.set_state(ops_state_dict["policy_state"])
-        if scope in ("all", "critic"):
-            self._v_critic_net.set_state(ops_state_dict["critic_state"])
+    def set_state(self, ops_state_dict: dict) -> None:
+        self._policy.set_state(ops_state_dict["policy"])
+        self._v_critic_net.set_state(ops_state_dict["critic"])
 
     def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
         assert self._is_valid_transition_batch(batch)
@@ -181,6 +180,7 @@ class DiscreteActorCritic(SingleTrainer):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
     """
+
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
         super(DiscreteActorCritic, self).__init__(name, params)
         self._params = params
@@ -211,26 +211,26 @@ class DiscreteActorCritic(SingleTrainer):
             )
             memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DiscreteActorCriticOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        return DiscreteActorCriticOps(
+            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            **self._params.extract_ops_params()
+        )
 
     def _get_batch(self) -> TransitionBatch:
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
         return self._ops.preprocess_and_merge_batches(batch_list)
 
-    def train(self):
-        assert not isinstance(self._ops, RemoteOps)
+    def train(self) -> None:
+        assert isinstance(self._ops, DiscreteActorCriticOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
 
-    async def train_as_task(self):
+    async def train_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
-            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
-            actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
-            self._ops.update_critic_with_grad(average_grads(critic_grad_list))
-            self._ops.update_actor_with_grad(average_grads(actor_grad_list))
+            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
+            self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))

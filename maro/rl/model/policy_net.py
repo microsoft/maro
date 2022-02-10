@@ -16,6 +16,7 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
     """
     Base class for all nets that serve as policy core. It has the concept of 'state' and 'action'.
     """
+
     def __init__(self, state_dim: int, action_dim: int) -> None:
         """
         Args:
@@ -79,6 +80,7 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
     """
     Net for discrete policies.
     """
+
     def __init__(self, state_dim: int, action_num: int) -> None:
         """
         Args:
@@ -158,5 +160,6 @@ class ContinuousPolicyNet(PolicyNet, metaclass=ABCMeta):
     """
     Net for continuous policies.
     """
+
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(ContinuousPolicyNet, self).__init__(state_dim=state_dim, action_dim=action_dim)

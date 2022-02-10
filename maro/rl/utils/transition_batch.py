@@ -19,6 +19,10 @@ class TransitionBatch:
     returns: np.ndarray = None  # 1D
     advantages: np.ndarray = None  # 1D
 
+    @property
+    def size(self):
+        return self.states.shape[0]
+
     def __post_init__(self) -> None:
         if SHAPE_CHECK_FLAG:
             assert len(self.states.shape) == 2 and self.states.shape[0] > 0
@@ -57,6 +61,10 @@ class MultiTransitionBatch:
 
     returns: Optional[List[np.ndarray]] = None  # List of 1D
     advantages: Optional[List[np.ndarray]] = None  # List of 1D
+
+    @property
+    def size(self):
+        return self.states.shape[0]
 
     def __post_init__(self) -> None:
         if SHAPE_CHECK_FLAG:

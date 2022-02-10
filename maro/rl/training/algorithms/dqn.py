@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import asyncio
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional
 
@@ -11,7 +10,7 @@ import torch
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, average_grads, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -43,24 +42,28 @@ class DQNParams(TrainerParams):
             "device": self.device,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
-            "double": self.double,
+            "double": self.double
         }
 
 
 class DQNOps(AbsTrainOps):
     def __init__(
         self,
+        name: str,
         device: str,
         get_policy_func: Callable[[], ValueBasedPolicy],
+        parallelism: int = 1,
         *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
         double: bool = False
     ) -> None:
         super(DQNOps, self).__init__(
+            name=name,
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func
+            get_policy_func=get_policy_func,
+            parallelism=parallelism
         )
 
         assert isinstance(self._policy, ValueBasedPolicy)
@@ -110,15 +113,15 @@ class DQNOps(AbsTrainOps):
         self._policy.train()
         self._policy.step(self._get_batch_loss(batch))
 
-    def get_state(self, scope: str = "all") -> dict:
+    def get_state(self) -> dict:
         return {
-            "policy_state": self._policy.get_state(),
-            "target_q_net_state": self._target_policy.get_state()
+            "policy": self._policy.get_state(),
+            "target_q_net": self._target_policy.get_state()
         }
 
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        self._policy.set_state(ops_state_dict["policy_state"])
-        self._target_policy.set_state(ops_state_dict["target_q_net_state"])
+    def set_state(self, ops_state_dict: dict) -> None:
+        self._policy.set_state(ops_state_dict["policy"])
+        self._target_policy.set_state(ops_state_dict["target_q_net"])
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
@@ -129,6 +132,7 @@ class DQN(SingleTrainer):
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
     """
+
     def __init__(self, name: str, params: DQNParams) -> None:
         super(DQN, self).__init__(name, params)
         self._params = params
@@ -160,32 +164,34 @@ class DQN(SingleTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DQNOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        return DQNOps(
+            name=name,
+            get_policy_func=self._get_policy_func,
+            parallelism=self._params.data_parallelism,
+            **self._params.extract_ops_params()
+        )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def train(self) -> None:
-        assert not isinstance(self._ops, RemoteOps)
+        assert isinstance(self._ops, DQNOps)
         for _ in range(self._params.num_epochs):
             self._ops.update(self._get_batch())
 
-        self._q_net_version += 1
         self._try_soft_update_target()
 
     async def train_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
-            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            grad_list = await asyncio.gather(*[self._ops.get_batch_grad(batch) for batch in batches])
-            self._ops.update_with_grad(average_grads(grad_list))
+            self._ops.update_with_grad(await self._ops.get_batch_grad(batch))
 
-        self._q_net_version += 1
         self._try_soft_update_target()
 
-    def _try_soft_update_target(self):
+    def _try_soft_update_target(self) -> None:
+        self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
             self._ops.soft_update_target()
             self._target_q_net_version = self._q_net_version

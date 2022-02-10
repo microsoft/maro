@@ -3,7 +3,7 @@
 
 from typing import List
 
-from maro.cli.utils.config_parser import format_env_vars, get_mnt_path_in_container, get_script_path
+from maro.cli.utils.common import format_env_vars
 
 
 def get_job_manifest(agent_pool_name: str, component_name: str, container_spec: dict, volumes: List[dict]):
@@ -33,18 +33,18 @@ def get_azurefile_volume_spec(name: str, share_name: str, secret_name: str):
     }
 
 
-def get_container_spec(image_name: str, component_name: str, redis_host: str, redis_port: int, env: dict, volumes):
+def get_container_spec(image_name: str, component_name: str, env: dict, volumes):
     common_container_spec = {
         "image": image_name,
         "imagePullPolicy": "Always",
-        "volumeMounts": [{"name": vol["name"], "mountPath": get_mnt_path_in_container(vol["name"])} for vol in volumes]
+        "volumeMounts": [{"name": vol["name"], "mountPath": f"/{vol['name']}"} for vol in volumes]
     }
     return {
         **common_container_spec,
         **{
             "name": component_name,
-            "command": ["python3", get_script_path(component_name, containerized=True)],
-            "env": format_env_vars({**env, "REDIS_HOST": redis_host, "REDIS_PORT": str(redis_port)}, mode="k8s")
+            "command": ["python3", f"/maro/maro/rl/workflows/{component_name.split('-')[0]}.py"],
+            "env": format_env_vars(env, mode="k8s")
         }
     }
 

@@ -8,6 +8,7 @@ from typing import Callable, Dict, Iterable, List, Tuple
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
+from maro.utils import Logger
 
 from .trainer import AbsTrainer
 from .utils import extract_trainer_name, get_trainer_state_path
@@ -19,7 +20,8 @@ class TrainerManager(object):
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
-        dispatcher_address: Tuple[str, int] = None
+        proxy_address: Tuple[str, int] = None,
+        logger: Logger = None
     ) -> None:
         """
         Trainer manager.
@@ -28,20 +30,21 @@ class TrainerManager(object):
             policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
             trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
             agent2policy (Dict[str, str]): Agent name to policy name mapping.
-            dispatcher_address (Tuple[str, int]): The address of the dispatcher. This is used under only distributed
-                model. Defaults to None.
+            proxy_address (Tuple[str, int]): The address of the proxy. This is used only in distributed mode.
+                Defaults to None.
         """
         super(TrainerManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._agent2policy = agent2policy
-        self._dispatcher_address = dispatcher_address
+        self._proxy_address = proxy_address
         for trainer_name, func in trainer_creator.items():
             trainer = func(trainer_name)
-            if self._dispatcher_address:
-                trainer.set_dispatch_address(self._dispatcher_address)
+            if self._proxy_address:
+                trainer.set_proxy_address(self._proxy_address)
             trainer.register_agent2policy(self._agent2policy)
             trainer.register_policy_creator(policy_creator)
+            trainer.register_logger(logger)
             trainer.build()
             self._trainer_dict[trainer_name] = trainer
 
@@ -51,7 +54,7 @@ class TrainerManager(object):
         }
 
     def train(self) -> None:
-        if self._dispatcher_address:
+        if self._proxy_address:
             async def train_step() -> Iterable:
                 return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainer_dict.values()])
             asyncio.run(train_step())
@@ -65,7 +68,7 @@ class TrainerManager(object):
         Returns:
             A double-deck dict with format: {trainer_name: {policy_name: policy_state}}
         """
-        return dict(chain(*[trainer.get_policy_state().items() for trainer in self._trainers]))
+        return dict(chain(*[trainer.get_policy_state().items() for trainer in self._trainer_dict.values()]))
 
     def record_experiences(self, experiences: List[List[ExpElement]]) -> None:
         """Record experiences collected from external modules (for example, EnvSampler).
@@ -81,13 +84,23 @@ class TrainerManager(object):
                     trainer = self._trainer_dict[trainer_name]
                     trainer.record(env_idx, exp_elem)
 
-    def load(self, path: Dict[str, str]):
+    def load(self, path: str) -> List[str]:
+        loaded = []
         for trainer_name, trainer in self._trainer_dict.items():
             pth = get_trainer_state_path(path, trainer_name)
             if os.path.isfile(pth):
                 trainer.load(pth)
+                loaded.append(trainer_name)
 
-    def save(self, path: str):
+        return loaded
+
+    def save(self, path: str) -> None:
         os.makedirs(path, exist_ok=True)
         for trainer_name, trainer in self._trainer_dict.items():
             trainer.save(get_trainer_state_path(path, trainer_name))
+
+    def exit(self):
+        if self._proxy_address:
+            async def exit_all() -> Iterable:
+                return await asyncio.gather(*[trainer.exit() for trainer in self._trainer_dict.values()])
+            asyncio.run(exit_all())

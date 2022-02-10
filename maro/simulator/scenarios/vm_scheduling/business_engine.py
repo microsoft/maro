@@ -106,6 +106,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Current snapshot list."""
         return self._snapshots
 
+    @property
+    def pm_amount(self) -> int:
+        return self._pm_amount
+
     def _load_configs(self):
         """Load configurations."""
         # Update self._config_path with current file path.

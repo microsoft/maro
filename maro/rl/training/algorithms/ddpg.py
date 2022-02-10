@@ -3,7 +3,6 @@
 
 # TODO: DDPG has net been tested in a real test case
 
-import asyncio
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional
 
@@ -14,7 +13,7 @@ from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, average_grads, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -50,26 +49,32 @@ class DDPGParams(TrainerParams):
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "reward_discount": self.reward_discount,
             "q_value_loss_cls": self.q_value_loss_cls,
-            "soft_update_coef": self.soft_update_coef
+            "soft_update_coef": self.soft_update_coef,
+            "data_parallelism": self.data_parallelism
         }
 
 
 class DDPGOps(AbsTrainOps):
     """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html"""
+
     def __init__(
         self,
+        name: str,
         device: str,
         get_policy_func: Callable[[], ContinuousRLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
+        parallelism: int = 1,
         *,
         reward_discount: float,
         q_value_loss_cls: Callable = None,
         soft_update_coef: float = 1.0
     ) -> None:
         super(DDPGOps, self).__init__(
+            name=name,
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func
+            get_policy_func=get_policy_func,
+            parallelism=parallelism
         )
 
         assert isinstance(self._policy, ContinuousRLPolicy)
@@ -144,23 +149,19 @@ class DDPGOps(AbsTrainOps):
         self._policy.train()
         self._policy.step(self._get_actor_loss(batch))
 
-    def get_state(self, scope: str = "all") -> dict:
-        ret_dict = {}
-        if scope in ("all", "actor"):
-            ret_dict["policy_state"] = self._policy.get_state()
-            ret_dict["target_policy_state"] = self._target_policy.get_state()
-        if scope in ("all", "critic"):
-            ret_dict["critic_state"] = self._q_critic_net.get_state()
-            ret_dict["target_critic_state"] = self._target_q_critic_net.get_state()
-        return ret_dict
+    def get_state(self) -> dict:
+        return {
+            "policy": self._policy.get_state(),
+            "target_policy": self._target_policy.get_state(),
+            "critic": self._q_critic_net.get_state(),
+            "target_critic": self._target_q_critic_net.get_state()
+        }
 
-    def set_state(self, ops_state_dict: dict, scope: str = "all") -> None:
-        if scope in ("all", "actor"):
-            self._policy.set_state(ops_state_dict["policy_state"])
-            self._target_policy.set_state(ops_state_dict["target_policy_state"])
-        if scope in ("all", "critic"):
-            self._q_critic_net.set_state(ops_state_dict["critic_state"])
-            self._target_q_critic_net.set_state(ops_state_dict["target_critic_state"])
+    def set_state(self, ops_state_dict: dict) -> None:
+        self._policy.set_state(ops_state_dict["policy"])
+        self._target_policy.set_state(ops_state_dict["target_policy"])
+        self._q_critic_net.set_state(ops_state_dict["critic"])
+        self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
 
     def soft_update_target(self) -> None:
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
@@ -206,38 +207,35 @@ class DDPG(SingleTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, ops_name: str) -> AbsTrainOps:
-        return DDPGOps(get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        return DDPGOps(
+            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            **self._params.extract_ops_params()
+        )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def train(self) -> None:
-        assert not isinstance(self._ops, RemoteOps)
+        assert isinstance(self._ops, DDPGOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
 
-        self._policy_version += 1
         self._try_soft_update_target()
 
     async def train_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
-            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            # update critic
-            critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
-            self._ops.update_critic_with_grad(average_grads(critic_grad_list))
-            # update actor
-            actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
-            self._ops.update_actor_with_grad(average_grads(actor_grad_list))
+            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
+            self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))
 
-        self._policy_version += 1
         self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
+        self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             self._ops.soft_update_target()
             self._target_policy_version = self._policy_version

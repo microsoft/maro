@@ -129,5 +129,3 @@ def get_ac(state_dim: int, name: str) -> DiscreteActorCritic:
             lam=.0
         )
     )
-
-

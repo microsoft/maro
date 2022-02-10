@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 import numpy as np
 
 from maro.rl.policy import RLPolicy
-from maro.rl.rollout import AbsEnvSampler, CacheElement, SimpleAgentWrapper
+from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
