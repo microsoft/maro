@@ -3,7 +3,6 @@
 
 # TODO: DDPG has net been tested in a real test case
 
-import asyncio
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional
 
@@ -14,7 +13,7 @@ from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, average_grads, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -50,7 +49,8 @@ class DDPGParams(TrainerParams):
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "reward_discount": self.reward_discount,
             "q_value_loss_cls": self.q_value_loss_cls,
-            "soft_update_coef": self.soft_update_coef
+            "soft_update_coef": self.soft_update_coef,
+            "data_parallelism": self.data_parallelism
         }
 
 
@@ -63,6 +63,7 @@ class DDPGOps(AbsTrainOps):
         device: str,
         get_policy_func: Callable[[], ContinuousRLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
+        parallelism: int = 1,
         *,
         reward_discount: float,
         q_value_loss_cls: Callable = None,
@@ -72,7 +73,8 @@ class DDPGOps(AbsTrainOps):
             name=name,
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func
+            get_policy_func=get_policy_func,
+            parallelism=parallelism
         )
 
         assert isinstance(self._policy, ContinuousRLPolicy)
@@ -206,7 +208,10 @@ class DDPG(SingleTrainer):
             self._replay_memory.put(transition_batch)
 
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
-        return DDPGOps(name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params())
+        return DDPGOps(
+            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            **self._params.extract_ops_params()
+        )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
@@ -224,15 +229,8 @@ class DDPG(SingleTrainer):
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
-            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            # update critic
-            critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
-            assert isinstance(critic_grad_list, list)
-            self._ops.update_critic_with_grad(average_grads(critic_grad_list))
-            # update actor
-            actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
-            assert isinstance(actor_grad_list, list)
-            self._ops.update_actor_with_grad(average_grads(actor_grad_list))
+            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
+            self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))
 
         self._try_soft_update_target()
 

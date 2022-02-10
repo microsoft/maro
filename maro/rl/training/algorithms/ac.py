@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import asyncio
 import collections
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
@@ -13,7 +12,7 @@ from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, average_grads, discount_cumsum, merge_transition_batches, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, discount_cumsum, merge_transition_batches, ndarray_to_tensor
 
 
 @dataclass
@@ -48,7 +47,7 @@ class DiscreteActorCriticParams(TrainerParams):
             "critic_loss_cls": self.critic_loss_cls,
             "clip_ratio": self.clip_ratio,
             "lam": self.lam,
-            "min_logp": self.min_logp,
+            "min_logp": self.min_logp
         }
 
 
@@ -59,6 +58,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         device: str,
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_v_critic_net_func: Callable[[], VNet],
+        parallelism: int = 1,
         *,
         reward_discount: float = 0.9,
         critic_loss_cls: Callable = None,
@@ -70,7 +70,8 @@ class DiscreteActorCriticOps(AbsTrainOps):
             name=name,
             device=device,
             is_single_scenario=True,
-            get_policy_func=get_policy_func
+            get_policy_func=get_policy_func,
+            parallelism=parallelism
         )
 
         assert isinstance(self._policy, DiscretePolicyGradient)
@@ -212,7 +213,8 @@ class DiscreteActorCritic(SingleTrainer):
 
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
         return DiscreteActorCriticOps(
-            name=name, get_policy_func=self._get_policy_func, **self._params.extract_ops_params()
+            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            **self._params.extract_ops_params()
         )
 
     def _get_batch(self) -> TransitionBatch:
@@ -230,10 +232,5 @@ class DiscreteActorCritic(SingleTrainer):
         assert isinstance(self._ops, RemoteOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
-            batches = [batch] if self._params.data_parallelism == 1 else batch.split(self._params.data_parallelism)
-            critic_grad_list = await asyncio.gather(*[self._ops.get_critic_grad(batch) for batch in batches])
-            actor_grad_list = await asyncio.gather(*[self._ops.get_actor_grad(batch) for batch in batches])
-            assert isinstance(critic_grad_list, list)
-            assert isinstance(actor_grad_list, list)
-            self._ops.update_critic_with_grad(average_grads(critic_grad_list))
-            self._ops.update_actor_with_grad(average_grads(actor_grad_list))
+            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
+            self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))

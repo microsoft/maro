@@ -399,3 +399,6 @@ class DiscreteMADDPG(MultiTrainer):
     def get_policy_idx_from_ops_name(ops_name) -> int:
         _, sub_name = ops_name.split(".")
         return int(sub_name.split("_")[1])
+
+    async def exit(self):
+        pass
