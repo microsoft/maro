@@ -17,7 +17,7 @@ class RolloutWorker(AbsWorker):
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the parallel roll-out controller can keep track of its connection status.
         env_sampler_creator (Callable[[dict], AbsEnvSampler]): User-defined function to create an ``AbsEnvSampler``
-            for roll-out purposes. 
+            for roll-out purposes.
         producer_host (str): IP address of the parallel task controller host to connect to.
         producer_port (int, default=10001): Port of the parallel task controller host to connect to.
     """

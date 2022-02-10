@@ -8,7 +8,7 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import Logger
 
 
-SCENARIO_PATH = "vm_scheduling"
+SCENARIO_PATH = "cim"
 NUM_EPISODES = 50
 NUM_STEPS = -1
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")

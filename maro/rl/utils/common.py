@@ -1,12 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import importlib
 import os
 import pickle
 import socket
-import sys
-from types import ModuleType
 from typing import List, Union
 
 

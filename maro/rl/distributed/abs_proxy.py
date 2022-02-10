@@ -42,7 +42,7 @@ class AbsProxy(object):
     def _route_request_to_compute_node(self, msg: list) -> None:
         """Dispatch the task to one or more workers for processing.
 
-        The dispatching strategy should be implemented here. 
+        The dispatching strategy should be implemented here.
 
         Args:
             msg (list): Multi-part message containing task specifications and parameters.
@@ -63,7 +63,7 @@ class AbsProxy(object):
     def start(self) -> None:
         """Start a Tornado event loop.
 
-        Calling this enters the proxy into an event loop where it starts doing its job. 
+        Calling this enters the proxy into an event loop where it starts doing its job.
         """
         self._event_loop.start()
 

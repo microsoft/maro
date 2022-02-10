@@ -63,7 +63,7 @@ class AbsWorker(object):
     def start(self) -> None:
         """Start a Tornado event loop.
 
-        Calling this enters the worker into an event loop where it starts doing its job. 
+        Calling this enters the worker into an event loop where it starts doing its job.
         """
         self._event_loop.start()
 
