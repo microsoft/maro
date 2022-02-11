@@ -13,20 +13,22 @@ from maro.utils import DummyLogger, Logger
 
 
 class AbsWorker(object):
-    """Abstract worker class to process a compute task in distributed fashion.
+    """Abstract worker class to process a computation task in distributed fashion.
 
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the task producer can keep track of its connection status.
         producer_host (str): IP address of the task producer host to connect to.
-        producer_port (int, default=10001): Port of the task producer host to connect to.
+        producer_port (int): Port of the task producer host to connect to.
+        logger (Logger, default=None): The logger of the workflow.
     """
+
     def __init__(
         self,
         idx: int,
         producer_host: str,
         producer_port: int,
-        logger: Logger = None
+        logger: Logger = None,
     ) -> None:
         super(AbsWorker, self).__init__()
 
@@ -53,7 +55,7 @@ class AbsWorker(object):
 
     @abstractmethod
     def _compute(self, msg: list) -> None:
-        """The task processing logic is defined here.
+        """The task processing logic should be implemented here.
 
         Args:
             msg (list): Multi-part message containing task specifications and parameters.

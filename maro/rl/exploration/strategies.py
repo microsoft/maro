@@ -11,7 +11,7 @@ def epsilon_greedy(
     action: np.ndarray,
     num_actions: int,
     *,
-    epsilon: float
+    epsilon: float,
 ) -> np.ndarray:
     """Epsilon-greedy exploration.
 
@@ -36,17 +36,17 @@ def uniform_noise(
     max_action: Union[float, list, np.ndarray] = None,
     *,
     low: Union[float, list, np.ndarray],
-    high: Union[float, list, np.ndarray]
+    high: Union[float, list, np.ndarray],
 ) -> Union[float, np.ndarray]:
-    """Apply a uniform noise to a continuous multi-dimensional action.
+    """Apply a uniform noise to a continuous multidimensional action.
 
     Args:
         state (np.ndarray): State(s) based on which ``action`` is chosen. This is not used by the gaussian noise
             exploration scheme and is put here to conform to the function signature for the exploration in continuous
             action spaces.
         action (np.ndarray): Action(s) chosen greedily by the policy.
-        min_action (Union[float, list, np.ndarray], default=None): Lower bound for the multi-dimensional action space.
-        max_action (Union[float, list, np.ndarray], default=None): Upper bound for the multi-dimensional action space.
+        min_action (Union[float, list, np.ndarray], default=None): Lower bound for the multidimensional action space.
+        max_action (Union[float, list, np.ndarray], default=None): Upper bound for the multidimensional action space.
         low (Union[float, list, np.ndarray]): Lower bound for the noise range.
         high (Union[float, list, np.ndarray]): Upper bound for the noise range.
 
@@ -67,24 +67,24 @@ def gaussian_noise(
     *,
     mean: Union[float, list, np.ndarray] = 0.0,
     stddev: Union[float, list, np.ndarray] = 1.0,
-    relative: bool = False
+    relative: bool = False,
 ) -> Union[float, np.ndarray]:
-    """Apply a gaussian noise to a continuous multi-dimensional action.
+    """Apply a gaussian noise to a continuous multidimensional action.
 
     Args:
         state (np.ndarray): State(s) based on which ``action`` is chosen. This is not used by the gaussian noise
             exploration scheme and is put here to conform to the function signature for the exploration in continuous
             action spaces.
         action (np.ndarray): Action(s) chosen greedily by the policy.
-        min_action (Union[float, list, np.ndarray], default=None): Lower bound for the multi-dimensional action space.
-        max_action (Union[float, list, np.ndarray], default=None): Upper bound for the multi-dimensional action space.
+        min_action (Union[float, list, np.ndarray], default=None): Lower bound for the multidimensional action space.
+        max_action (Union[float, list, np.ndarray], default=None): Upper bound for the multidimensional action space.
         mean (Union[float, list, np.ndarray], default=0.0): Gaussian noise mean.
         stddev (Union[float, list, np.ndarray], default=1.0): Standard deviation for the Gaussian noise.
         relative (bool, default=False): If True, the generated noise is treated as a relative measure and will
             be multiplied by the action itself before being added to the action.
 
     Returns:
-        Exploration actions with added noise.
+        Exploration actions with added noise (a numpy ndarray).
     """
     noise = np.random.normal(loc=mean, scale=stddev, size=action.shape)
     if min_action is None and max_action is None:

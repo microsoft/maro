@@ -22,9 +22,10 @@ class TrainOpsWorker(AbsWorker):
             an "RLPolicy" instance with a name in the registry. This is required to create train ops instances.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): User-defined function registry that can be used to
             create an "AbsTrainer" instance with a name in the registry. This is required to create train ops instances.
-        proxy_host (str): IP address of the proxy host to connect to.
-        proxy_port (int, default=10001): Port of the proxy host to connect to.
+        producer_host (str): IP address of the proxy host to connect to.
+        producer_port (int, default=10001): Port of the proxy host to connect to.
     """
+
     def __init__(
         self,
         idx: int,
@@ -32,10 +33,10 @@ class TrainOpsWorker(AbsWorker):
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         producer_host: str,
         producer_port: int = 10001,
-        logger: Logger = None
+        logger: Logger = None,
     ) -> None:
         super(TrainOpsWorker, self).__init__(
-            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger
+            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
 
         self._policy_creator = policy_creator

@@ -19,6 +19,7 @@ class ParallelTaskController(object):
         port (int, default=20000): Network port the controller uses to talk to the remote workers.
         logger (Logger, default=None): Optional logger for logging key events.
     """
+
     def __init__(self, port: int = 20000, logger: Logger = None) -> None:
         self._ip = get_own_ip_address()
         self._context = Context.instance()
@@ -34,11 +35,11 @@ class ParallelTaskController(object):
         self._workers = set()
         self._logger = logger
 
-    def _wait_for_workers_ready(self, k: int):
+    def _wait_for_workers_ready(self, k: int) -> None:
         while len(self._workers) < k:
             self._workers.add(self._task_endpoint.recv_multipart()[0])
 
-    def _recv_result_for_target_index(self, index: Tuple[int, int]):
+    def _recv_result_for_target_index(self, index: Tuple[int, int]) -> object:
         rep = bytes_to_pyobj(self._task_endpoint.recv_multipart()[-1])
         assert isinstance(rep, dict)
         return rep["result"] if rep["index"] == index else None
@@ -89,7 +90,7 @@ class ParallelTaskController(object):
         self._logger.debug(f"Received {len(results)} results")
         return results
 
-    def exit(self):
+    def exit(self) -> None:
         """Signal the remote workers to exit and terminate the connections.
         """
         for worker_id in self._workers:
@@ -116,6 +117,7 @@ class BatchEnvSampler:
         eval_parallelism (int, default=1): Parallelism for policy evaluation on remote workers.
         logger (Logger, default=None): Optional logger for logging key events.
     """
+
     def __init__(
         self,
         sampling_parallelism: int,
@@ -123,7 +125,7 @@ class BatchEnvSampler:
         min_env_samples: int = None,
         grace_factor: float = None,
         eval_parallelism: int = 1,
-        logger: Logger = None
+        logger: Logger = None,
     ) -> None:
         super(BatchEnvSampler, self).__init__()
         self._logger = logger if logger else DummyLogger()
@@ -139,7 +141,7 @@ class BatchEnvSampler:
         self._end_of_episode = True
 
     def sample(
-        self, policy_state: Dict[str, object] = None, num_steps: int = -1
+        self, policy_state: Dict[str, object] = None, num_steps: int = -1,
     ) -> dict:
         # increment episode or segment depending on whether the last episode has concluded
         if self._end_of_episode:
@@ -153,27 +155,27 @@ class BatchEnvSampler:
             "type": "sample",
             "policy_state": policy_state,
             "num_steps": num_steps,
-            "index": (self._ep, self._segment)
+            "index": (self._ep, self._segment),
         }
         results = self._client.collect(
             req, self._sampling_parallelism,
             min_replies=self._min_env_samples,
-            grace_factor=self._grace_factor
+            grace_factor=self._grace_factor,
         )
         self._end_of_episode = any(res["end_of_episode"] for res in results)
         merged_experiences = list(chain(*[res["experiences"] for res in results]))  # List[List[ExpElement]]
         return {
             "end_of_episode": self._end_of_episode,
             "experiences": merged_experiences,
-            "info": [res["info"][0] for res in results]
+            "info": [res["info"][0] for res in results],
         }
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         req = {"type": "eval", "policy_state": policy_state, "index": (self._ep, -1)}  # -1 signals test
         results = self._client.collect(req, self._eval_parallelism)
         return {
-            "info": [res["info"][0] for res in results]
+            "info": [res["info"][0] for res in results],
         }
 
-    def exit(self):
+    def exit(self) -> None:
         self._client.exit()

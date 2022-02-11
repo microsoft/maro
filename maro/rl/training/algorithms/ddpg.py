@@ -51,7 +51,7 @@ class DDPGParams(TrainerParams):
             "reward_discount": self.reward_discount,
             "q_value_loss_cls": self.q_value_loss_cls,
             "soft_update_coef": self.soft_update_coef,
-            "data_parallelism": self.data_parallelism
+            "data_parallelism": self.data_parallelism,
         }
 
 
@@ -69,14 +69,14 @@ class DDPGOps(AbsTrainOps):
         *,
         reward_discount: float,
         q_value_loss_cls: Callable = None,
-        soft_update_coef: float = 1.0
+        soft_update_coef: float = 1.0,
     ) -> None:
         super(DDPGOps, self).__init__(
             name=name,
             device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func,
-            parallelism=parallelism
+            parallelism=parallelism,
         )
 
         assert isinstance(self._policy, ContinuousRLPolicy)
@@ -115,7 +115,7 @@ class DDPGOps(AbsTrainOps):
         with torch.no_grad():
             next_q_values = self._target_q_critic_net.q_values(
                 states=next_states,  # s'
-                actions=self._target_policy.get_actions_tensor(next_states)  # miu_targ(s')
+                actions=self._target_policy.get_actions_tensor(next_states),  # miu_targ(s')
             )  # Q_targ(s', miu_targ(s'))
 
         # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
@@ -168,7 +168,7 @@ class DDPGOps(AbsTrainOps):
 
         policy_loss = -self._q_critic_net.q_values(
             states=states,  # s
-            actions=self._policy.get_actions_tensor(states)  # miu(s)
+            actions=self._policy.get_actions_tensor(states),  # miu(s)
         ).mean()  # -Q(s, miu(s))
 
         return policy_loss
@@ -208,7 +208,7 @@ class DDPGOps(AbsTrainOps):
             "policy": self._policy.get_state(),
             "target_policy": self._target_policy.get_state(),
             "critic": self._q_critic_net.get_state(),
-            "target_critic": self._target_q_critic_net.get_state()
+            "target_critic": self._target_q_critic_net.get_state(),
         }
 
     def set_state(self, ops_state_dict: dict) -> None:
@@ -246,7 +246,7 @@ class DDPG(SingleTrainer):
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
-            random_overwrite=self._params.random_overwrite
+            random_overwrite=self._params.random_overwrite,
         )
 
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
@@ -266,7 +266,7 @@ class DDPG(SingleTrainer):
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
         return DDPGOps(
             name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params()
+            **self._params.extract_ops_params(),
         )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:

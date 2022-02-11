@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional
+from typing import List
 
 import torch
 
@@ -12,7 +12,7 @@ from .abs_net import AbsNet
 
 
 class MultiQNet(AbsNet, metaclass=ABCMeta):
-    """Net for multi-agent Q functions.
+    """Abstract net for multi-agent Q functions.
 
     Args:
         state_dim (int): Dimension of states.
@@ -71,7 +71,7 @@ class MultiQNet(AbsNet, metaclass=ABCMeta):
         Returns:
             q (torch.Tensor): Q-values with shape [batch_size].
         """
-        assert self._shape_check(states, actions)  # TODO: add error messages
+        assert self._shape_check(states, actions)
         q = self._get_q_values(states, actions)
         assert match_shape(q, (states.shape[0],)), \
             f"Q-value shape check failed. Expecting: {(states.shape[0],)}, actual: {q.shape}."  # [B]

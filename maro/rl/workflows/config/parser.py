@@ -18,6 +18,7 @@ class ConfigParser:
             the configuration. If it is a path, the parser will attempt to read it into a dictionary
             in memory.
     """
+
     def __init__(self, config: Union[str, dict]) -> None:
         assert isinstance(config, (dict, str))
         if isinstance(config, str):
@@ -33,7 +34,7 @@ class ConfigParser:
     def config(self) -> dict:
         return self._config
 
-    def _validate(self):
+    def _validate(self) -> None:
         if "job" not in self._config:
             raise KeyError(f"{self._validation_err_pfx}: missing field 'job'")
         if "scenario_path" not in self._config:
@@ -45,7 +46,7 @@ class ConfigParser:
         self._validate_rollout_section()
         self._validate_training_section()
 
-    def _validate_main_section(self):
+    def _validate_main_section(self) -> None:
         if "main" not in self._config:
             raise KeyError(f"{self._validation_err_pfx}: missing field 'main'")
 
@@ -76,7 +77,7 @@ class ConfigParser:
         if "logging" in self._config["main"]:
             self._validate_logging_section("main", self._config["main"]["logging"])
 
-    def _validate_rollout_section(self):
+    def _validate_rollout_section(self) -> None:
         if "rollout" not in self._config or not isinstance(self._config["rollout"], dict):
             raise KeyError(f"{self._validation_err_pfx}: missing section 'rollout'")
 
@@ -117,7 +118,7 @@ class ConfigParser:
                 if "logging" in self._config["rollout"]:
                     self._validate_logging_section("rollout", self._config["rollout"]["logging"])
 
-    def _validate_rollout_controller_section(self, conf: dict):
+    def _validate_rollout_controller_section(self, conf: dict) -> None:
         if "host" not in conf:
             raise KeyError(
                 f"{self._validation_err_pfx}: missing field 'host' under section 'rollout.parallelism.controller'"
@@ -140,7 +141,7 @@ class ConfigParser:
         if not isinstance(conf["port"], int):
             raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.controller.port' must be an int")
 
-    def _validate_training_section(self):
+    def _validate_training_section(self) -> None:
         if "training" not in self._config or not isinstance(self._config["training"], dict):
             raise KeyError(f"{self._validation_err_pfx}: missing field 'training'")
         if "mode" not in self._config["training"]:
@@ -250,7 +251,7 @@ class ConfigParser:
                 "JOB": self._config["job"],
                 "NUM_EPISODES": str(self._config["main"]["num_episodes"]),
                 "TRAIN_MODE": self._config["training"]["mode"],
-                "SCENARIO_PATH": scenario_path
+                "SCENARIO_PATH": scenario_path,
             }
         }
 
@@ -272,7 +273,7 @@ class ConfigParser:
         if "logging" in self._config["main"]:
             env["main"].update({
                 "LOG_LEVEL_STDOUT": self.config["main"]["logging"]["stdout"],
-                "LOG_LEVEL_FILE": self.config["main"]["logging"]["file"]
+                "LOG_LEVEL_FILE": self.config["main"]["logging"]["file"],
             })
 
         if "parallelism" in self._config["rollout"]:
@@ -299,12 +300,12 @@ class ConfigParser:
                     "ID": str(i),
                     "ROLLOUT_CONTROLLER_HOST": self._get_rollout_controller_host(containerize=containerize),
                     "ROLLOUT_CONTROLLER_PORT": rollout_controller_port,
-                    "SCENARIO_PATH": scenario_path
+                    "SCENARIO_PATH": scenario_path,
                 }
                 if "logging" in self._config["rollout"]:
                     env[worker_id].update({
                         "LOG_LEVEL_STDOUT": self.config["rollout"]["logging"]["stdout"],
-                        "LOG_LEVEL_FILE": self.config["rollout"]["logging"]["file"]
+                        "LOG_LEVEL_FILE": self.config["rollout"]["logging"]["file"],
                     })
 
         if self._config["training"]["mode"] == "parallel":
@@ -314,11 +315,11 @@ class ConfigParser:
             proxy_backend_port = str(conf["backend"])
             num_workers = self._config["training"]["num_workers"]
             env["main"].update({
-                "TRAIN_PROXY_HOST": producer_host, "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port
+                "TRAIN_PROXY_HOST": producer_host, "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port,
             })
             env["train_proxy"] = {
                 "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port,
-                "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port
+                "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port,
             }
             for i in range(num_workers):
                 worker_id = f"train_worker-{i}"
@@ -326,12 +327,12 @@ class ConfigParser:
                     "ID": str(i),
                     "TRAIN_PROXY_HOST": producer_host,
                     "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port,
-                    "SCENARIO_PATH": scenario_path
+                    "SCENARIO_PATH": scenario_path,
                 }
                 if "logging" in self._config["training"]:
                     env[worker_id].update({
                         "LOG_LEVEL_STDOUT": self.config["training"]["logging"]["stdout"],
-                        "LOG_LEVEL_FILE": self.config["training"]["logging"]["file"]
+                        "LOG_LEVEL_FILE": self.config["training"]["logging"]["file"],
                     })
 
         # All components write logs to the same file
@@ -340,11 +341,11 @@ class ConfigParser:
 
         return env
 
-    def _get_rollout_controller_host(self, containerize: bool = False):
+    def _get_rollout_controller_host(self, containerize: bool = False) -> str:
         if containerize:
             return f"{self._config['job']}.main"
         else:
             return self._config["rollout"]["parallelism"]["controller"]["host"]
 
-    def _get_train_proxy_host(self, containerize: bool = False):
+    def _get_train_proxy_host(self, containerize: bool = False) -> str:
         return f"{self._config['job']}.train_proxy" if containerize else self._config["training"]["proxy"]["host"]

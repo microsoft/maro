@@ -74,6 +74,7 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int
 
     return schedule
 
+
 # serialization and deserialization for messaging
 DEFAULT_MSG_ENCODING = "utf-8"
 

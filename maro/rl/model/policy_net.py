@@ -40,7 +40,7 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
                 under exploiting mode.
 
         Returns:
-            Actions
+            Actions (torch.Tensor)
         """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."

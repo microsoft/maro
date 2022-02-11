@@ -52,10 +52,11 @@ class AbsTrainer(object, metaclass=ABCMeta):
         name (str): Name of the trainer.
         params (TrainerParams): Trainer's parameters.
     """
+
     def __init__(self, name: str, params: TrainerParams) -> None:
         self._name = name
         self._batch_size = params.batch_size
-        self._agent2policy = {}
+        self._agent2policy: Dict[str, str] = {}
         self._proxy_address: Optional[Tuple[str, int]] = None
         self._logger = None
 
@@ -87,7 +88,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
     @abstractmethod
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
+        global_policy_creator: Dict[str, Callable[[str], RLPolicy]],
     ) -> None:
         """Register the policy creator. Only keep the creators of the policies that the current trainer need to train.
 
@@ -120,7 +121,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
         Args:
             env_idx (int): The index of the environment that generates this batch of experiences. This is used
-                when there are more than one environments collecting experiences in parallel.
+                when there are more than one environment collecting experiences in parallel.
             exp_element (ExpElement): Experiences.
         """
         raise NotImplementedError
@@ -172,7 +173,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    async def exit(self):
+    async def exit(self) -> None:
         raise NotImplementedError
 
 
@@ -223,7 +224,7 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
         if not self._ops:
             raise ValueError("'build' needs to be called to create an ops instance first.")
 
-    async def exit(self):
+    async def exit(self) -> None:
         if isinstance(self._ops, RemoteOps):
             await self._ops.exit()
 
@@ -239,7 +240,7 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
+        global_policy_creator: Dict[str, Callable[[str], RLPolicy]],
     ) -> None:
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
             policy_name: func for policy_name, func in global_policy_creator.items()
@@ -252,5 +253,5 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    async def exit(self):
+    async def exit(self) -> None:
         raise NotImplementedError

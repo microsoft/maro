@@ -41,7 +41,7 @@ class DQNParams(TrainerParams):
             "device": self.device,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
-            "double": self.double
+            "double": self.double,
         }
 
 
@@ -55,14 +55,14 @@ class DQNOps(AbsTrainOps):
         *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
-        double: bool = False
+        double: bool = False,
     ) -> None:
         super(DQNOps, self).__init__(
             name=name,
             device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func,
-            parallelism=parallelism
+            parallelism=parallelism,
         )
 
         assert isinstance(self._policy, ValueBasedPolicy)
@@ -141,7 +141,7 @@ class DQNOps(AbsTrainOps):
     def get_state(self) -> dict:
         return {
             "policy": self._policy.get_state(),
-            "target_q_net": self._target_policy.get_state()
+            "target_q_net": self._target_policy.get_state(),
         }
 
     def set_state(self, ops_state_dict: dict) -> None:
@@ -174,7 +174,7 @@ class DQN(SingleTrainer):
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
-            random_overwrite=self._params.random_overwrite
+            random_overwrite=self._params.random_overwrite,
         )
 
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
@@ -196,7 +196,7 @@ class DQN(SingleTrainer):
             name=name,
             get_policy_func=self._get_policy_func,
             parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params()
+            **self._params.extract_ops_params(),
         )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:

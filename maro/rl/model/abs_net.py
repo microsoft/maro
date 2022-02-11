@@ -10,7 +10,8 @@ import torch.nn
 
 
 class AbsNet(torch.nn.Module, metaclass=ABCMeta):
-    """Base class for all Torch net classes.
+    """Base class for all Torch net classes. `AbsNet` defines a set of methods that will be called by upper-level
+    logic. All classes that inherit `AbsNet` should implement these methods.
     """
 
     def __init__(self) -> None:

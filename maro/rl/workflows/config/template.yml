@@ -17,7 +17,7 @@ rollout:
     eval: 1  # defaults to 1 if not provided
     min_env_samples: 8  # ignored if parallelism.training == 1
     grace_factor: 0.2  # ignored if parallelism.training == 1
-    controller:  # ignored if parallelism.training == 1
+    controller: # ignored if parallelism.training == 1
       host: "127.0.0.1"   # ignored if run in containerized environments
       port: 20000
   logging:
@@ -29,7 +29,7 @@ training:
   checkpointing:
     path: "/path/to/your/checkpoint/folder"
     interval: 10
-  proxy:   # ignored under simple mode
+  proxy: # ignored under simple mode
     host: "127.0.0.1"  # ignored if run in containerized environments
     frontend: 10000
     backend: 10001

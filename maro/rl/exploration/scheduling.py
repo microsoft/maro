@@ -33,6 +33,7 @@ class AbsExplorationScheduler(ABC):
 
 class LinearExplorationScheduler(AbsExplorationScheduler):
     """Linear exploration parameter schedule.
+
     Args:
         exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
             scheduler is applied.
@@ -70,6 +71,7 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
 
 class MultiLinearExplorationScheduler(AbsExplorationScheduler):
     """Exploration parameter schedule that consists of multiple linear phases.
+
     Args:
         exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
             scheduler is applied.
@@ -83,9 +85,6 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         start_ep (int, default=1): starting episode.
         initial_value (float, default=None): Initial value for the exploration parameter. If None, the value from
             the original dictionary the policy is instantiated with will be used as the initial value.
-
-    Returns:
-        An iterator over the series of exploration rates from episode 0 to ``max_iter`` - 1.
     """
 
     def __init__(
@@ -97,7 +96,7 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         last_ep: int,
         final_value: float,
         start_ep: int = 1,
-        initial_value: float = None
+        initial_value: float = None,
     ) -> None:
         # validate splits
         splits = [(start_ep, initial_value)] + splits + [(last_ep, final_value)]

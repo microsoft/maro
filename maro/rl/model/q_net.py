@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABCMeta, abstractmethod
-from typing import Optional
 
 import torch
 
@@ -12,7 +11,7 @@ from .abs_net import AbsNet
 
 
 class QNet(AbsNet, metaclass=ABCMeta):
-    """Net for Q functions.
+    """Abstract net for Q functions.
 
     Args:
         state_dim (int): Dimension of states.
@@ -80,7 +79,7 @@ class QNet(AbsNet, metaclass=ABCMeta):
 
 
 class DiscreteQNet(QNet, metaclass=ABCMeta):
-    """Net for Q functions with discrete actions.
+    """Abstract net for Q functions with discrete actions.
 
     Args:
         state_dim (int): Dimension of states.
@@ -124,7 +123,7 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
 
 
 class ContinuousQNet(QNet, metaclass=ABCMeta):
-    """Net for Q functions with continuous actions.
+    """Abstract net for Q functions with continuous actions.
 
     Args:
         state_dim (int): Dimension of states.

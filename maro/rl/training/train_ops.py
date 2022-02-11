@@ -32,7 +32,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         device: str,
         is_single_scenario: bool,
         get_policy_func: Callable[[], RLPolicy],
-        parallelism: int = 1
+        parallelism: int = 1,
     ) -> None:
         super(AbsTrainOps, self).__init__()
         self._name = name
@@ -109,12 +109,13 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self._policy.set_state(policy_state)
 
 
-def remote(func):
+def remote(func) -> Callable:
     """Annotation to indicate that a function / method can be called remotely.
 
     This annotation takes effect only when an ``AbsTrainOps`` object is wrapped by a ``RemoteOps``.
     """
-    def remote_anotate(*args, **kwargs):
+
+    def remote_annotate(*args, **kwargs) -> object:
         return func(*args, **kwargs)
 
     return remote_annotate
@@ -128,6 +129,7 @@ class AsyncClient(object):
         address (Tuple[str, int]): Address (host and port) of the training proxy.
         logger (Logger, default=None): logger.
     """
+
     def __init__(self, name: str, address: Tuple[str, int], logger: Logger = None) -> None:
         self._logger = DummyLogger() if logger is None else logger
         self._name = name
@@ -160,14 +162,14 @@ class AsyncClient(object):
                 self._logger.debug(f"{self._name} received result")
                 return bytes_to_pyobj(result[0])
 
-    def close(self):
+    def close(self) -> None:
         """Close the connection to the proxy.
         """
         self._poller.unregister(self._socket)
         self._socket.disconnect(self._address)
         self._socket.close()
 
-    def connect(self):
+    def connect(self) -> None:
         """Establish the connection to the proxy.
         """
         self._socket = Context.instance().socket(zmq.DEALER)
@@ -178,7 +180,7 @@ class AsyncClient(object):
         self._poller = Poller()
         self._poller.register(self._socket, zmq.POLLIN)
 
-    async def exit(self):
+    async def exit(self) -> None:
         """Send EXIT signals to the proxy indicating no more tasks.
         """
         await self._socket.send(b"EXIT")
@@ -198,6 +200,7 @@ class RemoteOps(object):
         address (Tuple[str, int]): Address (host and port) of the training proxy.
         logger (Logger, default=None): logger.
     """
+
     def __init__(self, ops: AbsTrainOps, address: Tuple[str, int], logger: Logger = None) -> None:
         self._ops = ops
         self._client = AsyncClient(self._ops.name, address, logger=logger)
@@ -217,7 +220,7 @@ class RemoteOps(object):
                     "func": func_name,
                     "args": args,
                     "kwargs": kwargs,
-                    "desired_parallelism": desired_parallelism
+                    "desired_parallelism": desired_parallelism,
                 }
                 await client.send_request(req)
                 response = await client.get_response()
@@ -231,7 +234,7 @@ class RemoteOps(object):
 
         return attr
 
-    async def exit(self):
+    async def exit(self) -> None:
         """Close the internal task client.
         """
         await self._client.exit()

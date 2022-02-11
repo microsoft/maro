@@ -71,7 +71,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
             name=name,
             device=device,
             is_single_scenario=False,
-            get_policy_func=get_policy_func
+            get_policy_func=get_policy_func,
         )
 
         self._policy_idx = policy_idx
@@ -155,14 +155,14 @@ class DiscreteMADDPGOps(AbsTrainOps):
         with torch.no_grad():
             next_q_values = self._target_q_critic_net.q_values(
                 states=next_states,  # x'
-                actions=next_actions
+                actions=next_actions,
             )  # a'
         target_q_values = (
             rewards[self._policy_idx] + self._reward_discount * (1 - terminals.float()) * next_q_values
         )
         q_values = self._q_critic_net.q_values(
             states=states,  # x
-            actions=actions  # a
+            actions=actions,  # a
         )  # Q(x, a)
         return self._q_value_loss_func(q_values, target_q_values.detach())
 
@@ -170,7 +170,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def get_critic_grad(
         self,
         batch: MultiTransitionBatch,
-        next_actions: List[torch.Tensor]
+        next_actions: List[torch.Tensor],
     ) -> Dict[str, torch.Tensor]:
         """Get the critic gradients of the given batch.
 
@@ -219,7 +219,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_critic_net.freeze()
         actor_loss = -(self._q_critic_net.q_values(
             states=states,  # x
-            actions=actions  # [a^j_1, ..., a_i, ..., a^j_N]
+            actions=actions,  # [a^j_1, ..., a_i, ..., a^j_N]
         ) * latest_action_logp).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
         self._q_critic_net.unfreeze()
         return actor_loss
@@ -265,7 +265,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def get_critic_state(self) -> dict:
         return {
             "critic": self._q_critic_net.get_state(),
-            "target_critic": self._target_q_critic_net.get_state()
+            "target_critic": self._target_q_critic_net.get_state(),
         }
 
     def set_critic_state(self, ops_state_dict: dict) -> None:
@@ -318,7 +318,7 @@ class DiscreteMADDPG(MultiTrainer):
             capacity=self._params.replay_memory_capacity,
             state_dim=self._state_dim,
             action_dims=[ops.policy_action_dim for ops in self._actor_ops_list],
-            agent_states_dims=[ops.policy_state_dim for ops in self._actor_ops_list]
+            agent_states_dims=[ops.policy_state_dim for ops in self._actor_ops_list],
         )
 
         assert len(self._agent2policy.keys()) == len(self._agent2policy.values())  # agent <=> policy
@@ -353,7 +353,7 @@ class DiscreteMADDPG(MultiTrainer):
             ),
             agent_states=agent_states,
             next_agent_states=next_agent_states,
-            terminals=np.array([terminal_flag])
+            terminals=np.array([terminal_flag]),
         )
         self._replay_memory.put(transition_batch)
 
@@ -486,5 +486,5 @@ class DiscreteMADDPG(MultiTrainer):
         _, sub_name = ops_name.split(".")
         return int(sub_name.split("_")[1])
 
-    async def exit(self):
+    async def exit(self) -> None:
         pass

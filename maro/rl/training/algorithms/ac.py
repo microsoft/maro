@@ -48,13 +48,14 @@ class DiscreteActorCriticParams(TrainerParams):
             "critic_loss_cls": self.critic_loss_cls,
             "clip_ratio": self.clip_ratio,
             "lam": self.lam,
-            "min_logp": self.min_logp
+            "min_logp": self.min_logp,
         }
 
 
 class DiscreteActorCriticOps(AbsTrainOps):
     """Reference: https://tinyurl.com/2ezte4cr
     """
+
     def __init__(
         self,
         name: str,
@@ -67,14 +68,14 @@ class DiscreteActorCriticOps(AbsTrainOps):
         critic_loss_cls: Callable = None,
         clip_ratio: float = None,
         lam: float = 0.9,
-        min_logp: float = None
+        min_logp: float = None,
     ) -> None:
         super(DiscreteActorCriticOps, self).__init__(
             name=name,
             device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func,
-            parallelism=parallelism
+            parallelism=parallelism,
         )
 
         assert isinstance(self._policy, DiscretePolicyGradient)
@@ -197,7 +198,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
     def get_state(self) -> dict:
         return {
             "policy": self._policy.get_state(),
-            "critic": self._v_critic_net.get_state()
+            "critic": self._v_critic_net.get_state(),
         }
 
     def set_state(self, ops_state_dict: dict) -> None:
@@ -260,7 +261,7 @@ class DiscreteActorCritic(SingleTrainer):
         self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
-            action_dim=self._ops.policy_action_dim
+            action_dim=self._ops.policy_action_dim,
         ))
 
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
@@ -281,7 +282,7 @@ class DiscreteActorCritic(SingleTrainer):
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
         return DiscreteActorCriticOps(
             name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params()
+            **self._params.extract_ops_params(),
         )
 
     def _get_batch(self) -> TransitionBatch:

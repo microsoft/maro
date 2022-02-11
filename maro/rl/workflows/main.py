@@ -7,21 +7,21 @@ from typing import List
 
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainerManager
-from maro.rl.utils.common import from_env, from_env_as_int, get_eval_schedule
+from maro.rl.utils.common import from_env, from_env_as_float, from_env_as_int, get_eval_schedule
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import Logger
 
 
-def main(scenario: Scenario):
+def main(scenario: Scenario) -> None:
     num_episodes = from_env_as_int("NUM_EPISODES")
     num_steps = from_env_as_int("NUM_STEPS", required=False, default=-1)
 
     logger = Logger(
         "MAIN",
-        dump_path=from_env("LOG_PATH"),
+        dump_path=str(from_env("LOG_PATH")),
         dump_mode="a",
-        stdout_level=from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),
-        file_level=from_env("LOG_LEVEL_FILE", required=False, default="CRITICAL")
+        stdout_level=str(from_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL")),
+        file_level=str(from_env("LOG_LEVEL_FILE", required=False, default="CRITICAL")),
     )
 
     load_path = from_env("LOAD_PATH", required=False, default=None)
@@ -48,10 +48,10 @@ def main(scenario: Scenario):
         env_sampler = BatchEnvSampler(
             sampling_parallelism=env_sampling_parallelism,
             port=from_env_as_int("ROLLOUT_CONTROLLER_PORT"),
-            min_env_samples=from_env("MIN_ENV_SAMPLES", required=False, default=None),
-            grace_factor=from_env("GRACE_FACTOR", required=False, default=None),
+            min_env_samples=from_env_as_int("MIN_ENV_SAMPLES", required=False, default=None),
+            grace_factor=from_env_as_float("GRACE_FACTOR", required=False, default=None),
             eval_parallelism=env_eval_parallelism,
-            logger=logger
+            logger=logger,
         )
 
     # evaluation schedule
@@ -66,9 +66,10 @@ def main(scenario: Scenario):
         proxy_address=None if train_mode == "simple" else (
             from_env("TRAIN_PROXY_HOST"), from_env_as_int("TRAIN_PROXY_FRONTEND_PORT")
         ),
-        logger=logger
+        logger=logger,
     )
     if load_path:
+        assert isinstance(load_path, str)
         loaded = trainer_manager.load(load_path)
         logger.info(f"Loaded states for {loaded} from {load_path}")
 
@@ -81,7 +82,7 @@ def main(scenario: Scenario):
             tc0 = time.time()
             result = env_sampler.sample(
                 policy_state=trainer_manager.get_policy_state() if not is_single_thread else None,
-                num_steps=num_steps
+                num_steps=num_steps,
             )
             experiences: List[List[ExpElement]] = result["experiences"]
             end_of_episode: bool = result["end_of_episode"]
@@ -96,6 +97,7 @@ def main(scenario: Scenario):
             trainer_manager.record_experiences(experiences)
             trainer_manager.train()
             if checkpoint_path and ep % checkpoint_interval == 0:
+                assert isinstance(checkpoint_path, str)
                 pth = os.path.join(checkpoint_path, str(ep))
                 trainer_manager.save(pth)
                 logger.info(f"All trainer states saved under {pth}")
@@ -119,5 +121,5 @@ def main(scenario: Scenario):
 
 if __name__ == "__main__":
     # get user-defined scenario ingredients
-    scenario = Scenario(from_env("SCENARIO_PATH"))
+    scenario = Scenario(str(from_env("SCENARIO_PATH")))
     main(scenario)

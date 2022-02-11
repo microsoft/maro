@@ -23,10 +23,11 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         policy_dict (Dict[str, RLPolicy]): Dict that stores all policies. The keys of thie dict are policy names.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
     """
+
     def __init__(
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
-        agent2policy: Dict[Any, str]  # {agent_name: policy_name}
+        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
     ) -> None:
         self._policy_dict = policy_dict
         self._agent2policy = agent2policy
@@ -85,7 +86,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     def __init__(
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
-        agent2policy: Dict[Any, str]  # {agent_name: policy_name}
+        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
     ) -> None:
         super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
 
@@ -172,7 +173,7 @@ class ExpElement:
             reward_dict={},
             terminal_dict={},
             next_state=self.next_state,
-            next_agent_state_dict=None if self.next_agent_state_dict is None else {}
+            next_agent_state_dict=None if self.next_agent_state_dict is None else {},
         ))
         for agent_name in self.agent_names:
             trainer_name = agent2trainer[agent_name]
@@ -201,6 +202,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         device (str, default=None): Name of the device to store this AbsEnvSampler. If it is None, the device will
             be automatically determined according to the GPU availability.
     """
+
     def __init__(
         self,
         get_env: Callable[[], Env],
@@ -209,7 +211,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
         get_test_env: Callable[[], Env] = None,
-        device: str = None
+        device: str = None,
     ) -> None:
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env is not None else self._learn_env
@@ -238,7 +240,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_global_and_agent_state(
-        self, event: object, tick: int = None
+        self, event: object, tick: int = None,
     ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
         """Get global state and dict of agent states.
 
@@ -319,7 +321,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     state=self._state,
                     agent_state_dict=dict(self._agent_state_dict),
                     action_dict=action_dict,
-                    env_action_dict=env_action_dict
+                    env_action_dict=env_action_dict,
                 )
             )
             # Update env and get new states (global & agent)
@@ -352,7 +354,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 reward_dict=reward_dict,
                 terminal_dict={},  # Will be processed later in `_post_polish_experiences()`
                 next_state=next_state,
-                next_agent_state_dict=next_agent_state_dict
+                next_agent_state_dict=next_agent_state_dict,
             ))
 
         experiences = self._post_polish_experiences(experiences)
@@ -414,5 +416,4 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        # TODO
         raise NotImplementedError

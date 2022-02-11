@@ -22,16 +22,17 @@ class TrainerManager(object):
         policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
         agent2policy (Dict[str, str]): Agent name to policy name mapping.
-        dispatcher_address (Tuple[str, int], default=None): The address of the dispatcher. This is used under
+        proxy_address (Tuple[str, int], default=None): The address of the dispatcher. This is used under
             only distributed model.
     """
+
     def __init__(
         self,
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
         proxy_address: Tuple[str, int] = None,
-        logger: Logger = None
+        logger: Logger = None,
     ) -> None:
         """
         Trainer manager.
@@ -67,6 +68,7 @@ class TrainerManager(object):
         if self._proxy_address:
             async def train_step() -> Iterable:
                 return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainer_dict.values()])
+
             asyncio.run(train_step())
         else:
             for trainer in self._trainer_dict.values():
@@ -109,8 +111,9 @@ class TrainerManager(object):
         for trainer_name, trainer in self._trainer_dict.items():
             trainer.save(get_trainer_state_path(path, trainer_name))
 
-    def exit(self):
+    def exit(self) -> None:
         if self._proxy_address:
             async def exit_all() -> Iterable:
                 return await asyncio.gather(*[trainer.exit() for trainer in self._trainer_dict.values()])
+
             asyncio.run(exit_all())

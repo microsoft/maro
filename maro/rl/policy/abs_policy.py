@@ -13,7 +13,7 @@ from maro.rl.utils import SHAPE_CHECK_FLAG, match_shape, ndarray_to_tensor
 
 
 class AbsPolicy(object, metaclass=ABCMeta):
-    """Policy class. A policy takes states as inputs and generates actions as outputs. A policy cannot
+    """Abstract policy class. A policy takes states as inputs and generates actions as outputs. A policy cannot
         update itself. It has to be updated by external trainers through public interfaces.
 
     Args:
@@ -91,7 +91,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         name: str,
         state_dim: int,
         action_dim: int,
-        trainable: bool = True
+        trainable: bool = True,
     ) -> None:
         super(RLPolicy, self).__init__(name=name, trainable=trainable)
         self._state_dim = state_dim
@@ -232,7 +232,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     def _shape_check(
         self,
         states: torch.Tensor,
-        actions: torch.Tensor = None
+        actions: torch.Tensor = None,
     ) -> bool:
         """Check whether the states and actions have valid shapes.
 
@@ -259,14 +259,14 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
-        """Check whether the generated actions tensor is valid, i.e., has matching shape with states tensor.
+        """Check whether the generated action tensor is valid, i.e., has matching shape with states tensor.
 
         Args:
             states (torch.Tensor): State tensor.
             actions (torch.Tensor): Action tensor.
 
         Returns:
-            valid_flag (bool): whether the actions tensor is valid.
+            valid_flag (bool): whether the action tensor is valid.
         """
         raise NotImplementedError
 

@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import OrderedDict
-from typing import Any, List, Type
+from typing import Any, List, Optional, Type
 
 import torch
 import torch.nn as nn
@@ -15,9 +15,8 @@ class FullyConnected(nn.Module):
         input_dim (int): Network input dimension.
         output_dim (int): Network output dimension.
         hidden_dims (List[int]): Dimensions of hidden layers. Its length is the number of hidden layers.
-        activation (str, default="relu"): A string indicates an activation class provided by ``torch.nn`` or a
-            customized activation class. If it is a string, it must be a key in ``TORCH_ACTIVATION``.
-            If None, there will be no activation.
+        activation (Optional[Type[torch.nn.Module], default=nn.ReLU): Activation class provided by ``torch.nn`` or a
+            customized activation class. If None, there will be no activation.
         head (bool, default=False): If true, this block will be the top block of the full model and the top layer
             of this block will be the final output layer.
         softmax (bool, default=False): If true, the output of the net will be a softmax transformation of the top
@@ -39,14 +38,14 @@ class FullyConnected(nn.Module):
         input_dim: int,
         output_dim: int,
         hidden_dims: List[int],
-        activation: Type[torch.nn.Module] = nn.ReLU,
+        activation: Optional[Type[torch.nn.Module]] = nn.ReLU,
         head: bool = False,
         softmax: bool = False,
         batch_norm: bool = False,
         skip_connection: bool = False,
         dropout_p: float = None,
         gradient_threshold: float = None,
-        name: str = None
+        name: str = None,
     ) -> None:
         super(FullyConnected, self).__init__()
         self._input_dim = input_dim

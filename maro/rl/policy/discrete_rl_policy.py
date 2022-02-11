@@ -24,17 +24,18 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         action_num (int): Number of actions.
         trainable (bool, default=True): Whether this policy is trainable.
     """
+
     def __init__(
         self,
         name: str,
         state_dim: int,
         action_num: int,
-        trainable: bool = True
+        trainable: bool = True,
     ) -> None:
         assert action_num >= 1
 
         super(DiscreteRLPolicy, self).__init__(
-            name=name, state_dim=state_dim, action_dim=1, trainable=trainable
+            name=name, state_dim=state_dim, action_dim=1, trainable=trainable,
         )
 
         self._action_num = action_num
@@ -66,12 +67,12 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         trainable: bool = True,
         exploration_strategy: Tuple[Callable, dict] = (epsilon_greedy, {"epsilon": 0.1}),
         exploration_scheduling_options: List[tuple] = None,
-        warmup: int = 50000
+        warmup: int = 50000,
     ) -> None:
         assert isinstance(q_net, DiscreteQNet)
 
         super(ValueBasedPolicy, self).__init__(
-            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, trainable=trainable
+            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, trainable=trainable,
         )
         self._q_net = q_net
 
@@ -202,17 +203,18 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         policy_net (DiscretePolicyNet): The core net of this policy.
         trainable (bool, default=True): Whether this policy is trainable.
     """
+
     def __init__(
         self,
         name: str,
         policy_net: DiscretePolicyNet,
-        trainable: bool = True
+        trainable: bool = True,
     ) -> None:
         assert isinstance(policy_net, DiscretePolicyNet)
 
         super(DiscretePolicyGradient, self).__init__(
             name=name, state_dim=policy_net.state_dim, action_num=policy_net.action_num,
-            trainable=trainable
+            trainable=trainable,
         )
 
         self._policy_net = policy_net

@@ -16,9 +16,10 @@ class TrainingProxy(AbsProxy):
     ``TrainOpsWorker``s to be processed and returns the results to the clients.
 
     Args:
-        frontend_port (int): Network port for communicating with clients (task producers).
-        backend_port (int): Network port for communicating with back-end workers (task consumers).
+        frontend_port (int, default=10000): Network port for communicating with clients (task producers).
+        backend_port (int, default=10001): Network port for communicating with back-end workers (task consumers).
     """
+
     def __init__(self, frontend_port: int = 10000, backend_port: int = 10001) -> None:
         super(TrainingProxy, self).__init__(frontend_port=frontend_port, backend_port=backend_port)
         self._available_workers = deque()
