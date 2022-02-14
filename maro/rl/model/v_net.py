@@ -11,7 +11,7 @@ from .abs_net import AbsNet
 
 
 class VNet(AbsNet, metaclass=ABCMeta):
-    """Abstract net for V functions.
+    """V-value network.
 
     Args:
         state_dim (int): Dimension of states.

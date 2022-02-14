@@ -82,7 +82,7 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
 
 
 class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
-    """Net for discrete policies.
+    """Policy network for discrete action spaces.
 
     Args:
         state_dim (int): Dimension of states.
@@ -127,8 +127,7 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
-        """Implementation of `get_action_probs`. This method contains core logic of the net, and should be determined
-        by users.
+        """Implementation of `get_action_probs`. The core logic of a discrete policy net should be implemented here.
         """
         raise NotImplementedError
 
@@ -156,7 +155,7 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
 
 
 class ContinuousPolicyNet(PolicyNet, metaclass=ABCMeta):
-    """Net for continuous policies.
+    """Policy network for continuous action spaces.
 
     Args:
         state_dim (int): Dimension of states.

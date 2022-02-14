@@ -22,7 +22,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     Args:
         device (str): Identifier for the torch device. The policy will be moved to the specified device.
             If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-        is_single_scenario (bool): Identifier of whether this ops is used under a single trainer or a multi trainer.
+        is_single_scenario (bool): Flag indicating whether the ops belongs to a `SingleTrainer` or a `MultiTrainer`.
         get_policy_func (Callable[[], RLPolicy]): Function used to create the policy of this ops.
     """
 
@@ -68,7 +68,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         a `TransitionBatch`. Otherwise, it should be a `MultiTransitionBatch`.
 
         Args:
-            batch (AbsTransitionBatch): The batch to be checked.
+            batch (AbsTransitionBatch): The batch to be validated.
         """
         return isinstance(batch, TransitionBatch) if self._is_single_scenario \
             else isinstance(batch, MultiTransitionBatch)

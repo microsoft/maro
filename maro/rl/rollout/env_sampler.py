@@ -17,10 +17,10 @@ from maro.simulator import Env
 
 
 class AbsAgentWrapper(object, metaclass=ABCMeta):
-    """Agent wrapper. Used to manager agents & policies during experiences collection.
+    """Agent wrapper. Used to manager agents & policies during experience collection.
 
     Args:
-        policy_dict (Dict[str, RLPolicy]): Dict that stores all policies. The keys of thie dict are policy names.
+        policy_dict (Dict[str, RLPolicy]): Dictionary that maps policy names to policy instances.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
     """
 
@@ -46,8 +46,8 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         """Choose action according to the given (observable) states of all agents.
 
         Args:
-            state_by_agent (Dict[Any, np.ndarray]): Agent state dict for all agents.
-                Use agent name as the key to fetch states from this dict.
+            state_by_agent (Dict[Any, np.ndarray]): Dictionary containing each agent's state vector.
+                The keys are agent names.
 
         Returns:
             actions (Dict[Any, np.ndarray]): Dict that contains the action for all agents.
@@ -65,13 +65,13 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
 
     @abstractmethod
     def explore(self) -> None:
-        """Switch all policies to exploring mode.
+        """Switch all policies to exploration mode.
         """
         raise NotImplementedError
 
     @abstractmethod
     def exploit(self) -> None:
-        """Switch all policies to exploiting mode.
+        """Switch all policies to exploitation mode.
         """
         raise NotImplementedError
 
@@ -124,7 +124,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
 
 @dataclass
 class CacheElement:
-    """Stores cached values during experience collection (rollout).
+    """Raw transition information that can be post-processed into an `ExpElement`.
     """
     tick: int
     event: object
@@ -242,7 +242,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _get_global_and_agent_state(
         self, event: object, tick: int = None,
     ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
-        """Get global state and dict of agent states.
+        """Get the global and individual agents' states.
 
         Args:
             event (object): Event.
@@ -256,7 +256,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
-        """Translation the actions into the format that the env could recognize.
+        """Translate model-generated actions into an object that can be executed by the env.
 
         Args:
             action_dict (Dict[Any, np.ndarray]): Action for all agents.
@@ -366,7 +366,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         }
 
     def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
-        """Update next_agent_state_dict & terminal_dict by using the entire experience list.
+        """Update next_agent_state_dict & terminal_dict using the entire experience list.
 
         Args:
             experiences (List[ExpElement]): Sequence of ExpElements.

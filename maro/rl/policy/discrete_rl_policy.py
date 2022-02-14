@@ -16,7 +16,7 @@ from .abs_policy import RLPolicy
 
 
 class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
-    """Discrete policy.
+    """RL policy for discrete action spaces.
 
     Args:
         name (str): Name of the policy.
@@ -90,7 +90,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         return self._q_net
 
     def q_values_for_all_actions(self, states: np.ndarray) -> np.ndarray:
-        """Calculating the Q-matrix that contains the Q-value of each action under the given states.
+        """Generate a matrix containing the Q-values for all actions for the given states.
 
         Args:
             states (np.ndarray): States.
@@ -101,7 +101,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         return self.q_values_for_all_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
 
     def q_values_for_all_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
-        """Calculating the Q-matrix that contains the Q-value of each action under the given states.
+        """Generate a matrix containing the Q-values for all actions for the given states.
 
         Args:
             states (torch.Tensor): States.
@@ -115,7 +115,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         return q_values
 
     def q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
-        """Calculating the Q-values of the given state-action pairs.
+        """Generate the Q values for given state-action pairs.
 
         Args:
             states (np.ndarray): States.
@@ -130,7 +130,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         ).cpu().numpy()
 
     def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        """Calculating the Q-values of the given state-action pairs.
+        """Generate the Q values for given state-action pairs.
 
         Args:
             states (torch.Tensor): States.
@@ -196,7 +196,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
 
 
 class DiscretePolicyGradient(DiscreteRLPolicy):
-    """Policy gradient policy that generates discrete actions.
+    """Policy gradient for discrete action spaces.
 
     Args:
         name (str): Name of the policy.

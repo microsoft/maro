@@ -69,7 +69,8 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         raise NotImplementedError
 
     def soft_update(self, other_model: AbsNet, tau: float) -> None:
-        """Soft update the net's parameters according to another net.
+        """Soft update the net's parameters according to another net, i.e.,
+        self.param = self.param * (1.0 - tau) + other_model.param * tau
 
         Args:
             other_model (AbsNet): The source net. Must has same type with the current net.
@@ -84,15 +85,15 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
 
     @abstractmethod
     def freeze(self) -> None:
-        """(Partially) freeze the current model. The users should write their own strategy to determine the list of
+        """(Partially) freeze the current model. The users should write their own strategy to determine which
         parameters to freeze.
         """
         raise NotImplementedError
 
     @abstractmethod
     def unfreeze(self) -> None:
-        """(Partially) unfreeze the current model. The users should write their own strategy to determine the list of
-        parameters to unfreeze.
+        """(Partially) unfreeze the current model. The users should write their own strategy to determine which
+        parameters to freeze.
         """
         raise NotImplementedError
 

@@ -16,7 +16,7 @@ class MultiQNet(AbsNet, metaclass=ABCMeta):
 
     Args:
         state_dim (int): Dimension of states.
-        action_dims (List[int]): Dimensions of Dimension of multi-agents' actions. Its length equals to the
+        action_dims (List[int]): Dimensions of Dimension of multi-agents' actions. Its length equals the
             number of agents.
     """
 

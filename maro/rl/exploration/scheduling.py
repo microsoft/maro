@@ -12,8 +12,8 @@ class AbsExplorationScheduler(ABC):
         exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
             scheduler is applied.
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
-        initial_value (float, default=None): Initial value for the exploration parameter. If None, the value from
-            the original dictionary the policy is instantiated with will be used as the initial value.
+        initial_value (float, default=None): Initial value for the exploration parameter. If None, the value used
+            when instantiating the policy will be used as the initial value.
     """
 
     def __init__(self, exploration_params: dict, param_name: str, initial_value: float = None) -> None:
@@ -41,8 +41,8 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
         last_ep (int): Last episode.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
         start_ep (int, default=1): starting episode.
-        initial_value (float, default=None): Initial value for the exploration parameter. If None, the value from
-            the original dictionary the policy is instantiated with will be used as the initial value.
+        initial_value (float, default=None): Initial value for the exploration parameter. If None, the value used
+            when instantiating the policy will be used as the initial value.
     """
 
     def __init__(

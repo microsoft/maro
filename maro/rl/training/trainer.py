@@ -100,7 +100,8 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     @abstractmethod
     def build(self) -> None:
-        """Build the trainer. This has to be called before the trainer can actually run.
+        """Create the required train-ops and replay memory. This should be called before invoking `train` or
+        `train_as_task`.
         """
         raise NotImplementedError
 
@@ -111,7 +112,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     async def train_as_task(self) -> None:
-        """Run a training step, in the async fashion, to update all the policies that this trainer is responsible for.
+        """Update all policies managed by the trainer as an asynchronous task.
         """
         raise NotImplementedError
 
@@ -131,7 +132,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     @abstractmethod
     def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
-        """Generate a train ops according to the given ops name.
+        """Create an `AbsTrainOps` instance with a given name.
 
         Args:
             name (str): Ops name.
@@ -142,9 +143,9 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
-        """Generate the ops according to the given ops name. This ops could be a RemoteOps or a AbsTrainOps. If the
-            dispatcher address is None, it means the trainer runs in single node mode, so the ops should be a local
-            train ops. Otherwise, it should be a RemoteOps.
+        """Create an `AbsTrainOps` instance with a given name. If a proxy address has been registered to the trainer,
+        this returns a `RemoteOps` instance in which all methods annotated as "remote" are turned into a remote method
+        call. Otherwise, a regular `AbsTrainOps` is returned.
 
         Args:
             name (str): Ops name.

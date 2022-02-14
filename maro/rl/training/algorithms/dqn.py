@@ -78,7 +78,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy.to_device(self._device)
 
     def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
-        """Get loss of the given batch.
+        """Compute the loss of the batch.
 
         Args:
             batch (TransitionBatch): Batch.
@@ -110,18 +110,18 @@ class DQNOps(AbsTrainOps):
 
     @remote
     def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
-        """Get the gradients of the given batch.
+        """Compute the network's gradients of a batch.
 
         Args:
             batch (TransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The gradients of the batch.
+            grad (torch.Tensor): The gradient of the batch.
         """
         return self._policy.get_gradients(self._get_batch_loss(batch))
 
     def update_with_grad(self, grad_dict: dict) -> None:
-        """Update the model according to the given gradients.
+        """Update the network with remotely computed gradients.
 
         Args:
             grad_dict (dict): Gradients.
@@ -130,7 +130,7 @@ class DQNOps(AbsTrainOps):
         self._policy.apply_gradients(grad_dict)
 
     def update(self, batch: TransitionBatch) -> None:
-        """Update the model according to the given batch.
+        """Update the network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.

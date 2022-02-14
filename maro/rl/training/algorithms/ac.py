@@ -89,7 +89,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net.to(self._device)
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
-        """Get the critic loss of the given batch.
+        """Compute the critic loss of the batch.
 
         Args:
             batch (TransitionBatch): Batch.
@@ -105,18 +105,18 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
     @remote
     def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        """Get the critic gradients of the given batch.
+        """Compute the critic network's gradients of a batch.
 
         Args:
             batch (TransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The critic gradients of the batch.
+            grad (torch.Tensor): The critic gradient of the batch.
         """
         return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
 
     def update_critic(self, batch: TransitionBatch) -> None:
-        """Update the critic according to the given batch.
+        """Update the critic network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
@@ -124,7 +124,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net.step(self._get_critic_loss(batch))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
-        """Update the critic according to the given gradients.
+        """Update the critic network with remotely computed gradients.
 
         Args:
             grad_dict (dict): Gradients.
@@ -133,7 +133,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net.apply_gradients(grad_dict)
 
     def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
-        """Get the actor loss of the given batch.
+        """Compute the actor loss of the batch.
 
         Args:
             batch (TransitionBatch): Batch.
@@ -168,18 +168,18 @@ class DiscreteActorCriticOps(AbsTrainOps):
 
     @remote
     def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        """Get the actor gradients of the given batch.
+        """Compute the actor network's gradients of a batch.
 
         Args:
             batch (TransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The actor gradients of the batch.
+            grad (torch.Tensor): The actor gradient of the batch.
         """
         return self._policy.get_gradients(self._get_actor_loss(batch))
 
     def update_actor(self, batch: TransitionBatch) -> None:
-        """Update the actor according to the given batch.
+        """Update the actor network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
@@ -187,7 +187,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._policy.step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
-        """Update the actor according to the given gradients.
+        """Update the actor network with remotely computed gradients.
 
         Args:
             grad_dict (dict): Gradients.
@@ -206,7 +206,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         self._v_critic_net.set_state(ops_state_dict["critic"])
 
     def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
-        """Preprocess the batch to get the return & advantages.
+        """Preprocess the batch to get the returns & advantages.
 
         Args:
             batch (TransitionBatch): Batch.
@@ -230,7 +230,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         return batch
 
     def preprocess_and_merge_batches(self, batch_list: List[TransitionBatch]) -> TransitionBatch:
-        """Preprocess batches and then merge all batches into a big one.
+        """Preprocess and merge a list of transition batches to a single transition batch.
 
         Args:
             batch_list (List[TransitionBatch]): List of batches.

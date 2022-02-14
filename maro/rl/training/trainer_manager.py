@@ -22,8 +22,8 @@ class TrainerManager(object):
         policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
         agent2policy (Dict[str, str]): Agent name to policy name mapping.
-        proxy_address (Tuple[str, int], default=None): The address of the dispatcher. This is used under
-            only distributed model.
+        proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
+            it is registered to all trainers, which in turn create `RemoteOps` for distributed training.
     """
 
     def __init__(

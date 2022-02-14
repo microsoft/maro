@@ -36,13 +36,13 @@ class AbsIndexScheduler(object, metaclass=ABCMeta):
 
     @abstractmethod
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
-        """Generate a list of indexes to the replay memory for sampling. In other words, when the replay memory
-        need to sample a batch, the scheduler should provides a set of proper indexes for the replay memory to
-        read.
+        """Generate a list of indexes that can be used to retrieve items from the replay memory.
 
         Args:
-            batch_size (int, default=None): The required batch size. If it is None, return all records.
+            batch_size (int, default=None): The required batch size. If it is None, all indexes where an experience
+                item is present are returned.
             forbid_last (bool, default=False): Whether the latest element is allowed to be sampled.
+                If this is true, the last index will always be excluded from the result.
 
         Returns:
             indexes (np.ndarray): The list of indexes.
@@ -64,7 +64,9 @@ class RandomIndexScheduler(AbsIndexScheduler):
 
     Args:
         capacity (int): Maximum capacity of the replay memory.
-        random_overwrite (bool): When it is necessary to overwrite outdated records, use random overwrite or not.
+        random_overwrite (bool): Flag that controls the overwriting behavior when the replay memory reaches capacity.
+            If this is true, newly added items will randomly overwrite existing ones. Otherwise, the overwrite occurs
+            in a cyclic manner.
     """
 
     def __init__(self, capacity: int, random_overwrite: bool) -> None:
@@ -140,7 +142,7 @@ class FIFOIndexScheduler(AbsIndexScheduler):
 
 
 class AbsReplayMemory(object, metaclass=ABCMeta):
-    """Abstract class for all replay memory. Defines a set of fundamental interfaces.
+    """Abstract replay memory class with basic interfaces.
 
     Args:
         capacity (int): Maximum capacity of the replay memory.
@@ -174,7 +176,7 @@ class AbsReplayMemory(object, metaclass=ABCMeta):
 
 
 class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
-    """Replay memory to store single agent's experiences.
+    """In-memory experience storage facility for a single trainer.
 
     Args:
         capacity (int): Maximum capacity of the replay memory.
@@ -204,7 +206,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         return self._action_dim
 
     def put(self, transition_batch: TransitionBatch) -> None:
-        """Store a transition batch into the memory.
+        """Store a transition batch in the memory.
 
         Args:
             transition_batch (TransitionBatch): The transition batch.
@@ -224,7 +226,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         """Store a transition batch into the memory at the give indexes.
 
         Args:
-            indexes (np.ndarray): The indexes to put the batch.
+            indexes (np.ndarray): Positions in the replay memory to store at.
             transition_batch (TransitionBatch): The transition batch.
         """
         self._states[indexes] = transition_batch.states
@@ -234,10 +236,11 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._next_states[indexes] = transition_batch.next_states
 
     def sample(self, batch_size: int = None) -> TransitionBatch:
-        """Returns a sampled batch.
+        """Generate a sample batch from the replay memory.
 
         Args:
-            batch_size (int, default=None): The required batch size. If it is None, returns all records.
+            batch_size (int, default=None): The required batch size. If it is None, all indexes where an experience
+                item is present are returned.
 
         Returns:
             batch (TransitionBatch): The sampled batch.
@@ -246,10 +249,10 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
-        """Returns a sampled batch contains records at the give indexes.
+        """Retrieve items at given indexes from the replay memory.
 
         Args:
-            indexes (np.ndarray): The indexes to put the batch.
+            indexes (np.ndarray): Positions in the replay memory to retrieve at.
 
         Returns:
             batch (TransitionBatch): The sampled batch.
@@ -307,7 +310,7 @@ class FIFOReplayMemory(ReplayMemory):
 
 
 class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
-    """Replay memory to store multiple agents' experiences.
+    """In-memory experience storage facility for a multi trainer.
 
     Args:
         capacity (int): Maximum capacity of the replay memory.
@@ -382,7 +385,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         """Store a transition batch into the memory at the give indexes.
 
         Args:
-            indexes (np.ndarray): The indexes to put the batch.
+            indexes (np.ndarray): Positions in the replay memory to store at.
             transition_batch (MultiTransitionBatch): The transition batch.
         """
         self._states[indexes] = transition_batch.states
@@ -397,10 +400,11 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             self._next_agent_states[i][indexes] = transition_batch.next_agent_states[i]
 
     def sample(self, batch_size: int = None) -> MultiTransitionBatch:
-        """Returns a sampled batch.
+        """Generate a sample batch from the replay memory.
 
         Args:
-            batch_size (int, default=None): The required batch size. If it is None, returns all records.
+            batch_size (int, default=None): The required batch size. If it is None, all indexes where an experience
+                item is present are returned.
 
         Returns:
             batch (MultiTransitionBatch): The sampled batch.
@@ -409,10 +413,10 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> MultiTransitionBatch:
-        """Returns a sampled batch contains records at the give indexes.
+        """Retrieve items at given indexes from the replay memory.
 
         Args:
-            indexes (np.ndarray): The indexes to put the batch.
+            indexes (np.ndarray): Positions in the replay memory to retrieve at.
 
         Returns:
             batch (MultiTransitionBatch): The sampled batch.

@@ -33,7 +33,7 @@ def _parse_action_range(
 
 
 class ContinuousRLPolicy(RLPolicy):
-    """Continuous policy.
+    """RL policy for continuous action spaces.
 
     Args:
         name (str): Name of the policy.

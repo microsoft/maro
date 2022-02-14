@@ -11,7 +11,7 @@ from .abs_net import AbsNet
 
 
 class QNet(AbsNet, metaclass=ABCMeta):
-    """Abstract net for Q functions.
+    """Abstract Q-value network.
 
     Args:
         state_dim (int): Dimension of states.
@@ -79,7 +79,7 @@ class QNet(AbsNet, metaclass=ABCMeta):
 
 
 class DiscreteQNet(QNet, metaclass=ABCMeta):
-    """Abstract net for Q functions with discrete actions.
+    """Q-value network for discrete action spaces.
 
     Args:
         state_dim (int): Dimension of states.
@@ -123,7 +123,7 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
 
 
 class ContinuousQNet(QNet, metaclass=ABCMeta):
-    """Abstract net for Q functions with continuous actions.
+    """Q-value network for continuous action spaces.
 
     Args:
         state_dim (int): Dimension of states.

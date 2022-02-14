@@ -133,7 +133,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         return action, logps
 
     def _get_critic_loss(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> torch.Tensor:
-        """Get the critic loss of the given batch.
+        """Compute the critic loss of the batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
@@ -172,19 +172,19 @@ class DiscreteMADDPGOps(AbsTrainOps):
         batch: MultiTransitionBatch,
         next_actions: List[torch.Tensor],
     ) -> Dict[str, torch.Tensor]:
-        """Get the critic gradients of the given batch.
+        """Compute the critic network's gradients of a batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
             next_actions (List[torch.Tensor]): List of next actions of all policies.
 
         Returns:
-            grad (torch.Tensor): The critic gradients of the batch.
+            grad (torch.Tensor): The critic gradient of the batch.
         """
         return self._q_critic_net.get_gradients(self._get_critic_loss(batch, next_actions))
 
     def update_critic(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> None:
-        """Update the critic according to the given batch.
+        """Update the critic network using a batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
@@ -194,7 +194,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_critic_net.step(self._get_critic_loss(batch, next_actions))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
-        """Update the critic according to the given gradients.
+        """Update the critic network with remotely computed gradients.
 
         Args:
             grad_dict (dict): Gradients.
@@ -203,7 +203,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_critic_net.apply_gradients(grad_dict)
 
     def _get_actor_loss(self, batch: MultiTransitionBatch) -> torch.Tensor:
-        """Get the actor loss of the given batch.
+        """Compute the actor loss of the batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
@@ -226,18 +226,18 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
     @remote
     def get_actor_grad(self, batch: MultiTransitionBatch) -> Dict[str, torch.Tensor]:
-        """Get the actor gradients of the given batch.
+        """Compute the actor network's gradients of a batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The actor gradients of the batch.
+            grad (torch.Tensor): The actor gradient of the batch.
         """
         return self._policy.get_gradients(self._get_actor_loss(batch))
 
     def update_actor(self, batch: MultiTransitionBatch) -> None:
-        """Update the actor according to the given batch.
+        """Update the actor network using a batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
@@ -246,7 +246,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._policy.step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
-        """Update the actor according to the given gradients.
+        """Update the critic network with remotely computed gradients.
 
         Args:
             grad_dict (dict): Gradients.

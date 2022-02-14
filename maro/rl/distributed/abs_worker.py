@@ -13,7 +13,7 @@ from maro.utils import DummyLogger, Logger
 
 
 class AbsWorker(object):
-    """Abstract worker class to process a computation task in distributed fashion.
+    """Abstract worker class to process a task in distributed fashion.
 
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
