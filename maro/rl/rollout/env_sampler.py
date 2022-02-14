@@ -310,7 +310,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         # Collect experience
         self._agent_wrapper.explore()
-        steps_to_go = float("inf") if num_steps == None else num_steps
+        steps_to_go = float("inf") if num_steps is None else num_steps
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)

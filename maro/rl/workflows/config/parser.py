@@ -7,7 +7,6 @@ from typing import Union
 
 import yaml
 
-from maro.rl.utils.common import get_eval_schedule
 from maro.utils.logger import LEVEL_MAP
 
 
