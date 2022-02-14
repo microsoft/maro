@@ -233,7 +233,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._trans_cache: Deque[CacheElement] = deque()
         self._reward_eval_delay = reward_eval_delay
 
-        self._tracker = {}
+        self._info = {}
 
         for policy in self._policy_dict.values():
             policy.to_device(self._device)
@@ -281,21 +281,23 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    def sample(self, policy_state: Dict[str, object] = None, num_steps: int = -1) -> dict:
+    def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
         """Sample experiences.
 
         Args:
             policy_state (Dict[str, object]): Policy state dict. If it is not None, then we need to update all
                 policies according to the latest policy states, then start the experience collection.
-            num_steps (int, default=-1): Number of collecting steps. If it is -1, it means unlimited number of steps.
+            num_steps (Optional[int], default=None): Number of collecting steps. If it is None, interactions with
+                the environment will continue until the terminal state is reached.
 
         Returns:
-            A dict that contains the collected experiences and other additional information.
+            A dict that contains the collected experiences and additional information.
         """
         # Init the env
         self._env = self._learn_env
         if not self._agent_state_dict:
             self._env.reset()
+            self._info.clear()
             self._trans_cache.clear()
             _, event, _ = self._env.step(None)
             self._state, self._agent_state_dict = self._get_global_and_agent_state(event)
@@ -308,7 +310,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         # Collect experience
         self._agent_wrapper.explore()
-        steps_to_go = float("inf") if num_steps == -1 else num_steps
+        steps_to_go = float("inf") if num_steps == None else num_steps
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
@@ -330,7 +332,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 else self._get_global_and_agent_state(event)
             steps_to_go -= 1
 
-        #
         tick_bound = self._env.tick - self._reward_eval_delay
         experiences = []
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
@@ -362,7 +363,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         return {
             "end_of_episode": not self._agent_state_dict,
             "experiences": [experiences],
-            "info": [self._tracker],
+            "info": [self._info],
         }
 
     def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
@@ -412,7 +413,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             _, event, terminal = self._env.step(list(env_action_dict.values()))
             if not terminal:
                 _, agent_state_dict = self._get_global_and_agent_state(event)
-        return {"info": [self._tracker]}
+        return {"info": [self._info]}
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:

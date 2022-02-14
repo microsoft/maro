@@ -7,7 +7,7 @@ from maro.rl.training import TrainerManager
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import Logger
 
-
+# config variables
 SCENARIO_PATH = "cim"
 NUM_EPISODES = 50
 NUM_STEPS = -1

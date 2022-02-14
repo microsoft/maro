@@ -7,6 +7,7 @@ from typing import Union
 
 import yaml
 
+from maro.rl.utils.common import get_eval_schedule
 from maro.utils.logger import LEVEL_MAP
 
 
@@ -246,17 +247,26 @@ class ConfigParser:
         """
         path_mapping = self.get_path_mapping(containerize=containerize)
         scenario_path = path_mapping[self._config["scenario_path"]]
+        num_episodes = self._config["main"]["num_episodes"]
         env = {
             "main": {
                 "JOB": self._config["job"],
-                "NUM_EPISODES": str(self._config["main"]["num_episodes"]),
+                "NUM_EPISODES": str(num_episodes),
                 "TRAIN_MODE": self._config["training"]["mode"],
                 "SCENARIO_PATH": scenario_path,
             }
         }
 
         if "eval_schedule" in self._config["main"]:
-            env["main"]["EVAL_SCHEDULE"] = str(self._config["main"]["eval_schedule"])
+            # If it is an int, it is treated as the number of episodes between two adjacent evaluations. For example,
+            # if the total number of episodes is 20 and this is 5, an evaluation schedule of [5, 10, 15, 20] will be
+            # generated for the environment variable (as a string). If it is a list, the sorted version of the list
+            # will be generated for the environment variable (as a string).
+            sch = self._config["main"]["eval_schedule"]
+            if isinstance(sch, int):
+                env["main"]["EVAL_SCHEDULE"] = ' '.join([str(sch * i) for i in range(1, num_episodes // sch + 1)])
+            else:
+                env["main"]["EVAL_SCHEDULE"] = ' '.join([str(val) for val in sorted(sch)])
 
         if "load_path" in self._config["training"]:
             env["main"]["LOAD_PATH"] = path_mapping[self._config["training"]["load_path"]]
