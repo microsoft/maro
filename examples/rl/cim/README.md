@@ -4,7 +4,7 @@ This example demonstrates the use of MARO's RL toolkit to optimize container inv
 * ``config.py``, which contains general configurations for the scenario;
 * ``algorithms``, which contains configurations for the Actor-Critic, DQN and discrete-MADDPG algorithms, including network configurations;
 * ``env_sampler.py``, which defines state, action and reward shaping in the ``CIMEnvSampler`` class;
-* ``policy_trainer.py``, which contains a registry that for the policies and algorithms defined in ``algorithms``;
+* ``policy_trainer.py``, which contains a registry for the policies and algorithms defined in ``algorithms``;
 * ``callbacks.py``, which defines routines to be invoked at the end of training or evaluation episodes.
 
 See ``README.md`` under ``examples/rl`` for details about running the single-threaded learning workflow. We recommend that you follow this example to write your own scenarios.

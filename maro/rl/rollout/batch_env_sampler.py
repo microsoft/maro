@@ -154,7 +154,7 @@ class BatchEnvSampler:
 
         Returns:
             A dict that contains the collected experiences and additional information.
-        """        
+        """
         # increment episode or segment depending on whether the last episode has concluded
         if self._end_of_episode:
             self._ep += 1

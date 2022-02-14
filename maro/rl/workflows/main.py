@@ -52,7 +52,7 @@ def main(scenario: Scenario) -> None:
             logger=logger,
         )
     else:
-        env_sampler = scenario.get_env_sampler(policy_creator)    
+        env_sampler = scenario.get_env_sampler(policy_creator)
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))

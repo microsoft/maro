@@ -216,7 +216,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env is not None else self._learn_env
         self._env: Optional[Env] = None
-        self._event = None
+        self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")

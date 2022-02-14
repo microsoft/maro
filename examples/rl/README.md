@@ -1,6 +1,6 @@
 # Reinforcement Learning (RL) Examples
 
-This folder contains scenarios that employ reinforcement learning. MARO's RL toolkit makes it possible to use a common workflow on different scenarios, so long as the necessary scenario-related components are provided. General scenario-independent settings can be found in ``config.yml``.
+This folder contains scenarios that employ reinforcement learning. MARO's RL toolkit provides scenario-agnostic workflows to run a variety of scenarios in single-thread, multi-process or distributed modes.
 
 ## How to Run
 
