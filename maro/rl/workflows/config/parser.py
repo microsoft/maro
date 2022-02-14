@@ -59,8 +59,8 @@ class ConfigParser:
 
         if "num_steps" in self._config["main"]:
             num_steps = self._config["main"]["num_steps"]
-            if not isinstance(num_steps, int) or num_steps < -1 or num_steps == 0:
-                raise ValueError(f"{self._validation_err_pfx}: 'main.num_steps' must be -1 or a positive int")
+            if not isinstance(num_steps, int) or num_steps <= 0:
+                raise ValueError(f"{self._validation_err_pfx}: 'main.num_steps' must be a positive int")
 
         if "eval_schedule" in self._config["main"]:
             eval_schedule = self._config["main"]["eval_schedule"]
