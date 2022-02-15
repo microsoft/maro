@@ -7,10 +7,10 @@ from maro.rl.training import TrainerManager
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import Logger
 
-
+# config variables
 SCENARIO_PATH = "cim"
 NUM_EPISODES = 50
-NUM_STEPS = -1
+NUM_STEPS = None
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
 CHECKPOINT_INTERVAL = 5
 EVAL_SCHEDULE = [10, 20, 30, 40, 50]

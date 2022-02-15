@@ -14,32 +14,32 @@ plt_path = join(dirname(realpath(__file__)), "plots", timestamp)
 makedirs(plt_path, exist_ok=True)
 
 
-def post_collect(trackers, ep, segment):
+def post_collect(info_list, ep, segment):
     # print the env metric from each rollout worker
-    for tracker in trackers:
-        print(f"env summary (episode {ep}, segment {segment}): {tracker['env_metric']}")
+    for info in info_list:
+        print(f"env summary (episode {ep}, segment {segment}): {info['env_metric']}")
 
     # print the average env metric
-    if len(trackers) > 1:
-        metric_keys, num_trackers = trackers[0]["env_metric"].keys(), len(trackers)
-        avg_metric = {key: sum(tr["env_metric"][key] for tr in trackers) / num_trackers for key in metric_keys}
+    if len(info_list) > 1:
+        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+        avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
         print(f"average env metric (episode {ep}, segment {segment}): {avg_metric}")
 
 
-def post_evaluate(trackers, ep):
+def post_evaluate(info_list, ep):
     # print the env metric from each rollout worker
-    for tracker in trackers:
-        print(f"env summary (evaluation episode {ep}): {tracker['env_metric']}")
+    for info in info_list:
+        print(f"env summary (evaluation episode {ep}): {info['env_metric']}")
 
     # print the average env metric
-    if len(trackers) > 1:
-        metric_keys, num_trackers = trackers[0]["env_metric"].keys(), len(trackers)
-        avg_metric = {key: sum(tr["env_metric"][key] for tr in trackers) / num_trackers for key in metric_keys}
+    if len(info_list) > 1:
+        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+        avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
         print(f"average env metric (evaluation episode {ep}): {avg_metric}")
 
-    for tracker in trackers:
-        core_requirement = tracker["actions_by_core_requirement"]
-        action_sequence = tracker["action_sequence"]
+    for info in info_list:
+        core_requirement = info["actions_by_core_requirement"]
+        action_sequence = info["action_sequence"]
         # plot action sequence
         fig = plt.figure(figsize=(40, 32))
         ax = fig.add_subplot(1, 1, 1)
