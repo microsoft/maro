@@ -85,5 +85,6 @@ def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) ->
     return CIMEnvSampler(
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
-        agent2policy=agent2policy
+        agent2policy=agent2policy,
+        device="cpu",
     )
