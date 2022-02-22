@@ -15,7 +15,7 @@ main:
   # This can be an integer or a list of integers. An integer indicates the interval at which policies are evaluated.
   # A list indicates the episodes at the end of which policies are to be evaluated.
   eval_schedule: 10
-  logging:  # log levels for the main loop 
+  logging:  # log levels for the main loop
     stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
 rollout:
