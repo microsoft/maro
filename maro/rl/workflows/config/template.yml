@@ -19,18 +19,17 @@ main:
     stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
 rollout:
-  # Optional section to specify roll-out parallelism settings. If not present, a single environment instance will be
-  # created locally for training and evaluation.
+  # Optional section to specify roll-out parallelism settings. If absent, a single environment instance will be created
+  # locally for training and evaluation.
   parallelism:
     sampling: 10  # Number of parallel roll-outs to collecting training data from.
     eval: null  # Number of parallel roll-outs to evaluate policies on. Defaults to 1 if not provided.
     # Minimum number of environment samples to collect from the parallel roll-outs. This value cannot exceed
-    # rollout.parallelism.sampling and is ignored if rollout.parallelism.sampling == 1.
+    # rollout.parallelism.sampling.
     min_env_samples: 8
     # Factor that determines the additional wait time after the required number of environment samples as indicated by
     # "min_env_samples" are received. For example, if T seconds elapsed after receiving "min_env_samples" environment
-    # samples, it will wait an additional T * grace_factor seconds to try to collect the remaining results. This is
-    # ignored if rollout.parallelism.sampling == 1.
+    # samples, it will wait an additional T * grace_factor seconds to try to collect the remaining results.
     grace_factor: 0.2
     controller:  # Parallel roll-out controller settings. Ignored if rollout.parallelism section is absent.
       host: "127.0.0.1"  # Controller's IP address. Ignored if run in containerized environments.
@@ -49,7 +48,7 @@ training:
   load_path: "/path/to/your/models"
   checkpointing:
     # Directory to save trainer snapshots under. Snapshot files created at different episodes will be saved under
-    # separate folders named using the episode number. For example, if a snapshot is created for a trainer named "dqn"
+    # separate folders named using episode numbers. For example, if a snapshot is created for a trainer named "dqn"
     # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
     path: "/path/to/your/checkpoint/folder"
     interval: 10  # Interval at which trained policies / models are persisted to disk.
