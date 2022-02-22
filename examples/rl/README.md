@@ -5,7 +5,7 @@ This folder contains scenarios that employ reinforcement learning. MARO's RL too
 ## How to Run
 
 The ``main.py`` script can be used to run the scenarios under ``examples/rl`` or any user-defined scenario that provides the necessary components (see the section below for details) . To choose a scenario, edit ``SCENARIO_PATH`` in the script to point to the desired scenario folder. You may also edit the rest of the config variables to your own preference. Note that this script runs in single-thread mode only.
-To run a scenario in multi-process mode on a local machine, you will need to use the CLI tool (which requires MARO installation from the source). Start by creating a configuration file (.yml)that follows the template ``maro/maro/rl/workflows/config/template.yml`` to specify the scenario-independent settings. Then use the command ``maro local run [-c] path/to/your/config`` to run in containerized (with ``-c``) or non-containerized (with "-c") environments.
+To run a scenario in multi-process mode on a local machine, you will need to use the CLI tool (which requires MARO [installation from the source](https://github.com/microsoft/maro#install-maro-from-pypi)). Start by creating a configuration file (.yml) that follows the template ``maro/maro/rl/workflows/config/template.yml`` to specify the scenario-independent settings. Then use the command ``maro local run [-c] path/to/your/config`` to run in containerized (with ``-c``) or non-containerized (without ``-c``) environments.
 
 ## Create Your Own Scenarios
 

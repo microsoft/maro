@@ -14,7 +14,8 @@ class FullyConnected(nn.Module):
     Args:
         input_dim (int): Network input dimension.
         output_dim (int): Network output dimension.
-        hidden_dims (List[int]): Dimensions of hidden layers. Its length is the number of hidden layers.
+        hidden_dims (List[int]): Dimensions of hidden layers. Its length is the number of hidden layers. For example,
+            `hidden_dims=[128, 256]` refers to two hidden layers with output dim of 128 and 256, respectively.
         activation (Optional[Type[torch.nn.Module], default=nn.ReLU): Activation class provided by ``torch.nn`` or a
             customized activation class. If None, there will be no activation.
         head (bool, default=False): If true, this block will be the top block of the full model and the top layer

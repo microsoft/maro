@@ -262,9 +262,9 @@ class ConfigParser:
 
         if "eval_schedule" in self._config["main"]:
             # If it is an int, it is treated as the number of episodes between two adjacent evaluations. For example,
-            # if the total number of episodes is 20 and this is 5, an evaluation schedule of [5, 10, 15, 20] will be
-            # generated for the environment variable (as a string). If it is a list, the sorted version of the list
-            # will be generated for the environment variable (as a string).
+            # if the total number of episodes is 20 and this is 5, an evaluation schedule of [5, 10, 15, 20]
+            # (start from 1) will be generated for the environment variable (as a string). If it is a list, the sorted
+            # version of the list will be generated for the environment variable (as a string).
             sch = self._config["main"]["eval_schedule"]
             if isinstance(sch, int):
                 env["main"]["EVAL_SCHEDULE"] = " ".join([str(sch * i) for i in range(1, num_episodes // sch + 1)])
