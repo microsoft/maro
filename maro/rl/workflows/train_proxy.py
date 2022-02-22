@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 from maro.rl.training import TrainingProxy
-from maro.rl.utils.common import from_env_as_int
+from maro.rl.utils.common import get_env, int_or_none
 
 if __name__ == "__main__":
     proxy = TrainingProxy(
-        frontend_port=from_env_as_int("TRAIN_PROXY_FRONTEND_PORT"),
-        backend_port=from_env_as_int("TRAIN_PROXY_BACKEND_PORT"),
+        frontend_port=int_or_none(get_env("TRAIN_PROXY_FRONTEND_PORT")),
+        backend_port=int_or_none(get_env("TRAIN_PROXY_BACKEND_PORT")),
     )
     proxy.start()

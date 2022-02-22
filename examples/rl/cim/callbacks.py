@@ -9,8 +9,8 @@ def post_collect(info_list: list, ep: int, segment: int) -> None:
 
     # print the average env metric
     if len(info_list) > 1:
-        metric_keys, num_info_list = info_list[0]["env_metric"].keys(), len(info_list)
-        avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_info_list for key in metric_keys}
+        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+        avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
         print(f"average env summary (episode {ep}, segment {segment}): {avg_metric}")
 
 
@@ -21,6 +21,6 @@ def post_evaluate(info_list: list, ep: int) -> None:
 
     # print the average env metric
     if len(info_list) > 1:
-        metric_keys, num_info_list = info_list[0]["env_metric"].keys(), len(info_list)
-        avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_info_list for key in metric_keys}
+        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+        avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
         print(f"average env summary (episode {ep}): {avg_metric}")

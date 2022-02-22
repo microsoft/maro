@@ -52,7 +52,7 @@ def main(scenario: Scenario) -> None:
             logger=logger,
         )
     else:
-        env_sampler = scenario.get_env_sampler(policy_creator)    
+        env_sampler = scenario.get_env_sampler(policy_creator)
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
@@ -90,11 +90,11 @@ def main(scenario: Scenario) -> None:
 
             collect_time += time.time() - tc0
 
-            logger.info(f"Roll-out completed for episode {ep}. Training started...")
+            logger.info(f"Roll-out completed for episode {ep}, segment {segment}. Training started...")
             tu0 = time.time()
             trainer_manager.record_experiences(experiences)
             trainer_manager.train()
-            if checkpoint_path and ep % checkpoint_interval == 0:
+            if checkpoint_path and (checkpoint_interval is None or ep % checkpoint_interval == 0):
                 assert isinstance(checkpoint_path, str)
                 pth = os.path.join(checkpoint_path, str(ep))
                 trainer_manager.save(pth)

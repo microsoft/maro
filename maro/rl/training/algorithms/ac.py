@@ -53,7 +53,7 @@ class DiscreteActorCriticParams(TrainerParams):
 
 
 class DiscreteActorCriticOps(AbsTrainOps):
-    """Reference: https://tinyurl.com/2ezte4cr
+    """Discrete actor-critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr
     """
 
     def __init__(

@@ -56,7 +56,7 @@ class DDPGParams(TrainerParams):
 
 
 class DDPGOps(AbsTrainOps):
-    """Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
+    """DDPG algorithm implementation. Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
     """
 
     def __init__(

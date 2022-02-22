@@ -25,9 +25,9 @@ rollout:
     file: DEBUG
 training:
   mode: simple  # simple, parallel
-  load_path: "/path/to/your/models"
+  load_path: "/path/to/your/models"  # (If not None) path to load previously saved trainer snapshots.
   checkpointing:
-    path: "/path/to/your/checkpoint/folder"
+    path: "/path/to/your/checkpoint/folder"   # Path to save checkpoints and trainer snapshots.
     interval: 10
   proxy: # ignored under simple mode
     host: "127.0.0.1"  # ignored if run in containerized environments

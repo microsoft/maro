@@ -229,7 +229,7 @@ class RemoteOps(object):
             return remote_call
 
         attr = getattr(self._ops, attr_name)
-        if inspect.ismethod(attr) and attr.__name__ == "remote_anotate":
+        if inspect.ismethod(attr) and attr.__name__ == "remote_annotate":
             return remote_method(self._ops.get_state(), attr_name, self._ops.parallelism, self._client)
 
         return attr

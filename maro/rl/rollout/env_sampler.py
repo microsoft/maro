@@ -216,6 +216,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env is not None else self._learn_env
         self._env: Optional[Env] = None
+        self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -299,10 +300,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self._env.reset()
             self._info.clear()
             self._trans_cache.clear()
-            _, event, _ = self._env.step(None)
-            self._state, self._agent_state_dict = self._get_global_and_agent_state(event)
-        else:
-            event = None
+            _, self._event, _ = self._env.step(None)
+            self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
 
         # Update policy state if necessary
         if policy_state is not None:
@@ -310,16 +309,16 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         # Collect experience
         self._agent_wrapper.explore()
-        steps_to_go = float("inf") if num_steps == None else num_steps
+        steps_to_go = float("inf") if num_steps is None else num_steps
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, event)
+            env_action_dict = self._translate_to_env_action(action_dict, self._event)
             # Store experiences in the cache
             self._trans_cache.append(
                 CacheElement(
                     tick=self._env.tick,
-                    event=event,
+                    event=self._event,
                     state=self._state,
                     agent_state_dict=dict(self._agent_state_dict),
                     action_dict=action_dict,
@@ -327,9 +326,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 )
             )
             # Update env and get new states (global & agent)
-            _, event, done = self._env.step(list(env_action_dict.values()))
+            _, self._event, done = self._env.step(list(env_action_dict.values()))
             self._state, self._agent_state_dict = (None, {}) if done \
-                else self._get_global_and_agent_state(event)
+                else self._get_global_and_agent_state(self._event)
             steps_to_go -= 1
 
         tick_bound = self._env.tick - self._reward_eval_delay
@@ -405,14 +404,14 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._agent_wrapper.exploit()
         self._env.reset()
         terminal = False
-        _, event, _ = self._env.step(None)
-        _, agent_state_dict = self._get_global_and_agent_state(event)
+        _, self._event, _ = self._env.step(None)
+        _, agent_state_dict = self._get_global_and_agent_state(self._event)
         while not terminal:
             action_dict = self._agent_wrapper.choose_actions(agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, event)
-            _, event, terminal = self._env.step(list(env_action_dict.values()))
+            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+            _, self._event, terminal = self._env.step(list(env_action_dict.values()))
             if not terminal:
-                _, agent_state_dict = self._get_global_and_agent_state(event)
+                _, agent_state_dict = self._get_global_and_agent_state(self._event)
         return {"info": [self._info]}
 
     @abstractmethod
