@@ -28,7 +28,7 @@ class TrainerParams:
         batch may be split into multiple smaller batches whose gradients can be computed in parallel on a set
         of remote nodes. For simplicity, only synchronous parallelism is supported, meaning that the model gets
         updated only after collecting all the gradients from the remote nodes. Note that this value is the desired
-        parallelism and the actual parallelism in a disttributed experiment may be smaller depending on the
+        parallelism and the actual parallelism in a distributed experiment may be smaller depending on the
         availability of compute resources. For details on distributed deep learning and data parallelism, see
         https://web.stanford.edu/~rezab/classes/cme323/S16/projects_reports/hedge_usmani.pdf, as well as an abundance
         of resources available on the internet.
