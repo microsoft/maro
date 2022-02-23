@@ -32,9 +32,13 @@ rollout:
   # locally for training and evaluation.
   parallelism:
     sampling: 10  # Number of parallel roll-outs to collecting training data from.
-    eval: null  # Number of parallel roll-outs to evaluate policies on. Defaults to 1 if not provided.
-    # Minimum number of environment samples to collect from the parallel roll-outs. This value cannot exceed
-    # rollout.parallelism.sampling.
+    # Number of parallel roll-outs to evaluate policies on. If not specified, one roll-out worker is chosen to perform
+    # evaluation.
+    eval: null
+    # Minimum number of environment samples to collect from the parallel roll-outs per episode / segment before moving
+    # on to the training phase. The actual number of env samples collected may be more than this value if we allow a
+    # grace period (see the comment for rollout.parallelism.grace_factor for details), but never less. This value should
+    # not exceed rollout.parallelism.sampling.
     min_env_samples: 8
     # Factor that determines the additional wait time after the required number of environment samples as indicated by
     # "min_env_samples" are received. For example, if T seconds elapsed after receiving "min_env_samples" environment

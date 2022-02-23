@@ -23,7 +23,7 @@ class TrainerParams:
         automatically determined according to GPU availability.
     replay_memory_capacity (int, default=100000): Maximum capacity of the replay memory.
     batch_size (int, default=128): Training batch size.
-    data_parallelism (int, default=1): Degree of data parallelism. A value of greater than 1 can be used when
+    data_parallelism (int, default=1): Degree of data parallelism. A value greater than 1 can be used when
         a model is large and computing gradients with respect to a batch becomes expensive. In this case, the
         batch may be split into multiple smaller batches whose gradients can be computed in parallel on a set
         of remote nodes. For simplicity, only synchronous parallelism is supported, meaning that the model gets
