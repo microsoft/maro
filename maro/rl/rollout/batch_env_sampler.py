@@ -3,13 +3,15 @@
 
 import time
 from itertools import chain
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import zmq
 from zmq import Context, Poller
 
 from maro.rl.utils.common import bytes_to_pyobj, get_own_ip_address, pyobj_to_bytes
 from maro.utils import DummyLogger, Logger
+
+from .env_sampler import ExpElement
 
 
 class ParallelTaskController(object):
@@ -19,6 +21,7 @@ class ParallelTaskController(object):
         port (int, default=20000): Network port the controller uses to talk to the remote workers.
         logger (Logger, default=None): Optional logger for logging key events.
     """
+
     def __init__(self, port: int = 20000, logger: Logger = None) -> None:
         self._ip = get_own_ip_address()
         self._context = Context.instance()
@@ -34,11 +37,11 @@ class ParallelTaskController(object):
         self._workers = set()
         self._logger = logger
 
-    def _wait_for_workers_ready(self, k: int):
+    def _wait_for_workers_ready(self, k: int) -> None:
         while len(self._workers) < k:
             self._workers.add(self._task_endpoint.recv_multipart()[0])
 
-    def _recv_result_for_target_index(self, index: Tuple[int, int]):
+    def _recv_result_for_target_index(self, index: Tuple[int, int]) -> object:
         rep = bytes_to_pyobj(self._task_endpoint.recv_multipart()[-1])
         assert isinstance(rep, dict)
         return rep["result"] if rep["index"] == index else None
@@ -89,7 +92,7 @@ class ParallelTaskController(object):
         self._logger.debug(f"Received {len(results)} results")
         return results
 
-    def exit(self):
+    def exit(self) -> None:
         """Signal the remote workers to exit and terminate the connections.
         """
         for worker_id in self._workers:
@@ -113,34 +116,45 @@ class BatchEnvSampler:
             required env samples (as determined by ``min_env_samples``). For example, if the minimum required samples
             are received in T seconds, it will allow an additional T * grace_factor seconds to collect the remaining
             results.
-        eval_parallelism (int, default=1): Parallelism for policy evaluation on remote workers.
+        eval_parallelism (int, default=None): Parallelism for policy evaluation on remote workers.
         logger (Logger, default=None): Optional logger for logging key events.
     """
+
     def __init__(
         self,
         sampling_parallelism: int,
         port: int = 20000,
         min_env_samples: int = None,
         grace_factor: float = None,
-        eval_parallelism: int = 1,
-        logger: Logger = None
+        eval_parallelism: int = None,
+        logger: Logger = None,
     ) -> None:
         super(BatchEnvSampler, self).__init__()
         self._logger = logger if logger else DummyLogger()
-        self._client = ParallelTaskController(port=port, logger=logger)
+        self._controller = ParallelTaskController(port=port, logger=logger)
 
-        self._sampling_parallelism = sampling_parallelism
+        self._sampling_parallelism = 1 if sampling_parallelism is None else sampling_parallelism
         self._min_env_samples = min_env_samples if min_env_samples is not None else self._sampling_parallelism
         self._grace_factor = grace_factor
-        self._eval_parallelism = eval_parallelism
+        self._eval_parallelism = 1 if eval_parallelism is None else eval_parallelism
 
         self._ep = 0
         self._segment = 0
         self._end_of_episode = True
 
-    def sample(
-        self, policy_state: Dict[str, object] = None, num_steps: int = -1
-    ) -> dict:
+    def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
+        """Collect experiences from a set of remote roll-out workers.
+
+        Args:
+            policy_state (Dict[str, object]): Policy state dict. If it is not None, then we need to update all
+                policies according to the latest policy states, then start the experience collection.
+            num_steps (Optional[int], default=None): Number of environment steps to collect experiences for. If
+                it is None, interactions with the (remote) environments will continue until the terminal state is
+                reached.
+
+        Returns:
+            A dict that contains the collected experiences and additional information.
+        """
         # increment episode or segment depending on whether the last episode has concluded
         if self._end_of_episode:
             self._ep += 1
@@ -153,27 +167,27 @@ class BatchEnvSampler:
             "type": "sample",
             "policy_state": policy_state,
             "num_steps": num_steps,
-            "index": (self._ep, self._segment)
+            "index": (self._ep, self._segment),
         }
-        results = self._client.collect(
+        results = self._controller.collect(
             req, self._sampling_parallelism,
             min_replies=self._min_env_samples,
-            grace_factor=self._grace_factor
+            grace_factor=self._grace_factor,
         )
         self._end_of_episode = any(res["end_of_episode"] for res in results)
-        merged_experiences = list(chain(*[res["experiences"] for res in results]))  # List[List[ExpElement]]
+        merged_experiences: List[List[ExpElement]] = list(chain(*[res["experiences"] for res in results]))
         return {
             "end_of_episode": self._end_of_episode,
             "experiences": merged_experiences,
-            "info": [res["info"][0] for res in results]
+            "info": [res["info"][0] for res in results],
         }
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         req = {"type": "eval", "policy_state": policy_state, "index": (self._ep, -1)}  # -1 signals test
-        results = self._client.collect(req, self._eval_parallelism)
+        results = self._controller.collect(req, self._eval_parallelism)
         return {
-            "info": [res["info"][0] for res in results]
+            "info": [res["info"][0] for res in results],
         }
 
-    def exit(self):
-        self._client.exit()
+    def exit(self) -> None:
+        self._controller.exit()

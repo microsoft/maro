@@ -20,7 +20,7 @@ class TransitionBatch:
     advantages: np.ndarray = None  # 1D
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self.states.shape[0]
 
     def __post_init__(self) -> None:
@@ -42,7 +42,7 @@ class TransitionBatch:
             next_states=self.next_states[i::k],
             terminals=self.terminals[i::k],
             returns=self.returns[i::k] if self.returns is not None else None,
-            advantages=self.advantages[i::k] if self.advantages is not None else None
+            advantages=self.advantages[i::k] if self.advantages is not None else None,
         )
 
     def split(self, k: int) -> List[TransitionBatch]:
@@ -63,7 +63,7 @@ class MultiTransitionBatch:
     advantages: Optional[List[np.ndarray]] = None  # List of 1D
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self.states.shape[0]
 
     def __post_init__(self) -> None:
@@ -100,7 +100,7 @@ class MultiTransitionBatch:
         advantages = None if self.advantages is None else [advantage[i::k] for advantage in self.advantages]
         return MultiTransitionBatch(
             states, actions, rewards, next_states, agent_states,
-            next_agent_states, terminals, returns, advantages
+            next_agent_states, terminals, returns, advantages,
         )
 
     def split(self, k: int) -> List[MultiTransitionBatch]:

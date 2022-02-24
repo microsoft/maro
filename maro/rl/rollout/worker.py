@@ -19,18 +19,20 @@ class RolloutWorker(AbsWorker):
         env_sampler_creator (Callable[[dict], AbsEnvSampler]): User-defined function to create an ``AbsEnvSampler``
             for roll-out purposes.
         producer_host (str): IP address of the parallel task controller host to connect to.
-        producer_port (int, default=10001): Port of the parallel task controller host to connect to.
+        producer_port (int, default=20000): Port of the parallel task controller host to connect to.
+        logger (Logger, default=None): The logger of the workflow.
     """
+
     def __init__(
         self,
         idx: int,
         env_sampler_creator: Callable[[], AbsEnvSampler],
         producer_host: str,
         producer_port: int = 20000,
-        logger: Logger = None
+        logger: Logger = None,
     ) -> None:
         super(RolloutWorker, self).__init__(
-            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger
+            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
         self._env_sampler = env_sampler_creator()
 

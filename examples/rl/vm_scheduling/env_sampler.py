@@ -20,8 +20,8 @@ from .config import (
 
 
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, policy_creator, agent2policy, get_test_env=None):
-        super().__init__(get_env, policy_creator, agent2policy, get_test_env=get_test_env)
+    def __init__(self, get_env, policy_creator, agent2policy, get_test_env=None, device: str = None):
+        super().__init__(get_env, policy_creator, agent2policy, get_test_env=get_test_env, device=device)
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
 
@@ -109,19 +109,19 @@ class VMEnvSampler(AbsEnvSampler):
         return (alpha + beta * vm_unit_price * min(self._durations - event.frame_index, event.remaining_buffer_time))
 
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]):
-        self._tracker["env_metric"] = {k: v for k, v in self._env.metrics.items() if k != "total_latency"}
-        self._tracker["env_metric"]["latency_due_to_agent"] = self._env.metrics["total_latency"].due_to_agent
-        self._tracker["env_metric"]["latency_due_to_resource"] = self._env.metrics["total_latency"].due_to_resource
-        if "actions_by_core_requirement" not in self._tracker:
-            self._tracker["actions_by_core_requirement"] = defaultdict(list)
-        if "action_sequence" not in self._tracker:
-            self._tracker["action_sequence"] = []
+        self._info["env_metric"] = {k: v for k, v in self._env.metrics.items() if k != "total_latency"}
+        self._info["env_metric"]["latency_due_to_agent"] = self._env.metrics["total_latency"].due_to_agent
+        self._info["env_metric"]["latency_due_to_resource"] = self._env.metrics["total_latency"].due_to_resource
+        if "actions_by_core_requirement" not in self._info:
+            self._info["actions_by_core_requirement"] = defaultdict(list)
+        if "action_sequence" not in self._info:
+            self._info["action_sequence"] = []
 
         action = cache_element.action_dict["AGENT"]
         if cache_element.state:
             mask = cache_element.state[num_features:]
-            self._tracker["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append([action, mask])
-        self._tracker["action_sequence"].append(action)
+            self._info["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append([action, mask])
+        self._info["action_sequence"].append(action)
 
 
 agent2policy = {"AGENT": f"{algorithm}.policy"}
@@ -131,5 +131,6 @@ def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) ->
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
         agent2policy=agent2policy,
-        get_test_env=lambda: Env(**test_env_conf)
+        get_test_env=lambda: Env(**test_env_conf),
+        device="cpu",
     )

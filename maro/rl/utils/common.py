@@ -4,60 +4,40 @@
 import os
 import pickle
 import socket
-from typing import List, Union
+from typing import List, Optional
 
 
-def from_env(var_name: str, required: bool = True, default: object = None) -> object:
+def get_env(var_name: str, required: bool = True, default: object = None) -> str:
+    """Wrapper for os.getenv() that includes a check for mandatory environment variables.
+
+    Args:
+        var_name (str): Variable name.
+        required (bool, default=True): Flag indicating whether the environment variable in questions is required.
+            If this is true and the environment variable is not present in ``os.environ``, a ``KeyError`` is raised.
+        default (object, default=None): Default value for the environment variable if it is missing in ``os.environ``
+            and ``required`` is false. Ignored if ``required`` is True.
+
+    Returns:
+        The environment variable.
+    """
     if var_name not in os.environ:
         if required:
             raise KeyError(f"Missing environment variable: {var_name}")
-        else:
-            return default
+        return default
 
-    var = os.getenv(var_name)
-    if var.isnumeric() or var[0] == "-" and var[1:].isnumeric():
-        return int(var)
-
-    try:
-        return float(var)
-    except ValueError:
-        return var
+    return os.getenv(var_name)
 
 
-def from_env_as_int(var_name: str, required: bool = True, default: object = None) -> int:
-    ret = from_env(var_name, required, default)
-    assert isinstance(ret, int)
-    return ret
+def int_or_none(val: Optional[str]) -> Optional[int]:
+    return int(val) if val is not None else None
 
 
-def from_env_as_float(var_name: str, required: bool = True, default: object = None) -> float:
-    ret = from_env(var_name, required, default)
-    assert isinstance(ret, float)
-    return ret
+def float_or_none(val: Optional[str]) -> Optional[float]:
+    return float(val) if val is not None else None
 
 
-def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int) -> List[int]:
-    """Helper function to the policy evaluation schedule.
-
-    Args:
-        sch (Union[int, List[int]]): Evaluation schedule. If it is an int, it is treated as the number of episodes
-            between two adjacent evaluations. For example, if the total number of episodes is 20 and ``sch`` is 5,
-            this will return [5, 10, 15, 20]. If it is a list, it will return a sorted version of the list.
-        num_episodes (int): Total number of learning episodes.
-
-    Returns:
-        A list of episodes indicating when to perform policy evaluation.
-
-    """
-    if sch is None:
-        schedule = []
-    elif isinstance(sch, int):
-        num_eval_schedule = num_episodes // sch
-        schedule = [sch * i for i in range(1, num_eval_schedule + 1)]
-    else:
-        schedule = sorted(sch)
-
-    return schedule
+def list_or_none(vals_str: Optional[str]) -> List[int]:
+    return [int(val) for val in vals_str.split()] if vals_str is not None else []
 
 
 # serialization and deserialization for messaging

@@ -10,12 +10,12 @@ from .objects import SHAPE_CHECK_FLAG
 
 
 def match_shape(tensor: Union[torch.Tensor, np.ndarray], shape: tuple) -> bool:
-    """Check if a torch.Tensor/np.ndarray could match the expected shape.
+    """Check if a torch.Tensor / np.ndarray could match the expected shape.
 
     Args:
-        tensor: torch.Tensor or np.ndarray
-        shape: The expected shape tuple. If an element in this tuple is None, it means this dimension could match any
-            value (usually used for the `batch_size` dimension).
+        tensor (Union[torch.Tensor, np.ndarray]): Tensor.
+        shape (tuple): The expected shape tuple. If an element in this tuple is None, it means this dimension
+            could match any value (usually used for the `batch_size` dimension).
 
     Returns:
         Whether the tensor could match the expected shape.
@@ -46,7 +46,8 @@ def ndarray_to_tensor(array: np.ndarray, device: torch.device) -> torch.Tensor:
 
 
 def average_grads(grad_list: List[dict]) -> dict:
-    """Obtain the average of a list of gradients."""
+    """Obtain the average of a list of gradients.
+    """
     if len(grad_list) == 1:
         return grad_list[0]
     return {
