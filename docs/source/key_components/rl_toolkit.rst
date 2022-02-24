@@ -12,36 +12,37 @@ The nice thing about MARO's RL workflows is that it is abstracted neatly from bu
 making it applicable to practically any scenario that utilizes standard reinforcement learning paradigms. The workflow is
 controlled by a main process that executes 2-phase learning cycles that consist of roll-out and training.
 The roll-out phase collects data from one or more environment simulators for training. There can be a single environment
-simulator located in the same thread as the main loop, or multiple environment simulators distributed amongst a set of
-remote workers for parallelism if you need to collect a large amount of data fast. The training phase uses the data
-collected during the roll-out phase to train models involved in RL policies and algorithms. It can also be local, where trainers update their models
-in a single thread in a sequential mannner, or distributed, where 
+simulator located in the same thread as the main loop, or multiple environment simulators running in parallel on a set of
+remote workers if you need to collect a large amount of data fast. The training phase uses the data collected during the roll-out
+phase to train models involved in RL policies and algorithms. In the case of multiple large models, this phase can be made faster
+by having the computationally intensive gradient-related tasks sent to a set of remote workers for parallel processing.
 
 
-The transition from one phase to the other is synchrounous. To handle slow roll-out workers, the
-roll-out manager can be configured to pass the results from a subset of roll-out workers (i.e., the faster ones) to the
-policy manager. On the other hand, the policy manager always waits until all policies are updated before passing the
-policy states to the roll-out manager.
-
-
-.. figure:: ../images/rl/learning_cycle.svg
-   :alt: Overview
-   
-   Synchronous Learning Cycle
-
-
-.. figure:: ../images/rl/rollout_manager.svg
+.. figure:: ../images/rl/learning_workflow.svg
    :alt: Overview
 
-   Roll-out Manager
+   Learning Workflow
+
+
+.. figure:: ../images/rl/parallel_rollout.svg
+   :alt: Overview
+
+   Parallel Roll-out
 
 
 Environment Sampler
 -------------------
 
-It is necessary to implement an environment sampler (a subclass of ``AbsEnvSampler``) with user-defined state, action
-and reward shaping to collect roll-out information for learning and testing purposes. An environment sampler can be
-easily turned into a roll-out worker or an actor for synchronous and asynchronous learning, respectively.
+An environment sampler is an entity that contains an environment simulator and a set of policies used by agents to
+interact with the environment. When creating your own scenario, there are 3 things you need to define in your
+environment sampler class:
+
+- how observations / snapshots of the environment are encoded into state vectors as input to the policy models. This
+  is sometimes referred to as state shaping in applied reinforcement learning, ;
+- how model outputs are converted to action objects that can be passed to the environment simulator;
+- how rewards / penalties are evaluated. This is sometimes referred to as reward shaping.
+
+In parallel roll-out, each roll-out worker should have its own environment sampler instance.
 
 
 .. figure:: ../images/rl/env_sampler.svg
