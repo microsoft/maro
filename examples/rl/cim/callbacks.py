@@ -5,7 +5,6 @@
 def post_collect(info_list: list, ep: int, segment: int) -> None:
     # print the env metric from each rollout worker
     for info in info_list:
-        print(info)
         print(f"env summary (episode {ep}, segment {segment}): {info['env_metric']}")
 
     # print the average env metric
