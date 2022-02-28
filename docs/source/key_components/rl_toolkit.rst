@@ -1,6 +1,56 @@
 RL Toolkit
 ==========
 
+MARO provides a full-stack abstraction for reinforcement learning (RL) which includes various customizable
+components. In order to provide a gentle introduction for the RL toolkit, we cover the components in a top-down
+manner, starting from the learning workflow.
+
+Workflow
+--------
+
+The nice thing about MARO's RL workflows is that it is abstracted neatly from business logic, policies and learning algorithms,
+making it applicable to practically any scenario that utilizes standard reinforcement learning paradigms. The workflow is
+controlled by a main process that executes 2-phase learning cycles that consist of roll-out and training.
+The roll-out phase collects data from one or more environment simulators for training. There can be a single environment
+simulator located in the same thread as the main loop, or multiple environment simulators running in parallel on a set of
+remote workers if you need to collect a large amount of data fast. The training phase uses the data collected during the roll-out
+phase to train models involved in RL policies and algorithms. In the case of multiple large models, this phase can be made faster
+by having the computationally intensive gradient-related tasks sent to a set of remote workers for parallel processing.
+
+
+.. figure:: ../images/rl/learning_workflow.svg
+   :alt: Overview
+
+   Learning Workflow
+
+
+.. figure:: ../images/rl/parallel_rollout.svg
+   :alt: Overview
+
+   Parallel Roll-out
+
+
+Environment Sampler
+-------------------
+
+An environment sampler is an entity that contains an environment simulator and a set of policies used by agents to
+interact with the environment. When creating your own scenario, there are 3 things you need to define in your
+environment sampler class:
+
+- how observations / snapshots of the environment are encoded into state vectors as input to the policy models. This
+  is sometimes referred to as state shaping in applied reinforcement learning, ;
+- how model outputs are converted to action objects that can be passed to the environment simulator;
+- how rewards / penalties are evaluated. This is sometimes referred to as reward shaping.
+
+In parallel roll-out, each roll-out worker should have its own environment sampler instance.
+
+
+.. figure:: ../images/rl/env_sampler.svg
+   :alt: Overview
+
+   Environment Sampler
+
+
 Policy
 ------
 
