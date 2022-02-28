@@ -30,6 +30,11 @@ by having the computationally intensive gradient-related tasks sent to a set of 
    Parallel Roll-out
 
 
+.. figure:: ../images/rl/distributed_training.svg
+   :alt: Overview
+
+   Distributed Training
+
 Environment Sampler
 -------------------
 
@@ -166,3 +171,10 @@ by the trainer called ``ac_1``. Violating this provision will make MARO unable t
 corresponding relationship between policy and trainer.
 
 More details and examples can be found in the code base.
+
+As a summary, the relationship among policy, model, and trainer is demonstrated in the following figure:
+
+.. figure:: ../images/rl/policy_model_trainer.svg
+   :alt: Overview
+
+   Summary of policy, model, and trainer
