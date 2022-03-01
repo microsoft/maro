@@ -89,7 +89,7 @@ class ConsumerUnit(ExtendUnitBase):
     def step(self, tick: int):
         self._update_pending_order()
 
-        assert isinstance(self.action, ConsumerAction)
+        assert self.action is None or isinstance(self.action, ConsumerAction)
 
         # NOTE: id == 0 means invalid,as our id is 1 based.
         if not self.action or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
@@ -108,7 +108,7 @@ class ConsumerUnit(ExtendUnitBase):
         self.purchased = self.action.quantity
 
     def flush_states(self):
-        assert isinstance(self.action, ConsumerAction)
+        assert self.action is None or isinstance(self.action, ConsumerAction)
 
         if self.received > 0:
             self.data_model.received = self.received
@@ -127,7 +127,7 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.reward_discount = self.action.reward_discount
 
     def post_step(self, tick: int):
-        assert isinstance(self.action, ConsumerAction)
+        assert self.action is None or isinstance(self.action, ConsumerAction)
 
         # Clear the action states per step.
         if self.action is not None:
