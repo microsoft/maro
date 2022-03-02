@@ -180,9 +180,11 @@ corresponding relationship between policy and trainer.
 
 More details and examples can be found in the code base.
 
-As a summary, the relationship among policy, model, and trainer is demonstrated in the following figure:
+As a summary, the relationship among policy, model, and trainer is demonstrated in :numref:`5`:
 
+.. _5:
 .. figure:: ../images/rl/policy_model_trainer.svg
    :alt: Overview
+   :align: center
 
    Summary of policy, model, and trainer
