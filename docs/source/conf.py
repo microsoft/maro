@@ -100,5 +100,3 @@ source_parsers = {
 }
 
 source_suffix = [".md", ".rst"]
-
-numfig = True

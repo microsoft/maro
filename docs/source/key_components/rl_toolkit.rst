@@ -10,14 +10,14 @@ Workflow
 
 The nice thing about MARO's RL workflows is that it is abstracted neatly from business logic, policies and learning algorithms,
 making it applicable to practically any scenario that utilizes standard reinforcement learning paradigms. The workflow is
-controlled by a main process that executes 2-phase learning cycles: roll-out and training (:numref:`label`). The roll-out phase
+controlled by a main process that executes 2-phase learning cycles: roll-out and training (:numref:`1`). The roll-out phase
 collects data from one or more environment simulators for training. There can be a single environment simulator located in the same thread as the main
 loop, or multiple environment simulators running in parallel on a set of remote workers (:numref:`2`) if you need to collect large amounts of data
 fast. The training phase uses the data collected during the roll-out phase to train models involved in RL policies and algorithms.
 In the case of multiple large models, this phase can be made faster by having the computationally intensive gradient-related tasks
 sent to a set of remote workers for parallel processing (:numref:`3`).
 
-.. _label: 1
+.. _1:
 .. figure:: ../images/rl/learning_workflow.svg
    :alt: Overview
    :align: center
@@ -39,6 +39,7 @@ sent to a set of remote workers for parallel processing (:numref:`3`).
    :align: center
 
    Distributed Training
+
 
 Environment Sampler
 -------------------
