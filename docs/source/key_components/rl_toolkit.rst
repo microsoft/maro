@@ -10,28 +10,33 @@ Workflow
 
 The nice thing about MARO's RL workflows is that it is abstracted neatly from business logic, policies and learning algorithms,
 making it applicable to practically any scenario that utilizes standard reinforcement learning paradigms. The workflow is
-controlled by a main process that executes 2-phase learning cycles that consist of roll-out and training.
-The roll-out phase collects data from one or more environment simulators for training. There can be a single environment
-simulator located in the same thread as the main loop, or multiple environment simulators running in parallel on a set of
-remote workers if you need to collect a large amount of data fast. The training phase uses the data collected during the roll-out
-phase to train models involved in RL policies and algorithms. In the case of multiple large models, this phase can be made faster
-by having the computationally intensive gradient-related tasks sent to a set of remote workers for parallel processing.
+controlled by a main process that executes 2-phase learning cycles: roll-out and training (:numref:`1`). The roll-out phase
+collects data from one or more environment simulators for training. There can be a single environment simulator located in the same thread as the main
+loop, or multiple environment simulators running in parallel on a set of remote workers (:numref:`2`) if you need to collect large amounts of data
+fast. The training phase uses the data collected during the roll-out phase to train models involved in RL policies and algorithms.
+In the case of multiple large models, this phase can be made faster by having the computationally intensive gradient-related tasks
+sent to a set of remote workers for parallel processing (:numref:`3`).
 
-
+.. _1:
 .. figure:: ../images/rl/learning_workflow.svg
    :alt: Overview
+   :align: center
 
    Learning Workflow
 
 
+.. _2:
 .. figure:: ../images/rl/parallel_rollout.svg
    :alt: Overview
+   :align: center
 
    Parallel Roll-out
 
 
+.. _3:
 .. figure:: ../images/rl/distributed_training.svg
    :alt: Overview
+   :align: center
 
    Distributed Training
 
@@ -39,19 +44,21 @@ Environment Sampler
 -------------------
 
 An environment sampler is an entity that contains an environment simulator and a set of policies used by agents to
-interact with the environment. When creating your own scenario, there are 3 things you need to define in your
-environment sampler class:
+interact with the environment (:numref:`4`). When creating an RL formulation for a scenario, it is necessary to define an environment
+sampler class that includes these key elements:
 
 - how observations / snapshots of the environment are encoded into state vectors as input to the policy models. This
-  is sometimes referred to as state shaping in applied reinforcement learning, ;
-- how model outputs are converted to action objects that can be passed to the environment simulator;
+  is sometimes referred to as state shaping in applied reinforcement learning;
+- how model outputs are converted to action objects defined by the environment simulator;
 - how rewards / penalties are evaluated. This is sometimes referred to as reward shaping.
 
 In parallel roll-out, each roll-out worker should have its own environment sampler instance.
 
 
+.. _4:
 .. figure:: ../images/rl/env_sampler.svg
    :alt: Overview
+   :align: center
 
    Environment Sampler
 
