@@ -50,9 +50,12 @@ def get_acc_order_data(experiment_name: str, episode: str, start_tick: str, end_
 
     """
     input_range = get_input_range(start_tick, end_tick)
+    query = f"select {request_column.order_header.value} from {experiment_name}.full_on_ports"\
+        f" where episode='{episode}'"
+    if input_range != "()":
+        query += f" and tick in {input_range}"
     params = {
-        "query": f"select {request_column.order_header.value} from {experiment_name}.full_on_ports"
-        f" where episode='{episode}' and tick in {input_range}",
+        "query": query,
         "count": "true"
     }
     original_order_data = requests.get(

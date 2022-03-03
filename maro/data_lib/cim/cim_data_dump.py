@@ -8,8 +8,25 @@ from typing import List
 import numpy as np
 from yaml import safe_dump
 
-from .cim_data_generator import CimDataGenerator
-from .entities import CimSyntheticDataCollection
+from .cim_data_generator import gen_cim_data
+from .entities import CimSyntheticDataCollection, SyntheticPortSetting
+
+
+def _dump_csv_file(file_path: str, headers: List[str], line_generator: callable):
+    """helper method to dump csv file
+
+    Args:
+        file_path(str): path of output csv file
+        headers(List[str]): list of header
+        line_generator(callable): generator function to generate line to write
+    """
+    with open(file_path, "wt+", newline="") as fp:
+        writer = csv.writer(fp)
+
+        writer.writerow(headers)
+
+        for line in line_generator():
+            writer.writerow(line)
 
 
 class CimDataDumpUtil:
@@ -59,7 +76,7 @@ class CimDataDumpUtil:
         headers = ["vessel_name", "vessel_index", "port_name", "port_index", "arrival_tick", "departure_tick"]
 
         def stop_generator():
-            for vessel_stops in self._data_collection.vessels_stops:
+            for vessel_stops in self._data_collection.vessel_stops:
                 for stop in vessel_stops:
                     yield [
                         vessel_idx2name_dict[stop.vessel_idx],
@@ -70,7 +87,7 @@ class CimDataDumpUtil:
                         stop.leave_tick
                     ]
 
-        self._dump_csv_file(stops_file_path, headers, stop_generator)
+        _dump_csv_file(stops_file_path, headers, stop_generator)
 
     def _dump_ports(self, output_folder: str):
         """
@@ -85,7 +102,8 @@ class CimDataDumpUtil:
         ]
 
         def port_generator():
-            for port in self._data_collection.ports_settings:
+            for port in self._data_collection.port_settings:
+                assert isinstance(port, SyntheticPortSetting)
                 yield [
                     port.index,
                     port.name,
@@ -99,7 +117,7 @@ class CimDataDumpUtil:
                     port.full_return_buffer.noise
                 ]
 
-        self._dump_csv_file(ports_file_path, headers, port_generator)
+        _dump_csv_file(ports_file_path, headers, port_generator)
 
     def _dump_vessels(self, output_folder: str):
         """
@@ -116,7 +134,7 @@ class CimDataDumpUtil:
 
         route_mapping = self._data_collection.route_mapping
         port_mapping = self._data_collection.port_mapping
-        vessels = self._data_collection.vessels_settings
+        vessels = self._data_collection.vessel_settings
         vessel_period = self._data_collection.vessel_period_without_noise
 
         def vessel_generator():
@@ -137,7 +155,7 @@ class CimDataDumpUtil:
                     vessel.empty
                 ]
 
-        self._dump_csv_file(vessels_file_path, headers, vessel_generator)
+        _dump_csv_file(vessels_file_path, headers, vessel_generator)
 
     def _dump_routes(self, output_folder: str, route_idx2name_dict: dict):
         """
@@ -161,7 +179,7 @@ class CimDataDumpUtil:
                         point.distance_to_next_port
                     ]
 
-        self._dump_csv_file(routes_file_path, headers, route_generator)
+        _dump_csv_file(routes_file_path, headers, route_generator)
 
     def _dump_order_proportions(self, output_folder: str, port_idx2name_dict: dict):
         """
@@ -175,10 +193,11 @@ class CimDataDumpUtil:
             "dest_port_index", "proportion", "proportion_noise"
         ]
 
-        ports = self._data_collection.ports_settings
+        ports = self._data_collection.port_settings
 
         def order_prop_generator():
             for port in ports:
+                assert isinstance(port, SyntheticPortSetting)
                 for prop in port.target_proportions:
                     yield [
                         port.name,
@@ -189,7 +208,7 @@ class CimDataDumpUtil:
                         prop.noise
                     ]
 
-        self._dump_csv_file(proportion_file_path, headers, order_prop_generator)
+        _dump_csv_file(proportion_file_path, headers, order_prop_generator)
 
     def _dump_misc(self, output_folder: str):
         """
@@ -201,6 +220,8 @@ class CimDataDumpUtil:
             "past_stop_number": self._data_collection.past_stop_number,
             "future_stop_number": self._data_collection.future_stop_number,
             "container_volume": self._data_collection.container_volume,
+            "load_cost_factor": self._data_collection.load_cost_factor,
+            "dsch_cost_factor": self._data_collection.dsch_cost_factor,
             "max_tick": self._data_collection.max_tick,
             "seed": self._data_collection.seed,
             "version": self._data_collection.version
@@ -210,22 +231,6 @@ class CimDataDumpUtil:
 
         with open(misc_file_path, "wt+") as fp:
             safe_dump(misc_items, fp)
-
-    def _dump_csv_file(self, file_path: str, headers: List[str], line_generator: callable):
-        """helper method to dump csv file
-
-        Args:
-            file_path(str): path of output csv file
-            headers(List[str]): list of header
-            line_generator(callable): generator function to generate line to write
-        """
-        with open(file_path, "wt+", newline="") as fp:
-            writer = csv.writer(fp)
-
-            writer.writerow(headers)
-
-            for line in line_generator():
-                writer.writerow(line)
 
 
 def dump_from_config(config_file: str, output_folder: str, max_tick: int):
@@ -243,9 +248,7 @@ def dump_from_config(config_file: str, output_folder: str, max_tick: int):
     assert output_folder is not None and os.path.exists(output_folder), f"Got output folder path: {output_folder}"
     assert max_tick is not None and max_tick > 0, f"Got max tick: {max_tick}"
 
-    generator = CimDataGenerator()
-
-    data_collection = generator.gen_data(config_file, max_tick=max_tick, start_tick=0)
+    data_collection = gen_cim_data(config_file, max_tick=max_tick, start_tick=0, topology_seed=None)
 
     dump_util = CimDataDumpUtil(data_collection)
 

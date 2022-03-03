@@ -1,0 +1,6 @@
+index,name,capacity,route_name,route_index,start_port_name,start_port_index,sailing_speed,sailing_speed_noise,parking_duration,parking_noise,period,empty
+0,rt1_vessel_001,10395,route_001,0,supply_port_001,2,10,2,1,1,14,0
+1,rt1_vessel_002,11550,route_001,0,demand_port_001,0,9,2,1,1,16,0
+2,rt2_vessel_001,25795,route_002,1,supply_port_001,2,8,1,1,1,27,0
+3,rt2_vessel_002,21105,route_002,1,supply_port_002,3,10,2,1,1,21,0
+4,rt2_vessel_003,23450,route_002,1,demand_port_002,1,9,1,1,1,24,0

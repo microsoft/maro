@@ -77,6 +77,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._action_cache = None
 
+    def set_seed(self, seed: int) -> None:
+        pass
+
     def get_node_mapping(self) -> dict:
         return self._node_mapping
 

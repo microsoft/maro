@@ -45,10 +45,10 @@ maro.utils.exception.communication\_exception
    :undoc-members:
    :show-inheritance:
 
-maro.utils.exception.data\_lib\_exeption
+maro.utils.exception.data\_lib\_exception
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.utils.exception.data_lib_exeption
+.. automodule:: maro.utils.exception.data_lib_exception
    :members:
    :undoc-members:
    :show-inheritance:

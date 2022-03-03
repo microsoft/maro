@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from .entities import CimBaseDataCollection
+from .utils import extract_key_of_three_ints
 
 
 class VesselPastStopsWrapper:
@@ -15,17 +16,12 @@ class VesselPastStopsWrapper:
             stops = data_cntr.vessel_past_stops[0]
     """
 
-    def __init__(self, data: CimBaseDataCollection):
+    def __init__(self, data: CimBaseDataCollection) -> None:
         self._stop_number = data.past_stop_number
-        self._stops = data.vessels_stops
+        self._stops = data.vessel_stops
 
     def __getitem__(self, key):
-        assert type(key) == tuple or type(key) == list
-        assert len(key) == 3
-
-        vessel_idx = key[0]
-        last_loc_idx = key[1]
-        loc_idx = key[2]
+        vessel_idx, last_loc_idx, loc_idx = extract_key_of_three_ints(key)
 
         # ignore current port if parking
         last_stop_idx = loc_idx + (0 if last_loc_idx == loc_idx else -1)
