@@ -182,7 +182,9 @@ start with the name of the trainer responsible for training it. For example, pol
 by the trainer named ``ac_1``. Violating this provision will make MARO unable to correctly establish the
 corresponding relationship between policy and trainer.
 
-More details and examples can be found in the code base.
+More details and examples can be found in the code base (`link`_).
+
+.. _link: https://github.com/microsoft/maro/blob/master/examples/rl/cim/policy_trainer.py
 
 As a summary, the relationship among policy, model, and trainer is demonstrated in :numref:`5`:
 
