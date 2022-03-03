@@ -68,17 +68,21 @@ Policy
 ------
 
 ``Policy`` is the most important concept in reinforcement learning. In MARO, the highest level abstraction of a policy
-object is ``AbsPolicy``. It defines the interface ``get_actions()`` which takes a batch of states a inputs and returns
+object is ``AbsPolicy``. It defines the interface ``get_actions()`` which takes a batch of states as input and returns
 corresponding actions.
+The action is defined by the policy itself. It could be a scalar or a vector or any other types.
+Env sampler should take responsibility for parsing the action to the acceptable format before passing it to the
+environment.
 
 The simplest type of policy is ``RuleBasedPolicy`` which generates actions by pre-defined rules. ``RuleBasedPolicy``
-is mostly used in naive scenarios. However, in most cases, we need to train the policy by interacting with the
-environment, these are the cases we need to use ``RLPolicy``. In MARO's design, a policy cannot train itself. Instead,
+is mostly used in naive scenarios. However, in most cases where we need to train the policy by interacting with the
+environment, we need to use ``RLPolicy``. In MARO's design, a policy cannot train itself. Instead,
 polices could only be trained by :ref:`trainer` (we will introduce trainer later in this page). Therefore, in addition
-to ``get_actions``, ``RLPolicy`` also has a set of training-related interfaces, such as ``step()``, ``get_gradients()``
-and ``set_gradients()``. These interfaces will be called by trainers for training. As you may noticed, currently
+to ``get_actions()``, ``RLPolicy`` also has a set of training-related interfaces, such as ``step()``, ``get_gradients()``
+and ``set_gradients()``. These interfaces will be called by trainers for training. As you may have noticed, currently
 we assume policies are built upon deep learning models, so the training-related interfaces are specifically
-designed for gradient decent.
+designed for gradient descent.
+
 
 ``RLPolicy`` is further divided into three types:
 - ``ValueBasedPolicy``: For valued-based policies.
@@ -101,10 +105,10 @@ For now, you may have no idea about the ``q_net`` parameter, but don't worry, we
 Model
 -----
 
-The above code snippet creates a ``ValueBasedPolicy`` object. Let's pay our attention to the parameter ``q_net``.
+The above code snippet creates a ``ValueBasedPolicy`` object. Let's pay attention to the parameter ``q_net``.
 ``q_net`` accepts a ``DiscreteQNet`` object, and it serves as the core part of a ``ValueBasedPolicy`` object. In
 other words, ``q_net`` defines the model structure of the Q-network in the value-based policy, and further determines
-the policy's behavior. ``DiscreteQNet`` is an abstract class, and ``MyQNet`` is one of the user-defined implementation
+the policy's behavior. ``DiscreteQNet`` is an abstract class, and ``MyQNet`` is a user-defined implementation
 of ``DiscreteQNet``. It can be a simple MLP, a multihead transformer, or any other structure that the user wants.
 
 MARO provides a set of abstractions of basic & commonly used PyTorch models like ``DiscereteQNet``, which enables
@@ -115,9 +119,9 @@ users to implement their own deep learning models in a handy way. They are:
 - ``ContinuousPolicyNet``: For ``ContinuousPolicyGradient``.
 
 Users should choose the proper types of models according to the type of policies, and then implement their own
-models by inherit the abstract ones (just like ``MyQNet``).
+models by inheriting the abstract ones (just like ``MyQNet``).
 
-There are also some other models for training purpose. For example:
+There are also some other models for training purposes. For example:
 
 - ``VNet``: Used in the critic part in the actor-critic algorithm.
 - ``MultiQNet``: Used in the critic part in the MADDPG algorithm.
@@ -131,17 +135,17 @@ Trainer
 -------
 
 When introducing policies, we mentioned that policies cannot train themselves. Instead, they have to be trained
-by external trainers. In MARO, a trainer is corresponding to a kind of RL algorithm, such as DQN, actor-critic,
-and so on. Trainers take interaction experiences and store them in a internal memory, and then use the experiences
-in the memory to train the policies. Like ``RLPolicy``, trainers are also concrete classed, which means they could
-be used by configuring parameters. Currently, we have 4 trainers in MARO:
+by external trainers. In MARO, a trainer represents an RL algorithm, such as DQN, actor-critic,
+and so on. Trainers take interaction experiences and store them in the internal memory, and then use the experiences
+in the memory to train the policies. Like ``RLPolicy``, trainers are also concrete classes, which means they could
+be used by configuring parameters. Currently, we have 4 trainers (algorithms) in MARO:
 
 - ``DiscreteActorCritic``: Actor-critic algorithm for policies that generate discrete actions.
 - ``DDPG``: DDPG algorithm for policies that generate continuous actions.
 - ``DQN``: DQN algorithm for policies that generate discrete actions.
 - ``DiscreteMADDPG``: MADDPG algorithm for policies that generate discrete actions.
 
-Each trainer has a corresponding ``Param`` class that used to manage all related parameters. For example,
+Each trainer has a corresponding ``Param`` class to manage all related parameters. For example,
 ``DiscreteActorCriticParams`` contains all parameters used in ``DiscreteActorCritic``:
 
 .. code-block:: python
@@ -174,8 +178,8 @@ An example of creating an actor-critic trainer:
    )
 
 In order to indicate which trainer each policy is trained by, in MARO, we require that the name of the policy
-starts with the name of the trainer responsible for training it. For example, policy ``ac_1.policy_1`` is trained
-by the trainer called ``ac_1``. Violating this provision will make MARO unable to correctly establish the
+start with the name of the trainer responsible for training it. For example, policy ``ac_1.policy_1`` is trained
+by the trainer named ``ac_1``. Violating this provision will make MARO unable to correctly establish the
 corresponding relationship between policy and trainer.
 
 More details and examples can be found in the code base.
