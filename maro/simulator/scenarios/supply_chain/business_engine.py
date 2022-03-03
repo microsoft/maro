@@ -10,7 +10,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ProductUnit, UnitBase
-from .world import World
+from .world import SupplyChainEntity, World
 
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):
@@ -80,13 +80,13 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
     def get_node_mapping(self) -> dict:
         return self._node_mapping
 
-    def get_agent_idx_list(self) -> List[Tuple[str, int]]:
-        """Get a list of agent index.
+    def get_entity_list(self) -> List[SupplyChainEntity]:
+        """Get a list of entities.
 
         Returns:
-            list: List of agent index.
+            list: List of entities.
         """
-        return self.world.agent_list
+        return self.world.entity_list
 
     def _step_by_facility(self, tick: int):
         """Call step functions by facility.
