@@ -9,10 +9,10 @@ from .trainer_manager import TrainerManager
 from .worker import TrainOpsWorker
 
 __all__ = [
-    "TrainOpsProxy",
+    "TrainingProxy",
     "FIFOMultiReplayMemory", "FIFOReplayMemory", "RandomMultiReplayMemory", "RandomReplayMemory",
     "AbsTrainOps", "RemoteOps", "remote",
     "AbsTrainer", "MultiTrainer", "SingleTrainer", "TrainerParams",
     "TrainerManager",
-    "TrainOpsWorker"
+    "TrainOpsWorker",
 ]

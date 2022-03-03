@@ -13,7 +13,7 @@ from .abs_policy import RLPolicy
 
 def _parse_action_range(
     action_dim: int,
-    action_range: Tuple[Union[float, List[float]], Union[float, List[float]]]
+    action_range: Tuple[Union[float, List[float]], Union[float, List[float]]],
 ) -> Tuple[Optional[List[float]], Optional[List[float]]]:
     lower, upper = action_range
 
@@ -33,27 +33,29 @@ def _parse_action_range(
 
 
 class ContinuousRLPolicy(RLPolicy):
+    """RL policy for continuous action spaces.
+
+    Args:
+        name (str): Name of the policy.
+        action_range (Tuple[Union[float, List[float]], Union[float, List[float]]]): Value range of actions.
+            Both the lower bound and the upper bound could be float or array. If it is an array, it should contain
+            the bound for every dimension. If it is a float, it will be broadcast to all dimensions.
+        policy_net (ContinuousPolicyNet): The core net of this policy.
+        trainable (bool, default=True): Whether this policy is trainable.
+    """
+
     def __init__(
         self,
         name: str,
         action_range: Tuple[Union[float, List[float]], Union[float, List[float]]],
         policy_net: ContinuousPolicyNet,
-        trainable: bool = True
+        trainable: bool = True,
     ) -> None:
-        """
-        Args:
-            name (str): Name of the policy.
-            action_range: Value range of actions. Both the lower bound and the upper bound could be float or array. If
-                it is an array, it should contain the bound for every dimension. If it is a float, it will be
-                broadcast to all dimensions.
-            policy_net (ContinuousPolicyNet): The core net of this policy.
-            trainable (bool): Whether this policy is trainable. Defaults to True.
-        """
         assert isinstance(policy_net, ContinuousPolicyNet)
 
         super(ContinuousRLPolicy, self).__init__(
             name=name, state_dim=policy_net.state_dim, action_dim=policy_net.action_dim,
-            trainable=trainable
+            trainable=trainable,
         )
 
         self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)

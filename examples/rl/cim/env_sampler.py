@@ -75,7 +75,7 @@ class CIMEnvSampler(AbsEnvSampler):
         return {agent_id: reward for agent_id, reward in zip(ports, rewards)}
 
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        self._tracker["env_metric"] = self._env.metrics
+        self._info["env_metric"] = self._env.metrics
 
 
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in Env(**env_conf).agent_idx_list}
@@ -85,5 +85,6 @@ def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) ->
     return CIMEnvSampler(
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
-        agent2policy=agent2policy
+        agent2policy=agent2policy,
+        device="cpu",
     )

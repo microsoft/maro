@@ -34,12 +34,4 @@ def get_input_range(start_tick: str, end_tick: str) -> str:
         str: Range of tick in string format.
 
     """
-    i = int(start_tick)
-    input_range = "("
-    while i < int(end_tick):
-        if i == int(end_tick) - 1:
-            input_range = input_range + "'" + str(i) + "'" + ")"
-        else:
-            input_range = input_range + "'" + str(i) + "'" + ","
-        i = i + 1
-    return input_range
+    return "(" + ", ".join([f"'{i}'" for i in range(int(start_tick), int(end_tick))]) + ")"

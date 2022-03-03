@@ -3,7 +3,7 @@
 
 import datetime
 import os
-from typing import List
+from typing import List, Optional
 
 import holidays
 import numpy as np
@@ -46,8 +46,8 @@ operation_number (int): Accumulative operation cost until now.
 
 class CitibikeBusinessEngine(AbsBusinessEngine):
     def __init__(
-        self, event_buffer: EventBuffer, topology: str, start_tick: int,
-        max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
+        self, event_buffer: EventBuffer, topology: Optional[str], start_tick: int,
+        max_tick: int, snapshot_resolution: int, max_snapshots: Optional[int], additional_options: dict = {}
     ):
         super().__init__(
             "citi_bike", event_buffer, topology, start_tick, max_tick,
@@ -103,10 +103,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         if self._decision_strategy.is_decision_tick(tick):
             # Generate an event, so that we can do the checking after all the trip requirement processed.
-            decition_checking_evt = self._event_buffer.gen_atom_event(
+            decision_checking_evt = self._event_buffer.gen_atom_event(
                 tick, CitiBikeEvents.RebalanceBike)
 
-            self._event_buffer.insert_event(decition_checking_evt)
+            self._event_buffer.insert_event(decision_checking_evt)
 
         # Update our additional features that not trip related.
         self._update_station_extra_features(tick)
@@ -146,7 +146,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             CitiBikeEvents.DeliverBike.name: BikeTransferPayload.summary_key
         }
 
-    def reset(self):
+    def reset(self, keep_seed: bool = False):
         """Reset internal states for episode."""
         self._total_trips = 0
         self._total_operate_num = 0
@@ -170,6 +170,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._last_date = None
 
+    def set_seed(self, seed: int) -> None:
+        pass
+
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index.
 
@@ -178,7 +181,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         """
         return [station.index for station in self._stations]
 
-    def get_metrics(self) -> dict:
+    def get_metrics(self) -> DocableDict:
         """Get current metrics information.
 
         Note:
@@ -189,9 +192,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         """
         return DocableDict(
             metrics_desc,
-            trip_requirements=self._total_trips,
-            bike_shortage=self._total_shortages,
-            operation_number=self._total_operate_num
+            {
+                'trip_requirements': self._total_trips,
+                'bike_shortage': self._total_shortages,
+                'operation_number': self._total_operate_num
+            }
         )
 
     def __del__(self):

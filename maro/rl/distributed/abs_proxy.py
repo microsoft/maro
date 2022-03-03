@@ -21,7 +21,8 @@ class AbsProxy(object):
         frontend_port (int): Network port for communicating with clients (task producers).
         backend_port (int): Network port for communicating with back-end workers (task consumers).
     """
-    def __init__(self, frontend_port: int, backend_port) -> None:
+
+    def __init__(self, frontend_port: int, backend_port: int) -> None:
         super(AbsProxy, self).__init__()
 
         # ZMQ sockets and streams

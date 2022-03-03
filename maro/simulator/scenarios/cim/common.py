@@ -25,16 +25,20 @@ class Action:
     Args:
         vessel_idx (int): Which vessel will take action.
         port_idx (int): Which port will take action.
-        quantity (int): How many containers can be moved from vessel to port (negative in reverse).
+        action_type (ActionType): Whether the action is a Load or a Discharge.
+        quantity (int): How many containers are loaded/discharged in this Action.
     """
 
-    summary_key = ["port_idx", "vessel_idx", "quantity"]
+    summary_key = ["port_idx", "vessel_idx", "action_type", "quantity"]
 
     def __init__(self, vessel_idx: int, port_idx: int, quantity: int, action_type: ActionType):
-        self.vessel_idx = vessel_idx
-        self.port_idx = port_idx
-        self.quantity = quantity
-        self.action_type = action_type
+        assert action_type is not None
+        assert quantity >= 0
+
+        self.vessel_idx: int = vessel_idx
+        self.port_idx: int = port_idx
+        self.quantity: int = quantity
+        self.action_type: ActionType = action_type
 
     def __repr__(self):
         return "%s {action_type: %r, port_idx: %r, vessel_idx: %r, quantity: %r}" % \
@@ -65,7 +69,7 @@ class DecisionEvent:
         tick (int): On which tick we need an action.
         port_idx (int): Which port will take action.
         vessel_idx (int): Which vessel will take action.
-        snapshot_list (int): Snapshots of the environment to input into the decision model.
+        snapshot_list (SnapshotList): Snapshots of the environment to input into the decision model.
         action_scope_func (Function): Function to calculate action scope, we use function here to make it
             getting the value as late as possible.
         early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
@@ -107,7 +111,7 @@ class DecisionEvent:
         return int(self._early_discharge)
 
     def __getstate__(self):
-        """Return pickleable dictionary.
+        """Return pickle-able dictionary.
 
         NOTE: this class do not support unpickle"""
         return {

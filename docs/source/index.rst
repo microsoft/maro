@@ -32,45 +32,35 @@ Quick Start
 .. code-block:: python
 
     from maro.simulator import Env
-    from maro.simulator.scenarios.cim.common import Action
+    from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
-    # Initialize an environment with a specific scenario, related topology.
-    # In Container Inventory Management, 1 tick means 1 day, here durations=100 means a length of 100 days
+    from random import randint
+
+    # Initialize an Env for cim scenario
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
-    # Query environment summary, which includes business instances, intra-instance attributes, etc.
-    print(env.summary)
+    metrics: object = None
+    decision_event: DecisionEvent = None
+    is_done: bool = False
+    action: Action = None
 
-    for ep in range(2):
-        # Gym-like step function.
-        metrics, decision_event, is_done = env.step(None)
+    # Start the env with a None Action
+    metrics, decision_event, is_done = env.step(None)
 
-        while not is_done:
-            past_week_ticks = [
-                x for x in range(decision_event.tick - 7, decision_event.tick)
-            ]
-            decision_port_idx = decision_event.port_idx
-            intr_port_infos = ["booking", "empty", "shortage"]
+    while not is_done:
+        # Generate a random Action according to the action_scope in DecisionEvent
+        action_scope = decision_event.action_scope
+        to_discharge = action_scope.discharge > 0 and randint(0, 1) > 0
 
-            # Query the snapshot list of the environment to get the information of
-            # the booking, empty container inventory, shortage of the decision port in the past week.
-            past_week_info = env.snapshot_list["ports"][
-                past_week_ticks : decision_port_idx : intr_port_infos
-            ]
+        action = Action(
+            decision_event.vessel_idx,
+            decision_event.port_idx,
+            randint(0, action_scope.discharge if to_discharge else action_scope.load),
+            ActionType.DISCHARGE if to_discharge else ActionType.LOAD
+        )
 
-            dummy_action = Action(
-                vessel_idx=decision_event.vessel_idx,
-                port_idx=decision_event.port_idx,
-                quantity=0
-            )
-
-            # Drive environment with dummy action (no repositioning).
-            metrics, decision_event, is_done = env.step(dummy_action)
-
-        # Query environment business metrics at the end of an episode,
-        # it is your optimized object (usually includes multi-target).
-        print(f"ep: {ep}, environment metrics: {env.metrics}")
-        env.reset()
+        # Respond the environment with the generated Action
+        metrics, decision_event, is_done = env.step(action)
 
 Contents
 ----------

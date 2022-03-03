@@ -38,7 +38,7 @@ Steps to reproduce the behavior:
 - How you installed MARO (`pip`, `source`):
 - OS (`Linux`, `Windows`, `macOS`):
 - Python version (`3.6`, `3.7`):
-- Docker image (e.g., arthursjiang/maro:cpu[5f36ed]):
+- Docker image (e.g., maro2020/maro:latest):
 - CPU/GPU:
 - Any other relevant information:
 

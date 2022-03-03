@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -33,14 +33,14 @@ class PortSetting:
     name: str
     capacity: int
     empty: int
-    empty_return_buffer: int
-    full_return_buffer: int
+    empty_return_buffer: Optional[NoisedItem]
+    full_return_buffer: Optional[NoisedItem]
 
 
 @dataclass(frozen=True)
 class SyntheticPortSetting(PortSetting):
-    source_proportion: float
-    target_proportions: float
+    source_proportion: Optional[NoisedItem]
+    target_proportions: Optional[List[NoisedItem]]
 
 
 # settings for vessel
@@ -50,11 +50,11 @@ class VesselSetting:
     name: str
     capacity: int
     route_name: str
-    start_port_name: str
-    sailing_speed: float
-    sailing_noise: float
-    parking_duration: int
-    parking_noise: float
+    start_port_name: Optional[str]
+    sailing_speed: Optional[float]
+    sailing_noise: Optional[float]
+    parking_duration: Optional[int]
+    parking_noise: Optional[float]
     empty: int
 
 
@@ -108,13 +108,13 @@ class Order:
 @dataclass(frozen=True)
 class CimBaseDataCollection:
     # Port
-    ports_settings: List[PortSetting]
+    port_settings: List[PortSetting]
     port_mapping: Dict[str, int]
     # Vessel
-    vessels_settings: List[VesselSetting]
+    vessel_settings: List[VesselSetting]
     vessel_mapping: Dict[str, int]
     # Stop
-    vessels_stops: List[List[Stop]]
+    vessel_stops: List[List[Optional[Stop]]]
     # Route
     routes: List[List[RoutePoint]]
     route_mapping: Dict[str, int]
@@ -122,6 +122,9 @@ class CimBaseDataCollection:
     vessel_period_without_noise: List[int]
     # Volume/Container
     container_volume: int
+    # Cost Factors
+    load_cost_factor: float
+    dsch_cost_factor: float
     # Visible Voyage Window
     past_stop_number: int
     future_stop_number: int

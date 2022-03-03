@@ -31,7 +31,6 @@ class SimRandom:
         self._rand_instances: Dict[str, Random] = OrderedDict()
         self._seed_dict: Dict[str, int] = {}
         self._seed = int(time.time())
-        self._index = 0
 
     def seed(self, seed_num: int):
         """Set seed for simulator random objects.
@@ -46,47 +45,53 @@ class SimRandom:
 
         self._seed = seed_num
 
-        self._index = 0
-        for key, rand in self._rand_instances.items():
+        for index, (key, rand) in enumerate(self._rand_instances.items()):
             # we set seed for each random instance with 1 offset
-            seed = seed_num + self._index
+            seed = seed_num + index
 
             rand.seed(seed)
 
             self._seed_dict[key] = seed
 
-            self._index += 1
+    def create_instance(self, key: str) -> None:
+        assert type(key) is str
+
+        if key not in self._rand_instances:
+            self._seed_dict[key] = self._seed + len(self._rand_instances)
+            r = Random()
+            r.seed(self._seed_dict[key])
+            self._rand_instances[key] = r
 
     def __getitem__(self, key):
         assert type(key) is str
 
         if key not in self._rand_instances:
-            r = Random()
-            r.seed(self._seed + self._index)
-
-            self._index += 1
-
-            self._rand_instances[key] = r
+            self.create_instance(key)
 
         return self._rand_instances[key]
 
-    def get_seed(self, key: str = None) -> int:
-        """Get seed of current random generator.
+    def reset_seed(self, key: str) -> None:
+        """Reset seed of current random generator.
 
         NOTE:
-            This will only return the seed of first random object that specified by user (or default).
+            This will reset the seed to the value that specified by user (or default).
 
         Args:
             key(str): Key of item to get.
-
-        Returns:
-            int: If key is None return seed for 1st instance (same as what passed to seed function),
-                else return seed for specified generator.
         """
-        if key is not None:
-            return self._seed_dict.get(key, None)
+        assert type(key) is str
 
-        return self._seed
+        if key not in self._seed_dict:
+            self.create_instance(key)
+        rand = self._rand_instances[key]
+        rand.seed(self._seed_dict[key])
+
+    def clear(self) -> None:
+        """Clear all existing random keys.
+        """
+        self._rand_instances = OrderedDict()
+        self._seed_dict = {}
+        self._seed = int(time.time())
 
 
 random = SimRandom()

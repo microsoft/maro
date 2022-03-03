@@ -17,18 +17,17 @@ from maro.utils import clone
 @dataclass
 class DQNParams(TrainerParams):
     """
-    reward_discount (float): Reward decay as defined in standard RL terminology. Defaults to 0.9.
-    num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
-    update_target_every (int): Number of gradient steps between target model updates. Defaults to 5.
-    soft_update_coef (float): Soft update coefficient, e.g.,
+    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
+    num_epochs (int, default=1): Number of training epochs.
+    update_target_every (int, default=5): Number of gradient steps between target model updates.
+    soft_update_coef (float, default=0.1): Soft update coefficient, e.g.,
         target_model = (soft_update_coef) * eval_model + (1-soft_update_coef) * target_model.
-        Defaults to 0.1.
-    double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
+    double (bool, default=False): If True, the next Q values will be computed according to the double DQN algorithm,
         i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
-        See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
-    random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
-        overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
-        wrap-around. Defaults to False.
+        See https://arxiv.org/pdf/1509.06461.pdf for details.
+    random_overwrite (bool, default=False): This specifies overwrite behavior when the replay memory capacity
+        is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
+        sequentially with wrap-around.
     """
     reward_discount: float = 0.9
     num_epochs: int = 1
@@ -42,7 +41,7 @@ class DQNParams(TrainerParams):
             "device": self.device,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
-            "double": self.double
+            "double": self.double,
         }
 
 
@@ -56,14 +55,14 @@ class DQNOps(AbsTrainOps):
         *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
-        double: bool = False
+        double: bool = False,
     ) -> None:
         super(DQNOps, self).__init__(
             name=name,
             device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func,
-            parallelism=parallelism
+            parallelism=parallelism,
         )
 
         assert isinstance(self._policy, ValueBasedPolicy)
@@ -79,6 +78,14 @@ class DQNOps(AbsTrainOps):
         self._target_policy.to_device(self._device)
 
     def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+        """Compute the loss of the batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The loss of the batch.
+        """
         assert self._is_valid_transition_batch(batch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)
@@ -103,20 +110,38 @@ class DQNOps(AbsTrainOps):
 
     @remote
     def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+        """Compute the network's gradients of a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            grad (torch.Tensor): The gradient of the batch.
+        """
         return self._policy.get_gradients(self._get_batch_loss(batch))
 
     def update_with_grad(self, grad_dict: dict) -> None:
+        """Update the network with remotely computed gradients.
+
+        Args:
+            grad_dict (dict): Gradients.
+        """
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
     def update(self, batch: TransitionBatch) -> None:
+        """Update the network using a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+        """
         self._policy.train()
         self._policy.step(self._get_batch_loss(batch))
 
     def get_state(self) -> dict:
         return {
             "policy": self._policy.get_state(),
-            "target_q_net": self._target_policy.get_state()
+            "target_q_net": self._target_policy.get_state(),
         }
 
     def set_state(self, ops_state_dict: dict) -> None:
@@ -124,6 +149,8 @@ class DQNOps(AbsTrainOps):
         self._target_policy.set_state(ops_state_dict["target_q_net"])
 
     def soft_update_target(self) -> None:
+        """Soft update the target policy.
+        """
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
 
@@ -147,7 +174,7 @@ class DQN(SingleTrainer):
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
-            random_overwrite=self._params.random_overwrite
+            random_overwrite=self._params.random_overwrite,
         )
 
     def record(self, env_idx: int, exp_element: ExpElement) -> None:
@@ -169,7 +196,7 @@ class DQN(SingleTrainer):
             name=name,
             get_policy_func=self._get_policy_func,
             parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params()
+            **self._params.extract_ops_params(),
         )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
@@ -191,6 +218,8 @@ class DQN(SingleTrainer):
         self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
+        """Soft update the target policy and target critic.
+        """
         self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
             self._ops.soft_update_target()

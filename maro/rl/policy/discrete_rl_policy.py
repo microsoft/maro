@@ -16,17 +16,26 @@ from .abs_policy import RLPolicy
 
 
 class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
+    """RL policy for discrete action spaces.
+
+    Args:
+        name (str): Name of the policy.
+        state_dim (int): Dimension of states.
+        action_num (int): Number of actions.
+        trainable (bool, default=True): Whether this policy is trainable.
+    """
+
     def __init__(
         self,
         name: str,
         state_dim: int,
         action_num: int,
-        trainable: bool = True
+        trainable: bool = True,
     ) -> None:
         assert action_num >= 1
 
         super(DiscreteRLPolicy, self).__init__(
-            name=name, state_dim=state_dim, action_dim=1, trainable=trainable
+            name=name, state_dim=state_dim, action_dim=1, trainable=trainable,
         )
 
         self._action_num = action_num
@@ -40,8 +49,15 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
 
 
 class ValueBasedPolicy(DiscreteRLPolicy):
-    """
-    Valued-based policy.
+    """Valued-based policy.
+
+    Args:
+        name (str): Name of the policy.
+        q_net (DiscreteQNet): Q-net used in this value-based policy.
+        trainable (bool, default=True): Whether this policy is trainable.
+        exploration_strategy (Tuple[Callable, dict], default=(epsilon_greedy, {"epsilon": 0.1})): Exploration strategy.
+        exploration_scheduling_options (List[tuple], default=None): List of exploration scheduler options.
+        warmup (int, default=50000): Minimum number of experiences to warm up this policy.
     """
 
     def __init__(
@@ -51,12 +67,12 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         trainable: bool = True,
         exploration_strategy: Tuple[Callable, dict] = (epsilon_greedy, {"epsilon": 0.1}),
         exploration_scheduling_options: List[tuple] = None,
-        warmup: int = 50000
+        warmup: int = 50000,
     ) -> None:
         assert isinstance(q_net, DiscreteQNet)
 
         super(ValueBasedPolicy, self).__init__(
-            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, trainable=trainable
+            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, trainable=trainable,
         )
         self._q_net = q_net
 
@@ -74,21 +90,55 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         return self._q_net
 
     def q_values_for_all_actions(self, states: np.ndarray) -> np.ndarray:
+        """Generate a matrix containing the Q-values for all actions for the given states.
+
+        Args:
+            states (np.ndarray): States.
+
+        Returns:
+            q_values (np.ndarray): Q-matrix.
+        """
         return self.q_values_for_all_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
 
     def q_values_for_all_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
+        """Generate a matrix containing the Q-values for all actions for the given states.
+
+        Args:
+            states (torch.Tensor): States.
+
+        Returns:
+            q_values (torch.Tensor): Q-matrix.
+        """
         assert self._shape_check(states=states)
         q_values = self._q_net.q_values_for_all_actions(states)
         assert match_shape(q_values, (states.shape[0], self.action_num))  # [B, action_num]
         return q_values
 
     def q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
+        """Generate the Q values for given state-action pairs.
+
+        Args:
+            states (np.ndarray): States.
+            actions (np.ndarray): Actions. Should has same length with states.
+
+        Returns:
+            q_values (np.ndarray): Q-values.
+        """
         return self.q_values_tensor(
             ndarray_to_tensor(states, self._device),
             ndarray_to_tensor(actions, self._device)
         ).cpu().numpy()
 
     def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        """Generate the Q values for given state-action pairs.
+
+        Args:
+            states (torch.Tensor): States.
+            actions (torch.Tensor): Actions. Should has same length with states.
+
+        Returns:
+            q_values (torch.Tensor): Q-values.
+        """
         assert self._shape_check(states=states, actions=actions)  # actions: [B, 1]
         q_values = self._q_net.q_values(states, actions)
         assert match_shape(q_values, (states.shape[0],))  # [B]
@@ -146,21 +196,25 @@ class ValueBasedPolicy(DiscreteRLPolicy):
 
 
 class DiscretePolicyGradient(DiscreteRLPolicy):
-    """
-    Policy gradient policy that generates discrete actions.
+    """Policy gradient for discrete action spaces.
+
+    Args:
+        name (str): Name of the policy.
+        policy_net (DiscretePolicyNet): The core net of this policy.
+        trainable (bool, default=True): Whether this policy is trainable.
     """
 
     def __init__(
         self,
         name: str,
         policy_net: DiscretePolicyNet,
-        trainable: bool = True
+        trainable: bool = True,
     ) -> None:
         assert isinstance(policy_net, DiscretePolicyNet)
 
         super(DiscretePolicyGradient, self).__init__(
             name=name, state_dim=policy_net.state_dim, action_num=policy_net.action_num,
-            trainable=trainable
+            trainable=trainable,
         )
 
         self._policy_net = policy_net
@@ -204,14 +258,13 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         self._policy_net.soft_update(other_policy.policy_net, tau)
 
     def get_action_probs(self, states: torch.Tensor) -> torch.Tensor:
-        """
-        Get the probabilities for all actions according to states.
+        """Get the probabilities for all actions according to states.
 
         Args:
             states (torch.Tensor): States.
 
         Returns:
-            Action probabilities with shape [batch_size, action_num]
+            action_probs (torch.Tensor): Action probabilities with shape [batch_size, action_num].
         """
         assert self._shape_check(states=states), \
             f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
@@ -222,14 +275,40 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         return action_probs
 
     def get_action_logps(self, states: torch.Tensor) -> torch.Tensor:
+        """Get the log-probabilities for all actions according to states.
+
+        Args:
+            states (torch.Tensor): States.
+
+        Returns:
+            action_logps (torch.Tensor): Action probabilities with shape [batch_size, action_num].
+        """
         return torch.log(self.get_action_probs(states))
 
     def get_state_action_probs(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        """Get the probabilities of the given state-action pairs.
+
+        Args:
+            states (torch.Tensor): States.
+            actions (torch.Tensor): Actions. Should has same length with states.
+
+        Returns:
+            action_probs (torch.Tensor): Probabilities of the given state-action pairs.
+        """
         assert self._shape_check(states=states, actions=actions)
         action_probs = self.get_action_probs(states)
         return action_probs.gather(1, actions).squeeze()  # [B]
 
     def get_state_action_logps(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        """Get the log-probabilities of the given state-action pairs.
+
+        Args:
+            states (torch.Tensor): States.
+            actions (torch.Tensor): Actions. Should has same length with states.
+
+        Returns:
+            action_logps (torch.Tensor): Probabilities of the given state-action pairs.
+        """
         return torch.log(self.get_state_action_probs(states, actions))
 
     def _to_device_impl(self, device: torch.device) -> None:

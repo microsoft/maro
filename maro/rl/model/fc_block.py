@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import OrderedDict
-from typing import Any, List, Type
+from typing import Any, List, Optional, Type
 
 import torch
 import torch.nn as nn
@@ -14,21 +14,21 @@ class FullyConnected(nn.Module):
     Args:
         input_dim (int): Network input dimension.
         output_dim (int): Network output dimension.
-        hidden_dims ([int]): Dimensions of hidden layers. Its length is the number of hidden layers.
-        activation: A string indicatinfg an activation class provided by ``torch.nn`` or a custom activation class.
-            If it is a string, it must be a key in ``TORCH_ACTIVATION``. If None, there will be no activation.
-            Defaults to "relu".
-        head (bool): If true, this block will be the top block of the full model and the top layer of this block
-            will be the final output layer. Defaults to False.
-        softmax (bool): If true, the output of the net will be a softmax transformation of the top layer's
-            output. Defaults to False.
-        batch_norm (bool): If true, batch normalization will be performed at each layer.
-        skip_connection (bool): If true, a skip connection will be built between the bottom (input) layer and
-            top (output) layer. Defaults to False.
-        dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
-        gradient_threshold (float): Gradient clipping threshold. Defaults to None, in which case not gradient clipping
+        hidden_dims (List[int]): Dimensions of hidden layers. Its length is the number of hidden layers. For example,
+            `hidden_dims=[128, 256]` refers to two hidden layers with output dim of 128 and 256, respectively.
+        activation (Optional[Type[torch.nn.Module], default=nn.ReLU): Activation class provided by ``torch.nn`` or a
+            customized activation class. If None, there will be no activation.
+        head (bool, default=False): If true, this block will be the top block of the full model and the top layer
+            of this block will be the final output layer.
+        softmax (bool, default=False): If true, the output of the net will be a softmax transformation of the top
+            layer's output.
+        batch_norm (bool, default=False): If true, batch normalization will be performed at each layer.
+        skip_connection (bool, default=False): If true, a skip connection will be built between the bottom (input)
+            layer and top (output) layer. Defaults to False.
+        dropout_p (float, default=None): Dropout probability. If it is None, there will be no drop-out.
+        gradient_threshold (float, default=None): Gradient clipping threshold. If it is None, no gradient clipping
             is performed.
-        name (str): Network name. Defaults to None.
+        name (str, default=None): Network name.
     """
 
     def _forward_unimplemented(self, *input: Any) -> None:
@@ -39,14 +39,14 @@ class FullyConnected(nn.Module):
         input_dim: int,
         output_dim: int,
         hidden_dims: List[int],
-        activation: Type[torch.nn.Module] = nn.ReLU,
+        activation: Optional[Type[torch.nn.Module]] = nn.ReLU,
         head: bool = False,
         softmax: bool = False,
         batch_norm: bool = False,
         skip_connection: bool = False,
         dropout_p: float = None,
         gradient_threshold: float = None,
-        name: str = None
+        name: str = None,
     ) -> None:
         super(FullyConnected, self).__init__()
         self._input_dim = input_dim
@@ -101,7 +101,7 @@ class FullyConnected(nn.Module):
     def output_dim(self) -> int:
         return self._output_dim
 
-    def _build_layer(self, input_dim, output_dim, head: bool = False) -> torch.nn.Module:
+    def _build_layer(self, input_dim: int, output_dim: int, head: bool = False) -> torch.nn.Module:
         """Build a basic layer.
 
         BN -> Linear -> Activation -> Dropout
