@@ -5,21 +5,20 @@
 from typing import List, NamedTuple, Optional, Tuple, Union
 
 import networkx as nx
-
 from maro.backends.frame import FrameBase
 
 from .easy_config import EasyConfig, SkuInfo
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
-from .units import ExtendUnitBase, UnitBase
+from .units import ConsumerUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, UnitBase
 
 
-class AgentInfo(NamedTuple):
+class SupplyChainEntity(NamedTuple):
     id: int
-    agent_type: object
+    class_type: type
     is_facility: bool
-    sku: Optional[SkuInfo]
+    skus: Optional[SkuInfo]
     facility_id: int
     parent_id: Optional[int]
 
@@ -61,9 +60,7 @@ class World:
         # Data model class collection, used to collection data model class and their number in frame.
         self._data_class_collection = {}
 
-        self.agent_list = []
-
-        self.agent_type_dict = {}
+        self.entity_list = []
 
         self.max_sources_per_facility = 0
         self.max_price = 0
@@ -177,7 +174,7 @@ class World:
             facility_class_type = facility_def.class_type
 
             # Instance of facility.
-            facility = facility_class_type()
+            facility: FacilityBase = facility_class_type()
 
             # Normal properties.
             facility.id = self._gen_id()
@@ -196,6 +193,13 @@ class World:
             # Register the data model, so that it will help to generate related instance index.
             facility.data_model_index = self._register_data_model(data_model_def.alias)
             facility.data_model_name = data_model_def.name_in_frame
+
+            # Demand from file
+            facility.demand_from_file = {}
+            if facility.name in world_config["demands"]:
+                for sku_name, demands in world_config["demands"][facility.name].items():
+                    sku_id = self.get_sku_by_name(sku_name).id
+                    facility.demand_from_file[sku_id] = demands
 
             # Build children (units).
             for child_name, child_conf in facility_conf["children"].items():
@@ -274,36 +278,24 @@ class World:
 
         nx.set_edge_attributes(self._graph, edge_weights, "cost")
 
-        # Collection agent list
+        # Collection entity list
         for facility in self.facilities.values():
-            agent_type = facility.configs.get("agent_type", None)
-
-            if agent_type is not None:
-                self.agent_list.append(AgentInfo(facility.id, agent_type, True, None, facility.id, None))
-
-                self.agent_type_dict[type(facility).__name__] = agent_type
-
-                for sku in facility.skus.values():
-                    self.max_price = max(self.max_price, sku.price)
-
-        # Find units that contains agent type to expose as agent.
+            entity = SupplyChainEntity(
+                id=facility.id, class_type=facility.__class__, is_facility=True, skus=None, facility_id=facility.id,
+                parent_id=None,
+            )
+            self.entity_list.append(entity)
         for unit in self.units.values():
-            agent_type = unit.config.get("agent_type", None)
-
-            if agent_type is not None:
-                # Unit or facility id, agent type, is facility, sku info, facility id, parent id.
-                self.agent_list.append(
-                    AgentInfo(
-                        unit.id,
-                        agent_type,
-                        False,
-                        unit.facility.skus[unit.product_id],
-                        unit.facility.id,
-                        unit.parent.id
-                    )
-                )
-
-                self.agent_type_dict[type(unit).__name__] = agent_type
+            entity = SupplyChainEntity(
+                id=unit.id, class_type=unit.__class__, is_facility=False,
+                skus=unit.facility.skus[unit.product_id] if any([
+                    isinstance(unit, ProductUnit),
+                    isinstance(unit, ConsumerUnit),
+                    isinstance(unit, ManufactureUnit),
+                ]) else None,
+                facility_id=unit.facility.id, parent_id=unit.parent.id,
+            )
+            self.entity_list.append(entity)
 
     def build_unit_by_type(self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
         """Build an unit by its type.
@@ -429,7 +421,6 @@ class World:
                 id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
 
         return {
-            "agent_types": {k: v for k, v in self.agent_type_dict.items()},
             "unit_mapping": id2index_mapping,
             "skus": {sku.id: sku for sku in self._sku_collection.values()},
             "facilities": facility_info_dict,

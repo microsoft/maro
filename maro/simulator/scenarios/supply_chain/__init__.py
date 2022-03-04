@@ -8,5 +8,6 @@ from .datamodels import (
 )
 from .facilities import FacilityBase, RetailerFacility, SupplierFacility, WarehouseFacility
 from .units import (
-    ConsumerUnit, DistributionUnit, ExtendUnitBase, ProductUnit, SellerUnit, StorageUnit, UnitBase, VehicleUnit
+    ConsumerUnit, DistributionUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, SellerUnit, StorageUnit, UnitBase,
+    VehicleUnit
 )

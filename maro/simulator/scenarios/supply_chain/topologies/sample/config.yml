@@ -23,14 +23,8 @@ facility_definitions:
         is_template: true
         # config will be passed to generator as parameters
         config:
-          agent_type: "product"
           consumer:
             class: "ConsumerUnit"
-            config:
-              agent_type: "consumer"
-    config:
-      # mark current unit/facility as a agent, out side may use this to choose policy.
-      agent_type: "facility"
 
   SupplierFacility: &supplier_facility
     class: "SupplierFacility"
@@ -43,17 +37,10 @@ facility_definitions:
         class: "ProductUnit"
         is_template: true
         config:
-          agent_type: "product"
           consumer:
             class: "ConsumerUnit"
-            config:
-              agent_type: "consumer"
           manufacture:
             class: "ManufactureUnit"
-            config:
-              agent_type: "producer"
-    config:
-      agent_type: "facility"
 
   RetailerFacility: &retailer_facility
     class: "RetailerFacility"
@@ -64,17 +51,12 @@ facility_definitions:
         class: "StoreProductUnit"
         is_template: true
         config:
-          agent_type: "product"
           consumer:
             class: "ConsumerUnit"
-            config:
-              agent_type: "consumer"
           seller:
             class: "SellerUnit"
             config:
               sale_hist_len: 4
-    config:
-      agent_type: "facility"
 
 # common entity/unit definition as reference to simplify the file.
 normal_vehicle: &normal_vehicle
@@ -287,20 +269,6 @@ world:
         - [10, 12]
         - [11, 12]
 
+
 settings:
-  global_reward_weight_producer: 0.50
-  global_reward_weight_consumer: 0.50
-  downsampling_rate: 1
-  episod_duration: 21
-  initial_balance: 100000
-  consumption_hist_len: 4
-  sale_hist_len: 4
   pending_order_len: 4
-  constraint_state_hist_len: 8
-  total_echelons: 3
-  replenishment_discount: 0.9
-  reward_normalization: 1e7
-  constraint_violate_reward: -1e6
-  gamma: 0.99
-  tail_timesteps: 7
-  heading_timesteps: 7

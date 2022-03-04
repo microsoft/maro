@@ -10,7 +10,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ProductUnit, UnitBase
-from .world import World
+from .world import SupplyChainEntity, World
 
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):
@@ -77,19 +77,16 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._action_cache = None
 
-    def set_seed(self, seed: int) -> None:
-        pass
-
     def get_node_mapping(self) -> dict:
         return self._node_mapping
 
-    def get_agent_idx_list(self) -> List[Tuple[str, int]]:
-        """Get a list of agent index.
+    def get_entity_list(self) -> List[SupplyChainEntity]:
+        """Get a list of entities.
 
         Returns:
-            list: List of agent index.
+            list: List of entities.
         """
-        return self.world.agent_list
+        return self.world.entity_list
 
     def _step_by_facility(self, tick: int):
         """Call step functions by facility.
@@ -126,9 +123,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         be_root = os.path.split(os.path.realpath(__file__))[0]
         core_config = os.path.join(be_root, "topologies", "core.yml")
 
-        config_path = os.path.join(self._config_path, "config.yml")
-
-        parser = ConfigParser(core_config, config_path)
+        parser = ConfigParser(core_config, self._config_path)
 
         conf = parser.parse()
 

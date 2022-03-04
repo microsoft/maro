@@ -13,7 +13,7 @@ class SimpleManufactureUnit(ManufactureUnit):
         # Try to produce production if we have positive rate.
         self.manufacture_number = 0
 
-        assert isinstance(self.action, ManufactureAction)
+        assert self.action is None or isinstance(self.action, ManufactureAction)
 
         if self.action is not None and self.action.production_rate > 0:
             production_rate = self.action.production_rate
