@@ -136,8 +136,6 @@ def start_rl_job_in_containers(
             network=job_name
         )
 
-        # if completed_process.returncode:
-        #     raise ResourceAllocationFailed(completed_process.stderr)
         containers.append(container)
 
     return containers

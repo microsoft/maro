@@ -257,17 +257,6 @@ def load_parser_local(prev_parser: ArgumentParser, global_parser: ArgumentParser
     job_stop_parser.add_argument('job_name', help='Job name')
     job_stop_parser.set_defaults(func=describe_job)
 
-    # # maro local job delete
-    # from maro.cli.local.commands import delete_job
-    # job_delete_parser = job_subparsers.add_parser(
-    #     "delete",
-    #     help='delete a stopped job',
-    #     examples=CliExamples.MARO_PROCESS_JOB_DELETE,
-    #     parents=[global_parser]
-    # )
-    # job_delete_parser.add_argument("job_name", help='Name of the job or the schedule')
-    # job_delete_parser.set_defaults(func=delete_job)
-
     # maro local job ls
     from maro.cli.local.commands import list_jobs
     job_list_parser = job_subparsers.add_parser(
