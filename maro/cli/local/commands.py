@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import json
+import os
 import shutil
 import subprocess
 import sys
