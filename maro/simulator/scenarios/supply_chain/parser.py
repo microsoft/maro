@@ -2,15 +2,38 @@
 # Licensed under the MIT license.
 import collections
 import os
-from collections import namedtuple
+from dataclasses import dataclass
 from importlib import import_module
 
 import pandas as pd
 from yaml import safe_load
 
-DataModelDef = namedtuple("DataModelDef", ("alias", "module_path", "class_name", "class_type", "name_in_frame"))
-UnitDef = namedtuple("UnitDef", ("alias", "module_path", "class_name", "class_type", "data_model_alias"))
-FacilityDef = namedtuple("FacilityDef", ("alias", "module_path", "class_name", "class_type", "data_model_alias"))
+
+@dataclass
+class DataModelDef:
+    alias: str
+    module_path: str
+    class_name: str
+    class_type: type
+    name_in_frame: str
+
+
+@dataclass
+class UnitDef:
+    alias: str
+    module_path: str
+    class_name: str
+    class_type: type
+    data_model_alias: str
+
+
+@dataclass
+class FacilityDef:
+    alias: str
+    module_path: str
+    class_name: str
+    class_type: type
+    data_model_alias: str
 
 
 def find_class_type(module_path: str, class_name: str) -> type:
@@ -28,7 +51,7 @@ def find_class_type(module_path: str, class_name: str) -> type:
     return getattr(target_module, class_name)
 
 
-def copy_dict(target: dict, source: dict):
+def copy_dict(target: dict, source: dict) -> None:
     """Copy values from source to target dict.
 
     Args:
@@ -48,7 +71,7 @@ def copy_dict(target: dict, source: dict):
 class SupplyChainConfiguration:
     """Configuration of supply chain scenario."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Data model definitions.
         self.data_models = {}
 
@@ -64,7 +87,7 @@ class SupplyChainConfiguration:
         # Other settings.
         self.settings = {}
 
-    def add_data_definition(self, alias: str, class_name: str, module_path: str, name_in_frame: str):
+    def add_data_definition(self, alias: str, class_name: str, module_path: str, name_in_frame: str) -> None:
         """Add a data model definition.
 
         Args:
@@ -81,10 +104,10 @@ class SupplyChainConfiguration:
             module_path,
             class_name,
             find_class_type(module_path, class_name),
-            name_in_frame
+            name_in_frame,
         )
 
-    def add_unit_definition(self, alias: str, class_name: str, module_path: str, data_model: str):
+    def add_unit_definition(self, alias: str, class_name: str, module_path: str, data_model: str) -> None:
         """Add unit definition.
 
         Args:
@@ -100,10 +123,10 @@ class SupplyChainConfiguration:
             module_path,
             class_name,
             find_class_type(module_path, class_name),
-            data_model
+            data_model,
         )
 
-    def add_facility_definition(self, alias: str, class_name: str, module_path: str, data_model_alias: str):
+    def add_facility_definition(self, alias: str, class_name: str, module_path: str, data_model_alias: str) -> None:
         """Add a facility definition.
 
         Args:
@@ -119,20 +142,20 @@ class SupplyChainConfiguration:
             module_path,
             class_name,
             find_class_type(module_path, class_name),
-            data_model_alias
+            data_model_alias,
         )
 
 
 class ConfigParser:
     """Supply chain configuration parser."""
 
-    def __init__(self, core_path: str, config_path: str):
+    def __init__(self, core_path: str, config_path: str) -> None:
         self._result = SupplyChainConfiguration()
 
         self._core_path = core_path
         self._config_path = config_path
 
-    def parse(self):
+    def parse(self) -> SupplyChainConfiguration:
         """Parse configuration of current scenario.
 
         Returns:
@@ -143,14 +166,14 @@ class ConfigParser:
 
         return self._result
 
-    def _parse_core(self):
+    def _parse_core(self) -> None:
         """Parse configuration from core.yml."""
         with open(self._core_path, "rt") as fp:
             conf = safe_load(fp)
 
             self._parse_core_conf(conf)
 
-    def _parse_core_conf(self, conf: dict):
+    def _parse_core_conf(self, conf: dict) -> None:
         # Data models.
         if "datamodels" in conf:
             for module_conf in conf["datamodels"]["modules"]:
@@ -161,7 +184,7 @@ class ConfigParser:
                         class_alias,
                         class_def["class"],
                         module_path,
-                        class_def["name_in_frame"]
+                        class_def["name_in_frame"],
                     )
 
         # TODO: dup code
@@ -176,7 +199,7 @@ class ConfigParser:
                         class_alias,
                         class_def["class"],
                         module_path,
-                        class_def.get("datamodel", None)
+                        class_def.get("datamodel", None),
                     )
 
         # Facilities.
@@ -189,10 +212,10 @@ class ConfigParser:
                         class_alias,
                         class_def["class"],
                         module_path,
-                        class_def.get("datamodel", None)
+                        class_def.get("datamodel", None),
                     )
 
-    def _parse_config(self):
+    def _parse_config(self) -> None:
         """Parse configurations."""
         with open(os.path.join(self._config_path, "config.yml"), "rt") as fp:
             conf = safe_load(fp)

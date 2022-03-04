@@ -9,7 +9,7 @@ from .manufacture import ManufactureUnit
 class SimpleManufactureUnit(ManufactureUnit):
     """This simple manufacture unit will ignore source sku, just generate specified number of product."""
 
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         # Try to produce production if we have positive rate.
         self.manufacture_number = 0
 

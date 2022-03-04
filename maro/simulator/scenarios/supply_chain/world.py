@@ -25,7 +25,7 @@ class SupplyChainEntity(NamedTuple):
 class World:
     """Supply chain world contains facilities and grid base map."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Frame for current world configuration.
         self.frame: Optional[FrameBase] = None
 
@@ -97,7 +97,7 @@ class World:
         """
         return self.facilities[facility_id]
 
-    def get_facility_by_name(self, name: str):
+    def get_facility_by_name(self, name: str) -> FacilityBase:
         """Get facility by name.
 
         Args:
@@ -136,7 +136,7 @@ class World:
         """
         return nx.astar_path(self._graph, source=(start_x, start_y), target=(goal_x, goal_y), weight="cost")
 
-    def build(self, configs: SupplyChainConfiguration, snapshot_number: int, durations: int):
+    def build(self, configs: SupplyChainConfiguration, snapshot_number: int, durations: int) -> None:
         """Build world with configurations.
 
         Args:
@@ -295,7 +295,9 @@ class World:
             )
             self.entity_list.append(entity)
 
-    def build_unit_by_type(self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
+    def build_unit_by_type(
+        self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase,
+    ) -> None:
         """Build an unit by its type.
 
         Args:
@@ -394,7 +396,7 @@ class World:
 
             return children
 
-    def get_node_mapping(self):
+    def get_node_mapping(self) -> dict:
         """Collect all the entities information.
 
         Returns:
@@ -460,14 +462,14 @@ class World:
             data_class_in_frame.append((
                 data_model_def.class_type,
                 data_model_def.name_in_frame,
-                number
+                number,
             ))
 
         frame = build_frame(True, snapshot_number, data_class_in_frame)
 
         return frame
 
-    def _gen_id(self):
+    def _gen_id(self) -> int:
         """Generate id for entities."""
         nid = self._id_counter
 

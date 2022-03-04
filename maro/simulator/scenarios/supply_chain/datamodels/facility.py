@@ -10,8 +10,8 @@ from .base import DataModelBase
 @node("facility")
 class FacilityDataModel(DataModelBase):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(FacilityDataModel, self).__init__()
 
-    def reset(self):
+    def reset(self) -> None:
         super(FacilityDataModel, self).reset()

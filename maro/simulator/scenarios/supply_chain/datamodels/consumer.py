@@ -27,19 +27,19 @@ class ConsumerDataModel(ExtendDataModel):
 
     reward_discount = NodeAttribute(AttributeType.Float)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(ConsumerDataModel, self).__init__()
 
         self._price = 0
         self._order_cost = 0
 
-    def initialize(self, price: int, order_cost: int):
+    def initialize(self, price: int, order_cost: int) -> None:
         self._price = price
         self._order_cost = order_cost
 
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         super(ConsumerDataModel, self).reset()
 
         self.price = self._price

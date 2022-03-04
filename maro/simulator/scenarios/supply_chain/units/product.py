@@ -35,7 +35,7 @@ class ProductUnit(ExtendUnitBase):
     _transport_cost = 0
     _delay_order_penalty = 0
 
-    def initialize(self):
+    def initialize(self) -> None:
         super().initialize()
 
         facility_sku = self.facility.skus[self.product_id]
@@ -43,11 +43,11 @@ class ProductUnit(ExtendUnitBase):
         assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         for unit in self.children:
             unit.step(tick)
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         for unit in self.children:
             unit.flush_states()
 
@@ -69,7 +69,7 @@ class ProductUnit(ExtendUnitBase):
         if self._delay_order_penalty > 0:
             self.data_model.distribution_delay_order_penalty = self._delay_order_penalty
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> None:
         super().post_step(tick)
 
         for unit in self.children:
@@ -87,7 +87,7 @@ class ProductUnit(ExtendUnitBase):
             self.data_model.distribution_delay_order_penalty = 0
             self._delay_order_penalty = 0
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
 
         for unit in self.children:
@@ -104,11 +104,11 @@ class ProductUnit(ExtendUnitBase):
             "config": self.config,
             "consumer": self.consumer.get_unit_info() if self.consumer is not None else None,
             "seller": self.seller.get_unit_info() if self.seller is not None else None,
-            "manufacture": self.manufacture.get_unit_info() if self.manufacture is not None else None
+            "manufacture": self.manufacture.get_unit_info() if self.manufacture is not None else None,
         }
 
     # TODO: add following field into states.
-    def get_latest_sale(self):
+    def get_latest_sale(self) -> float:
         sale = 0
         downstreams = self.facility.downstreams.get(self.product_id, [])
 
@@ -117,7 +117,7 @@ class ProductUnit(ExtendUnitBase):
 
         return sale
 
-    def get_sale_mean(self):
+    def get_sale_mean(self) -> float:
         sale_mean = 0
         downstreams = self.facility.downstreams.get(self.product_id, [])
 
@@ -126,7 +126,7 @@ class ProductUnit(ExtendUnitBase):
 
         return sale_mean
 
-    def get_sale_std(self):
+    def get_sale_std(self) -> float:
         sale_std = 0
 
         downstreams = self.facility.downstreams.get(self.product_id, [])
@@ -136,7 +136,7 @@ class ProductUnit(ExtendUnitBase):
 
         return sale_std / np.sqrt(max(1, len(downstreams)))
 
-    def get_selling_price(self):
+    def get_selling_price(self) -> float:
         price = 0.0
         downstreams = self.facility.downstreams.get(self.product_id, [])
 
@@ -145,7 +145,7 @@ class ProductUnit(ExtendUnitBase):
 
         return price
 
-    def _get_max_vlt(self):
+    def _get_max_vlt(self) -> int:
         vlt = 1
 
         if self.consumer is not None:
@@ -159,7 +159,7 @@ class ProductUnit(ExtendUnitBase):
         return vlt
 
     @staticmethod
-    def generate(facility, config: dict, unit_def: object):
+    def generate(facility, config: dict, unit_def: object) -> dict:
         """Generate product unit by sku information.
 
         Args:

@@ -9,7 +9,7 @@ class SupplyChainAction:
 
 class ConsumerAction(SupplyChainAction):
     def __init__(
-        self, id: int, product_id: int, source_id: int, quantity: int, vlt: int, reward_discount: float
+        self, id: int, product_id: int, source_id: int, quantity: int, vlt: int, reward_discount: float,
     ) -> None:
         super(ConsumerAction, self).__init__(id=id)
         self.product_id = product_id
