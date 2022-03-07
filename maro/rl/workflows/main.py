@@ -9,14 +9,14 @@ from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainerManager
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.workflows.scenario import Scenario
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 
 def main(scenario: Scenario) -> None:
     num_episodes = int(get_env("NUM_EPISODES"))
     num_steps = int_or_none(get_env("NUM_STEPS", required=False))
 
-    logger = Logger(
+    logger = LoggerV2(
         "MAIN",
         dump_path=get_env("LOG_PATH"),
         dump_mode="a",

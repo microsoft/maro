@@ -224,9 +224,10 @@ class ConfigParser:
                     local/log/path -> "/logs"
                 Defaults to False.
         """
+        log_dir = os.path.dirname(self._config["log_path"])
         path_map = {
             self._config["scenario_path"]: "/scenario" if containerize else self._config["scenario_path"],
-            self._config["log_path"]: "/logs" if containerize else self._config["log_path"],
+            log_dir: f"/logs" if containerize else log_dir
         }
 
         load_path = self._config["training"].get("load_path", None)
@@ -351,8 +352,9 @@ class ConfigParser:
                     })
 
         # All components write logs to the same file
+        log_dir, log_file = os.path.split(self._config["log_path"])
         for vars in env.values():
-            vars["LOG_PATH"] = os.path.join(path_mapping[self._config["log_path"]], self._config["job"])
+            vars["LOG_PATH"] = os.path.join(path_mapping[log_dir], log_file)
 
         return env
 

@@ -80,12 +80,18 @@ def term(procs, job_name: str, timeout: int = 3):
                     proc.kill()
     else:
         for proc in procs:
-            proc.stop(timeout=timeout)
-            proc.remove()
+            try:
+                proc.stop(timeout=timeout)
+                proc.remove()
+            except:
+                pass
 
         client = docker.from_env()
-        job_network = client.networks.get(job_name)
-        job_network.remove()
+        try:
+            job_network = client.networks.get(job_name)
+            job_network.remove()
+        except:
+            pass
 
 
 def exec(cmd: str, env: dict, debug: bool = False) -> subprocess.Popen:
@@ -119,7 +125,12 @@ def start_rl_job_in_containers(
 ) -> None:
     job_name = conf["job"]
     client, containers = docker.from_env(), []
-    if conf["training"]["mode"] != "simple" or conf["rollout"].get("parallelism", 1) > 1:
+    is_distributed_training = conf["training"]["mode"] != "simple"
+    is_distributed_rollout = (
+        "parallelism" in conf["rollout"] and
+        max(conf["rollout"]["parallelism"]["sampling"], conf["rollout"]["parallelism"].get("eval", 1)) > 1
+    )
+    if is_distributed_training or is_distributed_rollout:
         # create the exclusive network for the job
         client.networks.create(job_name, driver="bridge")
 
@@ -132,12 +143,10 @@ def start_rl_job_in_containers(
             detach=True,
             name=container_name,
             environment=env,
-            volumes=[f"{src}:{dst}" for src, dst in path_mapping.items()] + ["/home/yaqiu/maro/maro/rl:/maro/maro/rl"],
+            volumes=[f"{src}:{dst}" for src, dst in path_mapping.items()],
             network=job_name
         )
 
-        # if completed_process.returncode:
-        #     raise ResourceAllocationFailed(completed_process.stderr)
         containers.append(container)
 
     return containers
@@ -154,7 +163,7 @@ def start_rl_job_with_docker_compose(
     common_spec = {
         "build": {"context": context, "dockerfile": dockerfile_path},
         "image": image_name,
-        "volumes": [f"{src}:{dst}" for src, dst in path_mapping.items()] + ["/home/yaqiu/maro/maro/rl:/maro/maro/rl"]
+        "volumes": [f"{src}:{dst}" for src, dst in path_mapping.items()]
     }
     job = conf["job"]
     manifest = {"version": "3.9"}

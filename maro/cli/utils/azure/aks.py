@@ -32,14 +32,6 @@ def attach_acr(resource_group: str, aks_name: str, acr_name: str) -> None:
     subprocess.run(f"az aks update -g {resource_group} -n {aks_name} --attach-acr {acr_name}".split())
 
 
-# def list_nodepool(resource_group: str, aks_name: str) -> list:
-#     container_service_client = get_container_service_client(subscription)
-#     container_service_client.container_services.
-#     command = f"az aks nodepool list -g {resource_group} --cluster-name {aks_name}"
-#     return_str = Subprocess.run(command=command)
-#     return json.loads(return_str)
-
-
 def add_nodepool(resource_group: str, aks_name: str, nodepool_name: str, node_count: int, node_size: str) -> None:
     command = (
         f"az aks nodepool add "

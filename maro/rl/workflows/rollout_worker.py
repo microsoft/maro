@@ -4,14 +4,14 @@
 from maro.rl.rollout import RolloutWorker
 from maro.rl.utils.common import get_env, int_or_none
 from maro.rl.workflows.scenario import Scenario
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 if __name__ == "__main__":
     scenario_attr = Scenario(get_env("SCENARIO_PATH"))
     policy_creator = scenario_attr.policy_creator
 
     worker_idx = int_or_none(get_env("ID"))
-    logger = Logger(
+    logger = LoggerV2(
         f"ROLLOUT-WORKER.{worker_idx}",
         dump_path=get_env("LOG_PATH"),
         dump_mode="a",
