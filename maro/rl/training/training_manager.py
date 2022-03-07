@@ -9,7 +9,7 @@ from typing import Callable, Dict, Iterable, List, Tuple
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training.algorithms.abs_algorithm import AbsAlgorithm
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 from .utils import extract_algo_inst_name, get_training_state_path
 
@@ -32,7 +32,7 @@ class TrainingManager(object):
         algo_inst_creator: Dict[str, Callable[[str], AbsAlgorithm]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
         proxy_address: Tuple[str, int] = None,
-        logger: Logger = None,
+        logger: LoggerV2 = None,
     ) -> None:
         super(TrainingManager, self).__init__()
 

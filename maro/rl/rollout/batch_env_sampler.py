@@ -9,7 +9,7 @@ import zmq
 from zmq import Context, Poller
 
 from maro.rl.utils.common import bytes_to_pyobj, get_own_ip_address, pyobj_to_bytes
-from maro.utils import DummyLogger, Logger
+from maro.utils import DummyLogger, LoggerV2
 
 from .env_sampler import ExpElement
 
@@ -19,10 +19,10 @@ class ParallelTaskController(object):
 
     Args:
         port (int, default=20000): Network port the controller uses to talk to the remote workers.
-        logger (Logger, default=None): Optional logger for logging key events.
+        logger (LoggerV2, default=None): Optional logger for logging key events.
     """
 
-    def __init__(self, port: int = 20000, logger: Logger = None) -> None:
+    def __init__(self, port: int = 20000, logger: LoggerV2 = None) -> None:
         self._ip = get_own_ip_address()
         self._context = Context.instance()
 
@@ -117,7 +117,7 @@ class BatchEnvSampler:
             are received in T seconds, it will allow an additional T * grace_factor seconds to collect the remaining
             results.
         eval_parallelism (int, default=None): Parallelism for policy evaluation on remote workers.
-        logger (Logger, default=None): Optional logger for logging key events.
+        logger (LoggerV2, default=None): Optional logger for logging key events.
     """
 
     def __init__(
@@ -127,7 +127,7 @@ class BatchEnvSampler:
         min_env_samples: int = None,
         grace_factor: float = None,
         eval_parallelism: int = None,
-        logger: Logger = None,
+        logger: LoggerV2 = None,
     ) -> None:
         super(BatchEnvSampler, self).__init__()
         self._logger = logger if logger else DummyLogger()

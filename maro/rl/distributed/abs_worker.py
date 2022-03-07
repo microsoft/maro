@@ -9,7 +9,7 @@ from zmq import Context
 from zmq.eventloop.zmqstream import ZMQStream
 
 from maro.rl.utils.common import get_ip_address_by_hostname, string_to_bytes
-from maro.utils import DummyLogger, Logger
+from maro.utils import DummyLogger, LoggerV2
 
 
 class AbsWorker(object):
@@ -20,7 +20,7 @@ class AbsWorker(object):
             so that the task producer can keep track of its connection status.
         producer_host (str): IP address of the task producer host to connect to.
         producer_port (int): Port of the task producer host to connect to.
-        logger (Logger, default=None): The logger of the workflow.
+        logger (LoggerV2, default=None): The logger of the workflow.
     """
 
     def __init__(
@@ -28,7 +28,7 @@ class AbsWorker(object):
         idx: int,
         producer_host: str,
         producer_port: int,
-        logger: Logger = None,
+        logger: LoggerV2 = None,
     ) -> None:
         super(AbsWorker, self).__init__()
 

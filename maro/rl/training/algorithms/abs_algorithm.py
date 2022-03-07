@@ -9,7 +9,7 @@ import torch
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 from maro.rl.training.train_ops import AbsTrainOps, RemoteOps
 from maro.rl.training.utils import extract_algo_inst_name
@@ -77,7 +77,7 @@ class AbsAlgorithm(object, metaclass=ABCMeta):
     def agent_num(self) -> int:
         return len(self._agent2policy)
 
-    def register_logger(self, logger: Logger) -> None:
+    def register_logger(self, logger: LoggerV2) -> None:
         self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
