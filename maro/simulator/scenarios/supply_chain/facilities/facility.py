@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 from __future__ import annotations
 
+import collections
 import typing
 from abc import ABC
 from collections import defaultdict
@@ -13,6 +14,7 @@ from maro.simulator.scenarios.supply_chain.units import DistributionUnit, Produc
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
+    from maro.simulator.scenarios.supply_chain import UnitBase
 
 
 class FacilityBase(ABC):
@@ -70,8 +72,8 @@ class FacilityBase(ABC):
 
     def __init__(self) -> None:
         self.upstreams = {}
-        self.downstreams = {}
-        self.children = []
+        self.downstreams = collections.defaultdict(list)
+        self.children: List[UnitBase] = []
         self.skus = {}
 
     def parse_skus(self, configs: dict) -> None:

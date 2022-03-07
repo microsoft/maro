@@ -1,8 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
-
-from typing import List, NamedTuple, Optional, Tuple, Union
+import collections
+import itertools
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 from maro.backends.frame import FrameBase
@@ -14,7 +15,8 @@ from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
 from .units import ConsumerUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, UnitBase
 
 
-class SupplyChainEntity(NamedTuple):
+@dataclass
+class SupplyChainEntity:
     id: int
     class_type: type
     skus: Optional[SkuInfo]
@@ -36,13 +38,13 @@ class World:
         self.durations = 0
 
         # All the entities in the world.
-        self.units = {}
+        self.units: Dict[int, UnitBase] = {}
 
         # All the facilities in this world.
-        self.facilities = {}
+        self.facilities: Dict[int, FacilityBase] = {}
 
         # Entity id counter, every unit and facility have unique id.
-        self._id_counter = 1
+        self._id_counter = itertools.count(1)
 
         # Grid of the world
         self._graph: Optional[nx.Graph] = None
@@ -57,7 +59,7 @@ class World:
         self._facility_name2id_mapping = {}
 
         # Data model class collection, used to collection data model class and their number in frame.
-        self._data_class_collection = {}
+        self._data_class_collection = collections.defaultdict(lambda: 0)
 
         self.entity_list = []
 
@@ -234,12 +236,7 @@ class World:
 
                 for source_name in source_facilities:
                     source_facility = self.get_facility_by_name(source_name)
-
                     facility.upstreams[sku.id].append(source_facility)
-
-                    if sku.id not in source_facility.downstreams:
-                        source_facility.downstreams[sku.id] = []
-
                     source_facility.downstreams[sku.id].append(facility)
 
         # Call initialize method for facilities.
@@ -255,7 +252,7 @@ class World:
 
         grid_width, grid_height = grid_config["size"]
 
-        # Build our graph base one settings.
+        # Build our graph base on settings.
         # This will create a full connect graph.
         self._graph = nx.grid_2d_graph(grid_width, grid_height)
 
@@ -392,12 +389,12 @@ class World:
             return unit_instance
         else:
             # If this is template unit, then will use the class' static method 'generate' to generate sub-units.
-            children = unit_def.class_type.generate(facility, config.get("config"), unit_def)
+            children = unit_def.class_type.generate(facility, config.get("config"), unit_def)  # TODO
 
             return children
 
     def get_node_mapping(self) -> dict:
-        """Collect all the entities information.
+        """Collect all the entities' information.
 
         Returns:
             dict: A dictionary contains 'mapping' for id to data model index mapping,
@@ -437,14 +434,8 @@ class World:
         Returns:
             int: Specified data model instance index after frame is built.
         """
-        if alias not in self._data_class_collection:
-            self._data_class_collection[alias] = 0
-
-        node_index = self._data_class_collection[alias]
-
         self._data_class_collection[alias] += 1
-
-        return node_index
+        return self._data_class_collection[alias] - 1
 
     def _build_frame(self, snapshot_number: int) -> FrameBase:
         """Build frame by current world definitions.
@@ -453,7 +444,7 @@ class World:
             snapshot_number (int): Number of snapshots to keep in memory.
 
         Returns:
-            FrameBase: Frame instance with data model in current configuration.
+            FrameBase: The frame instance with data model in current configuration.
         """
         data_class_in_frame = []
 
@@ -471,8 +462,4 @@ class World:
 
     def _gen_id(self) -> int:
         """Generate id for entities."""
-        nid = self._id_counter
-
-        self._id_counter += 1
-
-        return nid
+        return next(self._id_counter)

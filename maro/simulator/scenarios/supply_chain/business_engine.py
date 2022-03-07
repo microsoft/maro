@@ -7,7 +7,7 @@ from typing import List
 
 from maro.backends.frame import FrameBase
 
-from maro.event_buffer import MaroEvents
+from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
 from .parser import ConfigParser, SupplyChainConfiguration
@@ -38,6 +38,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._action_cache = None
 
         self._metrics_cache = None
+
+        for facility in self.world.facilities.values():
+            print(facility)
+            for unit in facility.children:
+                print('\t', unit)
 
     @property
     def frame(self) -> FrameBase:
@@ -132,10 +137,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
-    def _on_action_received(self, action) -> None:  # TODO: action type
-        action = action.payload
+    def _on_action_received(self, event: CascadeEvent) -> None:  # TODO: action type
+        action = event.payload
 
-        if action is not None and type(action) == list and len(action) > 0:
+        if action is not None and isinstance(action, list) and len(action) > 0:
             self._action_cache = action
 
     def _dispatch_action(self) -> None:
