@@ -77,9 +77,9 @@ environment.
 The simplest type of policy is ``RuleBasedPolicy`` which generates actions by pre-defined rules. ``RuleBasedPolicy``
 is mostly used in naive scenarios. However, in most cases where we need to train the policy by interacting with the
 environment, we need to use ``RLPolicy``. In MARO's design, a policy cannot train itself. Instead,
-polices could only be trained by :ref:`trainer` (we will introduce trainer later in this page). Therefore, in addition
+polices could only be trained by :ref:`algorithm` (we will introduce algorithm later in this page). Therefore, in addition
 to ``get_actions()``, ``RLPolicy`` also has a set of training-related interfaces, such as ``step()``, ``get_gradients()``
-and ``set_gradients()``. These interfaces will be called by trainers for training. As you may have noticed, currently
+and ``set_gradients()``. These interfaces will be called by algorithms for training. As you may have noticed, currently
 we assume policies are built upon deep learning models, so the training-related interfaces are specifically
 designed for gradient descent.
 
@@ -109,7 +109,7 @@ The above code snippet creates a ``ValueBasedPolicy`` object. Let's pay attentio
 ``q_net`` accepts a ``DiscreteQNet`` object, and it serves as the core part of a ``ValueBasedPolicy`` object. In
 other words, ``q_net`` defines the model structure of the Q-network in the value-based policy, and further determines
 the policy's behavior. ``DiscreteQNet`` is an abstract class, and ``MyQNet`` is a user-defined implementation
-of ``DiscreteQNet``. It can be a simple MLP, a multihead transformer, or any other structure that the user wants.
+of ``DiscreteQNet``. It can be a simple MLP, a multi-head transformer, or any other structure that the user wants.
 
 MARO provides a set of abstractions of basic & commonly used PyTorch models like ``DiscereteQNet``, which enables
 users to implement their own deep learning models in a handy way. They are:
@@ -129,29 +129,29 @@ There are also some other models for training purposes. For example:
 
 The way to use these models is exactly the same as the way to use the policy models.
 
-.. _trainer:
+.. _algorithm:
 
-Trainer
+Algorithm
 -------
 
 When introducing policies, we mentioned that policies cannot train themselves. Instead, they have to be trained
-by external trainers. In MARO, a trainer represents an RL algorithm, such as DQN, actor-critic,
-and so on. Trainers take interaction experiences and store them in the internal memory, and then use the experiences
-in the memory to train the policies. Like ``RLPolicy``, trainers are also concrete classes, which means they could
-be used by configuring parameters. Currently, we have 4 trainers (algorithms) in MARO:
+by external algorithms.
+Algorithms take interaction experiences and store them in the internal memory, and then use the experiences
+in the memory to train the policies. Like ``RLPolicy``, algorithms are also concrete classes, which means they could
+be used by configuring parameters. Currently, we have 4 algorithms in MARO:
 
 - ``DiscreteActorCritic``: Actor-critic algorithm for policies that generate discrete actions.
 - ``DDPG``: DDPG algorithm for policies that generate continuous actions.
 - ``DQN``: DQN algorithm for policies that generate discrete actions.
 - ``DiscreteMADDPG``: MADDPG algorithm for policies that generate discrete actions.
 
-Each trainer has a corresponding ``Param`` class to manage all related parameters. For example,
+Each algorithm has a corresponding ``Param`` class to manage all related parameters. For example,
 ``DiscreteActorCriticParams`` contains all parameters used in ``DiscreteActorCritic``:
 
 .. code-block:: python
 
    @dataclass
-   class DiscreteActorCriticParams(TrainerParams):
+   class DiscreteActorCriticParams(AlgorithmParams):
        get_v_critic_net_func: Callable[[], VNet] = None
        reward_discount: float = 0.9
        grad_iters: int = 1
@@ -160,7 +160,7 @@ Each trainer has a corresponding ``Param`` class to manage all related parameter
        lam: float = 0.9
        min_logp: Optional[float] = None
 
-An example of creating an actor-critic trainer:
+An example of creating an actor-critic instance:
 
 .. code-block:: python
 
@@ -173,24 +173,24 @@ An example of creating an actor-critic trainer:
            grad_iters=10,
            critic_loss_cls=torch.nn.SmoothL1Loss,
            min_logp=None,
-           lam=.0
-       )
+           lam=.0,
+       ),
    )
 
-In order to indicate which trainer each policy is trained by, in MARO, we require that the name of the policy
-start with the name of the trainer responsible for training it. For example, policy ``ac_1.policy_1`` is trained
-by the trainer named ``ac_1``. Violating this provision will make MARO unable to correctly establish the
-corresponding relationship between policy and trainer.
+In order to indicate which algorithm instance each policy is trained by, in MARO, we require that the name of the policy
+start with the name of the algorithm instance responsible for training it. For example, policy ``ac_1.policy_1`` is trained
+by the algorithm instance named ``ac_1``. Violating this provision will make MARO unable to correctly establish the
+corresponding relationship between policy and algorithm instance.
 
 More details and examples can be found in the code base (`link`_).
 
-.. _link: https://github.com/microsoft/maro/blob/master/examples/rl/cim/policy_trainer.py
+.. _link: https://github.com/microsoft/maro/blob/master/examples/rl/cim/algorithm_instance.py
 
-As a summary, the relationship among policy, model, and trainer is demonstrated in :numref:`5`:
+As a summary, the relationship among policy, model, and algorithm is demonstrated in :numref:`5`:
 
 .. _5:
-.. figure:: ../images/rl/policy_model_trainer.svg
+.. figure:: ../images/rl/policy_model_algorithm.svg
    :alt: Overview
    :align: center
 
-   Summary of policy, model, and trainer
+   Summary of policy, model, and algorithm
