@@ -139,7 +139,7 @@ setup(
         "psutil<5.9.0",
         "deepdiff>=5.2.2",
         "azure-storage-blob<12.9.0",
-        "azure-storage-common>=2.1.0",
+        "azure-storage-common",
         "geopy>=2.0.0",
         "pandas<1.2",
         "PyYAML<5.5.0",

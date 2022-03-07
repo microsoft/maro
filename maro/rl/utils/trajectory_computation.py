@@ -1,11 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import Union
+
 import numpy as np
 import scipy.signal
 
 
-def discount_cumsum(x, discount):
+def discount_cumsum(x: Union[np.ndarray, list], discount: float) -> np.ndarray:
     """
     Magic from rllab for computing discounted cumulative sums of vectors.
 

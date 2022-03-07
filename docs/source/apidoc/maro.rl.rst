@@ -1,14 +1,24 @@
-Exploration
+Distributed
 ================================================================================
 
-maro.rl.exploration.strategies
+maro.rl.distributed.abs_proxy
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.strategies
+.. automodule:: maro.rl.distributed.abs_proxy
    :members:
    :undoc-members:
    :show-inheritance:
 
+maro.rl.distributed.abs_worker
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.distributed.abs_worker
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Exploration
+================================================================================
 
 maro.rl.exploration.scheduling
 --------------------------------------------------------------------------------
@@ -18,118 +28,284 @@ maro.rl.exploration.scheduling
    :undoc-members:
    :show-inheritance:
 
+maro.rl.exploration.strategies
+--------------------------------------------------------------------------------
 
-Modeling
+.. automodule:: maro.rl.exploration.strategies
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Model
 ================================================================================
 
-maro.rl.modeling.core_model
+maro.rl.model.abs_net
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.modeling.core_model
+.. automodule:: maro.rl.model.abs_net
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.modeling.fc_block
+maro.rl.model.fc_block
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.modeling.fc_block
+.. automodule:: maro.rl.model.fc_block
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.modeling.specials
+maro.rl.model.multi_q_net
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.modeling.specials
+.. automodule:: maro.rl.model.multi_q_net
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Learning
-================================================================================
-
-maro.rl.learning.env_sampler
+maro.rl.model.policy_net
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.learning.env_sampler
+.. automodule:: maro.rl.model.policy_net
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.learning.learning_loop
+maro.rl.model.q_net
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.learning.learning_loop
+.. automodule:: maro.rl.model.q_net
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.learning.policy_manager
+maro.rl.model.v_net
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.learning.policy_manager
+.. automodule:: maro.rl.model.v_net
    :members:
    :undoc-members:
    :show-inheritance:
-
-maro.rl.learning.rollout_manager
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.learning.rollout_manager
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Policy
 ================================================================================
 
-maro.rl.policy.ac
+maro.rl.policy.abs_policy
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.policy.ac
+.. automodule:: maro.rl.policy.abs_policy
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.policy.ddpg
+maro.rl.policy.continuous_rl_policy
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.policy.ddpg
+.. automodule:: maro.rl.policy.continuous_rl_policy
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.policy.dqn
+maro.rl.policy.discrete_rl_policy
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.policy.dqn
+.. automodule:: maro.rl.policy.discrete_rl_policy
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.policy.pg
+Rollout
+================================================================================
+
+maro.rl.rollout.batch_env_sampler
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.policy.pg
+.. automodule:: maro.rl.rollout.batch_env_sampler
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.policy.policy
+maro.rl.rollout.env_sampler
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.policy.policy
+.. automodule:: maro.rl.rollout.env_sampler
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.policy.replay
+maro.rl.rollout.worker
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.policy.replay
+.. automodule:: maro.rl.rollout.worker
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Training
+================================================================================
+
+maro.rl.training.algorithms
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.algorithms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.training.proxy
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.proxy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.training.replay_memory
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.replay_memory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.training.trainer
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.training.trainer_manager
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.trainer_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.training.train_ops
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.train_ops
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.training.utils
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.training.worker
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.training.worker
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Utils
+================================================================================
+
+maro.rl.utils.common
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.utils.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.utils.message_enums
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.utils.message_enums
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.utils.objects
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.utils.objects
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.utils.torch_utils
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.utils.torch_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.utils.trajectory_computation
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.utils.trajectory_computation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.utils.transition_batch
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.utils.transition_batch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Workflows
+================================================================================
+
+maro.rl.workflows.config
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.workflows.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.workflows.main
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.workflows.main
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.workflows.rollout_worker
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.workflows.rollout_worker
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.workflows.scenario
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.workflows.scenario
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.workflows.train_proxy
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.workflows.train_proxy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.workflows.train_worker
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.workflows.train_worker
    :members:
    :undoc-members:
    :show-inheritance:

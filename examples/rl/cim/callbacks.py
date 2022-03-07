@@ -1,33 +1,26 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import time
-from os import makedirs
-from os.path import dirname, join, realpath
 
-log_dir = join(dirname(realpath(__file__)), "log", str(time.time()))
-makedirs(log_dir, exist_ok=True)
-
-
-def post_collect(trackers, ep, segment):
+def post_collect(info_list: list, ep: int, segment: int) -> None:
     # print the env metric from each rollout worker
-    for tracker in trackers:
-        print(f"env summary (episode {ep}, segment {segment}): {tracker['env_metric']}")
+    for info in info_list:
+        print(f"env summary (episode {ep}, segment {segment}): {info['env_metric']}")
 
     # print the average env metric
-    if len(trackers) > 1:
-        metric_keys, num_trackers = trackers[0]["env_metric"].keys(), len(trackers)
-        avg_metric = {key: sum(tr["env_metric"][key] for tr in trackers) / num_trackers for key in metric_keys}
+    if len(info_list) > 1:
+        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+        avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
         print(f"average env summary (episode {ep}, segment {segment}): {avg_metric}")
 
 
-def post_evaluate(trackers, ep):
+def post_evaluate(info_list: list, ep: int) -> None:
     # print the env metric from each rollout worker
-    for tracker in trackers:
-        print(f"env summary (episode {ep}): {tracker['env_metric']}")
+    for info in info_list:
+        print(f"env summary (episode {ep}): {info['env_metric']}")
 
     # print the average env metric
-    if len(trackers) > 1:
-        metric_keys, num_trackers = trackers[0]["env_metric"].keys(), len(trackers)
-        avg_metric = {key: sum(tr["env_metric"][key] for tr in trackers) / num_trackers for key in metric_keys}
+    if len(info_list) > 1:
+        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+        avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
         print(f"average env summary (episode {ep}): {avg_metric}")

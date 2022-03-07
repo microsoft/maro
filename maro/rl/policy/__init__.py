@@ -1,18 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .ac import ActorCritic
-from .ddpg import DDPG
-from .dqn import DQN, PrioritizedExperienceReplay
-from .pg import PolicyGradient
-from .policy import AbsPolicy, DummyPolicy, RLPolicy
-from .worker_allocator import WorkerAllocator
+from .abs_policy import AbsPolicy, DummyPolicy, RLPolicy, RuleBasedPolicy
+from .continuous_rl_policy import ContinuousRLPolicy
+from .discrete_rl_policy import DiscretePolicyGradient, DiscreteRLPolicy, ValueBasedPolicy
 
 __all__ = [
-    "ActorCritic",
-    "DDPG",
-    "DQN", "PrioritizedExperienceReplay",
-    "PolicyGradient",
-    "AbsPolicy", "DummyPolicy", "RLPolicy"
-    "WorkerAllocator"
+    "AbsPolicy", "DummyPolicy", "RLPolicy", "RuleBasedPolicy",
+    "ContinuousRLPolicy",
+    "DiscretePolicyGradient", "DiscreteRLPolicy", "ValueBasedPolicy",
 ]

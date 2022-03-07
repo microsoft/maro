@@ -16,7 +16,7 @@ from typing import Dict, List, Tuple, Union
 import redis
 
 # private lib
-from maro.utils import DummyLogger, InternalLogger
+from maro.utils import Logger
 from maro.utils.exception.communication_exception import InformationUncompletedError, PeersMissError, PendingToSend
 from maro.utils.exit_code import KILL_ALL_EXIT_CODE, NON_RESTART_EXIT_CODE
 
@@ -63,7 +63,6 @@ class Proxy:
         initial_peer_discovery_retry_interval: Base value for the wait time between retries to find peers.
             Retries follow the exponential backoff algorithm. Defaults to 0.1.
         max_peer_discovery_retries: Maximum number of retries to find peers. Defaults to 5.
-        log_enable (bool): Open internal logger or not. Defaults to True.
         enable_rejoin (bool): Allow peers rejoin or not. Defaults to False, and must use with maro cli.
         minimal_peers Union[int, dict]: The minimal number of peers for each peer type.
         peers_catch_lifetime (int): The lifetime for onboard peers' information.
@@ -87,7 +86,6 @@ class Proxy:
         max_redis_connect_retries: int = MAX_REDIS_CONNECT_RETRIES,
         initial_peer_discovery_retry_interval: int = INITIAL_PEER_DISCOVERY_RETRY_INTERVAL,
         max_peer_discovery_retries: int = MAX_PEER_DISCOVERY_RETRIES,
-        log_enable: bool = True,
         enable_rejoin: bool = ENABLE_REJOIN,
         minimal_peers: Union[int, dict] = MINIMAL_PEERS,
         peers_catch_lifetime: int = PEERS_CATCH_LIFETIME,
@@ -109,8 +107,7 @@ class Proxy:
         self._max_redis_connect_retries = max_redis_connect_retries
         self._initial_peer_discovery_retry_interval = initial_peer_discovery_retry_interval
         self._max_peer_discovery_retries = max_peer_discovery_retries
-        self._log_enable = log_enable
-        self._logger = InternalLogger(component_name=self._name + "_proxy") if self._log_enable else DummyLogger()
+        self._logger = Logger(".".join([self._name, "proxy"]))
 
         # TODO:In multiprocess with spawn start method, the driver must be initiated before the Redis.
         # Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.
@@ -139,7 +136,7 @@ class Proxy:
                 next_retry *= 2
 
         if success:
-            self._logger.info(
+            self._logger.debug(
                 f"{self._name} is successfully connected to the redis server "
                 f"at {redis_address[0]}:{redis_address[1]}."
             )
@@ -259,7 +256,7 @@ class Proxy:
                     registered_peers = [peer.decode() for peer in self._redis_connection.hkeys(peer_hash_name)]
                     if len(registered_peers) > num_expected:
                         del registered_peers[num_expected:]
-                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s names.")
+                    self._logger.debug(f"{self._name} successfully get all {peer_type}\'s names.")
                     break
                 else:
                     self._logger.warn(
@@ -285,7 +282,7 @@ class Proxy:
                 peers_socket_value = self._redis_connection.hmget(info.hash_table_name, name_list)
                 for idx, peer_name in enumerate(name_list):
                     self._onboard_peer_dict[peer_type][peer_name] = json.loads(peers_socket_value[idx])
-                    self._logger.info(f"{self._name} successfully get {peer_name}\'s socket address")
+                    self._logger.debug(f"{self._name} successfully get {peer_name}\'s socket address")
             except Exception as e:
                 raise InformationUncompletedError(f"{self._name} failed to get {name_list}\'s address. Due to {str(e)}")
 
@@ -539,7 +536,7 @@ class Proxy:
                 and message.destination in self._onboard_peer_dict[peer_type]
                 and message.destination in self._message_cache_for_exited_peers
             ):
-                self._logger.info(f"Sending pending message to {message.destination}.")
+                self._logger.debug(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
                     self._driver.send(pending_message)
                     session_id_list.append(pending_message.session_id)
@@ -662,18 +659,18 @@ class Proxy:
                 for peer_name in union_peer_name:
                     # Add new peers (new key added on redis).
                     if peer_name not in list(self._onboard_peer_dict[peer_type].keys()):
-                        self._logger.info(f"PEER_REJOIN: New peer {peer_name} join.")
+                        self._logger.debug(f"PEER_REJOIN: New peer {peer_name} join.")
                         self._driver.connect({peer_name: onboard_peers_dict_on_redis[peer_name]})
                         self._onboard_peer_dict[peer_type][peer_name] = onboard_peers_dict_on_redis[peer_name]
                     # Delete out of date peers (old key deleted on local)
                     elif peer_name not in onboard_peers_dict_on_redis.keys():
-                        self._logger.info(f"PEER_REJOIN: Peer {peer_name} exited.")
+                        self._logger.debug(f"PEER_REJOIN: Peer {peer_name} exited.")
                         self._driver.disconnect({peer_name: self._onboard_peer_dict[peer_type][peer_name]})
                         del self._onboard_peer_dict[peer_type][peer_name]
                     else:
                         # Peer's ip/port updated, re-connect (value update on redis).
                         if onboard_peers_dict_on_redis[peer_name] != self._onboard_peer_dict[peer_type][peer_name]:
-                            self._logger.info(f"PEER_REJOIN: Peer {peer_name} rejoin.")
+                            self._logger.debug(f"PEER_REJOIN: Peer {peer_name} rejoin.")
                             self._driver.disconnect({peer_name: self._onboard_peer_dict[peer_type][peer_name]})
                             self._driver.connect({peer_name: onboard_peers_dict_on_redis[peer_name]})
                             self._onboard_peer_dict[peer_type][peer_name] = onboard_peers_dict_on_redis[peer_name]
@@ -742,7 +739,7 @@ class Proxy:
                 return
 
         self._message_cache_for_exited_peers[peer_name].append(message)
-        self._logger.info(f"Temporarily save message {message.session_id} to message cache.")
+        self._logger.debug(f"Temporarily save message {message.session_id} to message cache.")
 
     def close(self):
         self._redis_connection.hdel(self._redis_hash_name, self._name)

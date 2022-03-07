@@ -1,8 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .gradient_averaging import average_grads
-from .message_enums import MsgKey, MsgTag
-from .trajectory_computation import discount_cumsum
+from typing import Union
 
-__all__ = ["MsgKey", "MsgTag", "average_grads", "discount_cumsum"]
+from .objects import SHAPE_CHECK_FLAG
+from .torch_utils import average_grads, match_shape, ndarray_to_tensor
+from .trajectory_computation import discount_cumsum
+from .transition_batch import MultiTransitionBatch, TransitionBatch, merge_transition_batches
+
+AbsTransitionBatch = Union[TransitionBatch, MultiTransitionBatch]
+
+__all__ = [
+    "SHAPE_CHECK_FLAG",
+    "average_grads", "match_shape", "ndarray_to_tensor",
+    "discount_cumsum",
+    "AbsTransitionBatch", "MultiTransitionBatch", "TransitionBatch", "merge_transition_batches",
+]
