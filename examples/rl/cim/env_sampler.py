@@ -18,7 +18,7 @@ from .config import (
 
 class CIMEnvSampler(AbsEnvSampler):
     def _get_global_and_agent_state(
-        self, event: DecisionEvent, tick: int = None
+        self, event: DecisionEvent, tick: int = None,
     ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
         tick = self._env.tick
         vessel_snapshots, port_snapshots = self._env.snapshot_list["vessels"], self._env.snapshot_list["ports"]
@@ -27,7 +27,7 @@ class CIMEnvSampler(AbsEnvSampler):
         future_port_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
         state = np.concatenate([
             port_snapshots[ticks: [port_idx] + list(future_port_list): port_attributes],
-            vessel_snapshots[tick: vessel_idx: vessel_attributes]
+            vessel_snapshots[tick: vessel_idx: vessel_attributes],
         ])
         return state, {port_idx: state}
 

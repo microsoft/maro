@@ -14,7 +14,7 @@ from maro.rl.utils import SHAPE_CHECK_FLAG, match_shape, ndarray_to_tensor
 
 class AbsPolicy(object, metaclass=ABCMeta):
     """Abstract policy class. A policy takes states as inputs and generates actions as outputs. A policy cannot
-        update itself. It has to be updated by external trainers through public interfaces.
+        update itself. It has to be updated by external algorithms through public interfaces.
 
     Args:
         name (str): Name of this policy.
@@ -125,7 +125,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         self._is_exploring = False
 
     @abstractmethod
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         """Run a training step to update the policy according to the given loss.
 
         Args:

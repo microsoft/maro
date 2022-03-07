@@ -155,15 +155,15 @@ class ExpElement:
     def num_agents(self) -> int:
         return len(self.agent_state_dict)
 
-    def split_contents(self, agent2trainer: Dict[Any, str]) -> Dict[str, ExpElement]:
-        """Split the ExpElement's contents by trainer.
+    def split_contents(self, agent_to_algo_inst: Dict[Any, str]) -> Dict[str, ExpElement]:
+        """Split the ExpElement's contents by algorithm instance.
 
         Args:
-            agent2trainer (Dict[Any, str]): Mapping of agent name and trainer name.
+            agent_to_algo_inst (Dict[Any, str]): Mapping of agent name and algorithm instance name.
 
         Returns:
-            Contents (Dict[str, ExpElement]): A dict that contains the ExpElements of all trainers. The key of this
-                dict is the trainer name.
+            Contents (Dict[str, ExpElement]): A dict that contains the ExpElements of all algorithm instances.
+                The key of this dict is the algorithm instance name.
         """
         ret = collections.defaultdict(lambda: ExpElement(
             tick=self.tick,
@@ -176,13 +176,13 @@ class ExpElement:
             next_agent_state_dict=None if self.next_agent_state_dict is None else {},
         ))
         for agent_name in self.agent_names:
-            trainer_name = agent2trainer[agent_name]
-            ret[trainer_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
-            ret[trainer_name].action_dict[agent_name] = self.action_dict[agent_name]
-            ret[trainer_name].reward_dict[agent_name] = self.reward_dict[agent_name]
-            ret[trainer_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
+            algo_inst_name = agent_to_algo_inst[agent_name]
+            ret[algo_inst_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
+            ret[algo_inst_name].action_dict[agent_name] = self.action_dict[agent_name]
+            ret[algo_inst_name].reward_dict[agent_name] = self.reward_dict[agent_name]
+            ret[algo_inst_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
             if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict:
-                ret[trainer_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
+                ret[algo_inst_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
         return ret
 
 

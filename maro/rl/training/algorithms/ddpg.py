@@ -12,13 +12,13 @@ import torch
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAlgorithm, AlgorithmParams, remote
 from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
 @dataclass
-class DDPGParams(TrainerParams):
+class DDPGParams(AlgorithmParams):
     """
     get_q_critic_net_func (Callable[[], QNet]): Function to get Q critic net.
     reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
@@ -151,7 +151,7 @@ class DDPGOps(AbsTrainOps):
             batch (TransitionBatch): Batch.
         """
         self._q_critic_net.train()
-        self._q_critic_net.step(self._get_critic_loss(batch))
+        self._q_critic_net.train_step(self._get_critic_loss(batch))
 
     def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the actor loss of the batch.
@@ -163,7 +163,7 @@ class DDPGOps(AbsTrainOps):
             loss (torch.Tensor): The actor loss of the batch.
         """
         assert self._is_valid_transition_batch(batch)
-        self._policy.train()
+        self._policy.train_step()
         states = ndarray_to_tensor(batch.states, self._device)  # s
 
         policy_loss = -self._q_critic_net.q_values(
@@ -191,7 +191,7 @@ class DDPGOps(AbsTrainOps):
         Args:
             grad_dict (dict): Gradients.
         """
-        self._policy.train()
+        self._policy.train_step()
         self._policy.apply_gradients(grad_dict)
 
     def update_actor(self, batch: TransitionBatch) -> None:
@@ -200,8 +200,8 @@ class DDPGOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
-        self._policy.train()
-        self._policy.step(self._get_actor_loss(batch))
+        self._policy.train_step()
+        self._policy.train_step(self._get_actor_loss(batch))
 
     def get_state(self) -> dict:
         return {
@@ -224,7 +224,7 @@ class DDPGOps(AbsTrainOps):
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
 
-class DDPG(SingleTrainer):
+class DDPG(SingleAlgorithm):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
 
     References:
@@ -272,7 +272,7 @@ class DDPG(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert isinstance(self._ops, DDPGOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
@@ -281,7 +281,7 @@ class DDPG(SingleTrainer):
 
         self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()

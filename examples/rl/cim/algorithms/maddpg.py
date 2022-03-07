@@ -17,7 +17,7 @@ actor_net_conf = {
     "activation": torch.nn.Tanh,
     "softmax": True,
     "batch_norm": False,
-    "head": True
+    "head": True,
 }
 critic_net_conf = {
     "hidden_dims": [256, 128, 64],
@@ -25,7 +25,7 @@ critic_net_conf = {
     "activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": True,
-    "head": True
+    "head": True,
 }
 actor_learning_rate = 0.001
 critic_learning_rate = 0.001
@@ -47,7 +47,7 @@ class MyActorNet(DiscretePolicyNet):
     def unfreeze(self) -> None:
         self.unfreeze_all_parameters()
 
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()
@@ -65,7 +65,7 @@ class MyActorNet(DiscretePolicyNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -82,7 +82,7 @@ class MyMultiCriticNet(MultiQNet):
     def _get_q_values(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
         return self._critic(torch.cat([states] + actions, dim=1)).squeeze(-1)
 
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()
@@ -100,7 +100,7 @@ class MyMultiCriticNet(MultiQNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -130,6 +130,6 @@ def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMAD
             reward_discount=.0,
             num_epoch=10,
             get_q_critic_net_func=partial(get_multi_critic_net, state_dim, action_dims),
-            shared_critic=False
-        )
+            shared_critic=False,
+        ),
     )

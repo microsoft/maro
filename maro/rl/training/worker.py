@@ -9,7 +9,7 @@ from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
 from maro.utils import Logger
 
 from .train_ops import AbsTrainOps
-from .trainer import AbsTrainer
+from maro.rl.training.algorithms.abs_algorithm import AbsAlgorithm
 
 
 class TrainOpsWorker(AbsWorker):
@@ -20,8 +20,9 @@ class TrainOpsWorker(AbsWorker):
             so that the proxy can keep track of its connection status.
         policy_creator (Dict[str, Callable[[str], RLPolicy]]): User-defined function registry that can be used to create
             an "RLPolicy" instance with a name in the registry. This is required to create train ops instances.
-        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): User-defined function registry that can be used to
-            create an "AbsTrainer" instance with a name in the registry. This is required to create train ops instances.
+        algorithm_instance_creator (Dict[str, Callable[[str], AbsAlgorithm]]): User-defined function registry that
+            can be used to create an "AbsAlgorithm" instance with a name in the registry. This is required to
+            create train ops instances.
         producer_host (str): IP address of the proxy host to connect to.
         producer_port (int, default=10001): Port of the proxy host to connect to.
     """
@@ -30,7 +31,7 @@ class TrainOpsWorker(AbsWorker):
         self,
         idx: int,
         policy_creator: Dict[str, Callable[[str], RLPolicy]],
-        trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
+        algorithm_instance_creator: Dict[str, Callable[[str], AbsAlgorithm]],
         producer_host: str,
         producer_port: int = 10001,
         logger: Logger = None,
@@ -40,8 +41,8 @@ class TrainOpsWorker(AbsWorker):
         )
 
         self._policy_creator = policy_creator
-        self._trainer_creator = trainer_creator
-        self._trainer_dict: Dict[str, AbsTrainer] = {}
+        self._algo_inst_creator = algorithm_instance_creator
+        self._algo_inst_dict: Dict[str, AbsAlgorithm] = {}
 
         self._ops_dict: Dict[str, AbsTrainOps] = {}
 
@@ -59,13 +60,13 @@ class TrainOpsWorker(AbsWorker):
             assert isinstance(req, dict)
 
             if ops_name not in self._ops_dict:
-                trainer_name = ops_name.split(".")[0]
-                if trainer_name not in self._trainer_dict:
-                    trainer = self._trainer_creator[trainer_name](trainer_name)
-                    trainer.register_policy_creator(self._policy_creator)
-                    self._trainer_dict[trainer_name] = trainer
+                algo_inst_name = ops_name.split(".")[0]
+                if algo_inst_name not in self._algo_inst_dict:
+                    algo_inst = self._algo_inst_creator[algo_inst_name](algo_inst_name)
+                    algo_inst.register_policy_creator(self._policy_creator)
+                    self._algo_inst_dict[algo_inst_name] = algo_inst
 
-                self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops_by_name(ops_name)
+                self._ops_dict[ops_name] = self._algo_inst_dict[algo_inst_name].get_local_ops_by_name(ops_name)
                 self._logger.info(f"Created ops {ops_name} at {self._id}")
 
             self._ops_dict[ops_name].set_state(req["state"])

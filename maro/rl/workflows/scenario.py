@@ -8,7 +8,7 @@ from typing import Callable, Dict
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import AbsEnvSampler
-from maro.rl.training import AbsTrainer
+from maro.rl.training import AbsAlgorithm
 
 
 class Scenario(object):
@@ -30,8 +30,8 @@ class Scenario(object):
         return getattr(self._module, "policy_creator")
 
     @property
-    def trainer_creator(self) -> Dict[str, Callable[[str], AbsTrainer]]:
-        return getattr(self._module, "trainer_creator")
+    def algorithm_instance_creator(self) -> Dict[str, Callable[[str], AbsAlgorithm]]:
+        return getattr(self._module, "algorithm_instance_creator")
 
     @property
     def post_collect(self) -> Callable[[list, int, int], None]:

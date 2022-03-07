@@ -16,7 +16,7 @@ actor_net_conf = {
     "activation": torch.nn.Tanh,
     "softmax": True,
     "batch_norm": False,
-    "head": True
+    "head": True,
 }
 critic_net_conf = {
     "hidden_dims": [256, 128, 64],
@@ -24,7 +24,7 @@ critic_net_conf = {
     "activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": True,
-    "head": True
+    "head": True,
 }
 actor_learning_rate = 0.001
 critic_learning_rate = 0.001
@@ -45,7 +45,7 @@ class MyActorNet(DiscretePolicyNet):
     def unfreeze(self) -> None:
         self.unfreeze_all_parameters()
 
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()
@@ -63,7 +63,7 @@ class MyActorNet(DiscretePolicyNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -80,7 +80,7 @@ class MyCriticNet(VNet):
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
         return self._critic(states).squeeze(-1)
 
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()
@@ -98,7 +98,7 @@ class MyCriticNet(VNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -126,6 +126,6 @@ def get_ac(state_dim: int, name: str) -> DiscreteActorCritic:
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=None,
-            lam=.0
-        )
+            lam=.0,
+        ),
     )

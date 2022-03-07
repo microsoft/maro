@@ -11,13 +11,13 @@ import torch
 from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, MultiAlgorithm, RandomMultiReplayMemory, RemoteOps, AlgorithmParams, remote
 from maro.rl.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
 @dataclass
-class DiscreteMADDPGParams(TrainerParams):
+class DiscreteMADDPGParams(AlgorithmParams):
     """
     get_q_critic_net_func (Callable[[], MultiQNet]): Function to get multi Q critic net.
     num_epochs (int, default=10): Number of training epochs.
@@ -191,7 +191,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
             next_actions (List[torch.Tensor]): List of next actions of all policies.
         """
         self._q_critic_net.train()
-        self._q_critic_net.step(self._get_critic_loss(batch, next_actions))
+        self._q_critic_net.train_step(self._get_critic_loss(batch, next_actions))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
         """Update the critic network with remotely computed gradients.
@@ -243,7 +243,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
             batch (MultiTransitionBatch): Batch.
         """
         self._policy.train()
-        self._policy.step(self._get_actor_loss(batch))
+        self._policy.train_step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the critic network with remotely computed gradients.
@@ -291,7 +291,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self.set_actor_state(ops_state_dict)
 
 
-class DiscreteMADDPG(MultiTrainer):
+class DiscreteMADDPG(MultiAlgorithm):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
         super(DiscreteMADDPG, self).__init__(name, params)
         self._params = params
@@ -382,7 +382,7 @@ class DiscreteMADDPG(MultiTrainer):
             })
             return DiscreteMADDPGOps(name=name, **ops_params)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
         assert all(isinstance(ops, DiscreteMADDPGOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
@@ -408,7 +408,7 @@ class DiscreteMADDPG(MultiTrainer):
             # Update version
             self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, RemoteOps)
         assert all(isinstance(ops, RemoteOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
@@ -461,8 +461,8 @@ class DiscreteMADDPG(MultiTrainer):
 
     def load(self, path: str) -> None:
         self._assert_ops_exists()
-        trainer_state = torch.load(path)
-        for ops_name, ops_state in trainer_state.items():
+        training_state = torch.load(path)
+        for ops_name, ops_state in training_state.items():
             if ops_name == self._critic_ops.name:
                 self._critic_ops.set_state(ops_state)
             else:
@@ -470,10 +470,10 @@ class DiscreteMADDPG(MultiTrainer):
 
     def save(self, path: str) -> None:
         self._assert_ops_exists()
-        trainer_state = {ops.name: ops.get_state() for ops in self._actor_ops_list}
+        training_state = {ops.name: ops.get_state() for ops in self._actor_ops_list}
         if self._params.shared_critic:
-            trainer_state[self._critic_ops.name] = self._critic_ops.get_state()
-        torch.save(trainer_state, path)
+            training_state[self._critic_ops.name] = self._critic_ops.get_state()
+        torch.save(training_state, path)
 
     def _assert_ops_exists(self) -> None:
         if not self._actor_ops_list:

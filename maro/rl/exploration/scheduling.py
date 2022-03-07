@@ -27,7 +27,7 @@ class AbsExplorationScheduler(ABC):
         return self._exploration_params[self.param_name]
 
     @abstractmethod
-    def step(self) -> None:
+    def exploration_step(self) -> None:
         raise NotImplementedError
 
 
@@ -62,7 +62,7 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
         else:
             self.delta = 0
 
-    def step(self) -> None:
+    def exploration_step(self) -> None:
         if self._exploration_params[self.param_name] == self.final_value:
             return
 
@@ -112,7 +112,7 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         self._split_index = 1
         self._delta = (self._splits[1][1] - self._exploration_params[self.param_name]) / (self._splits[1][0] - start_ep)
 
-    def step(self) -> None:
+    def exploration_step(self) -> None:
         if self._split_index == len(self._splits):
             return
 

@@ -18,7 +18,7 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         super(AbsNet, self).__init__()
 
     @abstractmethod
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         """Run a training step to update the net's parameters according to the given loss.
 
         Args:

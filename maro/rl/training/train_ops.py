@@ -64,7 +64,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         return self._parallelism
 
     def _is_valid_transition_batch(self, batch: AbsTransitionBatch) -> bool:
-        """Used to check the transition batch's type. If this ops is used under a single trainer, the batch should be
+        """Used to check the transition batch's type. If this ops is used under a single algorithm, the batch should be
         a `TransitionBatch`. Otherwise, it should be a `MultiTransitionBatch`.
 
         Args:

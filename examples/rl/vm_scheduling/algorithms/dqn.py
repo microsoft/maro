@@ -21,7 +21,7 @@ q_net_conf = {
     "batch_norm": False,
     "skip_connection": False,
     "head": True,
-    "dropout_p": 0.0
+    "dropout_p": 0.0,
 }
 q_net_learning_rate = 0.0005
 q_net_lr_scheduler_params = {"T_0": 500, "T_mult": 2}
@@ -40,7 +40,7 @@ class MyQNet(DiscreteQNet):
         q_for_all_actions = self._fc(states[:, :self._num_features])
         return q_for_all_actions + (masks - 1) * 1e8
 
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         self._optim.zero_grad()
         loss.backward()
         self._optim.step()
@@ -96,7 +96,7 @@ def get_policy(state_dim: int, action_num: int, num_features: int, name: str) ->
                 "final_value": 0.0,
             }
         )],
-        warmup=100
+        warmup=100,
     )
 
 
@@ -113,6 +113,6 @@ def get_dqn(name: str) -> DQN:
             replay_memory_capacity=10000,
             random_overwrite=False,
             batch_size=32,
-            data_parallelism=2
-        )
+            data_parallelism=2,
+        ),
     )

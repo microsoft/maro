@@ -11,15 +11,15 @@ from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.utils import Logger
 
-from .train_ops import AbsTrainOps, RemoteOps
-from .utils import extract_trainer_name
+from maro.rl.training.train_ops import AbsTrainOps, RemoteOps
+from maro.rl.training.utils import extract_algo_inst_name
 
 
 @dataclass
-class TrainerParams:
-    """Common trainer parameters.
+class AlgorithmParams:
+    """Common algorithm parameters.
 
-    device (str, default=None): Name of the device to store this trainer. If it is None, the device will be
+    device (str, default=None): Name of the device to store this algorithm instance. If it is None, the device will be
         automatically determined according to GPU availability.
     replay_memory_capacity (int, default=100000): Maximum capacity of the replay memory.
     batch_size (int, default=128): Training batch size.
@@ -49,20 +49,20 @@ class TrainerParams:
         raise NotImplementedError
 
 
-class AbsTrainer(object, metaclass=ABCMeta):
-    """Policy trainer used to train policies. Trainer maintains a group of train ops and
+class AbsAlgorithm(object, metaclass=ABCMeta):
+    """RL algorithm used to train policies. An algorithm instance maintains a group of train ops and
     controls training logics of them, while train ops take charge of specific policy updating.
 
-    Trainer will hold one or more replay memories to store the experiences, and it will also maintain a duplication
-    of all policies it trains. However, trainer will not do any actual computations. All computations will be
-    done in the train ops.
+    An algorithm instance will hold one or more replay memories to store the experiences, and it will also maintain
+    a duplication of all policies it trains. However, algorithms instances will not do any actual computations.
+    All computations will be done in the train ops.
 
     Args:
-        name (str): Name of the trainer.
-        params (TrainerParams): Trainer's parameters.
+        name (str): Name of the algorithm instance.
+        params (AlgorithmParams): Algorithm parameters.
     """
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
+    def __init__(self, name: str, params: AlgorithmParams) -> None:
         self._name = name
         self._batch_size = params.batch_size
         self._agent2policy: Dict[str, str] = {}
@@ -81,9 +81,9 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
-        """Register the agent to policy dict that correspond to the current trainer. A valid policy name should start
-        with the name of its trainer. For example, "DQN.POLICY_NAME". Therefore, we could identify which policies
-        should be registered to the current trainer according to the policy's name.
+        """Register the agent to policy dict that correspond to the current algorithm instance. A valid policy name
+        should start with the name of its algorithm instance. For example, "DQN.POLICY_NAME". Therefore, we could
+        identify which policies should be registered to the current algorithm instance according to the policy's name.
 
         Args:
             agent2policy (Dict[Any, str]): Agent name to policy name mapping.
@@ -91,7 +91,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._agent2policy = {
             agent_name: policy_name
             for agent_name, policy_name in agent2policy.items()
-            if extract_trainer_name(policy_name) == self.name
+            if extract_algo_inst_name(policy_name) == self.name
         }
 
     @abstractmethod
@@ -99,7 +99,8 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self,
         global_policy_creator: Dict[str, Callable[[str], RLPolicy]],
     ) -> None:
-        """Register the policy creator. Only keep the creators of the policies that the current trainer need to train.
+        """Register the policy creator. Only keep the creators of the policies that the current algorithm instance
+        need to train.
 
         Args:
             global_policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict that contains the creators for all
@@ -115,13 +116,13 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def train(self) -> None:
-        """Run a training step to update all the policies that this trainer is responsible for.
+    def train_step(self) -> None:
+        """Run a training step to update all the policies that this algorithm instance is responsible for.
         """
         raise NotImplementedError
 
-    async def train_as_task(self) -> None:
-        """Update all policies managed by the trainer as an asynchronous task.
+    async def train_step_as_task(self) -> None:
+        """Update all policies managed by the algorithm instance as an asynchronous task.
         """
         raise NotImplementedError
 
@@ -152,9 +153,9 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
-        """Create an `AbsTrainOps` instance with a given name. If a proxy address has been registered to the trainer,
-        this returns a `RemoteOps` instance in which all methods annotated as "remote" are turned into a remote method
-        call. Otherwise, a regular `AbsTrainOps` is returned.
+        """Create an `AbsTrainOps` instance with a given name. If a proxy address has been registered to the algorithm
+        instance, this returns a `RemoteOps` instance in which all methods annotated as "remote" are turned into a
+        remote method call. Otherwise, a regular `AbsTrainOps` is returned.
 
         Args:
             name (str): Ops name.
@@ -187,12 +188,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
-    """Policy trainer that trains only one policy.
+class SingleAlgorithm(AbsAlgorithm, metaclass=ABCMeta):
+    """Algorithm that trains only one policy.
     """
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
-        super(SingleTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: AlgorithmParams) -> None:
+        super(SingleAlgorithm, self).__init__(name, params)
 
         self._ops: Union[RemoteOps, None] = None  # To be created in `build()`
 
@@ -202,17 +203,17 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
+        global_policy_creator: Dict[str, Callable[[str], RLPolicy]],
     ) -> None:
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
             policy_name: func for policy_name, func in global_policy_creator.items()
-            if extract_trainer_name(policy_name) == self.name
+            if extract_algo_inst_name(policy_name) == self.name
         }
 
         if len(self._policy_creator) == 0:
-            raise ValueError(f"Trainer {self._name} has no policies")
+            raise ValueError(f"Algorithm instance {self._name} has no policies")
         if len(self._policy_creator) > 1:
-            raise ValueError(f"Trainer {self._name} cannot have more than one policy assigned to it")
+            raise ValueError(f"Algorithm instance {self._name} cannot have more than one policy assigned to it")
 
         self._policy_name = list(self._policy_creator.keys())[0]
         self._get_policy_func = lambda: self._policy_creator[self._policy_name](self._policy_name)
@@ -239,12 +240,12 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
             await self._ops.exit()
 
 
-class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
-    """Policy trainer that trains multiple policies.
+class MultiAlgorithm(AbsAlgorithm, metaclass=ABCMeta):
+    """Algorithm that trains multiple policies.
     """
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
-        super(MultiTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: AlgorithmParams) -> None:
+        super(MultiAlgorithm, self).__init__(name, params)
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_names: List[str] = []
 
@@ -254,7 +255,7 @@ class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
     ) -> None:
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
             policy_name: func for policy_name, func in global_policy_creator.items()
-            if extract_trainer_name(policy_name) == self.name
+            if extract_algo_inst_name(policy_name) == self.name
         }
         self._policy_names = sorted(list(self._policy_creator.keys()))
 

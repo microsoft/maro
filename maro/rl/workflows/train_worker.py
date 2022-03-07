@@ -19,7 +19,7 @@ if __name__ == "__main__":
     worker = TrainOpsWorker(
         idx=int_or_none(get_env("ID")),
         policy_creator=scenario_attr.policy_creator,
-        trainer_creator=scenario_attr.trainer_creator,
+        algorithm_instance_creator=scenario_attr.algorithm_instance_creator,
         producer_host=get_env("TRAIN_PROXY_HOST"),
         producer_port=int_or_none(get_env("TRAIN_PROXY_BACKEND_PORT")),
         logger=logger,

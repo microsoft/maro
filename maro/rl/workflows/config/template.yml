@@ -52,25 +52,26 @@ rollout:
     file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
 training:
   # Must be "simple" or "parallel". In simple mode, all underlying models are trained locally. In parallel mode,
-  # all trainers send gradient-related tasks to a proxy service where they get dispatched to a set of workers.
+  # all algorithm instances send gradient-related tasks to a proxy service where they get dispatched to a set of
+  # workers.
   mode: simple
-  # Path to load previously saved trainer snapshots from. A policy trainer's snapshot includes the states of all
+  # Path to load previously saved training snapshots from. A algorithm instance's snapshot includes the states of all
   # the policies it manages as well as the states of auxillary models (e.g., critics in the Actor-Critic paradigm).
   # If the path corresponds to an existing directory, the program will look under the directory for snapshot files
-  # that match the trainer names specified in the scenario and attempt to load from them.
+  # that match the algorithm instance names specified in the scenario and attempt to load from them.
   load_path: "/path/to/your/models"
   # Optional section to specify model checkpointing settings.
   checkpointing:
-    # Directory to save trainer snapshots under. Snapshot files created at different episodes will be saved under
-    # separate folders named using episode numbers. For example, if a snapshot is created for a trainer named "dqn"
-    # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
+    # Directory to save training snapshots under. Snapshot files created at different episodes will be saved under
+    # separate folders named using episode numbers. For example, if a snapshot is created for an algorithm instance
+    # named "dqn" at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
     path: "/path/to/your/checkpoint/folder"
     interval: 10  # Interval at which trained policies / models are persisted to disk.
   proxy:  # Proxy settings. Ignored if training.mode is "simple".
     host: "127.0.0.1"  # Proxy service host's IP address. Ignored if run in containerized environments.
-    frontend: 10000  # Proxy service's network port for trainers to send tasks to.
+    frontend: 10000  # Proxy service's network port for algorithm instances to send tasks to.
     backend: 10001  # Proxy service's network port for remote workers to connect to.
-  num_workers: 10  # Number of workers to execute trainers' tasks.
+  num_workers: 10  # Number of workers to execute algorithm instances' tasks.
   logging:  # log levels for training task workers
     stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS

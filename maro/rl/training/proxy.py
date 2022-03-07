@@ -10,7 +10,7 @@ from maro.utils import LoggerV2
 
 
 class TrainingProxy(AbsProxy):
-    """Intermediary between trainers and workers.
+    """Intermediary between algorithm instances and workers.
 
     The proxy receives compute tasks from multiple ``AbsTrainOps`` instances, forwards them to a set of back-end
     ``TrainOpsWorker``s to be processed and returns the results to the clients.

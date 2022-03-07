@@ -176,7 +176,7 @@ class AbsReplayMemory(object, metaclass=ABCMeta):
 
 
 class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
-    """In-memory experience storage facility for a single trainer.
+    """In-memory experience storage facility for a single algorithm.
 
     Args:
         capacity (int): Maximum capacity of the replay memory.
@@ -310,7 +310,7 @@ class FIFOReplayMemory(ReplayMemory):
 
 
 class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
-    """In-memory experience storage facility for a multi trainer.
+    """In-memory experience storage facility for a multi algorithm.
 
     Args:
         capacity (int): Maximum capacity of the replay memory.

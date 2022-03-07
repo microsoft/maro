@@ -9,13 +9,13 @@ import torch
 
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAlgorithm, AlgorithmParams, remote
 from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
 
 @dataclass
-class DQNParams(TrainerParams):
+class DQNParams(AlgorithmParams):
     """
     reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
     num_epochs (int, default=1): Number of training epochs.
@@ -87,7 +87,7 @@ class DQNOps(AbsTrainOps):
             loss (torch.Tensor): The loss of the batch.
         """
         assert self._is_valid_transition_batch(batch)
-        self._policy.train()
+        self._policy.train_step()
         states = ndarray_to_tensor(batch.states, self._device)
         next_states = ndarray_to_tensor(batch.next_states, self._device)
         actions = ndarray_to_tensor(batch.actions, self._device)
@@ -126,7 +126,7 @@ class DQNOps(AbsTrainOps):
         Args:
             grad_dict (dict): Gradients.
         """
-        self._policy.train()
+        self._policy.train_step()
         self._policy.apply_gradients(grad_dict)
 
     def update(self, batch: TransitionBatch) -> None:
@@ -135,8 +135,8 @@ class DQNOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
-        self._policy.train()
-        self._policy.step(self._get_batch_loss(batch))
+        self._policy.train_step()
+        self._policy.train_step(self._get_batch_loss(batch))
 
     def get_state(self) -> dict:
         return {
@@ -154,7 +154,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
 
-class DQN(SingleTrainer):
+class DQN(SingleAlgorithm):
     """The Deep-Q-Networks algorithm.
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
@@ -202,14 +202,14 @@ class DQN(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert isinstance(self._ops, DQNOps)
         for _ in range(self._params.num_epochs):
             self._ops.update(self._get_batch())
 
         self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
