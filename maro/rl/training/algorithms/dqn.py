@@ -87,7 +87,7 @@ class DQNOps(AbsTrainOps):
             loss (torch.Tensor): The loss of the batch.
         """
         assert self._is_valid_transition_batch(batch)
-        self._policy.train_step()
+        self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)
         next_states = ndarray_to_tensor(batch.next_states, self._device)
         actions = ndarray_to_tensor(batch.actions, self._device)
@@ -126,7 +126,7 @@ class DQNOps(AbsTrainOps):
         Args:
             grad_dict (dict): Gradients.
         """
-        self._policy.train_step()
+        self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
     def update(self, batch: TransitionBatch) -> None:
@@ -135,7 +135,7 @@ class DQNOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
-        self._policy.train_step()
+        self._policy.train()
         self._policy.train_step(self._get_batch_loss(batch))
 
     def get_state(self) -> dict:

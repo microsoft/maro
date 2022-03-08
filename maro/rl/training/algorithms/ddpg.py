@@ -163,7 +163,7 @@ class DDPGOps(AbsTrainOps):
             loss (torch.Tensor): The actor loss of the batch.
         """
         assert self._is_valid_transition_batch(batch)
-        self._policy.train_step()
+        self._policy.train()
         states = ndarray_to_tensor(batch.states, self._device)  # s
 
         policy_loss = -self._q_critic_net.q_values(
@@ -191,7 +191,7 @@ class DDPGOps(AbsTrainOps):
         Args:
             grad_dict (dict): Gradients.
         """
-        self._policy.train_step()
+        self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
     def update_actor(self, batch: TransitionBatch) -> None:
@@ -200,7 +200,7 @@ class DDPGOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
-        self._policy.train_step()
+        self._policy.train()
         self._policy.train_step(self._get_actor_loss(batch))
 
     def get_state(self) -> dict:

@@ -192,7 +192,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         Args:
             grad_dict (dict): Gradients.
         """
-        self._policy.train_step()
+        self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
     def get_state(self) -> dict:
