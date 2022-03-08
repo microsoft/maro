@@ -39,11 +39,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._metrics_cache = None
 
-        for facility in self.world.facilities.values():
-            print(facility)
-            for unit in facility.children:
-                print('\t', unit)
-
     @property
     def frame(self) -> FrameBase:
         return self._frame
