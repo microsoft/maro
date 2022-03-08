@@ -13,7 +13,7 @@ class SellerUnit(ExtendUnitBase):
     Unit that used to generate product consume demand, and move demand product from current storage.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(SellerUnit, self).__init__()
 
         self.gamma = 0
@@ -42,7 +42,7 @@ class SellerUnit(ExtendUnitBase):
         else:
             return int(np.random.gamma(self.gamma))
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(SellerUnit, self).initialize()
 
         sku = self.facility.skus[self.product_id]
@@ -56,7 +56,7 @@ class SellerUnit(ExtendUnitBase):
 
         self.demand_from_file = self.facility.demand_from_file.get(self.product_id, {})
 
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         demand = self.market_demand(tick)
 
         # What seller does is just count down the product number.
@@ -70,7 +70,7 @@ class SellerUnit(ExtendUnitBase):
         self.sale_hist.append(demand)
         self.sale_hist = self.sale_hist[1:]
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         if self.sold > 0:
             self.data_model.sold = self.sold
             self.data_model.total_sold = self.total_sold
@@ -79,7 +79,7 @@ class SellerUnit(ExtendUnitBase):
             self.data_model.demand = self.demand
             self.data_model.total_demand = self.total_demand
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> None:
         super(SellerUnit, self).post_step(tick)
 
         if self.sold > 0:
@@ -93,8 +93,8 @@ class SellerUnit(ExtendUnitBase):
     def reset(self):
         super(SellerUnit, self).reset()
 
-    def sale_mean(self):
-        return np.mean(self.sale_hist)
+    def sale_mean(self) -> float:
+        return float(np.mean(self.sale_hist))
 
-    def sale_std(self):
-        return np.std(self.sale_hist)
+    def sale_std(self) -> float:
+        return float(np.std(self.sale_hist))

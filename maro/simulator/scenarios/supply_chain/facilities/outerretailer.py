@@ -8,7 +8,7 @@ from .retailer import RetailerFacility
 
 # Mapping for supported sampler.
 sampler_mapping = {
-    "data": DataFileDemandSampler
+    "data": DataFileDemandSampler,
 }
 
 
@@ -19,7 +19,7 @@ class OuterRetailerFacility(RetailerFacility):
         This require that all product seller is subclass of OuterSellerUnit.
     """
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(OuterRetailerFacility, self).initialize()
 
         # What kind of sampler we need?

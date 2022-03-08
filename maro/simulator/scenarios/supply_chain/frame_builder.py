@@ -6,7 +6,7 @@ from typing import List, Tuple
 from maro.backends.frame import FrameBase, FrameNode, NodeBase
 
 
-def build_frame(enable_snapshot: bool, total_snapshots: int, nodes: List[Tuple[NodeBase, str, int]]):
+def build_frame(enable_snapshot: bool, total_snapshots: int, nodes: List[Tuple[type, str, int]]) -> FrameBase:
     class Frame(FrameBase):
         def __init__(self):
             # Inject the node definition to frame to support add node dynamically.

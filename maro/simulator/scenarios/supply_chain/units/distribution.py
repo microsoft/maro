@@ -89,7 +89,7 @@ class DistributionUnit(UnitBase):
                     order.destination,
                     order.product_id,
                     order.quantity,
-                    order.vlt
+                    order.vlt,
                 )
 
                 self._is_order_changed = True

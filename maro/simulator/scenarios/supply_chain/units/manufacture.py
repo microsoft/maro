@@ -24,7 +24,7 @@ class ManufactureUnit(ExtendUnitBase):
     # How many we procedure per current step.
     manufacture_number: int = 0
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(ManufactureUnit, self).initialize()
 
         facility_sku_info = self.facility.skus[self.product_id]
@@ -41,7 +41,7 @@ class ManufactureUnit(ExtendUnitBase):
         if len(self.bom) > 0:
             self.input_units_per_lot = sum(self.bom.values())
 
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         assert self.action is None or isinstance(self.action, ManufactureAction)
 
         # Try to produce production if we have positive rate.
@@ -54,7 +54,7 @@ class ManufactureUnit(ExtendUnitBase):
             max_number_to_procedure = min(
                 unit_num_upper_bound - current_product_number,
                 self.action.production_rate * self.output_units_per_lot,
-                self.facility.storage.remaining_space
+                self.facility.storage.remaining_space,
             )
 
             if max_number_to_procedure > 0:
@@ -71,7 +71,7 @@ class ManufactureUnit(ExtendUnitBase):
 
                     max_number_to_procedure = min(
                         source_sku_available_number // source_sku_cost_number,
-                        max_number_to_procedure
+                        max_number_to_procedure,
                     )
 
                     if max_number_to_procedure <= 0:
@@ -86,11 +86,11 @@ class ManufactureUnit(ExtendUnitBase):
         else:
             self.manufacture_number = 0
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         if self.manufacture_number > 0:
             self.data_model.manufacturing_number = self.manufacture_number
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> None:
         if self.manufacture_number > 0:
             self.data_model.manufacturing_number = 0
             self.manufacture_number = 0

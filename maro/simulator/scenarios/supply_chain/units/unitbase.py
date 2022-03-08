@@ -59,10 +59,10 @@ class UnitBase:
     # Current unit configurations.
     config: Optional[dict] = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def parse_configs(self, config: dict):
+    def parse_configs(self, config: dict) -> None:
         """Parse configurations from config.
 
         Args:
@@ -70,7 +70,7 @@ class UnitBase:
         """
         self.config = config
 
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         """Run related logic for current tick.
 
         Args:
@@ -78,12 +78,12 @@ class UnitBase:
         """
         pass
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         """Flush states into frame for current tick.
         """
         pass
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> None:
         """Post-processing for current step.
 
         Args:
@@ -91,14 +91,14 @@ class UnitBase:
         """
         self.action = None
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset this unit for a new episode."""
         if self.data_model is not None:
             self.data_model.reset()
 
         self.action = None
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Initialize this unit after data model is ready to use.
 
         NOTE: unit.data_model is available from this step.
@@ -106,7 +106,7 @@ class UnitBase:
         if self.data_model is not None:
             self.data_model.set_id(self.id, self.facility.id)
 
-    def set_action(self, action: SupplyChainAction):
+    def set_action(self, action: SupplyChainAction) -> None:
         """Set action for this agent.
 
         Args:
@@ -121,5 +121,5 @@ class UnitBase:
             "node_index": self.data_model_index,
             "class": type(self),
             "config": self.config,
-            "children": None if self.children is None else [c.get_unit_info() for c in self.children]
+            "children": None if self.children is None else [c.get_unit_info() for c in self.children],
         }

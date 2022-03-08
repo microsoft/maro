@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import typing
-from typing import NamedTuple
+from dataclasses import dataclass
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain import FacilityBase
 
 
-class Order(NamedTuple):
+@dataclass
+class Order:
     destination: FacilityBase
     product_id: int
     quantity: int

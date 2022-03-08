@@ -9,7 +9,7 @@ from .unitbase import UnitBase
 class StorageUnit(UnitBase):
     """Unit that used to store skus."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # Used to map from product id to slot index.
@@ -101,7 +101,7 @@ class StorageUnit(UnitBase):
         """
         return self.product_level[product_id]
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(StorageUnit, self).initialize()
 
         self.capacity = self.config.get("capacity", 100)
@@ -117,10 +117,10 @@ class StorageUnit(UnitBase):
             capacity=self.capacity,
             remaining_space=self.remaining_space,
             product_list=[sku_id for sku_id in self.product_level.keys()],
-            product_number=[n for n in self.product_level.values()]
+            product_number=[n for n in self.product_level.values()],
         )
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         # Write the changes to frame.
         i = 0
         has_changes = False
@@ -135,7 +135,7 @@ class StorageUnit(UnitBase):
         if has_changes:
             self.data_model.remaining_space = self.remaining_space
 
-    def reset(self):
+    def reset(self) -> None:
         super(StorageUnit, self).reset()
 
         self.remaining_space = self.capacity
@@ -149,7 +149,7 @@ class StorageUnit(UnitBase):
             self.product_level[sku.id] = sku.init_stock
             self.remaining_space -= sku.init_stock
 
-    def get_unit_info(self):
+    def get_unit_info(self) -> dict:
         info = super().get_unit_info()
 
         info["product_list"] = [i for i in self.product_level.keys()]

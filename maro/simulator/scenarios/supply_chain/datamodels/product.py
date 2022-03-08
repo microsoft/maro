@@ -15,17 +15,17 @@ class ProductDataModel(ExtendDataModel):
     distribution_transport_cost = NodeAttribute(AttributeType.Float)
     distribution_delay_order_penalty = NodeAttribute(AttributeType.Float)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(ProductDataModel, self).__init__()
 
         self._price = 0
 
-    def initialize(self, price: float):
+    def initialize(self, price: float) -> None:
         self._price = price
 
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         super(ProductDataModel, self).reset()
 
         self.price = self._price

@@ -20,7 +20,7 @@ class SellerDemandSampler(ABC):
         world (World): Current world this retail belongs to.
     """
 
-    def __init__(self, configs: dict, world):
+    def __init__(self, configs: dict, world) -> None:
         self._configs = configs
         self._world = world
 
@@ -54,7 +54,7 @@ class DataFileDemandSampler(SellerDemandSampler):
 
     SkuRow = namedtuple("SkuRow", ("price", "sales"))
 
-    def __init__(self, configs: dict, world):
+    def __init__(self, configs: dict, world) -> None:
         super(DataFileDemandSampler, self).__init__(configs, world)
 
         self._file_path = configs["file_path"]
@@ -81,7 +81,7 @@ class DataFileDemandSampler(SellerDemandSampler):
 
         return self._cache[tick][product_id].sales
 
-    def _cache_data(self):
+    def _cache_data(self) -> None:
         with open(self._file_path, "rt") as fp:
             reader = DictReader(fp)
 

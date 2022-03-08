@@ -14,11 +14,11 @@ class DataModelBase(NodeBase):
     # Id of facility this unit belongs to.
     facility_id = NodeAttribute(AttributeType.Int)
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._unit_id = 0
         self._facility_id = 0
 
-    def initialize(self, **kwargs):
+    def initialize(self, **kwargs) -> None:
         """Initialize the fields with configs, the config should be a dict.
 
         Args:
@@ -28,13 +28,13 @@ class DataModelBase(NodeBase):
         # Called from unit after frame is ready.
         pass
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset after each episode."""
         # Called per episode.
         self.id = self._unit_id
         self.facility_id = self._facility_id
 
-    def set_id(self, unit_id: int, facility_id: int):
+    def set_id(self, unit_id: int, facility_id: int) -> None:
         """Used to assign id(s), so that it will be assigned after frame rest.
 
         Args:

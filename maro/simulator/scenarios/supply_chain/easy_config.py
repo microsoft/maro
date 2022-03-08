@@ -29,5 +29,5 @@ class SkuInfo(EasyConfig):
         "product_unit_cost": 0,
         "backlog_ratio": 0,
         "service_level": 0.90,
-        "cost": 0
+        "cost": 0,
     }

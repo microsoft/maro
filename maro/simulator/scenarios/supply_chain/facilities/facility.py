@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 from __future__ import annotations
 
+import collections
 import typing
 from abc import ABC
 from collections import defaultdict
@@ -13,6 +14,7 @@ from maro.simulator.scenarios.supply_chain.units import DistributionUnit, Produc
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
+    from maro.simulator.scenarios.supply_chain import UnitBase
 
 
 class FacilityBase(ABC):
@@ -68,13 +70,13 @@ class FacilityBase(ABC):
     # Real demands from outer files.
     demand_from_file: Dict[int, Dict[int, int]] = {}  # {sku_id: {tick: demand}}
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.upstreams = {}
-        self.downstreams = {}
-        self.children = []
+        self.downstreams = collections.defaultdict(list)
+        self.children: List[UnitBase] = []
         self.skus = {}
 
-    def parse_skus(self, configs: dict):
+    def parse_skus(self, configs: dict) -> None:
         """Parse sku information from config.
 
         Args:
@@ -87,7 +89,7 @@ class FacilityBase(ABC):
 
             self.skus[global_sku.id] = facility_sku
 
-    def parse_configs(self, configs: dict):
+    def parse_configs(self, configs: dict) -> None:
         """Parse configuration of this facility.
 
         Args:
@@ -107,7 +109,7 @@ class FacilityBase(ABC):
         """
         return default if self.configs is None else self.configs.get(key, default)
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Initialize this facility after frame is ready."""
         self.data_model.initialize()
 
@@ -122,7 +124,7 @@ class FacilityBase(ABC):
             for product in self.products.values():
                 self.children.append(product)
 
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         """Push facility to next step.
 
         Args:
@@ -131,17 +133,17 @@ class FacilityBase(ABC):
         for unit in self.children:
             unit.step(tick)
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         """Flush states into frame."""
         for unit in self.children:
             unit.flush_states()
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> None:
         """Post processing at the end of step."""
         for unit in self.children:
             unit.post_step(tick)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset facility for new episode."""
         for unit in self.children:
             unit.reset()
@@ -149,7 +151,7 @@ class FacilityBase(ABC):
         if self.data_model is not None:
             self.data_model.reset()
 
-    def get_in_transit_orders(self):
+    def get_in_transit_orders(self) -> dict:
         in_transit_orders = defaultdict(int)
 
         for product_id, product in self.products.items():
@@ -158,7 +160,7 @@ class FacilityBase(ABC):
 
         return in_transit_orders
 
-    def set_action(self, action: object):
+    def set_action(self, action: object) -> None:
         pass
 
     def get_node_info(self) -> dict:
@@ -175,7 +177,7 @@ class FacilityBase(ABC):
             "units": {
                 "storage": self.storage.get_unit_info() if self.storage is not None else None,
                 "distribution": self.distribution.get_unit_info() if self.distribution is not None else None,
-                "products": products_info
+                "products": products_info,
             },
             "configs": self.configs,
             "skus": self.skus,

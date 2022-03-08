@@ -15,17 +15,17 @@ class VehicleDataModel(DataModelBase):
 
     unit_transport_cost = NodeAttribute(AttributeType.Float)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(VehicleDataModel, self).__init__()
 
         self._unit_transport_cost = 1
 
-    def initialize(self, unit_transport_cost: int = 1):
+    def initialize(self, unit_transport_cost: int = 1) -> None:
         self._unit_transport_cost = unit_transport_cost
 
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         super(VehicleDataModel, self).reset()
 
         self.unit_transport_cost = self._unit_transport_cost

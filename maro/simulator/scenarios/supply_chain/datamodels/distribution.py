@@ -15,8 +15,8 @@ class DistributionDataModel(DataModelBase):
     remaining_order_quantity = NodeAttribute(AttributeType.UInt)
     remaining_order_number = NodeAttribute(AttributeType.UInt)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(DistributionDataModel, self).__init__()
 
-    def reset(self):
+    def reset(self) -> None:
         super(DistributionDataModel, self).reset()

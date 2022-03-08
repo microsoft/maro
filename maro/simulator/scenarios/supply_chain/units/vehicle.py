@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 class VehicleUnit(UnitBase):
     """Unit used to move production from source to destination by order."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         # Max patient of current vehicle.
         self.max_patient: Optional[int] = None
@@ -48,7 +48,7 @@ class VehicleUnit(UnitBase):
         self.cost = 0
         self.unit_transport_cost = 0
 
-    def schedule(self, destination: FacilityBase, product_id: int, quantity: int, vlt: int):
+    def schedule(self, destination: FacilityBase, product_id: int, quantity: int, vlt: int) -> None:
         """Schedule a job for this vehicle.
 
         Args:
@@ -66,7 +66,7 @@ class VehicleUnit(UnitBase):
             self.facility.x,
             self.facility.y,
             destination.x,
-            destination.y
+            destination.y,
         )
 
         if self.path is None:
@@ -101,11 +101,11 @@ class VehicleUnit(UnitBase):
 
         return False
 
-    def try_unload(self):
+    def try_unload(self) -> None:
         """Try unload products into destination's storage."""
         unloaded = self.destination.storage.try_add_products(
             {self.product_id: self.payload},
-            all_or_nothing=False
+            all_or_nothing=False,
         )
 
         # Update order if we unloaded any.
@@ -116,16 +116,16 @@ class VehicleUnit(UnitBase):
                 self.facility.id,
                 self.product_id,
                 unloaded_units,
-                self.payload
+                self.payload,
             )
 
             self.payload -= unloaded_units
             self.data_model.payload = self.payload
 
-    def is_enroute(self):
+    def is_enroute(self) -> bool:
         return self.destination is not None
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(VehicleUnit, self).initialize()
 
         patient = self.config.get("patient", 100)
@@ -135,8 +135,8 @@ class VehicleUnit(UnitBase):
 
         self.max_patient = patient
 
-    def step(self, tick: int):
-        # If we have not arrive at destination yet.
+    def step(self, tick: int) -> None:
+        # If we have not arrived at destination yet.
         if self.steps > 0:
             # if we still not loaded enough productions yet.
             if self.location == 0 and self.payload == 0:
@@ -153,7 +153,7 @@ class VehicleUnit(UnitBase):
                         self.destination.products[self.product_id].consumer.update_open_orders(
                             self.facility.id,
                             self.product_id,
-                            -self.requested_quantity
+                            -self.requested_quantity,
                         )
 
                         self._reset_internal_states()
@@ -182,13 +182,13 @@ class VehicleUnit(UnitBase):
 
         self.cost = self.payload * self.unit_transport_cost
 
-    def reset(self):
+    def reset(self) -> None:
         super(VehicleUnit, self).reset()
 
         self._reset_internal_states()
         self._reset_data_model()
 
-    def _reset_internal_states(self):
+    def _reset_internal_states(self) -> None:
         self.destination = None
         self.path = None
         self.payload = 0
@@ -199,6 +199,6 @@ class VehicleUnit(UnitBase):
         self.velocity = 0
         self.patient = self.max_patient
 
-    def _reset_data_model(self):
+    def _reset_data_model(self) -> None:
         # Reset data model.
         self.data_model.payload = 0
