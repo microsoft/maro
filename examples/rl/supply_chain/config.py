@@ -11,8 +11,6 @@ env_conf = {
     "durations": 100  # number of ticks per episode
 }
 
-# Sku related agent types
-sku_agent_types = {"consumer", "consumerstore", "producer", "product", "productstore"}
 distribution_features = ("remaining_order_quantity", "remaining_order_number")
 seller_features = ("total_demand", "sold", "demand")
 

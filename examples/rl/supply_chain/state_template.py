@@ -51,6 +51,7 @@ keys_in_state = [
 
 # Create initial state structure. We will build the final state with default and const values,
 # then update dynamic part per step
+print(list(env.summary["node_mapping"].keys()))
 num_skus = len(env.summary["node_mapping"]["skus"]) + 1
 STATE_TEMPLATE = {}
 for entity in env._business_engine.get_entity_list():
@@ -68,14 +69,14 @@ for entity in env._business_engine.get_entity_list():
     state["is_accepted"] = [0] * env.configs.settings["constraint_state_hist_len"]
     state['constraint_idx'] = [0]
     state['facility_id'] = [0] * num_skus
-    state['sku_info'] = {} if entity.is_facility else entity.sku
+    state['sku_info'] = {} if entity.is_facility else entity.skus
     state['echelon_level'] = 0
 
     state['facility_info'] = facility['config']
     state["is_positive_balance"] = 0
 
     if not entity.is_facility:
-        state['facility_id'][entity.sku.id] = 1
+        state['facility_id'][entity.skus.id] = 1
 
     for atom_name in atoms.keys():
         state[atom_name] = list(np.ones(env.configs.settings['constraint_state_hist_len']))
@@ -90,15 +91,15 @@ for entity in env._business_engine.get_entity_list():
     state['bom_outputs'] = [0] * num_skus
 
     if not entity.is_facility:
-        state['bom_inputs'][entity.sku.id] = 1
-        state['bom_outputs'][entity.sku.id] = 1
+        state['bom_inputs'][entity.skus.id] = 1
+        state['bom_outputs'][entity.skus.id] = 1
 
     # vlt features
     sku_list = env.summary["node_mapping"]["skus"]
     current_source_list = []
 
-    if entity.sku is not None:
-        current_source_list = facility["upstreams"].get(entity.sku.id, [])
+    if entity.skus is not None:
+        current_source_list = facility["upstreams"].get(entity.skus.id, [])
 
     vlt_len = env.summary["node_mapping"]["max_sources_per_facility"] * num_skus
     state['vlt'] = [0] * vlt_len
@@ -106,7 +107,7 @@ for entity in env._business_engine.get_entity_list():
 
     if not entity.is_facility:
         # only for sku product
-        product_info = facility[entity.sku.id]
+        product_info = facility[entity.skus.id]
 
         if "consumer" in product_info and len(current_source_list) > 0:
             state['max_vlt'] = product_info["skuproduct"]["max_vlt"]
@@ -115,7 +116,7 @@ for entity in env._business_engine.get_entity_list():
                 for j, sku in enumerate(sku_list.values()):
                     # NOTE: different with original code, our config can make sure that source has product we need
 
-                    if sku.id == entity.sku.id:
+                    if sku.id == entity.skus.id:
                         state['vlt'][i * len(sku_list) + j + 1] = facility["skus"][sku.id].vlt
 
     # sale features
@@ -135,12 +136,12 @@ for entity in env._business_engine.get_entity_list():
     state['pending_order'] = [0] * settings['pending_order_len']
 
     if not entity.is_facility:
-        state['service_level'] = entity.sku.service_level
+        state['service_level'] = entity.skus.service_level
 
-        product_info = facility[entity.sku.id]
+        product_info = facility[entity.skus.id]
 
         if "seller" in product_info:
-            state['sale_gamma'] = facility["skus"][entity.sku.id].sale_gamma
+            state['sale_gamma'] = facility["skus"][entity.skus.id].sale_gamma
 
     # distribution features
     state['distributor_in_transit_orders'] = 0
@@ -163,7 +164,7 @@ for entity in env._business_engine.get_entity_list():
     if len(current_source_list) > 0:
         for i, source in enumerate(current_source_list):
             for j, sku in enumerate(sku_list.values()):
-                if sku.id == entity.sku.id:
+                if sku.id == entity.skus.id:
                     state['consumer_source_export_mask'][i * len(sku_list) + j + 1] = \
                         STORAGE_INFO["facility_levels"][source]["skus"][sku.id].vlt
 
@@ -173,8 +174,8 @@ for entity in env._business_engine.get_entity_list():
     state['sku_cost'] = 0
 
     if not entity.is_facility:
-        state['sku_price'] = entity.sku.price
-        state['sku_cost'] = entity.sku.cost
+        state['sku_price'] = entity.skus.price
+        state['sku_cost'] = entity.skus.cost
 
     STATE_TEMPLATE[entity.id] = state
 
