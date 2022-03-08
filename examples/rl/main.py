@@ -8,7 +8,7 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import Logger
 
 # config variables
-SCENARIO_PATH = "cim"
+SCENARIO_PATH = "supply_chain"
 NUM_EPISODES = 50
 NUM_STEPS = None
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
