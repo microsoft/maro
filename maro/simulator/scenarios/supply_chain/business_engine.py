@@ -69,7 +69,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         return tick + 1 == self._max_tick
 
-    def reset(self) -> None:
+    def reset(self, keep_seed: bool = False) -> None:
         self._frame.reset()
 
         if self._frame.snapshots:

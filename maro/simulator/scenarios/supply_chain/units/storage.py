@@ -141,11 +141,6 @@ class StorageUnit(UnitBase):
         self.remaining_space = self.capacity
 
         for sku in self.facility.skus.values():
-            # self.product_level[sku.id] = sku.init_stock
-            # self.remaining_space -= sku.init_stock
-            # if hasattr(sku, "sale_gamma") and (sku.sale_gamma is not None):
-            #     init_stock = random.randint(0, 5) * sku.sale_gamma
-            #     sku.init_stock = init_stock
             self.product_level[sku.id] = sku.init_stock
             self.remaining_space -= sku.init_stock
 
