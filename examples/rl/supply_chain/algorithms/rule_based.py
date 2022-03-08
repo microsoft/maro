@@ -7,59 +7,13 @@ import sys
 import numpy as np
 import scipy.stats as st
 
-from maro.rl.modeling import DiscreteQNet, FullyConnected
-from maro.rl.policy import DQN, AbsPolicy
+from maro.rl.policy import AbsPolicy
 
 sc_path = os.path.dirname(os.path.realpath(__file__))
 if sc_path not in sys.path:
     sys.path.insert(0, sc_path)
-from config import NUM_CONSUMER_ACTIONS, NUM_RL_POLICIES, dqn_conf, q_net_conf, q_net_optim_conf
+from config import NUM_CONSUMER_ACTIONS
 
-
-######################################## DQN #################################################
-
-class MyQNet(DiscreteQNet):
-    def __init__(self):
-        super().__init__()
-        self.fc = FullyConnected(**q_net_conf)
-        self.optim = q_net_optim_conf[0](self.fc.parameters(), **q_net_optim_conf[1])
-
-    @property
-    def input_dim(self):
-        return q_net_conf["input_dim"]
-
-    @property
-    def num_actions(self):
-        return q_net_conf["output_dim"]
-
-    def forward(self, states):
-        return self.fc(states)
-
-    def step(self, loss):
-        self.optim.zero_grad()
-        loss.backward()
-        self.optim.step()
-
-    def get_gradients(self, loss):
-        self.optim.zero_grad()
-        loss.backward()
-        return {name: param.grad for name, param in self.named_parameters()}
-
-    def apply_gradients(self, grad):
-        for name, param in self.named_parameters():
-            param.grad = grad[name]
-
-        self.optim.step()
-
-    def get_state(self):
-        return {"network": self.state_dict(), "optim": self.optim.state_dict()}
-
-    def set_state(self, state):
-        self.load_state_dict(state["network"])
-        self.optim.load_state_dict(state["optim"])
-
-
-######################################## Rule-based / OR #################################################
 
 OR_STATE_OFFSET_INDEX = {
     "is_facility": 0,
@@ -88,7 +42,7 @@ class DummyPolicy(AbsPolicy):
         return [None] * states.shape[0]
 
 
-class ProducerBaselinePolicy(AbsPolicy):
+class ManufacturerBaselinePolicy(AbsPolicy):
     def __call__(self, states):
         return 500 * np.ones(states.shape[0])
 
@@ -184,10 +138,7 @@ class ConsumerMinMaxPolicy(AbsPolicy):
 
 
 or_policy_func_dict = {
-    # "consumer": lambda: ConsumerMinMaxPolicy(),
-    "producer": lambda name: ProducerBaselinePolicy(name),
-    "facility": lambda name: DummyPolicy(name),
-    "product": lambda name: DummyPolicy(name),
-    "productstore": lambda name: DummyPolicy(name)
+    "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
+    "facility_policy": lambda name: DummyPolicy(name),
+    "product_policy": lambda name: DummyPolicy(name)
 }
-policy_func_dict = {f"consumer-{i}": lambda name: DQN(name, MyQNet(), **dqn_conf) for i in range(NUM_RL_POLICIES)}
