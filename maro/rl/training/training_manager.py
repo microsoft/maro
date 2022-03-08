@@ -8,7 +8,7 @@ from typing import Callable, Dict, Iterable, List, Tuple
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.training.abs_algorithm import AbsAlgorithm
 from maro.utils import LoggerV2
 
 from .utils import extract_algo_inst_name, get_training_state_path

@@ -5,11 +5,11 @@ from typing import Callable, Dict
 
 from maro.rl.distributed import AbsWorker
 from maro.rl.policy import RLPolicy
+from maro.rl.training.abs_algorithm import AbsAlgorithm
 from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
 from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps
-from maro.rl.training.algorithms.abs_algorithm import AbsAlgorithm
 
 
 class TrainOpsWorker(AbsWorker):

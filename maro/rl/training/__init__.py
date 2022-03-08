@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .algorithms import AbsAlgorithm, AlgorithmParams, MultiAlgorithm, SingleAlgorithm
+from .abs_algorithm import AbsAlgorithm, AlgorithmParams, MultiAlgorithm, SingleAlgorithm
 from .proxy import TrainingProxy
 from .replay_memory import FIFOMultiReplayMemory, FIFOReplayMemory, RandomMultiReplayMemory, RandomReplayMemory
 from .train_ops import AbsTrainOps, RemoteOps, remote
