@@ -44,15 +44,3 @@ def delete_job(namespace: str):
 
 def describe_job(namespace: str):
     client.CoreV1Api().read_namespace(namespace)
-
-
-# def init_nvidia_plugin():
-#     """Setup nvidia plugin for the MARO Cluster.
-
-#     Returns:
-#         None.
-#     """
-#     client.CoreV1Api().create_namespace(body=client.V1Namespace(metadata=client.V1ObjectMeta(name="gpu-resources")))
-#     with open(NVIDIA_PLUGIN_PATH, "r") as fr:
-#         redis_deployment = yaml.safe_load(fr)
-#     client.AppsV1Api().create_namespaced_daemon_set(body=redis_deployment, namespace="gpu-resources")

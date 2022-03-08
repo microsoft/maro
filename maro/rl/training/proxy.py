@@ -6,7 +6,7 @@ from collections import defaultdict, deque
 from maro.rl.distributed import AbsProxy
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.rl.utils.torch_utils import average_grads
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 
 class TrainingProxy(AbsProxy):
@@ -27,7 +27,7 @@ class TrainingProxy(AbsProxy):
         self._connected_ops = set()
         self._result_cache = defaultdict(list)
         self._expected_num_results = {}
-        self._logger = Logger("TRAIN-PROXY")
+        self._logger = LoggerV2("TRAIN-PROXY")
 
     def _route_request_to_compute_node(self, msg: list) -> None:
         """

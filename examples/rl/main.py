@@ -5,7 +5,7 @@ import os
 
 from maro.rl.training import TrainerManager
 from maro.rl.workflows.scenario import Scenario
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 # config variables
 SCENARIO_PATH = "supply_chain"
@@ -19,7 +19,7 @@ LOG_PATH = os.path.join(os.getcwd(), "logs", "cim")
 
 if __name__ == "__main__":
     scenario = Scenario(SCENARIO_PATH)
-    logger = Logger("MAIN", dump_path=LOG_PATH)
+    logger = LoggerV2("MAIN", dump_path=LOG_PATH)
 
     agent2policy = scenario.agent2policy
     policy_creator = scenario.policy_creator
