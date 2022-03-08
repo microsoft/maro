@@ -168,18 +168,18 @@ maro.rl.training.replay_memory
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.trainer
+maro.rl.training.abs_algorithm
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.trainer
+.. automodule:: maro.rl.training.abs_algorithm
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.trainer_manager
+maro.rl.training.training_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.trainer_manager
+.. automodule:: maro.rl.training.training_manager
    :members:
    :undoc-members:
    :show-inheritance:
