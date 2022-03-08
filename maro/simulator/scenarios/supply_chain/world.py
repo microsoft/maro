@@ -17,10 +17,13 @@ from .units import ConsumerUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, U
 class SupplyChainEntity(NamedTuple):
     id: int
     class_type: type
-    is_facility: bool
     skus: Optional[SkuInfo]
     facility_id: int
     parent_id: Optional[int]
+
+    @property
+    def is_facility(self) -> bool:
+        return isinstance(self.class_type, FacilityBase)
 
 
 class World:
@@ -281,13 +284,12 @@ class World:
         # Collection entity list
         for facility in self.facilities.values():
             entity = SupplyChainEntity(
-                id=facility.id, class_type=facility.__class__, is_facility=True, skus=None, facility_id=facility.id,
-                parent_id=None,
+                id=facility.id, class_type=facility.__class__, skus=None, facility_id=facility.id, parent_id=None,
             )
             self.entity_list.append(entity)
         for unit in self.units.values():
             entity = SupplyChainEntity(
-                id=unit.id, class_type=unit.__class__, is_facility=False,
+                id=unit.id, class_type=unit.__class__,
                 skus=unit.facility.skus[unit.product_id] if any([
                     isinstance(unit, ProductUnit),
                     isinstance(unit, ConsumerUnit),
