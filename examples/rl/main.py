@@ -3,7 +3,7 @@
 
 import os
 
-from maro.rl.training import TrainerManager
+from maro.rl.training import TrainingManager
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     eval_point_index = 0
 
     env_sampler = scenario.get_env_sampler(policy_creator)
-    trainer_manager = TrainerManager(policy_creator, trainer_creator, agent2policy, logger=logger)
+    training_manager = TrainingManager(policy_creator, trainer_creator, agent2policy, logger=logger)
 
     # main loop
     for ep in range(1, NUM_EPISODES + 1):
@@ -48,11 +48,11 @@ if __name__ == "__main__":
                 scenario.post_collect(result["info"], ep, segment)
 
             logger.info(f"Roll-out completed for episode {ep}. Training started...")
-            trainer_manager.record_experiences(experiences)
-            trainer_manager.train()
+            training_manager.record_experiences(experiences)
+            training_manager.train()
             if CHECKPOINT_PATH and ep % CHECKPOINT_INTERVAL == 0:
                 pth = os.path.join(CHECKPOINT_PATH, str(ep))
-                trainer_manager.save(pth)
+                training_manager.save(pth)
                 logger.info(f"All trainer states saved under {pth}")
             segment += 1
 

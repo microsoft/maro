@@ -176,10 +176,10 @@ maro.rl.training.trainer
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.trainer_manager
+maro.rl.training.training_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.trainer_manager
+.. automodule:: maro.rl.training.training_manager
    :members:
    :undoc-members:
    :show-inheritance:

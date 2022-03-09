@@ -14,9 +14,9 @@ from .trainer import AbsTrainer
 from .utils import extract_trainer_name, get_trainer_state_path
 
 
-class TrainerManager(object):
+class TrainingManager(object):
     """
-    Trainer manager. Manage and schedule all trainers to train policies.
+    Training manager. Manage and schedule all trainers to train policies.
 
     Args:
         policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
@@ -34,7 +34,7 @@ class TrainerManager(object):
         proxy_address: Tuple[str, int] = None,
         logger: LoggerV2 = None,
     ) -> None:
-        super(TrainerManager, self).__init__()
+        super(TrainingManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._agent2policy = agent2policy

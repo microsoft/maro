@@ -6,7 +6,7 @@ import time
 from typing import List
 
 from maro.rl.rollout import BatchEnvSampler, ExpElement
-from maro.rl.training import TrainerManager
+from maro.rl.training import TrainingManager
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
@@ -59,7 +59,7 @@ def main(scenario: Scenario) -> None:
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
-    trainer_manager = TrainerManager(
+    training_manager = TrainingManager(
         policy_creator, trainer_creator, agent2policy,
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
@@ -68,7 +68,7 @@ def main(scenario: Scenario) -> None:
     )
     if load_path:
         assert isinstance(load_path, str)
-        loaded = trainer_manager.load(load_path)
+        loaded = training_manager.load(load_path)
         logger.info(f"Loaded states for {loaded} from {load_path}")
 
     # main loop
@@ -79,7 +79,7 @@ def main(scenario: Scenario) -> None:
             # Experience collection
             tc0 = time.time()
             result = env_sampler.sample(
-                policy_state=trainer_manager.get_policy_state() if not is_single_thread else None,
+                policy_state=training_manager.get_policy_state() if not is_single_thread else None,
                 num_steps=num_steps,
             )
             experiences: List[List[ExpElement]] = result["experiences"]
@@ -92,12 +92,12 @@ def main(scenario: Scenario) -> None:
 
             logger.info(f"Roll-out completed for episode {ep}, segment {segment}. Training started...")
             tu0 = time.time()
-            trainer_manager.record_experiences(experiences)
-            trainer_manager.train()
+            training_manager.record_experiences(experiences)
+            training_manager.train()
             if checkpoint_path and (checkpoint_interval is None or ep % checkpoint_interval == 0):
                 assert isinstance(checkpoint_path, str)
                 pth = os.path.join(checkpoint_path, str(ep))
-                trainer_manager.save(pth)
+                training_manager.save(pth)
                 logger.info(f"All trainer states saved under {pth}")
             training_time += time.time() - tu0
             segment += 1
@@ -107,11 +107,11 @@ def main(scenario: Scenario) -> None:
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             result = env_sampler.eval(
-                policy_state=trainer_manager.get_policy_state() if not is_single_thread else None
+                policy_state=training_manager.get_policy_state() if not is_single_thread else None
             )
             if scenario.post_evaluate:
                 scenario.post_evaluate(result["info"], ep)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()
-    trainer_manager.exit()
+    training_manager.exit()
