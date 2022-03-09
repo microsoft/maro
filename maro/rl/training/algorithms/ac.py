@@ -241,7 +241,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         return merge_transition_batches([self._preprocess_batch(batch) for batch in batch_list])
 
 
-class DiscreteActorCritic(SingleTrainer):
+class DiscreteActorCriticTrainer(SingleTrainer):
     """Actor Critic algorithm with separate policy and value models.
 
     References:
@@ -250,7 +250,7 @@ class DiscreteActorCritic(SingleTrainer):
     """
 
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
-        super(DiscreteActorCritic, self).__init__(name, params)
+        super(DiscreteActorCriticTrainer, self).__init__(name, params)
         self._params = params
         self._ops_name = f"{self._name}.ops"
 

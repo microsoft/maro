@@ -224,7 +224,7 @@ class DDPGOps(AbsTrainOps):
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
 
-class DDPG(SingleTrainer):
+class DDPGTrainer(SingleTrainer):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
 
     References:
@@ -233,7 +233,7 @@ class DDPG(SingleTrainer):
     """
 
     def __init__(self, name: str, params: DDPGParams) -> None:
-        super(DDPG, self).__init__(name, params)
+        super(DDPGTrainer, self).__init__(name, params)
         self._params = params
         self._policy_version = self._target_policy_version = 0
         self._ops_name = f"{self._name}.ops"

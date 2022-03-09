@@ -9,7 +9,7 @@ from torch.optim import Adam, RMSprop
 
 from maro.rl.model import DiscretePolicyNet, FullyConnected, MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
-from maro.rl.training.algorithms import DiscreteMADDPG, DiscreteMADDPGParams
+from maro.rl.training.algorithms import DiscreteMADDPGTrainer, DiscreteMADDPGParams
 
 
 actor_net_conf = {
@@ -122,8 +122,8 @@ def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGrad
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 
-def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMADDPG:
-    return DiscreteMADDPG(
+def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMADDPGTrainer:
+    return DiscreteMADDPGTrainer(
         name=name,
         params=DiscreteMADDPGParams(
             device="cpu",

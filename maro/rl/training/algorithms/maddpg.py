@@ -291,9 +291,9 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self.set_actor_state(ops_state_dict)
 
 
-class DiscreteMADDPG(MultiTrainer):
+class DiscreteMADDPGTrainer(MultiTrainer):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
-        super(DiscreteMADDPG, self).__init__(name, params)
+        super(DiscreteMADDPGTrainer, self).__init__(name, params)
         self._params = params
         self._ops_params = self._params.extract_ops_params()
         self._state_dim = params.get_q_critic_net_func().state_dim

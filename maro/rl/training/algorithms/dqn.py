@@ -154,14 +154,14 @@ class DQNOps(AbsTrainOps):
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
 
-class DQN(SingleTrainer):
+class DQNTrainer(SingleTrainer):
     """The Deep-Q-Networks algorithm.
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
     """
 
     def __init__(self, name: str, params: DQNParams) -> None:
-        super(DQN, self).__init__(name, params)
+        super(DQNTrainer, self).__init__(name, params)
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"

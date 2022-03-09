@@ -9,7 +9,7 @@ from torch.optim import RMSprop
 from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
-from maro.rl.training.algorithms import DQN, DQNParams
+from maro.rl.training.algorithms import DQNTrainer, DQNParams
 
 q_net_conf = {
     "hidden_dims": [256, 128, 64, 32],
@@ -79,8 +79,8 @@ def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
     )
 
 
-def get_dqn(name: str) -> DQN:
-    return DQN(
+def get_dqn(name: str) -> DQNTrainer:
+    return DQNTrainer(
         name=name,
         params=DQNParams(
             device="cpu",
