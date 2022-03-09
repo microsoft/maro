@@ -8,7 +8,7 @@ from typing import Callable, Dict, Iterable, List, Tuple
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 from .trainer import AbsTrainer
 from .utils import extract_trainer_name, get_trainer_state_path
@@ -32,18 +32,8 @@ class TrainerManager(object):
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
         proxy_address: Tuple[str, int] = None,
-        logger: Logger = None,
+        logger: LoggerV2 = None,
     ) -> None:
-        """
-        Trainer manager.
-
-        Args:
-            policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
-            trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
-            agent2policy (Dict[str, str]): Agent name to policy name mapping.
-            proxy_address (Tuple[str, int]): The address of the proxy. This is used only in distributed mode.
-                Defaults to None.
-        """
         super(TrainerManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}

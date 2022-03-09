@@ -115,9 +115,3 @@ def main(scenario: Scenario) -> None:
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()
     trainer_manager.exit()
-
-
-if __name__ == "__main__":
-    # get user-defined scenario ingredients
-    scenario = Scenario(str(get_env("SCENARIO_PATH")))
-    main(scenario)

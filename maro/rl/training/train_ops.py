@@ -12,7 +12,7 @@ from zmq.asyncio import Context, Poller
 from maro.rl.policy import RLPolicy
 from maro.rl.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
 from maro.rl.utils.common import bytes_to_pyobj, get_ip_address_by_hostname, pyobj_to_bytes
-from maro.utils import DummyLogger, Logger
+from maro.utils import DummyLogger, LoggerV2
 
 
 class AbsTrainOps(object, metaclass=ABCMeta):
@@ -127,10 +127,10 @@ class AsyncClient(object):
     Args:
         name (str): Name of the client.
         address (Tuple[str, int]): Address (host and port) of the training proxy.
-        logger (Logger, default=None): logger.
+        logger (LoggerV2, default=None): logger.
     """
 
-    def __init__(self, name: str, address: Tuple[str, int], logger: Logger = None) -> None:
+    def __init__(self, name: str, address: Tuple[str, int], logger: LoggerV2 = None) -> None:
         self._logger = DummyLogger() if logger is None else logger
         self._name = name
         host, port = address

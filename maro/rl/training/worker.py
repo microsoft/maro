@@ -6,7 +6,7 @@ from typing import Callable, Dict
 from maro.rl.distributed import AbsWorker
 from maro.rl.policy import RLPolicy
 from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps
 from .trainer import AbsTrainer
@@ -33,7 +33,7 @@ class TrainOpsWorker(AbsWorker):
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         producer_host: str,
         producer_port: int = 10001,
-        logger: Logger = None,
+        logger: LoggerV2 = None,
     ) -> None:
         super(TrainOpsWorker, self).__init__(
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
