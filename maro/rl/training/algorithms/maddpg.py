@@ -11,7 +11,7 @@ import torch
 from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
 from maro.rl.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
@@ -291,7 +291,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self.set_actor_state(ops_state_dict)
 
 
-class DiscreteMADDPGTrainer(MultiTrainer):
+class DiscreteMADDPGTrainer(MultiAgentTrainer):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
         super(DiscreteMADDPGTrainer, self).__init__(name, params)
         self._params = params

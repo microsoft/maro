@@ -11,7 +11,7 @@ import torch
 from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, discount_cumsum, merge_transition_batches, ndarray_to_tensor
 
 
@@ -241,7 +241,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         return merge_transition_batches([self._preprocess_batch(batch) for batch in batch_list])
 
 
-class DiscreteActorCriticTrainer(SingleTrainer):
+class DiscreteActorCriticTrainer(SingleAgentTrainer):
     """Actor Critic algorithm with separate policy and value models.
 
     References:

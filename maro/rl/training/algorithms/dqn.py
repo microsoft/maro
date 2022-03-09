@@ -9,7 +9,7 @@ import torch
 
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
@@ -154,7 +154,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
 
-class DQNTrainer(SingleTrainer):
+class DQNTrainer(SingleAgentTrainer):
     """The Deep-Q-Networks algorithm.
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.

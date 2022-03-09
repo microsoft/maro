@@ -12,7 +12,7 @@ import torch
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
@@ -224,7 +224,7 @@ class DDPGOps(AbsTrainOps):
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
 
-class DDPGTrainer(SingleTrainer):
+class DDPGTrainer(SingleAgentTrainer):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
 
     References:

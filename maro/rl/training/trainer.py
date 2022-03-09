@@ -187,12 +187,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
+class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy.
     """
 
     def __init__(self, name: str, params: TrainerParams) -> None:
-        super(SingleTrainer, self).__init__(name, params)
+        super(SingleAgentTrainer, self).__init__(name, params)
 
         self._ops: Union[RemoteOps, None] = None  # To be created in `build()`
 
@@ -239,12 +239,12 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
             await self._ops.exit()
 
 
-class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
+class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies.
     """
 
     def __init__(self, name: str, params: TrainerParams) -> None:
-        super(MultiTrainer, self).__init__(name, params)
+        super(MultiAgentTrainer, self).__init__(name, params)
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_names: List[str] = []
 
