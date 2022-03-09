@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
             logger.info(f"Roll-out completed for episode {ep}. Training started...")
             training_manager.record_experiences(experiences)
-            training_manager.train()
+            training_manager.train_step()
             if CHECKPOINT_PATH and ep % CHECKPOINT_INTERVAL == 0:
                 pth = os.path.join(CHECKPOINT_PATH, str(ep))
                 training_manager.save(pth)

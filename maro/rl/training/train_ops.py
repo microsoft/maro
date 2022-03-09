@@ -198,10 +198,10 @@ class RemoteOps(object):
         ops (AbsTrainOps): An ``AbsTrainOps`` instance to be wrapped. Any method annotated by the remote decorator in
             its definition is transformed to a remote function call.
         address (Tuple[str, int]): Address (host and port) of the training proxy.
-        logger (Logger, default=None): logger.
+        logger (LoggerV2, default=None): logger.
     """
 
-    def __init__(self, ops: AbsTrainOps, address: Tuple[str, int], logger: Logger = None) -> None:
+    def __init__(self, ops: AbsTrainOps, address: Tuple[str, int], logger: LoggerV2 = None) -> None:
         self._ops = ops
         self._client = AsyncClient(self._ops.name, address, logger=logger)
         self._client.connect()

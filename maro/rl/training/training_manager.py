@@ -54,7 +54,7 @@ class TrainingManager(object):
             for agent_name, policy_name in self._agent2policy.items()
         }
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         if self._proxy_address:
             async def train_step() -> Iterable:
                 return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainer_dict.values()])

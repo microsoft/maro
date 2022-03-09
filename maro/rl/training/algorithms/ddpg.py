@@ -201,7 +201,7 @@ class DDPGOps(AbsTrainOps):
             batch (TransitionBatch): Batch.
         """
         self._policy.train()
-        self._policy.step(self._get_actor_loss(batch))
+        self._policy.train_step(self._get_actor_loss(batch))
 
     def get_state(self) -> dict:
         return {

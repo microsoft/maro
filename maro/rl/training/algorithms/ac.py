@@ -184,7 +184,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
-        self._policy.step(self._get_actor_loss(batch))
+        self._policy.train_step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the actor network with remotely computed gradients.

@@ -136,7 +136,7 @@ class DQNOps(AbsTrainOps):
             batch (TransitionBatch): Batch.
         """
         self._policy.train()
-        self._policy.step(self._get_batch_loss(batch))
+        self._policy.train_step(self._get_batch_loss(batch))
 
     def get_state(self) -> dict:
         return {

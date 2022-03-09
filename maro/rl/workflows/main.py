@@ -93,7 +93,7 @@ def main(scenario: Scenario) -> None:
             logger.info(f"Roll-out completed for episode {ep}, segment {segment}. Training started...")
             tu0 = time.time()
             training_manager.record_experiences(experiences)
-            training_manager.train()
+            training_manager.train_step()
             if checkpoint_path and (checkpoint_interval is None or ep % checkpoint_interval == 0):
                 assert isinstance(checkpoint_path, str)
                 pth = os.path.join(checkpoint_path, str(ep))
