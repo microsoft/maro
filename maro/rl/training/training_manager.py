@@ -8,15 +8,15 @@ from typing import Callable, Dict, Iterable, List, Tuple
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 from .trainer import AbsTrainer
 from .utils import extract_trainer_name, get_trainer_state_path
 
 
-class TrainerManager(object):
+class TrainingManager(object):
     """
-    Trainer manager. Manage and schedule all trainers to train policies.
+    Training manager. Manage and schedule all trainers to train policies.
 
     Args:
         policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
@@ -32,19 +32,9 @@ class TrainerManager(object):
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
         proxy_address: Tuple[str, int] = None,
-        logger: Logger = None,
+        logger: LoggerV2 = None,
     ) -> None:
-        """
-        Trainer manager.
-
-        Args:
-            policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
-            trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
-            agent2policy (Dict[str, str]): Agent name to policy name mapping.
-            proxy_address (Tuple[str, int]): The address of the proxy. This is used only in distributed mode.
-                Defaults to None.
-        """
-        super(TrainerManager, self).__init__()
+        super(TrainingManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._agent2policy = agent2policy
@@ -64,15 +54,15 @@ class TrainerManager(object):
             for agent_name, policy_name in self._agent2policy.items()
         }
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         if self._proxy_address:
             async def train_step() -> Iterable:
-                return await asyncio.gather(*[trainer.train_as_task() for trainer in self._trainer_dict.values()])
+                return await asyncio.gather(*[trainer.train_step_as_task() for trainer in self._trainer_dict.values()])
 
             asyncio.run(train_step())
         else:
             for trainer in self._trainer_dict.values():
-                trainer.train()
+                trainer.train_step()
 
     def get_policy_state(self) -> Dict[str, Dict[str, object]]:
         """Get policies' states.

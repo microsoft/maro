@@ -9,7 +9,7 @@ import torch
 
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
@@ -136,7 +136,7 @@ class DQNOps(AbsTrainOps):
             batch (TransitionBatch): Batch.
         """
         self._policy.train()
-        self._policy.step(self._get_batch_loss(batch))
+        self._policy.train_step(self._get_batch_loss(batch))
 
     def get_state(self) -> dict:
         return {
@@ -154,14 +154,14 @@ class DQNOps(AbsTrainOps):
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
 
-class DQN(SingleTrainer):
+class DQNTrainer(SingleAgentTrainer):
     """The Deep-Q-Networks algorithm.
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
     """
 
     def __init__(self, name: str, params: DQNParams) -> None:
-        super(DQN, self).__init__(name, params)
+        super(DQNTrainer, self).__init__(name, params)
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"
@@ -202,14 +202,14 @@ class DQN(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert isinstance(self._ops, DQNOps)
         for _ in range(self._params.num_epochs):
             self._ops.update(self._get_batch())
 
         self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()

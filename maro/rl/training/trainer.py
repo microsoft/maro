@@ -9,7 +9,7 @@ import torch
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps, RemoteOps
 from .utils import extract_trainer_name
@@ -77,7 +77,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def agent_num(self) -> int:
         return len(self._agent2policy)
 
-    def register_logger(self, logger: Logger) -> None:
+    def register_logger(self, logger: LoggerV2) -> None:
         self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
@@ -115,12 +115,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def train(self) -> None:
+    def train_step(self) -> None:
         """Run a training step to update all the policies that this trainer is responsible for.
         """
         raise NotImplementedError
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         """Update all policies managed by the trainer as an asynchronous task.
         """
         raise NotImplementedError
@@ -187,12 +187,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
+class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy.
     """
 
     def __init__(self, name: str, params: TrainerParams) -> None:
-        super(SingleTrainer, self).__init__(name, params)
+        super(SingleAgentTrainer, self).__init__(name, params)
 
         self._ops: Union[RemoteOps, None] = None  # To be created in `build()`
 
@@ -239,12 +239,12 @@ class SingleTrainer(AbsTrainer, metaclass=ABCMeta):
             await self._ops.exit()
 
 
-class MultiTrainer(AbsTrainer, metaclass=ABCMeta):
+class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies.
     """
 
     def __init__(self, name: str, params: TrainerParams) -> None:
-        super(MultiTrainer, self).__init__(name, params)
+        super(MultiAgentTrainer, self).__init__(name, params)
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_names: List[str] = []
 
