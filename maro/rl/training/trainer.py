@@ -115,12 +115,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def train(self) -> None:
+    def train_step(self) -> None:
         """Run a training step to update all the policies that this trainer is responsible for.
         """
         raise NotImplementedError
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         """Update all policies managed by the trainer as an asynchronous task.
         """
         raise NotImplementedError

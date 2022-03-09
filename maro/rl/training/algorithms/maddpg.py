@@ -382,7 +382,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             })
             return DiscreteMADDPGOps(name=name, **ops_params)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
         assert all(isinstance(ops, DiscreteMADDPGOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
@@ -408,7 +408,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             # Update version
             self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, RemoteOps)
         assert all(isinstance(ops, RemoteOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):

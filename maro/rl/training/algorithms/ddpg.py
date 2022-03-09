@@ -272,7 +272,7 @@ class DDPGTrainer(SingleAgentTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert isinstance(self._ops, DDPGOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
@@ -281,7 +281,7 @@ class DDPGTrainer(SingleAgentTrainer):
 
         self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()

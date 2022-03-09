@@ -289,14 +289,14 @@ class DiscreteActorCriticTrainer(SingleAgentTrainer):
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
         return self._ops.preprocess_and_merge_batches(batch_list)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert isinstance(self._ops, DiscreteActorCriticOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
