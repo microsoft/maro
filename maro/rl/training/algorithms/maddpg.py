@@ -11,7 +11,7 @@ import torch
 from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, MultiTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
 from maro.rl.utils import MultiTransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
@@ -243,7 +243,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
             batch (MultiTransitionBatch): Batch.
         """
         self._policy.train()
-        self._policy.step(self._get_actor_loss(batch))
+        self._policy.train_step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the critic network with remotely computed gradients.
@@ -291,9 +291,9 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self.set_actor_state(ops_state_dict)
 
 
-class DiscreteMADDPG(MultiTrainer):
+class DiscreteMADDPGTrainer(MultiAgentTrainer):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
-        super(DiscreteMADDPG, self).__init__(name, params)
+        super(DiscreteMADDPGTrainer, self).__init__(name, params)
         self._params = params
         self._ops_params = self._params.extract_ops_params()
         self._state_dim = params.get_q_critic_net_func().state_dim
@@ -382,7 +382,7 @@ class DiscreteMADDPG(MultiTrainer):
             })
             return DiscreteMADDPGOps(name=name, **ops_params)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
         assert all(isinstance(ops, DiscreteMADDPGOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
@@ -408,7 +408,7 @@ class DiscreteMADDPG(MultiTrainer):
             # Update version
             self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, RemoteOps)
         assert all(isinstance(ops, RemoteOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):

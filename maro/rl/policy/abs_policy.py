@@ -125,7 +125,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         self._is_exploring = False
 
     @abstractmethod
-    def step(self, loss: torch.Tensor) -> None:
+    def train_step(self, loss: torch.Tensor) -> None:
         """Run a training step to update the policy according to the given loss.
 
         Args:

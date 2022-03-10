@@ -1,14 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .ac import DiscreteActorCritic, DiscreteActorCriticParams
-from .ddpg import DDPG, DDPGParams
-from .dqn import DQN, DQNParams
-from .maddpg import DiscreteMADDPG, DiscreteMADDPGParams
+from .ac import DiscreteActorCriticParams, DiscreteActorCriticTrainer
+from .ddpg import DDPGParams, DDPGTrainer
+from .dqn import DQNParams, DQNTrainer
+from .maddpg import DiscreteMADDPGParams, DiscreteMADDPGTrainer
 
 __all__ = [
-    "DiscreteActorCritic", "DiscreteActorCriticParams",
-    "DDPG", "DDPGParams",
-    "DQN", "DQNParams",
-    "DiscreteMADDPG", "DiscreteMADDPGParams",
+    "DiscreteActorCriticTrainer", "DiscreteActorCriticParams",
+    "DDPGTrainer", "DDPGParams",
+    "DQNTrainer", "DQNParams",
+    "DiscreteMADDPGTrainer", "DiscreteMADDPGParams",
 ]

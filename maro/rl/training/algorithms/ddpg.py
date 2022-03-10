@@ -12,7 +12,7 @@ import torch
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, ndarray_to_tensor
 from maro.utils import clone
 
@@ -201,7 +201,7 @@ class DDPGOps(AbsTrainOps):
             batch (TransitionBatch): Batch.
         """
         self._policy.train()
-        self._policy.step(self._get_actor_loss(batch))
+        self._policy.train_step(self._get_actor_loss(batch))
 
     def get_state(self) -> dict:
         return {
@@ -224,7 +224,7 @@ class DDPGOps(AbsTrainOps):
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
 
-class DDPG(SingleTrainer):
+class DDPGTrainer(SingleAgentTrainer):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
 
     References:
@@ -233,7 +233,7 @@ class DDPG(SingleTrainer):
     """
 
     def __init__(self, name: str, params: DDPGParams) -> None:
-        super(DDPG, self).__init__(name, params)
+        super(DDPGTrainer, self).__init__(name, params)
         self._params = params
         self._policy_version = self._target_policy_version = 0
         self._ops_name = f"{self._name}.ops"
@@ -272,7 +272,7 @@ class DDPG(SingleTrainer):
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert isinstance(self._ops, DDPGOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
@@ -281,7 +281,7 @@ class DDPG(SingleTrainer):
 
         self._try_soft_update_target()
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()

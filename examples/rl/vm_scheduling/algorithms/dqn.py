@@ -11,7 +11,7 @@ from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from maro.rl.exploration import MultiLinearExplorationScheduler
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
-from maro.rl.training.algorithms import DQN, DQNParams
+from maro.rl.training.algorithms import DQNTrainer, DQNParams
 
 
 q_net_conf = {
@@ -100,8 +100,8 @@ def get_policy(state_dim: int, action_num: int, num_features: int, name: str) ->
     )
 
 
-def get_dqn(name: str) -> DQN:
-    return DQN(
+def get_dqn(name: str) -> DQNTrainer:
+    return DQNTrainer(
         name=name,
         params=DQNParams(
             device="cpu",

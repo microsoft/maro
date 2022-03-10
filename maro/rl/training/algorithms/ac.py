@@ -11,7 +11,7 @@ import torch
 from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, discount_cumsum, merge_transition_batches, ndarray_to_tensor
 
 
@@ -184,7 +184,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
-        self._policy.step(self._get_actor_loss(batch))
+        self._policy.train_step(self._get_actor_loss(batch))
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the actor network with remotely computed gradients.
@@ -241,7 +241,7 @@ class DiscreteActorCriticOps(AbsTrainOps):
         return merge_transition_batches([self._preprocess_batch(batch) for batch in batch_list])
 
 
-class DiscreteActorCritic(SingleTrainer):
+class DiscreteActorCriticTrainer(SingleAgentTrainer):
     """Actor Critic algorithm with separate policy and value models.
 
     References:
@@ -250,7 +250,7 @@ class DiscreteActorCritic(SingleTrainer):
     """
 
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
-        super(DiscreteActorCritic, self).__init__(name, params)
+        super(DiscreteActorCriticTrainer, self).__init__(name, params)
         self._params = params
         self._ops_name = f"{self._name}.ops"
 
@@ -289,14 +289,14 @@ class DiscreteActorCritic(SingleTrainer):
         batch_list = [memory.sample(-1) for memory in self._replay_memory_dict.values()]
         return self._ops.preprocess_and_merge_batches(batch_list)
 
-    def train(self) -> None:
+    def train_step(self) -> None:
         assert isinstance(self._ops, DiscreteActorCriticOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
 
-    async def train_as_task(self) -> None:
+    async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):

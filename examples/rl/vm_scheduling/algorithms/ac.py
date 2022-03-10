@@ -8,7 +8,7 @@ from torch.optim import Adam, SGD
 
 from maro.rl.model import DiscretePolicyNet, FullyConnected, VNet
 from maro.rl.policy import DiscretePolicyGradient
-from maro.rl.training.algorithms import DiscreteActorCritic, DiscreteActorCriticParams
+from maro.rl.training.algorithms import DiscreteActorCriticTrainer, DiscreteActorCriticParams
 
 
 actor_net_conf = {
@@ -123,8 +123,8 @@ def get_policy(state_dim: int, action_num: int, num_features: int, name: str) ->
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num, num_features))
 
 
-def get_ac(state_dim: int, num_features: int, name: str) -> DiscreteActorCritic:
-    return DiscreteActorCritic(
+def get_ac(state_dim: int, num_features: int, name: str) -> DiscreteActorCriticTrainer:
+    return DiscreteActorCriticTrainer(
         name=name,
         params=DiscreteActorCriticParams(
             device="cpu",

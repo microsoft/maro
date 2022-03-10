@@ -5,7 +5,7 @@ from typing import Callable
 
 from maro.rl.distributed import AbsWorker
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
-from maro.utils import Logger
+from maro.utils import LoggerV2
 
 from .env_sampler import AbsEnvSampler
 
@@ -20,7 +20,7 @@ class RolloutWorker(AbsWorker):
             for roll-out purposes.
         producer_host (str): IP address of the parallel task controller host to connect to.
         producer_port (int, default=20000): Port of the parallel task controller host to connect to.
-        logger (Logger, default=None): The logger of the workflow.
+        logger (LoggerV2, default=None): The logger of the workflow.
     """
 
     def __init__(
@@ -29,7 +29,7 @@ class RolloutWorker(AbsWorker):
         env_sampler_creator: Callable[[], AbsEnvSampler],
         producer_host: str,
         producer_port: int = 20000,
-        logger: Logger = None,
+        logger: LoggerV2 = None,
     ) -> None:
         super(RolloutWorker, self).__init__(
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,

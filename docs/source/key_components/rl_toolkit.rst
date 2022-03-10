@@ -109,7 +109,7 @@ The above code snippet creates a ``ValueBasedPolicy`` object. Let's pay attentio
 ``q_net`` accepts a ``DiscreteQNet`` object, and it serves as the core part of a ``ValueBasedPolicy`` object. In
 other words, ``q_net`` defines the model structure of the Q-network in the value-based policy, and further determines
 the policy's behavior. ``DiscreteQNet`` is an abstract class, and ``MyQNet`` is a user-defined implementation
-of ``DiscreteQNet``. It can be a simple MLP, a multihead transformer, or any other structure that the user wants.
+of ``DiscreteQNet``. It can be a simple MLP, a multi-head transformer, or any other structure that the user wants.
 
 MARO provides a set of abstractions of basic & commonly used PyTorch models like ``DiscereteQNet``, which enables
 users to implement their own deep learning models in a handy way. They are:
@@ -131,22 +131,24 @@ The way to use these models is exactly the same as the way to use the policy mod
 
 .. _trainer:
 
-Trainer
+Algorithm (Trainer)
 -------
 
 When introducing policies, we mentioned that policies cannot train themselves. Instead, they have to be trained
-by external trainers. In MARO, a trainer represents an RL algorithm, such as DQN, actor-critic,
-and so on. Trainers take interaction experiences and store them in the internal memory, and then use the experiences
+by external algorithms, which are also called trainers.
+In MARO, a trainer represents an RL algorithm, such as DQN, actor-critic,
+and so on. These two concepts are equivalent in the MARO context.
+Trainers take interaction experiences and store them in the internal memory, and then use the experiences
 in the memory to train the policies. Like ``RLPolicy``, trainers are also concrete classes, which means they could
 be used by configuring parameters. Currently, we have 4 trainers (algorithms) in MARO:
 
-- ``DiscreteActorCritic``: Actor-critic algorithm for policies that generate discrete actions.
-- ``DDPG``: DDPG algorithm for policies that generate continuous actions.
-- ``DQN``: DQN algorithm for policies that generate discrete actions.
-- ``DiscreteMADDPG``: MADDPG algorithm for policies that generate discrete actions.
+- ``DiscreteActorCriticTrainer``: Actor-critic algorithm for policies that generate discrete actions.
+- ``DDPGTrainer``: DDPG algorithm for policies that generate continuous actions.
+- ``DQNTrainer``: DQN algorithm for policies that generate discrete actions.
+- ``DiscreteMADDPGTrainer``: MADDPG algorithm for policies that generate discrete actions.
 
 Each trainer has a corresponding ``Param`` class to manage all related parameters. For example,
-``DiscreteActorCriticParams`` contains all parameters used in ``DiscreteActorCritic``:
+``DiscreteActorCriticParams`` contains all parameters used in ``DiscreteActorCriticTrainer``:
 
 .. code-block:: python
 
@@ -164,7 +166,7 @@ An example of creating an actor-critic trainer:
 
 .. code-block:: python
 
-   DiscreteActorCritic(
+   DiscreteActorCriticTrainer(
        name='ac',
        params=DiscreteActorCriticParams(
            device="cpu",
