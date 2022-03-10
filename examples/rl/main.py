@@ -14,7 +14,7 @@ NUM_STEPS = None
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
 CHECKPOINT_INTERVAL = 5
 EVAL_SCHEDULE = [10, 20, 30, 40, 50]
-LOG_PATH = os.path.join(os.getcwd(), "logs", "cim")
+LOG_PATH = os.path.join(os.getcwd(), "logs", SCENARIO_PATH)
 
 
 if __name__ == "__main__":

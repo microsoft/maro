@@ -18,6 +18,6 @@ __all__ = [
     "ConsumerDataModel", "DistributionDataModel", "ManufactureDataModel", "SellerDataModel", "StorageDataModel",
     "VehicleDataModel",
     "FacilityBase", "RetailerFacility", "SupplierFacility", "WarehouseFacility",
-    "ConsumerUnit", "DistributionUnit", "ExtendUnitBase", "ProductUnit", "SellerUnit", "StorageUnit", "UnitBase",
-    "VehicleUnit",
+    "ConsumerUnit", "DistributionUnit", "ExtendUnitBase", "ManufactureUnit", "ProductUnit", "SellerUnit",
+    "StorageUnit", "UnitBase", "VehicleUnit",
 ]

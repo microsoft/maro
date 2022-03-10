@@ -25,7 +25,7 @@ class SupplyChainEntity:
 
     @property
     def is_facility(self) -> bool:
-        return isinstance(self.class_type, FacilityBase)
+        return issubclass(self.class_type, FacilityBase)
 
 
 class World:

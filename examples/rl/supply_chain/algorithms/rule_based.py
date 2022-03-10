@@ -1,19 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-import sys
-
 import numpy as np
 import scipy.stats as st
 
+from examples.rl.supply_chain.config import NUM_CONSUMER_ACTIONS
 from maro.rl.policy import AbsPolicy
-
-sc_path = os.path.dirname(os.path.realpath(__file__))
-if sc_path not in sys.path:
-    sys.path.insert(0, sc_path)
-from config import NUM_CONSUMER_ACTIONS
-
 
 OR_STATE_OFFSET_INDEX = {
     "is_facility": 0,
@@ -74,10 +66,12 @@ class ConsumerBaselinePolicy(AbsPolicy):
 # Q = \sqrt{2DK/h}
 # Q - optimal order quantity
 # D - annual demand quantity
-# K - fixed cost per order, setup cost (not per unit, typically cost of ordering and shipping and handling. This is not the cost of goods)
+# K - fixed cost per order, setup cost (not per unit, typically cost of ordering and shipping and handling.
+#     This is not the cost of goods)
 # h - annual holding cost per unit,
 #     also known as carrying cost or storage cost (capital cost, warehouse space,
 #     refrigeration, insurance, etc. usually not related to the unit production cost)
+
 class ConsumerEOQPolicy(AbsPolicy):
     def _get_consumer_quantity(self, states):
         order_cost = get_element(states, "order_cost")
@@ -119,7 +113,7 @@ class ConsumerMinMaxPolicy(AbsPolicy):
         inflight_orders = get_element(states, "consumer_in_transit_orders")
         booked_inventory = available_inventory + inflight_orders
 
-        # stop placing orders if no risk of out of 
+        # stop placing orders if no risk of out of
         most_needed_product_id = get_element(states, "product_idx")
         sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
         service_level = get_element(states, "service_level")

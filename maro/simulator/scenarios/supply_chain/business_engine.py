@@ -9,6 +9,7 @@ from maro.backends.frame import FrameBase
 
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
+from . import SupplyChainAction
 
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ProductUnit, UnitBase
@@ -23,11 +24,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._build_world()
 
-        self._product_units = []
+        self._product_units: List[ProductUnit] = []
 
         # Prepare product unit for later using.
         for unit in self.world.units.values():
-            if issubclass(type(unit), ProductUnit):
+            if isinstance(unit, ProductUnit):
                 self._product_units.append(unit)
 
         self._frame = self.world.frame
@@ -142,9 +143,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         if self._action_cache is not None:
             # NOTE: we assume that the action_cache is a list of action, and each action has an id field.
             for action in self._action_cache:
+                assert isinstance(action, SupplyChainAction)
                 entity = self.world.get_entity(action.id)
 
-                if entity is not None and issubclass(type(entity), UnitBase):
+                if entity is not None and isinstance(entity, UnitBase):
                     entity.set_action(action)
 
             self._action_cache = None

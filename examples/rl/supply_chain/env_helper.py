@@ -2,10 +2,13 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
+from typing import Any, Dict
 
 from maro.simulator import Env
+from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
+from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 
-from .config import env_conf 
+from .config import env_conf
 
 
 class UnitBaseInfo:
@@ -27,11 +30,13 @@ class UnitBaseInfo:
         return default
 
 
-# Create an env to extract some required information 
+# Create an env to extract some required information
 env = Env(**env_conf)
 
 # agent naming
-entity_dict = {entity.id: entity for entity in env._business_engine.get_entity_list()}
+helper_business_engine = env.business_engine
+assert isinstance(helper_business_engine, SupplyChainBusinessEngine)
+entity_dict: Dict[Any, SupplyChainEntity] = {entity.id: entity for entity in helper_business_engine.get_entity_list()}
 
 # storage info
 num_skus = len(env.summary["node_mapping"]["skus"]) + 1

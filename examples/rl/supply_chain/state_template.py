@@ -26,6 +26,26 @@ def out_of_stock(f_state):
     return 0 < f_state['inventory_in_stock']
 
 
+workflow_setting = {
+    "global_reward_weight_producer": 0.50,
+    "global_reward_weight_consumer": 0.50,
+    "downsampling_rate": 1,
+    "episod_duration": 21,
+    "initial_balance": 100000,
+    "consumption_hist_len": 4,
+    "sale_hist_len": 4,
+    "pending_order_len": 4,
+    "constraint_state_hist_len": 8,
+    "total_echelons": 3,
+    "replenishment_discount": 0.9,
+    "reward_normalization": 1e7,
+    "constraint_violate_reward": -1e6,
+    "gamma": 0.99,
+    "tail_timesteps": 7,
+    "heading_timesteps": 7,
+}
+
+
 atoms = {
     'stock_constraint': stock_constraint,
     'is_replenish_constraint': is_replenish_constraint,
@@ -51,10 +71,10 @@ keys_in_state = [
 
 # Create initial state structure. We will build the final state with default and const values,
 # then update dynamic part per step
-print(list(env.summary["node_mapping"].keys()))
+# print(list(env.summary["node_mapping"].keys()))
 num_skus = len(env.summary["node_mapping"]["skus"]) + 1
 STATE_TEMPLATE = {}
-for entity in env._business_engine.get_entity_list():
+for entity in env.business_engine.get_entity_list():
     state = {}
     facility = STORAGE_INFO["facility_levels"][entity.facility_id]
 
@@ -63,10 +83,10 @@ for entity in env._business_engine.get_entity_list():
 
     # facility features
     state["facility"] = None
-    state["facility_type"] = [
-        int(i == entity.agent_type) for i in range(len(env.summary["node_mapping"]["agent_types"]))
-    ]
-    state["is_accepted"] = [0] * env.configs.settings["constraint_state_hist_len"]
+    # state["facility_type"] = [
+    #     int(i == entity.agent_type) for i in range(len(env.summary["node_mapping"]["agent_types"]))
+    # ]
+    state["is_accepted"] = [0] * workflow_setting["constraint_state_hist_len"]
     state['constraint_idx'] = [0]
     state['facility_id'] = [0] * num_skus
     state['sku_info'] = {} if entity.is_facility else entity.skus
@@ -75,11 +95,11 @@ for entity in env._business_engine.get_entity_list():
     state['facility_info'] = facility['config']
     state["is_positive_balance"] = 0
 
-    if not entity.is_facility:
+    if entity.skus is not None:
         state['facility_id'][entity.skus.id] = 1
 
     for atom_name in atoms.keys():
-        state[atom_name] = list(np.ones(env.configs.settings['constraint_state_hist_len']))
+        state[atom_name] = list(np.ones(workflow_setting['constraint_state_hist_len']))
 
     # storage features
     state['storage_levels'] = [0] * num_skus
@@ -90,7 +110,7 @@ for entity in env._business_engine.get_entity_list():
     state['bom_inputs'] = [0] * num_skus
     state['bom_outputs'] = [0] * num_skus
 
-    if not entity.is_facility:
+    if entity.skus is not None:
         state['bom_inputs'][entity.skus.id] = 1
         state['bom_outputs'][entity.skus.id] = 1
 
@@ -105,7 +125,7 @@ for entity in env._business_engine.get_entity_list():
     state['vlt'] = [0] * vlt_len
     state['max_vlt'] = 0
 
-    if not entity.is_facility:
+    if entity.skus is not None:
         # only for sku product
         product_info = facility[entity.skus.id]
 
@@ -120,9 +140,8 @@ for entity in env._business_engine.get_entity_list():
                         state['vlt'][i * len(sku_list) + j + 1] = facility["skus"][sku.id].vlt
 
     # sale features
-    settings = env.configs.settings
-    hist_len = settings['sale_hist_len']
-    consumption_hist_len = settings['consumption_hist_len']
+    hist_len = workflow_setting['sale_hist_len']
+    consumption_hist_len = workflow_setting['consumption_hist_len']
 
     state['sale_mean'] = 1.0
     state['sale_std'] = 1.0
@@ -133,9 +152,9 @@ for entity in env._business_engine.get_entity_list():
     state['sale_hist'] = [0] * hist_len
     state['backlog_demand_hist'] = [0] * hist_len
     state['consumption_hist'] = [0] * consumption_hist_len
-    state['pending_order'] = [0] * settings['pending_order_len']
+    state['pending_order'] = [0] * workflow_setting['pending_order_len']
 
-    if not entity.is_facility:
+    if entity.skus is not None:
         state['service_level'] = entity.skus.service_level
 
         product_info = facility[entity.skus.id]
@@ -173,7 +192,7 @@ for entity in env._business_engine.get_entity_list():
     state['sku_price'] = 0
     state['sku_cost'] = 0
 
-    if not entity.is_facility:
+    if entity.skus is not None:
         state['sku_price'] = entity.skus.price
         state['sku_cost'] = entity.skus.cost
 
@@ -182,6 +201,6 @@ for entity in env._business_engine.get_entity_list():
 # state dimension
 first_state = next(iter(STATE_TEMPLATE.values()))
 STATE_DIM = sum(
-    len(first_state[key]) if isinstance(first_state[key], list) else 1 
+    len(first_state[key]) if isinstance(first_state[key], list) else 1
     for _, state_keys in keys_in_state for key in state_keys
 )
