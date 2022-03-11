@@ -76,7 +76,7 @@ def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
                 "final_value": 0.0,
             }
         )],
-        warmup=100
+        warmup=100,
     )
 
 
@@ -92,6 +92,6 @@ def get_dqn(name: str) -> DQNTrainer:
             double=True,
             replay_memory_capacity=10000,
             random_overwrite=False,
-            batch_size=256
-        )
+            batch_size=256,
+        ),
     )

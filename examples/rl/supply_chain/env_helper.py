@@ -17,13 +17,13 @@ class UnitBaseInfo:
     config: dict = None
     summary: dict = None
 
-    def __init__(self, unit_summary):
+    def __init__(self, unit_summary: dict) -> None:
         self.id = unit_summary["id"]
         self.node_index = unit_summary["node_index"]
         self.config = unit_summary.get("config", {})
         self.summary = unit_summary
 
-    def __getitem__(self, key, default=None):
+    def __getitem__(self, key: object, default: object = None) -> object:
         if key in self.summary:
             return self.summary[key]
 
@@ -39,7 +39,7 @@ assert isinstance(helper_business_engine, SupplyChainBusinessEngine)
 entity_dict: Dict[Any, SupplyChainEntity] = {entity.id: entity for entity in helper_business_engine.get_entity_list()}
 
 # storage info
-num_skus = len(env.summary["node_mapping"]["skus"]) + 1
+num_skus = len(env.summary["node_mapping"]["skus"]) + 1  # TODO: why + 1?
 STORAGE_INFO = {
     "facility_levels": {},
     "unit2facility": {},
@@ -49,7 +49,7 @@ STORAGE_INFO = {
     "facility_product_utilization": {},  # facility id -> storage product utilization
     # use this to quick find relationship between units (consumer, manufacture, seller or product) and product unit.
     # unit id  -> (product unit id, facility id, seller id, consumer id, manufacture id)
-    "unit2product": {}
+    "unit2product": {},
 }
 # facility levels
 for facility_id, facility in env.summary["node_mapping"]["facilities"].items():
@@ -57,7 +57,7 @@ for facility_id, facility in env.summary["node_mapping"]["facilities"].items():
         "node_index": facility["node_index"],
         "config": facility['configs'],
         "upstreams": facility["upstreams"],
-        "skus": facility["skus"]
+        "skus": facility["skus"],
     }
 
     units = facility["units"]
@@ -75,13 +75,11 @@ for facility_id, facility in env.summary["node_mapping"]["facilities"].items():
             STORAGE_INFO["storage_product_num"][facility_id][pid] = 0
 
     distribution = units["distribution"]
-
     if distribution is not None:
         STORAGE_INFO["facility_levels"][facility_id]["distribution"] = UnitBaseInfo(distribution)
         STORAGE_INFO["unit2facility"][distribution["id"]] = facility_id
 
     products = units["products"]
-
     if products:
         for product_id, product in products.items():
             product_info = {
@@ -110,5 +108,5 @@ for facility_id, facility in env.summary["node_mapping"]["facilities"].items():
                         facility_id,
                         seller["id"] if seller is not None else None,
                         consumer["id"] if consumer is not None else None,
-                        manufacture["id"] if manufacture is not None else None
+                        manufacture["id"] if manufacture is not None else None,
                     )

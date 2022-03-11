@@ -31,7 +31,8 @@ for id_, entity in entity_dict.items():
 if rl_algorithm == "dqn":
     from .algorithms.dqn import get_dqn, get_policy
     policy_creator = {
-        agent_name: partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS) for agent_name in agent2policy.values()
+        agent_name: partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
+        for agent_name in agent2policy.values()
     }
     trainer_creator = {
         agent_name.split(".")[0]: get_dqn for agent_name in agent2policy.values()

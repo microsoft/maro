@@ -188,5 +188,5 @@ class FacilityBase(ABC):
             "downstreams": {
                 product_id: [f.id for f in source_list]
                 for product_id, source_list in self.downstreams.items()
-            }
+            },
         }

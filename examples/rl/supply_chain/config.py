@@ -15,4 +15,3 @@ seller_features = ("total_demand", "sold", "demand")
 rl_algorithm = "dqn"
 
 NUM_CONSUMER_ACTIONS = 10
-NUM_RL_POLICIES = 5

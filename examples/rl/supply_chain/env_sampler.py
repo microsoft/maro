@@ -1,13 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
 from collections import defaultdict, namedtuple
-from os.path import dirname
 from typing import Any, Callable, Dict, List, Type
 
-import scipy.stats as st
 import numpy as np
+import scipy.stats as st
 
 from maro.event_buffer import CascadeEvent
 from maro.rl.policy import RLPolicy
@@ -17,13 +15,11 @@ from maro.simulator.scenarios.supply_chain import (
     ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit
 )
 from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
-from .policy_trainer import agent2policy
 
-sc_path = dirname(__file__)
-sys.path.insert(0, sc_path)
 from .config import distribution_features, env_conf, seller_features
 from .env_helper import STORAGE_INFO
-from .state_template import STATE_TEMPLATE, keys_in_state
+from .policy_trainer import agent2policy
+from .state_template import keys_in_state, STATE_TEMPLATE, workflow_settings
 
 
 def _serialize_state(state: dict) -> np.ndarray:
@@ -95,24 +91,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._storage_info = STORAGE_INFO
         self._state_template = STATE_TEMPLATE
 
-        self._env_settings = {
-            "global_reward_weight_producer": 0.50,
-            "global_reward_weight_consumer": 0.50,
-            "downsampling_rate": 1,
-            "episod_duration": 21,
-            "initial_balance": 100000,
-            "consumption_hist_len": 4,
-            "sale_hist_len": 4,
-            "pending_order_len": 4,
-            "constraint_state_hist_len": 8,
-            "total_echelons": 3,
-            "replenishment_discount": 0.9,
-            "reward_normalization": 1e7,
-            "constraint_violate_reward": -1e6,
-            "gamma": 0.99,
-            "tail_timesteps": 7,
-            "heading_timesteps": 7,
-        }  # TODO: make this a parameter
+        self._env_settings = workflow_settings
 
     def _get_state_shaper_for_entity(self, entity: SupplyChainEntity) -> Callable:
         return self.get_rl_policy_state  # TODO
@@ -222,8 +201,7 @@ class SCEnvSampler(AbsEnvSampler):
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._storage_info["facility2storage"].items():
             product_numbers = self._learn_env.snapshot_list["storage"][tick:storage_index:"product_number"] \
-                .flatten() \
-                .astype(np.int)
+                .flatten().astype(np.int)
 
             for pid, index in self._storage_info["storage_product_indexes"][facility_id].items():
                 product_number = product_numbers[index]
@@ -285,14 +263,14 @@ class SCEnvSampler(AbsEnvSampler):
 
                     reward_discount = 1
 
-                    action = ConsumerAction(
+                    env_action_dict[agent_id] = ConsumerAction(
                         unit_id, product_id, source_id, action_number, sku.vlt, reward_discount,
                     )
-                    env_action_dict[agent_id] = action
 
                     self._consumer_orders[product_unit_id] = action_number
                     self._orders_from_downstreams[
-                        self._storage_info["facility_levels"][source_id][product_id]["skuproduct"].id] = action_number
+                        self._storage_info["facility_levels"][source_id][product_id]["skuproduct"].id
+                    ] = action_number
 
             # manufacturer action
             elif self._entity_dict[agent_id].class_type == ManufactureUnit:
@@ -301,8 +279,7 @@ class SCEnvSampler(AbsEnvSampler):
                 # ignore invalid actions
                 if action is None or action == 0:
                     continue
-                action = ManufactureAction(unit_id, action)
-                env_action_dict[agent_id] = action
+                env_action_dict[agent_id] = ManufactureAction(id=unit_id, production_rate=float(action))
 
         return env_action_dict
 
@@ -377,9 +354,9 @@ class SCEnvSampler(AbsEnvSampler):
         if pending_order is not None:
             state['inventory_in_distribution'] = pending_order[entity.skus.id]
 
-        state['inventory_estimated'] = (state['inventory_in_stock']
-                                        + state['inventory_in_transit']
-                                        - state['inventory_in_distribution'])
+        state['inventory_estimated'] = (
+            state['inventory_in_stock'] + state['inventory_in_transit'] - state['inventory_in_distribution']
+        )
         if state['inventory_estimated'] >= 0.5 * state['storage_capacity']:
             state['is_over_stock'] = 1
 
@@ -389,13 +366,13 @@ class SCEnvSampler(AbsEnvSampler):
         service_index = state['service_level']
 
         if service_index not in self._service_index_ppf_cache:
-            self._service_index_ppf_cache[service_index] = st.norm.ppf(
-                service_index)
+            self._service_index_ppf_cache[service_index] = st.norm.ppf(service_index)
 
         ppf = self._service_index_ppf_cache[service_index]
 
-        state['inventory_rop'] = (state['max_vlt'] * state['sale_mean']
-                                  + np.sqrt(state['max_vlt']) * state['sale_std'] * ppf)
+        state['inventory_rop'] = (
+            state['max_vlt'] * state['sale_mean'] + np.sqrt(state['max_vlt']) * state['sale_std'] * ppf
+        )
 
         if state['inventory_estimated'] < state['inventory_rop']:
             state['is_below_rop'] = 1
@@ -419,8 +396,8 @@ ProductInfo = namedtuple(
         "downstream_product_units",
         "consumer_id_index_tuple",
         "seller_id_index_tuple",
-        "manufacture_id_index_tuple"
-    )
+        "manufacture_id_index_tuple",
+    ),
 )
 
 FacilityLevelInfo = namedtuple(
@@ -431,8 +408,8 @@ FacilityLevelInfo = namedtuple(
         "storage_index",
         "unit_storage_cost",
         "distribution_index",
-        "vehicle_index_list"
-    )
+        "vehicle_index_list",
+    ),
 )
 
 
@@ -481,7 +458,7 @@ class BalanceSheetCalculator:
                         consumer_id_index_tuple=None if consumer is None else (consumer["id"], consumer["node_index"]),
                         seller_id_index_tuple=None if seller is None else (seller["id"], seller["node_index"]),
                         manufacture_id_index_tuple=None if manufacture is None else (
-                            manufacture["id"], manufacture["node_index"])
+                            manufacture["id"], manufacture["node_index"]),
                     )
                 )
 
@@ -494,7 +471,7 @@ class BalanceSheetCalculator:
                     distribution_index=distribution["node_index"] if distribution is not None else None,
                     vehicle_index_list=[
                         v["node_index"] for v in distribution["children"]
-                    ] if distribution is not None else []
+                    ] if distribution is not None else [],
                 )
             )
 
@@ -813,7 +790,7 @@ class BalanceSheetCalculator:
                 manufacture_step_reward,
                 storages_product_map,
                 product_distribution_balance_sheet_profit,
-                product_distribution_balance_sheet_loss
+                product_distribution_balance_sheet_loss,
             )
 
         # Final result for current tick, key is the facility/unit id, value is tuple of balance sheet and reward.

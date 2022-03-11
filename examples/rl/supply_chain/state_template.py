@@ -6,27 +6,27 @@ import numpy as np
 from .env_helper import STORAGE_INFO, env
 
 
-def stock_constraint(f_state):
+def stock_constraint(f_state) -> bool:
     return 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean']
 
 
-def is_replenish_constraint(f_state):
+def is_replenish_constraint(f_state) -> bool:
     return f_state['consumption_hist'][-1] > 0
 
 
-def low_profit(f_state):
+def low_profit(f_state) -> bool:
     return (f_state['sku_price'] - f_state['sku_cost']) * f_state['sale_mean'] <= 1000
 
 
-def low_stock_constraint(f_state):
+def low_stock_constraint(f_state) -> bool:
     return 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 3) * f_state['sale_mean']
 
 
-def out_of_stock(f_state):
+def out_of_stock(f_state) -> bool:
     return 0 < f_state['inventory_in_stock']
 
 
-workflow_setting = {
+workflow_settings = {
     "global_reward_weight_producer": 0.50,
     "global_reward_weight_consumer": 0.50,
     "downsampling_rate": 1,
@@ -45,14 +45,13 @@ workflow_setting = {
     "heading_timesteps": 7,
 }
 
-
 atoms = {
     'stock_constraint': stock_constraint,
     'is_replenish_constraint': is_replenish_constraint,
     'low_profit': low_profit,
     'low_stock_constraint': low_stock_constraint,
-    'out_of_stock': out_of_stock
-}
+    'out_of_stock': out_of_stock,
+}  # TODO: values are never used
 
 keys_in_state = [
     (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 'consumption_hist']),
@@ -64,9 +63,9 @@ keys_in_state = [
         'inventory_in_stock',
         'inventory_in_transit',
         'inventory_estimated',
-        'inventory_rop'
+        'inventory_rop',
     ]),
-    ('max_price', ['sku_price', 'sku_cost'])
+    ('max_price', ['sku_price', 'sku_cost']),
 ]
 
 # Create initial state structure. We will build the final state with default and const values,
@@ -86,7 +85,7 @@ for entity in env.business_engine.get_entity_list():
     # state["facility_type"] = [
     #     int(i == entity.agent_type) for i in range(len(env.summary["node_mapping"]["agent_types"]))
     # ]
-    state["is_accepted"] = [0] * workflow_setting["constraint_state_hist_len"]
+    state["is_accepted"] = [0] * workflow_settings["constraint_state_hist_len"]
     state['constraint_idx'] = [0]
     state['facility_id'] = [0] * num_skus
     state['sku_info'] = {} if entity.is_facility else entity.skus
@@ -99,7 +98,7 @@ for entity in env.business_engine.get_entity_list():
         state['facility_id'][entity.skus.id] = 1
 
     for atom_name in atoms.keys():
-        state[atom_name] = list(np.ones(workflow_setting['constraint_state_hist_len']))
+        state[atom_name] = list(np.ones(workflow_settings['constraint_state_hist_len']))
 
     # storage features
     state['storage_levels'] = [0] * num_skus
@@ -140,8 +139,8 @@ for entity in env.business_engine.get_entity_list():
                         state['vlt'][i * len(sku_list) + j + 1] = facility["skus"][sku.id].vlt
 
     # sale features
-    hist_len = workflow_setting['sale_hist_len']
-    consumption_hist_len = workflow_setting['consumption_hist_len']
+    hist_len = workflow_settings['sale_hist_len']
+    consumption_hist_len = workflow_settings['consumption_hist_len']
 
     state['sale_mean'] = 1.0
     state['sale_std'] = 1.0
@@ -152,7 +151,7 @@ for entity in env.business_engine.get_entity_list():
     state['sale_hist'] = [0] * hist_len
     state['backlog_demand_hist'] = [0] * hist_len
     state['consumption_hist'] = [0] * consumption_hist_len
-    state['pending_order'] = [0] * workflow_setting['pending_order_len']
+    state['pending_order'] = [0] * workflow_settings['pending_order_len']
 
     if entity.skus is not None:
         state['service_level'] = entity.skus.service_level
@@ -202,5 +201,6 @@ for entity in env.business_engine.get_entity_list():
 first_state = next(iter(STATE_TEMPLATE.values()))
 STATE_DIM = sum(
     len(first_state[key]) if isinstance(first_state[key], list) else 1
-    for _, state_keys in keys_in_state for key in state_keys
+    for _, state_keys in keys_in_state
+    for key in state_keys
 )

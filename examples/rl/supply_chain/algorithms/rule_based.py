@@ -5,7 +5,7 @@ import numpy as np
 import scipy.stats as st
 
 from examples.rl.supply_chain.config import NUM_CONSUMER_ACTIONS
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import RuleBasedPolicy
 
 OR_STATE_OFFSET_INDEX = {
     "is_facility": 0,
@@ -18,29 +18,29 @@ OR_STATE_OFFSET_INDEX = {
     "consumer_in_transit_orders": 7,
     "product_idx": 8,
     "vlt": 9,
-    "service_level": 10
+    "service_level": 10,
 }
 
 
-def get_element(np_state, key):
+def get_element(np_state: np.ndarray, key: str) -> np.ndarray:
     offsets = np_state[-len(OR_STATE_OFFSET_INDEX):]
     idx = OR_STATE_OFFSET_INDEX[key]
     prev_idx = offsets[idx - 1] if idx > 0 else 0
-    return np_state[:, prev_idx : offsets[idx]].squeeze()
+    return np_state[:, prev_idx: offsets[idx]].squeeze()
 
 
-class DummyPolicy(AbsPolicy):
-    def __call__(self, states):
+class DummyPolicy(RuleBasedPolicy):
+    def _rule(self, states: np.ndarray) -> list:
         return [None] * states.shape[0]
 
 
-class ManufacturerBaselinePolicy(AbsPolicy):
-    def __call__(self, states):
+class ManufacturerBaselinePolicy(RuleBasedPolicy):
+    def _rule(self, states: np.ndarray) -> np.ndarray:
         return 500 * np.ones(states.shape[0])
 
 
-class ConsumerBaselinePolicy(AbsPolicy):
-    def __call__(self, states):
+class ConsumerBaselinePolicy(RuleBasedPolicy):
+    def _rule(self, states: np.ndarray) -> np.ndarray:
         batch_size = len(states)
         res = np.random.randint(0, high=NUM_CONSUMER_ACTIONS, size=batch_size)
         # consumer_source_inventory
@@ -72,15 +72,16 @@ class ConsumerBaselinePolicy(AbsPolicy):
 #     also known as carrying cost or storage cost (capital cost, warehouse space,
 #     refrigeration, insurance, etc. usually not related to the unit production cost)
 
-class ConsumerEOQPolicy(AbsPolicy):
-    def _get_consumer_quantity(self, states):
-        order_cost = get_element(states, "order_cost")
-        holding_cost = get_element(states, "unit_storage_cost")
-        sale_gamma = get_element(states, "sale_mean")
-        consumer_quantity = np.sqrt(2 * sale_gamma * order_cost / holding_cost) / sale_gamma
-        return consumer_quantity.astype(np.int32)
+def _get_consumer_quantity(states: np.ndarray) -> np.ndarray:
+    order_cost = get_element(states, "order_cost")
+    holding_cost = get_element(states, "unit_storage_cost")
+    sale_gamma = get_element(states, "sale_mean")
+    consumer_quantity = np.sqrt(2 * sale_gamma * order_cost / holding_cost) / sale_gamma
+    return consumer_quantity.astype(np.int32)
 
-    def __call__(self, states):
+
+class ConsumerEOQPolicy(RuleBasedPolicy):
+    def _rule(self, states: np.ndarray) -> np.ndarray:
         # consumer_source_inventory
         available_inventory = get_element(states, "storage_levels")
         inflight_orders = get_element(states, "consumer_in_transit_orders")
@@ -100,14 +101,14 @@ class ConsumerEOQPolicy(AbsPolicy):
             booked_inventory[:, most_needed_product_id] <=
             vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
         )
-        return self._get_consumer_quantity(states) * (non_facility_mask & capacity_mask & replenishment_mask)
+        return _get_consumer_quantity(states) * (non_facility_mask & capacity_mask & replenishment_mask)
 
 
 # parameters: (r, R), calculate according to VLT, demand variances, and service level
 # replenish R - S units whenever the current stock is less than r
 # S denotes the number of units in stock
-class ConsumerMinMaxPolicy(AbsPolicy):
-    def __call__(self, states):
+class ConsumerMinMaxPolicy(RuleBasedPolicy):
+    def _rule(self, states: np.ndarray) -> np.ndarray:
         # consumer_source_inventory
         available_inventory = get_element(states, "storage_levels")
         inflight_orders = get_element(states, "consumer_in_transit_orders")
@@ -134,5 +135,5 @@ class ConsumerMinMaxPolicy(AbsPolicy):
 or_policy_func_dict = {
     "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
     "facility_policy": lambda name: DummyPolicy(name),
-    "product_policy": lambda name: DummyPolicy(name)
-}
+    "product_policy": lambda name: DummyPolicy(name),
+}  # TODO: never used
