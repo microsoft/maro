@@ -143,6 +143,7 @@ in the memory to train the policies. Like ``RLPolicy``, trainers are also concre
 be used by configuring parameters. Currently, we have 4 trainers (algorithms) in MARO:
 
 - ``DiscreteActorCriticTrainer``: Actor-critic algorithm for policies that generate discrete actions.
+- ``DiscretePPOTrainer``: PPO algorithm for policies that generate discrete actions.
 - ``DDPGTrainer``: DDPG algorithm for policies that generate continuous actions.
 - ``DQNTrainer``: DQN algorithm for policies that generate discrete actions.
 - ``DiscreteMADDPGTrainer``: MADDPG algorithm for policies that generate discrete actions.
