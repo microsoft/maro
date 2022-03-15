@@ -34,4 +34,4 @@ state_dim = (
     + len(vessel_attributes)
 )
 
-algorithm = "ac"  # ac, dqn or discrete_maddpg
+algorithm = "ac"  # ac, ppo, dqn or discrete_maddpg
