@@ -89,14 +89,17 @@ class ConsumerUnit(ExtendUnitBase):
     def step(self, tick: int):
         self._update_pending_order()
 
-        assert self.action is None or isinstance(self.action, ConsumerAction)
+        if self.action is None:
+            return
+
+        assert isinstance(self.action, ConsumerAction)
 
         # NOTE: id == 0 means invalid,as our id is 1 based.
-        if not self.action or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
+        if self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
 
         # NOTE: we are using product unit as destination,
-        # so we expect the action.source_id is and id of product unit
+        # so we expect the action.source_id is an id of product unit.
         self.update_open_orders(self.action.source_id, self.action.product_id, self.action.quantity)
 
         order = Order(self.facility, self.action.product_id, self.action.quantity, self.action.vlt)
@@ -108,8 +111,6 @@ class ConsumerUnit(ExtendUnitBase):
         self.purchased = self.action.quantity
 
     def flush_states(self):
-        assert self.action is None or isinstance(self.action, ConsumerAction)
-
         if self.received > 0:
             self.data_model.received = self.received
             self.data_model.total_received += self.received
@@ -118,34 +119,20 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.purchased = self.purchased
             self.data_model.total_purchased += self.purchased
             self.data_model.latest_consumptions = 1.0
+            self.data_model.order_quantity = self.purchased
 
         if self.order_product_cost > 0:
             self.data_model.order_product_cost = self.order_product_cost
 
-        if self.action is not None and self.action.quantity > 0:
-            self.data_model.order_quantity = self.action.quantity
-            self.data_model.reward_discount = self.action.reward_discount
-
     def post_step(self, tick: int):
-        assert self.action is None or isinstance(self.action, ConsumerAction)
-
-        # Clear the action states per step.
-        if self.action is not None:
-            self.data_model.latest_consumptions = 0
-            self.data_model.reward_discount = 0
-
-            if self.action.quantity > 0:
-                self.data_model.order_quantity = 0
-
-        # This will set action to None.
-        super(ConsumerUnit, self).post_step(tick)
-
         if self.received > 0:
             self.data_model.received = 0
             self.received = 0
 
         if self.purchased > 0:
             self.data_model.purchased = 0
+            self.data_model.latest_consumptions = 0
+            self.data_model.order_quantity = 0
             self.purchased = 0
 
         if self.order_product_cost > 0:

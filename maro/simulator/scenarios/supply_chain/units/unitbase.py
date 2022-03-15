@@ -89,14 +89,14 @@ class UnitBase:
         Args:
             tick (int): Current simulator tick.
         """
-        self.action = None
+        pass
 
     def reset(self) -> None:
         """Reset this unit for a new episode."""
         if self.data_model is not None:
             self.data_model.reset()
 
-        self.action = None
+        self.clear_action()
 
     def initialize(self) -> None:
         """Initialize this unit after data model is ready to use.
@@ -113,6 +113,10 @@ class UnitBase:
             action (object): Action from outside.
         """
         self.action = action
+
+    def clear_action(self) -> None:
+        """Clear the action after calling step() of this Unit."""
+        self.action = None
 
     def get_unit_info(self) -> dict:
         return {
