@@ -12,7 +12,7 @@ if algorithm == "ac":
     policy_creator = {f"ac_{i}.policy": partial(get_policy, state_dim, action_num) for i in range(4)}
     trainer_creator = {f"ac_{i}": partial(get_ac, state_dim) for i in range(4)}
 elif algorithm == "ppo":
-    from .algorithms.ac import get_ppo, get_policy
+    from .algorithms.ppo import get_ppo, get_policy
     policy_creator = {f"ppo_{i}.policy": partial(get_policy, state_dim, action_num) for i in range(4)}
     trainer_creator = {f"ppo_{i}": partial(get_ppo, state_dim) for i in range(4)}
 elif algorithm == "dqn":

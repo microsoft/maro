@@ -130,19 +130,3 @@ def get_ac(state_dim: int, name: str) -> DiscreteActorCriticTrainer:
             lam=.0,
         ),
     )
-
-
-def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
-    return DiscretePPOTrainer(
-        name=name,
-        params=DiscretePPOParams(
-            device="cpu",
-            get_v_critic_net_func=lambda: MyCriticNet(state_dim),
-            reward_discount=.0,
-            grad_iters=10,
-            critic_loss_cls=torch.nn.SmoothL1Loss,
-            min_logp=None,
-            lam=.0,
-            clip_ratio=0.1,
-        ),
-    )
