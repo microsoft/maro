@@ -11,7 +11,7 @@ from maro.backends.frame import FrameBase
 from . import ProductUnit
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .objects import SkuMeta
+from .objects import SkuInfo, SkuMeta
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
 from .units import ExtendUnitBase, UnitBase
 
@@ -20,7 +20,7 @@ from .units import ExtendUnitBase, UnitBase
 class SupplyChainEntity:
     id: int
     class_type: type
-    skus: Optional[SkuMeta]
+    skus: Optional[SkuInfo]
     facility_id: int
     parent_id: Optional[int]
 

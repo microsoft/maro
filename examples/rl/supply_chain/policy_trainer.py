@@ -10,15 +10,15 @@ from .env_helper import entity_dict
 from .state_template import STATE_DIM
 
 
-def get_policy_name(entity: SupplyChainEntity) -> str:
-    if entity.is_facility:
+def get_policy_name(entity_: SupplyChainEntity) -> str:
+    if entity_.is_facility:
         return "facility_policy"
-    elif entity.class_type == ManufactureUnit:
+    elif entity_.class_type == ManufactureUnit:
         return "manufacturer_policy"
-    elif entity.class_type == ProductUnit:
+    elif entity_.class_type == ProductUnit:
         return "product_policy"
-    elif entity.class_type == ConsumerUnit:
-        return f"dqn_{entity.id}.policy"
+    elif entity_.class_type == ConsumerUnit:
+        return f"dqn_{entity_.id}.policy"
 
 
 agent2policy = {}

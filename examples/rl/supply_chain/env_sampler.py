@@ -264,7 +264,7 @@ class SCEnvSampler(AbsEnvSampler):
                     reward_discount = 1
 
                     env_action_dict[agent_id] = ConsumerAction(
-                        unit_id, product_id, source_id, action_number, sku.vlt, reward_discount,
+                        unit_id, product_id, source_id, action_number, sku.vlt,
                     )
 
                     self._consumer_orders[product_unit_id] = action_number

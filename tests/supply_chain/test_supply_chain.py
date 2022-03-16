@@ -6,7 +6,8 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction, ConsumerUnit, DistributionUnit, FacilityBase, ManufactureAction, SellerUnit, StorageUnit, VehicleUnit
+    ConsumerAction, ConsumerUnit, DistributionUnit, FacilityBase, ManufactureAction, SellerUnit, StorageUnit,
+    VehicleUnit,
 )
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.units.order import Order
@@ -57,7 +58,8 @@ class MyTestCase(unittest.TestCase):
     def test_manufacture_meet_storage_limitation(self):
         """Test sku3 manufacturing."""
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         storage_nodes = env.snapshot_list["storage"]
         storage_features = ("id", "facility_id", "capacity", "remaining_space")
@@ -173,7 +175,8 @@ class MyTestCase(unittest.TestCase):
         """Test sku4 manufacturing, this sku supplier does not have enough source material at the begging
             , so it cannot produce anything without consumer purchase."""
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         storage_nodes = env.snapshot_list["storage"]
         storage_features = ("id", "facility_id", "capacity", "remaining_space")
@@ -276,7 +279,8 @@ class MyTestCase(unittest.TestCase):
         """Test on sku1, it is configured with nearly full initial states."""
 
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         storage_nodes = env.snapshot_list["storage"]
         storage_features = ("id", "facility_id", "capacity", "remaining_space")
@@ -384,7 +388,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_storage_take_available(self):
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
 
@@ -394,7 +399,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env.business_engine.world.get_entity_by_id(storage_unit_id)
+        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
 
@@ -450,7 +455,8 @@ class MyTestCase(unittest.TestCase):
 
         """
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
 
@@ -461,7 +467,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env.business_engine.world.get_entity_by_id(storage_unit_id)
+        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
 
         storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
 
@@ -525,7 +531,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_storage_try_take_products(self):
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
 
@@ -536,7 +543,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env.business_engine.world.get_entity_by_id(storage_unit_id)
+        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
 
         storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
 
@@ -578,7 +585,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_storage_get_product_number(self):
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
 
@@ -588,7 +596,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env.business_engine.world.get_entity_by_id(storage_unit_id)
+        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
 
@@ -626,7 +634,8 @@ class MyTestCase(unittest.TestCase):
         NOTE: we will use consumer on Supplier_SKU1, as it contains a source for sku3 (Supplier_SKU3)
         """
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # print(env.summary)
         # we can get the consumer from env.summary
@@ -641,7 +650,7 @@ class MyTestCase(unittest.TestCase):
                 # try to find sku3 consumer
                 sku3_consumer_unit_id = facility_detail["units"]["products"][SKU3_ID]["consumer"]["id"]
 
-                sku3_consumer_unit = env.business_engine.world.get_entity_by_id(sku3_consumer_unit_id)
+                sku3_consumer_unit = be.world.get_entity_by_id(sku3_consumer_unit_id)
                 sku3_product_unit_id = facility_detail["units"]["products"][SKU3_ID]["id"]
 
         sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
@@ -669,7 +678,7 @@ class MyTestCase(unittest.TestCase):
 
         # check sources
         for source_facility_id in sku3_consumer_unit.sources:
-            source_facility: FacilityBase = env.business_engine.world.get_facility_by_id(source_facility_id)
+            source_facility: FacilityBase = be.world.get_facility_by_id(source_facility_id)
 
             # check if source facility contains the sku3 config
             self.assertTrue(SKU3_ID in source_facility.skus)
@@ -713,7 +722,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_consumer_action(self):
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         sku3_consumer_unit_id: Optional[int] = None
         sku3_consumer_unit: Optional[ConsumerUnit] = None
@@ -722,7 +732,7 @@ class MyTestCase(unittest.TestCase):
         for facility_id, facility_detail in env.summary["node_mapping"]["facilities"].items():
             if facility_detail["name"] == "Supplier_SKU1":
                 sku3_consumer_unit_id = facility_detail["units"]["products"][SKU3_ID]["consumer"]["id"]
-                sku3_consumer_unit = env.business_engine.world.get_entity_by_id(sku3_consumer_unit_id)
+                sku3_consumer_unit = be.world.get_entity_by_id(sku3_consumer_unit_id)
             if facility_detail["name"] == "Supplier_SKU3":
                 sku3_supplier_facility_id = facility_detail["id"]
         self.assertTrue(all([
@@ -814,7 +824,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_consumer_on_order_reception(self):
         env = build_env("case_01", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         sku3_consumer_unit_id: Optional[int] = None
         sku3_consumer_unit: Optional[ConsumerUnit] = None
@@ -823,7 +834,7 @@ class MyTestCase(unittest.TestCase):
         for facility_id, facility_detail in env.summary["node_mapping"]["facilities"].items():
             if facility_detail["name"] == "Supplier_SKU1":
                 sku3_consumer_unit_id = facility_detail["units"]["products"][SKU3_ID]["consumer"]["id"]
-                sku3_consumer_unit = env.business_engine.world.get_entity_by_id(sku3_consumer_unit_id)
+                sku3_consumer_unit = be.world.get_entity_by_id(sku3_consumer_unit_id)
             if facility_detail["name"] == "Supplier_SKU3":
                 sku3_supplier_facility_id = facility_detail["id"]
         self.assertTrue(all([
@@ -866,14 +877,15 @@ class MyTestCase(unittest.TestCase):
 
     def test_vehicle_unit_state(self):
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # try to find first vehicle unit we meet
         vehicle_unit: Optional[VehicleUnit] = None
 
         for unit_id, info in env.summary["node_mapping"]["unit_mapping"].items():
             if info[0] == "vehicle":
-                vehicle_unit = env.business_engine.world.get_entity_by_id(unit_id)
+                vehicle_unit = be.world.get_entity_by_id(unit_id)
 
                 break
         self.assertTrue(vehicle_unit is not None)
@@ -935,7 +947,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_vehicle_unit_schedule(self):
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # try to find first vehicle unit of Supplier
         vehicle_unit: Optional[VehicleUnit] = None
@@ -944,10 +957,10 @@ class MyTestCase(unittest.TestCase):
         for _, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
                 for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = env.business_engine.world.get_entity_by_id(v["id"])
+                    vehicle_unit = be.world.get_entity_by_id(v["id"])
 
             if info["name"] == "Warehouse_001":
-                dest_facility = env.business_engine.world.get_facility_by_id(info["id"])
+                dest_facility = be.world.get_facility_by_id(info["id"])
         self.assertTrue(all([vehicle_unit is not None, dest_facility is not None]))
 
         # make sure the upstream in the only one supplier in config
@@ -1021,7 +1034,8 @@ class MyTestCase(unittest.TestCase):
         NOTE: with patient is tried in above case after schedule the job
         """
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # try to find first vehicle unit of Supplier
         vehicle_unit: Optional[VehicleUnit] = None
@@ -1030,10 +1044,10 @@ class MyTestCase(unittest.TestCase):
         for _, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
                 for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = env.business_engine.world.get_entity_by_id(v["id"])
+                    vehicle_unit = be.world.get_entity_by_id(v["id"])
 
             if info["name"] == "Warehouse_001":
-                dest_facility = env.business_engine.world.get_facility_by_id(info["id"])
+                dest_facility = be.world.get_facility_by_id(info["id"])
         self.assertTrue(all([vehicle_unit is not None, dest_facility is not None]))
 
         # there is 80 sku3 in supplier, lets schedule a job for 100, to make sure it will fail to try load
@@ -1098,7 +1112,8 @@ class MyTestCase(unittest.TestCase):
 
         """
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # try to find first vehicle unit of Supplier
         vehicle_unit: Optional[VehicleUnit] = None
@@ -1107,10 +1122,10 @@ class MyTestCase(unittest.TestCase):
         for _, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
                 for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = env.business_engine.world.get_entity_by_id(v["id"])
+                    vehicle_unit = be.world.get_entity_by_id(v["id"])
 
             if info["name"] == "Warehouse_001":
-                dest_facility = env.business_engine.world.get_facility_by_id(info["id"])
+                dest_facility = be.world.get_facility_by_id(info["id"])
         self.assertTrue(all([vehicle_unit is not None, dest_facility is not None]))
 
         # move all 80 sku3 to destination, will cause vehicle keep waiting there
@@ -1141,7 +1156,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_distribution_unit_initial_state(self):
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # try to find first vehicle unit of Supplier
         dist_unit: Optional[DistributionUnit] = None
@@ -1149,10 +1165,10 @@ class MyTestCase(unittest.TestCase):
 
         for _, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
-                dist_unit = env.business_engine.world.get_entity_by_id(info["units"]["distribution"]["id"])
+                dist_unit = be.world.get_entity_by_id(info["units"]["distribution"]["id"])
 
             if info["name"] == "Warehouse_001":
-                dest_facility = env.business_engine.world.get_facility_by_id(info["id"])
+                dest_facility = be.world.get_facility_by_id(info["id"])
         self.assertTrue(all([dist_unit is not None, dest_facility is not None]))
 
         self.assertEqual(0, len(dist_unit.order_queue))
@@ -1164,7 +1180,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_distribution_unit_dispatch_order(self):
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # try to find first vehicle unit of Supplier
         dist_unit: Optional[DistributionUnit] = None
@@ -1172,10 +1189,10 @@ class MyTestCase(unittest.TestCase):
 
         for _, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
-                dist_unit = env.business_engine.world.get_entity_by_id(info["units"]["distribution"]["id"])
+                dist_unit = be.world.get_entity_by_id(info["units"]["distribution"]["id"])
 
             if info["name"] == "Warehouse_001":
-                dest_facility = env.business_engine.world.get_facility_by_id(info["id"])
+                dest_facility = be.world.get_facility_by_id(info["id"])
         self.assertTrue(all([dist_unit is not None, dest_facility is not None]))
 
         first_vehicle: VehicleUnit = dist_unit.vehicles[0]
@@ -1238,7 +1255,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_seller_unit_initial_states(self):
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # find seller for sku3 from retailer facility
         sell_unit: Optional[SellerUnit] = None
@@ -1247,7 +1265,7 @@ class MyTestCase(unittest.TestCase):
             if info["name"] == "Retailer_001":
                 for pid, pdetail in info["units"]["products"].items():
                     if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = env.business_engine.world.get_entity_by_id(pdetail["seller"]["id"])
+                        sell_unit = be.world.get_entity_by_id(pdetail["seller"]["id"])
         self.assertTrue(sell_unit is not None)
 
         # from configuration
@@ -1281,7 +1299,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_seller_unit_demand_states(self):
         env = build_env("case_02", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # find seller for sku3 from retailer facility
         sell_unit: Optional[SellerUnit] = None
@@ -1290,7 +1309,7 @@ class MyTestCase(unittest.TestCase):
             if info["name"] == "Retailer_001":
                 for pid, pdetail in info["units"]["products"].items():
                     if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = env.business_engine.world.get_entity_by_id(pdetail["seller"]["id"])
+                        sell_unit = be.world.get_entity_by_id(pdetail["seller"]["id"])
         self.assertTrue(sell_unit is not None)
 
         sku3_init_number = sell_unit.facility.skus[SKU3_ID].init_stock
@@ -1343,7 +1362,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_seller_unit_customized(self):
         env = build_env("case_03", 100)
-        assert isinstance(env.business_engine, SupplyChainBusinessEngine)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
         # find seller for sku3 from retailer facility
         sell_unit: Optional[SellerUnit] = None
@@ -1352,7 +1372,7 @@ class MyTestCase(unittest.TestCase):
             if info["name"] == "Retailer_001":
                 for pid, pdetail in info["units"]["products"].items():
                     if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = env.business_engine.world.get_entity_by_id(pdetail["seller"]["id"])
+                        sell_unit = be.world.get_entity_by_id(pdetail["seller"]["id"])
         self.assertTrue(sell_unit is not None)
 
         # NOTE:

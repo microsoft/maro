@@ -71,7 +71,7 @@ class FacilityBase(ABC):
         self.upstreams = {}
         self.downstreams = collections.defaultdict(list)
         self.children: List[UnitBase] = []
-        self.skus = {}
+        self.skus: Dict[int, SkuInfo] = {}
 
     def parse_skus(self, configs: dict) -> None:
         """Parse sku information from config.
