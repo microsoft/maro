@@ -143,6 +143,7 @@ class World:
         """
         return nx.astar_path(self._graph, source=(start_x, start_y), target=(goal_x, goal_y), weight="cost")
 
+    # TODO: build from yaml + build from input files?
     def build(self, configs: SupplyChainConfiguration, snapshot_number: int, durations: int) -> None:
         """Build world with configurations.
 
@@ -278,6 +279,7 @@ class World:
                 id=facility.id, class_type=facility.__class__, skus=None, facility_id=facility.id, parent_id=None,
             )
             self.entity_list.append(entity)
+
         for unit in self.units.values():
             entity = SupplyChainEntity(
                 id=unit.id, class_type=unit.__class__,
@@ -409,7 +411,7 @@ class World:
                 sku = unit.facility.skus[unit.product_id]
 
             if unit.data_model is not None:
-                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
+                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)  # TODO: replace with data class or named tuple
             else:
                 id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
 

@@ -93,7 +93,7 @@ class ProductUnit(ExtendUnitBase):
         for unit in self.children:
             unit.reset()
 
-    def get_unit_info(self) -> dict:
+    def get_unit_info(self) -> dict:  # TODO: replaced with a NamedTuple or a data class
         return {
             "id": self.id,
             "sku_id": self.product_id,

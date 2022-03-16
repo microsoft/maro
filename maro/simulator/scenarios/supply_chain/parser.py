@@ -182,7 +182,7 @@ class ConfigParser:
             customized_core_conf = conf.get("core", None)
 
             if customized_core_conf is not None:
-                self._parse_core_conf(customized_core_conf)
+                self._parse_core_conf(customized_core_conf)  # TODO: there may be sth. wrong with the assert.
 
             # Facility definitions is not required, but it would be much simple to config with it
             facility_definitions = conf.get("facility_definitions", {})
