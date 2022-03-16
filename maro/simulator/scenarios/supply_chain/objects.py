@@ -23,3 +23,4 @@ class SkuInfo:
     sale_gamma: int = 100
     type: str = None
     vlt: int = 1
+    service_level: float = 0.95
