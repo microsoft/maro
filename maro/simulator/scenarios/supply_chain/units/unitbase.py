@@ -76,6 +76,10 @@ class UnitBase:
         Args:
             tick (int): Current simulator tick.
         """
+        self._step_impl(tick)
+        self._clear_action()
+
+    def _step_impl(self, tick: int) -> None:
         pass
 
     def flush_states(self) -> None:
@@ -96,7 +100,7 @@ class UnitBase:
         if self.data_model is not None:
             self.data_model.reset()
 
-        self.clear_action()
+        self._clear_action()
 
     def initialize(self) -> None:
         """Initialize this unit after data model is ready to use.
@@ -114,7 +118,7 @@ class UnitBase:
         """
         self.action = action
 
-    def clear_action(self) -> None:
+    def _clear_action(self) -> None:
         """Clear the action after calling step() of this Unit."""
         self.action = None
 

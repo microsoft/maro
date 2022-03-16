@@ -50,7 +50,7 @@ class SellerUnit(ExtendUnitBase):
 
         self.sale_hist = [self.gamma] * self.config["sale_hist_len"]
 
-    def step(self, tick: int) -> None:
+    def _step_impl(self, tick: int) -> None:
         demand = self.market_demand(tick)
 
         # What seller does is just count down the product number.

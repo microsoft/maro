@@ -43,10 +43,9 @@ class ProductUnit(ExtendUnitBase):
         assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
-    def step(self, tick: int) -> None:
+    def _step_impl(self, tick: int) -> None:
         for unit in self.children:
             unit.step(tick)
-            unit.clear_action()
 
     def flush_states(self) -> None:
         for unit in self.children:

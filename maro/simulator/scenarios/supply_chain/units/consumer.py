@@ -86,7 +86,7 @@ class ConsumerUnit(ExtendUnitBase):
                         if sku.id in source_facility.skus:
                             self.sources.append(source_facility.id)
 
-    def step(self, tick: int):
+    def _step_impl(self, tick: int):
         self._update_pending_order()
 
         if self.action is None:

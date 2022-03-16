@@ -127,7 +127,6 @@ class FacilityBase(ABC):
         """
         for unit in self.children:
             unit.step(tick)
-            unit.clear_action()
 
     # TODO: confirm Why not call flush_states() immediately after each unit.step()?
     def flush_states(self) -> None:
