@@ -108,8 +108,8 @@ world:
           init_stock: 80
           product_unit_cost: 1
           type: "production"
-          cost": 10
-          price": 10
+          cost: 10
+          price: 10
       children:
         storage: *small_storage
         distribution: *normal_distribution

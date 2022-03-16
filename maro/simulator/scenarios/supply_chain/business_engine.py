@@ -144,7 +144,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             # NOTE: we assume that the action_cache is a list of action, and each action has an id field.
             for action in self._action_cache:
                 assert isinstance(action, SupplyChainAction)
-                entity = self.world.get_entity(action.id)
+                entity = self.world.get_entity_by_id(action.id)
 
                 if entity is not None and isinstance(entity, UnitBase):
                     entity.set_action(action)

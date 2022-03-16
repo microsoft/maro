@@ -4,36 +4,38 @@ import collections
 import os
 from dataclasses import dataclass
 from importlib import import_module
+from typing import Dict, Optional
 
 import pandas as pd
 from yaml import safe_load
 
 
 @dataclass
-class DataModelDef:
+class ModuleDef:
     alias: str
     module_path: str
     class_name: str
     class_type: type
+
+
+@dataclass
+class DataModelDef(ModuleDef):
     name_in_frame: str
 
 
 @dataclass
-class UnitDef:
-    alias: str
-    module_path: str
-    class_name: str
-    class_type: type
+class EntityDef(ModuleDef):
     data_model_alias: str
 
 
 @dataclass
-class FacilityDef:
-    alias: str
-    module_path: str
-    class_name: str
-    class_type: type
-    data_model_alias: str
+class UnitDef(EntityDef):
+    pass
+
+
+@dataclass
+class FacilityDef(EntityDef):
+    pass
 
 
 def find_class_type(module_path: str, class_name: str) -> type:
@@ -73,13 +75,13 @@ class SupplyChainConfiguration:
 
     def __init__(self) -> None:
         # Data model definitions.
-        self.data_models = {}
+        self.data_model_defs: Dict[str, DataModelDef] = {}
 
         # Unit definitions.
-        self.units = {}
+        self.unit_defs: Dict[str, UnitDef] = {}
 
         # Facility definitions.
-        self.facilities = {}
+        self.facility_defs: Dict[str, FacilityDef] = {}
 
         # World configurations.
         self.world = {}
@@ -97,9 +99,9 @@ class SupplyChainConfiguration:
             name_in_frame (str): Data model name in frame.
         """
         # Check conflicting.
-        assert alias not in self.data_models
+        assert alias not in self.data_model_defs
 
-        self.data_models[alias] = DataModelDef(
+        self.data_model_defs[alias] = DataModelDef(
             alias,
             module_path,
             class_name,
@@ -116,9 +118,9 @@ class SupplyChainConfiguration:
             module_path (str): Full path of module.
             data_model (str): Data model used for this unit.
         """
-        assert alias not in self.units
+        assert alias not in self.unit_defs
 
-        self.units[alias] = UnitDef(
+        self.unit_defs[alias] = UnitDef(
             alias,
             module_path,
             class_name,
@@ -135,9 +137,9 @@ class SupplyChainConfiguration:
             module_path (str): Full path of the module.
             data_model_alias (str): Data model alias.
         """
-        assert alias not in self.facilities
+        assert alias not in self.facility_defs
 
-        self.facilities[alias] = FacilityDef(
+        self.facility_defs[alias] = FacilityDef(
             alias,
             module_path,
             class_name,
@@ -150,7 +152,7 @@ class ConfigParser:
     """Supply chain configuration parser."""
 
     def __init__(self, core_path: str, config_path: str) -> None:
-        self._result = SupplyChainConfiguration()
+        self._result: Optional[SupplyChainConfiguration] = None
 
         self._core_path = core_path
         self._config_path = config_path
@@ -161,8 +163,10 @@ class ConfigParser:
         Returns:
             SupplyChainConfiguration: Configuration result of this scenario.
         """
-        self._parse_core()
-        self._parse_config()
+        if self._result is None:
+            self._result = SupplyChainConfiguration()
+            self._parse_core()
+            self._parse_config()
 
         return self._result
 
