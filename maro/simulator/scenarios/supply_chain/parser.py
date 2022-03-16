@@ -28,16 +28,6 @@ class EntityDef(ModuleDef):
     data_model_alias: str
 
 
-@dataclass
-class UnitDef(EntityDef):
-    pass
-
-
-@dataclass
-class FacilityDef(EntityDef):
-    pass
-
-
 def find_class_type(module_path: str, class_name: str) -> type:
     """Find class type by module path and class name.
 
@@ -77,11 +67,8 @@ class SupplyChainConfiguration:
         # Data model definitions.
         self.data_model_defs: Dict[str, DataModelDef] = {}
 
-        # Unit definitions.
-        self.unit_defs: Dict[str, UnitDef] = {}
-
-        # Facility definitions.
-        self.facility_defs: Dict[str, FacilityDef] = {}
+        # Entity (Unit & Facility) definitions.
+        self.entity_defs: Dict[str, EntityDef] = {}
 
         # World configurations.
         self.world = {}
@@ -109,42 +96,23 @@ class SupplyChainConfiguration:
             name_in_frame,
         )
 
-    def add_unit_definition(self, alias: str, class_name: str, module_path: str, data_model: str) -> None:
-        """Add unit definition.
+    def add_entity_definition(self, alias: str, class_name: str, module_path: str, data_model: str) -> None:
+        """Add entity (unit & facility) definition.
 
         Args:
             alias (str): Alias of this data model.
             class_name (str): Name of class.
             module_path (str): Full path of module.
-            data_model (str): Data model used for this unit.
+            data_model (str): Data model used for this entity.
         """
-        assert alias not in self.unit_defs
+        assert alias not in self.entity_defs
 
-        self.unit_defs[alias] = UnitDef(
+        self.entity_defs[alias] = EntityDef(
             alias,
             module_path,
             class_name,
             find_class_type(module_path, class_name),
             data_model,
-        )
-
-    def add_facility_definition(self, alias: str, class_name: str, module_path: str, data_model_alias: str) -> None:
-        """Add a facility definition.
-
-        Args:
-            alias (str): Alias of this facility.
-            class_name (str): Name of this class.
-            module_path (str): Full path of the module.
-            data_model_alias (str): Data model alias.
-        """
-        assert alias not in self.facility_defs
-
-        self.facility_defs[alias] = FacilityDef(
-            alias,
-            module_path,
-            class_name,
-            find_class_type(module_path, class_name),
-            data_model_alias,
         )
 
 
@@ -178,7 +146,7 @@ class ConfigParser:
             self._parse_core_conf(conf)
 
     def _parse_core_conf(self, conf: dict) -> None:
-        # Data models.
+        # Data models
         if "datamodels" in conf:
             for module_conf in conf["datamodels"]["modules"]:
                 module_path = module_conf["path"]
@@ -191,33 +159,19 @@ class ConfigParser:
                         class_def["name_in_frame"],
                     )
 
-        # TODO: dup code
-        # Units.
-        if "units" in conf:
-            for module_conf in conf["units"]["modules"]:
-                module_path = module_conf["path"]
+        # Entities
+        for entity_type in ["units", "facilities"]:
+            if entity_type in conf:
+                for module_conf in conf[entity_type]["modules"]:
+                    module_path = module_conf["path"]
 
-                for class_alias, class_def in module_conf["definitions"].items():
-                    # children not in unit definition
-                    self._result.add_unit_definition(
-                        class_alias,
-                        class_def["class"],
-                        module_path,
-                        class_def.get("datamodel", None),
-                    )
-
-        # Facilities.
-        if "facilities" in conf:
-            for module_conf in conf["facilities"]["modules"]:
-                module_path = module_conf["path"]
-
-                for class_alias, class_def in module_conf["definitions"].items():
-                    self._result.add_facility_definition(
-                        class_alias,
-                        class_def["class"],
-                        module_path,
-                        class_def.get("datamodel", None),
-                    )
+                    for class_alias, class_def in module_conf["definitions"].items():
+                        self._result.add_entity_definition(
+                            class_alias,
+                            class_def["class"],
+                            module_path,
+                            class_def["datamodel"],
+                        )
 
     def _parse_config(self) -> None:
         """Parse configurations."""
