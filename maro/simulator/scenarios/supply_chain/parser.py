@@ -212,16 +212,3 @@ class ConfigParser:
                 self._result.world["facilities"].append(facility)
 
             self._result.settings = conf.get("settings", {})
-
-        # Parse demands from files if exist
-        self._result.world["demands"] = {}
-        for facility in self._result.world["facilities"]:
-            facility_name = facility["name"]
-            demand_file_path = os.path.join(self._config_path, f"demand__{facility_name}.csv")
-            demand_dict = collections.defaultdict(dict)
-            if os.path.exists(demand_file_path):
-                df = pd.read_csv(demand_file_path)
-                for _, row in df.iterrows():
-                    tick, sku_id, demand = row
-                    demand_dict[sku_id][tick] = demand
-                self._result.world["demands"][facility_name] = dict(demand_dict)

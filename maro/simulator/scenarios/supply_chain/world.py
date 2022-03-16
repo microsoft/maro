@@ -200,13 +200,6 @@ class World:
             facility.data_model_index = self._register_data_model(data_model_def.alias)
             facility.data_model_name = data_model_def.name_in_frame
 
-            # Demand from file
-            facility.demand_from_file = {}
-            if facility.name in world_config["demands"]:
-                for sku_name, demands in world_config["demands"][facility.name].items():
-                    sku_id = self.get_sku_by_name(sku_name).id
-                    facility.demand_from_file[sku_id] = demands
-
             # Build children (units).
             for child_name, child_conf in facility_conf["children"].items():
                 setattr(facility, child_name, self.build_unit(facility, facility, child_conf))
