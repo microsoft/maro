@@ -14,7 +14,6 @@ class ConsumerAction(SupplyChainAction):
     source_id: int
     quantity: int
     vlt: int
-    reward_discount: float
 
 
 @dataclass

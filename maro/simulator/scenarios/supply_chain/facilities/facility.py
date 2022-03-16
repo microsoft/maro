@@ -128,6 +128,7 @@ class FacilityBase(ABC):
         for unit in self.children:
             unit.step(tick)
 
+    # TODO: confirm Why not call flush_states() immediately after each unit.step()?
     def flush_states(self) -> None:
         """Flush states into frame."""
         for unit in self.children:

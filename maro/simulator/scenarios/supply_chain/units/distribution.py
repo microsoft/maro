@@ -77,7 +77,7 @@ class DistributionUnit(UnitBase):
 
         self.base_delay_order_penalty = self.facility.get_config("delay_order_penalty", 0)
 
-    def step(self, tick: int):
+    def _step_impl(self, tick: int):
         for vehicle in self.vehicles:
             # If we have vehicle not on the way and there is any pending order.
             if len(self.order_queue) > 0 and vehicle.requested_quantity == 0:

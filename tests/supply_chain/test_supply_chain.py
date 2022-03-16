@@ -734,9 +734,9 @@ class MyTestCase(unittest.TestCase):
         sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
         # zero quantity will be ignore
-        action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 0, 1, 0)
+        action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 0, 1)
 
-        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1, 0)
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1)
 
         sku3_consumer_unit.set_action(action_with_zero)
 
@@ -832,7 +832,7 @@ class MyTestCase(unittest.TestCase):
             sku3_supplier_facility_id is not None
         ]))
 
-        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1, 0)
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1)
 
         # 1st step must none action
         env.step(None)
