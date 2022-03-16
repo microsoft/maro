@@ -46,6 +46,7 @@ class ProductUnit(ExtendUnitBase):
     def step(self, tick: int) -> None:
         for unit in self.children:
             unit.step(tick)
+            unit.clear_action()
 
     def flush_states(self) -> None:
         for unit in self.children:
