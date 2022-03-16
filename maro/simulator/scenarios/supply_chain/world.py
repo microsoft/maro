@@ -8,18 +8,19 @@ from typing import Dict, List, Optional, Tuple, Union
 import networkx as nx
 from maro.backends.frame import FrameBase
 
-from .easy_config import EasyConfig, SkuInfo
+from . import ProductUnit
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
-from .units import ConsumerUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, UnitBase
+from .objects import SkuMeta
+from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
+from .units import ExtendUnitBase, UnitBase
 
 
 @dataclass
 class SupplyChainEntity:
     id: int
     class_type: type
-    skus: Optional[SkuInfo]
+    skus: Optional[SkuMeta]
     facility_id: int
     parent_id: Optional[int]
 
@@ -57,7 +58,7 @@ class World:
         self._sku_id2name_mapping = {}
 
         # All the sku in this world.
-        self._sku_collection = {}
+        self._sku_collection: Dict[str, SkuMeta] = {}
 
         # Facility name to id mapping, used for querying.
         self._facility_name2id_mapping = {}
@@ -70,27 +71,30 @@ class World:
         self.max_sources_per_facility = 0
         self.max_price = 0
 
-    def get_sku_by_name(self, name: str) -> EasyConfig:
+    def get_sku_by_name(self, name: str) -> SkuMeta:
         """Get sku information by name.
 
         Args:
             name (str): Sku name to query.
 
         Returns:
-            EasyConfig: General information for sku, used as a dict, but support use key as property.
+            SkuMeta: Meta information for sku.
         """
         return self._sku_collection.get(name, None)
 
-    def get_sku_by_id(self, sku_id: int) -> EasyConfig:
+    def get_sku_by_id(self, sku_id: int) -> SkuMeta:
         """Get sku information by sku id.
 
         Args:
             sku_id (int): Id of sku to query.
 
         Returns:
-            SkuInfo: General information for sku.
+            SkuMeta: Meta information for sku.
         """
         return self._sku_collection[self._sku_id2name_mapping[sku_id]]
+
+    def get_sku_id_by_name(self, name: str) -> int:
+        return self._sku_collection[name].id
 
     def get_facility_by_id(self, facility_id: int) -> FacilityBase:
         """Get facility by id.
@@ -114,19 +118,16 @@ class World:
         """
         return self.facilities[self._facility_name2id_mapping[name]]
 
-    def get_entity(self, id: int) -> Union[FacilityBase, UnitBase]:
-        """Get an entity(Unit or Facility) by id.
+    def get_entity_by_id(self, entity_id: int) -> Union[FacilityBase, UnitBase]:
+        """Get an entity (Unit or Facility) by id.
 
         Args:
-            id (int): Id to query.
+            entity_id (int): Id to query.
 
         Returns:
             Union[FacilityBase, UnitBase]: Unit or facility instance.
         """
-        if id in self.units:
-            return self.units[id]
-        else:
-            return self.facilities[id]
+        return self.units[entity_id] if entity_id in self.units else self.facilities[entity_id]
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:
         """Find path to specified cell.
@@ -157,7 +158,7 @@ class World:
 
         # Grab sku information for this world.
         for sku_conf in world_config["skus"]:
-            sku = SkuInfo(sku_conf)
+            sku = SkuMeta(**sku_conf)
 
             self._sku_id2name_mapping[sku.id] = sku.name
             self._sku_collection[sku.name] = sku
@@ -175,7 +176,7 @@ class World:
         # Construct facilities.
         for facility_conf in world_config["facilities"]:
             facility_class_alias = facility_conf["class"]
-            facility_def: FacilityDef = self.configs.facilities[facility_class_alias]
+            facility_def: EntityDef = self.configs.entity_defs[facility_class_alias]
             facility_class_type = facility_def.class_type
 
             # Instance of facility.
@@ -193,18 +194,11 @@ class World:
             facility.parse_configs(facility_conf.get("config", {}))
 
             # Due with data model.
-            data_model_def: DataModelDef = self.configs.data_models[facility_def.data_model_alias]
+            data_model_def: DataModelDef = self.configs.data_model_defs[facility_def.data_model_alias]
 
             # Register the data model, so that it will help to generate related instance index.
             facility.data_model_index = self._register_data_model(data_model_def.alias)
             facility.data_model_name = data_model_def.name_in_frame
-
-            # Demand from file
-            facility.demand_from_file = {}
-            if facility.name in world_config["demands"]:
-                for sku_name, demands in world_config["demands"][facility.name].items():
-                    sku_id = self.get_sku_by_name(sku_name).id
-                    facility.demand_from_file[sku_id] = demands
 
             # Build children (units).
             for child_name, child_conf in facility_conf["children"].items():
@@ -287,22 +281,18 @@ class World:
         for unit in self.units.values():
             entity = SupplyChainEntity(
                 id=unit.id, class_type=unit.__class__,
-                skus=unit.facility.skus[unit.product_id] if any([
-                    isinstance(unit, ProductUnit),
-                    isinstance(unit, ConsumerUnit),
-                    isinstance(unit, ManufactureUnit),
-                ]) else None,
+                skus=unit.facility.skus[unit.product_id] if isinstance(unit, ExtendUnitBase) else None,
                 facility_id=unit.facility.id, parent_id=unit.parent.id,
             )
             self.entity_list.append(entity)
 
     def build_unit_by_type(
-        self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase,
+        self, unit_def: EntityDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase,
     ) -> None:
         """Build an unit by its type.
 
         Args:
-            unit_def (UnitDef): Definition of this unit.
+            unit_def (EntityDef): Definition of this unit.
             parent (Union[FacilityBase, UnitBase]): Parent of this unit.
             facility (FacilityBase): Facility this unit belongs to.
 
@@ -318,7 +308,7 @@ class World:
 
         if unit_def.data_model_alias is not None:
             # Due with data model.
-            data_model_def: DataModelDef = self.configs.data_models[unit_def.data_model_alias]
+            data_model_def: DataModelDef = self.configs.data_model_defs[unit_def.data_model_alias]
 
             # Register the data model, so that it will help to generate related instance index.
             unit.data_model_index = self._register_data_model(data_model_def.alias)
@@ -328,7 +318,9 @@ class World:
 
         return unit
 
-    def build_unit(self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict) -> UnitBase:
+    def build_unit(
+        self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict
+    ) -> Union[UnitBase, Dict[int, ProductUnit]]:
         """Build an unit by its configuration.
 
         Args:
@@ -338,10 +330,10 @@ class World:
             config (dict): Configuration of this unit.
 
         Returns:
-            UnitBase: Unit instance.
+            UnitBase: Optional[UnitBase, Dict[int, ProductUnit]].
         """
         unit_class_alias = config["class"]
-        unit_def: UnitDef = self.configs.units[unit_class_alias]
+        unit_def: EntityDef = self.configs.entity_defs[unit_class_alias]
 
         is_template = config.get("is_template", False)
 
@@ -359,7 +351,7 @@ class World:
             self.units[unit_instance.id] = unit_instance
 
             # Due with data model.
-            data_model_def: DataModelDef = self.configs.data_models[unit_def.data_model_alias]
+            data_model_def: DataModelDef = self.configs.data_model_defs[unit_def.data_model_alias]
 
             # Register the data model, so that it will help to generate related instance index.
             unit_instance.data_model_index = self._register_data_model(data_model_def.alias)
@@ -393,8 +385,8 @@ class World:
             return unit_instance
         else:
             # If this is template unit, then will use the class' static method 'generate' to generate sub-units.
-            children = unit_def.class_type.generate(facility, config.get("config"), unit_def)  # TODO
-
+            assert issubclass(unit_def.class_type, ProductUnit)
+            children = unit_def.class_type.generate(facility, config.get("config"), unit_def)
             return children
 
     def get_node_mapping(self) -> dict:
@@ -453,7 +445,7 @@ class World:
         data_class_in_frame = []
 
         for alias, number in self._data_class_collection.items():
-            data_model_def: DataModelDef = self.configs.data_models[alias]
+            data_model_def: DataModelDef = self.configs.data_model_defs[alias]
             data_class_in_frame.append((
                 data_model_def.class_type,
                 data_model_def.name_in_frame,
