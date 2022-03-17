@@ -15,16 +15,16 @@ class ConsumerUnit(ExtendUnitBase):
     def __init__(self):
         super(ConsumerUnit, self).__init__()
 
-        self.open_orders = defaultdict(Counter)
+        self._open_orders = defaultdict(Counter)
 
         # States in python side.
-        self.received = 0
-        self.purchased = 0
-        self.order_product_cost = 0
+        self._received = 0
+        self._purchased = 0
+        self._order_product_cost = 0
         self.sources = []
         self.pending_order_daily = None
 
-    def on_order_reception(self, source_id: int, product_id: int, quantity: int, original_quantity: int):
+    def on_order_reception(self, source_id: int, product_id: int, received_quantity: int, required_quantity: int):
         """Called after order product is received.
 
         Args:
@@ -33,11 +33,11 @@ class ConsumerUnit(ExtendUnitBase):
             quantity (int): How many we received.
             original_quantity (int): How many we ordered.
         """
-        self.received += quantity
+        self._received += received_quantity
 
-        self.update_open_orders(source_id, product_id, -original_quantity)
+        self.update_open_orders(source_id, product_id, -required_quantity)
 
-    def update_open_orders(self, source_id: int, product_id: int, qty_delta: int):
+    def update_open_orders(self, source_id: int, product_id: int, additional_quantity: int):
         """Update the order states.
 
         Args:
@@ -46,7 +46,7 @@ class ConsumerUnit(ExtendUnitBase):
             qty_delta (int): Number of product to update (sum).
         """
         # New order for product.
-        self.open_orders[source_id][product_id] += qty_delta
+        self._open_orders[source_id][product_id] += additional_quantity
 
     def initialize(self):
         super(ConsumerUnit, self).initialize()
@@ -106,55 +106,55 @@ class ConsumerUnit(ExtendUnitBase):
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)
 
-        self.order_product_cost = source_facility.distribution.place_order(order)
+        self._order_product_cost = source_facility.distribution.place_order(order)
 
-        self.purchased = self.action.quantity
+        self._purchased = self.action.quantity
 
     def flush_states(self):
-        if self.received > 0:
-            self.data_model.received = self.received
-            self.data_model.total_received += self.received
+        if self._received > 0:
+            self.data_model.received = self._received
+            self.data_model.total_received += self._received
 
-        if self.purchased > 0:
-            self.data_model.purchased = self.purchased
-            self.data_model.total_purchased += self.purchased
+        if self._purchased > 0:
+            self.data_model.purchased = self._purchased
+            self.data_model.total_purchased += self._purchased
             self.data_model.latest_consumptions = 1.0
-            self.data_model.order_quantity = self.purchased
+            self.data_model.order_quantity = self._purchased
 
-        if self.order_product_cost > 0:
-            self.data_model.order_product_cost = self.order_product_cost
+        if self._order_product_cost > 0:
+            self.data_model.order_product_cost = self._order_product_cost
 
     def post_step(self, tick: int):
-        if self.received > 0:
+        if self._received > 0:
             self.data_model.received = 0
-            self.received = 0
+            self._received = 0
 
-        if self.purchased > 0:
+        if self._purchased > 0:
             self.data_model.purchased = 0
             self.data_model.latest_consumptions = 0
             self.data_model.order_quantity = 0
-            self.purchased = 0
+            self._purchased = 0
 
-        if self.order_product_cost > 0:
+        if self._order_product_cost > 0:
             self.data_model.order_product_cost = 0
-            self.order_product_cost = 0
+            self._order_product_cost = 0
 
     def reset(self):
         super(ConsumerUnit, self).reset()
 
-        self.open_orders.clear()
+        self._open_orders.clear()
 
         # Reset status in Python side.
-        self.received = 0
-        self.purchased = 0
-        self.order_product_cost = 0
+        self._received = 0
+        self._purchased = 0
+        self._order_product_cost = 0
         self.sources = []
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
     def get_in_transit_quantity(self):
         quantity = 0
 
-        for source_id, orders in self.open_orders.items():
+        for _, orders in self._open_orders.items():
             quantity += orders.get(self.product_id, 0)
 
         return quantity

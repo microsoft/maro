@@ -16,7 +16,7 @@ class StorageDataModel(DataModelBase):
 
     # original is , used to save product and its number
     product_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
-    product_number = NodeAttribute(AttributeType.UInt, 1, is_list=True)
+    product_number = NodeAttribute(AttributeType.UInt, 1, is_list=True)  # TODO: rename to product_quantity?
 
     def __init__(self) -> None:
         super(StorageDataModel, self).__init__()

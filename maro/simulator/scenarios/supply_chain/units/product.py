@@ -30,10 +30,13 @@ class ProductUnit(ExtendUnitBase):
     # Reference to facility's distribution unit.
     distribution: DistributionUnit = None
 
-    # Internal states to track distribution.
-    _checkin_order = 0
-    _transport_cost = 0
-    _delay_order_penalty = 0
+    def __init__(self) -> None:
+        super(ProductUnit, self).__init__()
+
+        # Internal states to track distribution.
+        self._checkin_order = 0
+        self._transport_cost = 0
+        self._delay_order_penalty = 0
 
     def initialize(self) -> None:
         super().initialize()
