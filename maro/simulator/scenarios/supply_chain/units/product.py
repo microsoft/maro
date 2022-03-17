@@ -90,6 +90,10 @@ class ProductUnit(ExtendUnitBase):
     def reset(self) -> None:
         super().reset()
 
+        self._checkin_order = 0
+        self._transport_cost = 0
+        self._delay_order_penalty = 0
+
         for unit in self.children:
             unit.reset()
 

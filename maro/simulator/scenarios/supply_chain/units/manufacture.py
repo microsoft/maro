@@ -97,3 +97,9 @@ class ManufactureUnit(ExtendUnitBase):
 
         # NOTE: call super at last, since it will clear the action.
         super(ManufactureUnit, self).post_step(tick)
+
+    def reset(self) -> None:
+        super(ManufactureUnit, self).reset()
+
+        # Reset status in Python side.
+        self.manufacture_number = 0

@@ -905,8 +905,6 @@ class MyTestCase(unittest.TestCase):
         #
         self.assertEqual(0, vehicle_unit.payload)
         #
-        self.assertIsNone(vehicle_unit.product)
-        #
         self.assertEqual(0, vehicle_unit.location)
         #
         self.assertEqual(0, vehicle_unit.velocity)
@@ -932,8 +930,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, vehicle_unit.steps)
         #
         self.assertEqual(0, vehicle_unit.payload)
-        #
-        self.assertIsNone(vehicle_unit.product)
         #
         self.assertEqual(0, vehicle_unit.location)
         #
@@ -1020,7 +1016,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, vehicle_unit.product_id)
         self.assertEqual(0, vehicle_unit.steps)
         self.assertEqual(0, vehicle_unit.payload)
-        self.assertIsNone(vehicle_unit.product)
         self.assertEqual(0, vehicle_unit.location)
         self.assertEqual(0, vehicle_unit.velocity)
         self.assertEqual(0, vehicle_unit.requested_quantity)
@@ -1096,7 +1091,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, vehicle_unit.product_id)
         self.assertEqual(0, vehicle_unit.steps)
         self.assertEqual(0, vehicle_unit.payload)
-        self.assertIsNone(vehicle_unit.product)
         self.assertEqual(0, vehicle_unit.location)
         self.assertEqual(0, vehicle_unit.velocity)
         self.assertEqual(0, vehicle_unit.requested_quantity)

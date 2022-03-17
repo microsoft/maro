@@ -138,11 +138,13 @@ class StorageUnit(UnitBase):
     def reset(self) -> None:
         super(StorageUnit, self).reset()
 
+        # Reset status in Python side.
         self.remaining_space = self.capacity
 
         for sku in self.facility.skus.values():
             self.product_level[sku.id] = sku.init_stock
             self.remaining_space -= sku.init_stock
+            self._changed_product_cache[sku.id] = False
 
     def get_unit_info(self) -> dict:
         info = super().get_unit_info()

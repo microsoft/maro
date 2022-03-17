@@ -23,7 +23,6 @@ class SellerUnit(ExtendUnitBase):
         self.demand = 0
         self.total_sold = 0
         self.total_demand = 0
-        self.price = 0
 
         self.sale_hist = []
 
@@ -86,6 +85,14 @@ class SellerUnit(ExtendUnitBase):
 
     def reset(self):
         super(SellerUnit, self).reset()
+
+        # Reset status in Python side.
+        self.sold = 0
+        self.demand = 0
+        self.total_sold = 0
+        self.total_demand = 0
+
+        self.sale_hist = [self.gamma] * self.config["sale_hist_len"]
 
     def sale_mean(self) -> float:
         return float(np.mean(self.sale_hist))

@@ -35,9 +35,6 @@ class VehicleUnit(UnitBase):
         # Payload on vehicle.
         self.payload = 0
 
-        # Which product unit current product related to.
-        self.product = None
-
         # Current location in the path.
         self.location = 0
 
@@ -185,19 +182,22 @@ class VehicleUnit(UnitBase):
     def reset(self) -> None:
         super(VehicleUnit, self).reset()
 
+        # Reset status in Python side.
         self._reset_internal_states()
+
         self._reset_data_model()
 
     def _reset_internal_states(self) -> None:
         self.destination = None
         self.path = None
-        self.payload = 0
         self.product_id = 0
         self.steps = 0
+        self.payload = 0
         self.location = 0
-        self.requested_quantity = 0
         self.velocity = 0
+        self.requested_quantity = 0
         self.patient = self.max_patient
+        self.cost = 0
 
     def _reset_data_model(self) -> None:
         # Reset data model.

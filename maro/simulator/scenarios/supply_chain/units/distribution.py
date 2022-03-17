@@ -118,10 +118,14 @@ class DistributionUnit(UnitBase):
     def reset(self):
         super(DistributionUnit, self).reset()
 
+        # Reset status in Python side.
         self.order_queue.clear()
+
         self.transportation_cost.clear()
-        self.check_in_order.clear()
         self.delay_order_penalty.clear()
+        self.check_in_order.clear()
+
+        self._is_order_changed = False
 
         # Reset vehicles.
         for vehicle in self.vehicles:

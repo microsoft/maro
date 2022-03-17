@@ -20,9 +20,9 @@ class ConsumerUnit(ExtendUnitBase):
         # States in python side.
         self.received = 0
         self.purchased = 0
+        self.order_product_cost = 0
         self.sources = []
         self.pending_order_daily = None
-        self.order_product_cost = 0
 
     def on_order_reception(self, source_id: int, product_id: int, quantity: int, original_quantity: int):
         """Called after order product is received.
@@ -142,9 +142,14 @@ class ConsumerUnit(ExtendUnitBase):
     def reset(self):
         super(ConsumerUnit, self).reset()
 
-        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
-
         self.open_orders.clear()
+
+        # Reset status in Python side.
+        self.received = 0
+        self.purchased = 0
+        self.order_product_cost = 0
+        self.sources = []
+        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
     def get_in_transit_quantity(self):
         quantity = 0
