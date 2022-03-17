@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from os.path import dirname, join, realpath
-
 env_conf = {
     "scenario": "supply_chain",
     # Currently available topologies are "sample" or "random". New topologies must consist of a single folder

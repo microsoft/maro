@@ -54,6 +54,6 @@ elif rl_algorithm == "ppo":
     }
 elif rl_algorithm == 'null':
     policy_creator = or_policy_creator
-    trainer_creator = None
+    trainer_creator = {}
 else:
     raise ValueError(f"Unsupported algorithm: {rl_algorithm}")
