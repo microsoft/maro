@@ -12,7 +12,7 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type
 import numpy as np
 import torch
 
-from maro.rl.policy import RLPolicy
+from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.simulator import Env
 
 
@@ -20,13 +20,13 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     """Agent wrapper. Used to manager agents & policies during experience collection.
 
     Args:
-        policy_dict (Dict[str, RLPolicy]): Dictionary that maps policy names to policy instances.
+        policy_dict (Dict[str, AbsPolicy]): Dictionary that maps policy names to policy instances.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
     """
 
     def __init__(
         self,
-        policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
+        policy_dict: Dict[str, AbsPolicy],  # {policy_name: AbsPolicy}
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
     ) -> None:
         self._policy_dict = policy_dict
@@ -40,7 +40,8 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         """
         for policy_name, policy_state in policy_state_dict.items():
             policy = self._policy_dict[policy_name]
-            policy.set_state(policy_state)
+            if isinstance(policy, RLPolicy):
+                policy.set_state(policy_state)
 
     def choose_actions(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         """Choose action according to the given (observable) states of all agents.
@@ -105,7 +106,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
             states = np.vstack(states_by_policy[policy_name])  # np.ndarray
             action_dict.update(zip(
                 agents_by_policy[policy_name],  # list of str (agent name)
-                policy.get_actions(states)  # list of action
+                policy.get_actions(states),  # list of action
             ))
         return action_dict
 
@@ -175,14 +176,14 @@ class ExpElement:
             next_state=self.next_state,
             next_agent_state_dict=None if self.next_agent_state_dict is None else {},
         ))
-        for agent_name in self.agent_names:
-            trainer_name = agent2trainer[agent_name]
-            ret[trainer_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
-            ret[trainer_name].action_dict[agent_name] = self.action_dict[agent_name]
-            ret[trainer_name].reward_dict[agent_name] = self.reward_dict[agent_name]
-            ret[trainer_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
-            if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict:
-                ret[trainer_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
+        for agent_name, trainer_name in agent2trainer.items():
+            if agent_name in self.agent_state_dict:
+                ret[trainer_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
+                ret[trainer_name].action_dict[agent_name] = self.action_dict[agent_name]
+                ret[trainer_name].reward_dict[agent_name] = self.reward_dict[agent_name]
+                ret[trainer_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
+                if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict:
+                    ret[trainer_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
         return ret
 
 
@@ -191,7 +192,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     Args:
         get_env (Callable[[], Env]): Function used to create the rollout environment.
-        policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions that used to get policies, specified
+        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions that used to get policies, specified
             by policy names.
         agent2policy (Dict[Any, str]): Mapping of agent name and policy name.
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
@@ -206,7 +207,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def __init__(
         self,
         get_env: Callable[[], Env],
-        policy_creator: Dict[str, Callable[[str], RLPolicy]],
+        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
@@ -221,7 +222,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self._policy_dict: Dict[str, RLPolicy] = {
+        self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
         self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
@@ -237,7 +238,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._info = {}
 
         for policy in self._policy_dict.values():
-            policy.to_device(self._device)
+            if isinstance(policy, RLPolicy):
+                policy.to_device(self._device)
 
     @abstractmethod
     def _get_global_and_agent_state(

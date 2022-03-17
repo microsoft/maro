@@ -25,8 +25,6 @@ class ConsumerDataModel(ExtendDataModel):
     price = NodeAttribute(AttributeType.Float)
     order_cost = NodeAttribute(AttributeType.Float)
 
-    reward_discount = NodeAttribute(AttributeType.Float)
-
     def __init__(self) -> None:
         super(ConsumerDataModel, self).__init__()
 

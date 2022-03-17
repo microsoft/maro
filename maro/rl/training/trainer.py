@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 
-from maro.rl.policy import RLPolicy
+from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.utils import LoggerV2
 
@@ -65,7 +65,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def __init__(self, name: str, params: TrainerParams) -> None:
         self._name = name
         self._batch_size = params.batch_size
-        self._agent2policy: Dict[str, str] = {}
+        self._agent2policy: Dict[Any, str] = {}
         self._proxy_address: Optional[Tuple[str, int]] = None
         self._logger = None
 
@@ -97,12 +97,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
     @abstractmethod
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], RLPolicy]],
+        global_policy_creator: Dict[str, Callable[[str], AbsPolicy]],
     ) -> None:
         """Register the policy creator. Only keep the creators of the policies that the current trainer need to train.
 
         Args:
-            global_policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict that contains the creators for all
+            global_policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict that contains the creators for all
                 policies.
         """
         raise NotImplementedError
@@ -202,7 +202,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], RLPolicy]]
+        global_policy_creator: Dict[str, Callable[[str], AbsPolicy]],
     ) -> None:
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
             policy_name: func for policy_name, func in global_policy_creator.items()
@@ -250,7 +250,7 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], RLPolicy]],
+        global_policy_creator: Dict[str, Callable[[str], AbsPolicy]],
     ) -> None:
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
             policy_name: func for policy_name, func in global_policy_creator.items()

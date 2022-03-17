@@ -41,7 +41,7 @@ class ManufactureUnit(ExtendUnitBase):
         if len(self.bom) > 0:
             self.input_units_per_lot = sum(self.bom.values())
 
-    def step(self, tick: int) -> None:
+    def _step_impl(self, tick: int) -> None:
         assert self.action is None or isinstance(self.action, ManufactureAction)
 
         # Try to produce production if we have positive rate.

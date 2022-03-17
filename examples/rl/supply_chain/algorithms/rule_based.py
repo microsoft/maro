@@ -127,8 +127,9 @@ class ConsumerMinMaxPolicy(RuleBasedPolicy):
 
 
 or_policy_creator = {
-    "consumer_policy": lambda name: ConsumerEOQPolicy(name),
+    "consumer_policy": lambda name: ConsumerBaselinePolicy(name),
     "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
     "facility_policy": lambda name: DummyPolicy(name),
     "product_policy": lambda name: DummyPolicy(name),
+    "seller_policy": lambda name: DummyPolicy(name)
 }  # TODO: never used

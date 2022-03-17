@@ -8,7 +8,7 @@ from abc import ABC
 from collections import defaultdict
 from typing import Dict, List, Optional
 
-from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
+from maro.simulator.scenarios.supply_chain.objects import SkuInfo
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 
 if typing.TYPE_CHECKING:
@@ -67,14 +67,11 @@ class FacilityBase(ABC):
     x: Optional[int] = None
     y: Optional[int] = None
 
-    # Real demands from outer files.
-    demand_from_file: Dict[int, Dict[int, int]] = {}  # {sku_id: {tick: demand}}
-
     def __init__(self) -> None:
         self.upstreams = {}
         self.downstreams = collections.defaultdict(list)
         self.children: List[UnitBase] = []
-        self.skus = {}
+        self.skus: Dict[int, SkuInfo] = {}
 
     def parse_skus(self, configs: dict) -> None:
         """Parse sku information from config.
@@ -83,11 +80,9 @@ class FacilityBase(ABC):
             configs (dict): Configuration of skus belongs to this facility.
         """
         for sku_name, sku_config in configs.items():
-            global_sku = self.world.get_sku_by_name(sku_name)
-            facility_sku = SkuInfo(sku_config)
-            facility_sku.id = global_sku.id
-
-            self.skus[global_sku.id] = facility_sku
+            sku_config['id'] = self.world.get_sku_id_by_name(sku_name)
+            facility_sku = SkuInfo(**sku_config)
+            self.skus[facility_sku.id] = facility_sku
 
     def parse_configs(self, configs: dict) -> None:
         """Parse configuration of this facility.
@@ -133,6 +128,7 @@ class FacilityBase(ABC):
         for unit in self.children:
             unit.step(tick)
 
+    # TODO: confirm Why not call flush_states() immediately after each unit.step()?
     def flush_states(self) -> None:
         """Flush states into frame."""
         for unit in self.children:

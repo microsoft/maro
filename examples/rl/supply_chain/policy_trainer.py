@@ -3,7 +3,7 @@
 
 from functools import partial
 
-from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit, ProductUnit
+from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit, ProductUnit, SellerUnit
 from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 from .algorithms.rule_based import or_policy_creator
 from .config import rl_algorithm, NUM_CONSUMER_ACTIONS
@@ -20,6 +20,8 @@ def get_policy_name(entity: SupplyChainEntity) -> str:
         return "product_policy"
     elif issubclass(entity.class_type, ConsumerUnit):
         return "consumer_policy"
+    elif issubclass(entity.class_type, SellerUnit):
+        return "seller_policy"
     raise TypeError(f"Unrecognized entity class type: {entity.class_type}")
 
 

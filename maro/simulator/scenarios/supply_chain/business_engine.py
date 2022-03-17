@@ -35,9 +35,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._node_mapping = self.world.get_node_mapping()
 
-        # Used to cache the action from outside, then dispatch to units at the beginning of step.
-        self._action_cache = None
-
         self._metrics_cache = None
 
     @property
@@ -56,9 +53,15 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Clear the metrics cache.
         self._metrics_cache = None
 
-        # NOTE: we have to dispatch the action here.
-        self._dispatch_action()
-        self._step_by_facility(tick)
+        # Call step functions by facility
+        # Step first.
+        for facility in self.world.facilities.values():
+            facility.step(tick)
+
+        # TODO: confirm whether we can flush_state() immediately after the step()
+        # Then flush states to frame before generate decision event.
+        for facility in self.world.facilities.values():
+            facility.flush_states()
 
         # We do not have payload here.
         decision_event = self._event_buffer.gen_decision_event(tick, None)
@@ -66,7 +69,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._event_buffer.insert_event(decision_event)
 
     def post_step(self, tick: int) -> bool:
-        self._post_step_by_facility(tick)
+        # Call post_step functions by facility.
+        for facility in self.world.facilities.values():
+            facility.post_step(tick)
 
         return tick + 1 == self._max_tick
 
@@ -76,9 +81,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         if self._frame.snapshots:
             self._frame.snapshots.reset()
 
-        self._reset_by_facility()
-
-        self._action_cache = None
+        # Call reset functions by facility.
+        for facility in self.world.facilities.values():
+            facility.reset()
 
     def get_node_mapping(self) -> dict:
         return self._node_mapping
@@ -90,30 +95,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             list: List of entities.
         """
         return self.world.entity_list
-
-    def _step_by_facility(self, tick: int) -> None:
-        """Call step functions by facility.
-
-        Args:
-            tick (int): Current tick.
-        """
-        # Step first.
-        for facility in self.world.facilities.values():
-            facility.step(tick)
-
-        # Then flush states to frame before generate decision event.
-        for facility in self.world.facilities.values():
-            facility.flush_states()
-
-    def _post_step_by_facility(self, tick: int) -> None:
-        """Call post_step functions by facility."""
-        for facility in self.world.facilities.values():
-            facility.post_step(tick)
-
-    def _reset_by_facility(self) -> None:
-        """Call reset functions by facility."""
-        for facility in self.world.facilities.values():
-            facility.reset()
 
     def _register_events(self) -> None:
         self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
@@ -133,23 +114,12 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
-    def _on_action_received(self, event: CascadeEvent) -> None:  # TODO: action type
-        action = event.payload
-
-        if action is not None and isinstance(action, list) and len(action) > 0:
-            self._action_cache = action
-
-    def _dispatch_action(self) -> None:
-        if self._action_cache is not None:
-            # NOTE: we assume that the action_cache is a list of action, and each action has an id field.
-            for action in self._action_cache:
-                assert isinstance(action, SupplyChainAction)
-                entity = self.world.get_entity(action.id)
-
-                if entity is not None and isinstance(entity, UnitBase):
-                    entity.set_action(action)
-
-            self._action_cache = None
+    def _on_action_received(self, event: CascadeEvent) -> None:
+        actions: List[SupplyChainAction] = event.payload
+        for action in actions:
+            entity = self.world.get_entity_by_id(action.id)
+            if entity is not None and isinstance(entity, UnitBase):
+                entity.set_action(action)
 
     def get_metrics(self) -> dict:
         if self._metrics_cache is None:

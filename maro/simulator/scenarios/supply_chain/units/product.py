@@ -43,7 +43,7 @@ class ProductUnit(ExtendUnitBase):
         assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
-    def step(self, tick: int) -> None:
+    def _step_impl(self, tick: int) -> None:
         for unit in self.children:
             unit.step(tick)
 
@@ -93,7 +93,7 @@ class ProductUnit(ExtendUnitBase):
         for unit in self.children:
             unit.reset()
 
-    def get_unit_info(self) -> dict:
+    def get_unit_info(self) -> dict:  # TODO: replaced with a NamedTuple or a data class
         return {
             "id": self.id,
             "sku_id": self.product_id,

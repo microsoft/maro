@@ -8,7 +8,7 @@ import numpy as np
 import scipy.stats as st
 
 from maro.event_buffer import CascadeEvent
-from maro.rl.policy import RLPolicy
+from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
@@ -41,7 +41,7 @@ class SCEnvSampler(AbsEnvSampler):
     def __init__(
         self,
         get_env: Callable[[], Env],
-        policy_creator: Dict[str, Callable[[str], RLPolicy]],
+        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
@@ -267,7 +267,7 @@ class SCEnvSampler(AbsEnvSampler):
                     reward_discount = 1
 
                     env_action_dict[agent_id] = ConsumerAction(
-                        unit_id, product_id, source_id, action_number, sku.vlt, reward_discount,
+                        unit_id, product_id, source_id, action_number, sku.vlt,
                     )
 
                     self._consumer_orders[product_unit_id] = action_number

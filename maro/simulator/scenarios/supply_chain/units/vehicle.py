@@ -135,7 +135,7 @@ class VehicleUnit(UnitBase):
 
         self.max_patient = patient
 
-    def step(self, tick: int) -> None:
+    def _step_impl(self, tick: int) -> None:
         # If we have not arrived at destination yet.
         if self.steps > 0:
             # if we still not loaded enough productions yet.
