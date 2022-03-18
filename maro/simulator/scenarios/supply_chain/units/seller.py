@@ -85,7 +85,6 @@ class SellerUnit(ExtendUnitBase):
 
     def reset(self):
         super(SellerUnit, self).reset()
-        self.__init__()
 
         # Reset status in Python side.
         self._sold = 0
@@ -96,7 +95,7 @@ class SellerUnit(ExtendUnitBase):
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
 
     def sale_mean(self) -> float:
-        return float(np.mean(self._sale_hist)) if self._sale_hist else 0
+        return float(np.mean(self._sale_hist))
 
     def sale_std(self) -> float:
-        return float(np.std(self._sale_hist)) if self._sale_hist else 0
+        return float(np.std(self._sale_hist))
