@@ -86,9 +86,10 @@ class SellerUnit(ExtendUnitBase):
 
     def reset(self):
         super(SellerUnit, self).reset()
+        self.__init__()
 
     def sale_mean(self) -> float:
-        return float(np.mean(self.sale_hist))
+        return float(np.mean(self.sale_hist)) if self.sale_hist else 0
 
     def sale_std(self) -> float:
-        return float(np.std(self.sale_hist))
+        return float(np.std(self.sale_hist)) if self.sale_hist else 0

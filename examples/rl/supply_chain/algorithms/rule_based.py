@@ -23,9 +23,9 @@ OR_STATE_OFFSET_INDEX = {
 
 
 def get_element(np_state: np.ndarray, key: str) -> np.ndarray:
-    offsets = np_state[-len(OR_STATE_OFFSET_INDEX):]
+    offsets = np_state[0][-len(OR_STATE_OFFSET_INDEX):].astype(np.uint)
     idx = OR_STATE_OFFSET_INDEX[key]
-    prev_idx = offsets[idx - 1] if idx > 0 else 0
+    prev_idx = int(offsets[idx - 1]) if idx > 0 else 0
     return np_state[:, prev_idx: offsets[idx]].squeeze()
 
 
@@ -46,22 +46,18 @@ class ConsumerBaselinePolicy(RuleBasedPolicy):
         # consumer_source_inventory
         available_inventory = get_element(states, "storage_levels")
         inflight_orders = get_element(states, "consumer_in_transit_orders")
-        booked_inventory = available_inventory + inflight_orders
-        most_needed_product_id = get_element(states, "product_idx")
+        booked_table = available_inventory + inflight_orders
+        most_needed_product_id = np.expand_dims(get_element(states, "product_idx"), axis=1).astype(np.int)
+        booked = np.squeeze(np.take_along_axis(booked_table, most_needed_product_id, axis=1), axis=1)
         sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
         service_level = get_element(states, "service_level")
         vlt_buffer_days = 7
         vlt = vlt_buffer_days + get_element(states, "vlt")
 
         non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
-        capacity_mask = np.sum(booked_inventory, axis=1) <= get_element(states, "storage_capacity")
-        replenishment_mask = (
-            booked_inventory[:, most_needed_product_id] <=
-            vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
-        )
-
+        capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
+        replenishment_mask = booked <= (vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level))
         return res * (non_facility_mask & capacity_mask & replenishment_mask)
-
 
 # Q = \sqrt{2DK/h}
 # Q - optimal order quantity
@@ -76,7 +72,7 @@ def _get_consumer_quantity(states: np.ndarray) -> np.ndarray:
     order_cost = get_element(states, "order_cost")
     holding_cost = get_element(states, "unit_storage_cost")
     sale_gamma = get_element(states, "sale_mean")
-    consumer_quantity = np.sqrt(2 * sale_gamma * order_cost / holding_cost) / sale_gamma
+    consumer_quantity = np.sqrt(2 * sale_gamma * order_cost / holding_cost) / (sale_gamma + 1e-8)
     return consumer_quantity.astype(np.int32)
 
 
@@ -85,9 +81,10 @@ class ConsumerEOQPolicy(RuleBasedPolicy):
         # consumer_source_inventory
         available_inventory = get_element(states, "storage_levels")
         inflight_orders = get_element(states, "consumer_in_transit_orders")
-        booked_inventory = available_inventory + inflight_orders
+        booked_table = available_inventory + inflight_orders
+        most_needed_product_id = np.expand_dims(get_element(states, "product_idx"), axis=1).astype(np.int)
+        booked = np.squeeze(np.take_along_axis(booked_table, most_needed_product_id, axis=1), axis=1)
 
-        most_needed_product_id = get_element(states, "product_idx")
         sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
         service_level = get_element(states, "service_level")
         vlt_buffer_days = 7
@@ -95,12 +92,9 @@ class ConsumerEOQPolicy(RuleBasedPolicy):
 
         non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
         # stop placing orders when the facilty runs out of capacity
-        capacity_mask = np.sum(booked_inventory, axis=1) <= get_element(states, "storage_capacity")
+        capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
         # whether replenishment point is reached
-        replenishment_mask = (
-            booked_inventory[:, most_needed_product_id] <=
-            vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
-        )
+        replenishment_mask = booked <= vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
         return _get_consumer_quantity(states) * (non_facility_mask & capacity_mask & replenishment_mask)
 
 
@@ -112,28 +106,30 @@ class ConsumerMinMaxPolicy(RuleBasedPolicy):
         # consumer_source_inventory
         available_inventory = get_element(states, "storage_levels")
         inflight_orders = get_element(states, "consumer_in_transit_orders")
-        booked_inventory = available_inventory + inflight_orders
+        booked_table = available_inventory + inflight_orders
 
         # stop placing orders if no risk of out of
-        most_needed_product_id = get_element(states, "product_idx")
+        most_needed_product_id = np.expand_dims(get_element(states, "product_idx"), axis=1).astype(np.int)
+        booked = np.squeeze(np.take_along_axis(booked_table, most_needed_product_id, axis=1), axis=1)
         sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
         service_level = get_element(states, "service_level")
         vlt_buffer_days = 10
         vlt = vlt_buffer_days + get_element(states, "vlt")
         r = vlt * sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
-        # print(booked_inventory, most_needed_product_id, r)
 
         non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
         # stop placing orders when the facilty runs out of capacity
-        capacity_mask = np.sum(booked_inventory, axis=1) <= get_element(states, "storage_capacity")
-        sales_mask = booked_inventory[:, most_needed_product_id] <= r
+        capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
+        sales_mask = booked <= r
         R = 3 * r
-        consumer_action = (R - r) / sale_mean
+        consumer_action = (R - r) / (sale_mean + 1e-8)
         return consumer_action.astype(np.int32) * (non_facility_mask & capacity_mask & sales_mask)
 
 
-or_policy_func_dict = {
+or_policy_creator = {
+    "consumer_policy": lambda name: ConsumerBaselinePolicy(name),
     "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
     "facility_policy": lambda name: DummyPolicy(name),
     "product_policy": lambda name: DummyPolicy(name),
-}  # TODO: never used
+    "seller_policy": lambda name: DummyPolicy(name)
+}

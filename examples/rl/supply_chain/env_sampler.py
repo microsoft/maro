@@ -94,7 +94,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._env_settings = workflow_settings
 
     def _get_state_shaper_for_entity(self, entity: SupplyChainEntity) -> Callable:
-        return self.get_rl_policy_state  # TODO
+        return self.get_or_policy_state  # TODO
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: list) -> float:
         if entity.class_type == ConsumerUnit:
@@ -103,7 +103,7 @@ class SCEnvSampler(AbsEnvSampler):
             return .0
 
     def get_or_policy_state(self, state: dict, entity: SupplyChainEntity) -> np.ndarray:
-        if entity.is_facility:
+        if entity.skus is None:
             return np.array([1])
 
         np_state, offsets = [0], [1]
@@ -114,12 +114,12 @@ class SCEnvSampler(AbsEnvSampler):
 
         product_unit_id = entity.id if entity.class_type == ProductUnit else entity.parent_id
 
-        product_index = self._balance_calculator.product_id2index_dict[product_unit_id]
-        unit_storage_cost = self._balance_calculator.products[product_index][4]
+        product_index = self._balance_calculator.product_id2index_dict.get(product_unit_id, None)
+        unit_storage_cost = self._balance_calculator.products[product_index][4] if product_index is not None else 0
 
-        product_metrics = self._cur_metrics["products"][product_unit_id]
-        extend_state([product_metrics["sale_mean"]])
-        extend_state([product_metrics["sale_std"]])
+        product_metrics = self._cur_metrics["products"].get(product_unit_id, None)
+        extend_state([product_metrics["sale_mean"] if product_metrics else 0])
+        extend_state([product_metrics["sale_std"] if product_metrics else 0])
 
         facility = self._storage_info["facility_levels"][entity.facility_id]
         extend_state([unit_storage_cost])
@@ -253,7 +253,10 @@ class SCEnvSampler(AbsEnvSampler):
                 if sources:
                     source_id = sources[0]
                     product_unit_id = self._storage_info["unit2product"][unit_id][0]
-                    action_number = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                    try:
+                        action_number = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                    except ValueError:
+                        action_number = 0
 
                     # ignore 0 quantity to reduce action number
                     if action_number == 0:
@@ -338,7 +341,7 @@ class SCEnvSampler(AbsEnvSampler):
             state['distributor_in_transit_orders_qty'] = dist_states[0]
 
     def _update_consumer_features(self, state: dict, entity: SupplyChainEntity) -> None:
-        if entity.is_facility:
+        if entity.skus is None:
             return
 
         state['consumer_in_transit_orders'] = self._facility_in_transit_orders[entity.facility_id]
@@ -381,7 +384,12 @@ class SCEnvSampler(AbsEnvSampler):
         state["global_time"] = self._learn_env.tick
 
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        pass
+        tick = cache_element.tick
+        total_sold = self._learn_env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
+        total_demand = self._learn_env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
+        self._info["sold"] = total_sold
+        self._info["demand"] = total_demand
+        self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
 
 
 ProductInfo = namedtuple(
