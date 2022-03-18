@@ -45,6 +45,10 @@ class ManufactureUnit(ExtendUnitBase):
             self._input_units_per_lot = sum(self._bom.values())
 
     def _step_impl(self, tick: int) -> None:
+        # Due to the processing in post_step(),
+        # self._manufacture_number is set to 0 at the begining of every step.
+        # Thus, there is no need to update it with None action or 0 production_rate.
+
         if self.action is None:
             return
 
@@ -90,8 +94,6 @@ class ManufactureUnit(ExtendUnitBase):
                     self._manufacture_number = max_number_to_procedure
                     self.facility.storage.try_take_products(source_sku_to_take)
                     self.facility.storage.try_add_products({self.product_id: self._manufacture_number})
-        else:
-            self._manufacture_number = 0
 
     def flush_states(self) -> None:
         if self._manufacture_number > 0:
