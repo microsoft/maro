@@ -16,16 +16,15 @@ class SellerUnit(ExtendUnitBase):
     def __init__(self) -> None:
         super(SellerUnit, self).__init__()
 
-        self.gamma = 0
+        self._gamma = 0
 
         # Attribute cache.
-        self.sold = 0
-        self.demand = 0
-        self.total_sold = 0
-        self.total_demand = 0
-        self.price = 0
+        self._sold = 0
+        self._demand = 0
+        self._total_sold = 0
+        self._total_demand = 0
 
-        self.sale_hist = []
+        self._sale_hist = []
 
     def market_demand(self, tick: int) -> int:
         """Generate market demand for current tick.
@@ -36,19 +35,19 @@ class SellerUnit(ExtendUnitBase):
         Returns:
             int: Demand number.
         """
-        return int(np.random.gamma(self.gamma))
+        return int(np.random.gamma(self._gamma))
 
     def initialize(self) -> None:
         super(SellerUnit, self).initialize()
 
         sku = self.facility.skus[self.product_id]
 
-        self.gamma = sku.sale_gamma
+        self._gamma = sku.sale_gamma
 
         assert isinstance(self.data_model, SellerDataModel)
         self.data_model.initialize(sku.price, sku.backlog_ratio)
 
-        self.sale_hist = [self.gamma] * self.config["sale_hist_len"]
+        self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
 
     def _step_impl(self, tick: int) -> None:
         demand = self.market_demand(tick)
@@ -56,39 +55,47 @@ class SellerUnit(ExtendUnitBase):
         # What seller does is just count down the product number.
         sold_qty = self.facility.storage.take_available(self.product_id, demand)
 
-        self.total_sold += sold_qty
-        self.sold = sold_qty
-        self.demand = demand
-        self.total_demand += demand
+        self._total_sold += sold_qty
+        self._sold = sold_qty
+        self._demand = demand
+        self._total_demand += demand
 
-        self.sale_hist.append(demand)
-        self.sale_hist = self.sale_hist[1:]
+        self._sale_hist.append(demand)
+        self._sale_hist = self._sale_hist[1:]
 
     def flush_states(self) -> None:
-        if self.sold > 0:
-            self.data_model.sold = self.sold
-            self.data_model.total_sold = self.total_sold
+        if self._sold > 0:
+            self.data_model.sold = self._sold
+            self.data_model.total_sold = self._total_sold
 
-        if self.demand > 0:
-            self.data_model.demand = self.demand
-            self.data_model.total_demand = self.total_demand
+        if self._demand > 0:
+            self.data_model.demand = self._demand
+            self.data_model.total_demand = self._total_demand
 
     def post_step(self, tick: int) -> None:
         super(SellerUnit, self).post_step(tick)
 
-        if self.sold > 0:
+        if self._sold > 0:
             self.data_model.sold = 0
-            self.sold = 0
+            self._sold = 0
 
-        if self.demand > 0:
+        if self._demand > 0:
             self.data_model.demand = 0
-            self.demand = 0
+            self._demand = 0
 
     def reset(self):
         super(SellerUnit, self).reset()
 
+        # Reset status in Python side.
+        self._sold = 0
+        self._demand = 0
+        self._total_sold = 0
+        self._total_demand = 0
+
+        self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
+
     def sale_mean(self) -> float:
-        return float(np.mean(self.sale_hist))
+        return float(np.mean(self._sale_hist))
 
     def sale_std(self) -> float:
-        return float(np.std(self.sale_hist))
+        return float(np.std(self._sale_hist))

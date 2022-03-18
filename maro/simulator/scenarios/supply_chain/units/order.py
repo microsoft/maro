@@ -14,4 +14,4 @@ class Order:
     destination: FacilityBase
     product_id: int
     quantity: int
-    vlt: int
+    vlt: int  # TODO: Update vlt related code

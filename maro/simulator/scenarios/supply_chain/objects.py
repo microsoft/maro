@@ -22,5 +22,5 @@ class SkuInfo:
     production_rate: float = 1.0
     sale_gamma: int = 100
     type: str = None
-    vlt: int = 1
+    vlt: int = 1  # TODO: update the vlt related code
     service_level: float = 0.95
