@@ -96,7 +96,7 @@ class SellerUnit(ExtendUnitBase):
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
 
     def sale_mean(self) -> float:
-        return float(np.mean(self.sale_hist)) if self.sale_hist else 0
+        return float(np.mean(self._sale_hist)) if self._sale_hist else 0
 
     def sale_std(self) -> float:
-        return float(np.std(self.sale_hist)) if self.sale_hist else 0
+        return float(np.std(self._sale_hist)) if self._sale_hist else 0
