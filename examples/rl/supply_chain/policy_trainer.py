@@ -12,7 +12,7 @@ from .state_template import STATE_DIM
 
 
 def get_policy_name(entity: SupplyChainEntity) -> str:
-    if entity.is_facility:
+    if entity.skus is None:
         return "facility_policy"
     elif issubclass(entity.class_type, ManufactureUnit):
         return "manufacturer_policy"

@@ -103,7 +103,7 @@ class SCEnvSampler(AbsEnvSampler):
             return .0
 
     def get_or_policy_state(self, state: dict, entity: SupplyChainEntity) -> np.ndarray:
-        if entity.is_facility:
+        if entity.skus is None:
             return np.array([1])
 
         np_state, offsets = [0], [1]
@@ -341,7 +341,7 @@ class SCEnvSampler(AbsEnvSampler):
             state['distributor_in_transit_orders_qty'] = dist_states[0]
 
     def _update_consumer_features(self, state: dict, entity: SupplyChainEntity) -> None:
-        if entity.is_facility:
+        if entity.skus is None:
             return
 
         state['consumer_in_transit_orders'] = self._facility_in_transit_orders[entity.facility_id]
