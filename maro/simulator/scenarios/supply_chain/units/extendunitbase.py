@@ -8,8 +8,11 @@ from .unitbase import UnitBase
 class ExtendUnitBase(UnitBase):
     """A base of sku related unit."""
 
-    # Product id (sku id), 0 means invalid.
-    product_id: int = 0
+    def __init__(self) -> None:
+        super(ExtendUnitBase, self).__init__()
+
+        # Product id (sku id), 0 means invalid.
+        self.product_id: int = 0
 
     def initialize(self):
         super(ExtendUnitBase, self).initialize()

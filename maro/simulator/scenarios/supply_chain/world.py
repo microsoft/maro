@@ -54,11 +54,11 @@ class World:
         # Grid of the world
         self._graph: Optional[nx.Graph] = None
 
-        # Sku id to name mapping, used for querying.
-        self._sku_id2name_mapping = {}
+        # Sku name to id mapping, used for querying.
+        self._sku_name2id_mapping = {}
 
         # All the sku in this world.
-        self._sku_collection: Dict[str, SkuMeta] = {}
+        self._sku_collection: Dict[int, SkuMeta] = {}
 
         # Facility name to id mapping, used for querying.
         self._facility_name2id_mapping = {}
@@ -80,7 +80,7 @@ class World:
         Returns:
             SkuMeta: Meta information for sku.
         """
-        return self._sku_collection.get(name, None)
+        return self._sku_collection[self._sku_name2id_mapping[name]]
 
     def get_sku_by_id(self, sku_id: int) -> SkuMeta:
         """Get sku information by sku id.
@@ -91,10 +91,10 @@ class World:
         Returns:
             SkuMeta: Meta information for sku.
         """
-        return self._sku_collection[self._sku_id2name_mapping[sku_id]]
+        return self._sku_collection[sku_id]
 
     def get_sku_id_by_name(self, name: str) -> int:
-        return self._sku_collection[name].id
+        return self._sku_name2id_mapping[name]
 
     def get_facility_by_id(self, facility_id: int) -> FacilityBase:
         """Get facility by id.
@@ -161,18 +161,18 @@ class World:
         for sku_conf in world_config["skus"]:
             sku = SkuMeta(**sku_conf)
 
-            self._sku_id2name_mapping[sku.id] = sku.name
-            self._sku_collection[sku.name] = sku
+            self._sku_name2id_mapping[sku.name] = sku.id
+            self._sku_collection[sku.id] = sku
 
         # Collect bom info.
         for sku_conf in world_config["skus"]:
-            sku = self._sku_collection[sku_conf["name"]]
+            sku = self._sku_collection[sku_conf["id"]]
             sku.bom = {}
 
             bom = sku_conf.get("bom", {})
 
             for material_sku_name, units_per_lot in bom.items():
-                sku.bom[self._sku_collection[material_sku_name].id] = units_per_lot
+                sku.bom[self._sku_name2id_mapping[material_sku_name]] = units_per_lot
 
         # Construct facilities.
         for facility_conf in world_config["facilities"]:
@@ -417,7 +417,7 @@ class World:
 
         return {
             "unit_mapping": id2index_mapping,
-            "skus": {sku.id: sku for sku in self._sku_collection.values()},
+            "skus": {id: sku for id, sku in self._sku_collection.items()},
             "facilities": facility_info_dict,
             "max_price": self.max_price,
             "max_sources_per_facility": self.max_sources_per_facility,
