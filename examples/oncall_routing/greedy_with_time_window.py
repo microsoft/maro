@@ -151,4 +151,5 @@ if __name__ == "__main__":
         print(f"Processing {len(decision_event.oncall_orders)} oncall orders at tick {env.tick}.")
         metrics, decision_event, is_done = env.step(_get_actions(env, decision_event))
 
-    print(metrics)
+    for key, value in metrics.items():
+        print(f"{key}: {value}")
