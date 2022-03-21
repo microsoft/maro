@@ -238,8 +238,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._info = {}
 
         for policy in self._policy_dict.values():
-            if isinstance(policy, RLPolicy):
-                policy.to_device(self._device)
+            policy.to_device(self._device)
 
     @abstractmethod
     def _get_global_and_agent_state(
@@ -437,7 +436,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         return {"info": [self._info]}
 
     @abstractmethod
-    def _post_sample_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError
 
     @abstractmethod

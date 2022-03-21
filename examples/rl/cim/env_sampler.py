@@ -77,6 +77,9 @@ class CIMEnvSampler(AbsEnvSampler):
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._info["env_metric"] = self._env.metrics
 
+    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+        self._post_step(cache_element, reward)
+
 
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in Env(**env_conf).agent_idx_list}
 
