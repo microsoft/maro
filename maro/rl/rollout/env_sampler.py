@@ -12,7 +12,7 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type
 import numpy as np
 import torch
 
-from maro.rl.policy import AbsPolicy, RLPolicy
+from maro.rl.policy import RLPolicy
 from maro.simulator import Env
 
 
@@ -20,13 +20,13 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     """Agent wrapper. Used to manager agents & policies during experience collection.
 
     Args:
-        policy_dict (Dict[str, AbsPolicy]): Dictionary that maps policy names to policy instances.
+        policy_dict (Dict[str, RLPolicy]): Dictionary that maps policy names to policy instances.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
     """
 
     def __init__(
         self,
-        policy_dict: Dict[str, AbsPolicy],  # {policy_name: AbsPolicy}
+        policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
     ) -> None:
         self._policy_dict = policy_dict
@@ -40,8 +40,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         """
         for policy_name, policy_state in policy_state_dict.items():
             policy = self._policy_dict[policy_name]
-            if isinstance(policy, RLPolicy):
-                policy.set_state(policy_state)
+            policy.set_state(policy_state)
 
     def choose_actions(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         """Choose action according to the given (observable) states of all agents.
@@ -106,7 +105,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
             states = np.vstack(states_by_policy[policy_name])  # np.ndarray
             action_dict.update(zip(
                 agents_by_policy[policy_name],  # list of str (agent name)
-                policy.get_actions(states),  # list of action
+                policy.get_actions(states)  # list of action
             ))
         return action_dict
 
@@ -176,14 +175,14 @@ class ExpElement:
             next_state=self.next_state,
             next_agent_state_dict=None if self.next_agent_state_dict is None else {},
         ))
-        for agent_name, trainer_name in agent2trainer.items():
-            if agent_name in self.agent_state_dict:
-                ret[trainer_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
-                ret[trainer_name].action_dict[agent_name] = self.action_dict[agent_name]
-                ret[trainer_name].reward_dict[agent_name] = self.reward_dict[agent_name]
-                ret[trainer_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
-                if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict:
-                    ret[trainer_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
+        for agent_name in self.agent_names:
+            trainer_name = agent2trainer[agent_name]
+            ret[trainer_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
+            ret[trainer_name].action_dict[agent_name] = self.action_dict[agent_name]
+            ret[trainer_name].reward_dict[agent_name] = self.reward_dict[agent_name]
+            ret[trainer_name].terminal_dict[agent_name] = self.terminal_dict[agent_name]
+            if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict:
+                ret[trainer_name].next_agent_state_dict[agent_name] = self.next_agent_state_dict[agent_name]
         return ret
 
 
@@ -192,7 +191,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     Args:
         get_env (Callable[[], Env]): Function used to create the rollout environment.
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions that used to get policies, specified
+        policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions that used to get policies, specified
             by policy names.
         agent2policy (Dict[Any, str]): Mapping of agent name and policy name.
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
@@ -207,7 +206,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def __init__(
         self,
         get_env: Callable[[], Env],
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
+        policy_creator: Dict[str, Callable[[str], RLPolicy]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
@@ -222,7 +221,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._device = torch.device(device) if device is not None \
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self._policy_dict: Dict[str, AbsPolicy] = {
+        self._policy_dict: Dict[str, RLPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
         self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
@@ -238,8 +237,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._info = {}
 
         for policy in self._policy_dict.values():
-            if isinstance(policy, RLPolicy):
-                policy.to_device(self._device)
+            policy.to_device(self._device)
 
     @abstractmethod
     def _get_global_and_agent_state(
@@ -328,18 +326,18 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 )
             )
             # Update env and get new states (global & agent)
-            _, self._event, done = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if done \
+            _, self._event, terminal = self._env.step(list(env_action_dict.values()))
+            self._state, self._agent_state_dict = (None, {}) if terminal \
                 else self._get_global_and_agent_state(self._event)
             steps_to_go -= 1
 
         tick_bound = self._env.tick - self._reward_eval_delay
         experiences = []
-        while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
+        while self._trans_cache > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
 
             reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
-            self._post_step(cache_element, reward_dict)
+            self._post_sample_step(cache_element, reward_dict)
 
             if len(self._trans_cache) > 0:
                 next_state = self._trans_cache[0].state
@@ -407,15 +405,39 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._env.reset()
         terminal = False
         _, self._event, _ = self._env.step(None)
-        _, agent_state_dict = self._get_global_and_agent_state(self._event)
+        self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
         while not terminal:
-            action_dict = self._agent_wrapper.choose_actions(agent_state_dict)
+            action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
+
+            # Store experiences in the cache
+            self._trans_cache.append(
+                CacheElement(
+                    tick=self._env.tick,
+                    event=self._event,
+                    state=self._state,
+                    agent_state_dict=dict(self._agent_state_dict),
+                    action_dict=action_dict,
+                    env_action_dict=env_action_dict,
+                )
+            )
+            # Update env and get new states (global & agent)
             _, self._event, terminal = self._env.step(list(env_action_dict.values()))
-            if not terminal:
-                _, agent_state_dict = self._get_global_and_agent_state(self._event)
+            self._state, self._agent_state_dict = (None, {}) if terminal \
+                else self._get_global_and_agent_state(self._event)
+
+        tick_bound = self._env.tick - self._reward_eval_delay
+        while self._trans_cache and self._trans_cache[0].tick <= tick_bound:
+            cache_element = self._trans_cache.popleft()
+            reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
+            self._post_eval_step(cache_element, reward_dict)
+
         return {"info": [self._info]}
 
     @abstractmethod
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_sample_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError

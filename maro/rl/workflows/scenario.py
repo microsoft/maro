@@ -4,7 +4,7 @@
 import importlib
 import os
 import sys
-from typing import Any, Callable, Dict
+from typing import Callable, Dict
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import AbsEnvSampler
@@ -22,7 +22,7 @@ class Scenario(object):
         return getattr(self._module, "env_sampler_creator")(policy_creator)
 
     @property
-    def agent2policy(self) -> Dict[Any, str]:
+    def agent2policy(self) -> Dict[str, str]:
         return getattr(self._module, "agent2policy")
 
     @property

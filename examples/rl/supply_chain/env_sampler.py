@@ -383,13 +383,16 @@ class SCEnvSampler(AbsEnvSampler):
     def _update_global_features(self, state) -> None:
         state["global_time"] = self._learn_env.tick
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_sample_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         tick = cache_element.tick
         total_sold = self._learn_env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
         total_demand = self._learn_env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
         self._info["sold"] = total_sold
         self._info["demand"] = total_demand
         self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
+
+    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+        self._post_sample_step(cache_element, reward)
 
 
 ProductInfo = namedtuple(

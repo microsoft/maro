@@ -4,9 +4,9 @@
 import asyncio
 import os
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Callable, Dict, Iterable, List, Tuple
 
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.utils import LoggerV2
 
@@ -19,18 +19,18 @@ class TrainingManager(object):
     Training manager. Manage and schedule all trainers to train policies.
 
     Args:
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies.
+        policy_creator (Dict[str, Callable[[str], RLPolicy]]): Dict of functions to create policies.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
-        agent2policy (Dict[Any, str]): Agent name to policy name mapping.
+        agent2policy (Dict[str, str]): Agent name to policy name mapping.
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
             it is registered to all trainers, which in turn create `RemoteOps` for distributed training.
     """
 
     def __init__(
         self,
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
+        policy_creator: Dict[str, Callable[[str], RLPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
-        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
+        agent2policy: Dict[str, str],  # {agent_name: policy_name}
         proxy_address: Tuple[str, int] = None,
         logger: LoggerV2 = None,
     ) -> None:
@@ -49,11 +49,10 @@ class TrainingManager(object):
             trainer.build()  # `build()` must be called after `register_policy_creator()`
             self._trainer_dict[trainer_name] = trainer
 
-        self._agent2trainer: Dict[Any, str] = {}
-        for agent_name, policy_name in self._agent2policy.items():
-            trainer_name = extract_trainer_name(policy_name)
-            if trainer_name in self._trainer_dict:
-                self._agent2trainer[agent_name] = trainer_name
+        self._agent2trainer = {
+            agent_name: extract_trainer_name(policy_name)
+            for agent_name, policy_name in self._agent2policy.items()
+        }
 
     def train_step(self) -> None:
         if self._proxy_address:
