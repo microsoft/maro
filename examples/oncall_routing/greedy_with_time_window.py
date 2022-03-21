@@ -15,10 +15,11 @@ set_seeds(0)
 
 def _get_actions(running_env: Env, event: OncallRoutingPayload) -> List[Action]:
     tick = running_env.tick
+    frame_index = running_env.business_engine.frame_index(running_env.tick)
     oncall_orders = event.oncall_orders
     route_meta_info_dict = event.route_meta_info_dict
     route_plan_dict = event.route_plan_dict
-    carriers_in_stop: List[bool] = (running_env.snapshot_list["carriers"][tick::"in_stop"] == 1).tolist()
+    carriers_in_stop: List[bool] = (running_env.snapshot_list["carriers"][frame_index::"in_stop"] == 1).tolist()
     est_duration_predictor = event.estimated_duration_predictor
 
     route_original_indexes = {}
@@ -140,7 +141,7 @@ def _get_actions(running_env: Env, event: OncallRoutingPayload) -> List[Action]:
 # Greedy: assign each on-call order to the closest stop on existing route.
 if __name__ == "__main__":
     env = Env(
-        scenario="oncall_routing", topology="example", start_tick=0, durations=1440,
+        scenario="oncall_routing", topology="example", start_tick=480, durations=960,
     )
 
     env.reset(keep_seed=True)

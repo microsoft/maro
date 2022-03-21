@@ -243,13 +243,13 @@ class OncallRoutingBusinessEngine(AbsBusinessEngine):
     def _load_carrier_arrival_event(self) -> None:
         """Put the first arrival event of each route into the event buffer."""
         for route in self._routes:
-            self._route_last_arrival[route.name] = (self._head_quarter_coord, 0)
+            self._route_last_arrival[route.name] = (self._head_quarter_coord, self._start_tick)
             self._route_next_departure_dict[route.name] = None
 
             if len(route.remaining_plan) > 0:
                 carrier_arrival_payload = CarrierArrivalPayload(route.carrier_idx)
                 carrier_arrival_event = self._event_buffer.gen_cascade_event(
-                    tick=route.remaining_plan[0].actual_duration_from_last,
+                    tick=self._start_tick + route.remaining_plan[0].actual_duration_from_last,
                     event_type=Events.CARRIER_ARRIVAL,
                     payload=carrier_arrival_payload
                 )
