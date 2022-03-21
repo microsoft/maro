@@ -16,5 +16,6 @@ if __name__ == "__main__":
     policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
     env_sampler = scenario.get_env_sampler(policy_creator)
     result = env_sampler.eval()
+    print(result)
     if scenario.post_evaluate:
         scenario.post_evaluate(result["info"], 0)
