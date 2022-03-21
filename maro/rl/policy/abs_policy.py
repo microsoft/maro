@@ -73,6 +73,9 @@ class AbsPolicy(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    def to_device(self, device: torch.device) -> None:
+        pass
+
 
 class DummyPolicy(AbsPolicy):
     """Dummy policy that takes no actions.

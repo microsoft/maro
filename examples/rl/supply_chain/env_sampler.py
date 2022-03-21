@@ -391,6 +391,9 @@ class SCEnvSampler(AbsEnvSampler):
         self._info["demand"] = total_demand
         self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
 
+    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+        self._post_step(cache_element, reward)
+
 
 ProductInfo = namedtuple(
     "ProductInfo",

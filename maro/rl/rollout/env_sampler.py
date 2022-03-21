@@ -238,8 +238,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._info = {}
 
         for policy in self._policy_dict.values():
-            if isinstance(policy, RLPolicy):
-                policy.to_device(self._device)
+            policy.to_device(self._device)
 
     @abstractmethod
     def _get_global_and_agent_state(
@@ -328,8 +327,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 )
             )
             # Update env and get new states (global & agent)
-            _, self._event, done = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if done \
+            _, self._event, terminal = self._env.step(list(env_action_dict.values()))
+            self._state, self._agent_state_dict = (None, {}) if terminal \
                 else self._get_global_and_agent_state(self._event)
             steps_to_go -= 1
 
@@ -407,15 +406,39 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._env.reset()
         terminal = False
         _, self._event, _ = self._env.step(None)
-        _, agent_state_dict = self._get_global_and_agent_state(self._event)
+        self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
         while not terminal:
-            action_dict = self._agent_wrapper.choose_actions(agent_state_dict)
+            action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
+
+            # Store experiences in the cache
+            self._trans_cache.append(
+                CacheElement(
+                    tick=self._env.tick,
+                    event=self._event,
+                    state=self._state,
+                    agent_state_dict=dict(self._agent_state_dict),
+                    action_dict=action_dict,
+                    env_action_dict=env_action_dict,
+                )
+            )
+            # Update env and get new states (global & agent)
             _, self._event, terminal = self._env.step(list(env_action_dict.values()))
-            if not terminal:
-                _, agent_state_dict = self._get_global_and_agent_state(self._event)
+            self._state, self._agent_state_dict = (None, {}) if terminal \
+                else self._get_global_and_agent_state(self._event)
+
+        tick_bound = self._env.tick - self._reward_eval_delay
+        while self._trans_cache and self._trans_cache[0].tick <= tick_bound:
+            cache_element = self._trans_cache.popleft()
+            reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
+            self._post_eval_step(cache_element, reward_dict)
+
         return {"info": [self._info]}
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError

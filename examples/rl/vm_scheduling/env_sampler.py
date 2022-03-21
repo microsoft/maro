@@ -123,6 +123,9 @@ class VMEnvSampler(AbsEnvSampler):
             self._info["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append([action, mask])
         self._info["action_sequence"].append(action)
 
+    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+        self._post_step(cache_element, reward)
+
 
 agent2policy = {"AGENT": f"{algorithm}.policy"}
 
