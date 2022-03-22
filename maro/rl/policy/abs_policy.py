@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Optional
+from typing import Dict, Iterable, Optional
 
 import numpy as np
 import torch
@@ -27,14 +27,14 @@ class AbsPolicy(object, metaclass=ABCMeta):
         self._trainable = trainable
 
     @abstractmethod
-    def get_actions(self, states: object) -> object:
+    def get_actions(self, states: object) -> Iterable:
         """Get actions according to states.
 
         Args:
             states (object): States.
 
         Returns:
-            actions (object): Actions.
+            actions (Iterable): Actions.
         """
         raise NotImplementedError
 
@@ -49,6 +49,33 @@ class AbsPolicy(object, metaclass=ABCMeta):
     def set_name(self, name: str) -> None:
         self._name = name
 
+    @abstractmethod
+    def explore(self) -> None:
+        """Set the policy to exploring mode.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def exploit(self) -> None:
+        """Set the policy to exploiting mode.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def eval(self) -> None:
+        """Switch the policy to evaluation mode.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def train(self) -> None:
+        """Switch the policy to training mode.
+        """
+        raise NotImplementedError
+
+    def to_device(self, device: torch.device) -> None:
+        pass
+
 
 class DummyPolicy(AbsPolicy):
     """Dummy policy that takes no actions.
@@ -59,6 +86,18 @@ class DummyPolicy(AbsPolicy):
 
     def get_actions(self, states: object) -> None:
         return None
+
+    def explore(self) -> None:
+        pass
+
+    def exploit(self) -> None:
+        pass
+
+    def eval(self) -> None:
+        pass
+
+    def train(self) -> None:
+        pass
 
 
 class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
@@ -74,6 +113,18 @@ class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
     @abstractmethod
     def _rule(self, states: object) -> object:
         raise NotImplementedError
+
+    def explore(self) -> None:
+        pass
+
+    def exploit(self) -> None:
+        pass
+
+    def eval(self) -> None:
+        pass
+
+    def train(self) -> None:
+        pass
 
 
 class RLPolicy(AbsPolicy, metaclass=ABCMeta):
@@ -192,18 +243,6 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     def unfreeze(self) -> None:
         """(Partially) unfreeze the current model. The users should write their own strategy to determine which
         parameters to freeze.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def eval(self) -> None:
-        """Switch the policy to evaluation mode.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def train(self) -> None:
-        """Switch the policy to training mode.
         """
         raise NotImplementedError
 

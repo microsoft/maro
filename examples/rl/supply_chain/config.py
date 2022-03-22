@@ -12,6 +12,6 @@ env_conf = {
 distribution_features = ("remaining_order_quantity", "remaining_order_number")
 seller_features = ("total_demand", "sold", "demand")
 
-rl_algorithm = "dqn"
+rl_algorithm = "dqn"  # 'dqn', 'ppo', or 'or'
 
 NUM_CONSUMER_ACTIONS = 10
