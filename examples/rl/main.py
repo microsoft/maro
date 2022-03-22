@@ -9,7 +9,7 @@ from maro.utils import LoggerV2
 
 # config variables
 SCENARIO_NAME = "cim"
-SCENARIO_PATH = os.path.join("examples", "scenarios", SCENARIO_NAME, "rl")
+SCENARIO_PATH = os.path.join("examples", SCENARIO_NAME, "rl")
 NUM_EPISODES = 50
 NUM_STEPS = None
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
