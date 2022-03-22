@@ -27,13 +27,6 @@ def get_policy_name(entity: SupplyChainEntity) -> str:
 
 agent2policy = {id_: get_policy_name(entity) for id_, entity in entity_dict.items()}
 
-# agent2policy = {}
-# for id_, entity in entity_dict.items():
-#     if issubclass(entity.class_type, ManufactureUnit):
-#         agent2policy[id_] = f"dqn_manufacture_{entity.id}.policy"
-#     elif issubclass(entity.class_type, ConsumerUnit):
-#         agent2policy[id_] = f"dqn_consumer_{entity.id}.policy"
-
 if rl_algorithm == "dqn":
     from .algorithms.dqn import get_dqn, get_policy
     policy_creator = {
@@ -52,7 +45,7 @@ elif rl_algorithm == "ppo":
     trainer_creator = {
         policy_name.split(".")[0]: partial(get_ppo, STATE_DIM) for policy_name in agent2policy.values()
     }
-elif rl_algorithm == 'null':
+elif rl_algorithm == 'or':
     policy_creator = or_policy_creator
     trainer_creator = {}
 else:
