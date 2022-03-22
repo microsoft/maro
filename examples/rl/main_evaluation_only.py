@@ -6,7 +6,8 @@ import os
 from maro.rl.workflows.scenario import Scenario
 
 # config variables
-SCENARIO_PATH = os.path.join("rl", "supply_chain")
+SCENARIO_NAME = "supply_chain"
+SCENARIO_PATH = os.path.join("examples", "scenarios", SCENARIO_NAME, "rl")
 
 if __name__ == "__main__":
     scenario = Scenario(SCENARIO_PATH)

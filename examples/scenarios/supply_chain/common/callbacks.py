@@ -5,7 +5,7 @@ import csv
 from os.path import dirname, join, realpath
 
 
-OUTPUT_CSV_PATH = join(dirname(realpath(__file__)), "result_baseline.csv")
+OUTPUT_CSV_PATH = join(dirname(realpath(__file__)), "../rl/result_baseline.csv")
 
 
 def post_collect(info_list: list, ep: int, segment: int) -> None:

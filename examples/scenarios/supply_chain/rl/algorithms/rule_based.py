@@ -4,7 +4,7 @@
 import numpy as np
 import scipy.stats as st
 
-from examples.rl.supply_chain.config import NUM_CONSUMER_ACTIONS
+from examples.scenarios.supply_chain.rl.config import NUM_CONSUMER_ACTIONS
 from maro.rl.policy import RuleBasedPolicy
 
 OR_STATE_OFFSET_INDEX = {
