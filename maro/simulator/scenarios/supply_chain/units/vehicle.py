@@ -71,15 +71,15 @@ class VehicleUnit(UnitBase):
             raise Exception(f"Destination {destination} is unreachable")
 
         # Steps to destination.
-        self._remaining_steps = int(math.ceil(float(len(self._path) - 1) / float(vlt)))  # TODO: confirm the meaning of vlt here.
+        self._remaining_steps = vlt
+        self._velocity = 1
+
         dest_consumer = destination.products[product_id].consumer
         if self._remaining_steps < len(dest_consumer.pending_order_daily):
             dest_consumer.pending_order_daily[self._remaining_steps] += quantity
 
         # We are waiting for product loading.
         self._location = 0
-
-        self._velocity = vlt
 
         self._remaining_patient = self._max_patient
 

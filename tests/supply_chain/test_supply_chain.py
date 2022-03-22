@@ -975,9 +975,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(dest_facility, vehicle_unit._destination)
         self.assertEqual(SKU3_ID, vehicle_unit.product_id)
         self.assertEqual(20, vehicle_unit.requested_quantity)
-        self.assertEqual(2, vehicle_unit._velocity)
-        # 6/2
-        self.assertEqual(3, vehicle_unit._remaining_steps)
+        self.assertEqual(1, vehicle_unit._velocity)
+        self.assertEqual(2, vehicle_unit._remaining_steps)
 
         features = (
             "id",
@@ -1137,7 +1136,7 @@ class MyTestCase(unittest.TestCase):
         # then it will unload 100 - 10 - 10 - 10 = 70 products, as this is the remaining space of destination storage
         # so then it will keep waiting to unload remaining 10
         payload_states = vehicle_nodes[:vehicle_unit.data_model_index:"payload"].flatten().astype(np.int)
-        self.assertListEqual([80] * 4 + [10] * 96, list(payload_states))
+        self.assertListEqual([80] * 3 + [10] * 97, list(payload_states))
 
     """
     Distribution unit test:
@@ -1209,7 +1208,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(dest_facility, first_vehicle._destination)
         self.assertEqual(10, first_vehicle.requested_quantity)
-        self.assertEqual(2, first_vehicle._velocity)
+        self.assertEqual(1, first_vehicle._velocity)
         self.assertEqual(SKU3_ID, first_vehicle.product_id)
 
         # since we already test vehicle unit, do not check the it again here
@@ -1237,7 +1236,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(dest_facility, second_vehicle._destination)
         self.assertEqual(10, second_vehicle.requested_quantity)
-        self.assertEqual(2, second_vehicle._velocity)
+        self.assertEqual(1, second_vehicle._velocity)
         self.assertEqual(SKU3_ID, second_vehicle.product_id)
 
     """
