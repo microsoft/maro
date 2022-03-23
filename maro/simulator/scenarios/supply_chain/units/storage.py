@@ -1,51 +1,219 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Optional
 
-from .unitbase import UnitBase
+from maro.simulator.scenarios.supply_chain.units.unitbase import UnitBase
+
+
+DEFAULT_SUB_STORAGE_ID = 0
+
+@dataclass
+class SubStorageConfig:
+    id: int
+    capacity: int = 100  # TODO: Is it a MUST config or could it be default?
+    unit_storage_cost: int = 1
+
+def parse_storage_config(config: dict) -> List[SubStorageConfig]:  # TODO: here or in parser
+    if not isinstance(config, list):
+        id = config.get("id", DEFAULT_SUB_STORAGE_ID)
+        return [SubStorageConfig(id=id, **config)]
+    return [SubStorageConfig(**cfg) for cfg in config]
+
+
+class AddStrategy(Enum):
+    IgnoreUpperBoundAllOrNothing = 1  # Failed if all product cannot be added
+    IgnoreUpperBoundProportional = 2
+    IgnoreUpperBoundFIFO = 3
+    LimitedByUpperBound = 4
 
 
 class StorageUnit(UnitBase):
     """Unit that used to store skus."""
 
     def __init__(self) -> None:
-        super().__init__()
+        super(StorageUnit, self).__init__()
 
-        # Used to map from product id to slot index.
-        self.capacity = 0
-        self.remaining_space = 0
-        self._product_level = {}
+        # Key: Sub-Storage ID
+        self._capacity_dict: Dict[int, int] = {}
+        self._remaining_space_dict: Dict[int, int] = {}
+        self._total_capacity: int = 0
 
-        # Which product's number has changed.
-        self._changed_product_cache = {}
+        # 1st-key: the Sub-Storage ID, 2nd-key: the SKU ID, value: the upper bound.
+        # None value indicates non-pre-limited.
+        self._storage_sku_upper_bound: Dict[int, Dict[int, Optional[int]]] ={}
 
-    def try_add_products(self, product_quantities: Dict[int, int], all_or_nothing=True) -> Dict[int, int]:
+        # Key: product_id
+        self._product_level: Dict[int, int] = {}
+        self._product_level_changed: Dict[int, bool] = {}
+
+        # Mapping from the product id to sub-storage id
+        self._product2storage: Dict[int, int] = {}
+
+    @property
+    def capacity(self) -> int:  # TODO: not used now. Check to remove or not.
+        return self._total_capacity
+
+    @property
+    def remaining_space(self) -> int:  # TODO: not used now. Check to remove or not.
+        return sum(self._remaining_space_dict.values())
+
+    def initialize(self) -> None:
+        super(StorageUnit, self).initialize()
+
+        # Initialize capacity info.
+        self.config: List[SubStorageConfig] = parse_storage_config(self.config)
+        for sub_config in self.config:
+            assert sub_config.id not in self._capacity_dict, f"Sub-Storage {sub_config.id} already exist!"
+            self._capacity_dict[sub_config.id] = sub_config.capacity
+            self._remaining_space_dict[sub_config.id] = sub_config.capacity
+            self._total_capacity += sub_config.capacity
+
+        # Initialize the product stock level
+        for sku in self.facility.skus.values():
+            self._product_level[sku.id] = sku.init_stock
+            self._product_level_changed[sku.id] = False
+
+            self._product2storage[sku.id] = sku.sub_storage_id
+            assert sku.sub_storage_id in self._remaining_space_dict
+            self._remaining_space_dict[sku.sub_storage_id] -= sku.init_stock
+            assert self._remaining_space_dict[sku.sub_storage_id] >= 0, (
+                f"Initial stock too much for Sub Storage {sku.sub_storage_id} of Facility {self.facility.name}!"
+            )
+            if sku.sub_storage_id not in self._storage_sku_upper_bound:
+                self._storage_sku_upper_bound[sku.sub_storage_id] = {}
+            self._storage_sku_upper_bound[sku.sub_storage_id][sku.id] = sku.storage_upper_bound
+
+        # Initialize the None upper bound SKU with the average remaining space.
+        for sub_storage_id, upper_bound_dict in self._storage_sku_upper_bound.items():
+            # Count how many sku has None upper bound and the remaining space.
+            remaining_space = self._capacity_dict[sub_storage_id]
+            sku_num = 0
+            for upper_bound in upper_bound_dict.values():
+                if upper_bound:
+                    remaining_space -= upper_bound
+                else:
+                    sku_num += 1
+
+            if sku_num == 0 and remaining_space > 0:
+                # TODO: decide to evenly expand the upper bound or not.
+                print(
+                    f"The given upper bound cannot fill the whole capacity of Sub storage {sub_storage_id} "
+                    f"in facility {self.facility.name}"
+                )
+
+            # TODO: Can Sum(Upper Bound) > Capacity?
+
+            # Divide the remaining space evenly among the SKUs with None upper bound.
+            average_space = remaining_space // sku_num
+            for sku_id, upper_bound in upper_bound_dict.items():
+                if upper_bound is None:
+                    sku_num -= 1
+                    if sku_num > 0:
+                        upper_bound_dict[sku_id] = average_space
+                        remaining_space -= average_space
+                    else:
+                        # In the case the initial remaining space is not divisible.
+                        upper_bound_dict[sku_id] = remaining_space
+
+        self.data_model.initialize(
+            capacity=self.capacity,
+            remaining_space=self.remaining_space,
+            product_list=[sku_id for sku_id in self._product_level.keys()],
+            product_number=[n for n in self._product_level.values()],
+        )
+
+    def get_product_quantity(self, product_id: int) -> int:
+        """Get product quantity in storage.
+
+        Args:
+            product_id (int): Product to check.
+
+        Returns:
+            int: Available quantity of product.
+        """
+        return self._product_level[product_id]
+
+    def get_product_max_remaining_space(self, product_id: int) -> int:
+        # ! Currently the upper bound is only used in Manufacture Unit.
+        remaining_space = self._remaining_space_dict[self._product2storage[product_id]]
+
+        upper_bound = self._storage_sku_upper_bound[self._product2storage[product_id]][product_id]
+        remaining_quota = max(upper_bound - self._product_level[product_id], 0)
+
+        return min(remaining_space, remaining_quota)
+
+    def _add_product(self, product_id: int, quantity: int) -> None:
+        assert self._remaining_space_dict[self._product2storage[product_id]] >= quantity
+        self._product_level[product_id] += quantity
+        self._product_level_changed[product_id] = True
+        self._remaining_space_dict[self._product2storage[product_id]] -= quantity
+
+    def _take_product(self, product_id: int, quantity: int) -> None:
+        assert self._product_level[product_id] >= quantity
+        self._product_level[product_id] -= quantity
+        self._product_level_changed[product_id] = True
+        self._remaining_space_dict[self._product2storage[product_id]] += quantity
+
+    def try_add_products(
+        self,
+        product_quantities: Dict[int, int],
+        add_strategy: AddStrategy=AddStrategy.IgnoreUpperBoundAllOrNothing
+    ) -> Dict[int, int]:
         """Try to add products into storage.
 
         Args:
             product_quantities (Dict[int, int]): Dictionary of product id and quantity need to add to storage.
-            all_or_nothing (bool): Failed if all product cannot be added, or add as many as it can. Default is True.
+            add_strategy (AddStrategy): The strategy to add products into the storage, Defaults to AddAllOrNothing.
 
         Returns:
             Dict[int, int]: Dictionary of product id and quantity success added.
         """
-        if all_or_nothing and self.remaining_space < sum(product_quantities.values()):
-            return {}
+        added_quantities: Dict[int, int] = {}
 
-        unloaded_quantities: Dict[int, int] = {}
+        if add_strategy in [AddStrategy.IgnoreUpperBoundAllOrNothing, AddStrategy.IgnoreUpperBoundProportional]:
+            space_requirements: Dict[int, int] = {}
+            for product_id, quantity in product_quantities.items():
+                storage_id = self._product2storage[product_id]
+                if storage_id not in space_requirements:
+                    space_requirements[storage_id] = 0
+                space_requirements[storage_id] += quantity
 
-        for product_id, quantity in product_quantities.items():
-            unload_quantity = min(self.remaining_space, quantity)
+        if add_strategy == AddStrategy.IgnoreUpperBoundAllOrNothing:
+            for storage_id, requirement in space_requirements.items():
+                if self._remaining_space_dict[storage_id] < requirement:
+                    return {}
 
-            self._product_level[product_id] += unload_quantity
-            unloaded_quantities[product_id] = unload_quantity
+            for product_id, quantity in product_quantities.items():
+                self._add_product(product_id, quantity)
+                added_quantities[product_id] = quantity
 
-            self._changed_product_cache[product_id] = True
+        if add_strategy == AddStrategy.IgnoreUpperBoundProportional:
+            fulfill_ratio_dict = {}
+            for storage_id, requirement in space_requirements.items():
+                fulfill_ratio_dict[storage_id] = requirement / self._remaining_space_dict[storage_id]
 
-            self.remaining_space -= unload_quantity
+            for product_id, quantity in product_quantities.items():
+                storage_id = self._product2storage[product_id]
+                quantity = min(int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id])
+                self._add_product(product_id, quantity)
+                added_quantities[product_id] = quantity
 
-        return unloaded_quantities
+        if add_strategy == AddStrategy.IgnoreUpperBoundFIFO:
+            for product_id, quantity in product_quantities.items():
+                quantity = min(quantity, self._remaining_space_dict[self._product2storage[product_id]])
+                self._add_product(product_id, quantity)
+                added_quantities[product_id] = quantity
+
+        if add_strategy == AddStrategy.LimitedByUpperBound:
+            for product_id, quantity in product_quantities.items():
+                quantity = min(quantity, self.get_product_max_remaining_space(product_id))
+                self._add_product(product_id, quantity)
+                added_quantities[product_id] = quantity
+
+        return added_quantities
 
     def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
         """Try to take specified number of product.
@@ -63,10 +231,7 @@ class StorageUnit(UnitBase):
 
         # Take from storage.
         for product_id, quantity in product_quantities.items():
-            self._product_level[product_id] -= quantity
-            self._changed_product_cache[product_id] = True
-
-            self.remaining_space += quantity
+            self._take_product(product_id, quantity)
 
         return True
 
@@ -82,52 +247,17 @@ class StorageUnit(UnitBase):
         """
         available = self._product_level[product_id]
         actual = min(available, quantity)
-
-        self._product_level[product_id] -= actual
-        self._changed_product_cache[product_id] = True
-
-        self.remaining_space += actual
-
+        self._take_product(product_id, actual)
         return actual
-
-    def get_product_quantity(self, product_id: int) -> int:
-        """Get product quantity in storage.
-
-        Args:
-            product_id (int): Product to check.
-
-        Returns:
-            int: Available quantity of product.
-        """
-        return self._product_level[product_id]
-
-    def initialize(self) -> None:
-        super(StorageUnit, self).initialize()
-
-        self.capacity = self.config.get("capacity", 100)  # TODO: could it be empty?
-        self.remaining_space = self.capacity
-
-        for sku in self.facility.skus.values():
-            self._product_level[sku.id] = sku.init_stock
-            self._changed_product_cache[sku.id] = False
-
-            self.remaining_space -= sku.init_stock
-
-        self.data_model.initialize(
-            capacity=self.capacity,
-            remaining_space=self.remaining_space,
-            product_list=[sku_id for sku_id in self._product_level.keys()],
-            product_number=[n for n in self._product_level.values()],
-        )
 
     def flush_states(self) -> None:
         # Write the changes to frame.
         i = 0
         has_changes = False
         for product_id, quantity in self._product_level.items():
-            if self._changed_product_cache[product_id]:
+            if self._product_level_changed[product_id]:
                 has_changes = True
-                self._changed_product_cache[product_id] = False
+                self._product_level_changed[product_id] = False
 
                 self.data_model.product_number[i] = quantity
             i += 1
@@ -139,12 +269,14 @@ class StorageUnit(UnitBase):
         super(StorageUnit, self).reset()
 
         # Reset status in Python side.
-        self.remaining_space = self.capacity
+        for sub_config in self.config:
+            self._remaining_space_dict[sub_config.id] = sub_config.capacity
 
         for sku in self.facility.skus.values():
             self._product_level[sku.id] = sku.init_stock
-            self.remaining_space -= sku.init_stock
-            self._changed_product_cache[sku.id] = False
+            self._product_level_changed[sku.id] = False
+
+            self._remaining_space_dict[sku.sub_storage_id] -= sku.init_stock
 
     def get_unit_info(self) -> dict:
         info = super().get_unit_info()

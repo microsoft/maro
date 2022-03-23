@@ -11,6 +11,7 @@ from maro.simulator.scenarios.supply_chain import (
 )
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.units.order import Order
+from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 
 
 def build_env(case_name: str, durations: int):
@@ -449,6 +450,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, product_dict[lot_taken_product_id])
 
     def test_storage_try_add_products(self):
+        # TODO: Add test for other strategies.
         """
         NOTE:
             try_add_products method do not check avg storage capacity checking, so we will ignore it here.
@@ -484,7 +486,7 @@ class MyTestCase(unittest.TestCase):
         for product_id in init_product_dict.keys():
             products_to_put[product_id] = avg_max_product_number + 1
 
-        result = storage_unit.try_add_products(products_to_put, all_or_nothing=True)
+        result = storage_unit.try_add_products(products_to_put, add_strategy=AddStrategy.IgnoreUpperBoundAllOrNothing)
 
         # the method will return an empty dictionary if fail to add
         self.assertEqual(0, len(result))
@@ -499,7 +501,7 @@ class MyTestCase(unittest.TestCase):
 
         # if we set all_or_nothing=False, then part of the product will be added to storage, and cause remaining
         # space being 0
-        storage_unit.try_add_products(products_to_put, all_or_nothing=False)
+        storage_unit.try_add_products(products_to_put, add_strategy=AddStrategy.IgnoreUpperBoundFIFO)
 
         self.assertEqual(0, storage_unit.remaining_space)
 

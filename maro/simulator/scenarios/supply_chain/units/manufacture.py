@@ -56,15 +56,9 @@ class ManufactureUnit(ExtendUnitBase):
 
         # Try to produce production if we have positive rate.
         if self.action.production_rate > 0:
-            sku_num = len(self.facility.skus)
-            unit_num_upper_bound = self.facility.storage.capacity // sku_num
-
-            # Compare with avg storage number.
-            current_product_quantity = self.facility.storage.get_product_quantity(self.product_id)
             max_number_to_procedure = min(
-                unit_num_upper_bound - current_product_quantity,
                 self.action.production_rate * self._output_units_per_lot,
-                self.facility.storage.remaining_space,
+                self.facility.storage.get_product_max_remaining_space(self.product_id)
             )
 
             if max_number_to_procedure > 0:
