@@ -8,13 +8,14 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 # config variables
-SCENARIO_PATH = "supply_chain"
+SCENARIO_NAME = "cim"
+SCENARIO_PATH = os.path.join("examples", SCENARIO_NAME, "rl")
 NUM_EPISODES = 50
 NUM_STEPS = None
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
 CHECKPOINT_INTERVAL = 5
 EVAL_SCHEDULE = [10, 20, 30, 40, 50]
-LOG_PATH = os.path.join(os.getcwd(), "logs", SCENARIO_PATH)
+LOG_PATH = os.path.join(os.getcwd(), "logs", SCENARIO_NAME)
 
 
 if __name__ == "__main__":

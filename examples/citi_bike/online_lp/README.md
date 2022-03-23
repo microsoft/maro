@@ -99,7 +99,7 @@ demand is 34 (at a specific station, during a time interval of 20 minutes), the
 corresponding demand distribution shows that demand exceeding 10 bikes per time
 interval (20 minutes) is only 2%.
 
-![Demand Distribution Between Tick 2400 ~ Tick 2519](./LogDemand.ny201910.2400.png)
+![Demand Distribution Between Tick 2400 ~ Tick 2519](LogDemand.ny201910.2400.png)
 
 Besides, we can also find that the percentage of forecasting results that differ
 to the data extracted from trip log is not low. To dive deeper in the practical
@@ -110,9 +110,9 @@ show the distribution of the forecasting difference to the trip log. One for the
 interval with the *Max Diff* (16:00-18:00), one for the interval with the highest
 percentage of *Diff > 5* (10:00-12:00).
 
-![Demand Distribution Between Tick 2400 ~ Tick 2519](./DemandDiff.ny201910.2400.png)
+![Demand Distribution Between Tick 2400 ~ Tick 2519](DemandDiff.ny201910.2400.png)
 
-![Demand Distribution Between Tick 2040 ~ Tick 2159](./DemandDiff.ny201910.2040.png)
+![Demand Distribution Between Tick 2040 ~ Tick 2159](DemandDiff.ny201910.2040.png)
 
 Maybe due to the *sparse* and *small* trip demand, and the *small* difference
 between the forecasting results and data extracted from the trip log data, the
