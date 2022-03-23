@@ -5,7 +5,7 @@ env_conf = {
     "scenario": "supply_chain",
     # Currently available topologies are "sample" or "random". New topologies must consist of a single folder
     # that contains a single config.yml and should be placed under /maro/simulator/scenarios/supply_chain/topologies
-    "topology": "/home/yaqiu/maro/examples/rl/supply_chain/walmart/large_capacity",
+    "topology": "sample", # "/home/yaqiu/maro/examples/rl/supply_chain/walmart/large_capacity",
     "durations": 10,  # number of ticks per episode
 }
 

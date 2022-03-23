@@ -1,20 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
+from os import getcwd
+from os.path import dirname, join, realpath 
 
 from maro.rl.training import TrainingManager
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 # config variables
-SCENARIO_PATH = "cim"
-NUM_EPISODES = 100
+SCENARIO_NAME = "cim"
+SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME)
+NUM_EPISODES = 50
 NUM_STEPS = None
-CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
-CHECKPOINT_INTERVAL = 20
-EVAL_SCHEDULE = [50, 100]
-LOG_PATH = os.path.join(os.getcwd(), "logs", SCENARIO_PATH)
+CHECKPOINT_PATH = join(getcwd(), "checkpoints")
+CHECKPOINT_INTERVAL = 5
+EVAL_SCHEDULE = [10, 20, 30, 40, 50]
+LOG_PATH = join(getcwd(), "logs", f"{SCENARIO_NAME}.log")
 
 
 if __name__ == "__main__":
@@ -61,7 +63,7 @@ if __name__ == "__main__":
             training_manager.record_experiences(experiences)
             training_manager.train_step()
             if CHECKPOINT_PATH and ep % CHECKPOINT_INTERVAL == 0:
-                pth = os.path.join(CHECKPOINT_PATH, str(ep))
+                pth = join(CHECKPOINT_PATH, str(ep))
                 training_manager.save(pth)
                 logger.info(f"All trainer states saved under {pth}")
             segment += 1
