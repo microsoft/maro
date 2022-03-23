@@ -124,12 +124,3 @@ class ConsumerMinMaxPolicy(RuleBasedPolicy):
         R = 3 * r
         consumer_action = (R - r) / (sale_mean + 1e-8)
         return consumer_action.astype(np.int32) * (non_facility_mask & capacity_mask & sales_mask)
-
-
-or_policy_creator = {
-    "consumer_policy": lambda name: ConsumerBaselinePolicy(name),
-    "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
-    "facility_policy": lambda name: DummyPolicy(name),
-    "product_policy": lambda name: DummyPolicy(name),
-    "seller_policy": lambda name: DummyPolicy(name)
-}

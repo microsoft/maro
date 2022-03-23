@@ -52,15 +52,22 @@ def main(scenario: Scenario) -> None:
             logger=logger,
         )
     else:
-        env_sampler = scenario.get_env_sampler(policy_creator)
+        env_sampler = scenario.env_sampler_creator(policy_creator, agent2policy, trainable_policies)
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
+    if scenario.trainable_policies is None:
+        trainable_policies = set(policy_creator.keys())
+    else:
+        trainable_policies = set(scenario.trainable_policies)
+
     training_manager = TrainingManager(
-        policy_creator, trainer_creator, agent2policy,
+        {name: func for name, func in policy_creator.items() if name in trainable_policies},
+        trainer_creator,
+        {id_: name for id_, name in agent2policy.items() if name in trainable_policies},
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
         ),

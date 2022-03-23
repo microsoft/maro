@@ -8,12 +8,12 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 # config variables
-SCENARIO_PATH = "supply_chain"
-NUM_EPISODES = 50
+SCENARIO_PATH = "cim"
+NUM_EPISODES = 100
 NUM_STEPS = None
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
-CHECKPOINT_INTERVAL = 5
-EVAL_SCHEDULE = [10, 20, 30, 40, 50]
+CHECKPOINT_INTERVAL = 20
+EVAL_SCHEDULE = [50, 100]
 LOG_PATH = os.path.join(os.getcwd(), "logs", SCENARIO_PATH)
 
 
@@ -23,16 +23,26 @@ if __name__ == "__main__":
 
     agent2policy = scenario.agent2policy
     policy_creator = scenario.policy_creator
-    trainer_creator = scenario.trainer_creator
     policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
     policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
+    trainer_creator = scenario.trainer_creator
 
     # evaluation schedule
     logger.info(f"Policy will be evaluated at the end of episodes {EVAL_SCHEDULE}")
     eval_point_index = 0
 
-    env_sampler = scenario.get_env_sampler(policy_creator)
-    training_manager = TrainingManager(policy_creator, trainer_creator, agent2policy, logger=logger)
+    if scenario.trainable_policies is None:
+        trainable_policies = set(policy_creator.keys())
+    else:
+        trainable_policies = set(scenario.trainable_policies)
+
+    env_sampler = scenario.env_sampler_creator(policy_creator, agent2policy, trainable_policies)
+    training_manager = TrainingManager(
+        {name: func for name, func in policy_creator.items() if name in trainable_policies},
+        trainer_creator,
+        {id_: name for id_, name in agent2policy.items() if name in trainable_policies},
+        logger=logger
+    )
 
     # main loop
     for ep in range(1, NUM_EPISODES + 1):

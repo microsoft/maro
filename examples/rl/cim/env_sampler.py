@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -84,10 +84,15 @@ class CIMEnvSampler(AbsEnvSampler):
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in Env(**env_conf).agent_idx_list}
 
 
-def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> CIMEnvSampler:
+def env_sampler_creator(
+    policy_creator: Dict[str, Callable[[str], RLPolicy]],
+    agent2policy: Dict[str, str],
+    trainable_policies: List[str],
+) -> CIMEnvSampler:
     return CIMEnvSampler(
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
         agent2policy=agent2policy,
+        trainable_policies=trainable_policies,
         device="cpu",
     )

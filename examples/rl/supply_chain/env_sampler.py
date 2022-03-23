@@ -8,7 +8,7 @@ import numpy as np
 import scipy.stats as st
 
 from maro.event_buffer import CascadeEvent
-from maro.rl.policy import AbsPolicy, RLPolicy
+from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
@@ -18,7 +18,6 @@ from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 
 from .config import distribution_features, env_conf, seller_features
 from .env_helper import STORAGE_INFO
-from .policy_trainer import agent2policy
 from .state_template import keys_in_state, STATE_TEMPLATE, workflow_settings
 
 
@@ -43,19 +42,23 @@ class SCEnvSampler(AbsEnvSampler):
         get_env: Callable[[], Env],
         policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
+        trainable_policies: List[str] = None,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
         get_test_env: Callable[[], Env] = None,
         device: str = None,
     ) -> None:
         super().__init__(
-            get_env, policy_creator, agent2policy, agent_wrapper_cls, reward_eval_delay,
-            get_test_env=get_test_env, device=device,
+            get_env, policy_creator, agent2policy,
+            trainable_policies=trainable_policies,
+            agent_wrapper_cls=agent_wrapper_cls,
+            reward_eval_delay=reward_eval_delay,
+            get_test_env=get_test_env,
+            device=device,
         )
 
         self._agent2policy = agent2policy
         self._entity_dict = {entity.id: entity for entity in self._learn_env.business_engine.get_entity_list()}
-
         self._balance_calculator = BalanceSheetCalculator(self._learn_env)
         self._cur_balance_sheet_reward = None
 
@@ -94,7 +97,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._env_settings = workflow_settings
 
     def _get_state_shaper_for_entity(self, entity: SupplyChainEntity) -> Callable:
-        return self.get_or_policy_state  # TODO
+        return self.get_rl_policy_state  # TODO
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: list) -> float:
         if entity.class_type == ConsumerUnit:
@@ -213,7 +216,6 @@ class SCEnvSampler(AbsEnvSampler):
             id_: self._get_state_shaper_for_entity(entity)(self._state_template[id_], entity)
             for id_, entity in self._entity_dict.items() if id_ in self._agent2policy
         }
-
         return None, state
 
     def _get_reward(self, env_action_dict: Dict[Any, object], event: object, tick: int) -> Dict[Any, float]:
@@ -247,7 +249,7 @@ class SCEnvSampler(AbsEnvSampler):
             unit_id = agent_id
 
             # consumer action
-            if self._entity_dict[agent_id].class_type == ConsumerUnit:
+            if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
                 product_id = self.consumer2product.get(unit_id, 0)
                 sources = self.consumer2source.get(unit_id, [])
                 if sources:
@@ -259,30 +261,25 @@ class SCEnvSampler(AbsEnvSampler):
                         action_number = 0
 
                     # ignore 0 quantity to reduce action number
-                    if action_number == 0:
+                    if not action_number:
                         continue
 
                     sku = self._units_mapping[unit_id][3]
-
                     reward_discount = 1
-
                     env_action_dict[agent_id] = ConsumerAction(
                         unit_id, product_id, source_id, action_number, sku.vlt,
                     )
-
                     self._consumer_orders[product_unit_id] = action_number
                     self._orders_from_downstreams[
                         self._storage_info["facility_levels"][source_id][product_id]["skuproduct"].id
                     ] = action_number
-
             # manufacturer action
-            elif self._entity_dict[agent_id].class_type == ManufactureUnit:
+            elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
                 sku = self._units_mapping[unit_id][3]
                 action = sku.production_rate
                 # ignore invalid actions
-                if action is None or action == 0:
-                    continue
-                env_action_dict[agent_id] = ManufactureAction(id=unit_id, production_rate=float(action))
+                if action:
+                    env_action_dict[agent_id] = ManufactureAction(id=unit_id, production_rate=float(action))
 
         return env_action_dict
 
@@ -834,10 +831,11 @@ class BalanceSheetCalculator:
         return result
 
 
-def env_sampler_creator(policy_creator) -> SCEnvSampler:
+def env_sampler_creator(policy_creator, agent2policy, trainable_policies) -> SCEnvSampler:
     return SCEnvSampler(
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
         agent2policy=agent2policy,
+        trainable_policies=trainable_policies,
         device="cpu",
     )

@@ -51,9 +51,7 @@ class TrainingManager(object):
 
         self._agent2trainer: Dict[Any, str] = {}
         for agent_name, policy_name in self._agent2policy.items():
-            trainer_name = extract_trainer_name(policy_name)
-            if trainer_name in self._trainer_dict:
-                self._agent2trainer[agent_name] = trainer_name
+            self._agent2trainer[agent_name] = extract_trainer_name(policy_name)
 
     def train_step(self) -> None:
         if self._proxy_address:
