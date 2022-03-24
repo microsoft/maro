@@ -18,6 +18,7 @@ from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 
 from .config import distribution_features, env_conf, seller_features
 from .env_helper import STORAGE_INFO
+from .policies import agent2policy, trainable_policies
 from .state_template import keys_in_state, STATE_TEMPLATE, workflow_settings
 
 
@@ -831,7 +832,7 @@ class BalanceSheetCalculator:
         return result
 
 
-def env_sampler_creator(policy_creator, agent2policy, trainable_policies) -> SCEnvSampler:
+def env_sampler_creator(policy_creator) -> SCEnvSampler:
     return SCEnvSampler(
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,

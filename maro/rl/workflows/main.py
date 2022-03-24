@@ -52,7 +52,7 @@ def main(scenario: Scenario) -> None:
             logger=logger,
         )
     else:
-        env_sampler = scenario.env_sampler_creator(policy_creator, agent2policy, trainable_policies)
+        env_sampler = scenario.env_sampler_creator(policy_creator)
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
@@ -67,9 +67,9 @@ def main(scenario: Scenario) -> None:
     trainable_policy_creator = {name: func for name, func in policy_creator.items() if name in trainable_policies}
     trainable_agent2policy = {id_: name for id_, name in agent2policy.items() if name in trainable_policies}
     training_manager = TrainingManager(
-        trainable_policy_creator,
-        trainer_creator,
-        trainable_agent2policy,
+        policy_creator=trainable_policy_creator,
+        trainer_creator=trainer_creator,
+        agent2policy=trainable_agent2policy,
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
         ),

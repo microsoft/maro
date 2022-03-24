@@ -19,7 +19,7 @@ class Scenario(object):
         self._module = importlib.import_module(os.path.basename(path))
 
     @property
-    def env_sampler_creator(self) -> AbsEnvSampler:
+    def env_sampler_creator(self) -> Callable[[Dict[str, Callable[[str], RLPolicy]]], AbsEnvSampler]:
         return getattr(self._module, "env_sampler_creator")
 
     @property

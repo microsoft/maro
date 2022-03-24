@@ -249,6 +249,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         for policy in self._policy_dict.values():
             policy.to_device(self._device)
 
+    @property
+    def policy_dict(self) -> Dict[str, AbsPolicy]:
+        return self._policy_dict
+
     @abstractmethod
     def _get_global_and_agent_state(
         self, event: object, tick: int = None,

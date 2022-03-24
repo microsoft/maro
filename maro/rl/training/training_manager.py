@@ -4,11 +4,12 @@
 import asyncio
 import os
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import ExpElement
 from maro.utils import LoggerV2
+from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
 from .trainer import AbsTrainer
 from .utils import extract_trainer_name, get_trainer_state_path
@@ -19,7 +20,7 @@ class TrainingManager(object):
     Training manager. Manage and schedule all trainers to train policies.
 
     Args:
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies.
+        policy_creator (Dict[str, Union[AbsPolicy, Callable[[str], AbsPolicy]]]): Dict of functions to create policies.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
@@ -28,7 +29,7 @@ class TrainingManager(object):
 
     def __init__(
         self,
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
+        policy_creator: Dict[str, Union[AbsPolicy, Callable[[str], AbsPolicy]]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         proxy_address: Tuple[str, int] = None,
@@ -51,7 +52,10 @@ class TrainingManager(object):
 
         self._agent2trainer: Dict[Any, str] = {}
         for agent_name, policy_name in self._agent2policy.items():
-            self._agent2trainer[agent_name] = extract_trainer_name(policy_name)
+            trainer_name = extract_trainer_name(policy_name)
+            if trainer_name not in self._trainer_dict:
+                raise MissingTrainer(f"trainer {trainer_name} does not exist")
+            self._agent2trainer[agent_name] = trainer_name
 
     def train_step(self) -> None:
         if self._proxy_address:
