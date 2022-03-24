@@ -8,7 +8,7 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 # config variables
-SCENARIO_NAME = "supply_chain"
+SCENARIO_NAME = "cim"
 SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME, "rl")
 NUM_EPISODES = 50
 NUM_STEPS = None

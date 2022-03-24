@@ -264,18 +264,16 @@ class SCEnvSampler(AbsEnvSampler):
                         action_number = 0
 
                     # ignore 0 quantity to reduce action number
-                    if not action_number:
-                        continue
-
-                    sku = self._units_mapping[unit_id][3]
-                    reward_discount = 1
-                    env_action_dict[agent_id] = ConsumerAction(
-                        unit_id, product_id, source_id, action_number, sku.vlt,
-                    )
-                    self._consumer_orders[product_unit_id] = action_number
-                    self._orders_from_downstreams[
-                        self._storage_info["facility_levels"][source_id][product_id]["skuproduct"].id
-                    ] = action_number
+                    if action_number:
+                        sku = self._units_mapping[unit_id][3]
+                        reward_discount = 1
+                        env_action_dict[agent_id] = ConsumerAction(
+                            unit_id, product_id, source_id, action_number, sku.vlt,
+                        )
+                        self._consumer_orders[product_unit_id] = action_number
+                        self._orders_from_downstreams[
+                            self._storage_info["facility_levels"][source_id][product_id]["skuproduct"].id
+                        ] = action_number
             # manufacturer action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
                 sku = self._units_mapping[unit_id][3]
