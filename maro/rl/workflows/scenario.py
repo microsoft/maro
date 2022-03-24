@@ -6,7 +6,7 @@ import os
 import sys
 from typing import Any, Callable, Dict, List
 
-from maro.rl.policy import RLPolicy
+from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
 
@@ -19,7 +19,7 @@ class Scenario(object):
         self._module = importlib.import_module(os.path.basename(path))
 
     @property
-    def env_sampler_creator(self) -> Callable[[Dict[str, Callable[[str], RLPolicy]]], AbsEnvSampler]:
+    def env_sampler_creator(self) -> Callable[[Dict[str, Callable[[str], AbsPolicy]]], AbsEnvSampler]:
         return getattr(self._module, "env_sampler_creator")
 
     @property
@@ -27,7 +27,7 @@ class Scenario(object):
         return getattr(self._module, "agent2policy")
 
     @property
-    def policy_creator(self) -> Dict[str, Callable[[str], RLPolicy]]:
+    def policy_creator(self) -> Dict[str, Callable[[str], AbsPolicy]]:
         return getattr(self._module, "policy_creator")
 
     @property
