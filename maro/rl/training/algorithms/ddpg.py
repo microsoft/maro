@@ -13,7 +13,7 @@ from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -46,7 +46,6 @@ class DDPGParams(TrainerParams):
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "device": self.device,
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "reward_discount": self.reward_discount,
             "q_value_loss_cls": self.q_value_loss_cls,
@@ -62,7 +61,6 @@ class DDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        device: str,
         get_policy_func: Callable[[], ContinuousRLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
         parallelism: int = 1,
@@ -73,7 +71,6 @@ class DDPGOps(AbsTrainOps):
     ) -> None:
         super(DDPGOps, self).__init__(
             name=name,
-            device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func,
             parallelism=parallelism,
@@ -84,12 +81,9 @@ class DDPGOps(AbsTrainOps):
         self._target_policy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
-        self._target_policy.to_device(self._device)
         self._q_critic_net = get_q_critic_net_func()
-        self._q_critic_net.to(self._device)
         self._target_q_critic_net: QNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
-        self._target_q_critic_net.to(self._device)
 
         self._reward_discount = reward_discount
         self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
@@ -223,6 +217,12 @@ class DDPGOps(AbsTrainOps):
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
+    def to_device(self, device: str) -> None:
+        self._device = get_torch_device(device=device)
+        self._target_policy.to_device(self._device)
+        self._q_critic_net.to(self._device)
+        self._target_q_critic_net.to(self._device)
+
 
 class DDPGTrainer(SingleAgentTrainer):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
@@ -232,8 +232,8 @@ class DDPGTrainer(SingleAgentTrainer):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
     """
 
-    def __init__(self, name: str, params: DDPGParams) -> None:
-        super(DDPGTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: DDPGParams, device: str = None) -> None:
+        super(DDPGTrainer, self).__init__(name, params, device=device)
         self._params = params
         self._policy_version = self._target_policy_version = 0
         self._ops_name = f"{self._name}.ops"

@@ -47,6 +47,7 @@ class TrainingManager(object):
             trainer.register_policy_creator(policy_creator)
             trainer.register_logger(logger)
             trainer.build()  # `build()` must be called after `register_policy_creator()`
+            trainer.to_device()
             self._trainer_dict[trainer_name] = trainer
 
         self._agent2trainer: Dict[Any, str] = {}

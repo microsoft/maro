@@ -19,8 +19,6 @@ from .utils import extract_trainer_name
 class TrainerParams:
     """Common trainer parameters.
 
-    device (str, default=None): Name of the device to store this trainer. If it is None, the device will be
-        automatically determined according to GPU availability.
     replay_memory_capacity (int, default=100000): Maximum capacity of the replay memory.
     batch_size (int, default=128): Training batch size.
     data_parallelism (int, default=1): Degree of data parallelism. A value greater than 1 can be used when
@@ -34,7 +32,6 @@ class TrainerParams:
         of resources available on the internet.
 
     """
-    device: str = None
     replay_memory_capacity: int = 10000
     batch_size: int = 128
     data_parallelism: int = 1
@@ -60,12 +57,15 @@ class AbsTrainer(object, metaclass=ABCMeta):
     Args:
         name (str): Name of the trainer.
         params (TrainerParams): Trainer's parameters.
+        device (str, default=None): Name of the device to store this trainer. If it is None, the device will be
+            automatically determined according to GPU availability.
     """
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
+    def __init__(self, name: str, params: TrainerParams, device: str = None) -> None:
         self._name = name
         self._batch_size = params.batch_size
         self._agent2policy: Dict[Any, str] = {}
+        self._device = device
         self._proxy_address: Optional[Tuple[str, int]] = None
         self._logger = None
 
@@ -186,13 +186,17 @@ class AbsTrainer(object, metaclass=ABCMeta):
     async def exit(self) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def to_device(self):
+        raise NotImplementedError
+
 
 class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy.
     """
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
-        super(SingleAgentTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: TrainerParams, device: str = None) -> None:
+        super(SingleAgentTrainer, self).__init__(name, params, device=device)
 
         self._ops: Union[RemoteOps, None] = None  # To be created in `build()`
 
@@ -238,13 +242,18 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         if isinstance(self._ops, RemoteOps):
             await self._ops.exit()
 
+    def to_device(self):
+        if not self._proxy_address:
+            self._assert_ops_exists()
+            self._ops.to_device(self._device)
+
 
 class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies.
     """
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
-        super(MultiAgentTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: TrainerParams, device: str = None) -> None:
+        super(MultiAgentTrainer, self).__init__(name, params, device=device)
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_names: List[str] = []
 
@@ -264,4 +273,8 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     @abstractmethod
     async def exit(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def to_device(self):
         raise NotImplementedError

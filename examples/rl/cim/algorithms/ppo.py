@@ -10,7 +10,7 @@ def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGrad
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 
-def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
+def get_ppo(state_dim: int, device: str, name: str) -> DiscretePPOTrainer:
     return DiscretePPOTrainer(
         name=name,
         params=DiscretePPOParams(
@@ -23,4 +23,5 @@ def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
             lam=.0,
             clip_ratio=0.1,
         ),
+        device=device
     )

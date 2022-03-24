@@ -7,12 +7,13 @@ import collections
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
+from maro.rl.utils import get_torch_device, ndarray_to_tensor
 from maro.simulator import Env
 
 
@@ -22,15 +23,25 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     Args:
         policy_dict (Dict[str, AbsPolicy]): Dictionary that maps policy names to policy instances.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
+        device (Union[str, Dict[str, str]], default=None): Device(s) to put NN-based RL policies on. If it is None,
+            the device will be automatically determined according to GPU availability.
     """
 
     def __init__(
         self,
         policy_dict: Dict[str, AbsPolicy],  # {policy_name: AbsPolicy}
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
+        device: Union[str, Dict[str, str]] = None,
     ) -> None:
         self._policy_dict = policy_dict
         self._agent2policy = agent2policy
+        self._device = {
+            policy_name: get_torch_device(device.get(policy_name, None) if isinstance(device, dict) else device)
+            for policy_name, policy in policy_dict.items() if isinstance(policy, RLPolicy)
+        }
+        for policy_name, policy in self._policy_dict.items():
+            if isinstance(policy, RLPolicy):
+                policy.to_device(self._device[policy_name])
 
     def set_policy_state(self, policy_state_dict: Dict[str, object]) -> None:
         """Set policies' states.
@@ -88,8 +99,9 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
+        device: Union[str, Dict[str, str]] = None,
     ) -> None:
-        super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
+        super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy, device=device)
 
     def _choose_actions_impl(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         # Aggregate states by policy
@@ -104,6 +116,8 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         for policy_name in agents_by_policy:
             policy = self._policy_dict[policy_name]
             states = np.vstack(states_by_policy[policy_name])  # np.ndarray
+            if isinstance(policy, RLPolicy):
+                states = ndarray_to_tensor(states, self._device[policy_name])
             action_dict.update(zip(
                 agents_by_policy[policy_name],  # list of str (agent name)
                 policy.get_actions(states),  # list of action
@@ -219,9 +233,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._env: Optional[Env] = None
         self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
-        self._device = torch.device(device) if device is not None \
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
         self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
@@ -236,9 +247,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._reward_eval_delay = reward_eval_delay
 
         self._info = {}
-
-        for policy in self._policy_dict.values():
-            policy.to_device(self._device)
 
     @abstractmethod
     def _get_global_and_agent_state(

@@ -19,7 +19,6 @@ class DiscretePPOParams(DiscreteACBasedParams):
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "device": self.device,
             "get_v_critic_net_func": self.get_v_critic_net_func,
             "reward_discount": self.reward_discount,
             "critic_loss_cls": self.critic_loss_cls,
@@ -36,5 +35,5 @@ class DiscretePPOParams(DiscreteACBasedParams):
 class DiscretePPOTrainer(DiscreteACBasedTrainer):
     """Discrete PPO algorithm.
     """
-    def __init__(self, name: str, params: DiscretePPOParams) -> None:
-        super(DiscretePPOTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: DiscretePPOParams, device: str = None) -> None:
+        super(DiscretePPOTrainer, self).__init__(name, params, device=device)

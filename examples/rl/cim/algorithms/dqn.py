@@ -79,11 +79,10 @@ def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
     )
 
 
-def get_dqn(name: str) -> DQNTrainer:
+def get_dqn(device: str, name: str) -> DQNTrainer:
     return DQNTrainer(
         name=name,
         params=DQNParams(
-            device="cpu",
             reward_discount=.0,
             update_target_every=5,
             num_epochs=10,
@@ -92,5 +91,6 @@ def get_dqn(name: str) -> DQNTrainer:
             replay_memory_capacity=10000,
             random_overwrite=False,
             batch_size=32
-        )
+        ),
+        device=device
     )

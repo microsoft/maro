@@ -13,7 +13,9 @@ from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, discount_cumsum, merge_transition_batches, ndarray_to_tensor
+from maro.rl.utils import (
+    TransitionBatch, discount_cumsum, get_torch_device, merge_transition_batches, ndarray_to_tensor
+)
 
 
 @dataclass
@@ -44,7 +46,6 @@ class DiscreteACBasedOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        device: str,
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
@@ -57,7 +58,6 @@ class DiscreteACBasedOps(AbsTrainOps):
     ) -> None:
         super(DiscreteACBasedOps, self).__init__(
             name=name,
-            device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func,
             parallelism=parallelism,
@@ -71,7 +71,6 @@ class DiscreteACBasedOps(AbsTrainOps):
         self._lam = lam
         self._min_logp = min_logp
         self._v_critic_net = get_v_critic_net_func()
-        self._v_critic_net.to(self._device)
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
@@ -206,7 +205,7 @@ class DiscreteACBasedOps(AbsTrainOps):
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, self._device)  # s
         state_values = self._v_critic_net.v_values(states)
-        values = state_values.detach().numpy()
+        values = state_values.detach().cpu().numpy()
         values = np.concatenate([values, values[-1:]])
         rewards = np.concatenate([batch.rewards, values[-1:]])
         deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
@@ -225,6 +224,10 @@ class DiscreteACBasedOps(AbsTrainOps):
         """
         return merge_transition_batches([self._preprocess_batch(batch) for batch in batch_list])
 
+    def to_device(self, device: str = None) -> None:
+        self._device = get_torch_device(device)
+        self._v_critic_net.to(self._device)
+
 
 class DiscreteACBasedTrainer(SingleAgentTrainer):
     """Base class of discrete actor-critic algorithm implementation.
@@ -234,8 +237,8 @@ class DiscreteACBasedTrainer(SingleAgentTrainer):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
     """
 
-    def __init__(self, name: str, params: DiscreteACBasedParams) -> None:
-        super(DiscreteACBasedTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: DiscreteACBasedParams, device: str = None) -> None:
+        super(DiscreteACBasedTrainer, self).__init__(name, params, device=device)
         self._params = params
         self._ops_name = f"{self._name}.ops"
 

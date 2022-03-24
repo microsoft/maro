@@ -3,14 +3,14 @@
 
 from functools import partial
 
-from .config import algorithm, action_shaping_conf, state_dim
+from .config import algorithm, action_shaping_conf, device_mapping, state_dim
 
 action_num = len(action_shaping_conf["action_space"])
 
 if algorithm == "ac":
     from .algorithms.ac import get_ac, get_policy
     policy_creator = {f"ac_{i}.policy": partial(get_policy, state_dim, action_num) for i in range(4)}
-    trainer_creator = {f"ac_{i}": partial(get_ac, state_dim) for i in range(4)}
+    trainer_creator = {f"ac_{i}": partial(get_ac, state_dim, device_mapping[]) for i in range(4)}
 elif algorithm == "ppo":
     from .algorithms.ppo import get_ppo, get_policy
     policy_creator = {f"ppo_{i}.policy": partial(get_policy, state_dim, action_num) for i in range(4)}

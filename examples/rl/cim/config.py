@@ -4,7 +4,7 @@
 env_conf = {
     "scenario": "cim",
     "topology": "toy.4p_ssdd_l0.0",
-    "durations": 560
+    "durations": 1120
 }
 
 port_attributes = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
@@ -35,3 +35,9 @@ state_dim = (
 )
 
 algorithm = "ac"  # ac, ppo, dqn or discrete_maddpg
+
+device_mapping = {
+    
+
+
+}

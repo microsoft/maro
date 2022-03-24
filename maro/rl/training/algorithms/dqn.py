@@ -10,7 +10,7 @@ import torch
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -38,7 +38,6 @@ class DQNParams(TrainerParams):
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "device": self.device,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
             "double": self.double,
@@ -49,7 +48,6 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        device: str,
         get_policy_func: Callable[[], ValueBasedPolicy],
         parallelism: int = 1,
         *,
@@ -59,7 +57,6 @@ class DQNOps(AbsTrainOps):
     ) -> None:
         super(DQNOps, self).__init__(
             name=name,
-            device=device,
             is_single_scenario=True,
             get_policy_func=get_policy_func,
             parallelism=parallelism,
@@ -75,7 +72,6 @@ class DQNOps(AbsTrainOps):
         self._target_policy: ValueBasedPolicy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
-        self._target_policy.to_device(self._device)
 
     def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
         """Compute the loss of the batch.
@@ -153,6 +149,11 @@ class DQNOps(AbsTrainOps):
         """
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
+    def to_device(self, device: str) -> None:
+        self._device = get_torch_device(device)
+        self._policy.to_device(self._device)
+        self._target_policy.to_device(self._device)
+
 
 class DQNTrainer(SingleAgentTrainer):
     """The Deep-Q-Networks algorithm.
@@ -160,8 +161,8 @@ class DQNTrainer(SingleAgentTrainer):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
     """
 
-    def __init__(self, name: str, params: DQNParams) -> None:
-        super(DQNTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: DQNParams, device: str = None) -> None:
+        super(DQNTrainer, self).__init__(name, params, device=device)
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"

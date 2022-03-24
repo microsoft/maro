@@ -8,7 +8,7 @@ import numpy as np
 import scipy.stats as st
 
 from maro.event_buffer import CascadeEvent
-from maro.rl.policy import AbsPolicy, RLPolicy
+from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (

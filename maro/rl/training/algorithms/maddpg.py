@@ -12,7 +12,7 @@ from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
-from maro.rl.utils import MultiTransitionBatch, ndarray_to_tensor
+from maro.rl.utils import MultiTransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -41,7 +41,6 @@ class DiscreteMADDPGParams(TrainerParams):
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "device": self.device,
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "shared_critic": self.shared_critic,
             "reward_discount": self.reward_discount,
@@ -55,7 +54,6 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        device: str,
         get_policy_func: Callable[[], DiscretePolicyGradient],
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
@@ -69,7 +67,6 @@ class DiscreteMADDPGOps(AbsTrainOps):
     ) -> None:
         super(DiscreteMADDPGOps, self).__init__(
             name=name,
-            device=device,
             is_single_scenario=False,
             get_policy_func=get_policy_func,
         )
@@ -82,21 +79,15 @@ class DiscreteMADDPGOps(AbsTrainOps):
         if create_actor:
             self._policy = get_policy_func()
             assert isinstance(self._policy, DiscretePolicyGradient)
-
-            self._policy.to_device(self._device)
             self._target_policy: DiscretePolicyGradient = clone(self._policy)
             self._target_policy.set_name(f"target_{self._policy.name}")
             self._target_policy.eval()
-            self._target_policy.to_device(self._device)
 
         # Critic
         self._q_critic_net: MultiQNet = get_q_critic_net_func()
-        self._q_critic_net.to(self._device)
         self._target_q_critic_net: MultiQNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
-        self._target_q_critic_net.to(self._device)
 
-        #
         self._reward_discount = reward_discount
         self._q_value_loss_func = q_value_loss_func
         self._update_target_every = update_target_every
@@ -290,10 +281,19 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self.set_critic_state(ops_state_dict)
         self.set_actor_state(ops_state_dict)
 
+    def to_device(self, device: str) -> None:
+        self._device = get_torch_device(device)
+        if self._create_actor:
+            self._policy.to_device(self._device)
+            self._target_policy.to_device(self._device)
+
+        self._q_critic_net.to(self._device)
+        self._target_q_critic_net.to(self._device)
+
 
 class DiscreteMADDPGTrainer(MultiAgentTrainer):
-    def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
-        super(DiscreteMADDPGTrainer, self).__init__(name, params)
+    def __init__(self, name: str, params: DiscreteMADDPGParams, device: str = None) -> None:
+        super(DiscreteMADDPGTrainer, self).__init__(name, params, device=device)
         self._params = params
         self._ops_params = self._params.extract_ops_params()
         self._state_dim = params.get_q_critic_net_func().state_dim
@@ -488,3 +488,10 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
 
     async def exit(self) -> None:
         pass
+
+    def to_device(self):
+        if not self._proxy_address:
+            if self._params.shared_critic:
+                self._critic_ops.to_device(self._device)
+            for ops in self._actor_ops_list:
+                ops.to_device(self._device)

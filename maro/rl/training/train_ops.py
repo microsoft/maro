@@ -5,7 +5,6 @@ import inspect
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Tuple
 
-import torch
 import zmq
 from zmq.asyncio import Context, Poller
 
@@ -29,21 +28,17 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     def __init__(
         self,
         name: str,
-        device: str,
         is_single_scenario: bool,
         get_policy_func: Callable[[], RLPolicy],
         parallelism: int = 1,
     ) -> None:
         super(AbsTrainOps, self).__init__()
         self._name = name
-        self._device = torch.device(device) if device is not None \
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._is_single_scenario = is_single_scenario
 
         # Create the policy and put it on the right device.
         if self._is_single_scenario:
             self._policy = get_policy_func()
-            self._policy.to_device(self._device)
 
         self._parallelism = parallelism
 
@@ -62,6 +57,10 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     @property
     def parallelism(self) -> int:
         return self._parallelism
+
+    @abstractmethod
+    def to_device(self) -> None:
+        raise NotImplementedError
 
     def _is_valid_transition_batch(self, batch: AbsTransitionBatch) -> bool:
         """Used to check the transition batch's type. If this ops is used under a single trainer, the batch should be
