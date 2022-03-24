@@ -11,12 +11,11 @@ SCENARIO_PATH = os.path.join("examples", SCENARIO_NAME, "rl")
 
 if __name__ == "__main__":
     scenario = Scenario(SCENARIO_PATH)
-    agent2policy = scenario.agent2policy
     policy_creator = scenario.policy_creator
     policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
     policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
-    env_sampler = scenario.get_env_sampler(policy_creator)
+
+    env_sampler = scenario.env_sampler_creator(policy_creator)
     result = env_sampler.eval()
-    print(result)
     if scenario.post_evaluate:
         scenario.post_evaluate(result["info"], 0)
