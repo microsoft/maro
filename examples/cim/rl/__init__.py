@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .common.callbacks import post_collect, post_evaluate
-from .rl.env_sampler import agent2policy, env_sampler_creator
-from .rl.policy_trainer import policy_creator, trainer_creator
+from .callbacks import post_collect, post_evaluate
+from .env_sampler import agent2policy, env_sampler_creator
+from .policy_trainer import policy_creator, trainer_creator
 
 __all__ = [
     "agent2policy",

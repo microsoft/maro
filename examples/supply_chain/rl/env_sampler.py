@@ -8,7 +8,7 @@ import numpy as np
 import scipy.stats as st
 
 from maro.event_buffer import CascadeEvent
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
@@ -96,9 +96,6 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._env_settings = workflow_settings
 
-    def _get_state_shaper_for_entity(self, entity: SupplyChainEntity) -> Callable:
-        return self.get_rl_policy_state  # TODO
-
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: list) -> float:
         if entity.class_type == ConsumerUnit:
             return np.float32(bwt[1]) / np.float32(self._env_settings["reward_normalization"])
@@ -165,6 +162,12 @@ class SCEnvSampler(AbsEnvSampler):
         np_state = _serialize_state(state)
         return np_state
 
+    def _get_state_shaper(self, entity_id: int):
+        if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy):
+            return self.get_rl_policy_state
+        else:
+            return self.get_or_policy_state
+
     def _get_global_and_agent_state(self, event: CascadeEvent, tick: int = None) -> tuple:
         if tick is None:
             tick = self._learn_env.tick
@@ -213,7 +216,7 @@ class SCEnvSampler(AbsEnvSampler):
                 self._storage_info["facility_product_utilization"][facility_id] += product_number
 
         state = {
-            id_: self._get_state_shaper_for_entity(entity)(self._state_template[id_], entity)
+            id_: self._get_state_shaper(id_)(self._state_template[id_], entity)
             for id_, entity in self._entity_dict.items() if id_ in self._agent2policy
         }
         return None, state

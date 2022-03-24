@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from os import getcwd
 from os.path import dirname, join, realpath 
 
 from maro.rl.training import TrainingManager
@@ -9,14 +8,14 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 # config variables
-SCENARIO_NAME = "cim"
-SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME)
+SCENARIO_NAME = "supply_chain"
+SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME, "rl")
 NUM_EPISODES = 50
 NUM_STEPS = None
-CHECKPOINT_PATH = join(getcwd(), "checkpoints")
+CHECKPOINT_PATH = join(dirname(SCENARIO_PATH), "checkpoints")
 CHECKPOINT_INTERVAL = 5
 EVAL_SCHEDULE = [10, 20, 30, 40, 50]
-LOG_PATH = join(getcwd(), "logs", f"{SCENARIO_NAME}.log")
+LOG_PATH = join(dirname(SCENARIO_PATH), "logs", SCENARIO_NAME)
 
 
 if __name__ == "__main__":

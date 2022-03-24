@@ -3,11 +3,11 @@
 
 import csv
 import os
+from os.path import dirname, join, realpath
 
-OUTPUT_CSV_FOLDER = os.path.join(os.getcwd(), "logs", "supply_chain")
-OUTPUT_CSV_PATH = os.path.join(OUTPUT_CSV_FOLDER, "result_baseline.csv")
-if not os.path.exists(OUTPUT_CSV_FOLDER):
-    os.makedirs(OUTPUT_CSV_FOLDER)
+OUTPUT_CSV_FOLDER = join(dirname(dirname(realpath(__file__))), "results")
+os.makedirs(OUTPUT_CSV_FOLDER, exist_ok=True)
+OUTPUT_CSV_PATH = join(OUTPUT_CSV_FOLDER, "baseline.csv")
 
 
 def post_collect(info_list: list, ep: int, segment: int) -> None:
