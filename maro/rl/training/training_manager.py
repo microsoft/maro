@@ -20,7 +20,7 @@ class TrainingManager(object):
     Training manager. Manage and schedule all trainers to train policies.
 
     Args:
-        policy_creator (Dict[str, Union[AbsPolicy, Callable[[str], AbsPolicy]]]): Dict of functions to create policies.
+        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
@@ -29,7 +29,7 @@ class TrainingManager(object):
 
     def __init__(
         self,
-        policy_creator: Dict[str, Union[AbsPolicy, Callable[[str], AbsPolicy]]],
+        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
         proxy_address: Tuple[str, int] = None,

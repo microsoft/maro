@@ -39,6 +39,8 @@ def main(scenario: Scenario) -> None:
     is_single_thread = train_mode == "simple" and not parallel_rollout
     if is_single_thread:
         # If running in single thread mode, create policy instances here and reuse then in rollout and training.
+        # In other words, `policy_creator` will return a policy instance that has been already created in advance
+        # instead of create a new policy instance.
         policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 

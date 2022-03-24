@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from os.path import dirname, join, realpath 
+from os.path import dirname, join, realpath
 
 from maro.rl.training import TrainingManager
 from maro.rl.workflows.scenario import Scenario
