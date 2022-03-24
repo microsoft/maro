@@ -38,10 +38,13 @@ if __name__ == "__main__":
         trainable_policies = set(scenario.trainable_policies)
 
     env_sampler = scenario.env_sampler_creator(policy_creator, agent2policy, trainable_policies)
+
+    trainable_policy_creator = {name: func for name, func in policy_creator.items() if name in trainable_policies}
+    trainable_agent2policy = {id_: name for id_, name in agent2policy.items() if name in trainable_policies}
     training_manager = TrainingManager(
-        {name: func for name, func in policy_creator.items() if name in trainable_policies},
+        trainable_policy_creator,
         trainer_creator,
-        {id_: name for id_, name in agent2policy.items() if name in trainable_policies},
+        trainable_agent2policy,
         logger=logger
     )
 

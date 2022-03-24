@@ -64,10 +64,12 @@ def main(scenario: Scenario) -> None:
     else:
         trainable_policies = set(scenario.trainable_policies)
 
+    trainable_policy_creator = {name: func for name, func in policy_creator.items() if name in trainable_policies}
+    trainable_agent2policy = {id_: name for id_, name in agent2policy.items() if name in trainable_policies}
     training_manager = TrainingManager(
-        {name: func for name, func in policy_creator.items() if name in trainable_policies},
+        trainable_policy_creator,
         trainer_creator,
-        {id_: name for id_, name in agent2policy.items() if name in trainable_policies},
+        trainable_agent2policy,
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
         ),
