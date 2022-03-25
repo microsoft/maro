@@ -1,11 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 import collections
 import itertools
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union
 
 import networkx as nx
+
 from maro.backends.frame import FrameBase
 
 from . import ProductUnit
@@ -411,7 +413,8 @@ class World:
                 sku = unit.facility.skus[unit.product_id]
 
             if unit.data_model is not None:
-                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)  # TODO: replace with data class or named tuple
+                # TODO: replace with data class or named tuple
+                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
             else:
                 id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
 

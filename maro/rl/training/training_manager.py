@@ -4,7 +4,7 @@
 import asyncio
 import os
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Tuple
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import ExpElement

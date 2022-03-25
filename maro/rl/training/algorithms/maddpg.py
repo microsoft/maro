@@ -385,7 +385,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             return DiscreteMADDPGOps(name=name, **ops_params)
 
     def train_step(self) -> None:
-        assert not self._params.shared_critic or isinstance(self._ops_dict[self._shared_critic_ops_name], DiscreteMADDPGOps)
+        assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
         assert all(isinstance(ops, DiscreteMADDPGOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
             batch = self._get_batch()

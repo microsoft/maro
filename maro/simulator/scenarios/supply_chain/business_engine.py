@@ -1,16 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 import os
 from typing import List
 
 from maro.backends.frame import FrameBase
-
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
-from . import SupplyChainAction
 
+from . import SupplyChainAction
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ProductUnit, UnitBase
 from .world import SupplyChainEntity, World

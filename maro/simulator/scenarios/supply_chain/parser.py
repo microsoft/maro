@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import collections
+
 import os
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Dict, Optional
 
-import pandas as pd
 from yaml import safe_load
 
 
