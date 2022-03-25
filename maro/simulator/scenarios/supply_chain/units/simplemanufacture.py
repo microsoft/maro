@@ -22,10 +22,10 @@ class SimpleManufactureUnit(ManufactureUnit):
         if self.action.production_rate > 0:
             production_rate = self.action.production_rate
 
-            self._manufacture_number = min(
+            self._manufacture_quantity = min(
                 self.facility.storage.get_product_max_remaining_space(self.product_id),
                 production_rate
             )
 
-            if self._manufacture_number > 0:
-                self.facility.storage.try_add_products({self.product_id: self._manufacture_number})
+            if self._manufacture_quantity > 0:
+                self.facility.storage.try_add_products({self.product_id: self._manufacture_quantity})

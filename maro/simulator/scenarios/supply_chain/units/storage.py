@@ -122,7 +122,7 @@ class StorageUnit(UnitBase):
             capacity=self.capacity,
             remaining_space=self.remaining_space,
             product_list=[sku_id for sku_id in self._product_level.keys()],
-            product_number=[n for n in self._product_level.values()],
+            product_quantity=[n for n in self._product_level.values()],
         )
 
     def get_product_quantity(self, product_id: int) -> int:
@@ -259,7 +259,7 @@ class StorageUnit(UnitBase):
                 has_changes = True
                 self._product_level_changed[product_id] = False
 
-                self.data_model.product_number[i] = quantity
+                self.data_model.product_quantity[i] = quantity
             i += 1
 
         if has_changes:

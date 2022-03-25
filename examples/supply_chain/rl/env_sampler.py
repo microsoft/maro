@@ -207,14 +207,14 @@ class SCEnvSampler(AbsEnvSampler):
 
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._storage_info["facility2storage"].items():
-            product_numbers = self._learn_env.snapshot_list["storage"][tick:storage_index:"product_number"] \
+            product_quantitys = self._learn_env.snapshot_list["storage"][tick:storage_index:"product_quantity"] \
                 .flatten().astype(np.int)
 
             for pid, index in self._storage_info["storage_product_indexes"][facility_id].items():
-                product_number = product_numbers[index]
+                product_quantity = product_quantitys[index]
 
-                self._storage_info["storage_product_num"][facility_id][pid] = product_number
-                self._storage_info["facility_product_utilization"][facility_id] += product_number
+                self._storage_info["storage_product_num"][facility_id][pid] = product_quantity
+                self._storage_info["facility_product_utilization"][facility_id] += product_quantity
 
         state = {
             id_: self._get_state_shaper(id_)(self._state_template[id_], entity)
@@ -617,7 +617,7 @@ class BalanceSheetCalculator:
 
         # loss = manufacture number * cost
         manufacture_balance_sheet_loss = -1 * (
-            self._get_attributes("manufacture", "manufacturing_number")
+            self._get_attributes("manufacture", "manufacture_quantity")
             * self._get_attributes("manufacture", "product_unit_cost")
         )
 
@@ -640,13 +640,13 @@ class BalanceSheetCalculator:
 
         # create product number mapping for storages
         product_list = self._get_list_attributes("storage", "product_list")
-        product_number = self._get_list_attributes("storage", "product_number")
+        product_quantity = self._get_list_attributes("storage", "product_quantity")
         storages_product_map = {
             idx: {
                 id_: num
                 for id_, num in zip(id_list.astype(np.int), num_list.astype(np.int))
             }
-            for idx, (id_list, num_list) in enumerate(zip(product_list, product_number))
+            for idx, (id_list, num_list) in enumerate(zip(product_list, product_quantity))
         }
 
         return storage_balance_sheet_loss, storages_product_map

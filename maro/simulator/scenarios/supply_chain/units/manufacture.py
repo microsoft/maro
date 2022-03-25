@@ -15,17 +15,17 @@ class ManufactureUnit(ExtendUnitBase):
     def __init__(self) -> None:
         super(ManufactureUnit, self).__init__()
 
-        # Source material sku and related number per produce cycle.
+        # Source material sku and related quantity per manufacture cycle.
         self._bom: dict = None
 
-        # How many production unit each produce cycle.
+        # How many products in each manufacture cycle.
         self._output_units_per_lot: int = None
 
-        # How many unit we will consume each produce cycle.
+        # How many units we will consume in each manufacture cycle.
         self._input_units_per_lot: int = 0
 
-        # How many we procedure per current step.
-        self._manufacture_number: int = 0
+        # How many products we manufacture in current step.
+        self._manufacture_quantity: int = 0
 
     def initialize(self) -> None:
         super(ManufactureUnit, self).initialize()
@@ -46,7 +46,7 @@ class ManufactureUnit(ExtendUnitBase):
 
     def _step_impl(self, tick: int) -> None:
         # Due to the processing in post_step(),
-        # self._manufacture_number is set to 0 at the begining of every step.
+        # self._manufacture_quantity is set to 0 at the begining of every step.
         # Thus, there is no need to update it with None action or 0 production_rate.
 
         if self.action is None:
@@ -85,18 +85,18 @@ class ManufactureUnit(ExtendUnitBase):
                     for source_sku_id, source_sku_cost_number in self._bom.items():
                         source_sku_to_take[source_sku_id] = max_number_to_procedure * source_sku_cost_number
 
-                    self._manufacture_number = max_number_to_procedure
+                    self._manufacture_quantity = max_number_to_procedure
                     self.facility.storage.try_take_products(source_sku_to_take)
-                    self.facility.storage.try_add_products({self.product_id: self._manufacture_number})
+                    self.facility.storage.try_add_products({self.product_id: self._manufacture_quantity})
 
     def flush_states(self) -> None:
-        if self._manufacture_number > 0:
-            self.data_model.manufacturing_number = self._manufacture_number
+        if self._manufacture_quantity > 0:
+            self.data_model.manufacture_quantity = self._manufacture_quantity
 
     def post_step(self, tick: int) -> None:
-        if self._manufacture_number > 0:
-            self.data_model.manufacturing_number = 0
-            self._manufacture_number = 0
+        if self._manufacture_quantity > 0:
+            self.data_model.manufacture_quantity = 0
+            self._manufacture_quantity = 0
 
         # NOTE: call super at last, since it will clear the action.
         super(ManufactureUnit, self).post_step(tick)
@@ -105,4 +105,4 @@ class ManufactureUnit(ExtendUnitBase):
         super(ManufactureUnit, self).reset()
 
         # Reset status in Python side.
-        self._manufacture_number = 0
+        self._manufacture_quantity = 0

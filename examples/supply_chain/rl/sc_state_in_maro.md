@@ -256,7 +256,7 @@ demand_hist = cur_seller_hist[:, 1].flatten()
 # 计算所需要属性
 consumer_features = ("id", "order_quantity", "price", "order_cost", "order_product_cost")
 seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
-manufacture_features = ("id", "manufacturing_number", "product_unit_cost")
+manufacture_features = ("id", "manufacture_quantity", "product_unit_cost")
 
 # 对应的3种data model snapshot list
 consumer_ss = env.snapshot_list["consumer"]

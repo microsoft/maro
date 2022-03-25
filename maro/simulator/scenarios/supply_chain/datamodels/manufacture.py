@@ -13,7 +13,7 @@ class ManufactureDataModel(ExtendDataModel):
     """Data model for manufacture unit."""
     # Number per tick, different with original manufacturing cost, we just provide number, and cost
     # user can determine how to calculate the cost.
-    manufacturing_number = NodeAttribute(AttributeType.UInt)
+    manufacture_quantity = NodeAttribute(AttributeType.UInt)
 
     product_unit_cost = NodeAttribute(AttributeType.Float)
 
