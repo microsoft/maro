@@ -28,5 +28,5 @@ class DiscreteActorCriticParams(DiscreteACBasedParams):
 class DiscreteActorCriticTrainer(DiscreteACBasedTrainer):
     """Actor Critic algorithm with separate policy and value models.
     """
-    def __init__(self, name: str, params: DiscreteActorCriticParams, device: str = None) -> None:
-        super(DiscreteActorCriticTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
+        super(DiscreteActorCriticTrainer, self).__init__(name, params)

@@ -84,11 +84,11 @@ class DQNOps(AbsTrainOps):
         """
         assert self._is_valid_transition_batch(batch)
         self._policy.train()
-        states = ndarray_to_tensor(batch.states, self._device)
-        next_states = ndarray_to_tensor(batch.next_states, self._device)
-        actions = ndarray_to_tensor(batch.actions, self._device)
-        rewards = ndarray_to_tensor(batch.rewards, self._device)
-        terminals = ndarray_to_tensor(batch.terminals, self._device).float()
+        states = ndarray_to_tensor(batch.states, device=self._device)
+        next_states = ndarray_to_tensor(batch.next_states, device=self._device)
+        actions = ndarray_to_tensor(batch.actions, device=self._device)
+        rewards = ndarray_to_tensor(batch.rewards, device=self._device)
+        terminals = ndarray_to_tensor(batch.terminals, device=self._device).float()
 
         with torch.no_grad():
             if self._double:
@@ -161,8 +161,8 @@ class DQNTrainer(SingleAgentTrainer):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
     """
 
-    def __init__(self, name: str, params: DQNParams, device: str = None) -> None:
-        super(DQNTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: DQNParams) -> None:
+        super(DQNTrainer, self).__init__(name, params)
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
         self._ops_name = f"{self._name}.ops"

@@ -102,7 +102,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         Returns:
             actions (torch.Tensor): Target policies' actions.
         """
-        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
+        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], device=self._device)
         return self._target_policy.get_actions_tensor(agent_state)
 
     def get_latest_action(self, batch: MultiTransitionBatch) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -117,7 +117,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         """
         assert isinstance(self._policy, DiscretePolicyGradient)
 
-        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
+        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], device=self._device)
         self._policy.train()
         action = self._policy.get_actions_tensor(agent_state)
         logps = self._policy.get_state_action_logps(agent_state, action)
@@ -136,11 +136,11 @@ class DiscreteMADDPGOps(AbsTrainOps):
         assert not self._shared_critic
         assert isinstance(next_actions, list) and all(isinstance(action, torch.Tensor) for action in next_actions)
 
-        states = ndarray_to_tensor(batch.states, self._device)  # x
-        actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
-        next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
-        rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), self._device)  # r
-        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
+        states = ndarray_to_tensor(batch.states, device=self._device)  # x
+        actions = [ndarray_to_tensor(action, device=self._device) for action in batch.actions]  # a
+        next_states = ndarray_to_tensor(batch.next_states, device=self._device)  # x'
+        rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), device=self._device)  # r
+        terminals = ndarray_to_tensor(batch.terminals, device=self._device)  # d
 
         self._q_critic_net.train()
         with torch.no_grad():
@@ -203,8 +203,8 @@ class DiscreteMADDPGOps(AbsTrainOps):
             loss (torch.Tensor): The actor loss of the batch.
         """
         latest_action, latest_action_logp = self.get_latest_action(batch)
-        states = ndarray_to_tensor(batch.states, self._device)  # x
-        actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
+        states = ndarray_to_tensor(batch.states, device=self._device)  # x
+        actions = [ndarray_to_tensor(action, device=self._device) for action in batch.actions]  # a
         actions[self._policy_idx] = latest_action
         self._policy.train()
         self._q_critic_net.freeze()
@@ -292,8 +292,8 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
 
 class DiscreteMADDPGTrainer(MultiAgentTrainer):
-    def __init__(self, name: str, params: DiscreteMADDPGParams, device: str = None) -> None:
-        super(DiscreteMADDPGTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
+        super(DiscreteMADDPGTrainer, self).__init__(name, params)
         self._params = params
         self._ops_params = self._params.extract_ops_params()
         self._state_dim = params.get_q_critic_net_func().state_dim
@@ -301,18 +301,20 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
 
         self._actor_ops_list = []
-        self._actor_ops_dict = {}
         self._critic_ops = None
         self._replay_memory = None
         self._policy2agent = {}
 
     def build(self) -> None:
-        self._actor_ops_list = [self.get_ops(f"{self._name}.actor_{i}_ops") for i in range(len(self._policy_names))]
-        self._actor_ops_dict = {ops.name: ops for ops in self._actor_ops_list}
+        for policy_name in self._policy_names:
+            ops_name = f"{self._name}.{policy_name}_ops"
+            self._ops_dict[ops_name] = self.get_ops(ops_name)
+
+        self._actor_ops_list = list(self._ops_dict.values())
+
         if self._params.shared_critic:
-            self._critic_ops = self.get_ops(self._shared_critic_ops_name)
-        else:
-            self._critic_ops = None
+            self._ops_dict[self._shared_critic_ops_name] = self.get_ops(self._shared_critic_ops_name)
+            self._critic_ops = self._ops_dict[self._shared_critic_ops_name]
 
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._params.replay_memory_capacity,
@@ -383,7 +385,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             return DiscreteMADDPGOps(name=name, **ops_params)
 
     def train_step(self) -> None:
-        assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
+        assert not self._params.shared_critic or isinstance(self._ops_dict[self._shared_critic_ops_name], DiscreteMADDPGOps)
         assert all(isinstance(ops, DiscreteMADDPGOps) for ops in self._actor_ops_list)
         for _ in range(self._params.num_epoch):
             batch = self._get_batch()
@@ -463,10 +465,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         self._assert_ops_exists()
         trainer_state = torch.load(path)
         for ops_name, ops_state in trainer_state.items():
-            if ops_name == self._critic_ops.name:
-                self._critic_ops.set_state(ops_state)
-            else:
-                self._actor_ops_dict[ops_name].set_state(torch.load(path))
+            self._ops_dict[ops_name].set_state(ops_state)
 
     def save(self, path: str) -> None:
         self._assert_ops_exists()
@@ -488,10 +487,3 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
 
     async def exit(self) -> None:
         pass
-
-    def to_device(self):
-        if not self._proxy_address:
-            if self._params.shared_critic:
-                self._critic_ops.to_device(self._device)
-            for ops in self._actor_ops_list:
-                ops.to_device(self._device)

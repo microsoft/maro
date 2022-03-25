@@ -7,6 +7,11 @@ env_conf = {
     "durations": 1120
 }
 
+if env_conf["topology"].startswith("toy"):
+    num_agents = int(env_conf["topology"].split(".")[1][0])
+else:
+    num_agents = int(env_conf["topology"].split(".")[1][:2]) 
+
 port_attributes = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
 vessel_attributes = ["empty", "full", "remaining_space"]
 
@@ -36,8 +41,9 @@ state_dim = (
 
 algorithm = "ac"  # ac, ppo, dqn or discrete_maddpg
 
-device_mapping = {
-    
-
-
-}
+device_mappings = [
+    "cuda:2",
+    "cuda:1",
+    "cuda:3",
+    "cuda:0"
+]

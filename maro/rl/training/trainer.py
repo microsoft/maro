@@ -57,15 +57,12 @@ class AbsTrainer(object, metaclass=ABCMeta):
     Args:
         name (str): Name of the trainer.
         params (TrainerParams): Trainer's parameters.
-        device (str, default=None): Name of the device to store this trainer. If it is None, the device will be
-            automatically determined according to GPU availability.
     """
 
-    def __init__(self, name: str, params: TrainerParams, device: str = None) -> None:
+    def __init__(self, name: str, params: TrainerParams) -> None:
         self._name = name
         self._batch_size = params.batch_size
         self._agent2policy: Dict[Any, str] = {}
-        self._device = device
         self._proxy_address: Optional[Tuple[str, int]] = None
         self._logger = None
 
@@ -186,23 +183,26 @@ class AbsTrainer(object, metaclass=ABCMeta):
     async def exit(self) -> None:
         raise NotImplementedError
 
-    @abstractmethod
     def to_device(self):
-        raise NotImplementedError
+        pass
 
 
 class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy.
     """
 
-    def __init__(self, name: str, params: TrainerParams, device: str = None) -> None:
-        super(SingleAgentTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: TrainerParams) -> None:
+        super(SingleAgentTrainer, self).__init__(name, params)
 
         self._ops: Union[RemoteOps, None] = None  # To be created in `build()`
 
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_name: Optional[str] = None
         self._get_policy_func: Optional[Callable] = None
+
+    @property
+    def ops(self) -> AbsTrainOps:
+        return self._ops
 
     def register_policy_creator(
         self,
@@ -242,20 +242,20 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         if isinstance(self._ops, RemoteOps):
             await self._ops.exit()
 
-    def to_device(self):
-        if not self._proxy_address:
-            self._assert_ops_exists()
-            self._ops.to_device(self._device)
-
 
 class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies.
     """
 
-    def __init__(self, name: str, params: TrainerParams, device: str = None) -> None:
-        super(MultiAgentTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: TrainerParams) -> None:
+        super(MultiAgentTrainer, self).__init__(name, params)
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_names: List[str] = []
+        self._ops_dict = {}
+
+    @property
+    def ops_dict(self) -> Dict[str, AbsTrainOps]:
+        return self._ops_dict
 
     def register_policy_creator(
         self,
@@ -273,8 +273,4 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     @abstractmethod
     async def exit(self) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_device(self):
         raise NotImplementedError

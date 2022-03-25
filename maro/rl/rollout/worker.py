@@ -35,6 +35,7 @@ class RolloutWorker(AbsWorker):
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
         self._env_sampler = env_sampler_creator()
+        self._env_sampler.to_device()
 
     def _compute(self, msg: list) -> None:
         """Perform a full or partial episode of roll-out for sampling or evaluation.

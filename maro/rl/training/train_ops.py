@@ -19,8 +19,6 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     Each ops is used for training a single policy. An ops is an atomic unit in the distributed mode.
 
     Args:
-        device (str): Identifier for the torch device. The policy will be moved to the specified device.
-            If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
         is_single_scenario (bool): Flag indicating whether the ops belongs to a `SingleTrainer` or a `MultiTrainer`.
         get_policy_func (Callable[[], RLPolicy]): Function used to create the policy of this ops.
     """
@@ -36,7 +34,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self._name = name
         self._is_single_scenario = is_single_scenario
 
-        # Create the policy and put it on the right device.
+        # Create the policy.
         if self._is_single_scenario:
             self._policy = get_policy_func()
 
@@ -57,10 +55,6 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     @property
     def parallelism(self) -> int:
         return self._parallelism
-
-    @abstractmethod
-    def to_device(self) -> None:
-        raise NotImplementedError
 
     def _is_valid_transition_batch(self, batch: AbsTransitionBatch) -> bool:
         """Used to check the transition batch's type. If this ops is used under a single trainer, the batch should be
@@ -106,6 +100,9 @@ class AbsTrainOps(object, metaclass=ABCMeta):
             policy_state (object): The policy state.
         """
         self._policy.set_state(policy_state)
+
+    def to_device(self, device):
+        pass
 
 
 def remote(func) -> Callable:

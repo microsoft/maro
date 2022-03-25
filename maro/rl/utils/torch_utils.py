@@ -31,7 +31,7 @@ def match_shape(tensor: Union[torch.Tensor, np.ndarray], shape: tuple) -> bool:
         return True
 
 
-def ndarray_to_tensor(array: np.ndarray, device: torch.device) -> torch.Tensor:
+def ndarray_to_tensor(array: np.ndarray, device: torch.device = None) -> torch.Tensor:
     """
     Convert a np.ndarray to a torch.Tensor.
 

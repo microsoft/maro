@@ -100,11 +100,11 @@ class DDPGOps(AbsTrainOps):
         """
         assert self._is_valid_transition_batch(batch)
         self._q_critic_net.train()
-        states = ndarray_to_tensor(batch.states, self._device)  # s
-        next_states = ndarray_to_tensor(batch.next_states, self._device)  # s'
-        actions = ndarray_to_tensor(batch.actions, self._device)  # a
-        rewards = ndarray_to_tensor(batch.rewards, self._device)  # r
-        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
+        states = ndarray_to_tensor(batch.states, device=self._device)  # s
+        next_states = ndarray_to_tensor(batch.next_states, device=self._device)  # s'
+        actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
+        rewards = ndarray_to_tensor(batch.rewards, device=self._device)  # r
+        terminals = ndarray_to_tensor(batch.terminals, device=self._device)  # d
 
         with torch.no_grad():
             next_q_values = self._target_q_critic_net.q_values(
@@ -158,7 +158,7 @@ class DDPGOps(AbsTrainOps):
         """
         assert self._is_valid_transition_batch(batch)
         self._policy.train()
-        states = ndarray_to_tensor(batch.states, self._device)  # s
+        states = ndarray_to_tensor(batch.states, device=self._device)  # s
 
         policy_loss = -self._q_critic_net.q_values(
             states=states,  # s
@@ -219,6 +219,7 @@ class DDPGOps(AbsTrainOps):
 
     def to_device(self, device: str) -> None:
         self._device = get_torch_device(device=device)
+        self._policy.to_device(self._device)
         self._target_policy.to_device(self._device)
         self._q_critic_net.to(self._device)
         self._target_q_critic_net.to(self._device)
@@ -232,8 +233,8 @@ class DDPGTrainer(SingleAgentTrainer):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
     """
 
-    def __init__(self, name: str, params: DDPGParams, device: str = None) -> None:
-        super(DDPGTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: DDPGParams) -> None:
+        super(DDPGTrainer, self).__init__(name, params)
         self._params = params
         self._policy_version = self._target_policy_version = 0
         self._ops_name = f"{self._name}.ops"

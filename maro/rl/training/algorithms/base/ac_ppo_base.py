@@ -72,6 +72,8 @@ class DiscreteACBasedOps(AbsTrainOps):
         self._min_logp = min_logp
         self._v_critic_net = get_v_critic_net_func()
 
+        self._device = None
+
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
 
@@ -82,9 +84,9 @@ class DiscreteACBasedOps(AbsTrainOps):
             loss (torch.Tensor): The critic loss of the batch.
         """
         self._v_critic_net.train()
-        states = ndarray_to_tensor(batch.states, self._device)  # s
+        states = ndarray_to_tensor(batch.states, device=self._device)  # s
         state_values = self._v_critic_net.v_values(states)
-        returns = ndarray_to_tensor(batch.returns, self._device)
+        returns = ndarray_to_tensor(batch.returns, device=self._device)
         return self._critic_loss_func(state_values, returns)
 
     @remote
@@ -128,9 +130,9 @@ class DiscreteACBasedOps(AbsTrainOps):
         assert isinstance(self._policy, DiscretePolicyGradient)
         self._policy.train()
 
-        states = ndarray_to_tensor(batch.states, self._device)  # s
-        actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
-        advantages = ndarray_to_tensor(batch.advantages, self._device)
+        states = ndarray_to_tensor(batch.states, device=self._device)  # s
+        actions = ndarray_to_tensor(batch.actions, device=self._device).long()  # a
+        advantages = ndarray_to_tensor(batch.advantages, device=self._device)
 
         if self._clip_ratio is not None:
             self._policy.eval()
@@ -203,7 +205,7 @@ class DiscreteACBasedOps(AbsTrainOps):
         batch.calc_returns(self._reward_discount)
 
         # Preprocess advantages
-        states = ndarray_to_tensor(batch.states, self._device)  # s
+        states = ndarray_to_tensor(batch.states, device=self._device)  # s
         state_values = self._v_critic_net.v_values(states)
         values = state_values.detach().cpu().numpy()
         values = np.concatenate([values, values[-1:]])
@@ -226,6 +228,7 @@ class DiscreteACBasedOps(AbsTrainOps):
 
     def to_device(self, device: str = None) -> None:
         self._device = get_torch_device(device)
+        self._policy.to_device(self._device)
         self._v_critic_net.to(self._device)
 
 
@@ -237,8 +240,8 @@ class DiscreteACBasedTrainer(SingleAgentTrainer):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
     """
 
-    def __init__(self, name: str, params: DiscreteACBasedParams, device: str = None) -> None:
-        super(DiscreteACBasedTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: DiscreteACBasedParams) -> None:
+        super(DiscreteACBasedTrainer, self).__init__(name, params)
         self._params = params
         self._ops_name = f"{self._name}.ops"
 

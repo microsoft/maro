@@ -4,11 +4,12 @@
 import asyncio
 import os
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import ExpElement
 from maro.utils import LoggerV2
+from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
 from .trainer import AbsTrainer
 from .utils import extract_trainer_name, get_trainer_state_path
@@ -53,8 +54,9 @@ class TrainingManager(object):
         self._agent2trainer: Dict[Any, str] = {}
         for agent_name, policy_name in self._agent2policy.items():
             trainer_name = extract_trainer_name(policy_name)
-            if trainer_name in self._trainer_dict:
-                self._agent2trainer[agent_name] = trainer_name
+            if trainer_name not in self._trainer_dict:
+                raise MissingTrainer(f"trainer {trainer_name} does not exist")
+            self._agent2trainer[agent_name] = trainer_name
 
     def train_step(self) -> None:
         if self._proxy_address:

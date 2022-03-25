@@ -7,13 +7,12 @@ import collections
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
-from maro.rl.utils import get_torch_device, ndarray_to_tensor
 from maro.simulator import Env
 
 
@@ -23,25 +22,15 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     Args:
         policy_dict (Dict[str, AbsPolicy]): Dictionary that maps policy names to policy instances.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
-        device (Union[str, Dict[str, str]], default=None): Device(s) to put NN-based RL policies on. If it is None,
-            the device will be automatically determined according to GPU availability.
     """
 
     def __init__(
         self,
         policy_dict: Dict[str, AbsPolicy],  # {policy_name: AbsPolicy}
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        device: Union[str, Dict[str, str]] = None,
     ) -> None:
         self._policy_dict = policy_dict
         self._agent2policy = agent2policy
-        self._device = {
-            policy_name: get_torch_device(device.get(policy_name, None) if isinstance(device, dict) else device)
-            for policy_name, policy in policy_dict.items() if isinstance(policy, RLPolicy)
-        }
-        for policy_name, policy in self._policy_dict.items():
-            if isinstance(policy, RLPolicy):
-                policy.to_device(self._device[policy_name])
 
     def set_policy_state(self, policy_state_dict: Dict[str, object]) -> None:
         """Set policies' states.
@@ -99,9 +88,8 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         self,
         policy_dict: Dict[str, RLPolicy],  # {policy_name: RLPolicy}
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        device: Union[str, Dict[str, str]] = None,
     ) -> None:
-        super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy, device=device)
+        super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
 
     def _choose_actions_impl(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
         # Aggregate states by policy
@@ -116,8 +104,6 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         for policy_name in agents_by_policy:
             policy = self._policy_dict[policy_name]
             states = np.vstack(states_by_policy[policy_name])  # np.ndarray
-            if isinstance(policy, RLPolicy):
-                states = ndarray_to_tensor(states, self._device[policy_name])
             action_dict.update(zip(
                 agents_by_policy[policy_name],  # list of str (agent name)
                 policy.get_actions(states),  # list of action
@@ -206,16 +192,16 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     Args:
         get_env (Callable[[], Env]): Function used to create the rollout environment.
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions that used to get policies, specified
-            by policy names.
-        agent2policy (Dict[Any, str]): Mapping of agent name and policy name.
+        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies by name.
+        agent2policy (Dict[Any, str]): Mapping of agent name to policy name.
+        trainable_policies (List[str], default=None): List of trainable policy names. Experiences generated using the
+            policies specified in this list will be collected and passed to a training manager for training. Defaults
+            to None, in which case all policies are trainable.
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event.
         get_test_env (Callable[[], Env], default=None): Function used to create the testing environment. If it is None,
             reuse the rollout environment as the testing environment.
-        device (Union[str, Dict[str, str]], default=None): Identifiers of devices to place the policy instances on.
-            If it is None, the device will be automatically determined according to the GPU availability.
     """
 
     def __init__(
@@ -223,10 +209,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         get_env: Callable[[], Env],
         policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
+        trainable_policies: List[str] = None,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
         get_test_env: Callable[[], Env] = None,
-        device: Union[str, Dict[str, str]] = None,
     ) -> None:
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env is not None else self._learn_env
@@ -236,9 +222,15 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
-        self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy, device)
         self._agent2policy = agent2policy
-
+        self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
+        if trainable_policies is None:
+            self._trainable_policies = set(self._policy_dict.keys())
+        else:
+            self._trainable_policies = set(trainable_policies)
+        self._trainable_agents = {
+            agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
+        }
         # Global state & agent state
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
@@ -329,9 +321,13 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     tick=self._env.tick,
                     event=self._event,
                     state=self._state,
-                    agent_state_dict=dict(self._agent_state_dict),
-                    action_dict=action_dict,
-                    env_action_dict=env_action_dict,
+                    agent_state_dict={
+                        id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
+                    },
+                    action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
+                    env_action_dict={
+                        id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
+                    },
                 )
             )
             # Update env and get new states (global & agent)
@@ -344,16 +340,16 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         experiences = []
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
-
             reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
             self._post_step(cache_element, reward_dict)
-
             if len(self._trans_cache) > 0:
                 next_state = self._trans_cache[0].state
                 next_agent_state_dict = dict(self._trans_cache[0].agent_state_dict)
             else:
                 next_state = self._state
-                next_agent_state_dict = dict(self._agent_state_dict)
+                next_agent_state_dict = {
+                    id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
+                }
 
             experiences.append(ExpElement(
                 tick=cache_element.tick,
@@ -425,9 +421,13 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     tick=self._env.tick,
                     event=self._event,
                     state=self._state,
-                    agent_state_dict=dict(self._agent_state_dict),
-                    action_dict=action_dict,
-                    env_action_dict=env_action_dict,
+                    agent_state_dict={
+                        id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
+                    },
+                    action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
+                    env_action_dict={
+                        id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
+                    },
                 )
             )
             # Update env and get new states (global & agent)
@@ -450,3 +450,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     @abstractmethod
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError
+
+    def to_device(self):
+        """Move the policy instances to user-specified (GPU) devices"""
+        pass

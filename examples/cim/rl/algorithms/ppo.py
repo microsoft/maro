@@ -11,7 +11,11 @@ def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGrad
 
 
 def get_ppo(state_dim: int, device: str, name: str) -> DiscretePPOTrainer:
-    return DiscretePPOTrainer(
+    class MyPPOTrainer(DiscretePPOTrainer):
+        def to_device(self):
+            self.ops.to_device(device)
+
+    return MyPPOTrainer(
         name=name,
         params=DiscretePPOParams(
             device="cpu",
@@ -23,5 +27,4 @@ def get_ppo(state_dim: int, device: str, name: str) -> DiscretePPOTrainer:
             lam=.0,
             clip_ratio=0.1,
         ),
-        device=device
     )

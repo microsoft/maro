@@ -39,6 +39,8 @@ def main(scenario: Scenario) -> None:
     is_single_thread = train_mode == "simple" and not parallel_rollout
     if is_single_thread:
         # If running in single thread mode, create policy instances here and reuse then in rollout and training.
+        # In other words, `policy_creator` will return a policy instance that has been already created in advance
+        # instead of create a new policy instance.
         policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
         policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
 
@@ -52,15 +54,24 @@ def main(scenario: Scenario) -> None:
             logger=logger,
         )
     else:
-        env_sampler = scenario.get_env_sampler(policy_creator)
+        env_sampler = scenario.env_sampler_creator(policy_creator)
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
+    if scenario.trainable_policies is None:
+        trainable_policies = set(policy_creator.keys())
+    else:
+        trainable_policies = set(scenario.trainable_policies)
+
+    trainable_policy_creator = {name: func for name, func in policy_creator.items() if name in trainable_policies}
+    trainable_agent2policy = {id_: name for id_, name in agent2policy.items() if name in trainable_policies}
     training_manager = TrainingManager(
-        policy_creator, trainer_creator, agent2policy,
+        policy_creator=trainable_policy_creator,
+        trainer_creator=trainer_creator,
+        agent2policy=trainable_agent2policy,
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
         ),
@@ -115,3 +126,9 @@ def main(scenario: Scenario) -> None:
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()
     training_manager.exit()
+
+
+if __name__ == "__main__":
+    # get user-defined scenario ingredients
+    scenario = Scenario(get_env("SCENARIO_PATH"))
+    main(scenario)
