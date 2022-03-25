@@ -501,7 +501,7 @@ class MyTestCase(unittest.TestCase):
 
         # if we set all_or_nothing=False, then part of the product will be added to storage, and cause remaining
         # space being 0
-        storage_unit.try_add_products(products_to_put, add_strategy=AddStrategy.IgnoreUpperBoundFIFO)
+        storage_unit.try_add_products(products_to_put, add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder)
 
         self.assertEqual(0, storage_unit.remaining_space)
 

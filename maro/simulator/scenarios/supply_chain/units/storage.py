@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
@@ -24,9 +25,15 @@ def parse_storage_config(config: dict) -> List[SubStorageConfig]:  # TODO: here 
 
 
 class AddStrategy(Enum):
-    IgnoreUpperBoundAllOrNothing = 1  # Failed if all product cannot be added
+    # Ignore the pre-set upper bound for each product, successfully added all products if renaming space is enough to
+    # add all, else failed to add any product.
+    IgnoreUpperBoundAllOrNothing = 1
+    # Ignore the pre-set upper bound for each product, add coming products proportional to the coming quantity.
     IgnoreUpperBoundProportional = 2
-    IgnoreUpperBoundFIFO = 3
+    # Ignore the pre-set upper bound for each product, add coming products one by one in order (first come, first add).
+    IgnoreUpperBoundAddInOrder = 3
+    # Limited by the pre-set upper bound for each product. Assuming the sum(upper bound) == capacity, the success of
+    # adding different products are independent with each other.
     LimitedByUpperBound = 4
 
 
@@ -43,7 +50,7 @@ class StorageUnit(UnitBase):
 
         # 1st-key: the Sub-Storage ID, 2nd-key: the SKU ID, value: the upper bound.
         # None value indicates non-pre-limited.
-        self._storage_sku_upper_bound: Dict[int, Dict[int, Optional[int]]] ={}
+        self._storage_sku_upper_bound: Dict[int, Dict[int, Optional[int]]] = defaultdict(dict)
 
         # Key: product_id
         self._product_level: Dict[int, int] = {}
@@ -82,8 +89,6 @@ class StorageUnit(UnitBase):
             assert self._remaining_space_dict[sku.sub_storage_id] >= 0, (
                 f"Initial stock too much for Sub Storage {sku.sub_storage_id} of Facility {self.facility.name}!"
             )
-            if sku.sub_storage_id not in self._storage_sku_upper_bound:
-                self._storage_sku_upper_bound[sku.sub_storage_id] = {}
             self._storage_sku_upper_bound[sku.sub_storage_id][sku.id] = sku.storage_upper_bound
 
         # Initialize the None upper bound SKU with the average remaining space.
@@ -166,52 +171,55 @@ class StorageUnit(UnitBase):
 
         Args:
             product_quantities (Dict[int, int]): Dictionary of product id and quantity need to add to storage.
-            add_strategy (AddStrategy): The strategy to add products into the storage, Defaults to AddAllOrNothing.
+            add_strategy (AddStrategy): The strategy to add products into the storage, Defaults to
+                AddStrategy.IgnoreUpperBoundAddAllOrNothing.
 
         Returns:
             Dict[int, int]: Dictionary of product id and quantity success added.
         """
+
         added_quantities: Dict[int, int] = {}
 
         if add_strategy in [AddStrategy.IgnoreUpperBoundAllOrNothing, AddStrategy.IgnoreUpperBoundProportional]:
-            space_requirements: Dict[int, int] = {}
+            space_requirements: Dict[int, int] = defaultdict(lambda: 0)
             for product_id, quantity in product_quantities.items():
                 storage_id = self._product2storage[product_id]
-                if storage_id not in space_requirements:
-                    space_requirements[storage_id] = 0
                 space_requirements[storage_id] += quantity
 
-        if add_strategy == AddStrategy.IgnoreUpperBoundAllOrNothing:
-            for storage_id, requirement in space_requirements.items():
-                if self._remaining_space_dict[storage_id] < requirement:
-                    return {}
+            if add_strategy == AddStrategy.IgnoreUpperBoundAllOrNothing:
+                for storage_id, requirement in space_requirements.items():
+                    if self._remaining_space_dict[storage_id] < requirement:
+                        return {}
 
-            for product_id, quantity in product_quantities.items():
-                self._add_product(product_id, quantity)
-                added_quantities[product_id] = quantity
+                for product_id, quantity in product_quantities.items():
+                    self._add_product(product_id, quantity)
+                    added_quantities[product_id] = quantity
 
-        if add_strategy == AddStrategy.IgnoreUpperBoundProportional:
-            fulfill_ratio_dict = {}
-            for storage_id, requirement in space_requirements.items():
-                fulfill_ratio_dict[storage_id] = requirement / self._remaining_space_dict[storage_id]
+            elif add_strategy == AddStrategy.IgnoreUpperBoundProportional:
+                fulfill_ratio_dict: Dict[int, float] = {}
+                for storage_id, requirement in space_requirements.items():
+                    fulfill_ratio_dict[storage_id] = requirement / self._remaining_space_dict[storage_id]
 
-            for product_id, quantity in product_quantities.items():
-                storage_id = self._product2storage[product_id]
-                quantity = min(int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id])
-                self._add_product(product_id, quantity)
-                added_quantities[product_id] = quantity
+                for product_id, quantity in product_quantities.items():
+                    storage_id = self._product2storage[product_id]
+                    quantity = min(int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id])
+                    self._add_product(product_id, quantity)
+                    added_quantities[product_id] = quantity
 
-        if add_strategy == AddStrategy.IgnoreUpperBoundFIFO:
+        elif add_strategy == AddStrategy.IgnoreUpperBoundAddInOrder:
             for product_id, quantity in product_quantities.items():
                 quantity = min(quantity, self._remaining_space_dict[self._product2storage[product_id]])
                 self._add_product(product_id, quantity)
                 added_quantities[product_id] = quantity
 
-        if add_strategy == AddStrategy.LimitedByUpperBound:
+        elif add_strategy == AddStrategy.LimitedByUpperBound:
             for product_id, quantity in product_quantities.items():
                 quantity = min(quantity, self.get_product_max_remaining_space(product_id))
                 self._add_product(product_id, quantity)
                 added_quantities[product_id] = quantity
+
+        else:
+            raise ValueError(f"Unrecognized storage add strategy: {add_strategy}!")
 
         return added_quantities
 

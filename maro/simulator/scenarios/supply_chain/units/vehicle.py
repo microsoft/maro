@@ -104,7 +104,7 @@ class VehicleUnit(UnitBase):
         """Try unload products into destination's storage."""
         unloaded = self._destination.storage.try_add_products(
             {self.product_id: self.payload},
-            add_strategy=AddStrategy.IgnoreUpperBoundFIFO  # TODO: check which strategy to use.
+            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder  # TODO: check which strategy to use.
         )
 
         # Update order if we unloaded any.
