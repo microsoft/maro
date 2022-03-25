@@ -128,8 +128,9 @@ class SCEnvSampler(AbsEnvSampler):
         product_info = facility[entity.skus.id]
         if "consumer" in product_info:
             idx = product_info["consumer"].node_index
-            np_state[-1] = self._learn_env \
-                .snapshot_list["consumer"][self._learn_env.tick:idx:"order_cost"].flatten()[0]
+            np_state[-1] = self._learn_env.snapshot_list["consumer"][
+                self._learn_env.tick:idx:"order_cost"
+            ].flatten()[0]
 
         extend_state([facility['storage'].config["capacity"]])
         extend_state(self._storage_info["storage_product_num"][entity.facility_id])
@@ -181,15 +182,13 @@ class SCEnvSampler(AbsEnvSampler):
         self._cur_balance_sheet_reward = self._balance_calculator.calc()
         self._cur_metrics = self._learn_env.metrics
 
-        self._cur_distribution_states = self._learn_env.snapshot_list["distribution"][tick::distribution_features] \
-            .flatten() \
-            .reshape(-1, len(distribution_features)) \
-            .astype(np.int)
+        self._cur_distribution_states = self._learn_env.snapshot_list["distribution"][
+            tick::distribution_features
+        ].flatten().reshape(-1, len(distribution_features)).astype(np.int)
 
-        self._cur_consumer_states = self._learn_env \
-            .snapshot_list["consumer"][consumption_ticks::"latest_consumptions"] \
-            .flatten() \
-            .reshape(-1, len(self._learn_env.snapshot_list["consumer"]))
+        self._cur_consumer_states = self._learn_env.snapshot_list["consumer"][
+            consumption_ticks::"latest_consumptions"
+        ].flatten().reshape(-1, len(self._learn_env.snapshot_list["consumer"]))
 
         self._cur_seller_states = self._learn_env.snapshot_list["seller"][hist_ticks::seller_features].astype(np.int)
 
@@ -207,14 +206,15 @@ class SCEnvSampler(AbsEnvSampler):
 
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._storage_info["facility2storage"].items():
-            product_numbers = self._learn_env.snapshot_list["storage"][tick:storage_index:"product_number"] \
-                .flatten().astype(np.int)
+            product_quantities = self._learn_env.snapshot_list["storage"][
+                tick:storage_index:"product_quantity"
+            ].flatten().astype(np.int)
 
             for pid, index in self._storage_info["storage_product_indexes"][facility_id].items():
-                product_number = product_numbers[index]
+                product_quantity = product_quantities[index]
 
-                self._storage_info["storage_product_num"][facility_id][pid] = product_number
-                self._storage_info["facility_product_utilization"][facility_id] += product_number
+                self._storage_info["storage_product_num"][facility_id][pid] = product_quantity
+                self._storage_info["facility_product_utilization"][facility_id] += product_quantity
 
         state = {
             id_: self._get_state_shaper(id_)(self._state_template[id_], entity)
@@ -617,7 +617,7 @@ class BalanceSheetCalculator:
 
         # loss = manufacture number * cost
         manufacture_balance_sheet_loss = -1 * (
-            self._get_attributes("manufacture", "manufacturing_number")
+            self._get_attributes("manufacture", "manufacture_quantity")
             * self._get_attributes("manufacture", "product_unit_cost")
         )
 
@@ -640,13 +640,13 @@ class BalanceSheetCalculator:
 
         # create product number mapping for storages
         product_list = self._get_list_attributes("storage", "product_list")
-        product_number = self._get_list_attributes("storage", "product_number")
+        product_quantity = self._get_list_attributes("storage", "product_quantity")
         storages_product_map = {
             idx: {
                 id_: num
                 for id_, num in zip(id_list.astype(np.int), num_list.astype(np.int))
             }
-            for idx, (id_list, num_list) in enumerate(zip(product_list, product_number))
+            for idx, (id_list, num_list) in enumerate(zip(product_list, product_quantity))
         }
 
         return storage_balance_sheet_loss, storages_product_map
@@ -719,16 +719,21 @@ class BalanceSheetCalculator:
                 product_balance_sheet_loss[i] += manufacture_balance_sheet_loss[manufacture_index]
                 product_step_reward[i] += manufacture_step_reward[manufacture_index]
 
-            storage_reward = -1 * storages_product_map[product.storage_index][product.sku_id] \
+            storage_reward = (
+                -1
+                * storages_product_map[product.storage_index][product.sku_id]
                 * product.unit_storage_cost
+            )
             product_step_reward[i] += storage_reward
             product_balance_sheet_loss[i] += storage_reward
 
             if product.distribution_index is not None:
                 product_balance_sheet_profit[i] += product_distribution_balance_sheet_profit[i]
                 product_balance_sheet_loss[i] += product_distribution_balance_sheet_loss[i]
-                product_step_reward[i] += product_distribution_balance_sheet_loss[i] + \
-                    product_distribution_balance_sheet_profit[i]
+                product_step_reward[i] += (
+                    product_distribution_balance_sheet_loss[i]
+                    + product_distribution_balance_sheet_profit[i]
+                )
 
             if len(product.downstream_product_units) > 0:
                 for did in product.downstream_product_units:
@@ -757,8 +762,10 @@ class BalanceSheetCalculator:
         for i, facility in enumerate(self.facility_levels):
             # storage balance sheet
             # profit=0
-            facility_balance_sheet_loss[i] += storage_balance_sheet_loss[facility.storage_index] \
+            facility_balance_sheet_loss[i] += (
+                storage_balance_sheet_loss[facility.storage_index]
                 * facility.unit_storage_cost
+            )
 
             # distribution balance sheet
             if facility.distribution_index is not None:
@@ -783,24 +790,23 @@ class BalanceSheetCalculator:
         seller_balance_sheet_profit, seller_balance_sheet_loss, seller_step_reward = self._calc_seller()
         manufacture_ids, manufacture_balance_sheet_loss, manufacture_step_reward, \
             manufacture_step_balance_sheet = self._calc_manufacture()
-        storage_balance_sheet_loss, storages_product_map = self._calc_storage()
+        _, storages_product_map = self._calc_storage()
         product_distribution_balance_sheet_profit, \
             product_distribution_balance_sheet_loss = self._calc_product_distribution()
 
         # Loss, profit, reward for each product
-        product_balance_sheet_profit, product_balance_sheet_loss, product_step_reward, \
-            product_balance_sheet = self._calc_product(
-                consumer_step_balance_sheet_loss,
-                consumer_step_reward,
-                seller_balance_sheet_profit,
-                seller_balance_sheet_loss,
-                seller_step_reward,
-                manufacture_balance_sheet_loss,
-                manufacture_step_reward,
-                storages_product_map,
-                product_distribution_balance_sheet_profit,
-                product_distribution_balance_sheet_loss,
-            )
+        _, _, product_step_reward, product_balance_sheet = self._calc_product(
+            consumer_step_balance_sheet_loss,
+            consumer_step_reward,
+            seller_balance_sheet_profit,
+            seller_balance_sheet_loss,
+            seller_step_reward,
+            manufacture_balance_sheet_loss,
+            manufacture_step_reward,
+            storages_product_map,
+            product_distribution_balance_sheet_profit,
+            product_distribution_balance_sheet_loss,
+        )
 
         # Final result for current tick, key is the facility/unit id, value is tuple of balance sheet and reward.
         result = {}

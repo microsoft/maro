@@ -573,10 +573,10 @@ Matrix is special that it only have one instance (index 0), and the value is sav
 
   # we can get the instance number of a node by calling the len method
   port_number = len(env.snapshot_list["port"])
-  
+
   # this is a 1 dim numpy array
   full_on_ports = env.snapshot_list["matrices"][tick::"full_on_ports"]
-  
+
   # reshape it, then this is a 2 dim array that from port to port.
   full_on_ports = full_on_ports.reshape(port_number, port_number)
 
@@ -1267,7 +1267,7 @@ Reward discount from action.
 manufacture
 +++++++++++
 
-manufacturing_number
+manufacture_quantity
 ********************
 
 type: unsigned int
@@ -1408,6 +1408,6 @@ query, it only support one tick, one node and one attribute querying.
 
   # we have to query them with 2 statements.
   product_list = storage_ss[tick:node_index:"product_list"].flatten().astype(np.int)
-  product_number = storage_ss["storage"][tick:node_index:"product_number"].flatten().astype(np.int)
+  product_quantity = storage_ss["storage"][tick:node_index:"product_quantity"].flatten().astype(np.int)
 
-  product_level = {pid: pnum for pid, pnum in zip(product_list, product_number)}
+  product_level = {pid: pnum for pid, pnum in zip(product_list, product_quantity)}

@@ -16,7 +16,7 @@ class StorageDataModel(DataModelBase):
 
     # original is , used to save product and its number
     product_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
-    product_number = NodeAttribute(AttributeType.UInt, 1, is_list=True)  # TODO: rename to product_quantity?
+    product_quantity = NodeAttribute(AttributeType.UInt, 1, is_list=True)  # TODO: rename to product_quantity?
 
     def __init__(self) -> None:
         super(StorageDataModel, self).__init__()
@@ -24,19 +24,19 @@ class StorageDataModel(DataModelBase):
         self._capacity = 0
         self._remaining_space = None
         self._product_list = None
-        self._product_number = None
+        self._product_quantity = None
 
     def initialize(
         self,
         capacity: int = 0,
         remaining_space: int = None,
         product_list: list = None,
-        product_number: list = None,
+        product_quantity: list = None,
     ) -> None:
         self._capacity = capacity
         self._remaining_space = remaining_space
         self._product_list = product_list
-        self._product_number = product_number
+        self._product_quantity = product_quantity
 
         self.reset()
 
@@ -54,6 +54,6 @@ class StorageDataModel(DataModelBase):
             for id in self._product_list:
                 self.product_list.append(id)
 
-        if self._product_number is not None:
-            for n in self._product_number:
-                self.product_number.append(n)
+        if self._product_quantity is not None:
+            for quantity in self._product_quantity:
+                self.product_quantity.append(quantity)

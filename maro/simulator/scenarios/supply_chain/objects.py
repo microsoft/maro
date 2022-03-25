@@ -1,7 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 from dataclasses import dataclass
+from typing import Optional
 
+
+from maro.simulator.scenarios.supply_chain.units.storage import DEFAULT_SUB_STORAGE_ID
 
 @dataclass
 class SkuMeta:
@@ -15,6 +18,8 @@ class SkuMeta:
 class SkuInfo:
     id: int
     init_stock: int
+    sub_storage_id: int = DEFAULT_SUB_STORAGE_ID  # TODO: decide whether it could be a default setting
+    storage_upper_bound: Optional[int] = None  # TODO: Or separate the storage directly?
     backlog_ratio: float = 0.0
     cost: int = 10
     price: int = 10
