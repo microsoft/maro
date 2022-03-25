@@ -4,7 +4,7 @@
 env_conf = {
     "scenario": "cim",
     "topology": "toy.4p_ssdd_l0.0",
-    "durations": 1120
+    "durations": 560
 }
 
 if env_conf["topology"].startswith("toy"):
@@ -41,7 +41,7 @@ state_dim = (
 
 algorithm = "ac"  # ac, ppo, dqn or discrete_maddpg
 
-device_mappings = [
+device_mapping = [
     "cuda:2",
     "cuda:1",
     "cuda:3",

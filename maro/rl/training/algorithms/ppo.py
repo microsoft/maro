@@ -35,5 +35,5 @@ class DiscretePPOParams(DiscreteACBasedParams):
 class DiscretePPOTrainer(DiscreteACBasedTrainer):
     """Discrete PPO algorithm.
     """
-    def __init__(self, name: str, params: DiscretePPOParams, device: str = None) -> None:
-        super(DiscretePPOTrainer, self).__init__(name, params, device=device)
+    def __init__(self, name: str, params: DiscretePPOParams) -> None:
+        super(DiscretePPOTrainer, self).__init__(name, params)
