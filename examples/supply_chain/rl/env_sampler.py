@@ -600,7 +600,7 @@ class BalanceSheetCalculator:
 
         # loss = demand * price * backlog_ratio
         seller_balance_sheet_loss = -1 * (
-            self._get_attributes("seller", "demand")
+            (self._get_attributes("seller", "demand") - self._get_attributes("seller", "sold"))
             * self._get_attributes("seller", "price")
             * self._get_attributes("seller", "backlog_ratio")
         )

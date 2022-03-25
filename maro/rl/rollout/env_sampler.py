@@ -214,8 +214,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             for the action taken for that event.
         get_test_env (Callable[[], Env], default=None): Function used to create the testing environment. If it is None,
             reuse the rollout environment as the testing environment.
-        device (str, default=None): Name of the device to store this AbsEnvSampler. If it is None, the device will
-            be automatically determined according to the GPU availability.
+        device (Union[str, Dict[str, str]], default=None): Identifiers of devices to place the policy instances on.
+            If it is None, the device will be automatically determined according to the GPU availability.
     """
 
     def __init__(
@@ -226,7 +226,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
         get_test_env: Callable[[], Env] = None,
-        device: str = None,
+        device: Union[str, Dict[str, str]] = None,
     ) -> None:
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env is not None else self._learn_env
@@ -236,7 +236,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
-        self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
+        self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy, device)
         self._agent2policy = agent2policy
 
         # Global state & agent state
@@ -335,8 +335,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 )
             )
             # Update env and get new states (global & agent)
-            _, self._event, terminal = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if terminal \
+            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
+            self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event)
             steps_to_go -= 1
 
@@ -412,10 +412,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         self._agent_wrapper.exploit()
         self._env.reset()
-        terminal = False
+        is_done = False
         _, self._event, _ = self._env.step(None)
         self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
-        while not terminal:
+        while not is_done:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
@@ -431,8 +431,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 )
             )
             # Update env and get new states (global & agent)
-            _, self._event, terminal = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if terminal \
+            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
+            self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event)
 
         tick_bound = self._env.tick - self._reward_eval_delay
