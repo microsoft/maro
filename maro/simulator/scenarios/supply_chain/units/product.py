@@ -101,6 +101,7 @@ class ProductUnit(ExtendUnitBase):
             unit.reset()
 
     def get_unit_info(self) -> dict:  # TODO: replaced with a NamedTuple or a data class
+        facility_sku = self.facility.skus[self.product_id]
         return {
             "id": self.id,
             "sku_id": self.product_id,
@@ -109,6 +110,7 @@ class ProductUnit(ExtendUnitBase):
             "node_index": self.data_model_index if self.data_model is not None else None,
             "class": type(self),
             "config": self.config,
+            "sku_name": type(self.data_model).__node_name__ if self.data_model is not None else None,
             "consumer": self.consumer.get_unit_info() if self.consumer is not None else None,
             "seller": self.seller.get_unit_info() if self.seller is not None else None,
             "manufacture": self.manufacture.get_unit_info() if self.manufacture is not None else None,

@@ -59,6 +59,7 @@ keys_in_state = [
     ('sale_mean', [
         'sale_std',
         'sale_hist',
+        'demand_hist',
         'pending_order',
         'inventory_in_stock',
         'inventory_in_transit',
@@ -149,6 +150,7 @@ for entity in env.business_engine.get_entity_list():
     state['total_backlog_demand'] = 0
 
     state['sale_hist'] = [0] * hist_len
+    state['demand_hist'] = [0] * hist_len
     state['backlog_demand_hist'] = [0] * hist_len
     state['consumption_hist'] = [0] * consumption_hist_len
     state['pending_order'] = [0] * workflow_settings['pending_order_len']

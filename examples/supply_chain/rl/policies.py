@@ -6,13 +6,13 @@ from functools import partial
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit, ProductUnit, SellerUnit
 from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 from .algorithms.ppo import get_policy, get_ppo
-from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy
+from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy, ConsumerEOQPolicy
 from .config import NUM_CONSUMER_ACTIONS
 from .env_helper import entity_dict
 from .state_template import STATE_DIM
 
 
-def entity2policy(entity: SupplyChainEntity) -> str:
+def entity2policy(entity: SupplyChainEntity, baseline) -> str:
     if entity.skus is None:
         return "facility_policy"
     elif issubclass(entity.class_type, ManufactureUnit):
@@ -22,12 +22,13 @@ def entity2policy(entity: SupplyChainEntity) -> str:
     elif issubclass(entity.class_type, SellerUnit):
         return "seller_policy"
     elif issubclass(entity.class_type, ConsumerUnit):
-        return "ppo.policy"
+        return ("consumer.eoq_policy" if baseline else "consumer.policy")
     raise TypeError(f"Unrecognized entity class type: {entity.class_type}")
 
 
 policy_creator = {
-    "ppo.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS),
+    "consumer.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS),
+    "consumer.eoq_policy": lambda name: ConsumerEOQPolicy(name),
     "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
     "facility_policy": lambda name: DummyPolicy(name),
     "product_policy": lambda name: DummyPolicy(name),
@@ -35,10 +36,14 @@ policy_creator = {
 }
 
 agent2policy = {
-    id_: entity2policy(entity) for id_, entity in entity_dict.items()
+    id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
 }
 
-trainable_policies = ["ppo.policy"]
+agent2baseline_policy = {
+    id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
+}
+
+trainable_policies = ["consumer.policy"]
 
 trainer_creator = {
     "ppo": partial(get_ppo, STATE_DIM)

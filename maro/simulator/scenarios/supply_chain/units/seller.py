@@ -25,6 +25,7 @@ class SellerUnit(ExtendUnitBase):
         self._total_demand = 0
 
         self._sale_hist = []
+        self._demand_hist = []
 
     def market_demand(self, tick: int) -> int:
         """Generate market demand for current tick.
@@ -48,6 +49,7 @@ class SellerUnit(ExtendUnitBase):
         self.data_model.initialize(sku.price, sku.backlog_ratio)
 
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
+        self._demand_hist = [self._gamma] * self.config["sale_hist_len"]
 
     def _step_impl(self, tick: int) -> None:
         demand = self.market_demand(tick)
@@ -60,8 +62,10 @@ class SellerUnit(ExtendUnitBase):
         self._demand = demand
         self._total_demand += demand
 
-        self._sale_hist.append(demand)
+        self._sale_hist.append(sold_qty)
         self._sale_hist = self._sale_hist[1:]
+        self._demand_hist.append(demand)
+        self._demand_hist = self._demand_hist[1:]
 
     def flush_states(self) -> None:
         if self._sold > 0:
@@ -93,9 +97,10 @@ class SellerUnit(ExtendUnitBase):
         self._total_demand = 0
 
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
+        self._demand_hist = [self._gamma] * self.config["sale_hist_len"]
 
     def sale_mean(self) -> float:
-        return float(np.mean(self._sale_hist))
+        return float(np.median(self._demand_hist))
 
     def sale_std(self) -> float:
         return float(np.std(self._sale_hist))

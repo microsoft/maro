@@ -8,17 +8,34 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 # config variables
-SCENARIO_NAME = "cim"
+SCENARIO_NAME = "supply_chain"
 SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME, "rl")
-NUM_EPISODES = 50
+NUM_EPISODES = 2000
 NUM_STEPS = None
 CHECKPOINT_PATH = join(dirname(SCENARIO_PATH), "checkpoints")
-CHECKPOINT_INTERVAL = 5
-EVAL_SCHEDULE = [10, 20, 30, 40, 50]
-LOG_PATH = join(dirname(SCENARIO_PATH), "logs", SCENARIO_NAME)
+CHECKPOINT_INTERVAL = 10
+EVAL_SCHEDULE = 10
 
 
+import argparse
+import wandb
+import os
+os.environ["WANDB_API_KEY"] = "116a4f287fd4fbaa6f790a50d2dd7f97ceae4a03"
+wandb.login()
+
+# Single-threaded launcher
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_name", default="Round1")
+    parser.add_argument("--baseline", action='store_true')
+    parser.add_argument("--team_reward", action='store_true')
+    parser.add_argument("--shared_model", action='store_true')
+    args = parser.parse_args()
+    
+
+    LOG_PATH = join(dirname(SCENARIO_PATH), args.exp_name, SCENARIO_NAME)
+    os.makedirs(LOG_PATH, exist_ok=True)
+
     scenario = Scenario(SCENARIO_PATH)
     logger = LoggerV2("MAIN", dump_path=LOG_PATH)
 
@@ -69,7 +86,6 @@ if __name__ == "__main__":
                 training_manager.save(pth)
                 logger.info(f"All trainer states saved under {pth}")
             segment += 1
-
         # performance details
         if ep == EVAL_SCHEDULE[eval_point_index]:
             eval_point_index += 1

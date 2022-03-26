@@ -87,7 +87,7 @@ class ConsumerEOQPolicy(RuleBasedPolicy):
 
         sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
         service_level = get_element(states, "service_level")
-        vlt_buffer_days = 7
+        vlt_buffer_days = np.where(get_element(states, "vlt")*1.3 < 2.0, 2.0, get_element(states, "vlt")*1.3)
         vlt = vlt_buffer_days + get_element(states, "vlt")
 
         non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
