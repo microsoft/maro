@@ -102,7 +102,11 @@ for entity in env.business_engine.get_entity_list():
 
     # storage features
     state['storage_levels'] = [0] * num_skus
-    state['storage_capacity'] = facility['storage'].config["capacity"]
+
+    state['storage_capacity'] = 0
+    for sub_storage in facility["storage"].config:
+        state["storage_capacity"] += sub_storage.capacity
+
     state['storage_utilization'] = 0
 
     # bom features
@@ -129,7 +133,7 @@ for entity in env.business_engine.get_entity_list():
         product_info = facility[entity.skus.id]
 
         if "consumer" in product_info and len(current_source_list) > 0:
-            state['max_vlt'] = product_info["skuproduct"]["max_vlt"]
+            state['max_vlt'] = product_info["skuproduct"].max_vlt
 
             for i, source in enumerate(current_source_list):
                 for j, sku in enumerate(sku_list.values()):

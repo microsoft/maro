@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
 
-from .. import ManufactureAction
 from .manufacture import ManufactureUnit
 
 
