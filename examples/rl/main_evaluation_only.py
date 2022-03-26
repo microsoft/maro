@@ -41,8 +41,7 @@ if __name__ == "__main__":
                 LOG_PATH, tracker.step_rewards, ["OuterRetailerFacility"])
     tracker.render_sku(LOG_PATH)
     
-    # df_product = pd.DataFrame(env_sampler.balance_cal.product_metric_track)
-    # df_facility = pd.DataFrame(env_sampler.balance_cal.facility_metric_track)
-    # df_product.to_csv(f'{LOG_PATH}/output_product_metrics.csv', index=False)
-    # df_facility.to_csv(f'{LOG_PATH}/output_facility_metrics.csv', index=False)
+    df_product = pd.DataFrame(env_sampler._balance_calculator.product_metric_track)
+    df_product = df_product.groupby(['tick', 'id']).first().reset_index()
+    df_product.to_csv(f'{LOG_PATH}/output_product_metrics.csv', index=False)
 

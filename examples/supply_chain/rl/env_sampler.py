@@ -404,6 +404,11 @@ class SCEnvSampler(AbsEnvSampler):
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._post_step(cache_element, reward)
 
+    def reset(self):
+        super().reset()
+        self._balance_calculator.reset()
+        self.total_balance = 0.0
+
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         tracker = SimulationTracker(100, 1, self, [0, 100])
         epoch = 0
@@ -496,20 +501,34 @@ FacilityLevelInfo = namedtuple(
 
 class BalanceSheetCalculator:
     consumer_features = ("id", "order_quantity", "price",
-                         "order_cost", "order_product_cost", "reward_discount")
+                         "order_cost", "order_product_cost")
     seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
     manufacture_features = ("id", "manufacturing_number", "product_unit_cost")
     product_features = (
         "id", "price", "distribution_check_order", "distribution_transport_cost", "distribution_delay_order_penalty")
     storage_features = ("capacity", "remaining_space")
     vehicle_features = ("id", "payload", "unit_transport_cost")
-    
+
     def __init__(self, env: Env) -> None:
         self._learn_env = env
         self.products: List[ProductInfo] = []
         self.product_id2index_dict = {}
         self.facility_levels = []
         self.consumer_id2product = {}
+        self.entities_dict = {entity.id: entity for entity in self._learn_env.business_engine.get_entity_list()}
+        
+        # dump information for visualization
+        self.product_metric_track = {}
+        for col in ['id', 'facility_id', 'facility_name', 'name', 'tick', 'inventory_in_stock', 'unit_inventory_holding_cost']:
+            self.product_metric_track[col] = []
+        for (name, cols) in [("consumer", self.consumer_features),
+                             ("seller", self.seller_features),
+                             ("manufacture", self.manufacture_features),
+                             ("product", self.product_features)]:
+            for fea in cols:
+                if fea == 'id':
+                    continue
+                self.product_metric_track[f"{name}_{fea}"] = []
 
         self.facilities = env.summary["node_mapping"]["facilities"]
 
@@ -658,6 +677,8 @@ class BalanceSheetCalculator:
         #     self._get_attributes("consumer", "order_cost")
         #     + self._get_attributes("consumer", "order_product_cost")
         # )
+
+
         consumer_step_balance_sheet_loss = -1 * self._get_attributes("consumer", "order_product_cost")
         consumer_step_balance_sheet_loss -= self._get_attributes("consumer", "order_cost") * (self._get_attributes("consumer", "order_product_cost") > 0)
 
@@ -715,6 +736,7 @@ class BalanceSheetCalculator:
         # Storage
         ########################
 
+        
         # loss = (capacity-remaining space) * cost
         storage_balance_sheet_loss = -1 * (
             self._get_attributes("storage", "capacity")
@@ -785,17 +807,52 @@ class BalanceSheetCalculator:
         # product = consumer + seller + manufacture + storage + distribution + downstreams
         for product in self._ordered_products:
             i = product.node_index
+            entity = self.entities_dict[product.unit_id]
+
+            facility_meta = self._learn_env.summary['node_mapping']["facilities"][entity.facility_id]
+            sku_meta = self._learn_env.summary['node_mapping']['skus'][entity.skus.id]
+
+            self.product_metric_track['id'].append(product.unit_id)
+            self.product_metric_track['tick'].append(self._learn_env.tick)
+            self.product_metric_track['facility_id'].append(entity.facility_id)
+            self.product_metric_track['facility_name'].append(facility_meta['name'])
+            self.product_metric_track['name'].append(sku_meta.name)
+            
+            for _, fea in enumerate(self.product_features):
+                if fea != 'id':
+                    val = self._get_attributes("product", fea)[i]
+                    self.product_metric_track[f"product_{fea}"].append(val)
+            
+            for _, fea in enumerate(self.consumer_features):
+                if fea != 'id':
+                    val = 0
+                    if product.consumer_id_index_tuple:
+                        val = self._get_attributes("consumer", fea)[product.consumer_id_index_tuple[1]]
+                    self.product_metric_track[f"consumer_{fea}"].append(val)
 
             if product.consumer_id_index_tuple:
                 consumer_index = product.consumer_id_index_tuple[1]
                 product_balance_sheet_loss[i] += consumer_step_balance_sheet_loss[consumer_index]
                 product_step_reward[i] += consumer_step_reward[consumer_index]
 
+            for _, fea in enumerate(self.seller_features):
+                if fea != 'id':
+                    val = 0
+                    if product.seller_id_index_tuple:
+                        val = self._get_attributes("seller", fea)[product.seller_id_index_tuple[1]]
+                    self.product_metric_track[f"seller_{fea}"].append(val)
             if product.seller_id_index_tuple:
                 seller_index = product.seller_id_index_tuple[1]
                 product_balance_sheet_profit[i] += seller_balance_sheet_profit[seller_index]
                 product_balance_sheet_loss[i] += seller_balance_sheet_loss[seller_index]
                 product_step_reward[i] += seller_step_reward[seller_index]
+
+            for _, fea in enumerate(self.manufacture_features):
+                if fea != 'id':
+                    val = 0
+                    if product.manufacture_id_index_tuple:
+                        val = self._get_attributes("manufacture", fea)[product.manufacture_id_index_tuple[1]]
+                    self.product_metric_track[f"manufacture_{fea}"].append(val)
 
             if product.manufacture_id_index_tuple:
                 manufacture_index = product.manufacture_id_index_tuple[1]
@@ -806,6 +863,9 @@ class BalanceSheetCalculator:
                 * product.unit_storage_cost
             product_step_reward[i] += storage_reward
             product_balance_sheet_loss[i] += storage_reward
+
+            self.product_metric_track['unit_inventory_holding_cost'].append(product.unit_storage_cost)
+            self.product_metric_track['inventory_in_stock'].append(storages_product_map[product.storage_index][product.sku_id])
 
             if product.distribution_index is not None:
                 product_balance_sheet_profit[i] += product_distribution_balance_sheet_profit[i]
@@ -926,6 +986,10 @@ class BalanceSheetCalculator:
         # For distributions.
         # For vehicles.
         return result
+
+    def reset(self):
+        for key in self.product_metric_track.keys():
+            self.product_metric_track[key] = []
 
 
 def env_sampler_creator(policy_creator) -> SCEnvSampler:
