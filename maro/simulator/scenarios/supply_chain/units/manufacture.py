@@ -1,9 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from dataclasses import dataclass
 
-from .. import ManufactureAction, ManufactureDataModel
-from .extendunitbase import ExtendUnitBase
+from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
+from maro.simulator.scenarios.supply_chain.datamodels import ManufactureDataModel
+
+from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+
+
+@dataclass
+class ManufactureUnitInfo(ExtendUnitInfo):
+    pass
 
 
 class ManufactureUnit(ExtendUnitBase):
@@ -106,3 +114,8 @@ class ManufactureUnit(ExtendUnitBase):
 
         # Reset status in Python side.
         self._manufacture_quantity = 0
+
+    def get_unit_info(self) -> ManufactureUnitInfo:
+        return ManufactureUnitInfo(
+            **super(ManufactureUnit, self).get_unit_info().__dict__
+        )

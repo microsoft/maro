@@ -323,6 +323,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
+
             # Store experiences in the cache
             self._trans_cache.append(
                 CacheElement(
@@ -338,6 +339,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     },
                 )
             )
+
             # Update env and get new states (global & agent)
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
             self._state, self._agent_state_dict = (None, {}) if is_done \
@@ -348,6 +350,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         experiences = []
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
+            # !: Here the reward calculation method requires the given tick is enough and must be used then.
             reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
             self._post_step(cache_element, reward_dict)
             if len(self._trans_cache) > 0:

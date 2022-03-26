@@ -8,7 +8,7 @@ from maro.backends.frame import FrameBase
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from . import SupplyChainAction
+from .actions import SupplyChainAction
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ProductUnit, UnitBase
 from .world import SupplyChainEntity, World
@@ -56,8 +56,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for facility in self.world.facilities.values():
             facility.step(tick)
 
-        # TODO: confirm whether we can flush_state() immediately after the step()
         # Then flush states to frame before generate decision event.
+        # The processing logic requires that: DO NOT call flush_states() immediately after step().
+        # E.g. the ProductUnit.flush_states() should be called after the DistributionUnit.step().
         for facility in self.world.facilities.values():
             facility.flush_states()
 
@@ -126,7 +127,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     product.id: {
                         "sale_mean": product.get_sale_mean(),
                         "sale_std": product.get_sale_std(),
-                        "selling_price": product.get_selling_price(),
+                        "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
                             None if product.consumer is None else product.consumer.pending_order_daily,
                     } for product in self._product_units
@@ -135,7 +136,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     facility.id: {
                         "in_transit_orders": facility.get_in_transit_orders(),
                         "pending_order":
-                            None if facility.distribution is None else facility.distribution.get_pending_order(),
+                            None if facility.distribution is None
+                            else facility.distribution.get_pending_product_quantities(),
                     } for facility in self.world.facilities.values()
                 }
             }

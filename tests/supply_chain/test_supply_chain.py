@@ -1,6 +1,6 @@
 import os
 import unittest
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -10,6 +10,7 @@ from maro.simulator.scenarios.supply_chain import (
     VehicleUnit,
 )
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
+from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
 from maro.simulator.scenarios.supply_chain.units.order import Order
 from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 
@@ -63,7 +64,6 @@ class MyTestCase(unittest.TestCase):
         assert isinstance(be, SupplyChainBusinessEngine)
 
         storage_nodes = env.snapshot_list["storage"]
-        storage_features = ("id", "facility_id", "capacity", "remaining_space")
 
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
@@ -97,16 +97,17 @@ class MyTestCase(unittest.TestCase):
         ]))
 
         # try to find sku3's storage from env.summary
-        sku3_facility_info = env.summary["node_mapping"]["facilities"][sku3_facility_id]
-        sku3_storage_index = sku3_facility_info["units"]["storage"]["node_index"]
+        sku3_facility_info: FacilityInfo = env.summary["node_mapping"]["facilities"][sku3_facility_id]
+        sku3_storage_index = sku3_facility_info.storage_info.node_index
 
-        storage_states = storage_nodes[env.frame_index:sku3_storage_index:storage_features].flatten().astype(np.int)
+        capacities = storage_nodes[env.frame_index:sku3_storage_index:"capacity"].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
 
         # there should be 80 units been taken at the beginning according to the config file.
         # so remaining space should be 20
-        self.assertEqual(20, storage_states[3])
+        self.assertEqual(20, remaining_spaces.sum())
         # capacity is 100 by config
-        self.assertEqual(100, storage_states[2])
+        self.assertEqual(100, capacities.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku3_storage_index)
 
@@ -129,10 +130,10 @@ class MyTestCase(unittest.TestCase):
         # Sku3 produce rate is 1 per tick, so manufacture_quantity should be 1.
         self.assertEqual(1, states[2])
 
-        storage_states = storage_nodes[env.frame_index:sku3_storage_index:storage_features].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
 
         # now remaining space should be 19
-        self.assertEqual(19, storage_states[3])
+        self.assertEqual(19, remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku3_storage_index)
 
@@ -162,10 +163,10 @@ class MyTestCase(unittest.TestCase):
         # so manufacture_number should be 19 instead 20
         self.assertEqual(19, states[2])
 
-        storage_states = storage_nodes[env.frame_index:sku3_storage_index:storage_features].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
 
         # now remaining space should be 0
-        self.assertEqual(0, storage_states[3])
+        self.assertEqual(0, remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku3_storage_index)
 
@@ -180,7 +181,6 @@ class MyTestCase(unittest.TestCase):
         assert isinstance(be, SupplyChainBusinessEngine)
 
         storage_nodes = env.snapshot_list["storage"]
-        storage_features = ("id", "facility_id", "capacity", "remaining_space")
 
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
@@ -214,17 +214,16 @@ class MyTestCase(unittest.TestCase):
         ]))
 
         # try to find sku4's storage from env.summary
-        sku4_facility_info = env.summary["node_mapping"]["facilities"][sku4_facility_id]
-        sku4_storage_index = sku4_facility_info["units"]["storage"]["node_index"]
-
-        # the storage should be same as initialized (50 + 0).
-        storage_states = storage_nodes[env.frame_index:sku4_storage_index:storage_features].flatten().astype(np.int)
+        sku4_facility_info: FacilityInfo = env.summary["node_mapping"]["facilities"][sku4_facility_id]
+        sku4_storage_index = sku4_facility_info.storage_info.node_index
 
         # capacity is same as configured.
-        self.assertEqual(200, storage_states[2])
+        capacities = storage_nodes[env.frame_index:sku4_storage_index:"capacity"].flatten().astype(np.int)
+        self.assertEqual(200, capacities.sum())
 
         # remaining space should be capacity - (50+0)
-        self.assertEqual(200 - (50 + 0), storage_states[3])
+        remaining_spaces = storage_nodes[env.frame_index:sku4_storage_index:"remaining_space"].flatten().astype(np.int)
+        self.assertEqual(200 - (50 + 0), remaining_spaces.sum())
 
         # no manufacture number as we have not pass any action
         manufature_states = manufacture_nodes[
@@ -285,7 +284,6 @@ class MyTestCase(unittest.TestCase):
         assert isinstance(be, SupplyChainBusinessEngine)
 
         storage_nodes = env.snapshot_list["storage"]
-        storage_features = ("id", "facility_id", "capacity", "remaining_space")
 
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
@@ -317,23 +315,26 @@ class MyTestCase(unittest.TestCase):
             sku1_facility_id is not None
         ]))
 
-        sku1_facility_info = env.summary["node_mapping"]["facilities"][sku1_facility_id]
-        sku1_storage_index = sku1_facility_info["units"]["storage"]["node_index"]
+        sku1_facility_info: FacilityInfo = env.summary["node_mapping"]["facilities"][sku1_facility_id]
+        sku1_storage_index = sku1_facility_info.storage_info.node_index
 
         # ############################### TICK: 1 ######################################
 
         # ask sku1 manufacture start manufacturing, rate is 10.
         env.step([ManufactureAction(sku1_manufacture_id, 10)])
 
-        storage_states = storage_nodes[env.frame_index:sku1_storage_index:storage_features].flatten().astype(np.int)
         manufacture_states = manufacture_nodes[
-                             env.frame_index:sku1_data_model_index:manufacture_features].flatten().astype(np.int)
+            env.frame_index:sku1_data_model_index:manufacture_features
+        ].flatten().astype(np.int)
 
         # we can produce 4 sku1, as it will meet storage avg limitation per sku
         self.assertEqual(4, manufacture_states[2])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4*2))
-        self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), storage_states[3])
+        remaining_spaces = storage_nodes[
+            env.frame_index:sku1_data_model_index:"remaining_space"
+        ].flatten().astype(np.int)
+        self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku1_storage_index)
 
@@ -352,15 +353,18 @@ class MyTestCase(unittest.TestCase):
         while not is_done:
             _, _, is_done = env.step([ManufactureAction(sku1_storage_index, 20)])
 
-        storage_states = storage_nodes[env.frame_index:sku1_storage_index:storage_features].flatten().astype(np.int)
         manufacture_states = manufacture_nodes[
-                             env.frame_index:sku1_data_model_index:manufacture_features].flatten().astype(np.int)
+            env.frame_index:sku1_data_model_index:manufacture_features
+        ].flatten().astype(np.int)
 
         # but manufacture number is 0
         self.assertEqual(0, manufacture_states[2])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4*2))
-        self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), storage_states[3])
+        remaining_spaces = storage_nodes[
+            env.frame_index:sku1_storage_index:"remaining_space"
+        ].flatten().astype(np.int)
+        self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku1_storage_index)
 
@@ -464,7 +468,6 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         storage_nodes = env.snapshot_list["storage"]
-        storage_features = ("id", "capacity", "remaining_space")
 
         # find first storage unit id
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
@@ -472,17 +475,15 @@ class MyTestCase(unittest.TestCase):
         # get the unit reference from env internal
         storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
 
-        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
-
-        capacity = storage_states[1]
-        init_remaining_space = storage_states[2]
+        capacities = storage_nodes[env.frame_index:0:"capacity"].flatten().astype(np.int)
+        init_remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
 
         # try put products out of capacity with all_or_nothing == True
         products_to_put = {}
 
-        avg_max_product_quantity = init_remaining_space // len(init_product_dict)
+        avg_max_product_quantity = init_remaining_spaces.sum() // len(init_product_dict)
 
         for product_id in init_product_dict.keys():
             products_to_put[product_id] = avg_max_product_quantity + 1
@@ -493,7 +494,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, len(result))
 
         # so remaining space should not change
-        self.assertEqual(init_remaining_space, storage_unit.remaining_space)
+        self.assertEqual(init_remaining_spaces.sum(), storage_unit.remaining_space)
 
         # each product quantity should be same as before
         for product_id, product_quantity in init_product_dict.items():
@@ -508,15 +509,14 @@ class MyTestCase(unittest.TestCase):
         # take snapshot
         env.step(None)
 
-        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
-
         # remaining space in snapshot should be 0
-        self.assertEqual(0, storage_states[2])
+        remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
+        self.assertEqual(0, remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
 
         # total product quantity should be same as capacity
-        self.assertEqual(capacity, sum(product_dict.values()))
+        self.assertEqual(capacities.sum(), sum(product_dict.values()))
 
         # ###################################################
         # ###################################################
@@ -524,8 +524,8 @@ class MyTestCase(unittest.TestCase):
         env.reset()
 
         # check the state after reset
-        self.assertEqual(capacity, storage_unit.capacity)
-        self.assertEqual(init_remaining_space, storage_unit.remaining_space)
+        self.assertEqual(capacities.sum(), storage_unit.capacity)
+        self.assertEqual(init_remaining_spaces.sum(), storage_unit.remaining_space)
 
         for product_id, product_quantity in init_product_dict.items():
             self.assertEqual(product_quantity, storage_unit._product_level[product_id])
@@ -538,7 +538,6 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         storage_nodes = env.snapshot_list["storage"]
-        storage_features = ("id", "capacity", "remaining_space")
 
         # find first storage unit id
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
@@ -546,10 +545,8 @@ class MyTestCase(unittest.TestCase):
         # get the unit reference from env internal
         storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
 
-        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
-
-        capacity = storage_states[1]
-        init_remaining_space = storage_states[2]
+        capacities = storage_nodes[env.frame_index:0:"capacity"].flatten().astype(np.int)
+        init_remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
 
@@ -562,7 +559,7 @@ class MyTestCase(unittest.TestCase):
         self.assertFalse(storage_unit.try_take_products(product_to_take))
 
         # so remaining space and product quantity should same as before
-        self.assertEqual(init_remaining_space, storage_unit.remaining_space)
+        self.assertEqual(init_remaining_spaces.sum(), storage_unit.remaining_space)
 
         for product_id, product_quantity in init_product_dict.items():
             self.assertEqual(product_quantity, storage_unit._product_level[product_id])
@@ -574,15 +571,16 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(storage_unit.try_take_products(product_to_take))
 
         # now the remaining space should be same as capacity as we take all
-        self.assertEqual(capacity, storage_unit.remaining_space)
+        self.assertEqual(capacities.sum(), storage_unit.remaining_space)
 
         # take snapshot
         env.step(None)
 
-        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
+        capacities = storage_nodes[env.frame_index:0:"capacity"].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
 
         # remaining space should be same as capacity in snapshot
-        self.assertEqual(storage_states[1], storage_states[2])
+        self.assertEqual(capacities.sum(), remaining_spaces.sum())
 
     def test_storage_get_product_quantity(self):
         env = build_env("case_01", 100)
@@ -644,13 +642,14 @@ class MyTestCase(unittest.TestCase):
         sku3_product_unit_id: Optional[int] = None
         sku3_consumer_unit_id: Optional[int] = None
 
-        for _, facility_detail in env.summary["node_mapping"]["facilities"].items():
-            if facility_detail["name"] == "Supplier_SKU1":
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for facility_info in facility_info_dict.values():
+            if facility_info.name == "Supplier_SKU1":
                 # try to find sku3 consumer
-                sku3_consumer_unit_id = facility_detail["units"]["products"][SKU3_ID]["consumer"]["id"]
+                sku3_consumer_unit_id = facility_info.products_info[SKU3_ID].consumer_info.id
 
                 sku3_consumer_unit = be.world.get_entity_by_id(sku3_consumer_unit_id)
-                sku3_product_unit_id = facility_detail["units"]["products"][SKU3_ID]["id"]
+                sku3_product_unit_id = facility_info.products_info[SKU3_ID].id
 
         sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
@@ -663,20 +662,17 @@ class MyTestCase(unittest.TestCase):
         # check data model state
         # order cost from configuration
         self.assertEqual(200, sku3_consumer_unit.data_model.order_cost)
-        self.assertEqual(0, sku3_consumer_unit.data_model.total_purchased)
-        self.assertEqual(0, sku3_consumer_unit.data_model.total_received)
 
         # NOTE: 0 is an invalid(initial) id
         self.assertEqual(SKU3_ID, sku3_consumer_unit.data_model.product_id)
         self.assertEqual(sku3_consumer_unit_id, sku3_consumer_unit.data_model.id)
         self.assertEqual(sku3_product_unit_id, sku3_consumer_unit.data_model.product_unit_id)
-        self.assertEqual(0, sku3_consumer_unit.data_model.order_quantity)
         self.assertEqual(0, sku3_consumer_unit.data_model.purchased)
         self.assertEqual(0, sku3_consumer_unit.data_model.received)
         self.assertEqual(0, sku3_consumer_unit.data_model.order_product_cost)
 
         # check sources
-        for source_facility_id in sku3_consumer_unit.sources:
+        for source_facility_id in sku3_consumer_unit.source_facility_id_list:
             source_facility: FacilityBase = be.world.get_facility_by_id(source_facility_id)
 
             # check if source facility contains the sku3 config
@@ -690,9 +686,6 @@ class MyTestCase(unittest.TestCase):
             "facility_id",
             "product_id",
             "order_cost",
-            "total_purchased",
-            "total_received",
-            "order_quantity",
             "purchased",
             "received",
             "order_product_cost"
@@ -701,9 +694,6 @@ class MyTestCase(unittest.TestCase):
         consumer_nodes = env.snapshot_list["consumer"]
 
         states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
-
-        # Nothing happened at tick 0, so most states will be 0
-        self.assertTrue((states[4:] == 0).all())
 
         self.assertEqual(sku3_consumer_unit_id, states[0])
         self.assertEqual(SKU3_ID, states[2])
@@ -728,12 +718,13 @@ class MyTestCase(unittest.TestCase):
         sku3_consumer_unit: Optional[ConsumerUnit] = None
         sku3_supplier_facility_id: Optional[int] = None
 
-        for facility_id, facility_detail in env.summary["node_mapping"]["facilities"].items():
-            if facility_detail["name"] == "Supplier_SKU1":
-                sku3_consumer_unit_id = facility_detail["units"]["products"][SKU3_ID]["consumer"]["id"]
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for facility_info in facility_info_dict.values():
+            if facility_info.name == "Supplier_SKU1":
+                sku3_consumer_unit_id = facility_info.products_info[SKU3_ID].consumer_info.id
                 sku3_consumer_unit = be.world.get_entity_by_id(sku3_consumer_unit_id)
-            if facility_detail["name"] == "Supplier_SKU3":
-                sku3_supplier_facility_id = facility_detail["id"]
+            if facility_info.name == "Supplier_SKU3":
+                sku3_supplier_facility_id = facility_info.id
         self.assertTrue(all([
             sku3_consumer_unit_id is not None,
             sku3_consumer_unit is not None,
@@ -756,10 +747,7 @@ class MyTestCase(unittest.TestCase):
             "facility_id",
             "product_id",
             "order_cost",
-            "total_purchased",
-            "total_received",
             "product_id",
-            "order_quantity",
             "purchased",
             "received",
             "order_product_cost"
@@ -770,8 +758,8 @@ class MyTestCase(unittest.TestCase):
         states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
 
         # Nothing happened at tick 0, at the action will be recorded
-        self.assertEqual(action_with_zero.product_id, states[6])
-        self.assertEqual(action_with_zero.quantity, states[8])
+        self.assertEqual(action_with_zero.product_id, states[4])
+        self.assertEqual(action_with_zero.quantity, states[5])
 
         self.assertEqual(sku3_consumer_unit_id, states[0])
         self.assertEqual(SKU3_ID, states[2])
@@ -785,20 +773,14 @@ class MyTestCase(unittest.TestCase):
         states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
 
         # action field should be recorded
-        self.assertEqual(action.product_id, states[6])
-        self.assertEqual(action.quantity, states[8])
-
-        # total purchased should be same as purchased at this tick.
-        self.assertEqual(action.quantity, states[4])
-
-        # no received now
-        self.assertEqual(0, states[5])
+        self.assertEqual(action.product_id, states[4])
+        self.assertEqual(action.quantity, states[5])
 
         # purchased same as quantity
-        self.assertEqual(action.quantity, states[8])
+        self.assertEqual(action.quantity, states[5])
 
         # no receives
-        self.assertEqual(0, states[9])
+        self.assertEqual(0, states[6])
 
         # same action for next step, so total_XXX will be changed to double
         env.step([action])
@@ -806,20 +788,14 @@ class MyTestCase(unittest.TestCase):
         states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
 
         # action field should be recorded
-        self.assertEqual(action.product_id, states[6])
-        self.assertEqual(action.quantity, states[8])
-
-        # total purchased should be same as purchased at this tick.
-        self.assertEqual(action.quantity * 2, states[4])
-
-        # no received now
-        self.assertEqual(0, states[5])
+        self.assertEqual(action.product_id, states[4])
+        self.assertEqual(action.quantity, states[5])
 
         # purchased same as quantity
-        self.assertEqual(action.quantity, states[8])
+        self.assertEqual(action.quantity, states[5])
 
         # no receives
-        self.assertEqual(0, states[9])
+        self.assertEqual(0, states[6])
 
     def test_consumer_on_order_reception(self):
         env = build_env("case_01", 100)
@@ -830,12 +806,13 @@ class MyTestCase(unittest.TestCase):
         sku3_consumer_unit: Optional[ConsumerUnit] = None
         sku3_supplier_facility_id: Optional[int] = None
 
-        for facility_id, facility_detail in env.summary["node_mapping"]["facilities"].items():
-            if facility_detail["name"] == "Supplier_SKU1":
-                sku3_consumer_unit_id = facility_detail["units"]["products"][SKU3_ID]["consumer"]["id"]
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for facility_info in facility_info_dict.values():
+            if facility_info.name == "Supplier_SKU1":
+                sku3_consumer_unit_id = facility_info.products_info[SKU3_ID].consumer_info.id
                 sku3_consumer_unit = be.world.get_entity_by_id(sku3_consumer_unit_id)
-            if facility_detail["name"] == "Supplier_SKU3":
-                sku3_supplier_facility_id = facility_detail["id"]
+            if facility_info.name == "Supplier_SKU3":
+                sku3_supplier_facility_id = facility_info.id
         self.assertTrue(all([
             sku3_consumer_unit_id is not None,
             sku3_consumer_unit is not None,
@@ -895,8 +872,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, vehicle_unit.requested_quantity)
         # not destination at first
         self.assertIsNone(vehicle_unit._destination)
-        # no path
-        self.assertIsNone(vehicle_unit._path)
         # no product
         self.assertEqual(0, vehicle_unit.product_id)
         # no steps
@@ -904,9 +879,7 @@ class MyTestCase(unittest.TestCase):
         #
         self.assertEqual(0, vehicle_unit.payload)
         #
-        self.assertEqual(0, vehicle_unit._location)
-        #
-        self.assertEqual(0, vehicle_unit._velocity)
+        self.assertEqual(0, vehicle_unit._steps)
 
         # state in frame
         self.assertEqual(0, vehicle_unit.data_model.payload)
@@ -921,8 +894,6 @@ class MyTestCase(unittest.TestCase):
 
         # not destination at first
         self.assertIsNone(vehicle_unit._destination)
-        # no path
-        self.assertIsNone(vehicle_unit._path)
         # no product
         self.assertEqual(0, vehicle_unit.product_id)
         # no steps
@@ -930,9 +901,7 @@ class MyTestCase(unittest.TestCase):
         #
         self.assertEqual(0, vehicle_unit.payload)
         #
-        self.assertEqual(0, vehicle_unit._location)
-        #
-        self.assertEqual(0, vehicle_unit._velocity)
+        self.assertEqual(0, vehicle_unit._steps)
         #
         self.assertEqual(0, vehicle_unit.requested_quantity)
 
@@ -949,13 +918,14 @@ class MyTestCase(unittest.TestCase):
         vehicle_unit: Optional[VehicleUnit] = None
         dest_facility: Optional[FacilityBase] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Supplier_SKU3":
-                for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = be.world.get_entity_by_id(v["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Supplier_SKU3":
+                for v in info.distribution_info.children:
+                    vehicle_unit = be.world.get_entity_by_id(v.id)
 
-            if info["name"] == "Warehouse_001":
-                dest_facility = be.world.get_facility_by_id(info["id"])
+            if info.name == "Warehouse_001":
+                dest_facility = be.world.get_facility_by_id(info.id)
         self.assertTrue(all([vehicle_unit is not None, dest_facility is not None]))
 
         # make sure the upstream in the only one supplier in config
@@ -974,7 +944,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(dest_facility, vehicle_unit._destination)
         self.assertEqual(SKU3_ID, vehicle_unit.product_id)
         self.assertEqual(20, vehicle_unit.requested_quantity)
-        self.assertEqual(1, vehicle_unit._velocity)
         self.assertEqual(2, vehicle_unit._remaining_steps)
 
         features = (
@@ -1010,12 +979,10 @@ class MyTestCase(unittest.TestCase):
         # the product is unloaded, vehicle states will be reset to initial
         # not destination at first
         self.assertIsNone(vehicle_unit._destination)
-        self.assertIsNone(vehicle_unit._path)
         self.assertEqual(0, vehicle_unit.product_id)
         self.assertEqual(0, vehicle_unit._remaining_steps)
         self.assertEqual(0, vehicle_unit.payload)
-        self.assertEqual(0, vehicle_unit._location)
-        self.assertEqual(0, vehicle_unit._velocity)
+        self.assertEqual(0, vehicle_unit._steps)
         self.assertEqual(0, vehicle_unit.requested_quantity)
 
         # check states
@@ -1034,13 +1001,14 @@ class MyTestCase(unittest.TestCase):
         vehicle_unit: Optional[VehicleUnit] = None
         dest_facility: Optional[FacilityBase] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Supplier_SKU3":
-                for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = be.world.get_entity_by_id(v["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Supplier_SKU3":
+                for v in info.distribution_info.children:
+                    vehicle_unit = be.world.get_entity_by_id(v.id)
 
-            if info["name"] == "Warehouse_001":
-                dest_facility = be.world.get_facility_by_id(info["id"])
+            if info.name == "Warehouse_001":
+                dest_facility = be.world.get_facility_by_id(info.id)
         self.assertTrue(all([vehicle_unit is not None, dest_facility is not None]))
 
         # there is 80 sku3 in supplier, lets schedule a job for 100, to make sure it will fail to try load
@@ -1085,12 +1053,10 @@ class MyTestCase(unittest.TestCase):
         # the product is unloaded, vehicle states will be reset to initial
         # not destination at first
         self.assertIsNone(vehicle_unit._destination)
-        self.assertIsNone(vehicle_unit._path)
         self.assertEqual(0, vehicle_unit.product_id)
         self.assertEqual(0, vehicle_unit._remaining_steps)
         self.assertEqual(0, vehicle_unit.payload)
-        self.assertEqual(0, vehicle_unit._location)
-        self.assertEqual(0, vehicle_unit._velocity)
+        self.assertEqual(0, vehicle_unit._steps)
         self.assertEqual(0, vehicle_unit.requested_quantity)
 
         # check states
@@ -1111,13 +1077,14 @@ class MyTestCase(unittest.TestCase):
         vehicle_unit: Optional[VehicleUnit] = None
         dest_facility: Optional[FacilityBase] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Supplier_SKU3":
-                for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = be.world.get_entity_by_id(v["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Supplier_SKU3":
+                for v in info.distribution_info.children:
+                    vehicle_unit = be.world.get_entity_by_id(v.id)
 
-            if info["name"] == "Warehouse_001":
-                dest_facility = be.world.get_facility_by_id(info["id"])
+            if info.name == "Warehouse_001":
+                dest_facility = be.world.get_facility_by_id(info.id)
         self.assertTrue(all([vehicle_unit is not None, dest_facility is not None]))
 
         # move all 80 sku3 to destination, will cause vehicle keep waiting there
@@ -1155,12 +1122,13 @@ class MyTestCase(unittest.TestCase):
         dist_unit: Optional[DistributionUnit] = None
         dest_facility: Optional[FacilityBase] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Supplier_SKU3":
-                dist_unit = be.world.get_entity_by_id(info["units"]["distribution"]["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Supplier_SKU3":
+                dist_unit = be.world.get_entity_by_id(info.distribution_info.id)
 
-            if info["name"] == "Warehouse_001":
-                dest_facility = be.world.get_facility_by_id(info["id"])
+            if info.name == "Warehouse_001":
+                dest_facility = be.world.get_facility_by_id(info.id)
         self.assertTrue(all([dist_unit is not None, dest_facility is not None]))
 
         self.assertEqual(0, len(dist_unit._order_queue))
@@ -1179,12 +1147,13 @@ class MyTestCase(unittest.TestCase):
         dist_unit: Optional[DistributionUnit] = None
         dest_facility: Optional[FacilityBase] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Supplier_SKU3":
-                dist_unit = be.world.get_entity_by_id(info["units"]["distribution"]["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Supplier_SKU3":
+                dist_unit = be.world.get_entity_by_id(info.distribution_info.id)
 
-            if info["name"] == "Warehouse_001":
-                dest_facility = be.world.get_facility_by_id(info["id"])
+            if info.name == "Warehouse_001":
+                dest_facility = be.world.get_facility_by_id(info.id)
         self.assertTrue(all([dist_unit is not None, dest_facility is not None]))
 
         first_vehicle: VehicleUnit = dist_unit.vehicles[0]
@@ -1197,7 +1166,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(1, len(dist_unit._order_queue))
 
         # check get pending order correct
-        pending_order = dist_unit.get_pending_order()
+        pending_order = dist_unit.get_pending_product_quantities()
 
         self.assertDictEqual({3: 10}, pending_order)
 
@@ -1207,7 +1176,6 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(dest_facility, first_vehicle._destination)
         self.assertEqual(10, first_vehicle.requested_quantity)
-        self.assertEqual(1, first_vehicle._velocity)
         self.assertEqual(SKU3_ID, first_vehicle.product_id)
 
         # since we already test vehicle unit, do not check the it again here
@@ -1215,14 +1183,14 @@ class MyTestCase(unittest.TestCase):
         # add another order to check pending order
         dist_unit.place_order(order)
 
-        pending_order = dist_unit.get_pending_order()
+        pending_order = dist_unit.get_pending_product_quantities()
 
         self.assertDictEqual({3: 10}, pending_order)
 
         # another order, will cause the pending order increase
         dist_unit.place_order(order)
 
-        pending_order = dist_unit.get_pending_order()
+        pending_order = dist_unit.get_pending_product_quantities()
 
         # 2 pending orders
         self.assertDictEqual({3: 20}, pending_order)
@@ -1235,7 +1203,6 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(dest_facility, second_vehicle._destination)
         self.assertEqual(10, second_vehicle.requested_quantity)
-        self.assertEqual(1, second_vehicle._velocity)
         self.assertEqual(SKU3_ID, second_vehicle.product_id)
 
     """
@@ -1253,11 +1220,12 @@ class MyTestCase(unittest.TestCase):
         # find seller for sku3 from retailer facility
         sell_unit: Optional[SellerUnit] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Retailer_001":
-                for pid, pdetail in info["units"]["products"].items():
-                    if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = be.world.get_entity_by_id(pdetail["seller"]["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Retailer_001":
+                for pinfo in info.products_info.values():
+                    if pinfo.product_id == SKU3_ID:
+                        sell_unit = be.world.get_entity_by_id(pinfo.seller_info.id)
         self.assertTrue(sell_unit is not None)
 
         # from configuration
@@ -1297,11 +1265,12 @@ class MyTestCase(unittest.TestCase):
         # find seller for sku3 from retailer facility
         sell_unit: Optional[SellerUnit] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Retailer_001":
-                for pid, pdetail in info["units"]["products"].items():
-                    if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = be.world.get_entity_by_id(pdetail["seller"]["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Retailer_001":
+                for pinfo in info.products_info.values():
+                    if pinfo.product_id == SKU3_ID:
+                        sell_unit = be.world.get_entity_by_id(pinfo.seller_info.id)
         self.assertTrue(sell_unit is not None)
 
         sku3_init_quantity = sell_unit.facility.skus[SKU3_ID].init_stock
@@ -1360,11 +1329,12 @@ class MyTestCase(unittest.TestCase):
         # find seller for sku3 from retailer facility
         sell_unit: Optional[SellerUnit] = None
 
-        for _, info in env.summary["node_mapping"]["facilities"].items():
-            if info["name"] == "Retailer_001":
-                for pid, pdetail in info["units"]["products"].items():
-                    if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = be.world.get_entity_by_id(pdetail["seller"]["id"])
+        facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+        for info in facility_info_dict.values():
+            if info.name == "Retailer_001":
+                for pinfo in info.products_info.values():
+                    if pinfo.product_id == SKU3_ID:
+                        sell_unit = be.world.get_entity_by_id(pinfo.seller_info.id)
         self.assertTrue(sell_unit is not None)
 
         # NOTE:

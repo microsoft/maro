@@ -1165,7 +1165,7 @@ Transport cost per product.
 distribution
 ++++++++++++
 
-remaining_order_quantity
+pending_product_quantity
 ************************
 
 type: unsigned int
@@ -1173,7 +1173,7 @@ slots: 1
 
 Sum of product number in current order list for now.
 
-remaining_order_number
+pending_order_number
 **********************
 
 type: unsigned int
@@ -1183,22 +1183,6 @@ How many pending order for now.
 
 consumer
 ++++++++
-
-total_purchased
-***************
-
-type: unsigned int
-slots: 1
-
-How many products this node purchased from start to now.
-
-total_received
-**************
-
-type: unsigned int
-slots: 1
-
-How many products this node received from start to now.
 
 purchased
 *********
@@ -1231,14 +1215,6 @@ type: float
 slots: 1
 
 Per tick states. Consumption of current tick, 1.0 if there is purchase, or 0.
-
-order_quantity
-**************
-
-type: unsigned int
-slots: 1
-
-How many product to order, from action.
 
 price
 *****

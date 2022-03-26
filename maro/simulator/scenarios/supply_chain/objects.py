@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from dataclasses import dataclass
 from typing import Optional
 
+from .units.storage import DEFAULT_SUB_STORAGE_ID
 
-from maro.simulator.scenarios.supply_chain.units.storage import DEFAULT_SUB_STORAGE_ID
 
 @dataclass
 class SkuMeta:

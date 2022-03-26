@@ -10,12 +10,11 @@ import networkx as nx
 
 from maro.backends.frame import FrameBase
 
-from . import ProductUnit
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .objects import SkuInfo, SkuMeta
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
-from .units import ExtendUnitBase, UnitBase
+from .units import ExtendUnitBase, ProductUnit, UnitBase
 
 
 @dataclass
