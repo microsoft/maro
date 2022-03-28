@@ -222,6 +222,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
+        self._rl_policy_dict: Dict[str, AbsPolicy] = {
+            name: policy for name, policy in self._policy_dict.items() if isinstance(policy, RLPolicy)
+        }
         self._agent2policy = agent2policy
         self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
         if trainable_policies is None:
@@ -239,6 +242,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._reward_eval_delay = reward_eval_delay
 
         self._info = {}
+
+    @property
+    def rl_policy_dict(self) -> Dict[str, RLPolicy]:
+        return self._rl_policy_dict
 
     @abstractmethod
     def _get_global_and_agent_state(
@@ -450,7 +457,3 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     @abstractmethod
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError
-
-    def to_device(self):
-        """Move the policy instances to user-specified (GPU) devices"""
-        pass

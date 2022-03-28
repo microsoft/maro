@@ -1,9 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable
+from typing import Callable, Dict
 
 from maro.rl.distributed import AbsWorker
+from maro.rl.policy import RLPolicy
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.utils import LoggerV2
 
@@ -20,6 +21,9 @@ class RolloutWorker(AbsWorker):
             for roll-out purposes.
         producer_host (str): IP address of the parallel task controller host to connect to.
         producer_port (int, default=20000): Port of the parallel task controller host to connect to.
+        device_allocator (Callable[[Dict[str, RLPolicy]], None], default=None): User-defined device allocation function
+            for RL policies. This function takes a dictionary of policies as the sole parameter and specifies compute
+            devices for them.
         logger (LoggerV2, default=None): The logger of the workflow.
     """
 
@@ -29,13 +33,16 @@ class RolloutWorker(AbsWorker):
         env_sampler_creator: Callable[[], AbsEnvSampler],
         producer_host: str,
         producer_port: int = 20000,
+        device_allocator: Callable[[Dict[str, RLPolicy]], None] = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(RolloutWorker, self).__init__(
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
         self._env_sampler = env_sampler_creator()
-        self._env_sampler.to_device()
+        if device_allocator:
+            device_allocator(self._env_sampler.rl_policy_dict)
+            self._logger.info(f"Device allocation complete for worker {self._id}")
 
     def _compute(self, msg: list) -> None:
         """Perform a full or partial episode of roll-out for sampling or evaluation.

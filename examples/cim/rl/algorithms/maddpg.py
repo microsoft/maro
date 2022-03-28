@@ -122,11 +122,10 @@ def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGrad
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 
-def get_maddpg(state_dim: int, action_dims: List[int], device: str, name: str) -> DiscreteMADDPGTrainer:
+def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMADDPGTrainer:
     return DiscreteMADDPGTrainer(
         name=name,
         params=DiscreteMADDPGParams(
-            device="cpu",
             reward_discount=.0,
             num_epoch=10,
             get_q_critic_net_func=partial(get_multi_critic_net, state_dim, action_dims),

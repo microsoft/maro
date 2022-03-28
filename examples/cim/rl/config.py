@@ -40,10 +40,3 @@ state_dim = (
 )
 
 algorithm = "ac"  # ac, ppo, dqn or discrete_maddpg
-
-device_mapping = [
-    "cuda:2",
-    "cuda:1",
-    "cuda:3",
-    "cuda:0"
-]

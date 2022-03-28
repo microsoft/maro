@@ -101,7 +101,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         """
         self._policy.set_state(policy_state)
 
-    def to_device(self, device):
+    def to_device(self, device: str):
         pass
 
 

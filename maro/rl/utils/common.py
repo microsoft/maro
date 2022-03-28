@@ -61,7 +61,18 @@ def bytes_to_pyobj(bytes_: bytes) -> object:
 
 
 def get_own_ip_address() -> str:
-    return socket.gethostbyname(socket.gethostname())
+    """https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib"""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(0)
+    try:
+        # doesn't even have to be reachable
+        sock.connect(("10.255.255.255", 1))
+        ip = sock.getsockname()[0]
+    except Exception:
+        ip = "127.0.0.1"
+    finally:
+        sock.close()
+    return ip
 
 
 def get_ip_address_by_hostname(host: str) -> str:

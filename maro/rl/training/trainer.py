@@ -183,9 +183,6 @@ class AbsTrainer(object, metaclass=ABCMeta):
     async def exit(self) -> None:
         raise NotImplementedError
 
-    def to_device(self):
-        pass
-
 
 class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy.

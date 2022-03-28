@@ -24,10 +24,6 @@ def main(scenario: Scenario) -> None:
         file_level=get_env("LOG_LEVEL_FILE", required=False, default="CRITICAL"),
     )
 
-    load_path = get_env("LOAD_PATH", required=False)
-    checkpoint_path = get_env("CHECKPOINT_PATH", required=False)
-    checkpoint_interval = int_or_none(get_env("CHECKPOINT_INTERVAL", required=False))
-
     env_sampling_parallelism = int_or_none(get_env("ENV_SAMPLE_PARALLELISM", required=False))
     env_eval_parallelism = int_or_none(get_env("ENV_EVAL_PARALLELISM", required=False))
     parallel_rollout = env_sampling_parallelism is not None or env_eval_parallelism is not None
@@ -72,16 +68,21 @@ def main(scenario: Scenario) -> None:
         policy_creator=trainable_policy_creator,
         trainer_creator=trainer_creator,
         agent2policy=trainable_agent2policy,
+        device_allocator=scenario.training_device_allocator if train_mode == "simple" else None,
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
         ),
         logger=logger,
     )
+
+    load_path = get_env("LOAD_PATH", required=False)
     if load_path:
         assert isinstance(load_path, str)
         loaded = training_manager.load(load_path)
         logger.info(f"Loaded states for {loaded} from {load_path}")
 
+    checkpoint_path = get_env("CHECKPOINT_PATH", required=False)
+    checkpoint_interval = int_or_none(get_env("CHECKPOINT_INTERVAL", required=False))
     # main loop
     for ep in range(1, num_episodes + 1):
         collect_time = training_time = 0

@@ -79,12 +79,8 @@ def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
     )
 
 
-def get_dqn(device: str, name: str) -> DQNTrainer:
-    class MyDQNTrainer(DQNTrainer):
-        def to_device(self):
-            self.ops.to_device(device)
-
-    return MyDQNTrainer(
+def get_dqn(name: str) -> DQNTrainer:
+    return DQNTrainer(
         name=name,
         params=DQNParams(
             reward_discount=.0,

@@ -115,12 +115,8 @@ def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGrad
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 
-def get_ac(state_dim: int, device: str, name: str) -> DiscreteActorCriticTrainer:
-    class MyACTrainer(DiscreteActorCriticTrainer):
-        def to_device(self):
-            self.ops.to_device(device)
-
-    return MyACTrainer(
+def get_ac(state_dim: int, name: str) -> DiscreteActorCriticTrainer:
+    return DiscreteActorCriticTrainer(
         name=name,
         params=DiscreteActorCriticParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
