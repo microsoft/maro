@@ -55,7 +55,7 @@ class TrainingManager(object):
             trainer.build()  # `build()` must be called after `register_policy_creator()`
             self._trainer_dict[trainer_name] = trainer
 
-        # User-defined allocation of compute devices, i.e., GPU's to the trainer ops 
+        # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
         if device_allocator:
             device_allocator(self._trainer_dict)
 
