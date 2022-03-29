@@ -98,7 +98,7 @@ class DDPGOps(AbsTrainOps):
         Returns:
             loss (torch.Tensor): The critic loss of the batch.
         """
-        assert self._is_valid_transition_batch(batch)
+        assert isinstance(batch, TransitionBatch)
         self._q_critic_net.train()
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
         next_states = ndarray_to_tensor(batch.next_states, device=self._device)  # s'
@@ -156,7 +156,7 @@ class DDPGOps(AbsTrainOps):
         Returns:
             loss (torch.Tensor): The actor loss of the batch.
         """
-        assert self._is_valid_transition_batch(batch)
+        assert isinstance(batch, TransitionBatch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
 
@@ -237,12 +237,10 @@ class DDPGTrainer(SingleAgentTrainer):
         super(DDPGTrainer, self).__init__(name, params)
         self._params = params
         self._policy_version = self._target_policy_version = 0
-        self._ops_name = f"{self._name}.ops"
-
         self._replay_memory: Optional[RandomReplayMemory] = None
 
     def build(self) -> None:
-        self._ops = self.get_ops(self._ops_name)
+        self._ops = self.get_ops()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
@@ -264,9 +262,11 @@ class DDPGTrainer(SingleAgentTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+    def _get_local_ops(self) -> AbsTrainOps:
         return DDPGOps(
-            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            name=self._policy_name,
+            policy_creator=self._policy_creator,
+            parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )
 

@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, Iterable, List, Tuple
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import ExpElement
+from maro.rl.training import SingleAgentTrainer
 from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
@@ -23,9 +24,8 @@ class TrainingManager(object):
         policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
         agent2policy (Dict[Any, str]): Agent name to policy name mapping.
-        device_allocator (Callable[[Dict[str, AbsTrainer]], None], default=None): User-defined device allocation
-            function for trainer ops. This function takes a dictionary of trainers as the sole parameter and specifies
-            compute devices for the individual ops of each trainer.
+        device_mapping (Dict[str, str], default={}): User-defined device mapping from policy name to pytorch
+            device name.
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
             it is registered to all trainers, which in turn create `RemoteOps` for distributed training.
         logger (LoggerV2, default=None): A logger for logging key events.
@@ -36,7 +36,7 @@ class TrainingManager(object):
         policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        device_allocator: Callable[[Dict[str, AbsTrainer]], None] = None,
+        device_mapping: Dict[str, str] = {},
         proxy_address: Tuple[str, int] = None,
         logger: LoggerV2 = None,
     ) -> None:
@@ -56,8 +56,10 @@ class TrainingManager(object):
             self._trainer_dict[trainer_name] = trainer
 
         # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
-        if device_allocator:
-            device_allocator(self._trainer_dict)
+        for policy_name, device_name in device_mapping.items():
+            trainer = self._trainer_dict[extract_trainer_name(policy_name)]
+            ops = trainer.ops if isinstance(trainer, SingleAgentTrainer) else trainer.ops_dict[policy_name]
+            ops.to_device(device_name)
 
         self._agent2trainer: Dict[Any, str] = {}
         for agent_name, policy_name in self._agent2policy.items():

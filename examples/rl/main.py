@@ -45,7 +45,7 @@ if __name__ == "__main__":
         trainable_policy_creator,
         trainer_creator,
         trainable_agent2policy,
-        device_allocator=scenario.training_device_allocator,
+        device_mapping=scenario.device_mapping,
         logger=logger
     )
 

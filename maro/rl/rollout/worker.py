@@ -21,9 +21,6 @@ class RolloutWorker(AbsWorker):
             for roll-out purposes.
         producer_host (str): IP address of the parallel task controller host to connect to.
         producer_port (int, default=20000): Port of the parallel task controller host to connect to.
-        device_allocator (Callable[[Dict[str, RLPolicy]], None], default=None): User-defined device allocation function
-            for RL policies. This function takes a dictionary of policies as the sole parameter and specifies compute
-            devices for them.
         logger (LoggerV2, default=None): The logger of the workflow.
     """
 
@@ -33,16 +30,12 @@ class RolloutWorker(AbsWorker):
         env_sampler_creator: Callable[[], AbsEnvSampler],
         producer_host: str,
         producer_port: int = 20000,
-        device_allocator: Callable[[Dict[str, RLPolicy]], None] = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(RolloutWorker, self).__init__(
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
         self._env_sampler = env_sampler_creator()
-        if device_allocator:
-            device_allocator(self._env_sampler.rl_policy_dict)
-            self._logger.info(f"Device allocation complete for worker {self._id}")
 
     def _compute(self, msg: list) -> None:
         """Perform a full or partial episode of roll-out for sampling or evaluation.

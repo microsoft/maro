@@ -51,6 +51,9 @@ def main(scenario: Scenario) -> None:
         )
     else:
         env_sampler = scenario.env_sampler_creator(policy_creator)
+        if train_mode != "simple":
+            for policy_name, device_name in scenario.device_mapping.items():
+                env_sampler.rl_policy_dict[policy_name].to_device(device_name)
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
@@ -68,7 +71,7 @@ def main(scenario: Scenario) -> None:
         policy_creator=trainable_policy_creator,
         trainer_creator=trainer_creator,
         agent2policy=trainable_agent2policy,
-        device_allocator=scenario.training_device_allocator if train_mode == "simple" else None,
+        device_mapping=scenario.device_mapping if train_mode == "simple" else {},
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
         ),

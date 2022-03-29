@@ -46,7 +46,7 @@ class DiscreteACBasedOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        get_policy_func: Callable[[], DiscretePolicyGradient],
+        policy_creator: Callable[[str], DiscretePolicyGradient],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         *,
@@ -58,8 +58,7 @@ class DiscreteACBasedOps(AbsTrainOps):
     ) -> None:
         super(DiscreteACBasedOps, self).__init__(
             name=name,
-            is_single_scenario=True,
-            get_policy_func=get_policy_func,
+            policy_creator=policy_creator,
             parallelism=parallelism,
         )
 
@@ -200,7 +199,7 @@ class DiscreteACBasedOps(AbsTrainOps):
         Returns:
             The updated batch.
         """
-        assert self._is_valid_transition_batch(batch)
+        assert isinstance(batch, TransitionBatch)
         # Preprocess returns
         batch.calc_returns(self._reward_discount)
 
@@ -243,12 +242,10 @@ class DiscreteACBasedTrainer(SingleAgentTrainer):
     def __init__(self, name: str, params: DiscreteACBasedParams) -> None:
         super(DiscreteACBasedTrainer, self).__init__(name, params)
         self._params = params
-        self._ops_name = f"{self._name}.ops"
-
         self._replay_memory_dict: Dict[Any, FIFOReplayMemory] = {}
 
     def build(self) -> None:
-        self._ops = self.get_ops(self._ops_name)
+        self._ops = self.get_ops()
         self._replay_memory_dict = collections.defaultdict(lambda: FIFOReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
@@ -270,9 +267,11 @@ class DiscreteACBasedTrainer(SingleAgentTrainer):
             )
             memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+    def get_local_ops(self) -> AbsTrainOps:
         return DiscreteACBasedOps(
-            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            name=self._policy_name,
+            policy_creator=self._policy_creator,
+            parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )
 

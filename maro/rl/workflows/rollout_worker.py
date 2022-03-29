@@ -25,7 +25,6 @@ if __name__ == "__main__":
         env_sampler_creator=partial(scenario.env_sampler_creator, policy_creator),
         producer_host=get_env("ROLLOUT_CONTROLLER_HOST"),
         producer_port=int_or_none(get_env("ROLLOUT_CONTROLLER_PORT")),
-        device_allocator=scenario.rollout_device_allocator,
         logger=logger,
     )
     worker.start()

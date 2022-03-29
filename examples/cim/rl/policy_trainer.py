@@ -27,3 +27,7 @@ elif algorithm == "discrete_maddpg":
     trainer_creator = {f"discrete_maddpg_{i}": partial(get_maddpg, state_dim, [1]) for i in range(num_agents)}
 else:
     raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+device_mapping = {
+    f"ac_{i}.policy": f"cuda:{i}" for i in range(num_agents)
+}

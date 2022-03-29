@@ -61,7 +61,8 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     def __init__(self, name: str, params: TrainerParams) -> None:
         self._name = name
-        self._batch_size = params.batch_size
+        self._params = params
+        self._batch_size = self._params.batch_size
         self._agent2policy: Dict[Any, str] = {}
         self._proxy_address: Optional[Tuple[str, int]] = None
         self._logger = None
@@ -86,8 +87,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
             agent2policy (Dict[Any, str]): Agent name to policy name mapping.
         """
         self._agent2policy = {
-            agent_name: policy_name
-            for agent_name, policy_name in agent2policy.items()
+            agent_name: policy_name for agent_name, policy_name in agent2policy.items()
             if extract_trainer_name(policy_name) == self.name
         }
 
@@ -137,32 +137,6 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._proxy_address = proxy_address
 
     @abstractmethod
-    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
-        """Create an `AbsTrainOps` instance with a given name.
-
-        Args:
-            name (str): Ops name.
-
-        Returns:
-            ops (AbsTrainOps): The local ops.
-        """
-        raise NotImplementedError
-
-    def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
-        """Create an `AbsTrainOps` instance with a given name. If a proxy address has been registered to the trainer,
-        this returns a `RemoteOps` instance in which all methods annotated as "remote" are turned into a remote method
-        call. Otherwise, a regular `AbsTrainOps` is returned.
-
-        Args:
-            name (str): Ops name.
-
-        Returns:
-            ops (Union[RemoteOps, AbsTrainOps]): The ops.
-        """
-        ops = self.get_local_ops_by_name(name)
-        return RemoteOps(ops, self._proxy_address, logger=self._logger) if self._proxy_address else ops
-
-    @abstractmethod
     def get_policy_state(self) -> Dict[str, object]:
         """Get policies' states.
 
@@ -190,33 +164,46 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def __init__(self, name: str, params: TrainerParams) -> None:
         super(SingleAgentTrainer, self).__init__(name, params)
-
-        self._ops: Union[RemoteOps, None] = None  # To be created in `build()`
-
-        self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
-        self._policy_name: Optional[str] = None
-        self._get_policy_func: Optional[Callable] = None
+        self._policy_name: str = None
+        self._policy_creator: Callable[[str], AbsPolicy] = None
+        self._ops: AbsTrainOps = None
 
     @property
-    def ops(self) -> AbsTrainOps:
+    def ops(self):
         return self._ops
 
     def register_policy_creator(
         self,
         global_policy_creator: Dict[str, Callable[[str], AbsPolicy]],
     ) -> None:
-        self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
-            policy_name: func for policy_name, func in global_policy_creator.items()
-            if extract_trainer_name(policy_name) == self.name
-        }
+        policy_names = [
+            policy_name for policy_name in global_policy_creator if extract_trainer_name(policy_name) == self.name
+        ]
+        if len(policy_names) != 1:
+            raise ValueError(f"Trainer {self._name} should have exactly one policy assigned to it")
 
-        if len(self._policy_creator) == 0:
-            raise ValueError(f"Trainer {self._name} has no policies")
-        if len(self._policy_creator) > 1:
-            raise ValueError(f"Trainer {self._name} cannot have more than one policy assigned to it")
+        self._policy_name = policy_names.pop()
+        self._policy_creator = global_policy_creator[self._policy_name]
 
-        self._policy_name = list(self._policy_creator.keys())[0]
-        self._get_policy_func = lambda: self._policy_creator[self._policy_name](self._policy_name)
+    @abstractmethod
+    def get_local_ops(self) -> AbsTrainOps:
+        """Create an `AbsTrainOps` instance associated with the policy.
+
+        Returns:
+            ops (AbsTrainOps): The local ops.
+        """
+        raise NotImplementedError
+
+    def get_ops(self) -> Union[RemoteOps, AbsTrainOps]:
+        """Create an `AbsTrainOps` instance associated with the policy. If a proxy address has been registered to the
+        trainer, this returns a `RemoteOps` instance in which all methods annotated as "remote" are turned into a remote
+        method call. Otherwise, a regular `AbsTrainOps` is returned.
+
+        Returns:
+            ops (Union[RemoteOps, AbsTrainOps]): The ops.
+        """
+        ops = self.get_local_ops()
+        return RemoteOps(ops, self._proxy_address, logger=self._logger) if self._proxy_address else ops
 
     def get_policy_state(self) -> Dict[str, object]:
         self._assert_ops_exists()
@@ -236,6 +223,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
             raise ValueError("'build' needs to be called to create an ops instance first.")
 
     async def exit(self) -> None:
+        self._assert_ops_exists()
         if isinstance(self._ops, RemoteOps):
             await self._ops.exit()
 
@@ -248,10 +236,10 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         super(MultiAgentTrainer, self).__init__(name, params)
         self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
         self._policy_names: List[str] = []
-        self._ops_dict = {}
+        self._ops_dict: Dict[str, AbsTrainOps] = {}
 
     @property
-    def ops_dict(self) -> Dict[str, AbsTrainOps]:
+    def ops_dict(self):
         return self._ops_dict
 
     def register_policy_creator(
@@ -262,7 +250,33 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
             policy_name: func for policy_name, func in global_policy_creator.items()
             if extract_trainer_name(policy_name) == self.name
         }
-        self._policy_names = sorted(list(self._policy_creator.keys()))
+        self._policy_names = list(self._policy_creator.keys())
+
+    @abstractmethod
+    def get_local_ops(self, name: str) -> AbsTrainOps:
+        """Create an `AbsTrainOps` instance with a given name.
+
+        Args:
+            name (str): Ops name.
+
+        Returns:
+            ops (AbsTrainOps): The local ops.
+        """
+        raise NotImplementedError
+
+    def get_ops(self, name: str) -> Union[RemoteOps, AbsTrainOps]:
+        """Create an `AbsTrainOps` instance with a given name. If a proxy address has been registered to the trainer,
+        this returns a `RemoteOps` instance in which all methods annotated as "remote" are turned into a remote method
+        call. Otherwise, a regular `AbsTrainOps` is returned.
+
+        Args:
+            name (str): Ops name.
+
+        Returns:
+            ops (Union[RemoteOps, AbsTrainOps]): The ops.
+        """
+        ops = self.get_local_ops(name)
+        return RemoteOps(ops, self._proxy_address, logger=self._logger) if self._proxy_address else ops
 
     @abstractmethod
     def get_policy_state(self) -> Dict[str, object]:

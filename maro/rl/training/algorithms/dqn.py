@@ -48,7 +48,7 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        get_policy_func: Callable[[], ValueBasedPolicy],
+        policy_creator: Callable[[str], ValueBasedPolicy],
         parallelism: int = 1,
         *,
         reward_discount: float = 0.9,
@@ -57,8 +57,7 @@ class DQNOps(AbsTrainOps):
     ) -> None:
         super(DQNOps, self).__init__(
             name=name,
-            is_single_scenario=True,
-            get_policy_func=get_policy_func,
+            policy_creator=policy_creator,
             parallelism=parallelism,
         )
 
@@ -82,7 +81,7 @@ class DQNOps(AbsTrainOps):
         Returns:
             loss (torch.Tensor): The loss of the batch.
         """
-        assert self._is_valid_transition_batch(batch)
+        assert isinstance(batch, TransitionBatch)
         self._policy.train()
         states = ndarray_to_tensor(batch.states, device=self._device)
         next_states = ndarray_to_tensor(batch.next_states, device=self._device)
@@ -165,12 +164,10 @@ class DQNTrainer(SingleAgentTrainer):
         super(DQNTrainer, self).__init__(name, params)
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
-        self._ops_name = f"{self._name}.ops"
-
         self._replay_memory: Optional[RandomReplayMemory] = None
 
     def build(self) -> None:
-        self._ops = self.get_ops(self._ops_name)
+        self._ops = self.get_ops()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
@@ -192,10 +189,10 @@ class DQNTrainer(SingleAgentTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+    def _get_local_ops(self) -> AbsTrainOps:
         return DQNOps(
-            name=name,
-            get_policy_func=self._get_policy_func,
+            name=self._policy_name,
+            policy_creator=self._policy_creator,
             parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )

@@ -234,6 +234,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._trainable_agents = {
             agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
         }
+
         # Global state & agent state
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
