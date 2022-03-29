@@ -89,6 +89,8 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._update_target_every = update_target_every
         self._soft_update_coef = soft_update_coef
 
+        self._device = None
+
     def get_target_action(self, batch: MultiTransitionBatch) -> torch.Tensor:
         """Get the target policies' actions according to the batch.
 
