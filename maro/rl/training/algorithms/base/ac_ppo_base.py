@@ -133,16 +133,11 @@ class DiscreteACBasedOps(AbsTrainOps):
         actions = ndarray_to_tensor(batch.actions, device=self._device).long()  # a
         advantages = ndarray_to_tensor(batch.advantages, device=self._device)
 
-        if self._clip_ratio is not None:
-            self._policy.eval()
-            logps_old = self._policy.get_state_action_logps(states, actions)
-        else:
-            logps_old = None
-
         action_probs = self._policy.get_action_probs(states)
         logps = torch.log(action_probs.gather(1, actions).squeeze())
         logps = torch.clamp(logps, min=self._min_logp, max=.0)
         if self._clip_ratio is not None:
+            logps_old = ndarray_to_tensor(batch.old_logps, device=self._device)
             ratio = torch.exp(logps - logps_old)
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
             actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
@@ -205,13 +200,18 @@ class DiscreteACBasedOps(AbsTrainOps):
 
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
-        state_values = self._v_critic_net.v_values(states)
-        values = state_values.detach().cpu().numpy()
+        actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
+
+        values = self._v_critic_net.v_values(states).detach().cpu().numpy()
         values = np.concatenate([values, values[-1:]])
         rewards = np.concatenate([batch.rewards, values[-1:]])
         deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
         advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
         batch.advantages = advantages
+
+        if self._clip_ratio is not None:
+            batch.old_logps = self._policy.get_state_action_logps(states, actions).cpu().numpy()
+
         return batch
 
     def preprocess_and_merge_batches(self, batch_list: List[TransitionBatch]) -> TransitionBatch:
