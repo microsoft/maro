@@ -135,43 +135,28 @@ class VehicleUnit(UnitBase):
         # If we have not arrived at destination yet.
         if self._remaining_steps > 0:
             # if we still not loaded enough productions yet.
-            if self._location == 0 and self.payload == 0:
+            if self.payload == 0:
                 # then try to load by requested.
-
                 if self.try_load(self.requested_quantity):
                     # NOTE: here we return to simulate loading
                     return
                 else:
                     self._remaining_patient -= 1
-
                     # Failed to load, check the patient.
                     if self._remaining_patient < 0:
-                        self._destination.products[self.product_id].consumer.update_open_orders(
-                            self.facility.id,
-                            self.product_id,
-                            -self.requested_quantity,
-                        )
-
                         self._reset_internal_states()
                         self._reset_data_model()
-
-            # Moving to destination
-            if self.payload > 0:
-                # Closer to destination until 0.
-                self._location += self._velocity
+            else:
                 self._remaining_steps -= 1
-
-                if self._location >= len(self._path):  # TODO: will we look into the path with location as the index?
-                    self._location = len(self._path) - 1
         else:
             # Try to unload.
             if self.payload > 0:
                 self.try_unload()  # TODO: to confrim -- the logic is to try unload until all
 
             # Back to source if we unload all.
-            if self.payload == 0:  # TODO: should we simulate the return time cost?
-                self._reset_internal_states()
-                self._reset_data_model()
+            # if self.payload == 0:  # TODO: should we simulate the return time cost?
+            self._reset_internal_states()
+            self._reset_data_model()
 
         self.cost = self.payload * self._unit_transport_cost
 

@@ -4,8 +4,8 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from maro.rl.training.algorithms.base import DiscreteACBasedParams, DiscreteACBasedTrainer
-
+from maro.rl.training.algorithms.base import DiscreteACBasedParams, DiscreteACBasedTrainer, DiscretePPOBasedOps
+from maro.rl.training import AbsTrainOps
 
 @dataclass
 class DiscretePPOParams(DiscreteACBasedParams):
@@ -38,3 +38,17 @@ class DiscretePPOTrainer(DiscreteACBasedTrainer):
     """
     def __init__(self, name: str, params: DiscretePPOParams) -> None:
         super(DiscretePPOTrainer, self).__init__(name, params)
+
+    def train_step(self) -> None:
+        assert isinstance(self._ops, DiscretePPOBasedOps)
+        batch = self._get_batch()
+        for _ in range(self._params.grad_iters):
+            self._ops.update_critic(batch)
+            self._ops.update_actor(batch)
+        self._ops._policy_old.set_state(self._ops._policy.get_state())
+
+    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+        return DiscretePPOBasedOps(
+            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            **self._params.extract_ops_params(),
+        )

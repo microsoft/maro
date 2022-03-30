@@ -87,7 +87,8 @@ class FullyConnected(nn.Module):
         out = self._net(x)
         if self._skip_connection:
             out += x
-        return self._softmax(out) if self._softmax else out
+        out = (self._softmax(out) if self._softmax else out)
+        return out
 
     @property
     def name(self) -> str:

@@ -38,7 +38,7 @@ workflow_settings = {
     "constraint_state_hist_len": 8,
     "total_echelons": 3,
     "replenishment_discount": 0.9,
-    "reward_normalization": 1e7,
+    "reward_normalization": 1e4,
     "constraint_violate_reward": -1e6,
     "gamma": 0.99,
     "tail_timesteps": 7,
@@ -54,19 +54,20 @@ atoms = {
 }  # TODO: values are never used
 
 keys_in_state = [
-    (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 'consumption_hist']),
+    (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop']),
     ('storage_capacity', ['storage_utilization']),
-    ('sale_mean', [
-        'sale_std',
-        'sale_hist',
-        'demand_hist',
-        'pending_order',
-        'inventory_in_stock',
-        'inventory_in_transit',
-        'inventory_estimated',
-        'inventory_rop',
-    ]),
-    ('max_price', ['sku_price', 'sku_cost']),
+    ('storage_capacity', [
+                'sale_mean',
+                'sale_std',
+                'sale_hist',
+                'demand_hist',
+                'inventory_in_stock',
+                'inventory_in_transit',
+                'inventory_estimated',
+                'inventory_rop',
+                ]),
+    ("max_price", ['sku_price', 'sku_cost']),
+    (None, ['baseline_action'])
 ]
 
 # Create initial state structure. We will build the final state with default and const values,
@@ -189,13 +190,15 @@ for entity in env.business_engine.get_entity_list():
                         STORAGE_INFO["facility_levels"][source]["skus"][sku.id].vlt
 
     # price features
-    state['max_price'] = env.summary["node_mapping"]["max_price"]
+    state['max_price'] = 10000.0 # env.summary["node_mapping"]["max_price"]
     state['sku_price'] = 0
     state['sku_cost'] = 0
 
     if entity.skus is not None:
         state['sku_price'] = entity.skus.price
         state['sku_cost'] = entity.skus.cost
+    
+    state['baseline_action'] = 0
 
     STATE_TEMPLATE[entity.id] = state
 

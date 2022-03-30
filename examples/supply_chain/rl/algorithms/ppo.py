@@ -11,16 +11,16 @@ from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.training.algorithms import DiscretePPOParams, DiscretePPOTrainer
 
 actor_net_conf = {
-    "hidden_dims": [256, 128, 64],
+    "hidden_dims": [256, 256, 128],
     "activation": torch.nn.Tanh,
     "softmax": True,
     "batch_norm": False,
     "head": True
 }
 critic_net_conf = {
-    "hidden_dims": [256, 128, 64],
+    "hidden_dims": [256, 256, 128],
     "output_dim": 1,
-    "activation": torch.nn.LeakyReLU,
+    "activation": torch.nn.Tanh,
     "softmax": False,
     "batch_norm": True,
     "head": True
@@ -112,7 +112,8 @@ class MyCriticNet(VNet):
 
 
 def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
-    return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
+    policy = DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
+    return policy
 
 
 def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
@@ -121,11 +122,12 @@ def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
         params=DiscretePPOParams(
             device="cpu",
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
-            reward_discount=.0,
-            grad_iters=10,
+            reward_discount=.99,
+            grad_iters=20,
             critic_loss_cls=torch.nn.SmoothL1Loss,
-            min_logp=None,
-            lam=.0,
+            min_logp=-4.0,
+            lam=0.99,
             clip_ratio=0.1,
+            replay_memory_capacity=180
         ),
     )

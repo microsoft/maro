@@ -63,15 +63,15 @@ class SimulationTracker:
             self.order_to_distribute = np.zeros(
                 (self.n_episods, self.episod_len, len(self.sku_to_track)))
         for i, sku_name in enumerate(self.sku_to_track):
-            self.stock_status[episod, t, i] = stock[sku_name]
+            self.stock_status[episod, t, i] = stock.get(sku_name, 0)
             self.stock_in_transit_status[episod,
-                                         t, i] = order_in_transit[sku_name]
-            self.demand_status[episod, t, i] = demands[sku_name]
-            self.sold_status[episod, t, i] = solds[sku_name]
-            self.reward_status[episod, t, i] = rewards[sku_name]
-            self.balance_status[episod, t, i] = balances[sku_name]
+                                         t, i] = order_in_transit.get(sku_name, 0)
+            self.demand_status[episod, t, i] = demands.get(sku_name, 0)
+            self.sold_status[episod, t, i] = solds.get(sku_name, 0)
+            self.reward_status[episod, t, i] = rewards.get(sku_name, 0)
+            self.balance_status[episod, t, i] = balances.get(sku_name, 0)
             self.order_to_distribute[episod, t,
-                                     i] = order_to_distribute[sku_name]
+                                     i] = order_to_distribute.get(sku_name, 0)
 
     def render_sku(self, loc_path):
         sku_name_dict = {}

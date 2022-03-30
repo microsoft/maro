@@ -26,7 +26,11 @@ def get_element(np_state: np.ndarray, key: str) -> np.ndarray:
     offsets = np_state[0][-len(OR_STATE_OFFSET_INDEX):].astype(np.uint)
     idx = OR_STATE_OFFSET_INDEX[key]
     prev_idx = int(offsets[idx - 1]) if idx > 0 else 0
-    return np_state[:, prev_idx: offsets[idx]].squeeze()
+    res = np_state[:, prev_idx: offsets[idx]]
+    if res.shape[0] == 1:
+        return np_state[:, prev_idx: offsets[idx]].squeeze(axis=0)
+    else:
+        return np_state[:, prev_idx: offsets[idx]].squeeze()
 
 
 class DummyPolicy(RuleBasedPolicy):
@@ -83,19 +87,22 @@ class ConsumerEOQPolicy(RuleBasedPolicy):
         inflight_orders = get_element(states, "consumer_in_transit_orders")
         booked_table = available_inventory + inflight_orders
         most_needed_product_id = np.expand_dims(get_element(states, "product_idx"), axis=1).astype(np.int)
+        if len(booked_table.shape) < 2:
+            booked_table = booked_table.reshape(1, -1)
         booked = np.squeeze(np.take_along_axis(booked_table, most_needed_product_id, axis=1), axis=1)
-
         sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
         service_level = get_element(states, "service_level")
         vlt_buffer_days = np.where(get_element(states, "vlt")*1.3 < 2.0, 2.0, get_element(states, "vlt")*1.3)
         vlt = vlt_buffer_days + get_element(states, "vlt")
-
         non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
         # stop placing orders when the facilty runs out of capacity
-        capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
+        # capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
+        rop = vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
         # whether replenishment point is reached
-        replenishment_mask = booked <= vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
-        return _get_consumer_quantity(states) * (non_facility_mask & capacity_mask & replenishment_mask)
+        replenishment_mask = (booked <= rop)
+        replenishment_amount = ((rop - booked) / (sale_mean + 1e-8)).astype(np.int32)
+        replenishment_amount = np.where(replenishment_amount >= NUM_CONSUMER_ACTIONS, NUM_CONSUMER_ACTIONS-1, replenishment_amount)
+        return replenishment_amount * (non_facility_mask & replenishment_mask)
 
 
 # parameters: (r, R), calculate according to VLT, demand variances, and service level

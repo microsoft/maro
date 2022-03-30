@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import torch
+from torch.distributions import Categorical
 
 from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient
@@ -127,7 +128,6 @@ class DiscreteACBasedOps(AbsTrainOps):
             loss (torch.Tensor): The actor loss of the batch.
         """
         assert isinstance(self._policy, DiscretePolicyGradient)
-        self._policy.train()
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
         actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
@@ -139,7 +139,10 @@ class DiscreteACBasedOps(AbsTrainOps):
         else:
             logps_old = None
 
+        self._policy.train()
         action_probs = self._policy.get_action_probs(states)
+        dist = Categorical(action_probs)
+        dist_entropy = dist.entropy()
         logps = torch.log(action_probs.gather(1, actions).squeeze())
         logps = torch.clamp(logps, min=self._min_logp, max=.0)
         if self._clip_ratio is not None:
@@ -148,8 +151,8 @@ class DiscreteACBasedOps(AbsTrainOps):
             actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
         else:
             actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
-
-        return actor_loss
+        loss = (actor_loss - 0.2*dist_entropy).mean()
+        return loss
 
     @remote
     def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
@@ -224,6 +227,117 @@ class DiscreteACBasedOps(AbsTrainOps):
             The merged batch.
         """
         return merge_transition_batches([self._preprocess_batch(batch) for batch in batch_list])
+
+
+class DiscretePPOBasedOps(DiscreteACBasedOps):
+    """Base class of discrete actor-critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr
+    """
+    def __init__(
+        self,
+        name: str,
+        device: str,
+        get_policy_func: Callable[[], DiscretePolicyGradient],
+        get_v_critic_net_func: Callable[[], VNet],
+        parallelism: int = 1,
+        *,
+        reward_discount: float = 0.9,
+        critic_loss_cls: Callable = None,
+        clip_ratio: float = None,
+        lam: float = 0.9,
+        min_logp: float = None,
+    ) -> None:
+        super(DiscretePPOBasedOps, self).__init__(
+            name=name,
+            device=device,
+            get_policy_func=get_policy_func,
+            get_v_critic_net_func=get_v_critic_net_func,
+            parallelism=parallelism,
+            reward_discount=reward_discount,
+            critic_loss_cls=critic_loss_cls,
+            clip_ratio=clip_ratio,
+            lam=lam,
+            min_logp=min_logp,
+        )
+
+        assert isinstance(self._policy, DiscretePolicyGradient)
+        self._policy_old = get_policy_func()
+        self._policy_old.set_state(self._policy.get_state())
+
+    # def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
+    #     """Preprocess the batch to get the returns & advantages.
+
+    #     Args:
+    #         batch (TransitionBatch): Batch.
+
+    #     Returns:
+    #         The updated batch.
+    #     """
+    #     assert self._is_valid_transition_batch(batch)
+    #     # Preprocess returns
+    #     batch.calc_returns(self._reward_discount)
+
+    #     # Preprocess advantages
+    #     states = ndarray_to_tensor(batch.states, self._device)  # s
+    #     state_values = self._v_critic_net.v_values(states).detach().numpy()
+    #     values = np.concatenate([state_values[1:], np.zeros(1).astype(np.float32)])
+    #     batch.advantages = (batch.rewards+self._reward_discount*values - state_values)
+    #     return batch
+
+    def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
+        """Compute the critic loss of the batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The critic loss of the batch.
+        """
+        self._v_critic_net.train()
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        state_values = self._v_critic_net.v_values(states)
+        values = state_values.detach().numpy()
+        values = np.concatenate([values[1:], np.zeros(1).astype(np.float32)])
+        returns = batch.rewards + self._reward_discount * values
+        returns = ndarray_to_tensor(returns, self._device)
+        return self._critic_loss_func(state_values, returns)
+
+    def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
+        """Compute the actor loss of the batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The actor loss of the batch.
+        """
+        assert isinstance(self._policy, DiscretePolicyGradient)
+
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
+        advantages = ndarray_to_tensor(batch.advantages, self._device)
+
+        if self._clip_ratio is not None:
+            self._policy_old.eval()
+            logps_old = self._policy_old.get_state_action_logps(states, actions).detach()
+        else:
+            logps_old = None
+
+        self._policy.train()
+        action_probs = self._policy.get_action_probs(states)
+        dist = Categorical(action_probs)
+        # print('probs: ', action_probs)
+        dist_entropy = dist.entropy()
+        logps = torch.log(action_probs.gather(1, actions).squeeze())
+        logps = torch.clamp(logps, min=self._min_logp, max=.0)
+        if self._clip_ratio is not None:
+            ratio = torch.exp(logps - logps_old)
+            clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
+            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages))
+        else:
+            actor_loss = -(logps * advantages)  # I * delta * log pi(a|s)
+        loss = (actor_loss - 0.2*dist_entropy).mean()
+        print('actor_loss: ', actor_loss.mean(), 'entropy loss: ', dist_entropy.mean())
+        return loss
 
 
 class DiscreteACBasedTrainer(SingleAgentTrainer):

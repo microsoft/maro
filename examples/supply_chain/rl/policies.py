@@ -6,6 +6,7 @@ from functools import partial
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit, ProductUnit, SellerUnit
 from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 from .algorithms.ppo import get_policy, get_ppo
+# from .algorithms.dqn import get_dqn, get_policy
 from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy, ConsumerEOQPolicy
 from .config import NUM_CONSUMER_ACTIONS
 from .env_helper import entity_dict
@@ -36,15 +37,21 @@ policy_creator = {
 }
 
 agent2policy = {
-    id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
+    id_: entity2policy(entity, False) for id_, entity in entity_dict.items()
 }
 
-agent2baseline_policy = {
-    id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
-}
+# baseline policies
+# agent2policy = {
+#     id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
+# }
+
 
 trainable_policies = ["consumer.policy"]
 
+# trainer_creator = {
+#     "consumer": get_dqn,
+# }
+
 trainer_creator = {
-    "ppo": partial(get_ppo, STATE_DIM)
+    "consumer": partial(get_ppo, STATE_DIM),
 }

@@ -10,11 +10,11 @@ from maro.utils import LoggerV2
 # config variables
 SCENARIO_NAME = "supply_chain"
 SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME, "rl")
-NUM_EPISODES = 2000
+NUM_EPISODES = 1000
 NUM_STEPS = None
 CHECKPOINT_PATH = join(dirname(SCENARIO_PATH), "checkpoints")
 CHECKPOINT_INTERVAL = 10
-EVAL_SCHEDULE = 10
+EVAL_SCHEDULE = list(range(10, NUM_EPISODES+10, 10))
 
 
 import argparse
@@ -22,6 +22,7 @@ import wandb
 import os
 os.environ["WANDB_API_KEY"] = "116a4f287fd4fbaa6f790a50d2dd7f97ceae4a03"
 wandb.login()
+import pandas as pd
 
 # Single-threaded launcher
 if __name__ == "__main__":
@@ -33,11 +34,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
 
-    LOG_PATH = join(dirname(SCENARIO_PATH), args.exp_name, SCENARIO_NAME)
+    LOG_PATH = join(dirname(SCENARIO_PATH), "results", args.exp_name)
     os.makedirs(LOG_PATH, exist_ok=True)
 
     scenario = Scenario(SCENARIO_PATH)
-    logger = LoggerV2("MAIN", dump_path=LOG_PATH)
+    logger = LoggerV2("MAIN", dump_path=f"{LOG_PATH}/log.txt")
 
     agent2policy = scenario.agent2policy
     policy_creator = scenario.policy_creator
@@ -88,7 +89,18 @@ if __name__ == "__main__":
             segment += 1
         # performance details
         if ep == EVAL_SCHEDULE[eval_point_index]:
+            logger.info(f"Eval {ep} starting")
             eval_point_index += 1
             result = env_sampler.eval()
-            if scenario.post_evaluate:
-                scenario.post_evaluate(result["info"], ep)
+            # if scenario.post_evaluate:
+            #     scenario.post_evaluate(result["info"], ep)
+            tracker = result['tracker']
+            tracker.render('%s/a_plot_balance.png' %
+                            LOG_PATH, tracker.step_balances, ["OuterRetailerFacility"])
+            tracker.render('%s/a_plot_reward.png' %
+                        LOG_PATH, tracker.step_rewards, ["OuterRetailerFacility"])
+            tracker.render_sku(LOG_PATH)
+            
+            df_product = pd.DataFrame(env_sampler._balance_calculator.product_metric_track)
+            df_product = df_product.groupby(['tick', 'id']).first().reset_index()
+            df_product.to_csv(f'{LOG_PATH}/output_product_metrics_{ep}.csv', index=False)

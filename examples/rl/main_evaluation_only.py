@@ -7,7 +7,7 @@ import pandas as pd
 
 from maro.rl.workflows.scenario import Scenario
 from examples.supply_chain.rl.render_tools import SimulationTracker
-from examples.supply_chain.rl.policies import agent2baseline_policy
+# from examples.supply_chain.rl.policies import agent2baseline_policy
 
 # config variables
 SCENARIO_NAME = "supply_chain"

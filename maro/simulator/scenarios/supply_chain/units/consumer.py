@@ -156,7 +156,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         for _, orders in self._open_orders.items():
             quantity += orders.get(self.product_id, 0)
-
+        # assert quantity >= 0, "wrong open orders"
         return quantity
 
     def _update_pending_order(self):
