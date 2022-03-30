@@ -127,7 +127,6 @@ def get_ac(state_dim: int, num_features: int, name: str) -> DiscreteActorCriticT
     return DiscreteActorCriticTrainer(
         name=name,
         params=DiscreteActorCriticParams(
-            device="cpu",
             get_v_critic_net_func=lambda: MyCriticNet(state_dim, num_features),
             reward_discount=0.9,
             grad_iters=100,

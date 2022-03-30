@@ -292,6 +292,10 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
 
 class DiscreteMADDPGTrainer(MultiAgentTrainer):
+    """Multi-agent deep deterministic policy gradient (MADDPG) algorithm adapted for discrete action space.
+
+    See https://arxiv.org/abs/1706.02275 for details.
+    """
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
         super(DiscreteMADDPGTrainer, self).__init__(name, params)
         self._params = params

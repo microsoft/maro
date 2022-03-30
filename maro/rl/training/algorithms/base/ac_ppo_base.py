@@ -235,7 +235,7 @@ class DiscreteACBasedTrainer(SingleAgentTrainer):
     """Base class of discrete actor-critic algorithm implementation.
 
     References:
-        https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
+        https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
     """
 

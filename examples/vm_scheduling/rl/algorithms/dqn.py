@@ -104,7 +104,6 @@ def get_dqn(name: str) -> DQNTrainer:
     return DQNTrainer(
         name=name,
         params=DQNParams(
-            device="cpu",
             reward_discount=0.9,
             update_target_every=5,
             num_epochs=100,

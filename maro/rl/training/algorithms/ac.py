@@ -27,6 +27,9 @@ class DiscreteActorCriticParams(DiscreteACBasedParams):
 
 class DiscreteActorCriticTrainer(DiscreteACBasedTrainer):
     """Actor Critic algorithm with separate policy and value models.
+
+    Reference:
+        https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/vpg
     """
     def __init__(self, name: str, params: DiscreteActorCriticParams) -> None:
         super(DiscreteActorCriticTrainer, self).__init__(name, params)
