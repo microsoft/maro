@@ -202,8 +202,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             for the action taken for that event.
         get_test_env (Callable[[], Env], default=None): Function used to create the testing environment. If it is None,
             reuse the rollout environment as the testing environment.
-        device (str, default=None): Name of the device to store this AbsEnvSampler. If it is None, the device will
-            be automatically determined according to the GPU availability.
     """
 
     def __init__(
@@ -215,18 +213,17 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
         get_test_env: Callable[[], Env] = None,
-        device: str = None,
     ) -> None:
         self._learn_env = get_env()
         self._test_env = get_test_env() if get_test_env is not None else self._learn_env
         self._env: Optional[Env] = None
         self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
-        self._device = torch.device(device) if device is not None \
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
         self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
+        }
+        self._rl_policy_dict: Dict[str, AbsPolicy] = {
+            name: policy for name, policy in self._policy_dict.items() if isinstance(policy, RLPolicy)
         }
         self._agent2policy = agent2policy
         self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
@@ -237,6 +234,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._trainable_agents = {
             agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
         }
+
         # Global state & agent state
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
@@ -246,12 +244,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         self._info = {}
 
-        for policy in self._policy_dict.values():
-            policy.to_device(self._device)
-
     @property
-    def policy_dict(self) -> Dict[str, AbsPolicy]:
-        return self._policy_dict
+    def rl_policy_dict(self) -> Dict[str, RLPolicy]:
+        return self._rl_policy_dict
 
     @abstractmethod
     def _get_global_and_agent_state(

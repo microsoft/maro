@@ -206,7 +206,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
-        return self.get_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
+        return self.get_actions_tensor(ndarray_to_tensor(states, device=self._device)).cpu().numpy()
 
     def get_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
         """Get actions according to states. Takes torch.Tensor as inputs and returns torch.Tensor.

@@ -63,6 +63,7 @@ if __name__ == "__main__":
         trainable_policy_creator,
         trainer_creator,
         trainable_agent2policy,
+        device_mapping=scenario.device_mapping,
         logger=logger
     )
 

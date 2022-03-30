@@ -1,12 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from __future__ import annotations
 
-import math
 import typing
 from typing import Optional
 
-from .unitbase import UnitBase
+from maro.simulator.scenarios.supply_chain.units.unitbase import UnitBase
+from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 
 if typing.TYPE_CHECKING:
     from .. import FacilityBase
@@ -103,7 +104,7 @@ class VehicleUnit(UnitBase):
         """Try unload products into destination's storage."""
         unloaded = self._destination.storage.try_add_products(
             {self.product_id: self.payload},
-            all_or_nothing=False,
+            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder  # TODO: check which strategy to use.
         )
 
         # Update order if we unloaded any.

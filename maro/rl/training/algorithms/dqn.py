@@ -10,7 +10,7 @@ import torch
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, ndarray_to_tensor
+from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -38,7 +38,6 @@ class DQNParams(TrainerParams):
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "device": self.device,
             "reward_discount": self.reward_discount,
             "soft_update_coef": self.soft_update_coef,
             "double": self.double,
@@ -49,8 +48,7 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        device: str,
-        get_policy_func: Callable[[], ValueBasedPolicy],
+        policy_creator: Callable[[str], ValueBasedPolicy],
         parallelism: int = 1,
         *,
         reward_discount: float = 0.9,
@@ -59,9 +57,7 @@ class DQNOps(AbsTrainOps):
     ) -> None:
         super(DQNOps, self).__init__(
             name=name,
-            device=device,
-            is_single_scenario=True,
-            get_policy_func=get_policy_func,
+            policy_creator=policy_creator,
             parallelism=parallelism,
         )
 
@@ -75,7 +71,6 @@ class DQNOps(AbsTrainOps):
         self._target_policy: ValueBasedPolicy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
-        self._target_policy.to_device(self._device)
 
     def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
         """Compute the loss of the batch.
@@ -86,13 +81,13 @@ class DQNOps(AbsTrainOps):
         Returns:
             loss (torch.Tensor): The loss of the batch.
         """
-        assert self._is_valid_transition_batch(batch)
+        assert isinstance(batch, TransitionBatch)
         self._policy.train()
-        states = ndarray_to_tensor(batch.states, self._device)
-        next_states = ndarray_to_tensor(batch.next_states, self._device)
-        actions = ndarray_to_tensor(batch.actions, self._device)
-        rewards = ndarray_to_tensor(batch.rewards, self._device)
-        terminals = ndarray_to_tensor(batch.terminals, self._device).float()
+        states = ndarray_to_tensor(batch.states, device=self._device)
+        next_states = ndarray_to_tensor(batch.next_states, device=self._device)
+        actions = ndarray_to_tensor(batch.actions, device=self._device)
+        rewards = ndarray_to_tensor(batch.rewards, device=self._device)
+        terminals = ndarray_to_tensor(batch.terminals, device=self._device).float()
 
         with torch.no_grad():
             if self._double:
@@ -153,6 +148,11 @@ class DQNOps(AbsTrainOps):
         """
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
+    def to_device(self, device: str) -> None:
+        self._device = get_torch_device(device)
+        self._policy.to_device(self._device)
+        self._target_policy.to_device(self._device)
+
 
 class DQNTrainer(SingleAgentTrainer):
     """The Deep-Q-Networks algorithm.
@@ -164,12 +164,10 @@ class DQNTrainer(SingleAgentTrainer):
         super(DQNTrainer, self).__init__(name, params)
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
-        self._ops_name = f"{self._name}.ops"
-
         self._replay_memory: Optional[RandomReplayMemory] = None
 
     def build(self) -> None:
-        self._ops = self.get_ops(self._ops_name)
+        self._ops = self.get_ops()
         self._replay_memory = RandomReplayMemory(
             capacity=self._params.replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
@@ -191,10 +189,10 @@ class DQNTrainer(SingleAgentTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+    def _get_local_ops(self) -> AbsTrainOps:
         return DQNOps(
-            name=name,
-            get_policy_func=self._get_policy_func,
+            name=self._policy_name,
+            policy_creator=self._policy_creator,
             parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )
