@@ -61,7 +61,7 @@ class DDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        get_policy_func: Callable[[], ContinuousRLPolicy],
+        policy_creator: Callable[[], ContinuousRLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
         parallelism: int = 1,
         *,
@@ -71,8 +71,7 @@ class DDPGOps(AbsTrainOps):
     ) -> None:
         super(DDPGOps, self).__init__(
             name=name,
-            is_single_scenario=True,
-            get_policy_func=get_policy_func,
+            policy_creator=policy_creator,
             parallelism=parallelism,
         )
 

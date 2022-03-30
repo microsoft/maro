@@ -29,5 +29,5 @@ else:
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
 device_mapping = {
-    f"ac_{i}.policy": f"cuda:{i}" for i in range(num_agents)
+    f"ac_{i}.policy": "cpu" for i in range(num_agents)
 }

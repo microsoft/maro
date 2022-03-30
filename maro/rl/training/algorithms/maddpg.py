@@ -54,9 +54,10 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
+        policy_creator: Callable[[str], DiscretePolicyGradient],
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
-        policy_creator: Callable[[str], DiscretePolicyGradient] = None,
+        parallelism: int = 1,
         *,
         shared_critic: bool = False,
         reward_discount: float = 0.9,
@@ -67,6 +68,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         super(DiscreteMADDPGOps, self).__init__(
             name=name,
             policy_creator=policy_creator,
+            parallelism=parallelism
         )
 
         self._policy_idx = policy_idx
