@@ -13,7 +13,7 @@ from pickle import dumps, loads
 
 import numpy as np
 
-from maro import __data_version__
+from maro.__misc__ import __data_version__
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
