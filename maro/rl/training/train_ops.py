@@ -5,12 +5,10 @@ import inspect
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Tuple
 
-import torch
 import zmq
 from zmq.asyncio import Context, Poller
 
 from maro.rl.policy import RLPolicy
-from maro.rl.utils import AbsTransitionBatch, MultiTransitionBatch, TransitionBatch
 from maro.rl.utils.common import bytes_to_pyobj, get_ip_address_by_hostname, pyobj_to_bytes
 from maro.utils import DummyLogger, LoggerV2
 
@@ -20,30 +18,23 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     Each ops is used for training a single policy. An ops is an atomic unit in the distributed mode.
 
     Args:
-        device (str): Identifier for the torch device. The policy will be moved to the specified device.
-            If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-        is_single_scenario (bool): Flag indicating whether the ops belongs to a `SingleTrainer` or a `MultiTrainer`.
-        get_policy_func (Callable[[], RLPolicy]): Function used to create the policy of this ops.
+        name (str): Name of the ops. This is usually a policy name.
+        policy_creator (Callable[[str], RLPolicy]): Function to create a policy instance.
+        parallelism (int, default=1): Desired degree of data parallelism. 
     """
 
     def __init__(
         self,
         name: str,
-        device: str,
-        is_single_scenario: bool,
-        get_policy_func: Callable[[], RLPolicy],
+        policy_creator: Callable[[str], RLPolicy],
         parallelism: int = 1,
     ) -> None:
         super(AbsTrainOps, self).__init__()
         self._name = name
-        self._device = torch.device(device) if device is not None \
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._is_single_scenario = is_single_scenario
-
-        # Create the policy and put it on the right device.
-        if self._is_single_scenario:
-            self._policy = get_policy_func()
-            self._policy.to_device(self._device)
+        self._policy_creator = policy_creator
+        # Create the policy.
+        if self._policy_creator:
+            self._policy = self._policy_creator(self._name)
 
         self._parallelism = parallelism
 
@@ -53,25 +44,15 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 
     @property
     def policy_state_dim(self) -> int:
-        return self._policy.state_dim
+        return self._policy.state_dim if self._policy_creator else None
 
     @property
     def policy_action_dim(self) -> int:
-        return self._policy.action_dim
+        return self._policy.action_dim if self._policy_creator else None
 
     @property
     def parallelism(self) -> int:
         return self._parallelism
-
-    def _is_valid_transition_batch(self, batch: AbsTransitionBatch) -> bool:
-        """Used to check the transition batch's type. If this ops is used under a single trainer, the batch should be
-        a `TransitionBatch`. Otherwise, it should be a `MultiTransitionBatch`.
-
-        Args:
-            batch (AbsTransitionBatch): The batch to be validated.
-        """
-        return isinstance(batch, TransitionBatch) if self._is_single_scenario \
-            else isinstance(batch, MultiTransitionBatch)
 
     @abstractmethod
     def get_state(self) -> dict:
@@ -107,6 +88,10 @@ class AbsTrainOps(object, metaclass=ABCMeta):
             policy_state (object): The policy state.
         """
         self._policy.set_state(policy_state)
+
+    @abstractmethod
+    def to_device(self, device: str):
+        raise NotImplementedError
 
 
 def remote(func) -> Callable:

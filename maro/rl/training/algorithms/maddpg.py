@@ -12,7 +12,7 @@ from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
-from maro.rl.utils import MultiTransitionBatch, ndarray_to_tensor
+from maro.rl.utils import MultiTransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -41,7 +41,6 @@ class DiscreteMADDPGParams(TrainerParams):
 
     def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "device": self.device,
             "get_q_critic_net_func": self.get_q_critic_net_func,
             "shared_critic": self.shared_critic,
             "reward_discount": self.reward_discount,
@@ -55,11 +54,10 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        device: str,
-        get_policy_func: Callable[[], DiscretePolicyGradient],
+        policy_creator: Callable[[str], DiscretePolicyGradient],
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
-        create_actor: bool,
+        parallelism: int = 1,
         *,
         shared_critic: bool = False,
         reward_discount: float = 0.9,
@@ -69,38 +67,31 @@ class DiscreteMADDPGOps(AbsTrainOps):
     ) -> None:
         super(DiscreteMADDPGOps, self).__init__(
             name=name,
-            device=device,
-            is_single_scenario=False,
-            get_policy_func=get_policy_func,
+            policy_creator=policy_creator,
+            parallelism=parallelism
         )
 
         self._policy_idx = policy_idx
         self._shared_critic = shared_critic
 
         # Actor
-        self._create_actor = create_actor
-        if create_actor:
-            self._policy = get_policy_func()
+        if self._policy_creator:
             assert isinstance(self._policy, DiscretePolicyGradient)
-
-            self._policy.to_device(self._device)
             self._target_policy: DiscretePolicyGradient = clone(self._policy)
             self._target_policy.set_name(f"target_{self._policy.name}")
             self._target_policy.eval()
-            self._target_policy.to_device(self._device)
 
         # Critic
         self._q_critic_net: MultiQNet = get_q_critic_net_func()
-        self._q_critic_net.to(self._device)
         self._target_q_critic_net: MultiQNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
-        self._target_q_critic_net.to(self._device)
 
-        #
         self._reward_discount = reward_discount
         self._q_value_loss_func = q_value_loss_func
         self._update_target_every = update_target_every
         self._soft_update_coef = soft_update_coef
+
+        self._device = None
 
     def get_target_action(self, batch: MultiTransitionBatch) -> torch.Tensor:
         """Get the target policies' actions according to the batch.
@@ -111,7 +102,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         Returns:
             actions (torch.Tensor): Target policies' actions.
         """
-        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
+        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], device=self._device)
         return self._target_policy.get_actions_tensor(agent_state)
 
     def get_latest_action(self, batch: MultiTransitionBatch) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -126,7 +117,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         """
         assert isinstance(self._policy, DiscretePolicyGradient)
 
-        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], self._device)
+        agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], device=self._device)
         self._policy.train()
         action = self._policy.get_actions_tensor(agent_state)
         logps = self._policy.get_state_action_logps(agent_state, action)
@@ -145,11 +136,11 @@ class DiscreteMADDPGOps(AbsTrainOps):
         assert not self._shared_critic
         assert isinstance(next_actions, list) and all(isinstance(action, torch.Tensor) for action in next_actions)
 
-        states = ndarray_to_tensor(batch.states, self._device)  # x
-        actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
-        next_states = ndarray_to_tensor(batch.next_states, self._device)  # x'
-        rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), self._device)  # r
-        terminals = ndarray_to_tensor(batch.terminals, self._device)  # d
+        states = ndarray_to_tensor(batch.states, device=self._device)  # x
+        actions = [ndarray_to_tensor(action, device=self._device) for action in batch.actions]  # a
+        next_states = ndarray_to_tensor(batch.next_states, device=self._device)  # x'
+        rewards = ndarray_to_tensor(np.vstack([reward for reward in batch.rewards]), device=self._device)  # r
+        terminals = ndarray_to_tensor(batch.terminals, device=self._device)  # d
 
         self._q_critic_net.train()
         with torch.no_grad():
@@ -212,8 +203,8 @@ class DiscreteMADDPGOps(AbsTrainOps):
             loss (torch.Tensor): The actor loss of the batch.
         """
         latest_action, latest_action_logp = self.get_latest_action(batch)
-        states = ndarray_to_tensor(batch.states, self._device)  # x
-        actions = [ndarray_to_tensor(action, self._device) for action in batch.actions]  # a
+        states = ndarray_to_tensor(batch.states, device=self._device)  # x
+        actions = [ndarray_to_tensor(action, device=self._device) for action in batch.actions]  # a
         actions[self._policy_idx] = latest_action
         self._policy.train()
         self._q_critic_net.freeze()
@@ -257,7 +248,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def soft_update_target(self) -> None:
         """Soft update the target policies and target critics.
         """
-        if self._create_actor:
+        if self._policy_creator:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
         if not self._shared_critic:
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
@@ -273,13 +264,13 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
 
     def get_actor_state(self) -> dict:
-        if self._create_actor:
+        if self._policy_creator:
             return {"policy": self._policy.get_state(), "target_policy": self._target_policy.get_state()}
         else:
             return {}
 
     def set_actor_state(self, ops_state_dict: dict) -> None:
-        if self._create_actor:
+        if self._policy_creator:
             self._policy.set_state(ops_state_dict["policy"])
             self._target_policy.set_state(ops_state_dict["target_policy"])
 
@@ -290,6 +281,15 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self.set_critic_state(ops_state_dict)
         self.set_actor_state(ops_state_dict)
 
+    def to_device(self, device: str) -> None:
+        self._device = get_torch_device(device)
+        if self._policy_creator:
+            self._policy.to_device(self._device)
+            self._target_policy.to_device(self._device)
+
+        self._q_critic_net.to(self._device)
+        self._target_q_critic_net.to(self._device)
+
 
 class DiscreteMADDPGTrainer(MultiAgentTrainer):
     def __init__(self, name: str, params: DiscreteMADDPGParams) -> None:
@@ -298,21 +298,22 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         self._ops_params = self._params.extract_ops_params()
         self._state_dim = params.get_q_critic_net_func().state_dim
         self._policy_version = self._target_policy_version = 0
-        self._shared_critic_ops_name = f"{self._name}.shared_critic_ops"
+        self._shared_critic_ops_name = f"{self._name}.shared_critic"
 
         self._actor_ops_list = []
-        self._actor_ops_dict = {}
         self._critic_ops = None
         self._replay_memory = None
         self._policy2agent = {}
 
     def build(self) -> None:
-        self._actor_ops_list = [self.get_ops(f"{self._name}.actor_{i}_ops") for i in range(len(self._policy_names))]
-        self._actor_ops_dict = {ops.name: ops for ops in self._actor_ops_list}
+        for policy_name in self._policy_creator:
+            self._ops_dict[policy_name] = self.get_ops(policy_name)
+
+        self._actor_ops_list = list(self._ops_dict.values())
+
         if self._params.shared_critic:
-            self._critic_ops = self.get_ops(self._shared_critic_ops_name)
-        else:
-            self._critic_ops = None
+            self._ops_dict[self._shared_critic_ops_name] = self.get_ops(self._shared_critic_ops_name)
+            self._critic_ops = self._ops_dict[self._shared_critic_ops_name]
 
         self._replay_memory = RandomMultiReplayMemory(
             capacity=self._params.replay_memory_capacity,
@@ -357,30 +358,24 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         )
         self._replay_memory.put(transition_batch)
 
-    def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
-        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
-
-    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+    def get_local_ops(self, name: str) -> AbsTrainOps:
         if name == self._shared_critic_ops_name:
             ops_params = dict(self._ops_params)
             ops_params.update({
-                "get_policy_func": None,
                 "policy_idx": -1,
                 "shared_critic": False,
-                "create_actor": False,
             })
             return DiscreteMADDPGOps(name=name, **ops_params)
         else:
-            policy_idx = self.get_policy_idx_from_ops_name(name)
-            policy_name = self._policy_names[policy_idx]
-
             ops_params = dict(self._ops_params)
             ops_params.update({
-                "get_policy_func": lambda: self._policy_creator[policy_name](policy_name),
-                "policy_idx": policy_idx,
-                "create_actor": True,
+                "policy_creator": self._policy_creator[name],
+                "policy_idx": self._policy_names.index(name),
             })
             return DiscreteMADDPGOps(name=name, **ops_params)
+
+    def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
+        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def train_step(self) -> None:
         assert not self._params.shared_critic or isinstance(self._critic_ops, DiscreteMADDPGOps)
@@ -463,10 +458,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         self._assert_ops_exists()
         trainer_state = torch.load(path)
         for ops_name, ops_state in trainer_state.items():
-            if ops_name == self._critic_ops.name:
-                self._critic_ops.set_state(ops_state)
-            else:
-                self._actor_ops_dict[ops_name].set_state(torch.load(path))
+            self._ops_dict[ops_name].set_state(ops_state)
 
     def save(self, path: str) -> None:
         self._assert_ops_exists()
@@ -480,11 +472,6 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             raise ValueError("Call 'DiscreteMADDPG.build' to create actor ops first.")
         if self._params.shared_critic and not self._critic_ops:
             raise ValueError("Call 'DiscreteMADDPG.build' to create the critic ops first.")
-
-    @staticmethod
-    def get_policy_idx_from_ops_name(ops_name: str) -> int:
-        _, sub_name = ops_name.split(".")
-        return int(sub_name.split("_")[1])
 
     async def exit(self) -> None:
         pass

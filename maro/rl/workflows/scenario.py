@@ -7,6 +7,7 @@ import sys
 from typing import Any, Callable, Dict, List
 
 from maro.rl.policy import AbsPolicy
+from maro.rl.policy.abs_policy import RLPolicy
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
 
@@ -37,6 +38,10 @@ class Scenario(object):
     @property
     def trainer_creator(self) -> Dict[str, Callable[[str], AbsTrainer]]:
         return getattr(self._module, "trainer_creator")
+
+    @property
+    def device_mapping(self) -> Dict[str, str]:
+        return getattr(self._module, "device_mapping", {})
 
     @property
     def post_collect(self) -> Callable[[list, int, int], None]:

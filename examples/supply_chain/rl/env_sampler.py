@@ -8,7 +8,7 @@ import numpy as np
 import scipy.stats as st
 
 from maro.event_buffer import CascadeEvent
-from maro.rl.policy import AbsPolicy, RLPolicy
+from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
@@ -47,7 +47,6 @@ class SCEnvSampler(AbsEnvSampler):
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
         get_test_env: Callable[[], Env] = None,
-        device: str = None,
     ) -> None:
         super().__init__(
             get_env, policy_creator, agent2policy,
@@ -55,7 +54,6 @@ class SCEnvSampler(AbsEnvSampler):
             agent_wrapper_cls=agent_wrapper_cls,
             reward_eval_delay=reward_eval_delay,
             get_test_env=get_test_env,
-            device=device,
         )
 
         self._agent2policy = agent2policy
@@ -843,6 +841,5 @@ def env_sampler_creator(policy_creator) -> SCEnvSampler:
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
         agent2policy=agent2policy,
-        trainable_policies=trainable_policies,
-        device="cpu",
+        trainable_policies=trainable_policies
     )

@@ -12,9 +12,9 @@ from maro.simulator.scenarios.supply_chain.objects import SkuInfo
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 
 if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain import UnitBase
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
-    from maro.simulator.scenarios.supply_chain import UnitBase
 
 
 class FacilityBase(ABC):

@@ -14,7 +14,6 @@ class DiscreteActorCriticParams(DiscreteACBasedParams):
     """
     def extract_ops_params(self) -> Dict[str, object]:
         return {
-            "device": self.device,
             "get_v_critic_net_func": self.get_v_critic_net_func,
             "reward_discount": self.reward_discount,
             "critic_loss_cls": self.critic_loss_cls,

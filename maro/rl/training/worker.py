@@ -5,6 +5,7 @@ from typing import Callable, Dict
 
 from maro.rl.distributed import AbsWorker
 from maro.rl.policy import RLPolicy
+from maro.rl.training import SingleAgentTrainer
 from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
 from maro.utils import LoggerV2
 
@@ -65,7 +66,10 @@ class TrainOpsWorker(AbsWorker):
                     trainer.register_policy_creator(self._policy_creator)
                     self._trainer_dict[trainer_name] = trainer
 
-                self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops_by_name(ops_name)
+                if isinstance(self._trainer_dict[trainer_name], SingleAgentTrainer):
+                    self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops()
+                else:
+                    self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops(ops_name)
                 self._logger.info(f"Created ops {ops_name} at {self._id}")
 
             self._ops_dict[ops_name].set_state(req["state"])

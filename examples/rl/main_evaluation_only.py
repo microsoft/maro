@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
+from os.path import dirname, join, realpath
 
 from maro.rl.workflows.scenario import Scenario
 
 # config variables
-SCENARIO_NAME = "supply_chain"
-SCENARIO_PATH = os.path.join("examples", SCENARIO_NAME, "rl")
+SCENARIO_NAME = "cim"
+SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME, "rl")
 
 if __name__ == "__main__":
     scenario = Scenario(SCENARIO_PATH)
