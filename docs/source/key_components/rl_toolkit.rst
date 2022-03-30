@@ -170,7 +170,6 @@ An example of creating an actor-critic trainer:
    DiscreteActorCriticTrainer(
        name='ac',
        params=DiscreteActorCriticParams(
-           device="cpu",
            get_v_critic_net_func=lambda: MyCriticNet(state_dim=128),
            reward_discount=.0,
            grad_iters=10,

@@ -20,8 +20,8 @@ from .config import (
 
 
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, policy_creator, agent2policy, get_test_env=None, device: str = None):
-        super().__init__(get_env, policy_creator, agent2policy, get_test_env=get_test_env, device=device)
+    def __init__(self, get_env, policy_creator, agent2policy, get_test_env=None):
+        super().__init__(get_env, policy_creator, agent2policy, get_test_env=get_test_env)
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
 
@@ -135,5 +135,4 @@ def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) ->
         policy_creator=policy_creator,
         agent2policy=agent2policy,
         get_test_env=lambda: Env(**test_env_conf),
-        device="cpu",
     )

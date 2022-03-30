@@ -34,6 +34,9 @@ class DiscretePPOParams(DiscreteACBasedParams):
 
 class DiscretePPOTrainer(DiscreteACBasedTrainer):
     """Discrete PPO algorithm.
+
+    References:
+        https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ppo.
     """
     def __init__(self, name: str, params: DiscretePPOParams) -> None:
         super(DiscretePPOTrainer, self).__init__(name, params)
