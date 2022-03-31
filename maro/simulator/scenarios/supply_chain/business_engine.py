@@ -117,7 +117,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         assert isinstance(event.payload, list)
         actions = event.payload
         for action in actions:
-            isinstance(action, SupplyChainAction)
+            assert isinstance(action, SupplyChainAction)
             entity = self.world.get_entity_by_id(action.id)
             if entity is not None and isinstance(entity, UnitBase):
                 entity.set_action(action)
