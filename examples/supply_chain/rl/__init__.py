@@ -12,5 +12,5 @@ __all__ = [
     "post_collect",
     "post_evaluate",
     "trainable_policies",
-    "trainer_creator"
+    "trainer_creator",
 ]

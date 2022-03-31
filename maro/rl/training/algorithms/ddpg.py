@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from maro.rl.model import QNet
-from maro.rl.policy import ContinuousRLPolicy
+from maro.rl.policy import ContinuousRLPolicy, RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
@@ -61,7 +61,7 @@ class DDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], ContinuousRLPolicy],
+        policy_creator: Callable[[], RLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
         parallelism: int = 1,
         *,
@@ -261,7 +261,7 @@ class DDPGTrainer(SingleAgentTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def _get_local_ops(self) -> AbsTrainOps:
+    def get_local_ops(self) -> AbsTrainOps:
         return DDPGOps(
             name=self._policy_name,
             policy_creator=self._policy_creator,

@@ -4,13 +4,13 @@
 from typing import Callable, Dict
 
 from maro.rl.distributed import AbsWorker
-from maro.rl.policy import RLPolicy
+from maro.rl.policy import AbsPolicy
 from maro.rl.training import SingleAgentTrainer
 from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
 from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps
-from .trainer import AbsTrainer
+from .trainer import AbsTrainer, MultiAgentTrainer
 
 
 class TrainOpsWorker(AbsWorker):
@@ -19,8 +19,8 @@ class TrainOpsWorker(AbsWorker):
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the proxy can keep track of its connection status.
-        policy_creator (Dict[str, Callable[[str], RLPolicy]]): User-defined function registry that can be used to create
-            an "RLPolicy" instance with a name in the registry. This is required to create train ops instances.
+        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): User-defined function registry that can be used to
+            create an "AbsPolicy" instance with a name in the registry. This is required to create train ops instances.
         trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): User-defined function registry that can be used to
             create an "AbsTrainer" instance with a name in the registry. This is required to create train ops instances.
         producer_host (str): IP address of the proxy host to connect to.
@@ -30,7 +30,7 @@ class TrainOpsWorker(AbsWorker):
     def __init__(
         self,
         idx: int,
-        policy_creator: Dict[str, Callable[[str], RLPolicy]],
+        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         producer_host: str,
         producer_port: int = 10001,
@@ -66,10 +66,12 @@ class TrainOpsWorker(AbsWorker):
                     trainer.register_policy_creator(self._policy_creator)
                     self._trainer_dict[trainer_name] = trainer
 
-                if isinstance(self._trainer_dict[trainer_name], SingleAgentTrainer):
-                    self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops()
+                trainer = self._trainer_dict[trainer_name]
+                if isinstance(trainer, SingleAgentTrainer):
+                    self._ops_dict[ops_name] = trainer.get_local_ops()
                 else:
-                    self._ops_dict[ops_name] = self._trainer_dict[trainer_name].get_local_ops(ops_name)
+                    assert isinstance(trainer, MultiAgentTrainer)
+                    self._ops_dict[ops_name] = trainer.get_local_ops(ops_name)
                 self._logger.info(f"Created ops {ops_name} at {self._id}")
 
             self._ops_dict[ops_name].set_state(req["state"])

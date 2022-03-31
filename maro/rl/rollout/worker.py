@@ -1,10 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Dict
+from typing import Callable
 
 from maro.rl.distributed import AbsWorker
-from maro.rl.policy import RLPolicy
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.utils import LoggerV2
 
