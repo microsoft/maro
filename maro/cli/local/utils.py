@@ -83,14 +83,14 @@ def term(procs, job_name: str, timeout: int = 3):
             try:
                 proc.stop(timeout=timeout)
                 proc.remove()
-            except:
+            except Exception:
                 pass
 
         client = docker.from_env()
         try:
             job_network = client.networks.get(job_name)
             job_network.remove()
-        except:
+        except Exception:
             pass
 
 

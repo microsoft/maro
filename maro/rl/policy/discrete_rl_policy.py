@@ -98,7 +98,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         Returns:
             q_values (np.ndarray): Q-matrix.
         """
-        return self.q_values_for_all_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
+        return self.q_values_for_all_actions_tensor(ndarray_to_tensor(states, device=self._device)).cpu().numpy()
 
     def q_values_for_all_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
         """Generate a matrix containing the Q-values for all actions for the given states.
@@ -125,8 +125,8 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             q_values (np.ndarray): Q-values.
         """
         return self.q_values_tensor(
-            ndarray_to_tensor(states, self._device),
-            ndarray_to_tensor(actions, self._device)
+            ndarray_to_tensor(states, device=self._device),
+            ndarray_to_tensor(actions, device=self._device)
         ).cpu().numpy()
 
     def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
@@ -150,14 +150,14 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         self._call_cnt += 1
         if self._call_cnt <= self._warmup:
-            return ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1)), self._device)
+            return ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1)), device=self._device)
 
         q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
         _, actions = q_matrix.max(dim=1)  # [B], [B]
 
         if exploring:
             actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, **self._exploration_params)
-            actions = ndarray_to_tensor(actions, self._device)
+            actions = ndarray_to_tensor(actions, device=self._device)
         return actions.unsqueeze(1)  # [B, 1]
 
     def train_step(self, loss: torch.Tensor) -> None:

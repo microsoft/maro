@@ -90,6 +90,15 @@ def main():
     parser_k8s.set_defaults(func=_help_func(parser=parser_k8s))
     load_parser_k8s(prev_parser=parser_k8s, global_parser=global_parser)
 
+    # maro aks
+    parser_aks = subparsers.add_parser(
+        "aks",
+        help="Manage distributed cluster with Kubernetes.",
+        parents=[global_parser]
+    )
+    parser_aks.set_defaults(func=_help_func(parser=parser_aks))
+    load_parser_aks(prev_parser=parser_aks, global_parser=global_parser)
+
     # maro inspector
     parser_inspector = subparsers.add_parser(
         'inspector',
@@ -895,6 +904,77 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     )
     parser_template.add_argument("export_path", default="./", help="Path of the export directory")
     parser_template.set_defaults(func=template)
+
+
+def load_parser_aks(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:
+    subparsers = prev_parser.add_subparsers()
+
+    # maro aks create
+    from maro.cli.k8s.aks_commands import init
+    parser_create = subparsers.add_parser(
+        "init",
+        help="Deploy resources and start required services on Azure",
+        examples=CliExamples.MARO_K8S_CREATE,
+        parents=[global_parser]
+    )
+    parser_create.add_argument("deployment_conf_path", help="Path of the deployment configuration file")
+    parser_create.set_defaults(func=init)
+
+    # maro aks exit
+    from maro.cli.k8s.aks_commands import exit
+    parser_create = subparsers.add_parser(
+        "exit",
+        help="Delete deployed resources",
+        examples=CliExamples.MARO_K8S_DELETE,
+        parents=[global_parser]
+    )
+    parser_create.set_defaults(func=exit)
+
+    # maro aks job
+    parser_job = subparsers.add_parser(
+        "job",
+        help="Job-related commands",
+        parents=[global_parser]
+    )
+    parser_job.set_defaults(func=_help_func(parser=parser_job))
+    job_subparsers = parser_job.add_subparsers()
+
+    # maro aks job add
+    from maro.cli.k8s.aks_commands import add_job
+    parser_job_start = job_subparsers.add_parser(
+        "add",
+        help="Add an RL job to the AKS cluster",
+        examples=CliExamples.MARO_K8S_JOB_START,
+        parents=[global_parser]
+    )
+    parser_job_start.add_argument("conf_path", help="Path to the job configuration file")
+    parser_job_start.set_defaults(func=add_job)
+
+    # maro aks job rm
+    from maro.cli.k8s.aks_commands import remove_jobs
+    parser_job_start = job_subparsers.add_parser(
+        "rm",
+        help="Remove previously scheduled RL jobs from the AKS cluster",
+        examples=CliExamples.MARO_K8S_JOB_START,
+        parents=[global_parser]
+    )
+    parser_job_start.add_argument("job_names", help="Name of job to be removed", nargs="*")
+    parser_job_start.set_defaults(func=remove_jobs)
+
+    # maro aks job logs
+    from maro.cli.k8s.aks_commands import get_job_logs
+    job_logs_parser = job_subparsers.add_parser(
+        "logs",
+        help="Get job logs",
+        examples=CliExamples.MARO_PROCESS_JOB_LOGS,
+        parents=[global_parser]
+    )
+    job_logs_parser.add_argument("job_name", help="job name")
+    job_logs_parser.add_argument(
+        "-n", "--tail", type=int, default=-1,
+        help="Number of lines to show from the end of the given job's logs"
+    )
+    job_logs_parser.set_defaults(func=get_job_logs)
 
 
 def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser):

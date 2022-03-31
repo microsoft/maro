@@ -11,5 +11,5 @@ __all__ = [
     "policy_creator",
     "post_collect",
     "post_evaluate",
-    "trainer_creator"
+    "trainer_creator",
 ]

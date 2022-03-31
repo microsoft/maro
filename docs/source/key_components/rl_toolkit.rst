@@ -143,6 +143,7 @@ in the memory to train the policies. Like ``RLPolicy``, trainers are also concre
 be used by configuring parameters. Currently, we have 4 trainers (algorithms) in MARO:
 
 - ``DiscreteActorCriticTrainer``: Actor-critic algorithm for policies that generate discrete actions.
+- ``DiscretePPOTrainer``: PPO algorithm for policies that generate discrete actions.
 - ``DDPGTrainer``: DDPG algorithm for policies that generate continuous actions.
 - ``DQNTrainer``: DQN algorithm for policies that generate discrete actions.
 - ``DiscreteMADDPGTrainer``: MADDPG algorithm for policies that generate discrete actions.
@@ -169,7 +170,6 @@ An example of creating an actor-critic trainer:
    DiscreteActorCriticTrainer(
        name='ac',
        params=DiscreteActorCriticParams(
-           device="cpu",
            get_v_critic_net_func=lambda: MyCriticNet(state_dim=128),
            reward_discount=.0,
            grad_iters=10,
