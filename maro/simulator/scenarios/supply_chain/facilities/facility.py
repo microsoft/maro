@@ -36,6 +36,7 @@ class FacilityInfo:
     distribution_info: Optional[DistributionUnitInfo]
     products_info: Dict[int, ProductUnitInfo]  # Key: product_id
 
+
 class FacilityBase(ABC):
     """Base of all facilities."""
     def __init__(self) -> None:
@@ -184,5 +185,5 @@ class FacilityBase(ABC):
             downstreams={product_id: [f.id for f in f_list] for product_id, f_list in self.downstreams.items()},
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
-            products_info={product_id: product.get_unit_info() for product_id, product in self.products.items()}
+            products_info={product_id: product.get_unit_info() for product_id, product in self.products.items()},
         )

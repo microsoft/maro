@@ -7,7 +7,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel, consumer, manufacture
+from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 
 from .consumer import ConsumerUnit, ConsumerUnitInfo
 from .distribution import DistributionUnit
@@ -32,16 +32,16 @@ class ProductUnit(ExtendUnitBase):
         super(ProductUnit, self).__init__()
 
         # The consumer unit of this SKU.
-        self.consumer: ConsumerUnit = None
+        self.consumer: Optional[ConsumerUnit] = None
         # The seller unit of this SKU.
-        self.seller: SellerUnit = None
+        self.seller: Optional[SellerUnit] = None
         # The manufacture unit of this SKU.
-        self.manufacture: ManufactureUnit = None
+        self.manufacture: Optional[ManufactureUnit] = None
 
         # The storage unit of the facility it belongs to. It is a reference to self.facility.storage.
-        self.storage: StorageUnit = None
+        self.storage: Optional[StorageUnit] = None
         # The distribution unit of the facility it belongs to. It is a reference to self.facility.distribution.
-        self.distribution: DistributionUnit = None
+        self.distribution: Optional[DistributionUnit] = None
 
         # Internal states to track distribution.
         self._check_in_quantity_in_order: int = 0

@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict, namedtuple
 from typing import Any, Callable, Dict, List, Type
 
 import numpy as np
@@ -38,6 +37,7 @@ def _serialize_state(state: dict) -> np.ndarray:
             result.extend(vals)
 
     return np.asarray(result, dtype=np.float32)
+
 
 class SCEnvSampler(AbsEnvSampler):
     def __init__(
@@ -164,7 +164,7 @@ class SCEnvSampler(AbsEnvSampler):
         np_state = _serialize_state(state)
         return np_state
 
-    def _get_state_shaper(self, entity_id: int):
+    def _get_state_shaper(self, entity_id: int) -> Callable[[dict, SupplyChainEntity], np.ndarray]:
         if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy):
             return self.get_rl_policy_state
         else:
@@ -227,7 +227,7 @@ class SCEnvSampler(AbsEnvSampler):
         # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
         self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
         return {
-            f_id: self._get_reward_for_entity(self._entity_dict[f_id], bwt)
+            f_id: self._get_reward_for_entity(self._entity_dict[f_id], list(bwt))
             for f_id, bwt in self._cur_balance_sheet_reward.items() if f_id in self._agent2policy
         }
 
@@ -278,7 +278,7 @@ class SCEnvSampler(AbsEnvSampler):
                 action = sku.production_rate
                 # ignore invalid actions
                 if action:
-                    env_action_dict[agent_id] = ManufactureAction(id=unit_id, production_rate=float(action))
+                    env_action_dict[agent_id] = ManufactureAction(id=unit_id, production_rate=int(action))
 
         return env_action_dict
 

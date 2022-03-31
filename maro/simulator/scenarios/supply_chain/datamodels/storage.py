@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import List
+from typing import List, Optional
 
 from maro.backends.backend import AttributeType
 from maro.backends.frame import NodeAttribute, node
@@ -24,12 +24,12 @@ class StorageDataModel(DataModelBase):
     def __init__(self) -> None:
         super(StorageDataModel, self).__init__()
 
-        self._capacity: List[int] = None
-        self._remaining_space: List[int] = None
-        self._unit_storage_cost: List[float] = None
-        self._product_list: List[int] = None
-        self._product_quantity: List[int] = None
-        self._product_storage_index: List[int] = None
+        self._capacity: Optional[List[int]] = None
+        self._remaining_space: Optional[List[int]] = None
+        self._unit_storage_cost: Optional[List[float]] = None
+        self._product_list: Optional[List[int]] = None
+        self._product_quantity: Optional[List[int]] = None
+        self._product_storage_index: Optional[List[int]] = None
 
     def initialize(
         self,

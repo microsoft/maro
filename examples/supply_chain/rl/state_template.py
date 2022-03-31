@@ -26,7 +26,7 @@ def out_of_stock(f_state) -> bool:
     return 0 < f_state['inventory_in_stock']
 
 
-workflow_settings = {
+workflow_settings: dict = {
     "global_reward_weight_producer": 0.50,
     "global_reward_weight_consumer": 0.50,
     "downsampling_rate": 1,
