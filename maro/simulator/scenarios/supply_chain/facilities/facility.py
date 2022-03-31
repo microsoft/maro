@@ -93,8 +93,10 @@ class FacilityBase(ABC):
         Args:
             configs (dict): Configuration of skus belongs to this facility.
         """
-        for sku_name, sku_config in configs.items():
-            sku_config['id'] = self.world.get_sku_id_by_name(sku_name)
+        for sku_id_or_name, sku_config in configs.items():
+            sku_id, sku_name = self.world.get_sku_id_and_name(sku_id_or_name)
+            sku_config['id'] = sku_id
+            sku_config['name'] = sku_name
             facility_sku = SkuInfo(**sku_config)
             self.skus[facility_sku.id] = facility_sku
 

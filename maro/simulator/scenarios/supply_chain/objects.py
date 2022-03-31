@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Dict, Optional
 
 from .units.storage import DEFAULT_SUB_STORAGE_ID
 
@@ -11,13 +11,14 @@ from .units.storage import DEFAULT_SUB_STORAGE_ID
 class SkuMeta:
     id: int
     name: str
-    output_units_per_lot: int
-    bom: dict = None
+    output_units_per_lot: int = 1
+    bom: Dict[int, int] = field(default_factory=dict)  # Key: SKU id, Value: required quantity per lot
 
 
 @dataclass
 class SkuInfo:
     id: int
+    name: str
     init_stock: int
     sub_storage_id: int = DEFAULT_SUB_STORAGE_ID  # TODO: decide whether it could be a default setting
     storage_upper_bound: Optional[int] = None  # TODO: Or separate the storage directly?

@@ -89,6 +89,9 @@ class DataFileDemandSampler(SellerDemandSampler):
             for row in reader:
                 sku_name = row[self._sku_column_name]
 
+                if sku_name not in self._world._sku_name2id_mapping:
+                    continue
+
                 sales = int(row[self._sale_column_name])
                 price = float(row[self._price_column_name])
                 date = parser.parse(row[self._datetime_column_name], ignoretz=True)

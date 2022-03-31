@@ -31,7 +31,7 @@ class SupplyChainEntity:
 
 
 class World:
-    """Supply chain world contains facilities and grid base map."""
+    """Supply chain world contains facilities."""
 
     def __init__(self) -> None:
         # Frame for current world configuration.
@@ -130,19 +130,31 @@ class World:
         """
         return self.units[entity_id] if entity_id in self.units else self.facilities[entity_id]
 
-    def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:
-        """Find path to specified cell.
+    def get_sku_id_and_name(self, id_or_name: Union[int, str]) -> Tuple[int, str]:
+        if isinstance(id_or_name, int):
+            assert id_or_name in self._sku_collection.keys()
+            return id_or_name, self._sku_collection[id_or_name].name
+        else:
+            assert id_or_name in self._sku_name2id_mapping.keys()
+            return self._sku_name2id_mapping[id_or_name], id_or_name
 
-        Args:
-            start_x (int): Start cell position x.
-            start_y (int): Start cell position y.
-            goal_x (int): Destination cell position x.
-            goal_y (int): Destination cell position y.
+    def _init_sku_collection(self) -> None:
+        # Grab sku information for this world.
+        for sku_conf in self.configs.world["skus"]:
+            sku = SkuMeta(**sku_conf)
 
-        Returns:
-            List[Tuple[int, int]]: List of (x, y) position to target.
-        """
-        return nx.astar_path(self._graph, source=(start_x, start_y), target=(goal_x, goal_y), weight="cost")
+            self._sku_name2id_mapping[sku.name] = sku.id
+            self._sku_collection[sku.id] = sku
+
+        # Format bom info to use sku id as key.
+        for sku_conf in self.configs.world["skus"]:
+            sku = self._sku_collection[sku_conf["id"]]
+            sku.bom = {}
+
+            bom = sku_conf.get("bom", {})
+            for src_id_or_name, units_per_lot in bom.items():
+                src_id, _ = self.get_sku_id_and_name(src_id_or_name)
+                sku.bom[src_id] = units_per_lot
 
     # TODO: build from yaml + build from input files?
     def build(self, configs: SupplyChainConfiguration, snapshot_number: int, durations: int) -> None:
@@ -156,33 +168,15 @@ class World:
         self.durations = durations
         self.configs = configs
 
-        world_config = configs.world
-
-        # Grab sku information for this world.
-        for sku_conf in world_config["skus"]:
-            sku = SkuMeta(**sku_conf)
-
-            self._sku_name2id_mapping[sku.name] = sku.id
-            self._sku_collection[sku.id] = sku
-
-        # Collect bom info.
-        for sku_conf in world_config["skus"]:
-            sku = self._sku_collection[sku_conf["id"]]
-            sku.bom = {}
-
-            bom = sku_conf.get("bom", {})
-
-            for material_sku_name, units_per_lot in bom.items():
-                sku.bom[self._sku_name2id_mapping[material_sku_name]] = units_per_lot
+        # Step 1: initialize sku collection based on the world.skus in config
+        self._init_sku_collection()
 
         # Construct facilities.
-        for facility_conf in world_config["facilities"]:
-            facility_class_alias = facility_conf["class"]
-            facility_def: EntityDef = self.configs.entity_defs[facility_class_alias]
-            facility_class_type = facility_def.class_type
+        for facility_conf in self.configs.world["facilities"]:
+            facility_def: EntityDef = self.configs.entity_defs[facility_conf["class"]]
 
             # Instance of facility.
-            facility: FacilityBase = facility_class_type()
+            facility: FacilityBase = facility_def.class_type()
 
             # Normal properties.
             facility.id = self._gen_id()
@@ -223,7 +217,7 @@ class World:
                 facility.data_model = getattr(self.frame, facility.data_model_name)[facility.data_model_index]
 
         # Construct the upstream topology.
-        topology = world_config["topology"]
+        topology = self.configs.world["topology"]
 
         for cur_facility_name, topology_conf in topology.items():
             facility = self.get_facility_by_name(cur_facility_name)
@@ -246,33 +240,6 @@ class World:
         # Call initialize method for units.
         for unit in self.units.values():
             unit.initialize()
-
-        # Construct the map grid.
-        grid_config = world_config["grid"]
-
-        grid_width, grid_height = grid_config["size"]
-
-        # Build our graph base on settings.
-        # This will create a full connect graph.
-        self._graph = nx.grid_2d_graph(grid_width, grid_height)
-
-        # All edge weight will be 1 by default.
-        edge_weights = {e: 1 for e in self._graph.edges()}
-
-        # Facility to cell will have 1 weight, cell to facility will have 4 cost.
-        for facility_name, pos in grid_config["facilities"].items():
-            facility_id = self._facility_name2id_mapping[facility_name]
-            facility = self.facilities[facility_id]
-            facility.x = pos[0]
-            facility.y = pos[1]
-            pos = tuple(pos)
-
-            # Neighbors to facility will have high cost.
-            for npos in ((pos[0] - 1, pos[1]), (pos[0] + 1, pos[1]), (pos[0], pos[1] - 1), (pos[0], pos[1] + 1)):
-                if 0 <= npos[0] < grid_width and 0 <= npos[1] < grid_height:
-                    edge_weights[(npos, pos)] = 4
-
-        nx.set_edge_attributes(self._graph, edge_weights, "cost")
 
         # Collection entity list
         for facility in self.facilities.values():
