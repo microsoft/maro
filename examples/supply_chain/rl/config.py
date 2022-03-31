@@ -9,7 +9,7 @@ env_conf = {
     "durations": 100,  # number of ticks per episode
 }
 
-distribution_features = ("remaining_order_quantity", "remaining_order_number")
+distribution_features = ("pending_product_quantity", "pending_order_number")
 seller_features = ("total_demand", "sold", "demand")
 
 NUM_CONSUMER_ACTIONS = 10

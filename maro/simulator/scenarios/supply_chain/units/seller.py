@@ -2,9 +2,16 @@
 # Licensed under the MIT license.
 
 import numpy as np
+from dataclasses import dataclass
 
-from .. import SellerDataModel
-from .extendunitbase import ExtendUnitBase
+from maro.simulator.scenarios.supply_chain.datamodels import SellerDataModel
+
+from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+
+
+@dataclass
+class SellerUnitInfo(ExtendUnitInfo):
+    pass
 
 
 class SellerUnit(ExtendUnitBase):
@@ -98,3 +105,8 @@ class SellerUnit(ExtendUnitBase):
 
     def sale_std(self) -> float:
         return float(np.std(self._sale_hist))
+
+    def get_node_info(self) -> SellerUnitInfo:
+        return SellerUnitInfo(
+            **super(SellerUnit, self).get_unit_info().__dict__,
+        )

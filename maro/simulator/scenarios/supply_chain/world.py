@@ -10,12 +10,11 @@ import networkx as nx
 
 from maro.backends.frame import FrameBase
 
-from . import ProductUnit
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .objects import SkuInfo, SkuMeta
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
-from .units import ExtendUnitBase, UnitBase
+from .units import ExtendUnitBase, ProductUnit, UnitBase
 
 
 @dataclass
@@ -323,7 +322,7 @@ class World:
         return unit
 
     def build_unit(
-        self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict
+        self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict,
     ) -> Union[UnitBase, Dict[int, ProductUnit]]:
         """Build an unit by its configuration.
 
@@ -420,7 +419,7 @@ class World:
 
         return {
             "unit_mapping": id2index_mapping,
-            "skus": {id: sku for id, sku in self._sku_collection.items()},
+            "skus": {id_: sku for id_, sku in self._sku_collection.items()},
             "facilities": facility_info_dict,
             "max_price": self.max_price,
             "max_sources_per_facility": self.max_sources_per_facility,

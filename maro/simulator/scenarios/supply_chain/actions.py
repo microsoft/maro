@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from dataclasses import dataclass
 
 
@@ -18,4 +19,4 @@ class ConsumerAction(SupplyChainAction):
 
 @dataclass
 class ManufactureAction(SupplyChainAction):
-    production_rate: float
+    production_rate: int

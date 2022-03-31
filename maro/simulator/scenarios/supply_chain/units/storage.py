@@ -6,16 +6,18 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
-from maro.simulator.scenarios.supply_chain.units.unitbase import UnitBase
+from .unitbase import UnitBase, BaseUnitInfo
 
 
 DEFAULT_SUB_STORAGE_ID = 0
+
 
 @dataclass
 class SubStorageConfig:
     id: int
     capacity: int = 100  # TODO: Is it a MUST config or could it be default?
     unit_storage_cost: int = 1
+
 
 def parse_storage_config(config: dict) -> List[SubStorageConfig]:  # TODO: here or in parser
     if not isinstance(config, list):
@@ -37,6 +39,11 @@ class AddStrategy(Enum):
     LimitedByUpperBound = 4
 
 
+@dataclass
+class StorageUnitInfo(BaseUnitInfo):
+    product_list: List[int]
+
+
 class StorageUnit(UnitBase):
     """Unit that used to store skus."""
 
@@ -46,6 +53,7 @@ class StorageUnit(UnitBase):
         # Key: Sub-Storage ID
         self._capacity_dict: Dict[int, int] = {}
         self._remaining_space_dict: Dict[int, int] = {}
+        self._unit_cost_dict: Dict[int, float] = {}
         self._total_capacity: int = 0
 
         # 1st-key: the Sub-Storage ID, 2nd-key: the SKU ID, value: the upper bound.
@@ -56,8 +64,11 @@ class StorageUnit(UnitBase):
         self._product_level: Dict[int, int] = {}
         self._product_level_changed: Dict[int, bool] = {}
 
-        # Mapping from the product id to sub-storage id
+        # Mapping from the product id to sub-storage id.
         self._product2storage: Dict[int, int] = {}
+        # Mapping between the sub-storage id and the idx in the data model.
+        self._storage_id2idx: Dict[int, int] = {}
+        self._storage_idx2id: Dict[int, int] = {}
 
     @property
     def capacity(self) -> int:  # TODO: not used now. Check to remove or not.
@@ -76,6 +87,7 @@ class StorageUnit(UnitBase):
             assert sub_config.id not in self._capacity_dict, f"Sub-Storage {sub_config.id} already exist!"
             self._capacity_dict[sub_config.id] = sub_config.capacity
             self._remaining_space_dict[sub_config.id] = sub_config.capacity
+            self._unit_cost_dict[sub_config.id] = sub_config.unit_storage_cost
             self._total_capacity += sub_config.capacity
 
         # Initialize the product stock level
@@ -123,11 +135,26 @@ class StorageUnit(UnitBase):
                         # In the case the initial remaining space is not divisible.
                         upper_bound_dict[sku_id] = remaining_space
 
+        capacity_list: List[int] = []
+        remaining_space_list: List[int] = []
+        unit_cost_list: List[float] = []
+        for idx, id in enumerate(self._capacity_dict.keys()):
+            self._storage_id2idx[id] = idx
+            self._storage_idx2id[idx] = id
+
+            capacity_list.append(self._capacity_dict[id])
+            remaining_space_list.append(self._remaining_space_dict[id])
+            unit_cost_list.append(self._unit_cost_dict[id])
+
         self.data_model.initialize(
-            capacity=self.capacity,
-            remaining_space=self.remaining_space,
+            capacity=capacity_list,
+            remaining_space=remaining_space_list,
+            unit_storage_cost=unit_cost_list,
             product_list=[sku_id for sku_id in self._product_level.keys()],
             product_quantity=[n for n in self._product_level.values()],
+            product_storage_index=[
+                self._storage_id2idx[self._product2storage[sku_id]] for sku_id in self._product_level.keys()
+            ],
         )
 
     def get_product_quantity(self, product_id: int) -> int:
@@ -165,7 +192,7 @@ class StorageUnit(UnitBase):
     def try_add_products(
         self,
         product_quantities: Dict[int, int],
-        add_strategy: AddStrategy=AddStrategy.IgnoreUpperBoundAllOrNothing
+        add_strategy: AddStrategy = AddStrategy.IgnoreUpperBoundAllOrNothing,
     ) -> Dict[int, int]:
         """Try to add products into storage.
 
@@ -202,7 +229,9 @@ class StorageUnit(UnitBase):
 
                 for product_id, quantity in product_quantities.items():
                     storage_id = self._product2storage[product_id]
-                    quantity = min(int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id])
+                    quantity = min(
+                        int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id],
+                    )
                     self._add_product(product_id, quantity)
                     added_quantities[product_id] = quantity
 
@@ -286,9 +315,8 @@ class StorageUnit(UnitBase):
 
             self._remaining_space_dict[sku.sub_storage_id] -= sku.init_stock
 
-    def get_unit_info(self) -> dict:
-        info = super().get_unit_info()
-
-        info["product_list"] = [i for i in self._product_level.keys()]
-
-        return info
+    def get_unit_info(self) -> StorageUnitInfo:
+        return StorageUnitInfo(
+            **super(StorageUnit, self).get_unit_info().__dict__,
+            product_list=[i for i in self._product_level.keys()],
+        )
