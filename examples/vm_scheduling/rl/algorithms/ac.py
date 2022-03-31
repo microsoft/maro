@@ -16,7 +16,7 @@ actor_net_conf = {
     "activation": torch.nn.LeakyReLU,
     "softmax": True,
     "batch_norm": False,
-    "head": True
+    "head": True,
 }
 
 critic_net_conf = {
@@ -24,7 +24,7 @@ critic_net_conf = {
     "activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": False,
-    "head": True
+    "head": True,
 }
 
 actor_learning_rate = 0.0001
@@ -67,7 +67,7 @@ class MyActorNet(DiscretePolicyNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -105,7 +105,7 @@ class MyCriticNet(VNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -127,12 +127,11 @@ def get_ac(state_dim: int, num_features: int, name: str) -> DiscreteActorCriticT
     return DiscreteActorCriticTrainer(
         name=name,
         params=DiscreteActorCriticParams(
-            device="cpu",
             get_v_critic_net_func=lambda: MyCriticNet(state_dim, num_features),
             reward_discount=0.9,
             grad_iters=100,
             critic_loss_cls=torch.nn.MSELoss,
             min_logp=-20,
-            lam=.0
-        )
+            lam=.0,
+        ),
     )

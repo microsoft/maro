@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.1.0.0",
+  "parameters": {
+    "acrName": {
+      "value": "myacr"
+    },
+    "acrSku": {
+      "value": "Basic"
+    },
+    "agentCount": {
+      "value": 1
+    },
+    "agentVMSize": {
+      "value": "standard_a2_v2"
+    },
+    "clusterName": {
+      "value": "myaks"
+    },
+    "fileShareName": {
+      "value": "myfileshare"
+    },
+    "location": {
+      "value": "East US"
+    },
+    "storageAccountName": {
+      "value": "mystorage"
+    },
+    "virtualNetworkName": {
+      "value": "myvnet"
+    }
+  }
+}

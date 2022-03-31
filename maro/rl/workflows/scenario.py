@@ -4,9 +4,10 @@
 import importlib
 import os
 import sys
-from typing import Callable, Dict
+from typing import Any, Callable, Dict, List
 
-from maro.rl.policy import RLPolicy
+from maro.rl.policy import AbsPolicy
+from maro.rl.policy.abs_policy import RLPolicy
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
 
@@ -18,20 +19,29 @@ class Scenario(object):
         sys.path.insert(0, os.path.dirname(path))
         self._module = importlib.import_module(os.path.basename(path))
 
-    def get_env_sampler(self, policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> AbsEnvSampler:
-        return getattr(self._module, "env_sampler_creator")(policy_creator)
+    @property
+    def env_sampler_creator(self) -> Callable[[Dict[str, Callable[[str], AbsPolicy]]], AbsEnvSampler]:
+        return getattr(self._module, "env_sampler_creator")
 
     @property
-    def agent2policy(self) -> Dict[str, str]:
+    def agent2policy(self) -> Dict[Any, str]:
         return getattr(self._module, "agent2policy")
 
     @property
-    def policy_creator(self) -> Dict[str, Callable[[str], RLPolicy]]:
+    def policy_creator(self) -> Dict[str, Callable[[str], AbsPolicy]]:
         return getattr(self._module, "policy_creator")
+
+    @property
+    def trainable_policies(self) -> List[str]:
+        return getattr(self._module, "trainable_policies", None)
 
     @property
     def trainer_creator(self) -> Dict[str, Callable[[str], AbsTrainer]]:
         return getattr(self._module, "trainer_creator")
+
+    @property
+    def device_mapping(self) -> Dict[str, str]:
+        return getattr(self._module, "device_mapping", {})
 
     @property
     def post_collect(self) -> Callable[[list, int, int], None]:
