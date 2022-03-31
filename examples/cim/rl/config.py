@@ -10,7 +10,7 @@ env_conf = {
 if env_conf["topology"].startswith("toy"):
     num_agents = int(env_conf["topology"].split(".")[1][0])
 else:
-    num_agents = int(env_conf["topology"].split(".")[1][:2]) 
+    num_agents = int(env_conf["topology"].split(".")[1][:2])
 
 port_attributes = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
 vessel_attributes = ["empty", "full", "remaining_space"]
@@ -39,4 +39,4 @@ state_dim = (
     + len(vessel_attributes)
 )
 
-algorithm = "ac"  # ac, ppo, dqn or discrete_maddpg
+algorithm = "ppo"  # ac, ppo, dqn or discrete_maddpg

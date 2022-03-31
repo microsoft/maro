@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from maro.rl.model import VNet
-from maro.rl.policy import DiscretePolicyGradient
+from maro.rl.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import (
@@ -46,7 +46,7 @@ class DiscreteACBasedOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], DiscretePolicyGradient],
+        policy_creator: Callable[[str], RLPolicy],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         *,
@@ -200,7 +200,7 @@ class DiscreteACBasedOps(AbsTrainOps):
 
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
-        actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
+        actions = ndarray_to_tensor(batch.actions, device=self._device).long()  # a
 
         values = self._v_critic_net.v_values(states).detach().cpu().numpy()
         values = np.concatenate([values, values[-1:]])
@@ -210,7 +210,7 @@ class DiscreteACBasedOps(AbsTrainOps):
         batch.advantages = advantages
 
         if self._clip_ratio is not None:
-            batch.old_logps = self._policy.get_state_action_logps(states, actions).cpu().numpy()
+            batch.old_logps = self._policy.get_state_action_logps(states, actions).detach().cpu().numpy()
 
         return batch
 

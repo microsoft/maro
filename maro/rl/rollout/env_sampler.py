@@ -222,7 +222,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
-        self._rl_policy_dict: Dict[str, AbsPolicy] = {
+        self._rl_policy_dict: Dict[str, RLPolicy] = {
             name: policy for name, policy in self._policy_dict.items() if isinstance(policy, RLPolicy)
         }
         self._agent2policy = agent2policy
