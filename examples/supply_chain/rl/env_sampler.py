@@ -21,22 +21,7 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 from .config import distribution_features, env_conf, seller_features
 from .env_helper import STORAGE_INFO
 from .policies import agent2policy, trainable_policies
-from .state_template import keys_in_state, STATE_TEMPLATE, workflow_settings
-
-
-def _serialize_state(state: dict) -> np.ndarray:
-    result = []
-
-    for norm, fields in keys_in_state:
-        for field in fields:
-            vals = state[field]
-            if not isinstance(vals, list):
-                vals = [vals]
-            if norm is not None:
-                vals = [max(0.0, min(20.0, x / (state[norm] + 0.01))) for x in vals]
-            result.extend(vals)
-
-    return np.asarray(result, dtype=np.float32)
+from .state_template import STATE_TEMPLATE, workflow_settings, _serialize_state
 
 
 class SCEnvSampler(AbsEnvSampler):

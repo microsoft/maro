@@ -208,3 +208,18 @@ STATE_DIM = sum(
     for _, state_keys in keys_in_state
     for key in state_keys
 )
+
+
+def _serialize_state(state: dict) -> np.ndarray:
+    result = []
+
+    for norm, fields in keys_in_state:
+        for field in fields:
+            vals = state[field]
+            if not isinstance(vals, list):
+                vals = [vals]
+            if norm is not None:
+                vals = [max(0.0, min(20.0, x / (state[norm] + 0.01))) for x in vals]
+            result.extend(vals)
+
+    return np.asarray(result, dtype=np.float32)
