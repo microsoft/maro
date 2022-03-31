@@ -7,7 +7,7 @@ from typing import Callable, Dict, Optional
 import numpy as np
 import torch
 
-from maro.rl.policy import ValueBasedPolicy
+from maro.rl.policy import RLPolicy, ValueBasedPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
@@ -48,7 +48,7 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], ValueBasedPolicy],
+        policy_creator: Callable[[str], RLPolicy],
         parallelism: int = 1,
         *,
         reward_discount: float = 0.9,
@@ -189,7 +189,7 @@ class DQNTrainer(SingleAgentTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def _get_local_ops(self) -> AbsTrainOps:
+    def get_local_ops(self) -> AbsTrainOps:
         return DQNOps(
             name=self._policy_name,
             policy_creator=self._policy_creator,

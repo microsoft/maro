@@ -19,7 +19,7 @@ q_net_conf = {
     "batch_norm": False,
     "skip_connection": False,
     "head": True,
-    "dropout_p": 0.0
+    "dropout_p": 0.0,
 }
 
 learning_rate = 0.0005

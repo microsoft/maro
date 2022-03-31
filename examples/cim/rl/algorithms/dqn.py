@@ -18,7 +18,7 @@ q_net_conf = {
     "batch_norm": True,
     "skip_connection": False,
     "head": True,
-    "dropout_p": 0.0
+    "dropout_p": 0.0,
 }
 learning_rate = 0.05
 
@@ -75,7 +75,7 @@ def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
                 "final_value": 0.0,
             }
         )],
-        warmup=100
+        warmup=100,
     )
 
 
@@ -90,6 +90,6 @@ def get_dqn(name: str) -> DQNTrainer:
             double=False,
             replay_memory_capacity=10000,
             random_overwrite=False,
-            batch_size=32
+            batch_size=32,
         ),
     )

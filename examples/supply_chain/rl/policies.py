@@ -41,5 +41,5 @@ agent2policy = {
 trainable_policies = ["ppo.policy"]
 
 trainer_creator = {
-    "ppo": partial(get_ppo, STATE_DIM)
+    "ppo": partial(get_ppo, STATE_DIM),
 }
