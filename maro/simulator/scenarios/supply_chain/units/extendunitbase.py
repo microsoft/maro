@@ -29,5 +29,5 @@ class ExtendUnitBase(UnitBase):
     def get_unit_info(self) -> ExtendUnitInfo:
         return ExtendUnitInfo(
             **super(ExtendUnitBase, self).get_unit_info().__dict__,
-            product_id=self.product_id
+            product_id=self.product_id,
         )

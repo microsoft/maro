@@ -108,5 +108,5 @@ class SellerUnit(ExtendUnitBase):
 
     def get_node_info(self) -> SellerUnitInfo:
         return SellerUnitInfo(
-            **super(SellerUnit, self).get_unit_info().__dict__
+            **super(SellerUnit, self).get_unit_info().__dict__,
         )

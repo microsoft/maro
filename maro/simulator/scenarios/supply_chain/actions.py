@@ -19,4 +19,4 @@ class ConsumerAction(SupplyChainAction):
 
 @dataclass
 class ManufactureAction(SupplyChainAction):
-    production_rate: float
+    production_rate: int

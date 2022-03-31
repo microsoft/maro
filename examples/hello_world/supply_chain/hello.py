@@ -11,7 +11,6 @@ env = Env(scenario="supply_chain", topology="walmart", start_tick=0, durations=1
 balance_calculator = BalanceSheetCalculator(env=env)
 
 for ep in range(2):
-    metrics = None
     is_done = False
     action = None
 

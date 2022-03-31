@@ -142,5 +142,5 @@ class UnitBase:
             node_name=type(self.data_model).__node_name__,
             class_name=type(self),
             config=self.config,
-            children=[c.get_unit_info() for c in self.children] if self.children else None
+            children=[c.get_unit_info() for c in self.children] if self.children else None,
         )

@@ -31,7 +31,7 @@ class VehicleUnit(UnitBase):
 
         # Requested product quantity.
         self.requested_quantity = 0
-        # The product yayload on vehicle.
+        # The product payload on vehicle.
         self.payload = 0
 
         # Remaining steps to arrive to the destination.
@@ -88,7 +88,7 @@ class VehicleUnit(UnitBase):
         """Try unload products into destination's storage."""
         unloaded = self._destination.storage.try_add_products(
             {self.product_id: self.payload},
-            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder  # TODO: check which strategy to use.
+            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
         )
 
         # Update order if we unloaded any.

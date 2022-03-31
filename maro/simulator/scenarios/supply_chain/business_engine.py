@@ -114,8 +114,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
     def _on_action_received(self, event: CascadeEvent) -> None:
-        actions: List[SupplyChainAction] = event.payload
+        assert isinstance(event.payload, list)
+        actions = event.payload
         for action in actions:
+            isinstance(action, SupplyChainAction)
             entity = self.world.get_entity_by_id(action.id)
             if entity is not None and isinstance(entity, UnitBase):
                 entity.set_action(action)

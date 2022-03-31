@@ -97,7 +97,7 @@ class BalanceSheetCalculator:
                         seller_index=product_info.seller_info.node_index if product_info.seller_info else None,
                         manufacture_index=(
                             product_info.manufacture_info.node_index if product_info.manufacture_info else None
-                        )
+                        ),
                     )
                 )
 
@@ -107,7 +107,7 @@ class BalanceSheetCalculator:
                     product_unit_id_list=product_id_list,
                     storage_index=storage_info.node_index,
                     distribution_index=distribution_info.node_index if distribution_info else None,
-                    vehicle_index_list=distribution_info.vehicle_node_index_list if distribution_info else []
+                    vehicle_index_list=distribution_info.vehicle_node_index_list if distribution_info else [],
                 )
             )
 
@@ -231,7 +231,7 @@ class BalanceSheetCalculator:
             for _capacity, _remaining, _cost in zip(
                 self._get_list_attributes("storage", "capacity", tick),
                 self._get_list_attributes("storage", "remaining_space", tick),
-                unit_storage_cost
+                unit_storage_cost,
             )
         ]
 
