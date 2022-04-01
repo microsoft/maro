@@ -1,13 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
 from maro.simulator.scenarios.supply_chain.datamodels import ManufactureDataModel
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 @dataclass
@@ -20,9 +28,11 @@ class ManufactureUnit(ExtendUnitBase):
 
     One manufacture unit per sku.
     """
-
-    def __init__(self) -> None:
-        super(ManufactureUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(ManufactureUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
 
         # Source material sku and related quantity per manufacture cycle.
         self._bom: Optional[dict] = None

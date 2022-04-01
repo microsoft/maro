@@ -20,16 +20,16 @@ facility_definitions:
     children:
       storage:
         class: "StorageUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
-          manufacture:
-            class: "ManufactureUnit"
       distribution:
         class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        manufacture:
+          class: "ManufactureUnit"
+
   WarehouseFacility: &warehouse_facility
     class: "WarehouseFacility"
     children:
@@ -37,27 +37,27 @@ facility_definitions:
         class: "StorageUnit"
       distribution:
         class: "DistributionUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+
   RetailerFacility: &retailer_facility
     class: "RetailerFacility"
     children:
       storage:
         class: "StorageUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
-          seller:
-            class: "SellerUnit"
-            config:
-              sale_hist_len: 4
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        seller:
+          class: "SellerUnit"
+          config:
+            sale_hist_len: 4
+
 small_storage: &small_storage
   config:
     capacity: 100

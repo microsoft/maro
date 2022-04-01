@@ -1,12 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 import numpy as np
 from dataclasses import dataclass
+from typing import Optional, Union
 
 from maro.simulator.scenarios.supply_chain.datamodels import SellerDataModel
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 @dataclass
@@ -18,9 +27,13 @@ class SellerUnit(ExtendUnitBase):
     """
     Unit that used to generate product consume demand, and move demand product from current storage.
     """
-
-    def __init__(self) -> None:
-        super(SellerUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(SellerUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
         self._gamma = 0
 

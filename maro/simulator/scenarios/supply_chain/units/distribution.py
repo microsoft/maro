@@ -1,13 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from collections import Counter, defaultdict, deque
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional, Union
 
 from .order import Order
 from .unitbase import UnitBase, BaseUnitInfo
 from .vehicle import VehicleUnit
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 @dataclass
@@ -20,8 +27,13 @@ class DistributionUnit(UnitBase):
 
     One distribution can accept all kind of sku order.
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(DistributionUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
         # Vehicle unit list of this distribution unit.
         self.vehicles: List[VehicleUnit] = None

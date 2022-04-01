@@ -4,20 +4,26 @@
 from __future__ import annotations
 
 import typing
-from typing import Optional
+from typing import Optional, Union
 
-from .unitbase import UnitBase
 from .storage import AddStrategy
+from .unitbase import UnitBase
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 class VehicleUnit(UnitBase):
     """Unit used to move production from source to destination by order."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(VehicleUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
         # Unit cost per quantity.
         self._unit_transport_cost = 0

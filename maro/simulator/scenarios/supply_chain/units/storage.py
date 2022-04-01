@@ -1,12 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from .unitbase import UnitBase, BaseUnitInfo
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 DEFAULT_SUB_STORAGE_ID = 0
@@ -47,8 +54,13 @@ class StorageUnitInfo(BaseUnitInfo):
 class StorageUnit(UnitBase):
     """Unit that used to store skus."""
 
-    def __init__(self) -> None:
-        super(StorageUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(StorageUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
         # Key: Sub-Storage ID
         self._capacity_dict: Dict[int, int] = {}

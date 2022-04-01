@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.simulator.scenarios.supply_chain.units import DataFileDemandSampler, OuterSellerUnit
+from maro.simulator.scenarios.supply_chain.world import World
 
 from .retailer import RetailerFacility
 
@@ -17,6 +18,11 @@ class OuterRetailerFacility(RetailerFacility):
     NOTE:
         This require that all product seller is subclass of OuterSellerUnit.
     """
+
+    def __init__(
+        self, id: int, name: str, data_model_name: str, data_model_index: int, world: World, config: dict
+    ) -> None:
+        super(OuterRetailerFacility, self).__init__(id, name, data_model_name, data_model_index, world, config)
 
     def initialize(self) -> None:
         super(OuterRetailerFacility, self).initialize()

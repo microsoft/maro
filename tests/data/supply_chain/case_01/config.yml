@@ -20,16 +20,16 @@ facility_definitions:
     children:
       storage:
         class: "StorageUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
-          manufacture:
-            class: "ManufactureUnit"
       distribution:
         class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        manufacture:
+          class: "ManufactureUnit"
+
 small_storage: &small_storage
   config:
     capacity: 100

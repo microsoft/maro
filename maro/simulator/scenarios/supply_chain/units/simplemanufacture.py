@@ -1,16 +1,31 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
+from typing import Optional, Union
+
 from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
 
 from .manufacture import ManufactureUnit
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 class SimpleManufactureUnit(ManufactureUnit):
     """This simple manufacture unit will ignore source sku, just generate specified number of product."""
 
-    def __init__(self) -> None:
-        super(SimpleManufactureUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(SimpleManufactureUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
     def _step_impl(self, tick: int) -> None:
         if self.action is None:

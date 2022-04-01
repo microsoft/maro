@@ -18,12 +18,11 @@ facility_definitions:
         class: "StorageUnit"
       distribution:
         class: "DistributionUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          manufacture:
-            class: "SimpleManufactureUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        manufacture:
+          class: "SimpleManufactureUnit"
 
   PlantFacility:
     class: "SupplierFacility"
@@ -33,14 +32,13 @@ facility_definitions:
         class: "StorageUnit"
       distribution:
         class: "DistributionUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          manufacture:
-            class: "ManufactureUnit"
-          consumer:
-            class: "ConsumerUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        manufacture:
+          class: "ManufactureUnit"
+        consumer:
+          class: "ConsumerUnit"
 
   WarehouseFacility:
     class: "WarehouseFacility"
@@ -49,12 +47,11 @@ facility_definitions:
         class: "StorageUnit"
       distribution:
         class: "DistributionUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
 
   StoreFacility:
     class: "OuterRetailerFacility"
@@ -62,16 +59,15 @@ facility_definitions:
     children:
       storage:
         class: "StorageUnit"
-      products:
-        class: "StoreProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
-          seller:
-            class: "OuterSellerUnit"
-            config:
-              sale_hist_len: 14
+    products:
+      class: "StoreProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        seller:
+          class: "OuterSellerUnit"
+          config:
+            sale_hist_len: 14
     config:
       seller_sampler_type: data # data, model. What kind of sampler to use for seller.
       sku_column: "SKU" # SKU column name

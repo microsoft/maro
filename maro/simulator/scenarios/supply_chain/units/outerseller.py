@@ -1,7 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
 import warnings
+import typing
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from csv import DictReader
@@ -11,6 +14,11 @@ from typing import Optional, Union
 from dateutil import parser
 
 from .seller import SellerUnit
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 class SellerDemandSampler(ABC):
@@ -115,6 +123,14 @@ class DataFileDemandSampler(SellerDemandSampler):
 
 class OuterSellerUnit(SellerUnit):
     """Seller that demand is from out side sampler, like a data file or data model prediction."""
+
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(OuterSellerUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
     # Sample used to sample demand.
     sampler: SellerDemandSampler = None

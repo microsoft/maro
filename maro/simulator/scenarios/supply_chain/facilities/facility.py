@@ -39,15 +39,22 @@ class FacilityInfo:
 
 class FacilityBase(ABC):
     """Base of all facilities."""
-    def __init__(self) -> None:
-        # Id of this facility.
-        self.id: Optional[int] = None
+    def __init__(
+        self, id: int, name: str, data_model_name: str, data_model_index: int, world: World, config: dict
+    ) -> None:
+        # Id and name of this facility.
+        self.id: int = id
+        self.name: str = name
 
-        # Name of this facility.
-        self.name: Optional[str] = None
+        # Name of data model, and the facility instance's corresponding node index in snapshot list.
+        self.data_model_name: str = data_model_name
+        self.data_model_index: int = data_model_index
 
         # World of this facility belongs to.
-        self.world: Optional[World] = None
+        self.world: World = world
+
+        # Configuration of this facility.
+        self.configs: dict = config
 
         # SKUs in this facility.
         self.skus: Dict[int, SkuInfo] = {}
@@ -69,23 +76,10 @@ class FacilityBase(ABC):
         # Down stream facilities, value same as upstreams.
         self.downstreams: Dict[int, List[FacilityBase]] = defaultdict(list)
 
-        # Configuration of this facility.
-        self.configs: Optional[dict] = None
-
-        # Name of data model, from configuration.
-        self.data_model_name: Optional[str] = None
-
-        # Index of the data model node.
-        self.data_model_index: int = 0
-
         self.data_model: Optional[DataModelBase] = None
 
         # Children of this facility (valid units).
         self.children: List[UnitBase] = []
-
-        # Facility's coordinates
-        self.x: Optional[int] = None
-        self.y: Optional[int] = None
 
     def parse_skus(self, configs: dict) -> None:
         """Parse sku information from config.
@@ -99,14 +93,6 @@ class FacilityBase(ABC):
             sku_config['name'] = sku_name
             facility_sku = SkuInfo(**sku_config)
             self.skus[facility_sku.id] = facility_sku
-
-    def parse_configs(self, configs: dict) -> None:
-        """Parse configuration of this facility.
-
-        Args:
-            configs (dict): Configuration of this facility.
-        """
-        self.configs = configs
 
     def get_config(self, key: str, default: object = None) -> object:
         """Get specified configuration of facility.
