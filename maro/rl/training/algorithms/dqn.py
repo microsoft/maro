@@ -71,6 +71,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy: ValueBasedPolicy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
+        self._device = None
 
     def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
         """Compute the loss of the batch.
@@ -189,7 +190,7 @@ class DQNTrainer(SingleAgentTrainer):
             )
             self._replay_memory.put(transition_batch)
 
-    def _get_local_ops(self) -> AbsTrainOps:
+    def get_local_ops(self) -> AbsTrainOps:
         return DQNOps(
             name=self._policy_name,
             policy_creator=self._policy_creator,

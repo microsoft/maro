@@ -265,7 +265,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
+    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object, agent_state_dict) -> Dict[Any, object]:
         """Translate model-generated actions into an object that can be executed by the env.
 
         Args:
@@ -322,16 +322,15 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+            agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
+            env_action_dict = self._translate_to_env_action(action_dict, self._event, agent_state_dict)
             # Store experiences in the cache
             self._trans_cache.append(
                 CacheElement(
                     tick=self._env.tick,
                     event=self._event,
                     state=self._state,
-                    agent_state_dict={
-                        id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
-                    },
+                    agent_state_dict=agent_state_dict,
                     action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
                     env_action_dict={
                         id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
@@ -349,7 +348,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
             reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
-            self._post_step(cache_element, reward_dict)
             if len(self._trans_cache) > 0:
                 next_state = self._trans_cache[0].state
                 next_agent_state_dict = dict(self._trans_cache[0].agent_state_dict)
@@ -358,7 +356,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 next_agent_state_dict = {
                     id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
                 }
-
+            self._post_step(cache_element, reward_dict)
             experiences.append(ExpElement(
                 tick=cache_element.tick,
                 state=cache_element.state,

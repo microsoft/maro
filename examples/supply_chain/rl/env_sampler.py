@@ -145,7 +145,7 @@ class SCEnvSampler(AbsEnvSampler):
                 self._learn_env.tick:idx:"order_cost"
             ].flatten()[0]
 
-        extend_state([facility['storage'].config["capacity"]])
+        extend_state([facility['storage'].config[0].capacity])
         extend_state(self._storage_info["storage_product_num"][entity.facility_id])
         extend_state(self._facility_in_transit_orders[entity.facility_id])
         extend_state([self._storage_info["storage_product_indexes"][entity.facility_id][entity.skus.id] + 1])
@@ -256,7 +256,7 @@ class SCEnvSampler(AbsEnvSampler):
         res = {f_id: self._get_reward_for_entity(self._entity_dict[f_id], bwt) for f_id, bwt in self._cur_balance_sheet_reward.items()}
         return res
 
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
+    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object, agent_state_dict) -> Dict[Any, object]:
         # cache the sources for each consumer if not yet cached
         if not hasattr(self, "consumer2source"):
             self.consumer2source, self.consumer2product = {}, {}
@@ -285,7 +285,9 @@ class SCEnvSampler(AbsEnvSampler):
                     source_id = sources[0]
                     product_unit_id = self._storage_info["unit2product"][unit_id][0]
                     try:
-                        action_number = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                        or_action = agent_state_dict[agent_id][-1]
+                        action_idx = max(0, int(action - 1 + or_action))
+                        action_number = action_idx * self._cur_metrics["products"][product_unit_id]["sale_mean"]
                     except ValueError:
                         action_number = 0
 
@@ -437,16 +439,15 @@ class SCEnvSampler(AbsEnvSampler):
         self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
         while not is_done:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+            agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
+            env_action_dict = self._translate_to_env_action(action_dict, self._event, agent_state_dict)
             
             # Store experiences in the cache
             cache_element = CacheElement(
                     tick=self._env.tick,
                     event=self._event,
                     state=self._state,
-                    agent_state_dict={
-                        id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
-                    },
+                    agent_state_dict=agent_state_dict,
                     action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
                     env_action_dict={
                         id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
@@ -462,7 +463,7 @@ class SCEnvSampler(AbsEnvSampler):
                     consumer_action_dict[entity_id] = (action_dict[entity_id], reward[entity_id])
             print(step_idx, consumer_action_dict)
             self._state, self._agent_state_dict = (None, {}) if is_done \
-                else self._get_global_and_agent_state(self._event)
+                else self._get_global_and_agent_state(self._event, cache_element.tick)
 
             step_balances = self._balance_status
             step_rewards = self._reward_status
@@ -522,7 +523,7 @@ class BalanceSheetCalculator:
     consumer_features = ("id", "order_quantity", "price",
                          "order_cost", "order_product_cost")
     seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
-    manufacture_features = ("id", "manufacturing_number", "product_unit_cost")
+    manufacture_features = ("id", "manufacture_quantity", "product_unit_cost")
     product_features = (
         "id", "price", "distribution_check_order", "distribution_transport_cost", "distribution_delay_order_penalty")
     storage_features = ("capacity", "remaining_space")
@@ -580,7 +581,7 @@ class BalanceSheetCalculator:
                         sku_id=product_id,
                         node_index=product["node_index"],
                         storage_index=facility["units"]["storage"]["node_index"],
-                        unit_storage_cost=facility["units"]["storage"]["config"]["unit_storage_cost"],
+                        unit_storage_cost=facility["units"]["storage"]["config"][0].unit_storage_cost,
                         distribution_index=distribution["node_index"] if distribution is not None else None,
                         downstream_product_units=downstream_product_units,
                         consumer_id_index_tuple=None if consumer is None else (consumer["id"], consumer["node_index"]),
@@ -595,7 +596,7 @@ class BalanceSheetCalculator:
                     unit_id=facility_id,
                     product_unit_id_list=pid_list,
                     storage_index=facility["units"]["storage"]["node_index"],
-                    unit_storage_cost=facility["units"]["storage"]["config"]["unit_storage_cost"],
+                    unit_storage_cost=facility["units"]["storage"]["config"][0].unit_storage_cost,
                     distribution_index=distribution["node_index"] if distribution is not None else None,
                     vehicle_index_list=[
                         v["node_index"] for v in distribution["children"]
@@ -952,13 +953,13 @@ class BalanceSheetCalculator:
         seller_balance_sheet_profit, seller_balance_sheet_loss, seller_step_reward = self._calc_seller()
         manufacture_ids, manufacture_balance_sheet_loss, manufacture_step_reward, \
             manufacture_step_balance_sheet = self._calc_manufacture()
-        _, storages_product_map = self._calc_storage()
+        storage_balance_sheet_loss, storages_product_map = self._calc_storage()
         product_distribution_balance_sheet_profit, \
             product_distribution_balance_sheet_loss = self._calc_product_distribution()
         vehicle_balance_sheet_loss, vehicle_step_reward = self._calc_vehicle()
 
         # Loss, profit, reward for each product
-        _, _, product_step_reward, product_balance_sheet = self._calc_product(
+        product_balance_sheet_profit, product_balance_sheet_loss, product_step_reward, product_balance_sheet = self._calc_product(
             consumer_step_balance_sheet_loss,
             consumer_step_reward,
             seller_balance_sheet_profit,

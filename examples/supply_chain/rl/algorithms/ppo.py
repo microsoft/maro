@@ -8,7 +8,7 @@ from torch.optim import Adam, RMSprop
 
 from maro.rl.model import DiscretePolicyNet, FullyConnected, VNet
 from maro.rl.policy import DiscretePolicyGradient
-from maro.rl.training.algorithms import DiscretePPOParams, DiscretePPOTrainer
+from maro.rl.training.algorithms import DiscretePPOParams, DiscretePPOTrainer, DiscreteActorCriticTrainer, DiscreteActorCriticParams
 
 actor_net_conf = {
     "hidden_dims": [256, 256, 128],
@@ -116,17 +116,16 @@ def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGrad
     return policy
 
 
-def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
-    return DiscretePPOTrainer(
+def get_ppo(state_dim: int, name: str) -> DiscreteActorCriticTrainer:
+    return DiscreteActorCriticTrainer(
         name=name,
-        params=DiscretePPOParams(
+        params=DiscreteActorCriticParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             reward_discount=.99,
             grad_iters=20,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=-4.0,
             lam=0.99,
-            clip_ratio=0.1,
             replay_memory_capacity=180
         ),
     )

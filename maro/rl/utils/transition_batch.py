@@ -36,7 +36,7 @@ class TransitionBatch:
         # normalized rewards 
         # max_reward, min_reward = np.max(self.rewards), np.min(self.rewards)
         # self.rewards = (self.rewards - min_reward) / max(1e-8, max_reward-min_reward)
-        self.rewards = (self.rewards - self.rewards.mean()) / (self.rewards.std() + 1e-5)
+        # self.rewards = (self.rewards - self.rewards.mean()) / (self.rewards.std() + 1e-5)
         self.returns = discount_cumsum(self.rewards, discount_factor)
 
     def make_kth_sub_batch(self, i: int, k: int) -> TransitionBatch:

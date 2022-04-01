@@ -53,7 +53,7 @@ class DiscreteACBasedOps(AbsTrainOps):
         *,
         reward_discount: float = 0.9,
         critic_loss_cls: Callable = None,
-        clip_ratio: float = None,
+        clip_ratio: float = 0.1,
         lam: float = 0.9,
         min_logp: float = None,
     ) -> None:
@@ -143,10 +143,11 @@ class DiscreteACBasedOps(AbsTrainOps):
             logps_old = ndarray_to_tensor(batch.old_logps, device=self._device)
             ratio = torch.exp(logps - logps_old)
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
+            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages))
         else:
-            actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
+            actor_loss = -(logps * advantages)  # I * delta * log pi(a|s)
         loss = (actor_loss - 0.2*dist_entropy).mean()
+        print('actor_loss: ', actor_loss.mean(), 'entropy loss: ', dist_entropy.mean())
         return loss
 
     @remote
@@ -203,7 +204,7 @@ class DiscreteACBasedOps(AbsTrainOps):
 
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
-        actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
+        actions = ndarray_to_tensor(batch.actions.astype(np.int64), device=self._device)  # a
 
         values = self._v_critic_net.v_values(states).detach().cpu().numpy()
         values = np.concatenate([values, values[-1:]])
@@ -213,7 +214,7 @@ class DiscreteACBasedOps(AbsTrainOps):
         batch.advantages = advantages
 
         if self._clip_ratio is not None:
-            batch.old_logps = self._policy.get_state_action_logps(states, actions).cpu().numpy()
+            batch.old_logps = self._policy.get_state_action_logps(states, actions).detach().numpy()
 
         return batch
 
@@ -240,8 +241,7 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
     def __init__(
         self,
         name: str,
-        device: str,
-        get_policy_func: Callable[[], DiscretePolicyGradient],
+        policy_creator: Callable[[str], DiscretePolicyGradient],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         *,
@@ -253,8 +253,7 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
     ) -> None:
         super(DiscretePPOBasedOps, self).__init__(
             name=name,
-            device=device,
-            get_policy_func=get_policy_func,
+            policy_creator=policy_creator,
             get_v_critic_net_func=get_v_critic_net_func,
             parallelism=parallelism,
             reward_discount=reward_discount,
@@ -265,28 +264,28 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
         )
 
         assert isinstance(self._policy, DiscretePolicyGradient)
-        self._policy_old = get_policy_func()
+        self._policy_old = self._policy_creator(self._name)
         self._policy_old.set_state(self._policy.get_state())
 
-    # def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
-    #     """Preprocess the batch to get the returns & advantages.
+    def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
+        """Preprocess the batch to get the returns & advantages.
 
-    #     Args:
-    #         batch (TransitionBatch): Batch.
+        Args:
+            batch (TransitionBatch): Batch.
 
-    #     Returns:
-    #         The updated batch.
-    #     """
-    #     assert self._is_valid_transition_batch(batch)
-    #     # Preprocess returns
-    #     batch.calc_returns(self._reward_discount)
+        Returns:
+            The updated batch.
+        """
+        assert isinstance(batch, TransitionBatch)
+        # Preprocess returns
+        batch.calc_returns(self._reward_discount)
 
-    #     # Preprocess advantages
-    #     states = ndarray_to_tensor(batch.states, self._device)  # s
-    #     state_values = self._v_critic_net.v_values(states).detach().numpy()
-    #     values = np.concatenate([state_values[1:], np.zeros(1).astype(np.float32)])
-    #     batch.advantages = (batch.rewards+self._reward_discount*values - state_values)
-    #     return batch
+        # Preprocess advantages
+        states = ndarray_to_tensor(batch.states, self._device)  # s
+        state_values = self._v_critic_net.v_values(states).detach().numpy()
+        values = np.concatenate([state_values[1:], np.zeros(1).astype(np.float32)])
+        batch.advantages = (batch.rewards+self._reward_discount*values - state_values)
+        return batch
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.

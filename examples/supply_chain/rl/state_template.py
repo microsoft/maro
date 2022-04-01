@@ -104,7 +104,7 @@ for entity in env.business_engine.get_entity_list():
 
     # storage features
     state['storage_levels'] = [0] * num_skus
-    state['storage_capacity'] = facility['storage'].config["capacity"]
+    state['storage_capacity'] = facility['storage'].config[0].capacity
     state['storage_utilization'] = 0
 
     # bom features

@@ -130,7 +130,7 @@ class VehicleUnit(UnitBase):
         self._unit_transport_cost = self.config.get("unit_transport_cost", 1)  # TODO: confirm the default value setting
         self.data_model.initialize(unit_transport_cost=self._unit_transport_cost)
 
-        self._max_patient = self.config.get("patient", 100)  # TODO: confirm the default value setting
+        self._max_patient = self.config.get("patient", 5)  # TODO: confirm the default value setting
 
     def _step_impl(self, tick: int) -> None:
         # If we have not arrived at destination yet.

@@ -12,4 +12,4 @@ env_conf = {
 distribution_features = ("remaining_order_quantity", "remaining_order_number")
 seller_features = ("total_demand", "sold", "demand")
 
-NUM_CONSUMER_ACTIONS = 10
+NUM_CONSUMER_ACTIONS = 3

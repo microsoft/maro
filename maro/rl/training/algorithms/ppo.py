@@ -49,8 +49,10 @@ class DiscretePPOTrainer(DiscreteACBasedTrainer):
             self._ops.update_actor(batch)
         self._ops._policy_old.set_state(self._ops._policy.get_state())
 
-    def get_local_ops_by_name(self, name: str) -> AbsTrainOps:
+    def get_local_ops(self) -> AbsTrainOps:
         return DiscretePPOBasedOps(
-            name=name, get_policy_func=self._get_policy_func, parallelism=self._params.data_parallelism,
+            name=self._policy_name,
+            policy_creator=self._policy_creator,
+            parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )
