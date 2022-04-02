@@ -29,5 +29,5 @@ else:
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
 device_mapping = {
-    f"ac_{i}.policy": "cpu" for i in range(num_agents)
+    policy_name: "cpu" for policy_name in policy_creator
 }

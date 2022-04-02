@@ -53,5 +53,5 @@ trainable_policies = ["consumer.policy"]
 # }
 
 trainer_creator = {
-    "consumer": partial(get_ppo, STATE_DIM),
+    "ppo": partial(get_ppo, STATE_DIM),
 }

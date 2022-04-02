@@ -5,8 +5,11 @@ import os
 import time
 from typing import List
 
+import torch
+
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainingManager
+from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
@@ -53,7 +56,7 @@ def main(scenario: Scenario) -> None:
         env_sampler = scenario.env_sampler_creator(policy_creator)
         if train_mode != "simple":
             for policy_name, device_name in scenario.device_mapping.items():
-                env_sampler.rl_policy_dict[policy_name].to_device(device_name)
+                env_sampler.rl_policy_dict[policy_name].to_device(get_torch_device(device_name))
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))

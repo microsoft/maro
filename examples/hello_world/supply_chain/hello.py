@@ -3,10 +3,14 @@
 
 from maro.simulator import Env
 
+from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
+
+
 env = Env(scenario="supply_chain", topology="walmart", start_tick=0, durations=100)
 
+balance_calculator = BalanceSheetCalculator(env=env)
+
 for ep in range(2):
-    metrics = None
     is_done = False
     action = None
 
@@ -26,5 +30,9 @@ for ep in range(2):
 
     sold = env.snapshot_list["seller"][:1:"sold"].reshape(-1)
     print(f"Sold sample of product 1:\t{sold[::15]}")
+
+    balance_and_reward = balance_calculator.calc_and_update_balance_sheet(tick=env.tick)
+    balance_list = sorted([(i, b[0]) for i, b in balance_and_reward.items()])
+    print(balance_list[::80])
 
     env.reset()

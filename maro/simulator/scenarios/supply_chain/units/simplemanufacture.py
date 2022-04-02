@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
 
-from .. import ManufactureAction
 from .manufacture import ManufactureUnit
 
 
@@ -24,7 +24,7 @@ class SimpleManufactureUnit(ManufactureUnit):
 
             self._manufacture_quantity = min(
                 self.facility.storage.get_product_max_remaining_space(self.product_id),
-                production_rate
+                production_rate,
             )
 
             if self._manufacture_quantity > 0:

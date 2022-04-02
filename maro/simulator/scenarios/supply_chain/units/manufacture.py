@@ -1,9 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from dataclasses import dataclass
+from typing import Optional
 
-from .. import ManufactureAction, ManufactureDataModel
-from .extendunitbase import ExtendUnitBase
+from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
+from maro.simulator.scenarios.supply_chain.datamodels import ManufactureDataModel
+
+from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+
+
+@dataclass
+class ManufactureUnitInfo(ExtendUnitInfo):
+    pass
 
 
 class ManufactureUnit(ExtendUnitBase):
@@ -16,10 +25,10 @@ class ManufactureUnit(ExtendUnitBase):
         super(ManufactureUnit, self).__init__()
 
         # Source material sku and related quantity per manufacture cycle.
-        self._bom: dict = None
+        self._bom: Optional[dict] = None
 
         # How many products in each manufacture cycle.
-        self._output_units_per_lot: int = None
+        self._output_units_per_lot: Optional[int] = None
 
         # How many units we will consume in each manufacture cycle.
         self._input_units_per_lot: int = 0
@@ -58,7 +67,7 @@ class ManufactureUnit(ExtendUnitBase):
         if self.action.production_rate > 0:
             max_number_to_procedure = min(
                 self.action.production_rate * self._output_units_per_lot,
-                self.facility.storage.get_product_max_remaining_space(self.product_id)
+                self.facility.storage.get_product_max_remaining_space(self.product_id),
             )
 
             if max_number_to_procedure > 0:
@@ -106,3 +115,8 @@ class ManufactureUnit(ExtendUnitBase):
 
         # Reset status in Python side.
         self._manufacture_quantity = 0
+
+    def get_unit_info(self) -> ManufactureUnitInfo:
+        return ManufactureUnitInfo(
+            **super(ManufactureUnit, self).get_unit_info().__dict__,
+        )

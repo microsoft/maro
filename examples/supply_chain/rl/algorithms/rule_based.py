@@ -72,6 +72,7 @@ class ConsumerBaselinePolicy(RuleBasedPolicy):
 #     also known as carrying cost or storage cost (capital cost, warehouse space,
 #     refrigeration, insurance, etc. usually not related to the unit production cost)
 
+
 def _get_consumer_quantity(states: np.ndarray) -> np.ndarray:
     order_cost = get_element(states, "order_cost")
     holding_cost = get_element(states, "unit_storage_cost")

@@ -222,7 +222,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._policy_dict: Dict[str, AbsPolicy] = {
             policy_name: func(policy_name) for policy_name, func in policy_creator.items()
         }
-        self._rl_policy_dict: Dict[str, AbsPolicy] = {
+        self._rl_policy_dict: Dict[str, RLPolicy] = {
             name: policy for name, policy in self._policy_dict.items() if isinstance(policy, RLPolicy)
         }
         self._agent2policy = agent2policy
@@ -322,8 +322,13 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
+<<<<<<< HEAD
             agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
             env_action_dict = self._translate_to_env_action(action_dict, self._event, agent_state_dict)
+=======
+            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+
+>>>>>>> origin/sc_refinement
             # Store experiences in the cache
             self._trans_cache.append(
                 CacheElement(
@@ -337,6 +342,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     },
                 )
             )
+
             # Update env and get new states (global & agent)
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
             self._state, self._agent_state_dict = (None, {}) if is_done \
@@ -347,6 +353,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         experiences = []
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
+            # !: Here the reward calculation method requires the given tick is enough and must be used then.
             reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
             if len(self._trans_cache) > 0:
                 next_state = self._trans_cache[0].state

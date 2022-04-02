@@ -2,15 +2,15 @@
 # Licensed under the MIT license.
 
 
-from .consumer import ConsumerUnit
-from .distribution import DistributionUnit
-from .extendunitbase import ExtendUnitBase
-from .manufacture import ManufactureUnit
+from .consumer import ConsumerUnit, ConsumerUnitInfo
+from .distribution import DistributionUnit, DistributionUnitInfo
+from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+from .manufacture import ManufactureUnit, ManufactureUnitInfo
 from .outerseller import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler
-from .product import ProductUnit
-from .seller import SellerUnit
+from .product import ProductUnit, ProductUnitInfo
+from .seller import SellerUnit, SellerUnitInfo
 from .simplemanufacture import SimpleManufactureUnit
-from .storage import StorageUnit
+from .storage import StorageUnit, StorageUnitInfo
 from .storeproduct import StoreProductUnit
-from .unitbase import UnitBase
+from .unitbase import UnitBase, BaseUnitInfo
 from .vehicle import VehicleUnit

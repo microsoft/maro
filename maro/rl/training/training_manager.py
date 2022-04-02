@@ -12,7 +12,7 @@ from maro.rl.training import SingleAgentTrainer
 from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
-from .trainer import AbsTrainer
+from .trainer import AbsTrainer, MultiAgentTrainer
 from .utils import extract_trainer_name, get_trainer_state_path
 
 
@@ -36,7 +36,7 @@ class TrainingManager(object):
         policy_creator: Dict[str, Callable[[str], AbsPolicy]],
         trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        device_mapping: Dict[str, str] = {},
+        device_mapping: Dict[str, str] = None,
         proxy_address: Tuple[str, int] = None,
         logger: LoggerV2 = None,
     ) -> None:
@@ -56,10 +56,16 @@ class TrainingManager(object):
             self._trainer_dict[trainer_name] = trainer
 
         # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
-        for policy_name, device_name in device_mapping.items():
-            trainer = self._trainer_dict[extract_trainer_name(policy_name)]
-            ops = trainer.ops if isinstance(trainer, SingleAgentTrainer) else trainer.ops_dict[policy_name]
-            ops.to_device(device_name)
+        if device_mapping is not None:
+            for policy_name, device_name in device_mapping.items():
+                trainer = self._trainer_dict[extract_trainer_name(policy_name)]
+
+                if isinstance(trainer, SingleAgentTrainer):
+                    ops = trainer.ops
+                else:
+                    assert isinstance(trainer, MultiAgentTrainer)
+                    ops = trainer.ops_dict[policy_name]
+                ops.to_device(device_name)
 
         self._agent2trainer: Dict[Any, str] = {}
         for agent_name, policy_name in self._agent2policy.items():
@@ -71,7 +77,9 @@ class TrainingManager(object):
     def train_step(self) -> None:
         if self._proxy_address:
             async def train_step() -> Iterable:
-                return await asyncio.gather(*[trainer.train_step_as_task() for trainer in self._trainer_dict.values()])
+                return await asyncio.gather(
+                    *[trainer_.train_step_as_task() for trainer_ in self._trainer_dict.values()]
+                )
 
             asyncio.run(train_step())
         else:

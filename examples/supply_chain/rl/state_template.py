@@ -26,7 +26,7 @@ def out_of_stock(f_state) -> bool:
     return 0 < f_state['inventory_in_stock']
 
 
-workflow_settings = {
+workflow_settings: dict = {
     "global_reward_weight_producer": 0.50,
     "global_reward_weight_consumer": 0.50,
     "downsampling_rate": 1,
@@ -104,7 +104,11 @@ for entity in env.business_engine.get_entity_list():
 
     # storage features
     state['storage_levels'] = [0] * num_skus
-    state['storage_capacity'] = facility['storage'].config[0].capacity
+
+    state['storage_capacity'] = 0
+    for sub_storage in facility["storage"].config:
+        state["storage_capacity"] += sub_storage.capacity
+
     state['storage_utilization'] = 0
 
     # bom features
@@ -131,7 +135,7 @@ for entity in env.business_engine.get_entity_list():
         product_info = facility[entity.skus.id]
 
         if "consumer" in product_info and len(current_source_list) > 0:
-            state['max_vlt'] = product_info["skuproduct"]["max_vlt"]
+            state['max_vlt'] = product_info["skuproduct"].max_vlt
 
             for i, source in enumerate(current_source_list):
                 for j, sku in enumerate(sku_list.values()):
