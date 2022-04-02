@@ -168,10 +168,11 @@ class SCEnvSampler(AbsEnvSampler):
         # self._add_price_features(state, entity)
         self._update_global_features(state)
 
+        # let baseline action be part of the state
+        # to accelerate the training
         baseline_action = 0
         if issubclass(entity.class_type, ConsumerUnit):
             bs_state = self.get_or_policy_state(state, entity)
-            # print('base: ', bs_state)
             bs_state = np.reshape(bs_state, (1, -1))
             baseline_action = self.baseline_policy.get_actions(bs_state)[0]
         state['baseline_action'] = baseline_action
