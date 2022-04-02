@@ -52,6 +52,8 @@ class ConsumerBaselinePolicy(RuleBasedPolicy):
         inflight_orders = get_element(states, "consumer_in_transit_orders")
         booked_table = available_inventory + inflight_orders
         most_needed_product_id = np.expand_dims(get_element(states, "product_idx"), axis=1).astype(np.int)
+        if booked_table.shape[0] < 2:
+            booked_table = booked_table.reshape(1, -1)
         booked = np.squeeze(np.take_along_axis(booked_table, most_needed_product_id, axis=1), axis=1)
         sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
         service_level = get_element(states, "service_level")
@@ -59,9 +61,9 @@ class ConsumerBaselinePolicy(RuleBasedPolicy):
         vlt = vlt_buffer_days + get_element(states, "vlt")
 
         non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
-        capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
+        # capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
         replenishment_mask = booked <= (vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level))
-        return res * (non_facility_mask & capacity_mask & replenishment_mask)
+        return res * (non_facility_mask & replenishment_mask)
 
 # Q = \sqrt{2DK/h}
 # Q - optimal order quantity
@@ -98,7 +100,7 @@ class ConsumerEOQPolicy(RuleBasedPolicy):
         non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
         # stop placing orders when the facilty runs out of capacity
         # capacity_mask = np.sum(booked_table, axis=1) <= get_element(states, "storage_capacity")
-        rop = vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
+        rop = vlt*sale_mean + np.sqrt(vlt.astype(float)) * sale_std * st.norm.ppf(service_level.astype(float))
         # whether replenishment point is reached
         replenishment_mask = (booked <= rop)
         replenishment_amount = ((rop - booked) / (sale_mean + 1e-8)).astype(np.int32)
