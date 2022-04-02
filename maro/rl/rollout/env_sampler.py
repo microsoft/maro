@@ -322,20 +322,15 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         while self._agent_state_dict and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-<<<<<<< HEAD
-            agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
-            env_action_dict = self._translate_to_env_action(action_dict, self._event, agent_state_dict)
-=======
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
->>>>>>> origin/sc_refinement
             # Store experiences in the cache
             self._trans_cache.append(
                 CacheElement(
                     tick=self._env.tick,
                     event=self._event,
                     state=self._state,
-                    agent_state_dict=agent_state_dict,
+                    agent_state_dict=self._agent_state_dict,
                     action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
                     env_action_dict={
                         id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
