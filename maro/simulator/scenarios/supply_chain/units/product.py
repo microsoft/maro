@@ -6,7 +6,7 @@ from __future__ import annotations
 import typing
 import numpy as np
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 
@@ -20,6 +20,7 @@ from .unitbase import UnitBase
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, VendorLeadingTimeInfo
     from maro.simulator.scenarios.supply_chain.world import World
 
 
@@ -28,7 +29,7 @@ class ProductUnitInfo(ExtendUnitInfo):
     consumer_info: Optional[ConsumerUnitInfo]
     manufacture_info: Optional[ManufactureUnitInfo]
     seller_info: Optional[SellerUnitInfo]
-    max_vlt: int
+    max_vlt: Optional[int]
 
 
 class ProductUnit(ExtendUnitBase):
@@ -135,37 +136,53 @@ class ProductUnit(ExtendUnitBase):
         """"Here the sale mean of up-streams means the sum of its down-streams,
         which indicates the daily demand of this product from the aspect of the facility it belongs."""
         sale_mean = 0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
+        downstream_infos: List[LeadingTimeInfo] = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
-        for facility in downstreams:
-            sale_mean += facility.products[self.product_id].get_sale_mean()
+        for info in downstream_infos:
+            sale_mean += info.dest_facility.products[self.product_id].get_sale_mean()
 
         return sale_mean
 
     def get_sale_std(self) -> float:
         sale_std = 0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
+        downstream_infos = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
-        for facility in downstreams:
-            sale_std += facility.products[self.product_id].get_sale_std()
+        for info in downstream_infos:
+            sale_std += info.dest_facility.products[self.product_id].get_sale_std()
 
-        return sale_std / np.sqrt(max(1, len(downstreams)))
+        return sale_std / np.sqrt(max(1, len(downstream_infos)))
 
     def get_max_sale_price(self) -> float:
         price = 0.0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
+        downstream_infos = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
-        for facility in downstreams:
-            price = max(price, facility.products[self.product_id].get_max_sale_price())
+        for info in downstream_infos:
+            price = max(price, info.dest_facility.products[self.product_id].get_max_sale_price())
 
         return price
 
-    def _get_max_vlt(self) -> int:
-        # TODO: update with vlt logic
-        vlt = 1
+    def _get_max_vlt(self) -> Optional[int]:
+        upstream_infos: Optional[List[VendorLeadingTimeInfo]] = self.facility.upstream_vlt_infos
+        if upstream_infos is not None and self.product_id in upstream_infos:
+            return max([info.vlt for info in upstream_infos[self.product_id]])
+        else:
+            return None
 
-        if self.consumer is not None:
-            for f_id in self.consumer.source_facility_id_list:
-                vlt = max(vlt, self.world.get_facility_by_id(f_id).skus[self.product_id].vlt)
 
-        return vlt
+class StoreProductUnit(ProductUnit):
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(StoreProductUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
+
+    def get_sale_mean(self) -> float:
+        return self.seller.sale_mean()
+
+    def get_sale_std(self) -> float:
+        return self.seller.sale_std()
+
+    def get_max_sale_price(self) -> float:
+        return self.facility.skus[self.product_id].price

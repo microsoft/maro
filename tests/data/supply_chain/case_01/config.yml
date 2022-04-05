@@ -80,101 +80,87 @@ world:
       skus:
         sku3:
           init_stock: 80
-          product_unit_cost: 1
-          type: "production"
-          cost: 10
+          has_manufacture: True
+          unit_product_cost: 1
           price: 10
       children:
         storage: *small_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
+        unit_delay_order_penalty: 10
     - name: "Supplier_SKU1"
       definition_ref: "SupplierFacility"
       skus:
         sku1:
           init_stock: 96
-          product_unit_cost: 1
-          type: "production"
-          cost: 10
+          has_manufacture: True
+          unit_product_cost: 1
           price: 100
         sku3:
           init_stock: 100
-          type: "material"
-          cost: 10
+          has_consumer: True
           price: 100
       children:
         storage: *medium_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 200
+        unit_delay_order_penalty: 10
+        unit_order_cost: 200
     - name: "Supplier_SKU2"
       definition_ref: "SupplierFacility"
       skus:
         sku2:
           init_stock: 50
-          product_unit_cost: 1
-          type: "production"
-          cost: 10
+          has_manufacture: True
+          unit_product_cost: 1
           price: 100
         sku1:
           init_stock: 50
-          type: "material"
-          cost: 10
+          has_consumer: True
           price: 100
       children:
         storage: *medium_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 200
+        unit_delay_order_penalty: 10
+        unit_order_cost: 200
     - name: "Supplier_SKU4"
       definition_ref: "SupplierFacility"
       skus:
         sku4:
           init_stock: 50
-          product_unit_cost: 4
-          type: "production"
-          cost: 10
+          has_manufacture: True
+          unit_product_cost: 4
           price: 100
         sku2:
           init_stock: 0
-          type: "material"
-          cost: 10
+          has_consumer: True
           price: 100
       children:
         storage: *medium_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 200
+        unit_delay_order_penalty: 10
+        unit_order_cost: 200
   topology:
     Supplier_SKU1:
       sku3:
-        - "Supplier_SKU3"
+        "Supplier_SKU3":
+          "train":
+            vlt: 7
+            cost: 1
     Supplier_SKU2:
       sku1:
-        - "Supplier_SKU1"
+        "Supplier_SKU1":
+          "train":
+            vlt: 7
+            cost: 1
     Supplier_SKU4:
       sku2:
-        - "Supplier_SKU2"
-
-  grid:
-    size: [20, 20]
-
-    facilities:
-      Supplier_SKU1: [0, 0]
-      Supplier_SKU2: [3, 3]
-      Supplier_SKU3: [6, 6]
-      Supplier_SKU4: [10, 18]
-
-    blocks:
-      railroad:
-        - [10, 10]
-        - [10, 11]
-        - [10, 12]
-        - [11, 12]
+        "Supplier_SKU2":
+          "train":
+            vlt: 7
+            cost: 1
 
 settings:
   pending_order_len: 4

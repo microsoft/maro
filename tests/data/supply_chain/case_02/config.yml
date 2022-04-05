@@ -94,16 +94,15 @@ world:
       skus:
         sku3:
           init_stock: 80
-          product_unit_cost: 1
-          type: "production"
-          cost: 10
+          has_manufacture: True
+          unit_product_cost: 1
           price: 10
       children:
         storage: *small_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 20
-        order_cost: 0
+        unit_delay_order_penalty: 20
+        unit_order_cost: 0
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
@@ -116,60 +115,64 @@ world:
         sku3:
           init_stock: 10
           price: 100
+          has_consumer: True
       children:
         storage: *small_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 20
-        order_cost: 200
+        unit_delay_order_penalty: 20
+        unit_order_cost: 200
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
       skus:
         sku1:
           price: 300
-          cost: 10
           init_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
+          has_consumer: True
+          has_seller: True
         sku3:
           price: 200
-          cost: 10
           init_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
+          has_consumer: True
+          has_seller: True
         sku2:
           price: 100
-          cost: 10
           init_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
+          has_consumer: True
+          has_seller: True
       children:
         storage: *small_storage
       config:
-        order_cost: 200
+        unit_order_cost: 200
   topology:
     Warehouse_001:
       sku3:
-        - "Supplier_SKU3"
+        "Supplier_SKU3":
+          "train":
+            vlt: 7
+            cost: 1
     Retailer_001:
       sku1:
-        - "Warehouse_001"
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 1
       sku2:
-        - "Warehouse_001"
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 1
       sku3:
-        - "Warehouse_001"
-  grid:
-    size: [ 20, 20 ]
-    facilities:
-      Warehouse_001: [ 0, 0 ]
-      Supplier_SKU3: [ 3, 3 ]
-      Retailer_001: [8, 8]
-    blocks:
-      railroad:
-        - [ 10, 10 ]
-        - [ 10, 11 ]
-        - [ 10, 12 ]
-        - [ 11, 12 ]
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 1
 
 settings:
   pending_order_len: 4

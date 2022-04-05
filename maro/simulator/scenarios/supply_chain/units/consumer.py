@@ -77,40 +77,14 @@ class ConsumerUnit(ExtendUnitBase):
 
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
-        sku = self.facility.skus[self.product_id]
-
-        # TODO: check is the order cost the basis cost for each order?
-        order_cost = self.facility.get_config("order_cost")
-        assert isinstance(order_cost, int)
-
         assert isinstance(self.data_model, ConsumerDataModel)
-        self.data_model.initialize(order_cost=order_cost)
 
-        if self.facility.upstreams is not None:
-            # Construct sources from facility's upstreams.
-            # List[FacilityBase]
-            sources: list = self.facility.upstreams.get(self.product_id, [])
+        unit_order_cost = self.facility.skus[self.product_id].unit_order_cost
+        self.data_model.initialize(order_cost=unit_order_cost)  # TODO: rename to unit_order_cost
 
-            if len(sources) > 0:  # TODO: update this part. the supplier can also request product from vendor.
-                # Is we are a supplier facility?
-                is_supplier = getattr(self.parent, "manufacture", None) is not None
-
-                # Current sku information.
-                sku = self.world.get_sku_by_id(self.product_id)
-
-                for source_facility in sources:
-                    # We are a supplier unit, then the consumer is used to purchase source materials from upstreams.
-                    # Try to find who will provide this kind of material.
-                    if is_supplier:
-                        if source_facility.products is not None:
-                            for source_sku_id in sku.bom.keys():
-                                if source_sku_id in source_facility.products:
-                                    # This is a valid source facility.
-                                    self.source_facility_id_list.append(source_facility.id)
-                    else:
-                        # If we are not a manufacturing, just check if upstream have this sku configuration.
-                        if sku.id in source_facility.skus:
-                            self.source_facility_id_list.append(source_facility.id)
+        self.source_facility_id_list = [
+            info.src_facility.id for info in self.facility.upstream_vlt_infos.get(self.product_id, [])
+        ] if self.facility.upstream_vlt_infos is not None else []
 
     def _step_impl(self, tick: int):
         self._update_pending_order()
@@ -124,11 +98,31 @@ class ConsumerUnit(ExtendUnitBase):
         if self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
 
+        assert self.action.source_id in self.source_facility_id_list
+        assert self.action.product_id == self.product_id
+
+        vlt: Optional[int] = None
+        for upstream_info in self.facility.upstream_vlt_infos[self.product_id]:
+            if (
+                upstream_info.src_facility.id == self.action.source_id
+                and upstream_info.vehicle_type == self.action.vehicle_type
+            ):
+                vlt = upstream_info.vlt
+                break
+
+        assert vlt is not None
+
         # NOTE: we are using product unit as destination,
         # so we expect the action.source_id is an id of product unit.
         self.update_open_orders(self.action.source_id, self.action.product_id, self.action.quantity)
 
-        order = Order(self.facility, self.action.product_id, self.action.quantity, self.action.vlt)
+        order = Order(
+            destination=self.facility,
+            product_id=self.product_id,
+            quantity=self.action.quantity,
+            vehicle_type=self.action.vehicle_type,
+            vlt=vlt  # TODO: add random factor if needed
+        )
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)
 
@@ -172,7 +166,6 @@ class ConsumerUnit(ExtendUnitBase):
         self._received = 0
         self._purchased = 0
         self._order_product_cost = 0
-        self.source_facility_id_list = []
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
     def get_in_transit_quantity(self):

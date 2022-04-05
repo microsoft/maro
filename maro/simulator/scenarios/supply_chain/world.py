@@ -9,7 +9,7 @@ from maro.backends.frame import FrameBase
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .objects import SkuMeta, SupplyChainEntity
+from .objects import SkuMeta, SkuInfo, SupplyChainEntity, VendorLeadingTimeInfo, LeadingTimeInfo
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
 from .units import ExtendUnitBase, ProductUnit, UnitBase
 
@@ -51,18 +51,7 @@ class World:
         self.entity_list = []
 
         self.max_sources_per_facility = 0
-        self.max_price = 0
-
-    def get_sku_by_name(self, name: str) -> SkuMeta:
-        """Get sku information by name.
-
-        Args:
-            name (str): Sku name to query.
-
-        Returns:
-            SkuMeta: Meta information for sku.
-        """
-        return self._sku_collection[self._sku_name2id_mapping[name]]
+        self.max_price = 0  # TODO: update it according to needs
 
     def get_sku_by_id(self, sku_id: int) -> SkuMeta:
         """Get sku information by sku id.
@@ -75,8 +64,24 @@ class World:
         """
         return self._sku_collection[sku_id]
 
-    def get_sku_id_by_name(self, name: str) -> int:
-        return self._sku_name2id_mapping[name]
+    def get_sku_by_name(self, name: str) -> SkuMeta:
+        """Get sku information by name.
+
+        Args:
+            name (str): Sku name to query.
+
+        Returns:
+            SkuMeta: Meta information for sku.
+        """
+        return self._sku_collection[self._sku_name2id_mapping[name]]
+
+    def _get_sku_id_and_name(self, id_or_name: Union[int, str]) -> Tuple[int, str]:
+        if isinstance(id_or_name, int):
+            assert id_or_name in self._sku_collection.keys()
+            return id_or_name, self._sku_collection[id_or_name].name
+        else:
+            assert id_or_name in self._sku_name2id_mapping.keys()
+            return self._sku_name2id_mapping[id_or_name], id_or_name
 
     def get_facility_by_id(self, facility_id: int) -> FacilityBase:
         """Get facility by id.
@@ -89,7 +94,7 @@ class World:
         """
         return self.facilities[facility_id]
 
-    def get_facility_by_name(self, name: str) -> FacilityBase:
+    def _get_facility_by_name(self, name: str) -> FacilityBase:
         """Get facility by name.
 
         Args:
@@ -111,78 +116,38 @@ class World:
         """
         return self.units[entity_id] if entity_id in self.units else self.facilities[entity_id]
 
-    def get_sku_id_and_name(self, id_or_name: Union[int, str]) -> Tuple[int, str]:
-        if isinstance(id_or_name, int):
-            assert id_or_name in self._sku_collection.keys()
-            return id_or_name, self._sku_collection[id_or_name].name
-        else:
-            assert id_or_name in self._sku_name2id_mapping.keys()
-            return self._sku_name2id_mapping[id_or_name], id_or_name
+    def get_node_mapping(self) -> dict:
+        """Collect all the entities' information.
 
-    def _init_sku_collection(self) -> None:
-        # Grab sku information for this world.
-        for sku_conf in self.configs.world["skus"]:
-            sku = SkuMeta(**sku_conf)
+        Returns:
+            dict: A dictionary contains 'mapping' for id to data model index mapping,
+                'detail' for detail of units and facilities.
+        """
+        facility_info_dict = {
+            facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()
+        }
 
-            self._sku_name2id_mapping[sku.name] = sku.id
-            self._sku_collection[sku.id] = sku
+        id2index_mapping = {}
 
-        # Format bom info to use sku id as key.
-        for sku_conf in self.configs.world["skus"]:
-            sku = self._sku_collection[sku_conf["id"]]
-            sku.bom = {}
+        for unit_id, unit in self.units.items():
+            sku = None
 
-            bom = sku_conf.get("bom", {})
-            for src_id_or_name, units_per_lot in bom.items():
-                src_id, _ = self.get_sku_id_and_name(src_id_or_name)
-                sku.bom[src_id] = units_per_lot
+            if isinstance(unit, ExtendUnitBase):
+                sku = unit.facility.skus[unit.product_id]
 
-    def _create_entities(self) -> None:
-        for facility_conf in self.configs.world["facilities"]:
-            facility_def: EntityDef = self.configs.entity_defs[facility_conf["class"]]
-            assert issubclass(facility_def.class_type, FacilityBase)
+            if unit.data_model is not None:
+                # TODO: replace with data class or named tuple
+                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
+            else:
+                id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
 
-            # Due with data model.
-            data_model_def: DataModelDef = self.configs.data_model_defs[facility_def.data_model_alias]
-            # Register the data model, so that it will help to generate related instance index.
-            data_model_index = self._register_data_model(data_model_def.alias)
-
-            # Instance of facility.
-            facility: FacilityBase = facility_def.class_type(
-                id=self._gen_id(),
-                name=facility_conf["name"],
-                data_model_name=data_model_def.name_in_frame,
-                data_model_index=data_model_index,
-                world=self,
-                config=facility_conf.get("config", {})
-            )
-
-            # Parse sku info.
-            facility.parse_skus(facility_conf["skus"])
-
-            # Build children Units.
-            for child_name, child_conf in facility_conf["children"].items():
-                child = self._build_unit(facility=facility, parent=facility, config=child_conf)
-                setattr(facility, child_name, child)
-
-            # Build ProductUnits.
-            if "products" in facility_conf:
-                products_dict = self._build_product_units(facility=facility, config=facility_conf["products"])
-                setattr(facility, "products", products_dict)
-
-            self.facilities[facility.id] = facility
-            self._facility_name2id_mapping[facility.name] = facility.id
-
-    def _build_frame_and_assgin_to_entities(self, snapshot_number: int) -> None:
-        self.frame = self._build_frame(snapshot_number)
-
-        for unit in self.units.values():
-            if unit.data_model_name is not None:
-                unit.data_model = getattr(self.frame, unit.data_model_name)[unit.data_model_index]
-
-        for facility in self.facilities.values():
-            if facility.data_model_name is not None:
-                facility.data_model = getattr(self.frame, facility.data_model_name)[facility.data_model_index]
+        return {
+            "unit_mapping": id2index_mapping,
+            "skus": {id_: sku for id_, sku in self._sku_collection.items()},
+            "facilities": facility_info_dict,
+            "max_price": self.max_price,
+            "max_sources_per_facility": self.max_sources_per_facility,
+        }
 
     # TODO: build from yaml + build from input files?
     def build(self, configs: SupplyChainConfiguration, snapshot_number: int, durations: int) -> None:
@@ -205,22 +170,8 @@ class World:
         # Step 3: Build frame and assign data model instances to entities.
         self._build_frame_and_assgin_to_entities(snapshot_number)
 
-        # Construct the upstream topology.
-        topology = self.configs.world["topology"]
-
-        for cur_facility_name, topology_conf in topology.items():
-            facility = self.get_facility_by_name(cur_facility_name)
-
-            for sku_name, source_facilities in topology_conf.items():
-                sku = self.get_sku_by_name(sku_name)
-                facility.upstreams[sku.id] = []
-
-                self.max_sources_per_facility = max(self.max_sources_per_facility, len(source_facilities))
-
-                for source_name in source_facilities:
-                    source_facility = self.get_facility_by_name(source_name)
-                    facility.upstreams[sku.id].append(source_facility)
-                    source_facility.downstreams[sku.id].append(facility)
+        # Step 4: Construct the upstream & downstream topology, and add the corresponding VLT infos.
+        self._construct_topology_and_add_vlt_info()
 
         # Call initialize method for facilities.
         for facility in self.facilities.values():
@@ -245,44 +196,39 @@ class World:
             )
             self.entity_list.append(entity)
 
-    def _build_product_unit(
-        self, unit_def: EntityDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase, config: dict,
-    ) -> None:
-        """Build an unit by its type.
+    def _init_sku_collection(self) -> None:
+        # Grab sku information for this world.
+        for sku_conf in self.configs.world["skus"]:
+            sku = SkuMeta(**sku_conf)
+
+            self._sku_name2id_mapping[sku.name] = sku.id
+            self._sku_collection[sku.id] = sku
+
+        # Format bom info to use sku id as key.
+        for sku_conf in self.configs.world["skus"]:
+            sku = self._sku_collection[sku_conf["id"]]
+            sku.bom = {}
+
+            bom = sku_conf.get("bom", {})
+            for src_id_or_name, units_per_lot in bom.items():
+                src_id, _ = self._get_sku_id_and_name(src_id_or_name)
+                sku.bom[src_id] = units_per_lot
+
+    def _gen_id(self) -> int:
+        """Generate id for entities."""
+        return next(self._id_counter)
+
+    def _register_data_model(self, alias: str) -> int:
+        """Register a data model alias, used to collect data model used in frame.
 
         Args:
-            unit_def (EntityDef): Definition of this unit.
-            parent (Union[FacilityBase, UnitBase]): Parent of this unit.
-            facility (FacilityBase): Facility this unit belongs to.
+            alias (str): Class alias defined in core.yml.
 
         Returns:
-            UnitBase: Unit instance.
+            int: Specified data model instance index after frame is built.
         """
-        assert issubclass(unit_def.class_type, UnitBase)
-
-        data_model_name, data_model_index = None, None
-        if unit_def.data_model_alias is not None:
-            # Due with data model.
-            data_model_def: DataModelDef = self.configs.data_model_defs[unit_def.data_model_alias]
-
-            data_model_name = data_model_def.name_in_frame
-
-            # Register the data model, so that it will help to generate related instance index.
-            data_model_index = self._register_data_model(data_model_def.alias)
-
-        unit = unit_def.class_type(
-            id=self._gen_id(),
-            data_model_name=data_model_name,
-            data_model_index=data_model_index,
-            facility=facility,
-            parent=parent,
-            world=self,
-            config=config,
-        )
-
-        self.units[unit.id] = unit
-
-        return unit
+        self._data_class_collection[alias] += 1
+        return self._data_class_collection[alias] - 1
 
     def _build_unit(
         self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict,
@@ -301,13 +247,19 @@ class World:
         assert issubclass(unit_def.class_type, UnitBase)
 
         # Due with data model.
-        data_model_def: DataModelDef = self.configs.data_model_defs[unit_def.data_model_alias]
-        # Register the data model, so that it will help to generate related instance index.
-        data_model_index = self._register_data_model(data_model_def.alias)
+        data_model_name, data_model_index = None, None
+
+        if unit_def.data_model_alias is not None:
+            data_model_def: DataModelDef = self.configs.data_model_defs[unit_def.data_model_alias]
+
+            data_model_name = data_model_def.name_in_frame
+
+            # Register the data model, so that it will help to generate related instance index.
+            data_model_index = self._register_data_model(data_model_def.alias)
 
         unit_instance = unit_def.class_type(
             id=self._gen_id(),
-            data_model_name=data_model_def.name_in_frame,
+            data_model_name=data_model_name,
             data_model_index=data_model_index,
             facility=facility,
             parent=parent,
@@ -357,15 +309,13 @@ class World:
         unit_def: EntityDef = self.configs.entity_defs[config["class"]]
         assert issubclass(unit_def.class_type, ProductUnit)
 
-        config = config.get("config")
+        product_config = config.get("config")
 
         products_dict: Dict[int, ProductUnit] = {}
 
         if facility.skus is not None and len(facility.skus) > 0:
             for sku_id, sku in facility.skus.items():
-                sku_type = sku.type
-
-                product_unit: ProductUnit = self._build_product_unit(unit_def, facility, facility, config)
+                product_unit: ProductUnit = self._build_unit(facility, facility, config)
                 product_unit.product_id = sku_id
                 product_unit.children = []
                 product_unit.storage = product_unit.facility.storage
@@ -374,18 +324,13 @@ class World:
                 # NOTE: BE CAREFUL about the order, product unit will use this order update children,
                 # the order may affect the states.
                 # Here we make sure consumer is the first one, so it can place order first.
-                for child_name in ("consumer", "seller", "manufacture"):
-                    conf = config.get(child_name, None)
+                for child_name, has_unit in zip(
+                    ["consumer", "seller", "manufacture"],
+                    [sku.has_consumer, sku.has_seller, sku.has_manufacture]
+                ):
+                    conf = product_config.get(child_name, None)
 
-                    if conf is not None:
-                        # Ignore manufacture unit if it is not for a production, even it is configured in config.
-                        if sku_type != "production" and child_name == "manufacture":
-                            continue
-
-                        # We produce the product, so we do not need to purchase it.
-                        if sku_type == "production" and child_name == "consumer":
-                            continue
-
+                    if conf is not None and has_unit:
                         child_unit = self._build_unit(facility, product_unit, conf)
                         child_unit.product_id = sku_id
 
@@ -397,50 +342,53 @@ class World:
 
         return products_dict
 
-    def get_node_mapping(self) -> dict:
-        """Collect all the entities' information.
+    def _create_entities(self) -> None:
+        for facility_conf in self.configs.world["facilities"]:
+            facility_def: EntityDef = self.configs.entity_defs[facility_conf["class"]]
+            assert issubclass(facility_def.class_type, FacilityBase)
 
-        Returns:
-            dict: A dictionary contains 'mapping' for id to data model index mapping,
-                'detail' for detail of units and facilities.
-        """
-        facility_info_dict = {
-            facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()
-        }
+            # Due with data model.
+            data_model_def: DataModelDef = self.configs.data_model_defs[facility_def.data_model_alias]
+            # Register the data model, so that it will help to generate related instance index.
+            data_model_index = self._register_data_model(data_model_def.alias)
 
-        id2index_mapping = {}
+            # Instance of facility.
+            facility: FacilityBase = facility_def.class_type(
+                id=self._gen_id(),
+                name=facility_conf["name"],
+                data_model_name=data_model_def.name_in_frame,
+                data_model_index=data_model_index,
+                world=self,
+                config=facility_conf.get("config", {})
+            )
 
-        for unit_id, unit in self.units.items():
-            sku = None
+            # Parse sku info.
+            for sku_id_or_name, sku_config in facility_conf["skus"].items():
+                sku_id, sku_name = self._get_sku_id_and_name(sku_id_or_name)
+                sku_config["id"] = sku_id
+                sku_config["name"] = sku_name
+                sku_config["unit_order_cost"] = sku_config.get(
+                    "unit_order_cost",
+                    facility_conf["config"].get("unit_order_cost", None)
+                )
+                sku_config["unit_delay_order_penalty"] = sku_config.get(
+                    "unit_delay_order_penalty",
+                    facility_conf["config"].get("unit_delay_order_penalty", None)
+                )
+                facility.skus[sku_id] = SkuInfo(**sku_config)
 
-            if isinstance(unit, ExtendUnitBase):
-                sku = unit.facility.skus[unit.product_id]
+            # Build children Units.
+            for child_name, child_conf in facility_conf["children"].items():
+                child = self._build_unit(facility=facility, parent=facility, config=child_conf)
+                setattr(facility, child_name, child)
 
-            if unit.data_model is not None:
-                # TODO: replace with data class or named tuple
-                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
-            else:
-                id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
+            # Build ProductUnits.
+            if "products" in facility_conf:
+                products_dict = self._build_product_units(facility=facility, config=facility_conf["products"])
+                setattr(facility, "products", products_dict)
 
-        return {
-            "unit_mapping": id2index_mapping,
-            "skus": {id_: sku for id_, sku in self._sku_collection.items()},
-            "facilities": facility_info_dict,
-            "max_price": self.max_price,
-            "max_sources_per_facility": self.max_sources_per_facility,
-        }
-
-    def _register_data_model(self, alias: str) -> int:
-        """Register a data model alias, used to collect data model used in frame.
-
-        Args:
-            alias (str): Class alias defined in core.yml.
-
-        Returns:
-            int: Specified data model instance index after frame is built.
-        """
-        self._data_class_collection[alias] += 1
-        return self._data_class_collection[alias] - 1
+            self.facilities[facility.id] = facility
+            self._facility_name2id_mapping[facility.name] = facility.id
 
     def _build_frame(self, snapshot_number: int) -> FrameBase:
         """Build frame by current world definitions.
@@ -465,6 +413,35 @@ class World:
 
         return frame
 
-    def _gen_id(self) -> int:
-        """Generate id for entities."""
-        return next(self._id_counter)
+    def _build_frame_and_assgin_to_entities(self, snapshot_number: int) -> None:
+        self.frame = self._build_frame(snapshot_number)
+
+        for unit in self.units.values():
+            if unit.data_model_name is not None:
+                unit.data_model = getattr(self.frame, unit.data_model_name)[unit.data_model_index]
+
+        for facility in self.facilities.values():
+            if facility.data_model_name is not None:
+                facility.data_model = getattr(self.frame, facility.data_model_name)[facility.data_model_index]
+
+    def _construct_topology_and_add_vlt_info(self) -> None:
+        topology = self.configs.world["topology"]
+
+        for facility_name, topology_conf in topology.items():
+            facility = self._get_facility_by_name(facility_name)
+
+            for sku_id_or_name, source_configs in topology_conf.items():
+                sku_id, _ = self._get_sku_id_and_name(sku_id_or_name)
+                facility.upstream_vlt_infos[sku_id] = []
+
+                self.max_sources_per_facility = max(self.max_sources_per_facility, len(source_configs))
+
+                for src_name, src_conf in source_configs.items():
+                    src_facility = self._get_facility_by_name(src_name)
+                    for vehicle_type, vehicle_conf in src_conf.items():
+                        facility.upstream_vlt_infos[sku_id].append(
+                            VendorLeadingTimeInfo(src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
+                        )
+                        src_facility.downstream_vlt_infos[sku_id].append(
+                            LeadingTimeInfo(facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
+                        )

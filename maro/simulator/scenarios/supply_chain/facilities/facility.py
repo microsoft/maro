@@ -9,7 +9,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from maro.simulator.scenarios.supply_chain.objects import SkuInfo
+from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
@@ -69,30 +69,20 @@ class FacilityBase(ABC):
         # Distribution unit in this facility.
         self.distribution: Optional[DistributionUnit] = None
 
-        # Upstream facilities.
-        # Key is sku id, value is the list of facilities from upstream.
-        self.upstreams: Dict[int, List[FacilityBase]] = defaultdict(list)
+        # Upstream facility vendor leading time infos.
+        # Key: sku id;
+        # Value: a list of vendor leading time info, including source facility, vehicle type, vlt, transportation cost.
+        self.upstream_vlt_infos: Dict[int, List[VendorLeadingTimeInfo]] = defaultdict(list)
 
-        # Down stream facilities, value same as upstreams.
-        self.downstreams: Dict[int, List[FacilityBase]] = defaultdict(list)
+        # Downstream facility leading time infos.
+        # Key: sku id;
+        # Value: a list of leading time info, including destination facility, vehicle type, vlt, transportation cost.
+        self.downstream_vlt_infos: Dict[int, List[LeadingTimeInfo]] = defaultdict(list)
 
         self.data_model: Optional[DataModelBase] = None
 
         # Children of this facility (valid units).
         self.children: List[UnitBase] = []
-
-    def parse_skus(self, configs: dict) -> None:
-        """Parse sku information from config.
-
-        Args:
-            configs (dict): Configuration of skus belongs to this facility.
-        """
-        for sku_id_or_name, sku_config in configs.items():
-            sku_id, sku_name = self.world.get_sku_id_and_name(sku_id_or_name)
-            sku_config['id'] = sku_id
-            sku_config['name'] = sku_name
-            facility_sku = SkuInfo(**sku_config)
-            self.skus[facility_sku.id] = facility_sku
 
     def get_config(self, key: str, default: object = None) -> object:
         """Get specified configuration of facility.
@@ -169,9 +159,18 @@ class FacilityBase(ABC):
             class_name=type(self),
             configs=self.configs,
             skus=self.skus,
-            upstreams={product_id: [f.id for f in f_list] for product_id, f_list in self.upstreams.items()},
-            downstreams={product_id: [f.id for f in f_list] for product_id, f_list in self.downstreams.items()},
+            upstreams={
+                product_id: [info.src_facility.id for info in info_list]
+                for product_id, info_list in self.upstream_vlt_infos.items()
+            },
+            downstreams={
+                product_id: [info.dest_facility.id for info in info_list]
+                for product_id, info_list in self.downstream_vlt_infos.items()
+            },
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
-            products_info={product_id: product.get_unit_info() for product_id, product in self.products.items()},
+            products_info={
+                product_id: product.get_unit_info()
+                for product_id, product in self.products.items()
+            },
         )

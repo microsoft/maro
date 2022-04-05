@@ -137,141 +137,158 @@ world:
       definition_ref: "VendorFacility"
       skus:  # would be parsed by FacilityBase.parse_skus() => SkuInfo
         "food_1":  # The key can be sku id or name
+          price: 33
           init_stock: 10000
           sub_storage_id: 0
-          product_unit_cost: 14
+          has_manufacture: True
           production_rate: 10000
-          type: "production"
-          cost: 14
-          price: 33
-          vlt: 7
+          unit_product_cost: 14
+          unit_delay_order_penalty: 1000
         "component_1":
+          price: 33
           init_stock: 10000
           sub_storage_id: 0
-          product_unit_cost: 14
+          has_manufacture: True
           production_rate: 10000
-          type: "production"
-          cost: 14
-          price: 33
-          vlt: 7
+          unit_product_cost: 14
+          unit_delay_order_penalty: 900
         "component_2":
+          price: 33
           init_stock: 10000
           sub_storage_id: 0
-          product_unit_cost: 14
+          has_manufacture: True
           production_rate: 10000
-          type: "production"
-          cost: 14
-          price: 33
-          vlt: 7
+          unit_product_cost: 14
+          unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
         storage: *single_storage
         distribution: *normal_distribution
       config:  # would be FacilityBase.configs directly
-        delay_order_penalty: 1000
-        order_cost: 100
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
 
     - name: "Plant_001"
       definition_ref: "PlantFacility"
       skus:
         "component_1":
+          price: 33
           init_stock: 5000
           sub_storage_id: 1
-          cost: 14
-          price: 33
-          vlt: 7
+          has_consumer: True
+          unit_order_cost: 80
         "component_2":
+          price: 33
           init_stock: 5000
           sub_storage_id: 1
-          cost: 14
-          price: 33
-          vlt: 7
+          has_consumer: True
+          unit_order_cost: 80
         "hobby_1":
+          price: 33
           init_stock: 5000
           sub_storage_id: 2
-          product_unit_cost: 14
+          has_manufacture: True
           production_rate: 10000
-          type: "production"
-          cost: 14
-          price: 33
-          vlt: 7
+          unit_product_cost: 14
       children:
         storage: *multi_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 1000
-        order_cost: 100
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
 
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
         "food_1":
+          price: 33
           init_stock: 10000
           sub_storage_id: 0
-          cost: 14
-          price: 33
-          vlt: 7
+          has_consumer: True
         "hobby_1":
+          price: 33
           init_stock: 5000
           sub_storage_id: 0
-          cost: 14
-          price: 33
-          vlt: 7
+          has_consumer: True
       children:
         storage: *single_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 1000
-        order_cost: 100
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
 
     - name: "Store_001"
       definition_ref: "StoreFacility"
       skus:
         "food_1":
+          price: 33
           init_stock: 10000
           sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
           sale_gamma: 160
           backlog_ratio: 0.0
-          cost: 14
-          price: 33
-          vlt: 7
         "hobby_1":
+          price: 33
           init_stock: 5000
           sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
           sale_gamma: 160
           backlog_ratio: 0.0
-          cost: 14
-          price: 33
-          vlt: 7
       children:
         storage: *single_storage
       config:
-        order_cost: 200
+        unit_order_cost: 200
         seller_sampler_type: data
-        sku_column: "SKU"
-        price_column: "Price"
-        sale_column: "Sales"
-        datetime_column: "Date"
+        sku_column: SKU
+        price_column: Price
+        sale_column: Sales
+        datetime_column: Date
         file_path: "/home/Jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
 
   topology:
     "Store_001":
       "food_1":
-        - "Warehouse_001"
+        "Warehouse_001":
+          "air":
+            vlt: 2
+            cost: 3.0
+          "train":
+            vlt: 7
+            cost: 0.5
       "hobby_1":
-        - "Warehouse_001"
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 0.6
 
     "Warehouse_001":
       "food_1":
-        - "Vendor_001"
+        "Vendor_001":
+          "air":
+            vlt: 2
+            cost: 2.0
+          "train":
+            vlt: 7
+            cost: 0.3
       "hobby_1":
-        - "Plant_001"
+        "Plant_001":
+          "train":
+            vlt: 7
+            cost: 0.35
 
     "Plant_001":
       "component_1":
-        - "Vendor_001"
+        "Vendor_001":
+          "train":
+            vlt: 7
+            cost: 0.2
       "component_2":
-        - "Vendor_001"
+        "Vendor_001":
+          "train":
+            vlt: 7
+            cost: 0.2
 
 settings:
-  pending_order_len: 4
+  pending_order_len: 4  # For initialization of Consumer Units
   start_date_time: "2021-01-01"

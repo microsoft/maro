@@ -251,7 +251,7 @@ class SCEnvSampler(AbsEnvSampler):
                     if action_number:
                         sku = self._units_mapping[unit_id][3]
                         env_action_dict[agent_id] = ConsumerAction(
-                            unit_id, product_id, source_id, action_number, sku.vlt,
+                            unit_id, product_id, source_id, action_number, "train",  # TODO: add logic for vehicle type selection
                         )
                         self._consumer_orders[product_unit_id] = action_number
                         self._orders_from_downstreams[

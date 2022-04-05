@@ -89,7 +89,7 @@ class DistributionUnit(UnitBase):
 
                 self._order_queue.append(order)
 
-                order_total_price = sku.price * order.quantity  # TODO: checking the meaning of the sku.price here.
+                order_total_price = sku.price * order.quantity
 
                 self.check_in_quantity_in_order[order.product_id] += order.quantity
 
@@ -103,6 +103,7 @@ class DistributionUnit(UnitBase):
         self._base_delay_order_penalty = self.facility.get_config("delay_order_penalty", 0)
 
     def _step_impl(self, tick: int):
+        # TODO: update vehicle types and distribution step logic
         for vehicle in self.vehicles:
             # If we have vehicle not on the way and there is any pending order.
             if len(self._order_queue) > 0 and vehicle.requested_quantity == 0:

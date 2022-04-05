@@ -56,7 +56,7 @@ class VehicleUnit(UnitBase):
             destination (FacilityBase): Destination facility.
             product_id (int): What load from storage.
             quantity (int): How many to load.
-            vlt (int): Velocity of vehicle.
+            vlt (int): Vendor leading time.
         """
         self.product_id = product_id
         self._destination = destination

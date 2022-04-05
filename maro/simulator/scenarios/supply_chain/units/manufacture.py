@@ -49,11 +49,10 @@ class ManufactureUnit(ExtendUnitBase):
     def initialize(self) -> None:
         super(ManufactureUnit, self).initialize()
 
-        facility_sku_info = self.facility.skus[self.product_id]
-        product_unit_cost = facility_sku_info.product_unit_cost
-
         assert isinstance(self.data_model, ManufactureDataModel)
-        self.data_model.initialize(product_unit_cost)
+
+        unit_product_cost = self.facility.skus[self.product_id].unit_product_cost
+        self.data_model.initialize(unit_product_cost)
 
         global_sku_info = self.world.get_sku_by_id(self.product_id)
 
@@ -64,6 +63,8 @@ class ManufactureUnit(ExtendUnitBase):
             self._input_units_per_lot = sum(self._bom.values())
 
     def _step_impl(self, tick: int) -> None:
+        # TODO: Set default production rate, and produce according to it if Action not given.
+
         # Due to the processing in post_step(),
         # self._manufacture_quantity is set to 0 at the begining of every step.
         # Thus, there is no need to update it with None action or 0 production_rate.
@@ -130,3 +131,33 @@ class ManufactureUnit(ExtendUnitBase):
         return ManufactureUnitInfo(
             **super(ManufactureUnit, self).get_unit_info().__dict__,
         )
+
+
+class SimpleManufactureUnit(ManufactureUnit):
+    """This simple manufacture unit will ignore source sku, just generate specified number of product."""
+
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(SimpleManufactureUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
+
+    def _step_impl(self, tick: int) -> None:
+        if self.action is None:
+            return
+
+        assert isinstance(self.action, ManufactureAction)
+
+        # Try to produce production if we have positive rate.
+        if self.action.production_rate > 0:
+            production_rate = self.action.production_rate
+
+            self._manufacture_quantity = min(
+                self.facility.storage.get_product_max_remaining_space(self.product_id),
+                production_rate,
+            )
+
+            if self._manufacture_quantity > 0:
+                self.facility.storage.try_add_products({self.product_id: self._manufacture_quantity})

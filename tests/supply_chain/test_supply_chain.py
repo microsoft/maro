@@ -68,7 +68,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "product_unit_cost"
+            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
         )
 
         # ############################### TICK: 0 ######################################
@@ -185,7 +185,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "product_unit_cost"
+            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
         )
 
         # ############################### TICK: 0 ######################################
@@ -288,7 +288,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "product_unit_cost"
+            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
         )
 
         # ############################### TICK: 0 ######################################
@@ -734,9 +734,9 @@ class MyTestCase(unittest.TestCase):
         sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
         # zero quantity will be ignore
-        action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 0, 1)
+        action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 0, "train")
 
-        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1)
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, "train")
 
         sku3_consumer_unit.set_action(action_with_zero)
 
@@ -819,7 +819,7 @@ class MyTestCase(unittest.TestCase):
             sku3_supplier_facility_id is not None
         ]))
 
-        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1)
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, "train")
 
         # 1st step must none action
         env.step(None)
@@ -929,8 +929,8 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(all([vehicle_unit is not None, dest_facility is not None]))
 
         # make sure the upstream in the only one supplier in config
-        self.assertEqual(1, len(dest_facility.upstreams))
-        self.assertEqual(1, len(dest_facility.upstreams[SKU3_ID]))
+        self.assertEqual(1, len(dest_facility.upstream_vlt_infos))
+        self.assertEqual(1, len(dest_facility.upstream_vlt_infos[SKU3_ID]))
 
         # schedule job vehicle unit manually, from supplier to warehouse
         vehicle_unit.schedule(dest_facility, SKU3_ID, 20, 2)
@@ -1158,7 +1158,7 @@ class MyTestCase(unittest.TestCase):
 
         first_vehicle: VehicleUnit = dist_unit.vehicles[0]
 
-        order = Order(dest_facility, SKU3_ID, 10, 2)
+        order = Order(dest_facility, SKU3_ID, 10, "train", 2)
 
         dist_unit.place_order(order)
 
