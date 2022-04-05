@@ -7,10 +7,10 @@ from typing import Any, Dict
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units import (
     ConsumerUnitInfo, DistributionUnitInfo, ManufactureUnitInfo, ProductUnitInfo, SellerUnitInfo, StorageUnitInfo
 )
-from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 
 from .config import env_conf
 

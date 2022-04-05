@@ -9,9 +9,10 @@ from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
 from .actions import SupplyChainAction
+from .objects import SupplyChainEntity
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ProductUnit, UnitBase
-from .world import SupplyChainEntity, World
+from .world import World
 
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):

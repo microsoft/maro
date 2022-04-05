@@ -11,7 +11,7 @@ from maro.simulator.scenarios.supply_chain import (
 )
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
-from maro.simulator.scenarios.supply_chain.units.order import Order
+from maro.simulator.scenarios.supply_chain.order import Order
 from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 
 

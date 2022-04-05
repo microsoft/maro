@@ -1,10 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 from .units.storage import DEFAULT_SUB_STORAGE_ID
+
+if typing.TYPE_CHECKING:
+    from .facilities import FacilityBase
 
 
 @dataclass
@@ -31,3 +37,16 @@ class SkuInfo:
     type: str = None
     vlt: int = 1  # TODO: update the vlt related code
     service_level: float = 0.95
+
+
+@dataclass
+class SupplyChainEntity:
+    id: int
+    class_type: type
+    skus: Optional[SkuInfo]
+    facility_id: int
+    parent_id: Optional[int]
+
+    @property
+    def is_facility(self) -> bool:
+        return issubclass(self.class_type, FacilityBase)

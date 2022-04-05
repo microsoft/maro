@@ -14,7 +14,7 @@ from maro.simulator.scenarios.supply_chain import (
     ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit
 )
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
-from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 

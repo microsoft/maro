@@ -3,29 +3,15 @@
 
 import collections
 import itertools
-from dataclasses import dataclass
 from typing import Dict, Optional, Tuple, Union
 
 from maro.backends.frame import FrameBase
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .objects import SkuInfo, SkuMeta
+from .objects import SkuMeta, SupplyChainEntity
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
 from .units import ExtendUnitBase, ProductUnit, UnitBase
-
-
-@dataclass
-class SupplyChainEntity:
-    id: int
-    class_type: type
-    skus: Optional[SkuInfo]
-    facility_id: int
-    parent_id: Optional[int]
-
-    @property
-    def is_facility(self) -> bool:
-        return issubclass(self.class_type, FacilityBase)
 
 
 class World:

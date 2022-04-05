@@ -12,9 +12,9 @@ from scipy.ndimage.interpolation import shift
 
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction
 from maro.simulator.scenarios.supply_chain.datamodels import ConsumerDataModel
+from maro.simulator.scenarios.supply_chain.order import Order
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
-from .order import Order
 from .unitbase import UnitBase
 
 if typing.TYPE_CHECKING:

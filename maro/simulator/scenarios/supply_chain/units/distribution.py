@@ -8,7 +8,7 @@ from collections import Counter, defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
-from .order import Order
+from maro.simulator.scenarios.supply_chain.order import Order
 from .unitbase import UnitBase, BaseUnitInfo
 from .vehicle import VehicleUnit
 
