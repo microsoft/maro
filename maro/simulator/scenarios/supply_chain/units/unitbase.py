@@ -1,14 +1,27 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from __future__ import annotations
 
 import typing
-from typing import Optional, Union
+from dataclasses import dataclass
+from typing import Optional, List, Union
 
 if typing.TYPE_CHECKING:
-    from maro.simulator.scenarios.supply_chain import FacilityBase, SupplyChainAction
+    from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
+
+
+@dataclass
+class BaseUnitInfo:
+    id: int
+    node_index: int
+    node_name: str
+    class_name: type
+    config: dict
+    children: List[BaseUnitInfo]
 
 
 class UnitBase:
@@ -76,6 +89,10 @@ class UnitBase:
         Args:
             tick (int): Current simulator tick.
         """
+        self._step_impl(tick)
+        self._clear_action()
+
+    def _step_impl(self, tick: int) -> None:
         pass
 
     def flush_states(self) -> None:
@@ -89,14 +106,14 @@ class UnitBase:
         Args:
             tick (int): Current simulator tick.
         """
-        self.action = None
+        pass
 
     def reset(self) -> None:
         """Reset this unit for a new episode."""
         if self.data_model is not None:
             self.data_model.reset()
 
-        self.action = None
+        self._clear_action()
 
     def initialize(self) -> None:
         """Initialize this unit after data model is ready to use.
@@ -114,12 +131,16 @@ class UnitBase:
         """
         self.action = action
 
-    def get_unit_info(self) -> dict:
-        return {
-            "id": self.id,
-            "node_name": type(self.data_model).__node_name__,
-            "node_index": self.data_model_index,
-            "class": type(self),
-            "config": self.config,
-            "children": None if self.children is None else [c.get_unit_info() for c in self.children],
-        }
+    def _clear_action(self) -> None:
+        """Clear the action after calling step() of this Unit."""
+        self.action = None
+
+    def get_unit_info(self) -> BaseUnitInfo:
+        return BaseUnitInfo(
+            id=self.id,
+            node_index=self.data_model_index,
+            node_name=type(self.data_model).__node_name__,
+            class_name=type(self),
+            config=self.config,
+            children=[c.get_unit_info() for c in self.children] if self.children else None,
+        )

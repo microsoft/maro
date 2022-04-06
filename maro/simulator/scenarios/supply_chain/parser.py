@@ -1,38 +1,29 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import collections
+
 import os
 from dataclasses import dataclass
 from importlib import import_module
+from typing import Dict, Optional
 
-import pandas as pd
 from yaml import safe_load
 
 
 @dataclass
-class DataModelDef:
+class ModuleDef:
     alias: str
     module_path: str
     class_name: str
     class_type: type
+
+
+@dataclass
+class DataModelDef(ModuleDef):
     name_in_frame: str
 
 
 @dataclass
-class UnitDef:
-    alias: str
-    module_path: str
-    class_name: str
-    class_type: type
-    data_model_alias: str
-
-
-@dataclass
-class FacilityDef:
-    alias: str
-    module_path: str
-    class_name: str
-    class_type: type
+class EntityDef(ModuleDef):
     data_model_alias: str
 
 
@@ -73,13 +64,10 @@ class SupplyChainConfiguration:
 
     def __init__(self) -> None:
         # Data model definitions.
-        self.data_models = {}
+        self.data_model_defs: Dict[str, DataModelDef] = {}
 
-        # Unit definitions.
-        self.units = {}
-
-        # Facility definitions.
-        self.facilities = {}
+        # Entity (Unit & Facility) definitions.
+        self.entity_defs: Dict[str, EntityDef] = {}
 
         # World configurations.
         self.world = {}
@@ -97,9 +85,9 @@ class SupplyChainConfiguration:
             name_in_frame (str): Data model name in frame.
         """
         # Check conflicting.
-        assert alias not in self.data_models
+        assert alias not in self.data_model_defs
 
-        self.data_models[alias] = DataModelDef(
+        self.data_model_defs[alias] = DataModelDef(
             alias,
             module_path,
             class_name,
@@ -107,18 +95,18 @@ class SupplyChainConfiguration:
             name_in_frame,
         )
 
-    def add_unit_definition(self, alias: str, class_name: str, module_path: str, data_model: str) -> None:
-        """Add unit definition.
+    def add_entity_definition(self, alias: str, class_name: str, module_path: str, data_model: str) -> None:
+        """Add entity (unit & facility) definition.
 
         Args:
             alias (str): Alias of this data model.
             class_name (str): Name of class.
             module_path (str): Full path of module.
-            data_model (str): Data model used for this unit.
+            data_model (str): Data model used for this entity.
         """
-        assert alias not in self.units
+        assert alias not in self.entity_defs
 
-        self.units[alias] = UnitDef(
+        self.entity_defs[alias] = EntityDef(
             alias,
             module_path,
             class_name,
@@ -126,31 +114,12 @@ class SupplyChainConfiguration:
             data_model,
         )
 
-    def add_facility_definition(self, alias: str, class_name: str, module_path: str, data_model_alias: str) -> None:
-        """Add a facility definition.
-
-        Args:
-            alias (str): Alias of this facility.
-            class_name (str): Name of this class.
-            module_path (str): Full path of the module.
-            data_model_alias (str): Data model alias.
-        """
-        assert alias not in self.facilities
-
-        self.facilities[alias] = FacilityDef(
-            alias,
-            module_path,
-            class_name,
-            find_class_type(module_path, class_name),
-            data_model_alias,
-        )
-
 
 class ConfigParser:
     """Supply chain configuration parser."""
 
     def __init__(self, core_path: str, config_path: str) -> None:
-        self._result = SupplyChainConfiguration()
+        self._result: Optional[SupplyChainConfiguration] = None
 
         self._core_path = core_path
         self._config_path = config_path
@@ -161,8 +130,10 @@ class ConfigParser:
         Returns:
             SupplyChainConfiguration: Configuration result of this scenario.
         """
-        self._parse_core()
-        self._parse_config()
+        if self._result is None:
+            self._result = SupplyChainConfiguration()
+            self._parse_core()
+            self._parse_config()
 
         return self._result
 
@@ -174,7 +145,7 @@ class ConfigParser:
             self._parse_core_conf(conf)
 
     def _parse_core_conf(self, conf: dict) -> None:
-        # Data models.
+        # Data models
         if "datamodels" in conf:
             for module_conf in conf["datamodels"]["modules"]:
                 module_path = module_conf["path"]
@@ -187,33 +158,19 @@ class ConfigParser:
                         class_def["name_in_frame"],
                     )
 
-        # TODO: dup code
-        # Units.
-        if "units" in conf:
-            for module_conf in conf["units"]["modules"]:
-                module_path = module_conf["path"]
+        # Entities
+        for entity_type in ["units", "facilities"]:
+            if entity_type in conf:
+                for module_conf in conf[entity_type]["modules"]:
+                    module_path = module_conf["path"]
 
-                for class_alias, class_def in module_conf["definitions"].items():
-                    # children not in unit definition
-                    self._result.add_unit_definition(
-                        class_alias,
-                        class_def["class"],
-                        module_path,
-                        class_def.get("datamodel", None),
-                    )
-
-        # Facilities.
-        if "facilities" in conf:
-            for module_conf in conf["facilities"]["modules"]:
-                module_path = module_conf["path"]
-
-                for class_alias, class_def in module_conf["definitions"].items():
-                    self._result.add_facility_definition(
-                        class_alias,
-                        class_def["class"],
-                        module_path,
-                        class_def.get("datamodel", None),
-                    )
+                    for class_alias, class_def in module_conf["definitions"].items():
+                        self._result.add_entity_definition(
+                            class_alias,
+                            class_def["class"],
+                            module_path,
+                            class_def["datamodel"],
+                        )
 
     def _parse_config(self) -> None:
         """Parse configurations."""
@@ -224,7 +181,7 @@ class ConfigParser:
             customized_core_conf = conf.get("core", None)
 
             if customized_core_conf is not None:
-                self._parse_core_conf(customized_core_conf)
+                self._parse_core_conf(customized_core_conf)  # TODO: there may be sth. wrong with the assert.
 
             # Facility definitions is not required, but it would be much simple to config with it
             facility_definitions = conf.get("facility_definitions", {})
@@ -254,16 +211,3 @@ class ConfigParser:
                 self._result.world["facilities"].append(facility)
 
             self._result.settings = conf.get("settings", {})
-
-        # Parse demands from files if exist
-        self._result.world["demands"] = {}
-        for facility in self._result.world["facilities"]:
-            facility_name = facility["name"]
-            demand_file_path = os.path.join(self._config_path, f"demand__{facility_name}.csv")
-            demand_dict = collections.defaultdict(dict)
-            if os.path.exists(demand_file_path):
-                df = pd.read_csv(demand_file_path)
-                for _, row in df.iterrows():
-                    tick, sku_id, demand = row
-                    demand_dict[sku_id][tick] = demand
-                self._result.world["demands"][facility_name] = dict(demand_dict)

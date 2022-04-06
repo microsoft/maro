@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 from maro.backends.backend import AttributeType
 from maro.backends.frame import NodeAttribute, node
 
@@ -13,9 +12,9 @@ class ManufactureDataModel(ExtendDataModel):
     """Data model for manufacture unit."""
     # Number per tick, different with original manufacturing cost, we just provide number, and cost
     # user can determine how to calculate the cost.
-    manufacturing_number = NodeAttribute(AttributeType.UInt)
+    manufacture_quantity = NodeAttribute(AttributeType.UInt)
 
-    product_unit_cost = NodeAttribute(AttributeType.Float)
+    product_unit_cost = NodeAttribute(AttributeType.Float)  # TODO: rename to someone with clear meaning.
 
     def __init__(self) -> None:
         super(ManufactureDataModel, self).__init__()

@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from dataclasses import dataclass
 
 
@@ -13,10 +14,9 @@ class ConsumerAction(SupplyChainAction):
     product_id: int
     source_id: int
     quantity: int
-    vlt: int
-    reward_discount: float
+    vlt: int  # TODO: update vlt related code
 
 
 @dataclass
 class ManufactureAction(SupplyChainAction):
-    production_rate: float
+    production_rate: int

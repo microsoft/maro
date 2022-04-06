@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 from .actions import ConsumerAction, ManufactureAction, SupplyChainAction
 from .datamodels import (
     ConsumerDataModel, DistributionDataModel, ManufactureDataModel, SellerDataModel, StorageDataModel, VehicleDataModel
@@ -11,7 +10,6 @@ from .units import (
     ConsumerUnit, DistributionUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, SellerUnit, StorageUnit, UnitBase,
     VehicleUnit
 )
-
 
 __all__ = [
     "ConsumerAction", "ManufactureAction", "SupplyChainAction",

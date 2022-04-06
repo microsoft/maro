@@ -227,7 +227,7 @@ class ConfigParser:
         log_dir = os.path.dirname(self._config["log_path"])
         path_map = {
             self._config["scenario_path"]: "/scenario" if containerize else self._config["scenario_path"],
-            log_dir: f"/logs" if containerize else log_dir
+            log_dir: "/logs" if containerize else log_dir
         }
 
         load_path = self._config["training"].get("load_path", None)
