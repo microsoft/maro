@@ -237,7 +237,7 @@ class StorageUnit(UnitBase):
             elif add_strategy == AddStrategy.IgnoreUpperBoundProportional:
                 fulfill_ratio_dict: Dict[int, float] = {}
                 for storage_id, requirement in space_requirements.items():
-                    fulfill_ratio_dict[storage_id] = requirement / self._remaining_space_dict[storage_id]
+                    fulfill_ratio_dict[storage_id] = min(1, self._remaining_space_dict[storage_id] / requirement)
 
                 for product_id, quantity in product_quantities.items():
                     storage_id = self._product2storage[product_id]

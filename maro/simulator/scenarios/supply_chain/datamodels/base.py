@@ -38,7 +38,7 @@ class DataModelBase(NodeBase):
 
         Args:
             unit_id (int): Id of related unit.
-            facility_id (int)： Id of this unit belongs to.
+            facility_id (int): Id of this unit belongs to.
         """
         self._unit_id = unit_id
         self._facility_id = facility_id

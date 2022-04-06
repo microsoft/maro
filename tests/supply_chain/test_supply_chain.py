@@ -18,8 +18,6 @@ from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 def build_env(case_name: str, durations: int):
     case_folder = os.path.join("tests", "data", "supply_chain", case_name)
 
-    # config_path = os.path.join(case_folder, "config.yml")
-
     env = Env(scenario="supply_chain", topology=case_folder, durations=durations)
 
     return env
@@ -58,7 +56,7 @@ class MyTestCase(unittest.TestCase):
     """
 
     def test_manufacture_meet_storage_limitation(self):
-        """Test sku3 manufacturing."""
+        """Test sku3 manufacturing. -- Supplier_SKU3"""
         env = build_env("case_01", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -68,8 +66,9 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
+            "id", "facility_id", "manufacture_quantity", "product_id"
         )
+        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
 
         # ############################### TICK: 0 ######################################
 
@@ -86,10 +85,10 @@ class MyTestCase(unittest.TestCase):
         sku3_facility_id: Optional[int] = None
         for index, state in enumerate(states):
             # Id of sku3 is 3.
-            if state[3] == SKU3_ID:
+            if state[IDX_PRODUCT_ID] == SKU3_ID:
                 sku3_data_model_index = index
-                sku3_manufacture_id = state[0]
-                sku3_facility_id = state[1]
+                sku3_manufacture_id = state[IDX_ID]
+                sku3_facility_id = state[IDX_FACILITY_ID]
         self.assertTrue(all([
             sku3_data_model_index is not None,
             sku3_manufacture_id is not None,
@@ -128,12 +127,12 @@ class MyTestCase(unittest.TestCase):
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
         # Sku3 produce rate is 1 per tick, so manufacture_quantity should be 1.
-        self.assertEqual(1, states[2])
+        self.assertEqual(1, states[IDX_MANUFACTURE_QUANTITY])
 
         remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
 
-        # now remaining space should be 19
-        self.assertEqual(19, remaining_spaces.sum())
+        # now remaining space should be 20 - 1 = 19
+        self.assertEqual(20 - 1, remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku3_storage_index)
 
@@ -142,18 +141,20 @@ class MyTestCase(unittest.TestCase):
 
         # ############################### TICK: 2 ######################################
 
-        # leave the action as none will cause manufacture unit stop manufacturing.
+        # leave the action as None will cause manufacture unit stop manufacturing.
         env.step(None)
 
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
         # so manufacture_quantity should be 0
-        self.assertEqual(0, states[2])
+        self.assertEqual(0, states[IDX_MANUFACTURE_QUANTITY])
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku3_storage_index)
 
         # sku3 quantity should be same as last tick
         self.assertEqual(80 + 1, product_dict[SKU3_ID])
+
+        # ############################### TICK: 3 ######################################
 
         # let is generate 20, but actually it can only procedure 19 because the storage will reach the limitation
         env.step([ManufactureAction(sku3_manufacture_id, 20)])
@@ -161,7 +162,7 @@ class MyTestCase(unittest.TestCase):
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
         # so manufacture_number should be 19 instead 20
-        self.assertEqual(19, states[2])
+        self.assertEqual(19, states[IDX_MANUFACTURE_QUANTITY])
 
         remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
 
@@ -174,8 +175,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80 + 1 + 19, product_dict[SKU3_ID])
 
     def test_manufacture_meet_source_lack(self):
-        """Test sku4 manufacturing, this sku supplier does not have enough source material at the begging
-            , so it cannot produce anything without consumer purchase."""
+        """Test sku4 manufacturing. -- Supplier_SKU4.
+        This sku supplier does not have enough source material at the begining,
+        so it cannot produce anything without consumer purchase."""
         env = build_env("case_01", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -187,6 +189,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_features = (
             "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
         )
+        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
 
         # ############################### TICK: 0 ######################################
 
@@ -203,10 +206,10 @@ class MyTestCase(unittest.TestCase):
         sku4_facility_id: Optional[int] = None
         for index, state in enumerate(states):
             # Id of sku4 is 4.
-            if state[3] == SKU4_ID:
+            if state[IDX_PRODUCT_ID] == SKU4_ID:
                 sku4_data_model_index = index
-                sku4_manufacture_id = state[0]
-                sku4_facility_id = state[1]
+                sku4_manufacture_id = state[IDX_ID]
+                sku4_facility_id = state[IDX_FACILITY_ID]
         self.assertTrue(all([
             sku4_data_model_index is not None,
             sku4_manufacture_id is not None,
@@ -221,23 +224,23 @@ class MyTestCase(unittest.TestCase):
         capacities = storage_nodes[env.frame_index:sku4_storage_index:"capacity"].flatten().astype(np.int)
         self.assertEqual(200, capacities.sum())
 
-        # remaining space should be capacity - (50+0)
+        # remaining space should be capacity 200 - (sku4 50 + sku2 0)
         remaining_spaces = storage_nodes[env.frame_index:sku4_storage_index:"remaining_space"].flatten().astype(np.int)
         self.assertEqual(200 - (50 + 0), remaining_spaces.sum())
 
         # no manufacture number as we have not pass any action
-        manufature_states = manufacture_nodes[
+        manufacture_states = manufacture_nodes[
             env.frame_index:sku4_data_model_index:manufacture_features
         ].flatten().astype(np.int)
 
         # manufacture_quantity should be 0
-        self.assertEqual(0, manufature_states[2])
+        self.assertEqual(0, manufacture_states[IDX_MANUFACTURE_QUANTITY])
 
         # output product id should be same as configured.
-        self.assertEqual(4, manufature_states[3])
+        self.assertEqual(4, manufacture_states[IDX_PRODUCT_ID])
 
         # product unit cost should be same as configured.
-        self.assertEqual(4, manufature_states[4])
+        self.assertEqual(4, manufacture_states[IDX_UNIT_PRODUCT_COST])
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku4_storage_index)
 
@@ -255,18 +258,18 @@ class MyTestCase(unittest.TestCase):
             # push to the end, the storage should not changed, no matter what production rate we give it.
             _, _, is_done = env.step([ManufactureAction(sku4_manufacture_id, 10)])
 
-        manufature_states = manufacture_nodes[
+        manufacture_states = manufacture_nodes[
             env.frame_index:sku4_data_model_index:manufacture_features
         ].flatten().astype(np.int)
 
         # manufacture_quantity should be 0
-        self.assertEqual(0, manufature_states[2])
+        self.assertEqual(0, manufacture_states[IDX_MANUFACTURE_QUANTITY])
 
         # output product id should be same as configured.
-        self.assertEqual(SKU4_ID, manufature_states[3])
+        self.assertEqual(SKU4_ID, manufacture_states[IDX_PRODUCT_ID])
 
         # product unit cost should be same as configured.
-        self.assertEqual(4, manufature_states[4])
+        self.assertEqual(4, manufacture_states[IDX_UNIT_PRODUCT_COST])
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku4_storage_index)
 
@@ -277,7 +280,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, product_dict[SKU2_ID])
 
     def test_manufacture_meet_avg_storage_limitation(self):
-        """Test on sku1, it is configured with nearly full initial states."""
+        """Test on sku1 -- Supplier_SKU1.
+        It is configured with nearly full initial states."""
 
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -290,6 +294,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_features = (
             "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
         )
+        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
 
         # ############################### TICK: 0 ######################################
 
@@ -305,10 +310,10 @@ class MyTestCase(unittest.TestCase):
         sku1_facility_id: Optional[int] = None
         for index, state in enumerate(states):
             # Id of sku1 is 1.
-            if state[3] == SKU1_ID:
+            if state[IDX_PRODUCT_ID] == SKU1_ID:
                 sku1_data_model_index = index
-                sku1_manufacture_id = state[0]
-                sku1_facility_id = state[1]
+                sku1_manufacture_id = state[IDX_ID]
+                sku1_facility_id = state[IDX_FACILITY_ID]
         self.assertTrue(all([
             sku1_data_model_index is not None,
             sku1_manufacture_id is not None,
@@ -327,10 +332,10 @@ class MyTestCase(unittest.TestCase):
             env.frame_index:sku1_data_model_index:manufacture_features
         ].flatten().astype(np.int)
 
-        # we can produce 4 sku1, as it will meet storage avg limitation per sku
-        self.assertEqual(4, manufacture_states[2])
+        # we can produce 4 sku1, as it will meet storage avg limitation per sku. 4 = 200//2 - 96
+        self.assertEqual(200 // 2 - 96, manufacture_states[IDX_MANUFACTURE_QUANTITY])
 
-        # so storage remaining space should be 200 - ((96 + 4) + (100 - 4*2))
+        # so storage remaining space should be 200 - ((96 + 4) + (100 - 4 * 2 sku3/sku1))
         remaining_spaces = storage_nodes[
             env.frame_index:sku1_data_model_index:"remaining_space"
         ].flatten().astype(np.int)
@@ -339,14 +344,14 @@ class MyTestCase(unittest.TestCase):
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku1_storage_index)
 
         # The product quantity of sku1 should 100, just reach the avg storage capacity limitation
-        self.assertEqual(100, product_dict[SKU1_ID])
+        self.assertEqual(200 // 2, product_dict[SKU1_ID])
 
         # 4 sku1 cost 4*2 source material (sku3)
         self.assertEqual(100 - 4 * 2, product_dict[SKU3_ID])
 
         # ############################### TICK: 1 ######################################
 
-        # then fix the product rate to 20 every tick, but the manufacture will do nothing, as we have to enough space
+        # then fix the product rate to 20 every tick, but the manufacture will do nothing, as we have no enough space
 
         is_done = False
 
@@ -358,7 +363,7 @@ class MyTestCase(unittest.TestCase):
         ].flatten().astype(np.int)
 
         # but manufacture number is 0
-        self.assertEqual(0, manufacture_states[2])
+        self.assertEqual(0, manufacture_states[IDX_MANUFACTURE_QUANTITY])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4*2))
         remaining_spaces = storage_nodes[
@@ -373,6 +378,8 @@ class MyTestCase(unittest.TestCase):
 
         # 4 sku1 cost 4*2 source material (sku3)
         self.assertEqual(100 - 4 * 2, product_dict[SKU3_ID])
+
+    # TODO: Add testing for SimpleManufactureUnit
 
     """
     Storage test:
@@ -392,71 +399,115 @@ class MyTestCase(unittest.TestCase):
 
     """
 
-    def test_storage_take_available(self):
+    # TODO: Add testing for given storage upper bound
+
+    def test_storage_get_product_quantity_and_capacity_and_remaining_space(self):
+        """Supplier_SKU1"""
         env = build_env("case_01", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
 
+        supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
+        storage_unit: StorageUnit = supplier_1.storage
+        storage_node_index = storage_unit.data_model_index
+
         storage_nodes = env.snapshot_list["storage"]
 
-        # find first storage unit id
-        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+        # ######################### Product Quantity ###########################
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
+        self.assertEqual(2, len(init_product_dict))
 
-        # get the unit reference from env internal
-        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
+        # Inside StorageUnit
+        self.assertEqual(96, storage_unit._product_level[SKU1_ID])
+        self.assertEqual(100, storage_unit._product_level[SKU3_ID])
+        # In Snapshot
+        self.assertEqual(96, init_product_dict[SKU1_ID])
+        self.assertEqual(100, init_product_dict[SKU3_ID])
 
-        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+        # ######################### Capacity ###########################
+        capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
+        self.assertEqual(200, storage_unit.capacity)
+        self.assertEqual(200, capacities.sum())
 
-        # call take_available for each product in storage.
-        products_taken = {}
-        for product_id, product_quantity in init_product_dict.items():
-            quantity = np.random.randint(0, product_quantity)
-            actual_quantity = storage_unit.take_available(product_id, quantity)
+        # ######################### Remaining Space ###########################
+        init_remaining_spaces = storage_nodes[
+            env.frame_index:storage_node_index:"remaining_space"
+        ].flatten().astype(np.int)
+        self.assertEqual(200 - 96 - 100, storage_unit.remaining_space)
+        self.assertEqual(200 - 96 - 100, init_remaining_spaces.sum())
 
-            # we should get the quantity we want.
-            self.assertEqual(quantity, actual_quantity)
+        # ######################### Remaining Space ###########################
+        # Should not change even after reset
+        env.reset()
+        env.step(None)
 
-            products_taken[product_id] = quantity
+        # ######################### Product Quantity ###########################
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
 
-        # check if internal state correct
-        for product_id, quantity in products_taken.items():
-            remaining_quantity = storage_unit._product_level[product_id]
+        # Inside StorageUnit
+        self.assertEqual(96, storage_unit._product_level[SKU1_ID])
+        self.assertEqual(100, storage_unit._product_level[SKU3_ID])
+        # In Snapshot
+        self.assertEqual(96, init_product_dict[SKU1_ID])
+        self.assertEqual(100, init_product_dict[SKU3_ID])
 
-            self.assertEqual(init_product_dict[product_id] - quantity, remaining_quantity)
+        # ######################### Capacity ###########################
+        capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
+        self.assertEqual(200, storage_unit.capacity)
+        self.assertEqual(200, capacities.sum())
+
+        # ######################### Remaining Space ###########################
+        init_remaining_spaces = storage_nodes[
+            env.frame_index:storage_node_index:"remaining_space"
+        ].flatten().astype(np.int)
+        self.assertEqual(200 - 96 - 100, storage_unit.remaining_space)
+        self.assertEqual(200 - 96 - 100, init_remaining_spaces.sum())
+
+    def test_storage_take_available(self):
+        """Facility with single SKU. -- Supplier_SKU3"""
+        env = build_env("case_01", 100)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+
+        env.step(None)
+
+        supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
+        storage_unit: StorageUnit = supplier_3.storage
+        storage_node_index = storage_unit.data_model_index
+
+        # ######################### Take a right amount of quantity ##############################
+        # Call take_available to take 40 sku3 in storage.
+        actual_quantity = storage_unit.take_available(SKU3_ID, 40)
+        self.assertEqual(40, actual_quantity)
+
+        # Check if remaining quantity correct
+        self.assertEqual(80 - 40, storage_unit._product_level[SKU3_ID])
 
         # call env.step will cause states write into snapshot
         env.step(None)
 
-        product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+        # Check if the snapshot status correct
+        product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
+        self.assertEqual(80 - 40, product_dict[SKU3_ID])
 
-        for product_id, quantity in products_taken.items():
-            remaining_quantity = product_dict[product_id]
-
-            self.assertEqual(init_product_dict[product_id] - quantity, remaining_quantity)
-
-        # then take more than exist quantity for 1st product(sku)
-        lot_taken_product_id, lot_taken_product_quantity = product_dict.popitem()
-
-        lot_taken_product_quantity += 100
-
-        actual_quantity = storage_unit.take_available(lot_taken_product_id, lot_taken_product_quantity)
-
-        # we should get all available
-        self.assertEqual(actual_quantity, lot_taken_product_quantity - 100)
+        # ######################### Take more than existing ##############################
+        try_taken_quantity = (80 - 40) + 10
+        actual_quantity = storage_unit.take_available(SKU3_ID, try_taken_quantity)
+        # We should get all available
+        self.assertEqual(actual_quantity, try_taken_quantity - 10)
 
         # take snapshot
         env.step(None)
 
-        product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+        product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
 
-        # the product quantity should be 0, as we took all available
-        self.assertEqual(0, product_dict[lot_taken_product_id])
+        # The product quantity should be 0, as we took all available
+        self.assertEqual(0, product_dict[SKU3_ID])
 
     def test_storage_try_add_products(self):
-        # TODO: Add test for other strategies.
-        """
+        """Facility with multiple SKUs -- Supplier_SKU2
         NOTE:
             try_add_products method do not check avg storage capacity checking, so we will ignore it here.
 
@@ -467,42 +518,53 @@ class MyTestCase(unittest.TestCase):
 
         env.step(None)
 
+        supplier_2 = be.world._get_facility_by_name("Supplier_SKU2")
+        storage_unit = supplier_2.storage
+        storage_node_index = storage_unit.data_model_index
+
         storage_nodes = env.snapshot_list["storage"]
 
-        # find first storage unit id
-        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+        capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
 
-        # get the unit reference from env internal
-        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
+        init_remaining_spaces = storage_nodes[
+            env.frame_index:storage_node_index:"remaining_space"
+        ].flatten().astype(np.int)
 
-        capacities = storage_nodes[env.frame_index:0:"capacity"].flatten().astype(np.int)
-        init_remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
 
-        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
-
-        # try put products out of capacity with all_or_nothing == True
-        products_to_put = {}
-
+        # ############################### IgnoreUpperBound AllOrNothing ######################################
+        # 100 // 2 = 50
         avg_max_product_quantity = init_remaining_spaces.sum() // len(init_product_dict)
+        self.assertEqual(50, avg_max_product_quantity)
 
-        for product_id in init_product_dict.keys():
-            products_to_put[product_id] = avg_max_product_quantity + 1
+        products_to_put = {
+            SKU1_ID: 50 + 1,
+            SKU2_ID: 50 + 1,
+        }
 
-        result = storage_unit.try_add_products(products_to_put, add_strategy=AddStrategy.IgnoreUpperBoundAllOrNothing)
-
+        result = storage_unit.try_add_products(
+            products_to_put,
+            add_strategy=AddStrategy.IgnoreUpperBoundAllOrNothing
+        )
         # the method will return an empty dictionary if fail to add
         self.assertEqual(0, len(result))
 
         # so remaining space should not change
-        self.assertEqual(init_remaining_spaces.sum(), storage_unit.remaining_space)
+        self.assertEqual(100, storage_unit.remaining_space)
 
         # each product quantity should be same as before
-        for product_id, product_quantity in init_product_dict.items():
-            self.assertEqual(product_quantity, storage_unit._product_level[product_id])
+        self.assertEqual(50, storage_unit._product_level[SKU2_ID])
+        self.assertEqual(50, storage_unit._product_level[SKU1_ID])
 
-        # if we set all_or_nothing=False, then part of the product will be added to storage, and cause remaining
-        # space being 0
-        storage_unit.try_add_products(products_to_put, add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder)
+        # ############################### IgnoreUpperBound AddInOrder ######################################
+        # Part of the product will be added to storage, and cause remaining space being 0
+        result = storage_unit.try_add_products(
+            products_to_put,
+            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder
+        )
+        # all sku1 would be added successfully
+        self.assertEqual(50 + (50 + 1), storage_unit._product_level[SKU1_ID])
+        self.assertEqual(50 + (100 - (50 + 1)), storage_unit._product_level[SKU2_ID])
 
         self.assertEqual(0, storage_unit.remaining_space)
 
@@ -510,16 +572,17 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         # remaining space in snapshot should be 0
-        remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:storage_node_index:"remaining_space"].flatten().astype(np.int)
         self.assertEqual(0, remaining_spaces.sum())
 
-        product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+        product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
+        self.assertEqual(50 + 51, product_dict[SKU1_ID])
+        self.assertEqual(50 + 49, product_dict[SKU2_ID])
 
         # total product quantity should be same as capacity
         self.assertEqual(capacities.sum(), sum(product_dict.values()))
 
-        # ###################################################
-        # ###################################################
+        # ######################################################################
         # reset the env for next case
         env.reset()
 
@@ -530,88 +593,114 @@ class MyTestCase(unittest.TestCase):
         for product_id, product_quantity in init_product_dict.items():
             self.assertEqual(product_quantity, storage_unit._product_level[product_id])
 
-    def test_storage_try_take_products(self):
-        env = build_env("case_01", 100)
-        be = env.business_engine
-        assert isinstance(be, SupplyChainBusinessEngine)
+        # ############################### IgnoreUpperBound Proportional ######################################
+        products_to_put = {
+            SKU1_ID: 50,
+            SKU2_ID: 150,
+        }
+        # Part of the product will be added to storage, and cause remaining space being 0
+        result = storage_unit.try_add_products(
+            products_to_put,
+            add_strategy=AddStrategy.IgnoreUpperBoundProportional
+        )
+        # Only 100 // (50 + 150) = 1/2 incoming products can be added.
+        self.assertEqual(50 + 50 // 2, storage_unit._product_level[SKU1_ID])
+        self.assertEqual(50 + 150 // 2, storage_unit._product_level[SKU2_ID])
 
+        self.assertEqual(0, storage_unit.remaining_space)
+
+        # take snapshot
         env.step(None)
 
-        storage_nodes = env.snapshot_list["storage"]
+        # remaining space in snapshot should be 0
+        remaining_spaces = storage_nodes[env.frame_index:storage_node_index:"remaining_space"].flatten().astype(np.int)
+        self.assertEqual(0, remaining_spaces.sum())
 
-        # find first storage unit id
-        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+        product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
+        self.assertEqual(50 + 25, product_dict[SKU1_ID])
+        self.assertEqual(50 + 75, product_dict[SKU2_ID])
 
-        # get the unit reference from env internal
-        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
+        # ######################################################################
+        # reset the env for next case
+        env.reset()
 
-        capacities = storage_nodes[env.frame_index:0:"capacity"].flatten().astype(np.int)
-        init_remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
-
-        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
-
-        product_to_take = {}
-
-        for product_id, product_quantity in init_product_dict.items():
-            product_to_take[product_id] = product_quantity + 1
-
-        # which this setting, it will return false, as no enough product for ous
-        self.assertFalse(storage_unit.try_take_products(product_to_take))
-
-        # so remaining space and product quantity should same as before
+        # check the state after reset
+        self.assertEqual(capacities.sum(), storage_unit.capacity)
         self.assertEqual(init_remaining_spaces.sum(), storage_unit.remaining_space)
 
         for product_id, product_quantity in init_product_dict.items():
             self.assertEqual(product_quantity, storage_unit._product_level[product_id])
 
-        # try to get all products
-        for product_id, product_quantity in product_to_take.items():
-            product_to_take[product_id] = product_quantity - 1
+        # ############################### LimitedByUpperBound ######################################
+        products_to_put = {
+            SKU1_ID: 60,
+            SKU2_ID: 40,
+        }
 
-        self.assertTrue(storage_unit.try_take_products(product_to_take))
+        result = storage_unit.try_add_products(
+            products_to_put,
+            add_strategy=AddStrategy.LimitedByUpperBound
+        )
+        # the default upper bound is the avg capacity, so it would be 100 for both sku1 and sku2
+        self.assertEqual(50 + min(100 - 50, 60), storage_unit._product_level[SKU1_ID])
+        self.assertEqual(50 + min(100 - 50, 40), storage_unit._product_level[SKU2_ID])
 
-        # now the remaining space should be same as capacity as we take all
-        self.assertEqual(capacities.sum(), storage_unit.remaining_space)
+        # 10 = 200 - (50 + 50) - (50 + 40)
+        self.assertEqual(10, storage_unit.remaining_space)
 
         # take snapshot
         env.step(None)
 
-        capacities = storage_nodes[env.frame_index:0:"capacity"].flatten().astype(np.int)
-        remaining_spaces = storage_nodes[env.frame_index:0:"remaining_space"].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:storage_node_index:"remaining_space"].flatten().astype(np.int)
+        self.assertEqual(10, remaining_spaces.sum())
 
-        # remaining space should be same as capacity in snapshot
-        self.assertEqual(capacities.sum(), remaining_spaces.sum())
+        product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
+        self.assertEqual(50 + 50, product_dict[SKU1_ID])
+        self.assertEqual(50 + 40, product_dict[SKU2_ID])
 
-    def test_storage_get_product_quantity(self):
+    def test_storage_try_take_products(self):
+        """Facility with single SKU. -- Supplier_SKU3"""
         env = build_env("case_01", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
 
+        supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
+        storage_unit: StorageUnit = supplier_3.storage
+        storage_node_index = storage_unit.data_model_index
+
         storage_nodes = env.snapshot_list["storage"]
 
-        # find first storage unit id
-        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+        # ############################### Take more than existing ######################################
+        product_to_take = {
+            SKU3_ID: 81,
+        }
+        # which this setting, it will return false, as no enough product for ous
+        self.assertFalse(storage_unit.try_take_products(product_to_take))
 
-        # get the unit reference from env internal
-        storage_unit: StorageUnit = be.world.get_entity_by_id(storage_unit_id)
+        # so remaining space and product quantity should same as before
+        self.assertEqual(100 - 80, storage_unit.remaining_space)
+        self.assertEqual(80, storage_unit._product_level[SKU3_ID])
 
-        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+        # ############################### Take all ######################################
+        # try to get all products
+        product_to_take = {
+            SKU3_ID: 80,
+        }
+        self.assertTrue(storage_unit.try_take_products(product_to_take))
 
-        # The product quantity in object should be same with states
-        for product_id, product_quantity in init_product_dict.items():
-            self.assertEqual(product_quantity, storage_unit._product_level[product_id])
+        # now the remaining space should be same as capacity as we take all
+        self.assertEqual(100, storage_unit.remaining_space)
 
-        # should not change even after reset
-        env.reset()
+        # take snapshot
         env.step(None)
 
-        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+        capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:storage_node_index:"remaining_space"].flatten().astype(np.int)
 
-        # The product quantity in object should be same with states
-        for product_id, product_quantity in init_product_dict.items():
-            self.assertEqual(product_quantity, storage_unit._product_level[product_id])
+        # remaining space should be same as capacity in snapshot
+        self.assertEqual(capacities.sum(), remaining_spaces.sum())
 
     """
 
