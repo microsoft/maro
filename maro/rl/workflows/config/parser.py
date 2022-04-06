@@ -255,7 +255,7 @@ class ConfigParser:
         main_proc = f"{self._config['job']}.main"
         env = {
             main_proc: (
-                os.path.join(self._get_workflow_path(), "main.py"),
+                os.path.join(self._get_workflow_path(containerize=containerize), "main.py"),
                 {
                     "JOB": self._config["job"],
                     "NUM_EPISODES": str(num_episodes),
@@ -318,7 +318,7 @@ class ConfigParser:
             for i in range(rollout_parallelism):
                 worker_id = f"{self._config['job']}.rollout_worker-{i}"
                 env[worker_id] = (
-                    os.path.join(self._get_workflow_path(), "rollout_worker.py"),
+                    os.path.join(self._get_workflow_path(containerize=containerize), "rollout_worker.py"),
                     {
                         "ID": str(i),
                         "ROLLOUT_CONTROLLER_HOST": self._get_rollout_controller_host(containerize=containerize),
@@ -342,13 +342,13 @@ class ConfigParser:
                 "TRAIN_PROXY_HOST": producer_host, "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port,
             })
             env[f"{self._config['job']}.train_proxy"] = (
-                os.path.join(self._get_workflow_path(), "train_proxy.py"),
+                os.path.join(self._get_workflow_path(containerize=containerize), "train_proxy.py"),
                 {"TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port, "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port}
             )
             for i in range(num_workers):
                 worker_id = f"{self._config['job']}.train_worker-{i}"
                 env[worker_id] = (
-                    os.path.join(self._get_workflow_path(), "train_worker.py"),
+                    os.path.join(self._get_workflow_path(containerize=containerize), "train_worker.py"),
                     {
                         "ID": str(i),
                         "TRAIN_PROXY_HOST": producer_host,
@@ -364,7 +364,7 @@ class ConfigParser:
 
         # All components write logs to the same file
         log_dir, log_file = os.path.split(self._config["log_path"])
-        for vars in env.values():
+        for _, vars in env.values():
             vars["LOG_PATH"] = os.path.join(path_mapping[log_dir], log_file)
 
         return env

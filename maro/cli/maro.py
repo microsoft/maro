@@ -933,7 +933,7 @@ def load_parser_aks(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     # maro aks job
     parser_job = subparsers.add_parser(
         "job",
-        help="Job-related commands",
+        help="AKS job-related commands",
         parents=[global_parser]
     )
     parser_job.set_defaults(func=_help_func(parser=parser_job))
