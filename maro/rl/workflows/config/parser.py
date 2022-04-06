@@ -3,7 +3,7 @@
 
 import ipaddress
 import os
-from typing import Union
+from typing import Dict, Tuple, Union
 
 import yaml
 
@@ -219,8 +219,8 @@ class ConfigParser:
             containerize (bool): If true, the paths you specify in the configuration file (which should always be local)
                 are mapped to paths inside the containers as follows:
                     local/scenario/path -> "/scenario"
-                    local/load/path -> "loadpoint"
-                    local/checkpoint/path -> "checkpoints"
+                    local/load/path -> "/loadpoint"
+                    local/checkpoint/path -> "/checkpoints"
                     local/log/path -> "/logs"
                 Defaults to False.
         """
@@ -239,7 +239,7 @@ class ConfigParser:
 
         return path_map
 
-    def as_env(self, containerize: bool = False) -> dict:
+    def get_job_spec(self, containerize: bool = False) -> Dict[str, Tuple[str, Dict[str, str]]]:
         """Generate environment variables for the workflow scripts.
 
         A doubly-nested dictionary is returned that contains the environment variables for each distributed component.
@@ -252,15 +252,20 @@ class ConfigParser:
         path_mapping = self.get_path_mapping(containerize=containerize)
         scenario_path = path_mapping[self._config["scenario_path"]]
         num_episodes = self._config["main"]["num_episodes"]
+        main_proc = f"{self._config['job']}.main"
         env = {
-            "main": {
-                "JOB": self._config["job"],
-                "NUM_EPISODES": str(num_episodes),
-                "TRAIN_MODE": self._config["training"]["mode"],
-                "SCENARIO_PATH": scenario_path,
-            }
+            main_proc: (
+                os.path.join(self._get_workflow_path(), "main.py"),
+                {
+                    "JOB": self._config["job"],
+                    "NUM_EPISODES": str(num_episodes),
+                    "TRAIN_MODE": self._config["training"]["mode"],
+                    "SCENARIO_PATH": scenario_path,
+                }
+            )
         }
 
+        main_proc_env = env[main_proc][1]
         if "eval_schedule" in self._config["main"]:
             # If it is an int, it is treated as the number of episodes between two adjacent evaluations. For example,
             # if the total number of episodes is 20 and this is 5, an evaluation schedule of [5, 10, 15, 20]
@@ -268,26 +273,26 @@ class ConfigParser:
             # version of the list will be generated for the environment variable (as a string).
             sch = self._config["main"]["eval_schedule"]
             if isinstance(sch, int):
-                env["main"]["EVAL_SCHEDULE"] = " ".join([str(sch * i) for i in range(1, num_episodes // sch + 1)])
+                main_proc_env["EVAL_SCHEDULE"] = " ".join([str(sch * i) for i in range(1, num_episodes // sch + 1)])
             else:
-                env["main"]["EVAL_SCHEDULE"] = " ".join([str(val) for val in sorted(sch)])
+                main_proc_env["EVAL_SCHEDULE"] = " ".join([str(val) for val in sorted(sch)])
 
         load_path = self._config["training"].get("load_path", None)
         if load_path is not None:
-            env["main"]["LOAD_PATH"] = path_mapping[load_path]
+            main_proc_env["LOAD_PATH"] = path_mapping[load_path]
 
         if "checkpointing" in self._config["training"]:
             conf = self._config["training"]["checkpointing"]
-            env["main"]["CHECKPOINT_PATH"] = path_mapping[conf["path"]]
+            main_proc_env["CHECKPOINT_PATH"] = path_mapping[conf["path"]]
             if "interval" in conf:
-                env["main"]["CHECKPOINT_INTERVAL"] = str(conf["interval"])
+                main_proc_env["CHECKPOINT_INTERVAL"] = str(conf["interval"])
 
         num_steps = self._config["main"].get("num_steps", None)
         if num_steps is not None:
-            env["main"]["NUM_STEPS"] = str(num_steps)
+            main_proc_env["NUM_STEPS"] = str(num_steps)
 
         if "logging" in self._config["main"]:
-            env["main"].update({
+            main_proc_env.update({
                 "LOG_LEVEL_STDOUT": self.config["main"]["logging"]["stdout"],
                 "LOG_LEVEL_FILE": self.config["main"]["logging"]["file"],
             })
@@ -301,25 +306,28 @@ class ConfigParser:
         if rollout_parallelism > 1:
             conf = self._config["rollout"]["parallelism"]
             rollout_controller_port = str(conf["controller"]["port"])
-            env["main"]["ENV_SAMPLE_PARALLELISM"] = str(env_sampling_parallelism)
-            env["main"]["ENV_EVAL_PARALLELISM"] = str(env_eval_parallelism)
-            env["main"]["ROLLOUT_CONTROLLER_PORT"] = rollout_controller_port
+            main_proc_env["ENV_SAMPLE_PARALLELISM"] = str(env_sampling_parallelism)
+            main_proc_env["ENV_EVAL_PARALLELISM"] = str(env_eval_parallelism)
+            main_proc_env["ROLLOUT_CONTROLLER_PORT"] = rollout_controller_port
             # optional settings for parallel rollout
             if "min_env_samples" in self._config["rollout"]:
-                env["main"]["MIN_ENV_SAMPLES"] = str(conf["min_env_samples"])
+                main_proc_env["MIN_ENV_SAMPLES"] = str(conf["min_env_samples"])
             if "grace_factor" in self._config["rollout"]:
-                env["main"]["GRACE_FACTOR"] = str(conf["grace_factor"])
+                main_proc_env["GRACE_FACTOR"] = str(conf["grace_factor"])
 
             for i in range(rollout_parallelism):
-                worker_id = f"rollout_worker-{i}"
-                env[worker_id] = {
-                    "ID": str(i),
-                    "ROLLOUT_CONTROLLER_HOST": self._get_rollout_controller_host(containerize=containerize),
-                    "ROLLOUT_CONTROLLER_PORT": rollout_controller_port,
-                    "SCENARIO_PATH": scenario_path,
-                }
+                worker_id = f"{self._config['job']}.rollout_worker-{i}"
+                env[worker_id] = (
+                    os.path.join(self._get_workflow_path(), "rollout_worker.py"),
+                    {
+                        "ID": str(i),
+                        "ROLLOUT_CONTROLLER_HOST": self._get_rollout_controller_host(containerize=containerize),
+                        "ROLLOUT_CONTROLLER_PORT": rollout_controller_port,
+                        "SCENARIO_PATH": scenario_path,
+                    }
+                )
                 if "logging" in self._config["rollout"]:
-                    env[worker_id].update({
+                    env[worker_id][1].update({
                         "LOG_LEVEL_STDOUT": self.config["rollout"]["logging"]["stdout"],
                         "LOG_LEVEL_FILE": self.config["rollout"]["logging"]["file"],
                     })
@@ -330,23 +338,26 @@ class ConfigParser:
             proxy_frontend_port = str(conf["frontend"])
             proxy_backend_port = str(conf["backend"])
             num_workers = self._config["training"]["num_workers"]
-            env["main"].update({
+            env[main_proc][1].update({
                 "TRAIN_PROXY_HOST": producer_host, "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port,
             })
-            env["train_proxy"] = {
-                "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port,
-                "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port,
-            }
+            env[f"{self._config['job']}.train_proxy"] = (
+                os.path.join(self._get_workflow_path(), "train_proxy.py"),
+                {"TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port, "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port}
+            )
             for i in range(num_workers):
-                worker_id = f"train_worker-{i}"
-                env[worker_id] = {
-                    "ID": str(i),
-                    "TRAIN_PROXY_HOST": producer_host,
-                    "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port,
-                    "SCENARIO_PATH": scenario_path,
-                }
+                worker_id = f"{self._config['job']}.train_worker-{i}"
+                env[worker_id] = (
+                    os.path.join(self._get_workflow_path(), "train_worker.py"),
+                    {
+                        "ID": str(i),
+                        "TRAIN_PROXY_HOST": producer_host,
+                        "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port,
+                        "SCENARIO_PATH": scenario_path,
+                    }
+                )
                 if "logging" in self._config["training"]:
-                    env[worker_id].update({
+                    env[worker_id][1].update({
                         "LOG_LEVEL_STDOUT": self.config["training"]["logging"]["stdout"],
                         "LOG_LEVEL_FILE": self.config["training"]["logging"]["file"],
                     })
@@ -357,6 +368,12 @@ class ConfigParser:
             vars["LOG_PATH"] = os.path.join(path_mapping[log_dir], log_file)
 
         return env
+
+    def _get_workflow_path(self, containerize: bool = False) -> str:
+        if containerize:
+            return "/maro/maro/rl/workflows"
+        else:
+            return os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     def _get_rollout_controller_host(self, containerize: bool = False) -> str:
         if containerize:
