@@ -35,11 +35,11 @@ class DistributionUnit(UnitBase):
             id, data_model_name, data_model_index, facility, parent, world, config
         )
 
-        # Vehicle unit list of this distribution unit.
-        self.vehicles: List[VehicleUnit] = None
+        # Vehicle unit dict of this distribution unit. Key: vehicle type; Value: a list of vehicle instances.
+        self.vehicles: Dict[str, List[VehicleUnit]] = defaultdict(list)
 
-        # The pending order queue.
-        self._order_queue = deque()
+        # A dict of pending order queue. Key: vehicle type; Value: pending order queue.
+        self._order_queues: Dict[str, deque] = defaultdict(deque)
 
         # The transportation cost of each product of current tick. Would be set to 0 in ProductUnit.
         # Do not consider the destination here.
@@ -63,12 +63,14 @@ class DistributionUnit(UnitBase):
         """
         counter = defaultdict(int)
 
-        for order in self._order_queue:
-            counter[order.product_id] += order.quantity
+        for order_queue in self._order_queues.values():
+            for order in order_queue:
+                counter[order.product_id] += order.quantity
 
-        for vehicle in self.vehicles:
-            if vehicle.is_enroute():
-                counter[vehicle.product_id] += (vehicle.requested_quantity - vehicle.payload)
+        for vehicle_list in self.vehicles.values():
+            for vehicle in vehicle_list:
+                if vehicle.is_enroute():
+                    counter[vehicle.product_id] += (vehicle.requested_quantity - vehicle.payload)
 
         return counter
 
@@ -87,7 +89,7 @@ class DistributionUnit(UnitBase):
             if sku is not None:
                 self._is_order_changed = True
 
-                self._order_queue.append(order)
+                self._order_queues[order.vehicle_type].append(order)
 
                 order_total_price = sku.price * order.quantity
 
@@ -104,47 +106,57 @@ class DistributionUnit(UnitBase):
 
     def _step_impl(self, tick: int):
         # TODO: update vehicle types and distribution step logic
-        for vehicle in self.vehicles:
-            # If we have vehicle not on the way and there is any pending order.
-            if len(self._order_queue) > 0 and vehicle.requested_quantity == 0:
-                order: Order = self._order_queue.popleft()
+        for vehicle_type, vehicle_list in self.vehicles.items():
+            for vehicle in vehicle_list:
+                # If we have vehicle not on the way and there is any pending order.
+                if len(self._order_queues[vehicle_type]) > 0 and vehicle.requested_quantity == 0:
+                    order: Order = self._order_queues[vehicle_type].popleft()
 
-                # Schedule a job for available vehicle.
-                vehicle.schedule(
-                    order.destination,
-                    order.product_id,
-                    order.quantity,
-                    order.vlt,
-                )
+                    # Schedule a job for available vehicle.
+                    vehicle.schedule(
+                        order.destination,
+                        order.product_id,
+                        order.quantity,
+                        order.vlt,
+                    )
 
-                self._is_order_changed = True
+                    self._is_order_changed = True
 
-            # Push vehicle.
-            vehicle.step(tick)
+                # Push vehicle.
+                vehicle.step(tick)
 
-            self.transportation_cost[vehicle.product_id] += abs(vehicle.cost)
+                self.transportation_cost[vehicle.product_id] += abs(vehicle.cost)
 
         # Update order's delay penalty per tick.
-        for order in self._order_queue:
-            self.delay_order_penalty[order.product_id] += self._base_delay_order_penalty  # TODO: here consider the product id only, not consider the destination.
+        for order_queue in self._order_queues.values():
+            for order in order_queue:
+                self.delay_order_penalty[order.product_id] += self._base_delay_order_penalty
 
     def flush_states(self):
         super(DistributionUnit, self).flush_states()
 
-        for vehicle in self.vehicles:
-            vehicle.flush_states()
+        for vehicle_list in self.vehicles.values():
+            for vehicle in vehicle_list:
+                vehicle.flush_states()
 
         if self._is_order_changed:
             self._is_order_changed = False
 
-            self.data_model.pending_product_quantity = sum(order.quantity for order in self._order_queue)
-            self.data_model.pending_order_number = len(self._order_queue)
+            self.data_model.pending_product_quantity = sum(
+                order.quantity
+                for order_queue in self._order_queues.values()
+                for order in order_queue
+            )
+            self.data_model.pending_order_number = sum(
+                len(order_queue)
+                for order_queue in self._order_queues.values()
+            )
 
     def reset(self):
         super(DistributionUnit, self).reset()
 
         # Reset status in Python side.
-        self._order_queue.clear()
+        self._order_queues.clear()
 
         self.transportation_cost.clear()
         self.delay_order_penalty.clear()
@@ -153,8 +165,9 @@ class DistributionUnit(UnitBase):
         self._is_order_changed = False
 
         # Reset vehicles.
-        for vehicle in self.vehicles:
-            vehicle.reset()
+        for vehicle_list in self.vehicles.values():
+            for vehicle in vehicle_list:
+                vehicle.reset()
 
     def get_unit_info(self) -> DistributionUnitInfo:
         return DistributionUnitInfo(

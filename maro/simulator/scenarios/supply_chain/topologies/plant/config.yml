@@ -77,21 +77,32 @@ facility_definitions:
       file_path: "/path/to/data.csv" # full path to data file, override by each store instance
 
 
-normal_vehicle: &normal_vehicle
+train_config: &train
   class: "VehicleUnit"
   config:
     patient: 2
+    # unit_transport_cost: 1
 
-normal_distribution: &normal_distribution
-  class: "DistributionUnit"
-  children:
-    vehicles:
-         - *normal_vehicle
-         - *normal_vehicle
-         - *normal_vehicle
-         - *normal_vehicle
+air_config: &air
+  class: "VehicleUnit"
   config:
-    unit_price: 1
+    patient: 1
+
+mix_distribution: &mix_distribution
+  vehicles:
+    train:
+      number: 14
+      config: *train
+    air:
+      number: 4
+      config: *air
+
+simple_distribution: &simple_distribution
+  vehicles:
+    train:
+      number: 14
+      config: *train
+
 
 multi_storage: &multi_storage
   config:
@@ -162,7 +173,7 @@ world:
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
         storage: *single_storage
-        distribution: *normal_distribution
+        distribution: *mix_distribution
       config:  # would be FacilityBase.configs directly
         unit_delay_order_penalty: 1000
         unit_order_cost: 100
@@ -191,7 +202,7 @@ world:
           unit_product_cost: 14
       children:
         storage: *multi_storage
-        distribution: *normal_distribution
+        distribution: *simple_distribution
       config:
         unit_delay_order_penalty: 1000
         unit_order_cost: 100
@@ -211,7 +222,7 @@ world:
           has_consumer: True
       children:
         storage: *single_storage
-        distribution: *normal_distribution
+        distribution: *mix_distribution
       config:
         unit_delay_order_penalty: 1000
         unit_order_cost: 100

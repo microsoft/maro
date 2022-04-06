@@ -3,9 +3,11 @@
 
 import collections
 import itertools
+from collections import defaultdict
 from typing import Dict, Optional, Tuple, Union
 
 from maro.backends.frame import FrameBase
+from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnit
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
@@ -295,6 +297,23 @@ class World:
 
         return unit_instance
 
+    def _build_distribution_unit(self, facility: FacilityBase, config:dict) -> DistributionUnit:
+        unit_def: EntityDef = self.configs.entity_defs[config["class"]]
+        assert issubclass(unit_def.class_type, DistributionUnit)
+
+        distribution_unit: DistributionUnit = self._build_unit(facility, facility, config)
+        distribution_unit.children = []
+        distribution_unit.vehicles = defaultdict(list)
+
+        vehicle_configs: Dict[str, dict] = config.get("vehicles", {})
+        for vehicle_type, vehicle_config in vehicle_configs.items():
+            for _ in range(vehicle_config.get("number", 1)):
+                vehicle_unit = self._build_unit(facility, distribution_unit, vehicle_config["config"])
+                distribution_unit.children.append(vehicle_unit)
+                distribution_unit.vehicles[vehicle_type].append(vehicle_unit)
+
+        return distribution_unit
+
     def _build_product_units(self, facility: FacilityBase, config: dict) -> Dict[int, ProductUnit]:
         """Generate product unit by sku information.
 
@@ -379,7 +398,10 @@ class World:
 
             # Build children Units.
             for child_name, child_conf in facility_conf["children"].items():
-                child = self._build_unit(facility=facility, parent=facility, config=child_conf)
+                if child_name == "distribution":
+                    child = self._build_distribution_unit(facility, child_conf)
+                else:
+                    child = self._build_unit(facility=facility, parent=facility, config=child_conf)
                 setattr(facility, child_name, child)
 
             # Build ProductUnits.

@@ -1131,12 +1131,12 @@ class MyTestCase(unittest.TestCase):
                 dest_facility = be.world.get_facility_by_id(info.id)
         self.assertTrue(all([dist_unit is not None, dest_facility is not None]))
 
-        self.assertEqual(0, len(dist_unit._order_queue))
+        self.assertEqual(0, sum([len(order_queue) for order_queue in dist_unit._order_queues.values()]))
 
         # reset
         env.reset()
 
-        self.assertEqual(0, len(dist_unit._order_queue))
+        self.assertEqual(0, sum([len(order_queue) for order_queue in dist_unit._order_queues.values()]))
 
     def test_distribution_unit_dispatch_order(self):
         env = build_env("case_02", 100)
@@ -1156,14 +1156,14 @@ class MyTestCase(unittest.TestCase):
                 dest_facility = be.world.get_facility_by_id(info.id)
         self.assertTrue(all([dist_unit is not None, dest_facility is not None]))
 
-        first_vehicle: VehicleUnit = dist_unit.vehicles[0]
+        first_vehicle: VehicleUnit = dist_unit.vehicles["train"][0]
 
         order = Order(dest_facility, SKU3_ID, 10, "train", 2)
 
         dist_unit.place_order(order)
 
         # check if order is saved
-        self.assertEqual(1, len(dist_unit._order_queue))
+        self.assertEqual(1, sum([len(order_queue) for order_queue in dist_unit._order_queues.values()]))
 
         # check get pending order correct
         pending_order = dist_unit.get_pending_product_quantities()
@@ -1199,7 +1199,7 @@ class MyTestCase(unittest.TestCase):
         # next step will cause delay_order_penalty
         env.step(None)
 
-        second_vehicle = dist_unit.vehicles[1]
+        second_vehicle = dist_unit.vehicles["train"][1]
 
         self.assertEqual(dest_facility, second_vehicle._destination)
         self.assertEqual(10, second_vehicle.requested_quantity)

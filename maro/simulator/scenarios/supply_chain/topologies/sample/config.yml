@@ -54,21 +54,17 @@ facility_definitions:
           config:
             sale_hist_len: 4
 
-# common entity/unit definition as reference to simplify the file.
-normal_vehicle: &normal_vehicle
+train_config: &train
   class: "VehicleUnit"
   config:
     patient: 100
 
 # a normal distribution definition
 normal_distribution: &normal_distribution
-  class: "DistributionUnit"
-  children:
-    vehicles:
-      - *normal_vehicle
-      - *normal_vehicle
-  config:
-    unit_price: 1
+  vehicles:
+    train:
+      number: 2
+      config: *train
 
 small_storage: &small_storage
   # config of data model of this unit
