@@ -19,7 +19,7 @@ from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
-from .config import distribution_features, env_conf, seller_features
+from .config import distribution_features, env_conf, seller_features, TEAM_REWARD
 from .env_helper import STORAGE_INFO
 from .policies import agent2policy, trainable_policies
 from .state_template import keys_in_state, STATE_TEMPLATE, workflow_settings
@@ -63,7 +63,7 @@ class SCEnvSampler(AbsEnvSampler):
         
         self._agent2policy = agent2policy
         self._entity_dict = {entity.id: entity for entity in self._learn_env.business_engine.get_entity_list()}
-        self._balance_calculator = BalanceSheetCalculator(self._learn_env)
+        self._balance_calculator = BalanceSheetCalculator(self._learn_env, TEAM_REWARD)
         self._cur_balance_sheet_reward = None
 
         self._summary = self._learn_env.summary['node_mapping']
@@ -102,14 +102,6 @@ class SCEnvSampler(AbsEnvSampler):
         self._state_template = STATE_TEMPLATE
 
         self._env_settings = workflow_settings
-
-        self.stock_status = {}
-        self.demand_status = {}
-        self.sold_status = {}
-        self.orders_from_downstreams = {}
-        self.consumer_orders = {}
-        self.order_in_transit_status = {}
-        self.order_to_distribute_status = {}
 
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: list) -> float:
@@ -286,17 +278,22 @@ class SCEnvSampler(AbsEnvSampler):
                     source_id = sources[0]
                     product_unit_id = self._storage_info["unit2product"][unit_id][0]
                     try:
-                        or_action = agent_state_dict[agent_id][-1]
-                        action_idx = max(0, int(action - 1 + or_action))
+                        if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
+                            or_action = agent_state_dict[agent_id][-1]
+                            action_idx = max(0, int(action[0] - 1 + or_action))
+                        else:
+                            action_idx = action[0]
+                        # action_idx = action[0]
                         action_number = action_idx * self._cur_metrics["products"][product_unit_id]["sale_mean"]
                     except ValueError:
                         action_number = 0
+                        action_idx = 0
 
                     # ignore 0 quantity to reduce action number
                     if action_number:
                         sku = self._units_mapping[unit_id][3]
                         env_action_dict[agent_id] = ConsumerAction(
-                            unit_id, product_id, source_id, action_number, sku.vlt,
+                            unit_id, product_id, source_id, action_number, sku.vlt, action_idx
                         )
                         self._consumer_orders[product_unit_id] = action_number
                         self._orders_from_downstreams[
@@ -423,7 +420,6 @@ class SCEnvSampler(AbsEnvSampler):
         self._balance_calculator.reset()
         self.total_balance = 0.0
 
-
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         tracker = SimulationTracker(180, 1, self, [0, 180])
         step_idx = 0
@@ -459,7 +455,8 @@ class SCEnvSampler(AbsEnvSampler):
             consumer_action_dict = {}
             for entity_id, entity in self._entity_dict.items():
                 if issubclass(entity.class_type, ConsumerUnit):
-                    consumer_action_dict[entity_id] = (action_dict[entity_id], reward[entity_id])
+                    ori_action = (env_action_dict[entity_id].action_idx if entity_id in env_action_dict else 0)
+                    consumer_action_dict[entity_id] = (action_dict[entity_id][0], ori_action, reward[entity_id])
             print(step_idx, consumer_action_dict)
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event, cache_element.tick)

@@ -15,6 +15,7 @@ class ConsumerAction(SupplyChainAction):
     source_id: int
     quantity: int
     vlt: int  # TODO: update vlt related code
+    action_idx: int = 0
 
 
 @dataclass

@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 from maro.simulator import Env
-
 from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
@@ -19,6 +18,7 @@ ProductInfo = namedtuple(
         "unit_id",
         "sku_id",
         "node_index",
+        "facility_id",
         "storage_index",
         "distribution_index",
         "downstream_product_unit_id_list",
@@ -42,8 +42,17 @@ FacilityLevelInfo = namedtuple(
 
 
 class BalanceSheetCalculator:
-    def __init__(self, env: Env) -> None:
+    consumer_features = ("id", "purchased", "received",
+                         "order_cost", "order_product_cost")
+    seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
+    manufacture_features = ("id", "manufacture_quantity", "product_unit_cost")
+    product_features = (
+        "id", "price", 'check_in_quantity_in_order', 'delay_order_penalty', "transportation_cost")
+    storage_features = ("capacity", "remaining_space")
+
+    def __init__(self, env: Env, team_reward) -> None:
         self._env: Env = env
+        self._team_reward = team_reward
 
         facilities, products, pid2idx, cid2pid = self._extract_facility_and_product_info()
 
@@ -59,6 +68,20 @@ class BalanceSheetCalculator:
         self._ordered_products: List[ProductInfo] = self._get_products_sorted_from_downstreams_to_upstreams()
 
         self.accumulated_balance_sheet = defaultdict(int)
+        self.product_metric_track = {}
+        self.tick_cached = set()
+        self.facility_info = self._env.summary['node_mapping']['facilities']
+        self.sku_meta_info = self._env.summary['node_mapping']['skus']
+        for col in ['id', 'sku_id', 'facility_id', 'facility_name', 'name', 'tick', 'inventory_in_stock', 'unit_inventory_holding_cost']:
+            self.product_metric_track[col] = []
+        for (name, cols) in [("consumer", self.consumer_features),
+                             ("seller", self.seller_features),
+                             ("manufacture", self.manufacture_features),
+                             ("product", self.product_features)]:
+            for fea in cols:
+                if fea == 'id':
+                    continue
+                self.product_metric_track[f"{name}_{fea}"] = []
 
     def _extract_facility_and_product_info(self) -> Tuple[
         List[FacilityLevelInfo], List[ProductInfo], Dict[int, int], Dict[int, int]
@@ -88,6 +111,7 @@ class BalanceSheetCalculator:
                         unit_id=product_info.id,
                         sku_id=product_info.product_id,
                         node_index=product_info.node_index,
+                        facility_id = facility_id,
                         storage_index=storage_info.node_index,
                         distribution_index=distribution_info.node_index if distribution_info else None,
                         downstream_product_unit_id_list=[
@@ -275,7 +299,7 @@ class BalanceSheetCalculator:
 
     def _calc_product(
         self, consumer_step_cost, manufacture_step_cost, seller_step_profit, seller_step_cost,
-        storage_product_step_cost, product_distribution_step_profit, product_distribution_step_cost,
+        storage_product_step_cost, product_distribution_step_profit, product_distribution_step_cost, tick
     ) -> tuple:
         product_step_profit = np.zeros(self.num_products)
         product_step_cost = np.zeros(self.num_products)
@@ -283,6 +307,35 @@ class BalanceSheetCalculator:
         # product = consumer + seller + manufacture + storage + distribution + downstreams
         for product in self._ordered_products:
             i = product.node_index
+            if (tick, i) not in self.tick_cached:
+                self.tick_cached.add((tick, i))
+                meta_sku = self.sku_meta_info[product.sku_id]
+                meta_facility = self.facility_info[product.facility_id]
+                self.product_metric_track['id'].append(product.unit_id)
+                self.product_metric_track['sku_id'].append(product.sku_id)
+                self.product_metric_track['tick'].append(tick)
+                self.product_metric_track['facility_id'].append(product.facility_id)
+                self.product_metric_track['facility_name'].append(meta_facility.name)
+                self.product_metric_track['name'].append(meta_sku.name)
+                for f_id, fea in enumerate(self.product_features):
+                    if fea != 'id':
+                        val = self._get_attributes("product", fea, tick)[i]
+                        self.product_metric_track[f"product_{fea}"].append(val)
+                for fea in self.consumer_features:
+                    if fea != 'id':
+                        val = (self._get_attributes("consumer", fea, tick)[product.consumer_index] if product.consumer_index else 0)
+                        self.product_metric_track[f"consumer_{fea}"].append(val)
+                for fea in self.seller_features:
+                    if fea != 'id':
+                        val = (self._get_attributes("seller", fea, tick)[product.seller_index] if product.seller_index else 0)
+                        self.product_metric_track[f"seller_{fea}"].append(val)
+                for fea in self.manufacture_features:
+                    if fea != 'id':
+                        val = (self._get_attributes("manufacture", fea, tick)[product.manufacture_index] if product.manufacture_index else 0)
+                        self.product_metric_track[f"manufacture_{fea}"].append(val)
+                self.product_metric_track['unit_inventory_holding_cost'].append(self._get_list_attributes("storage", "unit_storage_cost", tick)[product.storage_index])
+                product_idx_in_storage = np.where(self._get_list_attributes("storage", "product_list", tick)[product.storage_index] == product.sku_id)[0]
+                self.product_metric_track['inventory_in_stock'].append(self._get_list_attributes("storage", "product_quantity", tick)[product.storage_index][product_idx_in_storage])
 
             if product.consumer_index:
                 product_step_cost[i] += consumer_step_cost[product.consumer_index]
@@ -310,7 +363,7 @@ class BalanceSheetCalculator:
         return product_step_profit, product_step_cost, product_step_balance
 
     def _calc_facility(
-        self, storage_step_cost, vehicle_step_cost, product_step_profit, product_step_cost
+        self, product_step_profit, product_step_cost, tick
     ) -> tuple:
         facility_step_profit = np.zeros(self.num_facilities)
         facility_step_cost = np.zeros(self.num_facilities)
@@ -333,7 +386,7 @@ class BalanceSheetCalculator:
         return facility_step_profit, facility_step_cost, facility_step_balance
 
     def _update_balance_sheet(
-        self, product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost
+        self, product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost, facility_step_balance
     ) -> Dict[int, Tuple[float, float]]:
 
         # Key: the facility/unit id; Value: (balance, reward).
@@ -353,6 +406,22 @@ class BalanceSheetCalculator:
         for id_, cost in zip(manufacture_ids, manufacture_step_cost):
             balance_and_reward[id_] = (cost, cost)
             self.accumulated_balance_sheet[id_] += cost
+
+        for cost, facility in zip(facility_step_balance, self.facility_levels):
+            id_ = facility.unit_id
+            balance_and_reward[id_] = (cost, cost)
+            self.accumulated_balance_sheet[id_] += cost
+
+        # team reward
+        if self._team_reward:
+            team_reward = {}
+            for id_ in consumer_ids:
+                facility_id = self.products[self.product_id2idx[self.consumer_id2product_id[id_]]].facility_id
+                (b, r) = (team_reward[facility_id] if facility_id in team_reward else (0, 0))
+                team_reward[facility_id] = (b+balance_and_reward[id_][0], r+balance_and_reward[id_][1])
+            for id_ in consumer_ids:
+                facility_id = self.products[self.product_id2idx[self.consumer_id2product_id[id_]]].facility_id
+                balance_and_reward[id_] = team_reward[facility_id]
 
         # NOTE: Add followings if needed.
         # For storages.
@@ -381,10 +450,20 @@ class BalanceSheetCalculator:
             storage_product_step_cost,
             product_distribution_step_profit,
             product_distribution_step_cost,
+            tick
+        )
+
+        _, _, facility_step_balance = self._calc_facility(product_step_profit, product_step_cost, tick
         )
 
         balance_and_reward = self._update_balance_sheet(
-            product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost
+            product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost, facility_step_balance
         )
 
         return balance_and_reward
+
+    def reset(self):
+        for key in self.product_metric_track.keys():
+            self.product_metric_track[key] = []
+        self.tick_cached.clear()
+            

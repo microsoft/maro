@@ -4,7 +4,7 @@
 import numpy as np
 import scipy.stats as st
 
-from examples.supply_chain.rl.config import NUM_CONSUMER_ACTIONS
+from examples.supply_chain.rl.config import OR_NUM_CONSUMER_ACTIONS
 from maro.rl.policy import RuleBasedPolicy
 
 OR_STATE_OFFSET_INDEX = {
@@ -46,7 +46,7 @@ class ManufacturerBaselinePolicy(RuleBasedPolicy):
 class ConsumerBaselinePolicy(RuleBasedPolicy):
     def _rule(self, states: np.ndarray) -> np.ndarray:
         batch_size = len(states)
-        res = np.random.randint(0, high=NUM_CONSUMER_ACTIONS, size=batch_size)
+        res = np.random.randint(0, high=OR_NUM_CONSUMER_ACTIONS, size=batch_size)
         # consumer_source_inventory
         available_inventory = get_element(states, "storage_levels")
         inflight_orders = get_element(states, "consumer_in_transit_orders")
@@ -104,7 +104,7 @@ class ConsumerEOQPolicy(RuleBasedPolicy):
         # whether replenishment point is reached
         replenishment_mask = (booked <= rop)
         replenishment_amount = ((rop - booked) / (sale_mean + 1e-8)).astype(np.int32)
-        replenishment_amount = np.where(replenishment_amount >= NUM_CONSUMER_ACTIONS, NUM_CONSUMER_ACTIONS-1, replenishment_amount)
+        replenishment_amount = np.where(replenishment_amount >= OR_NUM_CONSUMER_ACTIONS, OR_NUM_CONSUMER_ACTIONS-1, replenishment_amount)
         return replenishment_amount * (non_facility_mask & replenishment_mask)
 
 

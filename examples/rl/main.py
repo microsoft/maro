@@ -73,15 +73,16 @@ if __name__ == "__main__":
         segment, end_of_episode = 1, False
         while not end_of_episode:
             # experience collection
-            result = env_sampler.sample(num_steps=NUM_STEPS)
-            experiences = result["experiences"]
-            end_of_episode = result["end_of_episode"]
+            for _ in range(1):
+                result = env_sampler.sample(num_steps=NUM_STEPS)
+                experiences = result["experiences"]
+                end_of_episode = result["end_of_episode"]
 
-            if scenario.post_collect:
-                scenario.post_collect(result["info"], ep, segment)
-
-            logger.info(f"Roll-out completed for episode {ep}. Training started...")
-            training_manager.record_experiences(experiences)
+                if scenario.post_collect:
+                    scenario.post_collect(result["info"], ep, segment)
+                logger.info(f"Roll-out completed for episode {ep}. Training started...")
+                training_manager.record_experiences(experiences)
+            
             training_manager.train_step()
             if CHECKPOINT_PATH and ep % CHECKPOINT_INTERVAL == 0:
                 pth = join(CHECKPOINT_PATH, str(ep))

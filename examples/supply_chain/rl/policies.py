@@ -5,12 +5,23 @@ from functools import partial
 
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit, ProductUnit, SellerUnit
 from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
-from .algorithms.ppo import get_policy, get_ppo
-# from .algorithms.dqn import get_dqn, get_policy
 from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy, ConsumerEOQPolicy
-from .config import NUM_CONSUMER_ACTIONS
+from .config import NUM_CONSUMER_ACTIONS, ALGO
 from .env_helper import entity_dict
 from .state_template import STATE_DIM
+
+
+if ALGO == "PPO":
+    from .algorithms.ppo import get_policy, get_ppo
+    trainer_creator = {
+        "consumer": partial(get_ppo, STATE_DIM),
+    }
+else:
+    from .algorithms.dqn import get_dqn, get_policy
+    trainer_creator = {
+        "consumer": get_dqn,
+    }
+
 
 
 def entity2policy(entity: SupplyChainEntity, baseline) -> str:
@@ -45,13 +56,6 @@ agent2policy = {
 #     id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
 # }
 
-
 trainable_policies = ["consumer.policy"]
 
-# trainer_creator = {
-#     "consumer": get_dqn,
-# }
-
-trainer_creator = {
-    "consumer": partial(get_ppo, STATE_DIM),
-}
+device_mapping = {"consumer.policy": "cuda"}

@@ -53,7 +53,7 @@ class DiscreteACBasedOps(AbsTrainOps):
         *,
         reward_discount: float = 0.9,
         critic_loss_cls: Callable = None,
-        clip_ratio: float = 0.1,
+        clip_ratio: float = None,
         lam: float = 0.9,
         min_logp: float = None,
     ) -> None:
@@ -300,10 +300,10 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
         states = ndarray_to_tensor(batch.states, self._device)  # s
         state_values = self._v_critic_net.v_values(states)
         values = state_values.detach().numpy()
-        values = np.concatenate([values[1:], np.zeros(1).astype(np.float32)])
-        returns = batch.rewards + self._reward_discount * values
+        values = np.concatenate([values[1:], values[-1:]])
+        returns = batch.rewards + np.where(batch.terminals, 0.0, 1.0) * self._reward_discount * values
         returns = ndarray_to_tensor(returns, self._device)
-        return self._critic_loss_func(state_values, returns)
+        return self._critic_loss_func(state_values.float(), returns.float())
 
     def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the actor loss of the batch.
@@ -318,7 +318,22 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
         actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
-        advantages = ndarray_to_tensor(batch.advantages, self._device)
+        state_values = self._v_critic_net.v_values(states).detach().cpu().numpy()
+        values = np.concatenate([state_values[1:], state_values[-1:]])
+        returns = batch.rewards + np.where(batch.terminals, 0.0, 1.0) * self._reward_discount * values
+        deltas = returns - state_values # r + gamma * v(s') - v(s)
+        # advantages_list = []
+        # start_idx, end_idx = 0, 0
+        # for i, terminal in enumerate(batch.terminals):
+        #     if (not terminal) and i < len(batch.terminals)-1:
+        #         end_idx += 1
+        #     else:
+        #         advantages_frag = discount_cumsum(deltas[start_idx:end_idx+1], self._reward_discount * self._lam)
+        #         advantages_list.append(advantages_frag)
+        #         end_idx += 1
+        #         start_idx = end_idx
+        # advantages = np.concatenate(advantages_list)
+        advantages = ndarray_to_tensor(deltas, self._device)
 
         if self._clip_ratio is not None:
             self._policy_old.eval()
@@ -336,11 +351,11 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
         if self._clip_ratio is not None:
             ratio = torch.exp(logps - logps_old)
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages))
+            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).float()
         else:
-            actor_loss = -(logps * advantages)  # I * delta * log pi(a|s)
+            actor_loss = -(logps * advantages).float() # I * delta * log pi(a|s)
         loss = (actor_loss - 0.2*dist_entropy).mean()
-        print('actor_loss: ', actor_loss.mean(), 'entropy loss: ', dist_entropy.mean())
+        # print('actor_loss: ', actor_loss.mean(), 'entropy loss: ', dist_entropy.mean())
         return loss
 
 

@@ -12,4 +12,8 @@ env_conf = {
 distribution_features = ("pending_product_quantity", "pending_order_number")
 seller_features = ("total_demand", "sold", "demand")
 
-NUM_CONSUMER_ACTIONS = 3
+NUM_CONSUMER_ACTIONS = 4
+OR_NUM_CONSUMER_ACTIONS = 8
+
+ALGO = "DQN" # PPO or DQN
+TEAM_REWARD = True

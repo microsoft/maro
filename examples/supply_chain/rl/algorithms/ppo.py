@@ -116,16 +116,32 @@ def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGrad
     return policy
 
 
-def get_ppo(state_dim: int, name: str) -> DiscreteActorCriticTrainer:
-    return DiscreteActorCriticTrainer(
+# def get_ppo(state_dim: int, name: str) -> DiscreteActorCriticTrainer:
+#     return DiscreteActorCriticTrainer(
+#         name=name,
+#         params=DiscreteActorCriticParams(
+#             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
+#             reward_discount=.99,
+#             grad_iters=20,
+#             critic_loss_cls=torch.nn.SmoothL1Loss,
+#             min_logp=-4.0,
+#             lam=0.99,
+#             replay_memory_capacity=180
+#         ),
+#     )
+
+
+def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
+    return DiscretePPOTrainer(
         name=name,
-        params=DiscreteActorCriticParams(
+        params=DiscretePPOParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             reward_discount=.99,
             grad_iters=20,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=-4.0,
             lam=0.99,
+            clip_ratio=0.2,
             replay_memory_capacity=180
         ),
     )

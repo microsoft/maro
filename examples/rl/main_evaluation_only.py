@@ -6,7 +6,8 @@ from os.path import dirname, join, realpath
 import pandas as pd
 
 from maro.rl.workflows.scenario import Scenario
-from examples.supply_chain.rl.render_tools import SimulationTracker
+from examples.supply_chain.rl.render_tools import SimulationTracker, SimulationTrackerHtml
+
 # from examples.supply_chain.rl.policies import agent2baseline_policy
 
 # config variables
@@ -42,6 +43,10 @@ if __name__ == "__main__":
     tracker.render_sku(LOG_PATH)
     
     df_product = pd.DataFrame(env_sampler._balance_calculator.product_metric_track)
+    print(df_product.head())
     df_product = df_product.groupby(['tick', 'id']).first().reset_index()
-    df_product.to_csv(f'{LOG_PATH}/output_product_metrics.csv', index=False)
-
+    result_file_loc = f'{LOG_PATH}/output_product_metrics.csv'
+    df_product.to_csv(result_file_loc, index=False)
+    html_render = SimulationTrackerHtml(result_file_loc)
+    html_render.render_sku()
+    html_render.render_facility()
