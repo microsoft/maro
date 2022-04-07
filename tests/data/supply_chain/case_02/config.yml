@@ -1,15 +1,4 @@
-
-train_config: &train
-  class: "VehicleUnit"
-  config:
-    patient: 10
-    unit_transport_cost: 12
-
-normal_distribution: &normal_distribution
-  vehicles:
-    train:
-      number: 2
-      config: *train
+# Test for VehicleUnit, DistributionUnit, SellerUnit
 
 facility_definitions:
   SupplierFacility: &supplier_facility
@@ -55,10 +44,25 @@ facility_definitions:
           config:
             sale_hist_len: 4
 
+
 small_storage: &small_storage
   config:
     capacity: 100
     unit_storage_cost: 1
+
+
+train_config: &train
+  class: "VehicleUnit"
+  config:
+    patient: 3
+    unit_transport_cost: 12
+
+normal_distribution: &normal_distribution
+  vehicles:
+    train:
+      number: 2
+      config: *train
+
 
 skus: &sku_definitions
   - id: 1
@@ -83,6 +87,7 @@ skus: &sku_definitions
     bom:
       sku2: 1
 
+
 world:
   skus: *sku_definitions
   facilities:
@@ -94,12 +99,14 @@ world:
           has_manufacture: True
           unit_product_cost: 1
           price: 10
+          unit_delay_order_penalty: 10
       children:
         storage: *small_storage
         distribution: *normal_distribution
       config:
         unit_delay_order_penalty: 20
         unit_order_cost: 0
+
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
@@ -119,6 +126,7 @@ world:
       config:
         unit_delay_order_penalty: 20
         unit_order_cost: 200
+
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
       skus:
@@ -147,6 +155,7 @@ world:
         storage: *small_storage
       config:
         unit_order_cost: 200
+
   topology:
     Warehouse_001:
       sku3:
@@ -154,6 +163,7 @@ world:
           "train":
             vlt: 7
             cost: 1
+
     Retailer_001:
       sku1:
         "Warehouse_001":
@@ -170,6 +180,7 @@ world:
           "train":
             vlt: 7
             cost: 1
+
 
 settings:
   pending_order_len: 4

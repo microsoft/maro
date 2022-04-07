@@ -51,7 +51,7 @@ class DistributionUnit(UnitBase):
         # Do not consider the destination.
         self.check_in_quantity_in_order = Counter()
 
-        self._base_delay_order_penalty: float = 0
+        self._unit_delay_order_penalty: Dict[int, float] = {}
 
         self._is_order_changed: bool = False
 
@@ -67,7 +67,7 @@ class DistributionUnit(UnitBase):
             for order in order_queue:
                 counter[order.product_id] += order.quantity
 
-        for vehicle_list in self.vehicles.values():
+        for vehicle_list in self.vehicles.values():  # TODO: check whether count these quantity in or not
             for vehicle in vehicle_list:
                 if vehicle.is_enroute():
                     counter[vehicle.product_id] += (vehicle.requested_quantity - vehicle.payload)
@@ -102,7 +102,8 @@ class DistributionUnit(UnitBase):
     def initialize(self):
         super(DistributionUnit, self).initialize()
 
-        self._base_delay_order_penalty = self.facility.get_config("delay_order_penalty", 0)
+        for product_id in self.facility.products.keys():
+            self._unit_delay_order_penalty[product_id] = self.facility.skus[product_id].unit_delay_order_penalty
 
     def _step_impl(self, tick: int):
         # TODO: update vehicle types and distribution step logic
@@ -130,7 +131,7 @@ class DistributionUnit(UnitBase):
         # Update order's delay penalty per tick.
         for order_queue in self._order_queues.values():
             for order in order_queue:
-                self.delay_order_penalty[order.product_id] += self._base_delay_order_penalty
+                self.delay_order_penalty[order.product_id] += self._unit_delay_order_penalty[order.product_id]
 
     def flush_states(self):
         super(DistributionUnit, self).flush_states()

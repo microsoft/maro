@@ -129,15 +129,11 @@ class VehicleUnit(UnitBase):
             # if we still not loaded enough productions yet.
             if self._steps == 0 and self.payload == 0:
                 # then try to load by requested.
-
-                if self.try_load(self.requested_quantity):
-                    # NOTE: here we return to simulate loading
-                    return
-                else:
+                if not self.try_load(self.requested_quantity):
                     self._remaining_patient -= 1
 
                     # Failed to load, check the patient.
-                    if self._remaining_patient < 0:
+                    if self._remaining_patient <= 0:
                         self._destination.products[self.product_id].consumer.update_open_orders(
                             source_id=self.facility.id,
                             product_id=self.product_id,
@@ -147,21 +143,28 @@ class VehicleUnit(UnitBase):
                         self._reset_internal_states()
                         self._reset_data_model()
 
+                        # TODO: Add penalty for try-load failure.
+
+                        return
+
+            # If load successfully, the vehicle will move immediately.
             # Moving to destination
             if self.payload > 0:
                 # Closer to destination until 0.
                 self._steps += 1
                 self._remaining_steps -= 1
 
-        else:
+        # NOTE: the remaining steps would be changed in last if-condition, so we need to adjust the value again.
+        if self._remaining_steps == 0:
             # Try to unload.
             if self.payload > 0:
-                self.try_unload()  # TODO: to confrim -- the logic is to try unload until all
+                self.try_unload()  # TODO: to confrim -- the logic is to try unload until all. Add a patient for it?
 
             # Back to source if we unload all.
             if self.payload == 0:  # TODO: should we simulate the return time cost?
                 self._reset_internal_states()
                 self._reset_data_model()
+                return
 
         self.cost = self.payload * self._unit_transport_cost
 

@@ -112,6 +112,7 @@ world:
       config:
         unit_delay_order_penalty: 10
         unit_order_cost: 0
+
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
@@ -131,6 +132,7 @@ world:
       config:
         unit_delay_order_penalty: 10
         unit_order_cost: 200
+
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
       skus:
@@ -159,6 +161,7 @@ world:
         storage: *small_storage
       config:
         unit_order_cost: 200
+
   topology:
     Warehouse_001:
       sku3:

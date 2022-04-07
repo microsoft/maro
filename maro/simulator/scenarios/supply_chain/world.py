@@ -461,6 +461,7 @@ class World:
                 for src_name, src_conf in source_configs.items():
                     src_facility = self._get_facility_by_name(src_name)
                     for vehicle_type, vehicle_conf in src_conf.items():
+                        assert vehicle_conf["vlt"] > 0, f"Do not support 0-vlt now!"
                         facility.upstream_vlt_infos[sku_id].append(
                             VendorLeadingTimeInfo(src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
                         )
