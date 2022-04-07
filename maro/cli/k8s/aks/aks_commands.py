@@ -20,12 +20,12 @@ from maro.rl.workflows.config import ConfigParser
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
-from .utils import k8s_manifest_generator, k8s_ops
+from ..utils import k8s_manifest_generator, k8s_ops
 
 # metadata
-CLI_K8S_PATH = dirname(abspath(__file__))
-TEMPLATE_PATH = join(CLI_K8S_PATH, "test_template.json")
-NVIDIA_PLUGIN_PATH = join(CLI_K8S_PATH, "create_nvidia_plugin", "nvidia-device-plugin.yml")
+CLI_AKS_PATH = dirname(abspath(__file__))
+TEMPLATE_PATH = join(CLI_AKS_PATH, "template.json")
+NVIDIA_PLUGIN_PATH = join(CLI_AKS_PATH, "create_nvidia_plugin", "nvidia-device-plugin.yml")
 LOCAL_ROOT = expanduser("~/.maro/aks")
 DEPLOYMENT_CONF_PATH = os.path.join(LOCAL_ROOT, "conf.json")
 DOCKER_FILE_PATH = join(LOCAL_MARO_ROOT, "docker_files", "dev.df")
@@ -69,7 +69,7 @@ def get_agentpool_name(deployment_name: str):
     return f"ap{deployment_name}"
 
 
-def get_fileshare_name(deployment_name):
+def get_fileshare_name(deployment_name: str):
     return f"fs-{deployment_name}"
 
 
@@ -81,7 +81,7 @@ def get_virtual_network_name(location: str, deployment_name: str):
     return f"vnet-prod-{location}-{deployment_name}"
 
 
-def get_local_job_path(job_name):
+def get_local_job_path(job_name: str):
     return os.path.join(LOCAL_ROOT, job_name)
 
 
@@ -110,11 +110,11 @@ def get_resource_params(deployment_conf: dict) -> dict:
     return {
         "acrName": get_acr_name(name),
         "acrSku": deployment_conf["container_registry_service_tier"],
-        "systemPoolVMCount": deployment_conf["hardware"]["k8s"]["vm_count"],
-        "systemPoolVMSize": deployment_conf["hardware"]["k8s"]["vm_size"],
+        "systemPoolVMCount": deployment_conf["resources"]["k8s"]["vm_count"],
+        "systemPoolVMSize": deployment_conf["resources"]["k8s"]["vm_size"],
         "userPoolName": get_agentpool_name(name),
-        "userPoolVMCount": deployment_conf["hardware"]["app"]["vm_count"],
-        "userPoolVMSize": deployment_conf["hardware"]["app"]["vm_size"],
+        "userPoolVMCount": deployment_conf["resources"]["app"]["vm_count"],
+        "userPoolVMSize": deployment_conf["resources"]["app"]["vm_size"],
         "aksName": get_aks_name(name),
         "location": deployment_conf["location"],
         "storageAccountName": get_storage_account_name(name),
@@ -141,7 +141,10 @@ def start_redis_service_in_aks(host: str, port: int, namespace: str):
 
 # CLI command functions
 def init(deployment_conf_path: str, **kwargs):
-    """Create MARO Cluster with create_deployment.
+    """Prepare Azure resources needed for an AKS cluster using a YAML configuration file.
+
+    The configuration file template can be found in cli/k8s/aks/conf.yml. Use the Azure CLI to log into
+    your Azure account (az login ...) and the the Azure Container Registry (az acr login ...) first.    
 
     Args:
         deployment_conf_path (str): Path to the deployment configuration file.
@@ -158,6 +161,7 @@ def init(deployment_conf_path: str, **kwargs):
     os.makedirs(LOCAL_ROOT, exist_ok=True)
     resource_group_name = get_resource_group_name(name)
     try:
+        # Set credentials as environment variables
         set_env_credentials(LOCAL_ROOT, f"sp-{name}")
 
         # create resource group

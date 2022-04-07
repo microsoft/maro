@@ -11,9 +11,9 @@ from typing import Dict, List, Optional
 
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
-from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.product import ProductUnitInfo
+from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain import UnitBase

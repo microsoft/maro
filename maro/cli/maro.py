@@ -910,10 +910,14 @@ def load_parser_aks(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     subparsers = prev_parser.add_subparsers()
 
     # maro aks create
-    from maro.cli.k8s.aks_commands import init
+    from maro.cli.k8s.aks.aks_commands import init
     parser_create = subparsers.add_parser(
         "init",
-        help="Deploy resources and start required services on Azure",
+        help="""
+            Deploy resources and start required services on Azure. The configuration file template can be found
+            in cli/k8s/aks/conf.yml. Use the Azure CLI to log into your Azure account (az login ...) and the the
+            Azure Container Registry (az acr login ...) first.
+        """,
         examples=CliExamples.MARO_K8S_CREATE,
         parents=[global_parser]
     )
@@ -921,7 +925,7 @@ def load_parser_aks(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     parser_create.set_defaults(func=init)
 
     # maro aks exit
-    from maro.cli.k8s.aks_commands import exit
+    from maro.cli.k8s.aks.aks_commands import exit
     parser_create = subparsers.add_parser(
         "exit",
         help="Delete deployed resources",
@@ -940,7 +944,7 @@ def load_parser_aks(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     job_subparsers = parser_job.add_subparsers()
 
     # maro aks job add
-    from maro.cli.k8s.aks_commands import add_job
+    from maro.cli.k8s.aks.aks_commands import add_job
     parser_job_start = job_subparsers.add_parser(
         "add",
         help="Add an RL job to the AKS cluster",
@@ -951,7 +955,7 @@ def load_parser_aks(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     parser_job_start.set_defaults(func=add_job)
 
     # maro aks job rm
-    from maro.cli.k8s.aks_commands import remove_jobs
+    from maro.cli.k8s.aks.aks_commands import remove_jobs
     parser_job_start = job_subparsers.add_parser(
         "rm",
         help="Remove previously scheduled RL jobs from the AKS cluster",
@@ -962,7 +966,7 @@ def load_parser_aks(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     parser_job_start.set_defaults(func=remove_jobs)
 
     # maro aks job logs
-    from maro.cli.k8s.aks_commands import get_job_logs
+    from maro.cli.k8s.aks.aks_commands import get_job_logs
     job_logs_parser = job_subparsers.add_parser(
         "logs",
         help="Get job logs",

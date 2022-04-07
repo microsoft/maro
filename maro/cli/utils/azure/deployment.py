@@ -4,10 +4,6 @@
 from .general import get_resource_client
 
 
-def format_resource_params(params):
-    return {k: {"value": v} for k, v in params.items()}
-
-
 def create_deployment(
     subscription: str,
     resource_group: str,
@@ -16,7 +12,7 @@ def create_deployment(
     params: dict,
     sync: bool = True
 ) -> None:
-    params = format_resource_params(params)
+    params = {k: {"value": v} for k, v in params.items()}
     resource_client = get_resource_client(subscription)
     deployment_params = {"mode": "Incremental", "template": template, "parameters": params}
     result = resource_client.deployments.begin_create_or_update(

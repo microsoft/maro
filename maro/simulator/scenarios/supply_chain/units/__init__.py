@@ -12,5 +12,5 @@ from .seller import SellerUnit, SellerUnitInfo
 from .simplemanufacture import SimpleManufactureUnit
 from .storage import StorageUnit, StorageUnitInfo
 from .storeproduct import StoreProductUnit
-from .unitbase import UnitBase, BaseUnitInfo
+from .unitbase import BaseUnitInfo, UnitBase
 from .vehicle import VehicleUnit

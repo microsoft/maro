@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 
-from .unitbase import UnitBase, BaseUnitInfo
+from .unitbase import BaseUnitInfo, UnitBase
 
 
 @dataclass
