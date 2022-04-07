@@ -1,8 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import SellerDataModel
 

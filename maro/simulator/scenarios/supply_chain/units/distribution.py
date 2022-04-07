@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from .order import Order
-from .unitbase import UnitBase, BaseUnitInfo
+from .unitbase import BaseUnitInfo, UnitBase
 from .vehicle import VehicleUnit
 
 
@@ -113,7 +113,8 @@ class DistributionUnit(UnitBase):
 
         # Update order's delay penalty per tick.
         for order in self._order_queue:
-            self.delay_order_penalty[order.product_id] += self._base_delay_order_penalty  # TODO: here consider the product id only, not consider the destination.
+            # TODO: here consider the product id only, not consider the destination.
+            self.delay_order_penalty[order.product_id] += self._base_delay_order_penalty
 
     def flush_states(self):
         super(DistributionUnit, self).flush_states()

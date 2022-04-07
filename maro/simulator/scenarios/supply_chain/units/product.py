@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
-import numpy as np
 from dataclasses import dataclass
 from typing import Dict, Optional
+
+import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 

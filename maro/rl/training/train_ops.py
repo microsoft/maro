@@ -20,7 +20,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     Args:
         name (str): Name of the ops. This is usually a policy name.
         policy_creator (Callable[[str], RLPolicy]): Function to create a policy instance.
-        parallelism (int, default=1): Desired degree of data parallelism. 
+        parallelism (int, default=1): Desired degree of data parallelism.
     """
 
     def __init__(

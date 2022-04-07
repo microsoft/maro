@@ -5,26 +5,26 @@ import base64
 import json
 import os
 import shutil
-import yaml
 from os.path import abspath, dirname, expanduser, join
 
+import yaml
+
+from maro.cli.utils import docker as docker_utils
 from maro.cli.utils.azure import storage as azure_storage_utils
 from maro.cli.utils.azure.aks import attach_acr
 from maro.cli.utils.azure.deployment import create_deployment
 from maro.cli.utils.azure.general import connect_to_aks, get_acr_push_permissions, set_env_credentials
 from maro.cli.utils.azure.resource_group import create_resource_group, delete_resource_group
-from maro.cli.utils import docker as docker_utils
 from maro.cli.utils.common import show_log
 from maro.rl.workflows.config import ConfigParser
 from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
-from .utils import k8s, k8s_manifest_generator
+from .utils import k8s_manifest_generator, k8s_ops
 
 # metadata
 CLI_K8S_PATH = dirname(abspath(__file__))
 TEMPLATE_PATH = join(CLI_K8S_PATH, "test_template.json")
-#TEMPLATE_PATH = join(CLI_K8S_PATH, "lib", "modes", "aks", "create_aks_cluster", "template.json")
 NVIDIA_PLUGIN_PATH = join(CLI_K8S_PATH, "create_nvidia_plugin", "nvidia-device-plugin.yml")
 LOCAL_ROOT = expanduser("~/.maro/aks")
 DEPLOYMENT_CONF_PATH = os.path.join(LOCAL_ROOT, "conf.json")
@@ -42,6 +42,7 @@ NO_JOB_MSG = "No job named {} has been scheduled. Use 'maro aks job add' to add 
 JOB_EXISTS_MSG = "A job named {} has already been scheduled."
 
 logger = CliLogger(name=__name__)
+
 
 # helper functions
 def get_resource_group_name(deployment_name: str):
@@ -91,7 +92,7 @@ def get_storage_account_secret(resource_group_name: str, storage_account_name: s
         "azurestorageaccountname": base64.b64encode(storage_account_name.encode()).decode(),
         "azurestorageaccountkey": base64.b64encode(bytes(storage_key.encode())).decode()
     }
-    k8s.create_secret(K8S_SECRET_NAME, secret_data, namespace)
+    k8s_ops.create_secret(K8S_SECRET_NAME, secret_data, namespace)
 
 
 def get_resource_params(deployment_conf: dict) -> dict:
@@ -132,10 +133,10 @@ def prepare_docker_image_and_push_to_acr(image_name: str, context: str, docker_f
 
 
 def start_redis_service_in_aks(host: str, port: int, namespace: str):
-    k8s.load_config()
-    k8s.create_namespace(namespace)
-    k8s.create_deployment(k8s_manifest_generator.get_redis_deployment_manifest(host, port), namespace)
-    k8s.create_service(k8s_manifest_generator.get_redis_service_manifest(host, port), namespace)
+    k8s_ops.load_config()
+    k8s_ops.create_namespace(namespace)
+    k8s_ops.create_deployment(k8s_manifest_generator.get_redis_deployment_manifest(host, port), namespace)
+    k8s_ops.create_service(k8s_manifest_generator.get_redis_service_manifest(host, port), namespace)
 
 
 # CLI command functions
@@ -221,7 +222,7 @@ def add_job(conf_path: dict, **kwargs):
         deployment_conf = json.load(fp)
 
     resource_group_name, resource_name = deployment_conf["resource_group"], deployment_conf["resources"]
-    fileshare = azure_storage_utils.get_fileshare(resource_name["storageAccountName"], resource_name["fileShareName"])    
+    fileshare = azure_storage_utils.get_fileshare(resource_name["storageAccountName"], resource_name["fileShareName"])
     job_dir = azure_storage_utils.get_directory(fileshare, job_name)
     scenario_path = parser.config["scenario_path"]
     logger.info(f"Uploading local directory {scenario_path}...")
@@ -246,10 +247,10 @@ def add_job(conf_path: dict, **kwargs):
         )
 
     # Start k8s jobs
-    k8s.load_config()
-    k8s.create_namespace(job_name)
+    k8s_ops.load_config()
+    k8s_ops.create_namespace(job_name)
     get_storage_account_secret(resource_group_name, resource_name["storageAccountName"], job_name)
-    k8s.create_service(
+    k8s_ops.create_service(
         k8s_manifest_generator.get_cross_namespace_service_access_manifest(
             ADDRESS_REGISTRY_NAME, REDIS_HOST, deployment_conf["name"], ADDRESS_REGISTRY_PORT
         ), job_name
@@ -268,7 +269,7 @@ def add_job(conf_path: dict, **kwargs):
             container_spec,
             volumes
         )
-        k8s.create_job(manifest, job_name)
+        k8s_ops.create_job(manifest, job_name)
 
 
 def remove_jobs(job_names: str, **kwargs):
@@ -276,14 +277,14 @@ def remove_jobs(job_names: str, **kwargs):
         logger.error_red(NO_DEPLOYMENT_MSG)
         return
 
-    k8s.load_config()
+    k8s_ops.load_config()
     for job_name in job_names:
         local_job_path = get_local_job_path(job_name)
         if not os.path.isdir(local_job_path):
             logger.error_red(NO_JOB_MSG.format(job_name))
             return
 
-        k8s.delete_job(job_name)
+        k8s_ops.delete_job(job_name)
 
 
 def get_job_logs(job_name: str, tail: int = -1, **kwargs):

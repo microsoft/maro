@@ -6,8 +6,8 @@ from __future__ import annotations
 import typing
 from typing import Optional
 
-from .unitbase import UnitBase
 from .storage import AddStrategy
+from .unitbase import UnitBase
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase

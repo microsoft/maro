@@ -1,5 +1,5 @@
 mode: ""
-azure_subscription: 03811e6d-e6a0-4ae1-92e7-2249b8cb13be
+azure_subscription: your_azure_subscription_id
 name: yq
 location: eastus
 container_registry_service_tier: Standard   # "Basic", "Standard", "Premium", see https://docs.microsoft.com/en-us/azure/container-registry/container-registry-skus for details
