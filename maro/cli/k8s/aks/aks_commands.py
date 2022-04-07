@@ -144,7 +144,7 @@ def init(deployment_conf_path: str, **kwargs):
     """Prepare Azure resources needed for an AKS cluster using a YAML configuration file.
 
     The configuration file template can be found in cli/k8s/aks/conf.yml. Use the Azure CLI to log into
-    your Azure account (az login ...) and the the Azure Container Registry (az acr login ...) first.    
+    your Azure account (az login ...) and the the Azure Container Registry (az acr login ...) first.
 
     Args:
         deployment_conf_path (str): Path to the deployment configuration file.
