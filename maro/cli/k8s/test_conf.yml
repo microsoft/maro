@@ -1,7 +1,7 @@
 mode: ""
 azure_subscription: your_azure_subscription_id
-name: yq
-location: eastus
+name: your_deployment_name
+location: your_azure_service_location
 container_registry_service_tier: Standard   # "Basic", "Standard", "Premium", see https://docs.microsoft.com/en-us/azure/container-registry/container-registry-skus for details
 hardware:
   k8s:

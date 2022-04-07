@@ -8,7 +8,6 @@ from typing import Dict, List, Optional
 
 from .unitbase import BaseUnitInfo, UnitBase
 
-
 DEFAULT_SUB_STORAGE_ID = 0
 
 
