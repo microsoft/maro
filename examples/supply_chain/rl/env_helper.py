@@ -59,7 +59,7 @@ for facility_id, facility_info in facility_info_dict.items():
 
         for i, pid in enumerate(storage.product_list):
             STORAGE_INFO["storage_product_indexes"][facility_id][pid] = i
-            STORAGE_INFO["storage_product_num"][facility_id][pid] = 0
+            STORAGE_INFO["storage_product_num"][facility_id][i] = 0
 
     distribution: DistributionUnitInfo = facility_info.distribution_info
     if distribution is not None:

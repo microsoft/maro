@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from typing import Any, Callable, Dict, List, Type
 
 import numpy as np
@@ -21,7 +22,7 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 from .config import distribution_features, env_conf, seller_features
 from .env_helper import STORAGE_INFO
 from .policies import agent2policy, trainable_policies
-from .state_template import STATE_TEMPLATE, workflow_settings, _serialize_state
+from .state_template import STATE_TEMPLATE, sku_id2idx, workflow_settings, _serialize_state
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -121,7 +122,7 @@ class SCEnvSampler(AbsEnvSampler):
         extend_state(self._storage_info["storage_product_num"][entity.facility_id])
         extend_state(self._facility_in_transit_orders[entity.facility_id])
         extend_state([self._storage_info["storage_product_indexes"][entity.facility_id][entity.skus.id] + 1])
-        extend_state([entity.skus.vlt])
+        extend_state([self._env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
         extend_state([entity.skus.service_level])
         return np.array(np_state + offsets)
 
@@ -187,7 +188,7 @@ class SCEnvSampler(AbsEnvSampler):
             self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
 
             for sku_id, number in in_transit_orders.items():
-                self._facility_in_transit_orders[facility_id][sku_id] = number
+                self._facility_in_transit_orders[facility_id][sku_id2idx[sku_id]] = number
 
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._storage_info["facility2storage"].items():
@@ -198,7 +199,7 @@ class SCEnvSampler(AbsEnvSampler):
             for pid, index in self._storage_info["storage_product_indexes"][facility_id].items():
                 product_quantity = product_quantities[index]
 
-                self._storage_info["storage_product_num"][facility_id][pid] = product_quantity
+                self._storage_info["storage_product_num"][facility_id][sku_id2idx[pid]] = product_quantity
                 self._storage_info["facility_product_utilization"][facility_id] += product_quantity
 
         state = {
@@ -329,7 +330,7 @@ class SCEnvSampler(AbsEnvSampler):
         # slot to use sku id as index ( 1 based).
         product_index = self._storage_info["storage_product_indexes"][entity.facility_id][entity.skus.id] + 1
         state['inventory_in_stock'] = self._storage_info["storage_product_num"][entity.facility_id][product_index]
-        state['inventory_in_transit'] = state['consumer_in_transit_orders'][entity.skus.id]
+        state['inventory_in_transit'] = state['consumer_in_transit_orders'][sku_id2idx[entity.skus.id]]
 
         pending_order = self._cur_metrics["facilities"][entity.facility_id]["pending_order"]
 

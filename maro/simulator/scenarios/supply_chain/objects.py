@@ -73,4 +73,5 @@ class SupplyChainEntity:
 
     @property
     def is_facility(self) -> bool:
+        from .facilities import FacilityBase
         return issubclass(self.class_type, FacilityBase)

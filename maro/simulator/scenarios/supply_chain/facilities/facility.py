@@ -174,3 +174,19 @@ class FacilityBase(ABC):
                 for product_id, product in self.products.items()
             },
         )
+
+    def get_sku_cost(self, sku_id: int) -> float:
+        # TODO: updating for manufacture, ...
+        src_prices: List[float] = []
+        for vlt_info in self.upstream_vlt_infos[sku_id]:
+            src_prices.append(vlt_info.src_facility.skus[sku_id].price)
+        if len(src_prices) > 0:
+            return sum(src_prices) / len(src_prices)
+        else:
+            return self.skus[sku_id].price
+
+    def get_max_vlt(self, sku_id: int) -> float:
+        max_vlt: int = 0
+        for vlt_info in self.upstream_vlt_infos[sku_id]:
+            max_vlt = max(max_vlt, vlt_info.vlt)
+        return max_vlt
