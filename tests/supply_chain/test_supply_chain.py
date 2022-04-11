@@ -378,7 +378,106 @@ class MyTestCase(unittest.TestCase):
         # 4 sku1 cost 4*2 source material (sku3)
         self.assertEqual(100 - 4 * 2, product_dict[SKU3_ID])
 
-    # TODO: Add testing for SimpleManufactureUnit
+    def test_simple_manufacture_without_using_source(self):
+        """Test sku2 simple manufacturing. -- Supplier_SKU2"""
+        env = build_env("case_01", 100)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+
+        storage_nodes = env.snapshot_list["storage"]
+
+        manufacture_nodes = env.snapshot_list["manufacture"]
+        manufacture_number = len(manufacture_nodes)
+        manufacture_features = (
+            "id", "facility_id", "manufacture_quantity", "product_id"
+        )
+        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
+
+        # ############################### TICK: 0 ######################################
+
+        # tick 0 passed, no product manufacturing.
+        env.step(None)
+
+        states = manufacture_nodes[
+            env.frame_index::manufacture_features
+        ].flatten().reshape(manufacture_number, -1).astype(np.int)
+
+        # try to find which one is sku2 manufacture unit.
+        sku2_data_model_index: Optional[int] = None
+        sku2_manufacture_id: Optional[int] = None
+        sku2_facility_id: Optional[int] = None
+        for index, state in enumerate(states):
+            if state[IDX_PRODUCT_ID] == SKU2_ID:
+                sku2_data_model_index = index
+                sku2_manufacture_id = state[IDX_ID]
+                sku2_facility_id = state[IDX_FACILITY_ID]
+        self.assertTrue(all([
+            sku2_data_model_index is not None,
+            sku2_manufacture_id is not None,
+            sku2_facility_id is not None
+        ]))
+
+        # try to find sku2's storage from env.summary
+        sku2_facility_info: FacilityInfo = env.summary["node_mapping"]["facilities"][sku2_facility_id]
+        sku2_storage_index = sku2_facility_info.storage_info.node_index
+
+        capacities = storage_nodes[env.frame_index:sku2_storage_index:"capacity"].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:sku2_storage_index:"remaining_space"].flatten().astype(np.int)
+
+        # there should be 50 + 50 units been taken at the beginning according to the config file.
+        # so remaining space should be 200 - (50 + 50) = 100
+        self.assertEqual(100, remaining_spaces.sum())
+        # capacity is 200 by config
+        self.assertEqual(200, capacities.sum())
+
+        product_dict = get_product_dict_from_storage(env, env.frame_index, sku2_storage_index)
+
+        # The product quantity should be same as configuration at beginning.
+        # 50 sku2, 50 sku1
+        self.assertEqual(50, product_dict[SKU2_ID])
+        self.assertEqual(50, product_dict[SKU1_ID])
+
+        # all the id is greater than 0
+        self.assertGreater(sku2_manufacture_id, 0)
+
+        # ############################### TICK: 1 ######################################
+
+        # pass an action to start manufacturing for this tick.
+        action = ManufactureAction(sku2_manufacture_id, 1)
+
+        env.step([action])
+
+        states = manufacture_nodes[env.frame_index:sku2_data_model_index:manufacture_features].flatten().astype(np.int)
+
+        # Sku2 produce rate is 1 per tick, so manufacture_quantity should be 1.
+        self.assertEqual(1, states[IDX_MANUFACTURE_QUANTITY])
+
+        remaining_spaces = storage_nodes[env.frame_index:sku2_storage_index:"remaining_space"].flatten().astype(np.int)
+
+        # now remaining space should be 100 - 1 = 99 (No consumption of SKU1)
+        self.assertEqual(100 - 1, remaining_spaces.sum())
+
+        product_dict = get_product_dict_from_storage(env, env.frame_index, sku2_storage_index)
+
+        # sku2 quantity should be 80 + 1
+        self.assertEqual(50 + 1, product_dict[SKU2_ID])
+        # sku1 quantity keeps the same
+        self.assertEqual(50, product_dict[SKU1_ID])
+
+        # ############################### TICK: 2 ######################################
+
+        # leave the action as None will cause manufacture unit stop manufacturing.
+        env.step(None)
+
+        states = manufacture_nodes[env.frame_index:sku2_data_model_index:manufacture_features].flatten().astype(np.int)
+
+        # so manufacture_quantity should be 0
+        self.assertEqual(0, states[IDX_MANUFACTURE_QUANTITY])
+
+        product_dict = get_product_dict_from_storage(env, env.frame_index, sku2_storage_index)
+
+        # sku2 quantity should be same as last tick
+        self.assertEqual(50 + 1, product_dict[SKU2_ID])
 
     """
     Storage test:
@@ -397,8 +496,6 @@ class MyTestCase(unittest.TestCase):
     . get product quantity
 
     """
-
-    # TODO: Add testing for given storage upper bound
 
     def test_storage_get_product_quantity_and_capacity_and_remaining_space(self):
         """Supplier_SKU1"""
@@ -701,8 +798,48 @@ class MyTestCase(unittest.TestCase):
         # remaining space should be same as capacity in snapshot
         self.assertEqual(capacities.sum(), remaining_spaces.sum())
 
-    """
+    def test_storage_upper_bound(self):
+        """Warehouse_001."""
+        env = build_env("case_02", 100)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
+        env.step(None)
+
+        warehouse: FacilityBase = be.world._get_facility_by_name("Warehouse_001")
+        storage_unit: StorageUnit = warehouse.storage
+        storage_node_index = storage_unit.data_model_index
+
+        storage_nodes = env.snapshot_list["storage"]
+
+        # ######################### Check the storage upper bound for each sku ##############################
+        capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
+        remaining_spaces = storage_nodes[env.frame_index:storage_node_index:"remaining_space"].flatten().astype(np.int)
+
+        # The capacity should be same as the config
+        self.assertEqual(100, capacities[0])
+        self.assertEqual(100, capacities[1])
+        self.assertEqual(100 + 100, capacities.sum())
+
+        # All SKUs are saved in sub_storage 1
+        self.assertEqual(100 - 10 - 10 - 10, remaining_spaces[0])
+        self.assertEqual(100, remaining_spaces[1])
+        self.assertEqual(100 - 10 - 10 - 10 + 100, remaining_spaces.sum())
+
+        self.assertEqual(40 - 10, storage_unit.get_product_max_remaining_space(SKU1_ID))
+        self.assertEqual((100 - 40) // 2 - 10, storage_unit.get_product_max_remaining_space(SKU2_ID))
+        self.assertEqual((100 - 40) // 2 - 10, storage_unit.get_product_max_remaining_space(SKU3_ID))
+
+        # ######################### Test the try add with Limited by pre-set upper bound ##############################
+        result = storage_unit.try_add_products({SKU1_ID: 50}, add_strategy=AddStrategy.LimitedByUpperBound)
+        self.assertEqual(40 - 10, result[SKU1_ID])
+        self.assertEqual(0, storage_unit.get_product_max_remaining_space(SKU1_ID))
+
+        env.step(None)
+        remaining_spaces = storage_nodes[env.frame_index:storage_node_index:"remaining_space"].flatten().astype(np.int)
+        self.assertEqual(100 - 40 - 10 - 10, remaining_spaces[0])
+
+    """
     Consumer test:
 
     . initial state
@@ -811,7 +948,6 @@ class MyTestCase(unittest.TestCase):
 
         # ############################### Test Action with positive quantity ######################################
         action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, 1, "train")
-        purchase_tick: int = env.tick
         env.step([action])
 
         self.assertEqual(action.quantity, sku3_consumer_unit._purchased)
@@ -826,25 +962,6 @@ class MyTestCase(unittest.TestCase):
 
         # no receives
         self.assertEqual(0, states[IDX_RECEIVED])
-
-        # ############################### Check the receive quantity ######################################
-        # TODO: Add test case that receive in purchase_tick + vlt
-        # 0 or 1 day for scheduling, 7 days vlt, no extra days for loading and unloading
-        # expected_tick = purchase_tick + 7
-
-        # while env.tick <= expected_tick + 1:
-        #     env.step(None)
-
-        # frame_index = be.frame_index(purchase_tick + 7)
-        # states_1 = consumer_nodes[frame_index:consumer_node_index:features].flatten().astype(np.int)
-
-        # frame_index = be.frame_index(purchase_tick + 7 + 1)
-        # states_2 = consumer_nodes[frame_index:consumer_node_index:features].flatten().astype(np.int)
-
-        # self.assertTrue(any([
-        #     action.quantity == states_1[IDX_RECEIVED],
-        #     action.quantity == states_2[IDX_RECEIVED],
-        # ]))
 
     def test_consumer_on_order_reception(self):
         env = build_env("case_01", 100)
@@ -1385,7 +1502,7 @@ class MyTestCase(unittest.TestCase):
         self.assertListEqual([0, 1, 3, 6, 10] + [10] * 95, list(states))
 
     # TODO: Add 0-vlt test
-    # TODO: Add tests for Units' step order
+    # TODO: Add tests for Units' step order (In which tick will the consumer receive products after purchasing)
 
 if __name__ == '__main__':
     unittest.main()

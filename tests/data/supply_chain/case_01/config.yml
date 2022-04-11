@@ -16,6 +16,21 @@ facility_definitions:
         manufacture:
           class: "ManufactureUnit"
 
+  SimpleSupplierFacility: &simple_supplier_facility
+    class: "SupplierFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        manufacture:
+          class: "SimpleManufactureUnit"
+
 
 small_storage: &small_storage
   config:
@@ -102,7 +117,7 @@ world:
         unit_order_cost: 200
 
     - name: "Supplier_SKU2"
-      definition_ref: "SupplierFacility"
+      definition_ref: "SimpleSupplierFacility"
       skus:
         sku1:
           init_stock: 50

@@ -50,6 +50,17 @@ small_storage: &small_storage
     capacity: 100
     unit_storage_cost: 1
 
+multiple_storage: &multiple_storage
+  config:
+    -
+      id: 1
+      capacity: 100
+      unit_storage_cost: 1
+    -
+      id: 2
+      capacity: 100
+      unit_storage_cost: 1
+
 
 train_config: &train
   class: "VehicleUnit"
@@ -112,16 +123,20 @@ world:
       skus:
         sku1:
           init_stock: 10
+          sub_storage_id: 1
+          storage_upper_bound: 40
           price: 100
         sku2:
           init_stock: 10
+          sub_storage_id: 1
           price: 100
         sku3:
           init_stock: 10
+          sub_storage_id: 1
           price: 100
           has_consumer: True
       children:
-        storage: *small_storage
+        storage: *multiple_storage
         distribution: *normal_distribution
       config:
         unit_delay_order_penalty: 20

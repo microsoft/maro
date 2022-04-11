@@ -312,7 +312,10 @@ class StorageUnit(UnitBase):
             i += 1
 
         if has_changes:
-            self.data_model.remaining_space = self.remaining_space
+            i = 0
+            for remaining_space in self._remaining_space_dict.values():
+                self.data_model.remaining_space[i] = remaining_space
+                i += 1
 
     def reset(self) -> None:
         super(StorageUnit, self).reset()
