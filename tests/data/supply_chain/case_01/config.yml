@@ -147,6 +147,9 @@ world:
           has_manufacture: True
           unit_product_cost: 4
           price: 100
+        sku3:
+          init_stock: 50
+          price: 100
       children:
         storage: *medium_storage
         distribution: *normal_distribution
@@ -161,11 +164,15 @@ world:
           "train":
             vlt: 7
             cost: 1
+        "Supplier_SKU4":
+          "train":
+            vlt: 5
+            cost: 1
     Supplier_SKU2:
       sku1:
         "Supplier_SKU1":
           "train":
-            vlt: 7
+            vlt: 1  # TODO: test for 0-vlt
             cost: 1
     Supplier_SKU4:
       sku2:

@@ -225,7 +225,7 @@ class MyTestCase(unittest.TestCase):
 
         # remaining space should be capacity 200 - (sku4 50 + sku2 0)
         remaining_spaces = storage_nodes[env.frame_index:sku4_storage_index:"remaining_space"].flatten().astype(np.int)
-        self.assertEqual(200 - (50 + 0), remaining_spaces.sum())
+        self.assertEqual(200 - (50 + 0 + 50), remaining_spaces.sum())
 
         # no manufacture number as we have not pass any action
         manufacture_states = manufacture_nodes[
@@ -1501,8 +1501,144 @@ class MyTestCase(unittest.TestCase):
         states = seller_nodes[:seller_node_index:features[IDX_TOTAL_SOLD]].flatten().astype(np.int)
         self.assertListEqual([0, 1, 3, 6, 10] + [10] * 95, list(states))
 
-    # TODO: Add 0-vlt test
-    # TODO: Add tests for Units' step order (In which tick will the consumer receive products after purchasing)
+    """
+    Units Interaction tests:
+        . ComsumerUnit will receive products after vlt (+ 1) days
+        . Order with 0-vlt
+    """
+
+    def test_consumer_receive_products_after_vlt_days(self):
+        """Test Supplier_SKU1 ask products from Supplier_SKU3 and Supplier_SKU4 respectively.
+        The Supplier_SKU3's DistributionUnit would be processed before Supplier_SKU1,
+        so there would be vlt + 1 days before receiving,
+        while Supplier_SKU4's DistributionUnit would be processed after Supplier_SKU1,
+        so there would be only vlt days before Supplier_SKU1 receiving products from Supplier_SKU4.
+        """
+        env = build_env("case_01", 100)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+
+        env.step(None)
+
+        supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
+        supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
+        supplier_4: FacilityBase = be.world._get_facility_by_name("Supplier_SKU4")
+        sku3_consumer_unit = supplier_1.products[SKU3_ID].consumer
+        consumer_node_index = sku3_consumer_unit.data_model_index
+
+        features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
+        IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
+
+        consumer_nodes = env.snapshot_list["consumer"]
+
+        # ############################## Ask products from Supplier_SKU3 #######################################
+
+        required_quantity_1 = 1
+        action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, required_quantity_1, "train")
+        purchase_tick_1: int = env.tick
+
+        # 1 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU3 in config
+        # 7 days vlt, no extra days for loading and unloading
+        expected_tick_1 = purchase_tick_1 + 1 + 7
+
+        env.step([action])
+
+        while env.tick < expected_tick_1 - 1:
+            env.step(None)
+
+        # Not received yet.
+        self.assertEqual(required_quantity_1, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])
+        self.assertEqual(0, sku3_consumer_unit._received)
+
+        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        self.assertEqual(0, states[IDX_RECEIVED])
+
+        env.step(None)
+
+        self.assertEqual(expected_tick_1, env.tick)
+
+        # now all order is done
+        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])
+        self.assertEqual(required_quantity_1, sku3_consumer_unit._received)
+
+        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        self.assertEqual(required_quantity_1, states[IDX_RECEIVED])
+
+        # ############################## Ask products from Supplier_SKU4 #######################################
+
+        required_quantity_2 = 2
+        action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_4.id, required_quantity_2, "train")
+        purchase_tick_2: int = env.tick
+
+        # 0 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU4 in config
+        # 5 days vlt, no extra days for loading and unloading
+        expected_tick_2 = purchase_tick_2 + 0 + 5
+
+        env.step([action])
+
+        while env.tick < expected_tick_2 - 1:
+            env.step(None)
+
+        # Not received yet.
+        self.assertEqual(required_quantity_2, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
+        self.assertEqual(0, sku3_consumer_unit._received)
+
+        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        self.assertEqual(0, states[IDX_RECEIVED])
+
+        env.step(None)
+
+        self.assertEqual(expected_tick_2, env.tick)
+
+        # now all order is done
+        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
+        self.assertEqual(required_quantity_2, sku3_consumer_unit._received)
+
+        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        self.assertEqual(required_quantity_2, states[IDX_RECEIVED])
+
+    # def test_0_vlt(self):
+    #     """Test Supplier_SKU2 ask products from Supplier_SKU1 with 0-vlt."""
+    #     env = build_env("case_01", 100)
+    #     be = env.business_engine
+    #     assert isinstance(be, SupplyChainBusinessEngine)
+
+    #     env.step(None)
+
+    #     supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
+    #     supplier_2: FacilityBase = be.world._get_facility_by_name("Supplier_SKU2")
+    #     sku1_consumer_unit = supplier_2.products[SKU1_ID].consumer
+    #     consumer_node_index = sku1_consumer_unit.data_model_index
+
+    #     features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
+    #     IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+    #     IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
+
+    #     consumer_nodes = env.snapshot_list["consumer"]
+
+    #     # ############################## Ask products from Supplier_SKU3 #######################################
+
+    #     required_quantity_1 = 10
+    #     action = ConsumerAction(sku1_consumer_unit.id, SKU1_ID, supplier_1.id, required_quantity_1, "train")
+    #     purchase_tick_1: int = env.tick
+
+    #     # 1 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU2 in config
+    #     # 0 days vlt, no extra days for loading and unloading
+    #     expected_tick_1 = purchase_tick_1 + 1 + 0
+
+    #     env.step([action])
+
+    #     # TODO: Figure out 0-vlt case
+    #     # self.assertEqual(expected_tick_1, env.tick)
+
+    #     # TODO: Figure out 0-vlt case
+    #     # now all order is done
+    #     # self.assertEqual(required_quantity_1, sku1_consumer_unit._received)
+
+    #     states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+    #     self.assertEqual(required_quantity_1, states[IDX_RECEIVED])
+
 
 if __name__ == '__main__':
     unittest.main()

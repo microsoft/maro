@@ -51,7 +51,7 @@ class SkuInfo:
 class VendorLeadingTimeInfo:
     src_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
-    vlt: int  # NOTE: Valid minimal value: 1
+    vlt: int
     unit_transportation_cost: float
 
 
@@ -59,7 +59,7 @@ class VendorLeadingTimeInfo:
 class LeadingTimeInfo:
     dest_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
-    vlt: int  # NOTE: Valid minimal value: 1
+    vlt: int
     unit_transportation_cost: float
 
 

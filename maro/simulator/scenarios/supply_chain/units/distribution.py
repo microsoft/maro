@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order
 from .unitbase import UnitBase, BaseUnitInfo
-from .vehicle import VehicleUnit
+from .vehicle import VehicleStatus, VehicleUnit
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
@@ -69,7 +69,7 @@ class DistributionUnit(UnitBase):
 
         for vehicle_list in self.vehicles.values():  # TODO: check whether count these quantity in or not
             for vehicle in vehicle_list:
-                if vehicle.is_enroute():
+                if vehicle.status != VehicleStatus.Free:
                     counter[vehicle.product_id] += (vehicle.requested_quantity - vehicle.payload)
 
         return counter

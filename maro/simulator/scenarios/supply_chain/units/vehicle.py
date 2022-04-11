@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import typing
+from enum import Enum
 from typing import Optional, Union
 
 from .storage import AddStrategy
@@ -13,6 +14,12 @@ if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
     from maro.simulator.scenarios.supply_chain.world import World
 
+
+class VehicleStatus(Enum):
+    Free = 0
+    LoadingProducts = 1
+    OnTheWayToDestination = 2
+    UnloadingProducts = 3
 
 class VehicleUnit(UnitBase):
     """Unit used to move production from source to destination by order."""
@@ -44,6 +51,8 @@ class VehicleUnit(UnitBase):
         self._remaining_steps = 0
         # The steps already traveled from the source facility.
         self._steps = 0
+        # Vehicle status
+        self._status: VehicleStatus = VehicleStatus.Free
 
         # Max patient to wait for the try_load() operation, order would be cancelled if patient depleted.
         self._max_patient: Optional[int] = None
@@ -64,6 +73,7 @@ class VehicleUnit(UnitBase):
 
         # Steps to destination.
         self._remaining_steps = vlt
+        self._status = VehicleStatus.LoadingProducts
 
         dest_consumer = destination.products[product_id].consumer
         if self._remaining_steps < len(dest_consumer.pending_order_daily):
@@ -112,8 +122,9 @@ class VehicleUnit(UnitBase):
             self.payload -= unloaded_quantity
             self.data_model.payload = self.payload
 
-    def is_enroute(self) -> bool:
-        return self._destination is not None
+    @property
+    def status(self) -> VehicleStatus:
+        return self._status
 
     def initialize(self) -> None:
         super(VehicleUnit, self).initialize()
@@ -124,38 +135,36 @@ class VehicleUnit(UnitBase):
         self._max_patient = self.config.get("patient", 100)  # TODO: confirm the default value setting
 
     def _step_impl(self, tick: int) -> None:
-        # If we have not arrived at destination yet.
-        if self._remaining_steps > 0:
-            # if we still not loaded enough productions yet.
-            if self._steps == 0 and self.payload == 0:
-                # then try to load by requested.
-                if not self.try_load(self.requested_quantity):
-                    self._remaining_patient -= 1
+        if self._status == VehicleStatus.LoadingProducts:
+            # Try to load by requested.
+            if not self.try_load(self.requested_quantity):
+                self._remaining_patient -= 1
 
-                    # Failed to load, check the patient.
-                    if self._remaining_patient <= 0:
-                        self._destination.products[self.product_id].consumer.update_open_orders(
-                            source_id=self.facility.id,
-                            product_id=self.product_id,
-                            additional_quantity=-self.requested_quantity,
-                        )
+                # Failed to load, check the patient.
+                if self._remaining_patient <= 0:
+                    self._destination.products[self.product_id].consumer.update_open_orders(
+                        source_id=self.facility.id,
+                        product_id=self.product_id,
+                        additional_quantity=-self.requested_quantity,
+                    )
 
-                        self._reset_internal_states()
-                        self._reset_data_model()
+                    self._reset_internal_states()
+                    self._reset_data_model()
+                    # TODO: Add penalty for try-load failure.
+                    return
+            else:
+                self._status = VehicleStatus.OnTheWayToDestination
 
-                        # TODO: Add penalty for try-load failure.
-
-                        return
-
-            # If load successfully, the vehicle will move immediately.
-            # Moving to destination
-            if self.payload > 0:
+        if self._status == VehicleStatus.OnTheWayToDestination:
+            if self._remaining_steps > 0:
                 # Closer to destination until 0.
                 self._steps += 1
                 self._remaining_steps -= 1
 
-        # NOTE: the remaining steps would be changed in last if-condition, so we need to adjust the value again.
-        if self._remaining_steps == 0:
+            if self._remaining_steps == 0:
+                self._status = VehicleStatus.UnloadingProducts
+
+        if self._status == VehicleStatus.UnloadingProducts:
             # Try to unload.
             if self.payload > 0:
                 self.try_unload()  # TODO: to confrim -- the logic is to try unload until all. Add a patient for it?
@@ -184,6 +193,7 @@ class VehicleUnit(UnitBase):
         self.payload = 0
         self._remaining_steps = 0
         self._steps = 0
+        self._status = VehicleStatus.Free
         self._remaining_patient = self._max_patient
 
     def _reset_data_model(self) -> None:
