@@ -153,7 +153,7 @@ class SellerDemandSampler(ABC):
             tick (int): Tick of environment, NOTE: this tick is start from 0,
                 you may need to transform it to your time system.
         """
-        pass
+        raise NotImplementedError
 
 
 class DataFileDemandSampler(SellerDemandSampler):

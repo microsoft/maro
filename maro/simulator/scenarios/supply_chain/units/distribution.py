@@ -74,14 +74,14 @@ class DistributionUnit(UnitBase):
 
         return counter
 
-    def place_order(self, order: Order) -> int:
+    def place_order(self, order: Order) -> float:
         """Place an order in the pending order queue, and calculate the corresponding order fee.
 
         Args:
             order (Order): Order to insert.
 
         Returns:
-            int: The corresponding total order fee, will paid by the consumer.
+            float: The corresponding total order fee, will paid by the consumer.
         """
         if order.quantity > 0:
             sku = self.facility.skus[order.product_id]
