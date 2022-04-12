@@ -21,7 +21,7 @@ consumer_received,consumer_order_cost,
 consumer_order_product_cost,seller_sold,seller_demand,
 seller_price,seller_backlog_ratio,
 manufacture_manufacture_quantity,
-manufacture_product_unit_cost,product_price,
+manufacture_unit_product_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
 """
@@ -40,7 +40,7 @@ def compute_warehouse_balance(row):
 
 def compute_supplier_balance(row):
     return (row['consumer_order_product_cost']
-            -row['manufacture_product_unit_cost']*row['manufacture_manufacture_quantity']
+            -row['manufacture_unit_product_cost']*row['manufacture_manufacture_quantity']
             -row['product_delay_order_penalty']
             -row['product_transportation_cost']
             - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
@@ -164,7 +164,7 @@ consumer_received,consumer_order_cost,
 consumer_order_product_cost,seller_sold,seller_demand,
 seller_price,seller_backlog_ratio,
 manufacture_manufacture_quantity,
-manufacture_product_unit_cost,product_price,
+manufacture_unit_product_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
 """

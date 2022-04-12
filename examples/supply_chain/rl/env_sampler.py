@@ -24,6 +24,8 @@ from .config import distribution_features, env_conf, seller_features, TEAM_REWAR
 from .env_helper import STORAGE_INFO
 from .policies import agent2policy, trainable_policies
 from .state_template import STATE_TEMPLATE, sku_id2idx, workflow_settings, _serialize_state
+from .algorithms.rule_based import ConsumerEOQPolicy as ConsumerBaselinePolicy
+from .render_tools import SimulationTracker
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -442,9 +444,8 @@ class SCEnvSampler(AbsEnvSampler):
             consumer_action_dict = {}
             for entity_id, entity in self._entity_dict.items():
                 if issubclass(entity.class_type, ConsumerUnit):
-                    ori_action = (env_action_dict[entity_id].action_idx if entity_id in env_action_dict else 0)
                     action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
-                    consumer_action_dict[entity_id] = (action, ori_action, reward[entity_id])
+                    consumer_action_dict[entity_id] = (action, reward[entity_id])
             print(step_idx, consumer_action_dict)
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event, cache_element.tick)

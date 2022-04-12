@@ -183,19 +183,19 @@ world:
       skus:
         "component_1":
           price: 33
-          init_stock: 5000
+          init_stock: 500
           sub_storage_id: 1
           has_consumer: True
           unit_order_cost: 80
         "component_2":
           price: 33
-          init_stock: 5000
+          init_stock: 500
           sub_storage_id: 1
           has_consumer: True
           unit_order_cost: 80
         "hobby_1":
           price: 33
-          init_stock: 5000
+          init_stock: 300
           sub_storage_id: 2
           has_manufacture: True
           production_rate: 10000
@@ -212,12 +212,12 @@ world:
       skus:
         "food_1":
           price: 33
-          init_stock: 10000
+          init_stock: 200
           sub_storage_id: 0
           has_consumer: True
         "hobby_1":
           price: 33
-          init_stock: 5000
+          init_stock: 500
           sub_storage_id: 0
           has_consumer: True
       children:
@@ -231,16 +231,16 @@ world:
       definition_ref: "StoreFacility"
       skus:
         "food_1":
-          price: 33
-          init_stock: 10000
+          price: 120
+          init_stock: 100
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
           sale_gamma: 160
           backlog_ratio: 0.0
         "hobby_1":
-          price: 33
-          init_stock: 5000
+          price: 80
+          init_stock: 50
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
@@ -255,7 +255,7 @@ world:
         price_column: Price
         sale_column: Sales
         datetime_column: Date
-        file_path: "/home/Jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
+        file_path: "/data/songlei/maro_ms/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
 
   topology:
     "Store_001":

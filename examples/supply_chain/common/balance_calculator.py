@@ -45,7 +45,7 @@ class BalanceSheetCalculator:
     consumer_features = ("id", "purchased", "received",
                          "order_cost", "order_product_cost")
     seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
-    manufacture_features = ("id", "manufacture_quantity", "product_unit_cost")
+    manufacture_features = ("id", "manufacture_quantity", "unit_product_cost")
     product_features = (
         "id", "price", 'check_in_quantity_in_order', 'delay_order_penalty', "transportation_cost")
     storage_features = ("capacity", "remaining_space")

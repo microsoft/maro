@@ -138,6 +138,7 @@ class ProductUnit(ExtendUnitBase):
         sale_mean = 0
         downstream_infos: List[LeadingTimeInfo] = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
+
         for info in downstream_infos:
             sale_mean += info.dest_facility.products[self.product_id].get_sale_mean()
 
@@ -163,7 +164,7 @@ class ProductUnit(ExtendUnitBase):
 
     def _get_max_vlt(self) -> Optional[int]:
         upstream_infos: Optional[List[VendorLeadingTimeInfo]] = self.facility.upstream_vlt_infos
-        if upstream_infos is not None and self.product_id in upstream_infos:
+        if upstream_infos is not None and self.product_id in upstream_infos and len(upstream_infos[self.product_id]) > 0:
             return max([info.vlt for info in upstream_infos[self.product_id]])
         else:
             return None

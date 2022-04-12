@@ -37,9 +37,9 @@ if __name__ == "__main__":
     # facility_types = ['ProductUnit', 'StoreProductUnit']
     tracker = result['tracker']
     tracker.render('%s/a_plot_balance.png' %
-                    LOG_PATH, tracker.step_balances, ["OuterRetailerFacility"])
+                    LOG_PATH, tracker.step_balances, ["RetailerFacility"])
     tracker.render('%s/a_plot_reward.png' %
-                LOG_PATH, tracker.step_rewards, ["OuterRetailerFacility"])
+                LOG_PATH, tracker.step_rewards, ["RetailerFacility"])
     tracker.render_sku(LOG_PATH)
     
     df_product = pd.DataFrame(env_sampler._balance_calculator.product_metric_track)

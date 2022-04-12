@@ -192,6 +192,7 @@ for entity in env.business_engine.get_entity_list():
     state['is_over_stock'] = 0
     state['is_out_of_stock'] = 0
     state['is_below_rop'] = 0
+    state['baseline_action'] = 0
 
     if len(current_source_list) > 0:
         for i, source in enumerate(current_source_list):
