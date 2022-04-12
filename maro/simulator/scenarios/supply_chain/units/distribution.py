@@ -94,7 +94,6 @@ class DistributionUnit(UnitBase):
                 order_total_price = sku.price * order.quantity
 
                 self.check_in_quantity_in_order[order.product_id] += order.quantity
-
                 return order_total_price
 
         return 0
@@ -108,11 +107,12 @@ class DistributionUnit(UnitBase):
     def _step_impl(self, tick: int):
         # TODO: update vehicle types and distribution step logic
         for vehicle_type, vehicle_list in self.vehicles.items():
+            print(vehicle_type, len(vehicle_list))
             for vehicle in vehicle_list:
+                print(vehicle.requested_quantity)
                 # If we have vehicle not on the way and there is any pending order.
                 if len(self._order_queues[vehicle_type]) > 0 and vehicle.requested_quantity == 0:
                     order: Order = self._order_queues[vehicle_type].popleft()
-
                     # Schedule a job for available vehicle.
                     vehicle.schedule(
                         order.destination,

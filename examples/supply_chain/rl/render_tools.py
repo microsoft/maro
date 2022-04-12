@@ -45,6 +45,7 @@ def compute_supplier_balance(row):
             -row['product_transportation_cost']
             - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
 
+
 class SimulationComparisionTrackerHtml:
     def __init__(self, model1, log_path1, model2, log_path2, start_dt='2022-01-01'):
         self.log_path1 = log_path1

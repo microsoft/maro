@@ -183,13 +183,13 @@ world:
       skus:
         "component_1":
           price: 33
-          init_stock: 500
+          init_stock: 5000
           sub_storage_id: 1
           has_consumer: True
           unit_order_cost: 80
         "component_2":
           price: 33
-          init_stock: 500
+          init_stock: 5000
           sub_storage_id: 1
           has_consumer: True
           unit_order_cost: 80
@@ -198,7 +198,7 @@ world:
           init_stock: 300
           sub_storage_id: 2
           has_manufacture: True
-          production_rate: 10000
+          production_rate: 1000
           unit_product_cost: 14
       children:
         storage: *multi_storage
@@ -212,12 +212,12 @@ world:
       skus:
         "food_1":
           price: 33
-          init_stock: 200
+          init_stock: 2000
           sub_storage_id: 0
           has_consumer: True
         "hobby_1":
           price: 33
-          init_stock: 500
+          init_stock: 5000
           sub_storage_id: 0
           has_consumer: True
       children:

@@ -95,7 +95,6 @@ class VehicleUnit(UnitBase):
 
             # Write to frame, as we do not need to update it per tick.
             self.data_model.payload = quantity
-
             return True
 
         return False

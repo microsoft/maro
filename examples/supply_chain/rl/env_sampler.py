@@ -266,16 +266,16 @@ class SCEnvSampler(AbsEnvSampler):
                     product_unit_id = self._storage_info["unit2product"][unit_id][0]
                     if np.isscalar(action):
                         action = [action]
-                    try:
-                        if (ALGO == "PPO" and isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy)):
-                            or_action = agent_state_dict[agent_id][-1]
-                            action_idx = max(0, int(action[0] - 1 + or_action))
-                        else:
-                            action_idx = action[0]
-                        action_number = action_idx * self._cur_metrics["products"][product_unit_id]["sale_mean"]
-                    except ValueError:
-                        action_number = 0
-                        action_idx = 0
+                    # try:
+                    if (ALGO == "PPO" and isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy)):
+                        or_action = agent_state_dict[agent_id][-1]
+                        action_idx = max(0, int(action[0] - 1 + or_action))
+                    else:
+                        action_idx = action[0]
+                    action_number = action_idx * self._cur_metrics["products"][product_unit_id]["sale_mean"]
+                    # except ValueError:
+                    #     action_number = 0
+                    #     action_idx = 0
 
                     # ignore 0 quantity to reduce action number
                     if action_number:
