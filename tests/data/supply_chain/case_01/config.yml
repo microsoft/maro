@@ -1,18 +1,4 @@
-
-normal_vehicle: &normal_vehicle
-  class: "VehicleUnit"
-  config:
-    patient: 100
-
-normal_distribution: &normal_distribution
-  class: "DistributionUnit"
-  children:
-    vehicles:
-      - *normal_vehicle
-      - *normal_vehicle
-  config:
-    unit_price: 1
-
+# Test for ManufactureUnit, StorageUnit, ConsumerUnit
 
 facility_definitions:
   SupplierFacility: &supplier_facility
@@ -20,16 +6,32 @@ facility_definitions:
     children:
       storage:
         class: "StorageUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
-          manufacture:
-            class: "ManufactureUnit"
       distribution:
         class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        manufacture:
+          class: "ManufactureUnit"
+
+  SimpleSupplierFacility: &simple_supplier_facility
+    class: "SupplierFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        manufacture:
+          class: "SimpleManufactureUnit"
+
+
 small_storage: &small_storage
   config:
     capacity: 100
@@ -40,10 +42,17 @@ medium_storage: &medium_storage
     capacity: 200
     unit_storage_cost: 1
 
-huge_storage: &huge_storage
+
+train_config: &train
+  class: "VehicleUnit"
   config:
-    capacity: 300
-    unit_storage_cost: 1
+    patient: 3
+
+normal_distribution: &normal_distribution
+  vehicles:
+    train:
+      number: 2
+      config: *train
 
 
 skus: &sku_definitions
@@ -61,7 +70,6 @@ skus: &sku_definitions
 
   - id: 3
     name: "sku3"
-    output_units_per_lot: 1
 
   - id: 4
     name: "sku4"
@@ -80,101 +88,98 @@ world:
       skus:
         sku3:
           init_stock: 80
-          product_unit_cost: 1
-          type: "production"
-          cost: 10
+          has_manufacture: True
+          unit_product_cost: 1
           price: 10
       children:
         storage: *small_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
+        unit_delay_order_penalty: 10
+
     - name: "Supplier_SKU1"
       definition_ref: "SupplierFacility"
       skus:
         sku1:
           init_stock: 96
-          product_unit_cost: 1
-          type: "production"
-          cost: 10
+          has_manufacture: True
+          unit_product_cost: 1
           price: 100
         sku3:
           init_stock: 100
-          type: "material"
-          cost: 10
+          has_consumer: True
           price: 100
       children:
         storage: *medium_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 200
+        unit_delay_order_penalty: 10
+        unit_order_cost: 200
+
     - name: "Supplier_SKU2"
-      definition_ref: "SupplierFacility"
+      definition_ref: "SimpleSupplierFacility"
       skus:
-        sku2:
-          init_stock: 50
-          product_unit_cost: 1
-          type: "production"
-          cost: 10
-          price: 100
         sku1:
           init_stock: 50
-          type: "material"
-          cost: 10
+          has_consumer: True
+          price: 100
+        sku2:
+          init_stock: 50
+          has_manufacture: True
+          unit_product_cost: 1
           price: 100
       children:
         storage: *medium_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 200
+        unit_delay_order_penalty: 10
+        unit_order_cost: 200
+
     - name: "Supplier_SKU4"
       definition_ref: "SupplierFacility"
       skus:
-        sku4:
-          init_stock: 50
-          product_unit_cost: 4
-          type: "production"
-          cost: 10
-          price: 100
         sku2:
           init_stock: 0
-          type: "material"
-          cost: 10
+          has_consumer: True
+          price: 100
+        sku4:
+          init_stock: 50
+          has_manufacture: True
+          unit_product_cost: 4
+          price: 100
+        sku3:
+          init_stock: 50
           price: 100
       children:
         storage: *medium_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 200
+        unit_delay_order_penalty: 10
+        unit_order_cost: 200
+
   topology:
     Supplier_SKU1:
       sku3:
-        - "Supplier_SKU3"
+        "Supplier_SKU3":
+          "train":
+            vlt: 7
+            cost: 1
+        "Supplier_SKU4":
+          "train":
+            vlt: 5
+            cost: 1
     Supplier_SKU2:
       sku1:
-        - "Supplier_SKU1"
+        "Supplier_SKU1":
+          "train":
+            vlt: 1  # TODO: test for 0-vlt
+            cost: 1
     Supplier_SKU4:
       sku2:
-        - "Supplier_SKU2"
-
-  grid:
-    size: [20, 20]
-
-    facilities:
-      Supplier_SKU1: [0, 0]
-      Supplier_SKU2: [3, 3]
-      Supplier_SKU3: [6, 6]
-      Supplier_SKU4: [10, 18]
-
-    blocks:
-      railroad:
-        - [10, 10]
-        - [10, 11]
-        - [10, 12]
-        - [11, 12]
+        "Supplier_SKU2":
+          "train":
+            vlt: 7
+            cost: 1
 
 settings:
   pending_order_len: 4

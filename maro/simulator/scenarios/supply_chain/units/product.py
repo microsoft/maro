@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
+import typing
 import numpy as np
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 
@@ -15,6 +16,12 @@ from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
 from .manufacture import ManufactureUnit, ManufactureUnitInfo
 from .seller import SellerUnit, SellerUnitInfo
 from .storage import StorageUnit
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, VendorLeadingTimeInfo
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 @dataclass
@@ -22,14 +29,19 @@ class ProductUnitInfo(ExtendUnitInfo):
     consumer_info: Optional[ConsumerUnitInfo]
     manufacture_info: Optional[ManufactureUnitInfo]
     seller_info: Optional[SellerUnitInfo]
-    max_vlt: int
+    max_vlt: Optional[int]
 
 
 class ProductUnit(ExtendUnitBase):
     """Unit that used to group units of one specific SKU, usually contains consumer, seller and manufacture."""
 
-    def __init__(self) -> None:
-        super(ProductUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(ProductUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
         # The consumer unit of this SKU.
         self.consumer: Optional[ConsumerUnit] = None
@@ -124,93 +136,53 @@ class ProductUnit(ExtendUnitBase):
         """"Here the sale mean of up-streams means the sum of its down-streams,
         which indicates the daily demand of this product from the aspect of the facility it belongs."""
         sale_mean = 0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
+        downstream_infos: List[LeadingTimeInfo] = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
-        for facility in downstreams:
-            sale_mean += facility.products[self.product_id].get_sale_mean()
+        for info in downstream_infos:
+            sale_mean += info.dest_facility.products[self.product_id].get_sale_mean()
 
         return sale_mean
 
     def get_sale_std(self) -> float:
         sale_std = 0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
+        downstream_infos = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
-        for facility in downstreams:
-            sale_std += facility.products[self.product_id].get_sale_std()
+        for info in downstream_infos:
+            sale_std += info.dest_facility.products[self.product_id].get_sale_std()
 
-        return sale_std / np.sqrt(max(1, len(downstreams)))
+        return sale_std / np.sqrt(max(1, len(downstream_infos)))
 
     def get_max_sale_price(self) -> float:
         price = 0.0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
+        downstream_infos = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
-        for facility in downstreams:
-            price = max(price, facility.products[self.product_id].get_max_sale_price())
+        for info in downstream_infos:
+            price = max(price, info.dest_facility.products[self.product_id].get_max_sale_price())
 
         return price
 
-    def _get_max_vlt(self) -> int:
-        # TODO: update with vlt logic
-        vlt = 1
+    def _get_max_vlt(self) -> Optional[int]:
+        upstream_infos: Optional[List[VendorLeadingTimeInfo]] = self.facility.upstream_vlt_infos
+        if upstream_infos is not None and self.product_id in upstream_infos:
+            return max([info.vlt for info in upstream_infos[self.product_id]])
+        else:
+            return None
 
-        if self.consumer is not None:
-            for f_id in self.consumer.source_facility_id_list:
-                vlt = max(vlt, self.world.get_facility_by_id(f_id).skus[self.product_id].vlt)
 
-        return vlt
+class StoreProductUnit(ProductUnit):
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(StoreProductUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
-    @staticmethod
-    def generate(facility, config: dict, unit_def: object) -> Dict[int, ProductUnit]:
-        """Generate product unit by sku information.
+    def get_sale_mean(self) -> float:
+        return self.seller.sale_mean()
 
-        Args:
-            facility (FacilityBase): Facility this product belongs to.
-            config (dict): Config of children unit.
-            unit_def (object): Definition of the unit (from config).
+    def get_sale_std(self) -> float:
+        return self.seller.sale_std()
 
-        Returns:
-            dict: Dictionary of product unit, key is the product id, value is ProductUnit.
-        """
-        products_dict: Dict[int, ProductUnit] = {}
-
-        if facility.skus is not None and len(facility.skus) > 0:
-            world = facility.world
-
-            for sku_id, sku in facility.skus.items():
-                sku_type = sku.type
-
-                product_unit: ProductUnit = world.build_unit_by_type(unit_def, facility, facility)
-                product_unit.product_id = sku_id
-                product_unit.children = []
-                product_unit.parse_configs(config)
-                product_unit.storage = product_unit.facility.storage
-                product_unit.distribution = product_unit.facility.distribution
-
-                # NOTE: BE CAREFUL about the order, product unit will use this order update children,
-                # the order may affect the states.
-                # Here we make sure consumer is the first one, so it can place order first.
-                for child_name in ("consumer", "seller", "manufacture"):
-                    conf = config.get(child_name, None)
-
-                    if conf is not None:
-                        # Ignore manufacture unit if it is not for a production, even it is configured in config.
-                        if sku_type != "production" and child_name == "manufacture":
-                            continue
-
-                        # We produce the product, so we do not need to purchase it.
-                        if sku_type == "production" and child_name == "consumer":
-                            continue
-
-                        child_unit = world.build_unit(facility, product_unit, conf)
-                        child_unit.product_id = sku_id
-
-                        setattr(product_unit, child_name, child_unit)
-
-                        # Parse config for unit.
-                        child_unit.parse_configs(conf.get("config", {}))
-
-                        product_unit.children.append(child_unit)
-
-                products_dict[sku_id] = product_unit
-
-        return products_dict
+    def get_max_sale_price(self) -> float:
+        return self.facility.skus[self.product_id].price

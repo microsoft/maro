@@ -189,7 +189,7 @@ class ConfigParser:
 
             # Go through world configurations to generate a full one.
             # . Copy other configurations first
-            for sub_conf_name in ("skus", "topology", "grid"):
+            for sub_conf_name in ("skus", "topology"):
                 self._result.world[sub_conf_name] = world_def[sub_conf_name]
 
             # . Copy facilities content different if without definition reference.

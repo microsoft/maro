@@ -14,19 +14,19 @@ class ManufactureDataModel(ExtendDataModel):
     # user can determine how to calculate the cost.
     manufacture_quantity = NodeAttribute(AttributeType.UInt)
 
-    product_unit_cost = NodeAttribute(AttributeType.Float)  # TODO: rename to someone with clear meaning.
+    unit_product_cost = NodeAttribute(AttributeType.Float)
 
     def __init__(self) -> None:
         super(ManufactureDataModel, self).__init__()
 
-        self._product_unit_cost = 0
+        self._unit_product_cost = 0
 
-    def initialize(self, product_unit_cost) -> None:
-        self._product_unit_cost = product_unit_cost
+    def initialize(self, unit_product_cost) -> None:
+        self._unit_product_cost = unit_product_cost
 
         self.reset()
 
     def reset(self) -> None:
         super(ManufactureDataModel, self).reset()
 
-        self.product_unit_cost = self._product_unit_cost
+        self.unit_product_cost = self._unit_product_cost

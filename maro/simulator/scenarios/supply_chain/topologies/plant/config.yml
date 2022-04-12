@@ -1,0 +1,305 @@
+# core: optional. additional to the ones in core.yml
+# facility_definitions: optional.
+# world: must have.
+#   world.skus: must have.
+#   world.facility: must have.
+#   world.topology: must have.
+# settings: optional.
+
+
+facility_definitions:
+  # Key: would be used as "definition_ref" in world.facilities
+  VendorFacility:
+    # class: the class alias defined in core.yml
+    class: "SupplierFacility"
+    datamodel: "FacilityDataModel"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        manufacture:
+          class: "SimpleManufactureUnit"
+
+  PlantFacility:
+    class: "SupplierFacility"
+    datamodel: "FacilityDataModel"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        manufacture:
+          class: "ManufactureUnit"
+        consumer:
+          class: "ConsumerUnit"
+
+  WarehouseFacility:
+    class: "WarehouseFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+
+  StoreFacility:
+    class: "OuterRetailerFacility"
+    datamodel: "FacilityDataModel"
+    children:
+      storage:
+        class: "StorageUnit"
+    products:
+      class: "StoreProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        seller:
+          class: "OuterSellerUnit"
+          config:
+            sale_hist_len: 14
+    config:
+      seller_sampler_type: data # data, model. What kind of sampler to use for seller.
+      sku_column: "SKU" # SKU column name
+      price_column: "Price" # Price column name
+      sale_column: "Sales" # Sales column name
+      datetime_column: "DT" # Datetime column name
+      file_path: "/path/to/data.csv" # full path to data file, override by each store instance
+
+
+train_config: &train
+  class: "VehicleUnit"
+  config:
+    patient: 2
+    # unit_transport_cost: 1
+
+air_config: &air
+  class: "VehicleUnit"
+  config:
+    patient: 1
+
+mix_distribution: &mix_distribution
+  vehicles:
+    train:
+      number: 14
+      config: *train
+    air:
+      number: 4
+      config: *air
+
+simple_distribution: &simple_distribution
+  vehicles:
+    train:
+      number: 14
+      config: *train
+
+
+multi_storage: &multi_storage
+  config:
+    -
+      id: 1
+      capacity: 80000
+      unit_storage_cost: 0.1
+    -
+      id: 2
+      capacity: 80000
+      unit_storage_cost: 0.1
+
+single_storage: &single_storage
+  config:
+    capacity: 80000
+    unit_storage_cost: 0.1
+
+
+world:
+  skus:
+    # corresponding to SkuMeta
+    - id: 10  # The sku.id in simulator
+      name: "component_1"
+
+    - id: 11
+      name: "component_2"
+
+    - id: 20
+      name: "food_1"
+
+    - id: 30
+      name: "hobby_1"
+      output_units_per_lot: 1
+      bom:
+        # The key could be sku id or sku name.
+        "component_1": 1
+        "component_2": 1
+
+  facilities:
+    - name: "Vendor_001"
+      # definition_ref: key in facility_definitions,
+      #   the corresponding definition would be copied to this facility.
+      definition_ref: "VendorFacility"
+      skus:  # would be parsed by FacilityBase.parse_skus() => SkuInfo
+        "food_1":  # The key can be sku id or name
+          price: 33
+          init_stock: 10000
+          sub_storage_id: 0
+          has_manufacture: True
+          production_rate: 10000
+          unit_product_cost: 14
+          unit_delay_order_penalty: 1000
+        "component_1":
+          price: 33
+          init_stock: 10000
+          sub_storage_id: 0
+          has_manufacture: True
+          production_rate: 10000
+          unit_product_cost: 14
+          unit_delay_order_penalty: 900
+        "component_2":
+          price: 33
+          init_stock: 10000
+          sub_storage_id: 0
+          has_manufacture: True
+          production_rate: 10000
+          unit_product_cost: 14
+          unit_delay_order_penalty: 900
+      children:  # Would be used to initialize the facility.children
+        storage: *single_storage
+        distribution: *mix_distribution
+      config:  # would be FacilityBase.configs directly
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
+
+    - name: "Plant_001"
+      definition_ref: "PlantFacility"
+      skus:
+        "component_1":
+          price: 33
+          init_stock: 5000
+          sub_storage_id: 1
+          has_consumer: True
+          unit_order_cost: 80
+        "component_2":
+          price: 33
+          init_stock: 5000
+          sub_storage_id: 1
+          has_consumer: True
+          unit_order_cost: 80
+        "hobby_1":
+          price: 33
+          init_stock: 5000
+          sub_storage_id: 2
+          has_manufacture: True
+          production_rate: 10000
+          unit_product_cost: 14
+      children:
+        storage: *multi_storage
+        distribution: *simple_distribution
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
+
+    - name: "Warehouse_001"
+      definition_ref: "WarehouseFacility"
+      skus:
+        "food_1":
+          price: 33
+          init_stock: 10000
+          sub_storage_id: 0
+          has_consumer: True
+        "hobby_1":
+          price: 33
+          init_stock: 5000
+          sub_storage_id: 0
+          has_consumer: True
+      children:
+        storage: *single_storage
+        distribution: *mix_distribution
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
+
+    - name: "Store_001"
+      definition_ref: "StoreFacility"
+      skus:
+        "food_1":
+          price: 33
+          init_stock: 10000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 160
+          backlog_ratio: 0.0
+        "hobby_1":
+          price: 33
+          init_stock: 5000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 160
+          backlog_ratio: 0.0
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 200
+        seller_sampler_type: data
+        sku_column: SKU
+        price_column: Price
+        sale_column: Sales
+        datetime_column: Date
+        file_path: "/home/Jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
+
+  topology:
+    "Store_001":
+      "food_1":
+        "Warehouse_001":
+          "air":
+            vlt: 2
+            cost: 3.0
+          "train":
+            vlt: 7
+            cost: 0.5
+      "hobby_1":
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 0.6
+
+    "Warehouse_001":
+      "food_1":
+        "Vendor_001":
+          "air":
+            vlt: 2
+            cost: 2.0
+          "train":
+            vlt: 7
+            cost: 0.3
+      "hobby_1":
+        "Plant_001":
+          "train":
+            vlt: 7
+            cost: 0.35
+
+    "Plant_001":
+      "component_1":
+        "Vendor_001":
+          "train":
+            vlt: 7
+            cost: 0.2
+      "component_2":
+        "Vendor_001":
+          "train":
+            vlt: 7
+            cost: 0.2
+
+settings:
+  pending_order_len: 4  # For initialization of Consumer Units
+  start_date_time: "2021-01-01"

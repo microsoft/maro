@@ -42,46 +42,39 @@ class UnitBase:
     . Unit.set_action is called when there is any action from out-side.
 
     """
-    # Id of this unit.
-    id: int = 0
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
 
-    # Which this unit belongs to.
-    facility: Optional[FacilityBase] = None
+        # Id of this unit.
+        self.id: int = id
 
-    # Which world this unit belongs to.
-    world: Optional[World] = None
+        # Data model name in the frame, used to query binding data model instance.
+        self.data_model_name: Optional[str] = data_model_name
+        # Data model instance index in the frame, used to query binding data model instance.
+        self.data_model_index: Optional[int] = data_model_index
 
-    # Parent of this unit, it can be a facility or another unit.
-    parent: Optional[Union[FacilityBase, UnitBase]] = None
+        # Which this unit belongs to.
+        self.facility: FacilityBase = facility
 
-    # Child units, extended unit can add their own child as property, this is used as a collection.
-    children: Optional[list] = None
+        # Parent of this unit, it can be a facility or another unit.
+        self.parent: Union[FacilityBase, UnitBase] = parent
 
-    # Data model name in the frame, used to query binding data model instance.
-    data_model_name: Optional[str] = None
+        # Which world this unit belongs to.
+        self.world: World = world
 
-    # Data model instance index in the frame, used to query binding data model instance.
-    data_model_index: Optional[int] = None
+        # Current unit configurations.
+        self.config: dict = config
 
-    # Real data model binding with this unit.
-    data_model: Optional[DataModelBase] = None
+        # Child units, extended unit can add their own child as property, this is used as a collection.
+        self.children: Optional[list] = None
 
-    # Current action.
-    action: Optional[SupplyChainAction] = None
+        # Real data model binding with this unit.
+        self.data_model: Optional[DataModelBase] = None
 
-    # Current unit configurations.
-    config: Optional[dict] = None
-
-    def __init__(self) -> None:
-        pass
-
-    def parse_configs(self, config: dict) -> None:
-        """Parse configurations from config.
-
-        Args:
-            config (dict): Configuration from parent or config file.
-        """
-        self.config = config
+        # Current action.
+        self.action: Optional[SupplyChainAction] = None
 
     def step(self, tick: int) -> None:
         """Run related logic for current tick.

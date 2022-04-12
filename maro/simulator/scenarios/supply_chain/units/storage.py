@@ -1,12 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from .unitbase import UnitBase, BaseUnitInfo
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 DEFAULT_SUB_STORAGE_ID = 0
@@ -47,8 +54,13 @@ class StorageUnitInfo(BaseUnitInfo):
 class StorageUnit(UnitBase):
     """Unit that used to store skus."""
 
-    def __init__(self) -> None:
-        super(StorageUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(StorageUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config
+        )
 
         # Key: Sub-Storage ID
         self._capacity_dict: Dict[int, int] = {}
@@ -225,7 +237,7 @@ class StorageUnit(UnitBase):
             elif add_strategy == AddStrategy.IgnoreUpperBoundProportional:
                 fulfill_ratio_dict: Dict[int, float] = {}
                 for storage_id, requirement in space_requirements.items():
-                    fulfill_ratio_dict[storage_id] = requirement / self._remaining_space_dict[storage_id]
+                    fulfill_ratio_dict[storage_id] = min(1, self._remaining_space_dict[storage_id] / requirement)
 
                 for product_id, quantity in product_quantities.items():
                     storage_id = self._product2storage[product_id]
@@ -300,7 +312,10 @@ class StorageUnit(UnitBase):
             i += 1
 
         if has_changes:
-            self.data_model.remaining_space = self.remaining_space
+            i = 0
+            for remaining_space in self._remaining_space_dict.values():
+                self.data_model.remaining_space[i] = remaining_space
+                i += 1
 
     def reset(self) -> None:
         super(StorageUnit, self).reset()

@@ -1251,7 +1251,7 @@ slots: 1
 
 How many products being produced at current tick, controlled by action.
 
-product_unit_cost
+unit_product_cost
 *****************
 
 type: float

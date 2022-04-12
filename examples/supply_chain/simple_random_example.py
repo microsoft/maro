@@ -5,6 +5,7 @@ import numpy as np
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
+from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 
 CONSUMER_LOWER_BOUND, CONSUMER_UPPER_BOUND = 100, 300
 MANUFACTURER_LOWER_BOUND, MANUFACTURER_UPPER_BOUND = 300, 500
@@ -34,13 +35,13 @@ if __name__ == '__main__':
     # Generate the consumer-source mapping. The key of the dictionary is the ID of the consumer unit, while the value
     # of the dictionary is the ID of the upstream facility.
     consumer2source: Dict[int, List[int]] = {}
-    for facility in env.summary["node_mapping"]["facilities"].values():
-        products = facility["units"]["products"]
-        for product_id, product in products.items():
-            consumer = product["consumer"]
-            if consumer is not None:
-                consumer_id = consumer["id"]
-                consumer2source[consumer_id] = consumer["sources"]
+    facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+    for facility_info in facility_info_dict.values():
+        products = facility_info.products_info
+        for product_id, product_info in products.items():
+            consumer_info = product_info.consumer_info
+            if consumer_info is not None:
+                consumer2source[consumer_info.id] = consumer_info.source_facility_id_list
 
     # Initialize the environment with a `None` action
     _, _, is_done = env.step(action=None)
@@ -62,7 +63,7 @@ if __name__ == '__main__':
                     product_id=entity.skus.id,
                     source_id=np.random.choice(consumer2source[entity.id]),  # Pick a random source
                     quantity=np.random.randint(low=CONSUMER_LOWER_BOUND, high=CONSUMER_UPPER_BOUND) + 1,
-                    vlt=1,
+                    vehicle_type="train",
                 ))
         _, _, is_done = env.step(action=actions)
 
