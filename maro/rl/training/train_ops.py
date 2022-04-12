@@ -20,7 +20,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     Args:
         name (str): Name of the ops. This is usually a policy name.
         policy_creator (Callable[[str], RLPolicy]): Function to create a policy instance.
-        parallelism (int, default=1): Desired degree of data parallelism. 
+        parallelism (int, default=1): Desired degree of data parallelism.
     """
 
     def __init__(
@@ -54,23 +54,26 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     def parallelism(self) -> int:
         return self._parallelism
 
-    @abstractmethod
     def get_state(self) -> dict:
         """Get the train ops's state.
 
         Returns:
             A dict that contains ops's state.
         """
-        raise NotImplementedError
+        return {
+            "policy": self.get_policy_state(),
+            "non_policy": self.get_non_policy_state(),
+        }
 
-    @abstractmethod
     def set_state(self, ops_state_dict: dict) -> None:
         """Set ops's state.
 
         Args:
             ops_state_dict (dict): New ops state.
         """
-        raise NotImplementedError
+        assert ops_state_dict["policy"][0] == self._policy.name
+        self.set_policy_state(ops_state_dict["policy"][1])
+        self.set_non_policy_state(ops_state_dict["non_policy"])
 
     def get_policy_state(self) -> Tuple[str, object]:
         """Get the policy's state.
@@ -88,6 +91,24 @@ class AbsTrainOps(object, metaclass=ABCMeta):
             policy_state (object): The policy state.
         """
         self._policy.set_state(policy_state)
+
+    @abstractmethod
+    def get_non_policy_state(self) -> dict:
+        """Get states other than policy.
+
+        Returns:
+            A dict that contains non-policy state.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_non_policy_state(self, state: dict) -> None:
+        """Set states other than policy.
+
+        Args:
+            state (dict): Non-policy state.
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def to_device(self, device: str):

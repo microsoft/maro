@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import asyncio
+import os
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple
 
@@ -12,6 +13,7 @@ from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
+from maro.rl.training.utils import FILE_SUFFIX
 from maro.rl.utils import MultiTransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
@@ -274,12 +276,11 @@ class DiscreteMADDPGOps(AbsTrainOps):
             self._policy.set_state(ops_state_dict["policy"])
             self._target_policy.set_state(ops_state_dict["target_policy"])
 
-    def get_state(self) -> dict:
-        return {**self.get_actor_state(), **self.get_critic_state()}
+    def get_non_policy_state(self) -> dict:
+        return self.get_critic_state()
 
-    def set_state(self, ops_state_dict: dict) -> None:
-        self.set_critic_state(ops_state_dict)
-        self.set_actor_state(ops_state_dict)
+    def set_non_policy_state(self, state: dict) -> None:
+        self.set_critic_state(state)
 
     def to_device(self, device: str) -> None:
         self._device = get_torch_device(device)
@@ -460,16 +461,24 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
 
     def load(self, path: str) -> None:
         self._assert_ops_exists()
-        trainer_state = torch.load(path)
-        for ops_name, ops_state in trainer_state.items():
-            self._ops_dict[ops_name].set_state(ops_state)
+
+        policy_state_dict = torch.load(os.path.join(path, f"{self.name}_policy.{FILE_SUFFIX}"))
+        non_policy_state_dict = torch.load(os.path.join(path, f"{self.name}_non_policy.{FILE_SUFFIX}"))
+        for ops_name in policy_state_dict:
+            self._ops_dict[ops_name].set_state({**policy_state_dict[ops_name], **non_policy_state_dict[ops_name]})
 
     def save(self, path: str) -> None:
         self._assert_ops_exists()
+
         trainer_state = {ops.name: ops.get_state() for ops in self._actor_ops_list}
         if self._params.shared_critic:
             trainer_state[self._critic_ops.name] = self._critic_ops.get_state()
-        torch.save(trainer_state, path)
+
+        policy_state_dict = {ops_name: state["policy"] for ops_name, state in trainer_state.items()}
+        non_policy_state_dict = {ops_name: state["non_policy"] for ops_name, state in trainer_state.items()}
+
+        torch.save(policy_state_dict, os.path.join(path, f"{self.name}_policy.{FILE_SUFFIX}"))
+        torch.save(non_policy_state_dict, os.path.join(path, f"{self.name}_non_policy.{FILE_SUFFIX}"))
 
     def _assert_ops_exists(self) -> None:
         if not self._actor_ops_list:

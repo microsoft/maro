@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import collections
+import os
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
@@ -13,6 +14,7 @@ import numpy as np
 import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
+from maro.rl.training.utils import FILE_SUFFIX
 from maro.simulator import Env
 
 
@@ -215,7 +217,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         get_test_env: Callable[[], Env] = None,
     ) -> None:
         self._learn_env = get_env()
-        self._test_env = get_test_env() if get_test_env is not None else self._learn_env
+        self._test_env = get_test_env() if get_test_env is not None else get_env()
         self._env: Optional[Env] = None
         self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
@@ -291,6 +293,13 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    def _reset(self) -> None:
+        self._env.reset()
+        self._info.clear()
+        self._trans_cache.clear()
+        _, self._event, _ = self._env.step(None)
+        self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
+
     def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
         """Sample experiences.
 
@@ -306,11 +315,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         # Init the env
         self._env = self._learn_env
         if not self._agent_state_dict:
-            self._env.reset()
-            self._info.clear()
-            self._trans_cache.clear()
-            _, self._event, _ = self._env.step(None)
-            self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
+            self._reset()
 
         # Update policy state if necessary
         if policy_state is not None:
@@ -412,17 +417,28 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         self._agent_wrapper.set_policy_state(policy_state_dict)
 
+    def load_policy_state(self, path: str) -> List[str]:
+        file_list = os.listdir(path)
+        policy_state_dict = {}
+        loaded = []
+        for file_name in file_list:
+            if "non_policy" in file_name or not file_name.endswith(f"_policy.{FILE_SUFFIX}"):  # TODO: remove hardcode
+                continue
+            policy_name, policy_state = torch.load(os.path.join(path, file_name))
+            policy_state_dict[policy_name] = policy_state
+            loaded.append(policy_name)
+        self.set_policy_state(policy_state_dict)
+
+        return loaded
+
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         self._env = self._test_env
+        self._reset()
         if policy_state is not None:
             self.set_policy_state(policy_state)
 
         self._agent_wrapper.exploit()
-        self._env.reset()
-        is_done = False
-        _, self._event, _ = self._env.step(None)
-        self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
-        while not is_done:
+        while self._agent_state_dict:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
@@ -447,7 +463,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 else self._get_global_and_agent_state(self._event)
 
         tick_bound = self._env.tick - self._reward_eval_delay
-        while self._trans_cache and self._trans_cache[0].tick <= tick_bound:
+        while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
             reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
             self._post_eval_step(cache_element, reward_dict)

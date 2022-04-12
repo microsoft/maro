@@ -9,6 +9,7 @@ import torch
 
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainingManager
+from maro.rl.training.utils import get_latest_ep
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.workflows.scenario import Scenario
@@ -82,15 +83,26 @@ def main(scenario: Scenario) -> None:
     )
 
     load_path = get_env("LOAD_PATH", required=False)
+    load_episode = get_env("LOAD_EPISODE", required=False)
     if load_path:
         assert isinstance(load_path, str)
-        loaded = training_manager.load(load_path)
-        logger.info(f"Loaded states for {loaded} from {load_path}")
+
+        ep = load_episode if load_episode is not None else get_latest_ep(load_path)
+        path = os.path.join(load_path, str(ep))
+
+        loaded = env_sampler.load_policy_state(path)
+        logger.info(f"Loaded policies {loaded} into env sampler from {path}")
+
+        loaded = training_manager.load(path)
+        logger.info(f"Loaded trainers {loaded} from {path}")
+        start_ep = ep + 1
+    else:
+        start_ep = 1
 
     checkpoint_path = get_env("CHECKPOINT_PATH", required=False)
     checkpoint_interval = int_or_none(get_env("CHECKPOINT_INTERVAL", required=False))
     # main loop
-    for ep in range(1, num_episodes + 1):
+    for ep in range(start_ep, num_episodes + 1):
         collect_time = training_time = 0
         segment, end_of_episode = 1, False
         while not end_of_episode:
