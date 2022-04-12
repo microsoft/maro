@@ -6,7 +6,7 @@ from __future__ import annotations
 import typing
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 
@@ -54,6 +54,9 @@ class ProductUnit(ExtendUnitBase):
         self.storage: Optional[StorageUnit] = None
         # The distribution unit of the facility it belongs to. It is a reference to self.facility.distribution.
         self.distribution: Optional[DistributionUnit] = None
+
+        # 1st element: out product_id; 2nd element: self consumption / out product quantity
+        self.bom_out_info_list: List[Tuple(int, float)] = []
 
         # Internal states to track distribution.
         self._check_in_quantity_in_order: int = 0
@@ -141,6 +144,10 @@ class ProductUnit(ExtendUnitBase):
         for info in downstream_infos:
             sale_mean += info.dest_facility.products[self.product_id].get_sale_mean()
 
+        for out_product_id, consumption_ratio in self.bom_out_info_list:
+            # TODO: could add cache of sale_mean to avoid duplicated calling.
+            sale_mean += int(self.facility.products[out_product_id].get_sale_mean() * consumption_ratio)
+
         return sale_mean
 
     def get_sale_std(self) -> float:
@@ -150,7 +157,12 @@ class ProductUnit(ExtendUnitBase):
         for info in downstream_infos:
             sale_std += info.dest_facility.products[self.product_id].get_sale_std()
 
-        return sale_std / np.sqrt(max(1, len(downstream_infos)))
+        for out_product_id, consumption_ratio in self.bom_out_info_list:
+            sale_std += self.facility.products[out_product_id].get_sale_std() * consumption_ratio
+
+        downstream_num = len(downstream_infos) + len(self.bom_out_info_list)
+
+        return sale_std / np.sqrt(max(1, downstream_num))
 
     def get_max_sale_price(self) -> float:
         price = 0.0

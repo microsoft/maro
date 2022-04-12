@@ -4,7 +4,7 @@
 import collections
 import itertools
 from collections import defaultdict
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from maro.backends.frame import FrameBase
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnit
@@ -332,6 +332,9 @@ class World:
 
         products_dict: Dict[int, ProductUnit] = {}
 
+        # Key: src product id; Value element: (out product id, src quantity / out quantity)
+        bom_out_info_dict: Dict[int, List[Tuple(int, int)]] = defaultdict(list)
+
         if facility.skus is not None and len(facility.skus) > 0:
             for sku_id, sku in facility.skus.items():
                 product_unit: ProductUnit = self._build_unit(facility, facility, config)
@@ -358,6 +361,15 @@ class World:
                         product_unit.children.append(child_unit)
 
                 products_dict[sku_id] = product_unit
+
+                for src_sku_id, src_sku_quantity in self._sku_collection[sku_id].bom.items():
+                    bom_out_info_dict[src_sku_id].append(
+                        (sku_id, src_sku_quantity / self._sku_collection[sku_id].output_units_per_lot)
+                    )
+
+        # Added for sales mean statistics
+        for src_sku_id, sku in facility.skus.items():
+            products_dict[src_sku_id].bom_out_info_list = bom_out_info_dict[src_sku_id]
 
         return products_dict
 
