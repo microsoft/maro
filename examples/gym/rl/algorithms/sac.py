@@ -41,9 +41,13 @@ class MyActorNet(ContinuousSACNet):
 
     def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
         distribution = self._distribution(states)
-        actions = distribution.rsample()
-        logps = distribution.log_prob(actions).sum(axis=-1)
-        logps -= (2 * (np.log(2) - actions - F.softplus(-2 * actions))).sum(axis=1)
+        if exploring:
+            actions = distribution.rsample()
+            logps = distribution.log_prob(actions).sum(axis=-1)
+            logps -= (2 * (np.log(2) - actions - F.softplus(-2 * actions))).sum(axis=1)
+        else:
+            actions = distribution.loc
+            logps = torch.randn(states.shape[0])  # Fake
         return self._limit * torch.tanh(actions), logps
 
     def _distribution(self, states: torch.Tensor) -> Normal:
