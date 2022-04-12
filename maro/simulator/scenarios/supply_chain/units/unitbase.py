@@ -44,7 +44,7 @@ class UnitBase:
     """
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
 
         # Id of this unit.

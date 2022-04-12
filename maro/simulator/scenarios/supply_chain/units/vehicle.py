@@ -21,15 +21,16 @@ class VehicleStatus(Enum):
     OnTheWayToDestination = 2
     UnloadingProducts = 3
 
+
 class VehicleUnit(UnitBase):
     """Unit used to move production from source to destination by order."""
 
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(VehicleUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
         # Unit cost per quantity.

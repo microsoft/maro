@@ -40,7 +40,7 @@ class FacilityInfo:
 class FacilityBase(ABC):
     """Base of all facilities."""
     def __init__(
-        self, id: int, name: str, data_model_name: str, data_model_index: int, world: World, config: dict
+        self, id: int, name: str, data_model_name: str, data_model_index: int, world: World, config: dict,
     ) -> None:
         # Id and name of this facility.
         self.id: int = id

@@ -61,7 +61,7 @@ class BalanceSheetCalculator:
         self.accumulated_balance_sheet = defaultdict(int)
 
     def _extract_facility_and_product_info(self) -> Tuple[
-        List[FacilityLevelInfo], List[ProductInfo], Dict[int, int], Dict[int, int]
+        List[FacilityLevelInfo], List[ProductInfo], Dict[int, int], Dict[int, int],
     ]:
         facility_levels: List[FacilityLevelInfo] = []
         products: List[ProductInfo] = []
@@ -184,7 +184,7 @@ class BalanceSheetCalculator:
 
         return [self._env.snapshot_list[target_type][frame_index:index:attribute].flatten() for index in indexes]
 
-    def _calc_consumer(self, tick: int) -> tuple:
+    def _calc_consumer(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         consumer_ids = self._get_attributes("consumer", "id", tick).astype(np.int)
 
         # order_cost + order_product_cost
@@ -195,7 +195,7 @@ class BalanceSheetCalculator:
 
         return consumer_ids, consumer_step_cost
 
-    def _calc_seller(self, tick: int) -> tuple:
+    def _calc_seller(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         # profit = sold * price
         seller_step_profit = (
             self._get_attributes("seller", "sold", tick)
@@ -211,7 +211,7 @@ class BalanceSheetCalculator:
 
         return seller_step_profit, seller_step_cost
 
-    def _calc_manufacture(self, tick: int) -> tuple:
+    def _calc_manufacture(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         manufacture_ids = self._get_attributes("manufacture", "id", tick).astype(np.int)
 
         # loss = manufacture number * cost
@@ -222,7 +222,7 @@ class BalanceSheetCalculator:
 
         return manufacture_ids, manufacture_step_cost
 
-    def _calc_storage(self, tick: int) -> tuple:
+    def _calc_storage(self, tick: int) -> Tuple[List[float], List[Dict[int, float]]]:
         unit_storage_cost = self._get_list_attributes("storage", "unit_storage_cost", tick)
 
         # loss = (capacity - remaining space) * cost
@@ -250,7 +250,7 @@ class BalanceSheetCalculator:
 
         return facility_storage_step_cost, storage_product_step_cost
 
-    def _calc_vehicle(self, tick: int) -> tuple:
+    def _calc_vehicle(self, tick: int) -> np.ndarray:
         # loss = cost * payload
         vehicle_step_cost = -1 * (
             self._get_attributes("vehicle", "payload", tick)
@@ -258,7 +258,7 @@ class BalanceSheetCalculator:
         )
         return vehicle_step_cost
 
-    def _calc_product_distribution(self, tick: int) -> tuple:
+    def _calc_product_distribution(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         # product distribution profit = check order * price
         product_distribution_step_profit = (
             self._get_attributes("product", "check_in_quantity_in_order", tick)
@@ -274,9 +274,15 @@ class BalanceSheetCalculator:
         return product_distribution_step_profit, product_distribution_step_cost
 
     def _calc_product(
-        self, consumer_step_cost, manufacture_step_cost, seller_step_profit, seller_step_cost,
-        storage_product_step_cost, product_distribution_step_profit, product_distribution_step_cost,
-    ) -> tuple:
+        self,
+        consumer_step_cost: np.ndarray,
+        manufacture_step_cost: np.ndarray,
+        seller_step_profit: np.ndarray,
+        seller_step_cost: np.ndarray,
+        storage_product_step_cost: List[Dict[int, float]],
+        product_distribution_step_profit: np.ndarray,
+        product_distribution_step_cost: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         product_step_profit = np.zeros(self.num_products)
         product_step_cost = np.zeros(self.num_products)
 
@@ -310,7 +316,11 @@ class BalanceSheetCalculator:
         return product_step_profit, product_step_cost, product_step_balance
 
     def _calc_facility(
-        self, storage_step_cost, vehicle_step_cost, product_step_profit, product_step_cost
+        self,
+        storage_step_cost: np.ndarray,
+        vehicle_step_cost: np.ndarray,
+        product_step_profit: np.ndarray,
+        product_step_cost: np.ndarray,
     ) -> tuple:
         facility_step_profit = np.zeros(self.num_facilities)
         facility_step_cost = np.zeros(self.num_facilities)
@@ -333,7 +343,11 @@ class BalanceSheetCalculator:
         return facility_step_profit, facility_step_cost, facility_step_balance
 
     def _update_balance_sheet(
-        self, product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost
+        self,
+        product_step_balance: np.ndarray,
+        consumer_ids: np.ndarray,
+        manufacture_ids: np.ndarray,
+        manufacture_step_cost: np.ndarray,
     ) -> Dict[int, Tuple[float, float]]:
 
         # Key: the facility/unit id; Value: (balance, reward).
@@ -384,7 +398,7 @@ class BalanceSheetCalculator:
         )
 
         balance_and_reward = self._update_balance_sheet(
-            product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost
+            product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost,
         )
 
         return balance_and_reward

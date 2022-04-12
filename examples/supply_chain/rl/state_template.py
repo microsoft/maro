@@ -204,7 +204,8 @@ for entity in env.business_engine.get_entity_list():
 
     if entity.skus is not None:
         state['sku_price'] = entity.skus.price
-        state['sku_cost'] = env.business_engine.world.get_facility_by_id(entity.facility_id).get_sku_cost(entity.skus.id)
+        state['sku_cost'] = env.business_engine.world.get_facility_by_id(
+            entity.facility_id).get_sku_cost(entity.skus.id)
 
     STATE_TEMPLATE[entity.id] = state
 
