@@ -19,7 +19,7 @@ from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
-from .config import distribution_features, env_conf, seller_features, TEAM_REWARD
+from .config import distribution_features, env_conf, seller_features, TEAM_REWARD, ALGO
 from .env_helper import STORAGE_INFO
 from .policies import agent2policy, trainable_policies
 from .state_template import keys_in_state, STATE_TEMPLATE, workflow_settings
@@ -174,8 +174,6 @@ class SCEnvSampler(AbsEnvSampler):
         self._order_in_transit_status[entity.id] = state['inventory_in_transit']
         self._order_to_distribute_status[entity.id] = state['distributor_in_transit_orders_qty']
         self._sold_status[entity.id] = state['sale_hist'][-1]
-        self._reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self._cur_balance_sheet_reward.items()}
-        self._balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self._cur_balance_sheet_reward.items()}
         
         np_state = _serialize_state(state)
         return np_state
@@ -195,7 +193,7 @@ class SCEnvSampler(AbsEnvSampler):
         consumption_ticks = [tick - i for i in range(consumption_hist_len - 1, -1, -1)]
         hist_ticks = [tick - i for i in range(hist_len - 1, -1, -1)]
 
-        self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
+        # self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
         self._cur_metrics = self._learn_env.metrics
 
         self._cur_distribution_states = self._learn_env.snapshot_list["distribution"][
@@ -246,6 +244,8 @@ class SCEnvSampler(AbsEnvSampler):
         # get related product, seller, consumer, manufacture unit id
         # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
         self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
+        self._reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self._cur_balance_sheet_reward.items()}
+        self._balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self._cur_balance_sheet_reward.items()}
         return {
             f_id: self._get_reward_for_entity(self._entity_dict[f_id], list(bwt))
             for f_id, bwt in self._cur_balance_sheet_reward.items() if f_id in self._agent2policy
@@ -277,13 +277,14 @@ class SCEnvSampler(AbsEnvSampler):
                 if sources:
                     source_id = sources[0]
                     product_unit_id = self._storage_info["unit2product"][unit_id][0]
+                    if np.isscalar(action):
+                        action = [action]
                     try:
-                        if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
+                        if (ALGO == "PPO" and isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy)):
                             or_action = agent_state_dict[agent_id][-1]
                             action_idx = max(0, int(action[0] - 1 + or_action))
                         else:
                             action_idx = action[0]
-                        # action_idx = action[0]
                         action_number = action_idx * self._cur_metrics["products"][product_unit_id]["sale_mean"]
                     except ValueError:
                         action_number = 0
@@ -416,7 +417,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._post_step(cache_element, reward)
 
     def reset(self):
-        super().reset()
+        # super().reset()
         self._balance_calculator.reset()
         self.total_balance = 0.0
 
@@ -428,6 +429,7 @@ class SCEnvSampler(AbsEnvSampler):
             self.set_policy_state(policy_state)
 
         self._agent_wrapper.exploit()
+        self.reset()
         self._env.reset()
         is_done = False
         _, self._event, _ = self._env.step(None)
@@ -456,7 +458,8 @@ class SCEnvSampler(AbsEnvSampler):
             for entity_id, entity in self._entity_dict.items():
                 if issubclass(entity.class_type, ConsumerUnit):
                     ori_action = (env_action_dict[entity_id].action_idx if entity_id in env_action_dict else 0)
-                    consumer_action_dict[entity_id] = (action_dict[entity_id][0], ori_action, reward[entity_id])
+                    action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
+                    consumer_action_dict[entity_id] = (action, ori_action, reward[entity_id])
             print(step_idx, consumer_action_dict)
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event, cache_element.tick)

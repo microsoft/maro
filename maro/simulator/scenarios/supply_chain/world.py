@@ -25,9 +25,11 @@ class SupplyChainEntity:
     facility_id: int
     parent_id: Optional[int]
 
+
     @property
     def is_facility(self) -> bool:
         return issubclass(self.class_type, FacilityBase)
+
 
 
 class World:

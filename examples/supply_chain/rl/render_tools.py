@@ -1,11 +1,15 @@
+from maro.simulator.scenarios.supply_chain.facilities import facility
 from maro.simulator.scenarios.supply_chain.units.product import ProductUnit
 from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityBase
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
+from pyecharts.options import ComponentTitleOpts
 import pyecharts.options as opts
-from pyecharts.charts import Line, Scatter, Bar, Timeline, Grid, Tab, Pie
+from pyecharts.charts import Line, Scatter, Bar, Timeline, Grid, Tab, Pie, PictorialBar
+from pyecharts.globals import SymbolType
+from pyecharts.components import Table
 from datetime import datetime, timedelta
 
 """
@@ -22,14 +26,148 @@ product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
 """
 
-def compute_balance(row):
+def compute_store_balance(row):
     return (row["seller_sold"]*row['seller_price']
            - (row["seller_demand"]-row['seller_sold'])*row['seller_price']*row['seller_backlog_ratio']
            - row["consumer_order_product_cost"]
            - row["consumer_order_cost"]
            - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
 
+def compute_warehouse_balance(row):
+    return (-row['product_delay_order_penalty']
+            -row['product_transportation_cost']
+            - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
 
+def compute_supplier_balance(row):
+    return (row['consumer_order_product_cost']
+            -row['manufacture_product_unit_cost']*row['manufacture_manufacture_quantity']
+            -row['product_delay_order_penalty']
+            -row['product_transportation_cost']
+            - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
+
+class SimulationComparisionTrackerHtml:
+    def __init__(self, model1, log_path1, model2, log_path2, start_dt='2022-01-01'):
+        self.log_path1 = log_path1
+        self.model1 = model1
+        self.log_path2 = log_path2
+        self.model2 = model2
+        self.start_dt = datetime.strptime(start_dt, "%Y-%m-%d")
+        self.dir_loc = os.path.dirname(self.log_path2)
+        self.df = self._load_data()
+    
+    def _load_data(self):
+        df1 = pd.read_csv(self.log_path1)
+        df1.loc[:, "model_name"] = self.model1
+        df2 = pd.read_csv(self.log_path2)
+        df2.loc[:, "model_name"] = self.model2
+        df = pd.concat([df1, df2])
+        df.loc[:, 'sale_dt'] = df['tick'].map(lambda x: self.start_dt+timedelta(days=x))
+        df.loc[:, 'inventory_in_stock'] = df['inventory_in_stock'].map(lambda x: np.sum([int(float(s)) for s in x[1:-1].split(",")]))
+        df.loc[:, 'unit_inventory_holding_cost'] = df['unit_inventory_holding_cost'].map(lambda x: np.sum([float(s) for s in x[1:-1].split(",")]))
+        facility_name_list = [facility_name for facility_name in df['facility_name'].unique() if facility_name.startswith("store")]
+        df = df[df['facility_name'].isin(facility_name_list)]
+        return df
+
+    def render_overview(self):
+        df_sku = self.df.groupby(['facility_id', 'sku_id', 'sale_dt', 'model_name']).first().reset_index()
+        
+        print(df_sku[((df_sku['name']==594913) 
+                & (df_sku['facility_name']=='store_4830')
+                     & (df_sku['seller_sold'] < df_sku["seller_demand"])
+                     & (df_sku['model_name'] == 'MARL'))]
+                    [['tick', 'facility_name', 'name', 'seller_sold', 'seller_demand']].head(10))
+
+        df_sku.loc[:, "GMV"] = df_sku['seller_price'] * df_sku['seller_sold']
+        df_sku.loc[:, "order_cost"] = df_sku["consumer_order_product_cost"] + df_sku["consumer_order_cost"]
+        df_sku.loc[:, 'inventory_holding_cost'] = df_sku['inventory_in_stock'] * df_sku['unit_inventory_holding_cost']
+        df_sku.loc[:, 'out_of_stock_loss'] = df_sku['seller_backlog_ratio']*df_sku['seller_price']*(df_sku['seller_demand'] - df_sku['seller_sold'])
+        df_sku.loc[:, "profit"] = df_sku["GMV"] - df_sku['order_cost'] - df_sku['inventory_holding_cost'] - df_sku['out_of_stock_loss']
+        num_days = df_sku['sale_dt'].unique().shape[0]
+        cols = ['facility_name', 'model_name', 'GMV', 'profit', 'order_cost', 'inventory_in_stock', 'inventory_holding_cost', 'seller_sold', 'seller_demand']
+        df_sku = df_sku[['name'] + cols].groupby(['facility_name', 'name', 'model_name']).sum().reset_index()
+        df_sku.loc[:, "turnover_rate"] =  df_sku['seller_demand']*num_days / df_sku['inventory_in_stock']
+        df_sku.loc[:, "available_rate"] = df_sku['seller_sold'] / df_sku['seller_demand']
+        cols.extend(['turnover_rate', 'available_rate'])
+        agg_func = {col: np.mean if cols not in ['turnover_rate', 'available_rate'] else np.sum
+                        for col in cols[2:]}
+        
+        df = (df_sku[cols]
+                .groupby(['facility_name', 'model_name'])
+                .agg(agg_func)
+                .reset_index()
+            )
+        df_sku.sort_values(by=['name', 'facility_name', 'model_name'], inplace=True)
+        
+        details_headers = ['name'] + cols
+        details_rows = df_sku[details_headers].values.tolist()
+        
+        df['x'] = df.apply(lambda x: f"{x['facility_name']}_{x['model_name']}", axis=1)
+        x = df['x'].tolist()
+        y_gmv = [round(x,2) for x in df['GMV'].tolist()]
+        y_profit = [round(x,2) for x in df['profit'].tolist()]
+        y_order_cost = [round(x,2) for x in df['order_cost'].tolist()]
+        y_inventory_holding_cost = [round(x,2) for x in df['inventory_holding_cost'].tolist()]
+        y_seller_sold = [round(x,2) for x in df['seller_sold'].tolist()]
+        y_turnover_rate = [round(x,3) for x in df['turnover_rate'].tolist()]
+        y_available_rate = [round(x,3) for x in df['available_rate'].tolist()]
+
+        tab = Tab()
+
+        for (name, y_vals) in zip(['GMV (¥)', 'Profit (¥)', 'Inventory Holding Cost (¥)', 'Order Cost (¥)', 'Total Sales (Units)', 'Turnover Rate (Days)', 'Available Rate'],
+                                [y_gmv, y_profit, y_inventory_holding_cost, y_order_cost, y_seller_sold, y_turnover_rate, y_available_rate]):
+            c = (
+            PictorialBar()
+            .add_xaxis(x)
+            .add_yaxis(
+                "",
+                y_vals,
+                label_opts=opts.LabelOpts(is_show=True),
+                symbol_size=18,
+                symbol_repeat="fixed",
+                symbol_offset=[0, 0],
+                is_symbol_clip=True,
+                symbol=SymbolType.ROUND_RECT,
+            )
+            .reversal_axis()
+            .set_global_opts(
+                title_opts=opts.TitleOpts(title=""),
+                xaxis_opts=opts.AxisOpts(is_show=False),
+                legend_opts=opts.LegendOpts(pos_left="center", pos_right="center", pos_top='45%'),
+                yaxis_opts=opts.AxisOpts(
+                    axistick_opts=opts.AxisTickOpts(is_show=False),
+                    axisline_opts=opts.AxisLineOpts(
+                        linestyle_opts=opts.LineStyleOpts(opacity=0)
+                    ),
+                ),
+            )
+            )
+            g = Grid().add(c, opts.GridOpts(pos_left="30%"), is_control_axis_index=True)
+            tab.add(g, name)
+
+        table = Table()
+        table.add(details_headers, details_rows)
+        table.set_global_opts(
+            title_opts=ComponentTitleOpts(title="SKU Cost Items", subtitle="")
+        )
+        
+        tab.add(table, "Details")
+        tab.render(os.path.join(self.dir_loc, "comparision_overview.html"))
+
+
+
+"""
+tick,id,sku_id,facility_id,
+facility_name,name,inventory_in_stock,
+unit_inventory_holding_cost,
+consumer_purchased,
+consumer_received,consumer_order_cost,
+consumer_order_product_cost,seller_sold,seller_demand,
+seller_price,seller_backlog_ratio,
+manufacture_manufacture_quantity,
+manufacture_product_unit_cost,product_price,
+product_check_in_quantity_in_order,product_delay_order_penalty,
+product_transportation_cost
+"""
 class SimulationTrackerHtml:
     def __init__(self, log_path, start_dt='2022-01-01'):
         self.log_path = log_path
@@ -40,6 +178,12 @@ class SimulationTrackerHtml:
         df_all = pd.read_csv(self.log_path)
         facility_list = df_all['facility_name'].unique().tolist()
         for facility_name in facility_list:
+            if facility_name.startswith('supplier'):
+                compute_balance = compute_supplier_balance
+            elif facility_name.startswith('warehouse'):
+                compute_balance = compute_warehouse_balance
+            else:
+                compute_balance = compute_store_balance
             df = df_all[df_all['facility_name'] == facility_name]
             df.loc[:, 'inventory_in_stock'] = df['inventory_in_stock'].map(lambda x: np.sum([int(float(s)) for s in x[1:-1].split(",")]))
             df.loc[:, 'unit_inventory_holding_cost'] = df['unit_inventory_holding_cost'].map(lambda x: np.sum([int(float(s)) for s in x[1:-1].split(",")]))
@@ -272,7 +416,7 @@ class SimulationTrackerHtml:
                     .add_yaxis(
                         series_name="Fulfillment Cost",
                         y_axis=y_distribution_cost,
-                        itemstyle_opts=opts.ItemStyleOpts(color="source"),
+                        itemstyle_opts=opts.ItemStyleOpts(color="blue"),
                         label_opts=opts.LabelOpts(is_show=True),
                     )
                     .set_global_opts(
@@ -492,6 +636,15 @@ class SimulationTracker:
         return metric, metric_list
 
 if __name__ == "__main__":
-    html_render = SimulationTrackerHtml("/data/songlei/maro_ms/examples/supply_chain/results/dqn_15skus_tr_round1/output_product_metrics_20.csv")
+    html_render = SimulationTrackerHtml("/data/songlei/maro_ms/examples/supply_chain/results/dqn_15skus_tr_round5/output_product_metrics_320.csv")
     html_render.render_sku()
     html_render.render_facility()
+
+    baseline_model = "baseline"
+    baseline_loc = "/data/songlei/maro_ms/examples/supply_chain/results/baseline_15skus/output_product_metrics.csv"
+
+    RL_model = "MARL"
+    RL_loc = "/data/songlei/maro_ms/examples/supply_chain/results/dqn_15skus_tr_round5/output_product_metrics_320.csv"
+
+    html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
+    html_comparison_render.render_overview()

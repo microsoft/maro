@@ -290,6 +290,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             A dict that contains rewards for all agents.
         """
         raise NotImplementedError
+    
+    def reset(self):
+        pass
 
     def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
         """Sample experiences.
@@ -306,6 +309,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         # Init the env
         self._env = self._learn_env
         if not self._agent_state_dict:
+            self.reset()
             self._env.reset()
             self._info.clear()
             self._trans_cache.clear()

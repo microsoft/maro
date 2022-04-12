@@ -92,20 +92,36 @@ class ORValueBasedPolicy(ValueBasedPolicy):
 
 
 def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
-    policy = ValueBasedPolicy(
+    policy = ORValueBasedPolicy(
         name=name,
         q_net=MyQNet(state_dim, action_num),
-        exploration_strategy=(epsilon_greedy, {"epsilon": 1.0}),
+        exploration_strategy=(or_epsilon_greedy, {"epsilon": 2.0}),
         exploration_scheduling_options=[(
             "epsilon", LinearExplorationScheduler, {
             "last_ep": 1000,
-            "initial_value": 1.0,
-            "final_value": 0.0,
+            "initial_value": 2.0,
+            "final_value": 1.0,
             }
         )],
         warmup=1000
     )
     return policy
+
+# def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
+#     policy = ValueBasedPolicy(
+#         name=name,
+#         q_net=MyQNet(state_dim, action_num),
+#         exploration_strategy=(epsilon_greedy, {"epsilon": 1.0}),
+#         exploration_scheduling_options=[(
+#             "epsilon", LinearExplorationScheduler, {
+#             "last_ep": 1000,
+#             "initial_value": 1.0,
+#             "final_value": 0.0,
+#             }
+#         )],
+#         warmup=1000
+#     )
+#     return policy
 
 
 def get_dqn(name: str) -> DQNTrainer:

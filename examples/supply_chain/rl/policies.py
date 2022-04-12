@@ -47,14 +47,15 @@ policy_creator = {
     "seller_policy": lambda name: DummyPolicy(name),
 }
 
-agent2policy = {
-    id_: entity2policy(entity, False) for id_, entity in entity_dict.items()
-}
-
-# baseline policies
-# agent2policy = {
-#     id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
-# }
+if ALGO != "EOQ":
+    agent2policy = {
+        id_: entity2policy(entity, False) for id_, entity in entity_dict.items()
+    }
+else:
+    # baseline policies
+    agent2policy = {
+        id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
+    }
 
 trainable_policies = ["consumer.policy"]
 
