@@ -4,7 +4,8 @@
 from functools import partial
 
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit, ProductUnit, SellerUnit
-from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
+
 from .algorithms.ppo import get_policy, get_ppo
 from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy
 from .config import NUM_CONSUMER_ACTIONS

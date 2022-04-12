@@ -1,17 +1,25 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from scipy.ndimage.interpolation import shift
 
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction
 from maro.simulator.scenarios.supply_chain.datamodels import ConsumerDataModel
+from maro.simulator.scenarios.supply_chain.order import Order
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
-from .order import Order
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 @dataclass
@@ -22,8 +30,13 @@ class ConsumerUnitInfo(ExtendUnitInfo):
 class ConsumerUnit(ExtendUnitBase):
     """Consumer unit used to generate order to purchase from upstream by action."""
 
-    def __init__(self):
-        super(ConsumerUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+    ) -> None:
+        super(ConsumerUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config,
+        )
 
         self._open_orders = defaultdict(Counter)
 
@@ -34,71 +47,47 @@ class ConsumerUnit(ExtendUnitBase):
         self.source_facility_id_list: List[int] = []
         self.pending_order_daily: Optional[List[int]] = None
 
-    def on_order_reception(self, source_id: int, product_id: int, received_quantity: int, required_quantity: int):
+    def on_order_reception(
+        self, source_id: int, product_id: int, received_quantity: int, required_quantity: int,
+    ) -> None:
         """Called after order product is received.
 
         Args:
             source_id (int): Where is the product from (facility id).
             product_id (int): What product we received.
-            quantity (int): How many we received.
-            original_quantity (int): How many we ordered.
+            received_quantity (int): How many we received.
+            required_quantity (int): How many we ordered.
         """
         self._received += received_quantity
 
         self.update_open_orders(source_id, product_id, -required_quantity)
 
-    def update_open_orders(self, source_id: int, product_id: int, additional_quantity: int):
+    def update_open_orders(self, source_id: int, product_id: int, additional_quantity: int) -> None:
         """Update the order states.
 
         Args:
             source_id (int): Where is the product from (facility id).
             product_id (int): What product in the order.
-            qty_delta (int): Number of product to update (sum).
+            additional_quantity (int): Number of product to update (sum).
         """
         # New order for product.
         self._open_orders[source_id][product_id] += additional_quantity
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(ConsumerUnit, self).initialize()
 
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
-        sku = self.facility.skus[self.product_id]
-
-        # TODO: check is the order cost the basis cost for each order?
-        order_cost = self.facility.get_config("order_cost")
-        assert isinstance(order_cost, int)
-
         assert isinstance(self.data_model, ConsumerDataModel)
-        self.data_model.initialize(order_cost=order_cost)
 
-        if self.facility.upstreams is not None:
-            # Construct sources from facility's upstreams.
-            # List[FacilityBase]
-            sources: list = self.facility.upstreams.get(self.product_id, [])
+        unit_order_cost = self.facility.skus[self.product_id].unit_order_cost
+        self.data_model.initialize(order_cost=unit_order_cost)  # TODO: rename to unit_order_cost
 
-            if len(sources) > 0:  # TODO: update this part. the supplier can also request product from vendor.
-                # Is we are a supplier facility?
-                is_supplier = getattr(self.parent, "manufacture", None) is not None
+        self.source_facility_id_list = [
+            info.src_facility.id for info in self.facility.upstream_vlt_infos.get(self.product_id, [])
+        ] if self.facility.upstream_vlt_infos is not None else []
 
-                # Current sku information.
-                sku = self.world.get_sku_by_id(self.product_id)
-
-                for source_facility in sources:
-                    # We are a supplier unit, then the consumer is used to purchase source materials from upstreams.
-                    # Try to find who will provide this kind of material.
-                    if is_supplier:
-                        if source_facility.products is not None:
-                            for source_sku_id in sku.bom.keys():
-                                if source_sku_id in source_facility.products:
-                                    # This is a valid source facility.
-                                    self.source_facility_id_list.append(source_facility.id)
-                    else:
-                        # If we are not a manufacturing, just check if upstream have this sku configuration.
-                        if sku.id in source_facility.skus:
-                            self.source_facility_id_list.append(source_facility.id)
-
-    def _step_impl(self, tick: int):
+    def _step_impl(self, tick: int) -> None:
         self._update_pending_order()
 
         if self.action is None:
@@ -110,21 +99,42 @@ class ConsumerUnit(ExtendUnitBase):
         if self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
 
+        assert self.action.source_id in self.source_facility_id_list
+        assert self.action.product_id == self.product_id
+
+        vlt: Optional[int] = None
+        for upstream_info in self.facility.upstream_vlt_infos[self.product_id]:
+            if all([
+                upstream_info.src_facility.id == self.action.source_id,
+                upstream_info.vehicle_type == self.action.vehicle_type,
+            ]):
+                vlt = upstream_info.vlt
+                break
+
+        assert vlt is not None
+
         # NOTE: we are using product unit as destination,
         # so we expect the action.source_id is an id of product unit.
         self.update_open_orders(self.action.source_id, self.action.product_id, self.action.quantity)
 
-        order = Order(self.facility, self.action.product_id, self.action.quantity, self.action.vlt)
+        order = Order(
+            destination=self.facility,
+            product_id=self.product_id,
+            quantity=self.action.quantity,
+            vehicle_type=self.action.vehicle_type,
+            vlt=vlt,  # TODO: add random factor if needed
+        )
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)
 
         # Here the order cost is calculated by the upper distribution unit, with the sku price in that facility.
         self._order_product_cost = source_facility.distribution.place_order(order)
-        # TODO: the order would be cancelled if there is no available vehicles, but the cost is not decreased at that time.
+        # TODO: the order would be cancelled if there is no available vehicles,
+        # TODO: but the cost is not decreased at that time.
 
         self._purchased = self.action.quantity
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         if self._received > 0:
             self.data_model.received = self._received
 
@@ -135,7 +145,7 @@ class ConsumerUnit(ExtendUnitBase):
         if self._order_product_cost > 0:
             self.data_model.order_product_cost = self._order_product_cost
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> None:
         if self._received > 0:
             self.data_model.received = 0
             self._received = 0
@@ -149,7 +159,7 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.order_product_cost = 0
             self._order_product_cost = 0
 
-    def reset(self):
+    def reset(self) -> None:
         super(ConsumerUnit, self).reset()
 
         self._open_orders.clear()
@@ -158,10 +168,9 @@ class ConsumerUnit(ExtendUnitBase):
         self._received = 0
         self._purchased = 0
         self._order_product_cost = 0
-        self.source_facility_id_list = []
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
-    def get_in_transit_quantity(self):
+    def get_in_transit_quantity(self) -> int:
         quantity = 0
 
         for _, orders in self._open_orders.items():
@@ -169,7 +178,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         return quantity
 
-    def _update_pending_order(self):
+    def _update_pending_order(self) -> None:
         self.pending_order_daily = shift(self.pending_order_daily, -1, cval=0)
 
     def get_unit_info(self) -> ConsumerUnitInfo:

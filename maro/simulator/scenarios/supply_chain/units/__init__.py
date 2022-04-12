@@ -5,12 +5,9 @@
 from .consumer import ConsumerUnit, ConsumerUnitInfo
 from .distribution import DistributionUnit, DistributionUnitInfo
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
-from .manufacture import ManufactureUnit, ManufactureUnitInfo
-from .outerseller import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler
-from .product import ProductUnit, ProductUnitInfo
-from .seller import SellerUnit, SellerUnitInfo
-from .simplemanufacture import SimpleManufactureUnit
-from .storage import StorageUnit, StorageUnitInfo
-from .storeproduct import StoreProductUnit
+from .manufacture import ManufactureUnit, ManufactureUnitInfo, SimpleManufactureUnit
+from .product import ProductUnit, ProductUnitInfo, StoreProductUnit
+from .seller import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler, SellerUnit, SellerUnitInfo
+from .storage import DEFAULT_SUB_STORAGE_ID, StorageUnit, StorageUnitInfo
 from .unitbase import UnitBase, BaseUnitInfo
 from .vehicle import VehicleUnit

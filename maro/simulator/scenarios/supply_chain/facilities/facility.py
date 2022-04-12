@@ -9,7 +9,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from maro.simulator.scenarios.supply_chain.objects import SkuInfo
+from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
@@ -39,15 +39,22 @@ class FacilityInfo:
 
 class FacilityBase(ABC):
     """Base of all facilities."""
-    def __init__(self) -> None:
-        # Id of this facility.
-        self.id: Optional[int] = None
+    def __init__(
+        self, id: int, name: str, data_model_name: str, data_model_index: int, world: World, config: dict,
+    ) -> None:
+        # Id and name of this facility.
+        self.id: int = id
+        self.name: str = name
 
-        # Name of this facility.
-        self.name: Optional[str] = None
+        # Name of data model, and the facility instance's corresponding node index in snapshot list.
+        self.data_model_name: str = data_model_name
+        self.data_model_index: int = data_model_index
 
         # World of this facility belongs to.
-        self.world: Optional[World] = None
+        self.world: World = world
+
+        # Configuration of this facility.
+        self.configs: dict = config
 
         # SKUs in this facility.
         self.skus: Dict[int, SkuInfo] = {}
@@ -62,49 +69,20 @@ class FacilityBase(ABC):
         # Distribution unit in this facility.
         self.distribution: Optional[DistributionUnit] = None
 
-        # Upstream facilities.
-        # Key is sku id, value is the list of facilities from upstream.
-        self.upstreams: Dict[int, List[FacilityBase]] = defaultdict(list)
+        # Upstream facility vendor leading time infos.
+        # Key: sku id;
+        # Value: a list of vendor leading time info, including source facility, vehicle type, vlt, transportation cost.
+        self.upstream_vlt_infos: Dict[int, List[VendorLeadingTimeInfo]] = defaultdict(list)
 
-        # Down stream facilities, value same as upstreams.
-        self.downstreams: Dict[int, List[FacilityBase]] = defaultdict(list)
-
-        # Configuration of this facility.
-        self.configs: Optional[dict] = None
-
-        # Name of data model, from configuration.
-        self.data_model_name: Optional[str] = None
-
-        # Index of the data model node.
-        self.data_model_index: int = 0
+        # Downstream facility leading time infos.
+        # Key: sku id;
+        # Value: a list of leading time info, including destination facility, vehicle type, vlt, transportation cost.
+        self.downstream_vlt_infos: Dict[int, List[LeadingTimeInfo]] = defaultdict(list)
 
         self.data_model: Optional[DataModelBase] = None
 
         # Children of this facility (valid units).
         self.children: List[UnitBase] = []
-
-        # Facility's coordinates
-        self.x: Optional[int] = None
-        self.y: Optional[int] = None
-
-    def parse_skus(self, configs: dict) -> None:
-        """Parse sku information from config.
-
-        Args:
-            configs (dict): Configuration of skus belongs to this facility.
-        """
-        for sku_name, sku_config in configs.items():
-            sku_config['id'] = self.world.get_sku_id_by_name(sku_name)
-            facility_sku = SkuInfo(**sku_config)
-            self.skus[facility_sku.id] = facility_sku
-
-    def parse_configs(self, configs: dict) -> None:
-        """Parse configuration of this facility.
-
-        Args:
-            configs (dict): Configuration of this facility.
-        """
-        self.configs = configs
 
     def get_config(self, key: str, default: object = None) -> object:
         """Get specified configuration of facility.
@@ -181,9 +159,34 @@ class FacilityBase(ABC):
             class_name=type(self),
             configs=self.configs,
             skus=self.skus,
-            upstreams={product_id: [f.id for f in f_list] for product_id, f_list in self.upstreams.items()},
-            downstreams={product_id: [f.id for f in f_list] for product_id, f_list in self.downstreams.items()},
+            upstreams={
+                product_id: [info.src_facility.id for info in info_list]
+                for product_id, info_list in self.upstream_vlt_infos.items()
+            },
+            downstreams={
+                product_id: [info.dest_facility.id for info in info_list]
+                for product_id, info_list in self.downstream_vlt_infos.items()
+            },
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
-            products_info={product_id: product.get_unit_info() for product_id, product in self.products.items()},
+            products_info={
+                product_id: product.get_unit_info()
+                for product_id, product in self.products.items()
+            },
         )
+
+    def get_sku_cost(self, sku_id: int) -> float:
+        # TODO: updating for manufacture, ...
+        src_prices: List[float] = []
+        for vlt_info in self.upstream_vlt_infos[sku_id]:
+            src_prices.append(vlt_info.src_facility.skus[sku_id].price)
+        if len(src_prices) > 0:
+            return sum(src_prices) / len(src_prices)
+        else:
+            return self.skus[sku_id].price
+
+    def get_max_vlt(self, sku_id: int) -> float:
+        max_vlt: int = 0
+        for vlt_info in self.upstream_vlt_infos[sku_id]:
+            max_vlt = max(max_vlt, vlt_info.vlt)
+        return max_vlt

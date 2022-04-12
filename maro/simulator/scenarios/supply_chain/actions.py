@@ -14,7 +14,7 @@ class ConsumerAction(SupplyChainAction):
     product_id: int
     source_id: int
     quantity: int
-    vlt: int  # TODO: update vlt related code
+    vehicle_type: str
 
 
 @dataclass

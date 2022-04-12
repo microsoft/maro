@@ -3,8 +3,7 @@
 
 
 from .facility import FacilityBase, FacilityInfo
-from .outerretailer import OuterRetailerFacility
-from .retailer import RetailerFacility
+from .retailer import OuterRetailerFacility, RetailerFacility
 from .supplier import SupplierFacility
 from .warehouse import WarehouseFacility
 

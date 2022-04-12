@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import numpy as np
+from typing import Dict
 
 from .env_helper import STORAGE_INFO, env
 
@@ -70,8 +71,12 @@ keys_in_state = [
 
 # Create initial state structure. We will build the final state with default and const values,
 # then update dynamic part per step
-# print(list(env.summary["node_mapping"].keys()))
 num_skus = len(env.summary["node_mapping"]["skus"]) + 1
+
+sku_id2idx: Dict[int, int] = {}
+for idx, sku_id in enumerate(list(env.summary["node_mapping"]["skus"].keys())):
+    sku_id2idx[sku_id] = idx + 1
+
 STATE_TEMPLATE = {}
 for entity in env.business_engine.get_entity_list():
     state = {}
@@ -95,7 +100,7 @@ for entity in env.business_engine.get_entity_list():
     state["is_positive_balance"] = 0
 
     if entity.skus is not None:
-        state['facility_id'][entity.skus.id] = 1
+        state['facility_id'][sku_id2idx[entity.skus.id]] = 1
 
     for atom_name in atoms.keys():
         state[atom_name] = list(np.ones(workflow_settings['constraint_state_hist_len']))
@@ -114,8 +119,8 @@ for entity in env.business_engine.get_entity_list():
     state['bom_outputs'] = [0] * num_skus
 
     if entity.skus is not None:
-        state['bom_inputs'][entity.skus.id] = 1
-        state['bom_outputs'][entity.skus.id] = 1
+        state['bom_inputs'][sku_id2idx[entity.skus.id]] = 1
+        state['bom_outputs'][sku_id2idx[entity.skus.id]] = 1
 
     # vlt features
     sku_list = env.summary["node_mapping"]["skus"]
@@ -124,7 +129,8 @@ for entity in env.business_engine.get_entity_list():
     if entity.skus is not None:
         current_source_list = facility["upstreams"].get(entity.skus.id, [])
 
-    vlt_len = env.summary["node_mapping"]["max_sources_per_facility"] * num_skus
+    max_src_num = env.summary["node_mapping"]["max_sources_per_facility"]
+    vlt_len = max_src_num * num_skus
     state['vlt'] = [0] * vlt_len
     state['max_vlt'] = 0
 
@@ -140,7 +146,8 @@ for entity in env.business_engine.get_entity_list():
                     # NOTE: different with original code, our config can make sure that source has product we need
 
                     if sku.id == entity.skus.id:
-                        state['vlt'][i * len(sku_list) + j + 1] = facility["skus"][sku.id].vlt
+                        state['vlt'][i * max_src_num + j + 1] =\
+                            env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)
 
     # sale features
     hist_len = workflow_settings['sale_hist_len']
@@ -187,8 +194,8 @@ for entity in env.business_engine.get_entity_list():
         for i, source in enumerate(current_source_list):
             for j, sku in enumerate(sku_list.values()):
                 if sku.id == entity.skus.id:
-                    state['consumer_source_export_mask'][i * len(sku_list) + j + 1] = \
-                        STORAGE_INFO["facility_levels"][source]["skus"][sku.id].vlt
+                    state['consumer_source_export_mask'][i * max_src_num + j + 1] = \
+                        env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)
 
     # price features
     state['max_price'] = env.summary["node_mapping"]["max_price"]
@@ -197,7 +204,8 @@ for entity in env.business_engine.get_entity_list():
 
     if entity.skus is not None:
         state['sku_price'] = entity.skus.price
-        state['sku_cost'] = entity.skus.cost
+        state['sku_cost'] = env.business_engine.world.get_facility_by_id(
+            entity.facility_id).get_sku_cost(entity.skus.id)
 
     STATE_TEMPLATE[entity.id] = state
 
@@ -208,3 +216,18 @@ STATE_DIM = sum(
     for _, state_keys in keys_in_state
     for key in state_keys
 )
+
+
+def _serialize_state(state: dict) -> np.ndarray:
+    result = []
+
+    for norm, fields in keys_in_state:
+        for field in fields:
+            vals = state[field]
+            if not isinstance(vals, list):
+                vals = [vals]
+            if norm is not None:
+                vals = [max(0.0, min(20.0, x / (state[norm] + 0.01))) for x in vals]
+            result.extend(vals)
+
+    return np.asarray(result, dtype=np.float32)

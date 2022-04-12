@@ -7,10 +7,10 @@ from typing import Any, Dict
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units import (
     ConsumerUnitInfo, DistributionUnitInfo, ManufactureUnitInfo, ProductUnitInfo, SellerUnitInfo, StorageUnitInfo
 )
-from maro.simulator.scenarios.supply_chain.world import SupplyChainEntity
 
 from .config import env_conf
 
@@ -59,7 +59,7 @@ for facility_id, facility_info in facility_info_dict.items():
 
         for i, pid in enumerate(storage.product_list):
             STORAGE_INFO["storage_product_indexes"][facility_id][pid] = i
-            STORAGE_INFO["storage_product_num"][facility_id][pid] = 0
+            STORAGE_INFO["storage_product_num"][facility_id][i] = 0
 
     distribution: DistributionUnitInfo = facility_info.distribution_info
     if distribution is not None:
