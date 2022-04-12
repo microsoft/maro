@@ -15,6 +15,7 @@ from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
     ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit
 )
+from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
@@ -24,8 +25,11 @@ from .config import distribution_features, env_conf, seller_features, TEAM_REWAR
 from .env_helper import STORAGE_INFO
 from .policies import agent2policy, trainable_policies
 from .state_template import STATE_TEMPLATE, sku_id2idx, workflow_settings, _serialize_state
+<<<<<<< HEAD
 from .algorithms.rule_based import ConsumerEOQPolicy as ConsumerBaselinePolicy
 from .render_tools import SimulationTracker
+=======
+>>>>>>> sc_refinement
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -126,11 +130,17 @@ class SCEnvSampler(AbsEnvSampler):
                 self._learn_env.tick:idx:"order_cost"
             ].flatten()[0]
 
+        be = self._env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
         extend_state([facility['storage'].config[0].capacity])
         extend_state(self._storage_info["storage_product_num"][entity.facility_id])
         extend_state(self._facility_in_transit_orders[entity.facility_id])
         extend_state([self._storage_info["storage_product_indexes"][entity.facility_id][entity.skus.id] + 1])
+<<<<<<< HEAD
         extend_state([self._env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
+=======
+        extend_state([be.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
+>>>>>>> sc_refinement
         extend_state([entity.skus.service_level])
         return np.array(np_state + offsets)
 
@@ -279,9 +289,14 @@ class SCEnvSampler(AbsEnvSampler):
 
                     # ignore 0 quantity to reduce action number
                     if action_number:
-                        sku = self._units_mapping[unit_id][3]
+                        # sku = self._units_mapping[unit_id][3]
                         env_action_dict[agent_id] = ConsumerAction(
+<<<<<<< HEAD
                             unit_id, product_id, source_id, action_number, "train",  # TODO: add logic for vehicle type selection
+=======
+                            # TODO: add logic for vehicle type selection
+                            unit_id, product_id, source_id, action_number, "train",
+>>>>>>> sc_refinement
                         )
                         self._consumer_orders[product_unit_id] = action_number
                         self._orders_from_downstreams[
@@ -480,5 +495,5 @@ def env_sampler_creator(policy_creator) -> SCEnvSampler:
         get_env=lambda: Env(**env_conf),
         policy_creator=policy_creator,
         agent2policy=agent2policy,
-        trainable_policies=trainable_policies
+        trainable_policies=trainable_policies,
     )

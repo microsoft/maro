@@ -195,10 +195,10 @@ world:
           unit_order_cost: 80
         "hobby_1":
           price: 33
-          init_stock: 300
+          init_stock: 5000
           sub_storage_id: 2
           has_manufacture: True
-          production_rate: 1000
+          production_rate: 10000
           unit_product_cost: 14
       children:
         storage: *multi_storage
@@ -212,7 +212,7 @@ world:
       skus:
         "food_1":
           price: 33
-          init_stock: 2000
+          init_stock: 10000
           sub_storage_id: 0
           has_consumer: True
         "hobby_1":
@@ -231,16 +231,16 @@ world:
       definition_ref: "StoreFacility"
       skus:
         "food_1":
-          price: 120
-          init_stock: 100
+          price: 33
+          init_stock: 10000
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
           sale_gamma: 160
           backlog_ratio: 0.0
         "hobby_1":
-          price: 80
-          init_stock: 50
+          price: 33
+          init_stock: 5000
           sub_storage_id: 0
           has_consumer: True
           has_seller: True

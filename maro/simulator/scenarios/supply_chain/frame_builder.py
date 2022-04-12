@@ -8,7 +8,7 @@ from maro.backends.frame import FrameBase, FrameNode
 
 def build_frame(enable_snapshot: bool, total_snapshots: int, nodes: List[Tuple[type, str, int]]) -> FrameBase:
     class Frame(FrameBase):
-        def __init__(self):
+        def __init__(self) -> None:
             # Inject the node definition to frame to support add node dynamically.
             for node_cls, name, number in nodes:
                 setattr(Frame, name, FrameNode(node_cls, number))
