@@ -83,7 +83,7 @@ def main(scenario: Scenario) -> None:
     )
 
     load_path = get_env("LOAD_PATH", required=False)
-    load_episode = get_env("LOAD_EPISODE", required=False)
+    load_episode = int_or_none(get_env("LOAD_EPISODE", required=False))
     if load_path:
         assert isinstance(load_path, str)
 

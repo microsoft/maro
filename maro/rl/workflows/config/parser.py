@@ -161,8 +161,12 @@ class ConfigParser:
             if "logging" in self._config["training"]:
                 self._validate_logging_section("training", self._config["training"]["logging"])
 
-        if "load_path" in self._config["training"] and not isinstance(self._config["training"]["load_path"], str):
+        load_path = self._config["training"].get("load_path", None)
+        if load_path is not None and not isinstance(load_path, str):
             raise TypeError(f"{self._validation_err_pfx}: 'training.load_path' must be a string")
+        load_episode = self._config["training"].get("load_episode", None)
+        if load_episode is not None and not isinstance(load_episode, int):
+            raise TypeError(f"{self._validation_err_pfx}: 'training.load_episode' must be a integer")
 
         if "checkpointing" in self._config["training"]:
             self._validate_checkpointing_section(self._config["training"]["checkpointing"])
@@ -275,6 +279,9 @@ class ConfigParser:
         load_path = self._config["training"].get("load_path", None)
         if load_path is not None:
             env["main"]["LOAD_PATH"] = path_mapping[load_path]
+        load_episode = self._config["training"].get("load_episode", None)
+        if load_episode is not None:
+            env["main"]["LOAD_EPISODE"] = str(load_episode)
 
         if "checkpointing" in self._config["training"]:
             conf = self._config["training"]["checkpointing"]
