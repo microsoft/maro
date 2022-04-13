@@ -3,8 +3,6 @@
 
 import os
 
-FILE_SUFFIX = "ckpt"
-
 
 def extract_trainer_name(policy_name: str) -> str:
     """Extract the trainer name from the policy name.

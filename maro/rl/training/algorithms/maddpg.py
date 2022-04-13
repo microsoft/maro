@@ -13,8 +13,8 @@ from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
-from maro.rl.training.utils import FILE_SUFFIX
 from maro.rl.utils import MultiTransitionBatch, get_torch_device, ndarray_to_tensor
+from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import clone
 
 

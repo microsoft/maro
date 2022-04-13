@@ -14,7 +14,7 @@ import numpy as np
 import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
-from maro.rl.training.utils import FILE_SUFFIX
+from maro.rl.utils.objects import FILE_SUFFIX
 from maro.simulator import Env
 
 

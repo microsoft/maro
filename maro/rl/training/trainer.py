@@ -9,10 +9,11 @@ import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import ExpElement
+from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps, RemoteOps
-from .utils import extract_trainer_name, FILE_SUFFIX
+from .utils import extract_trainer_name
 
 
 @dataclass
