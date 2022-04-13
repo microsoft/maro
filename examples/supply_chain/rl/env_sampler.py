@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 import scipy.stats as st
@@ -14,9 +14,10 @@ from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
     ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit
 )
+from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
-from maro.simulator.scenarios.supply_chain.objects import SkuMeta, SupplyChainEntity
+from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
@@ -51,37 +52,45 @@ class SCEnvSampler(AbsEnvSampler):
         )
         self._env_settings: dict = workflow_settings
 
-        self._balance_calculator = BalanceSheetCalculator(self._learn_env)
+        self._balance_calculator: BalanceSheetCalculator = BalanceSheetCalculator(self._learn_env)
 
-        self._configs = self._learn_env.configs
+        self._configs: dict = self._learn_env.configs
 
-        self._entity_dict = {entity.id: entity for entity in self._learn_env.business_engine.get_entity_list()}
+        self._entity_dict: Dict[int, SupplyChainEntity] = {
+            entity.id: entity
+            for entity in self._learn_env.business_engine.get_entity_list()
+        }
 
-        self._summary = self._learn_env.summary['node_mapping']
+        self._summary: dict = self._learn_env.summary['node_mapping']
 
-        self._units_mapping = self._summary["unit_mapping"]  # unit id -> (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
+        # Key: Unit id; Value: (unit.data_model_name, unit.data_model_index, unit.facility.id, SkuInfo)
+        self._units_mapping: Dict[int, Tuple[str, int, int, SkuInfo]] = self._summary["unit_mapping"]
 
         self._sku_metas: Dict[int, SkuMeta] = self._summary["skus"]
         self._global_sku_id2idx: Dict[int, int] = {
             sku_id: idx
             for idx, sku_id in enumerate(self._sku_metas.keys())
         }
-        self._sku_number = len(self._sku_metas)
+        self._sku_number: int = len(self._sku_metas)
 
         self._facility_info_dict: Dict[int, FacilityInfo] = self._summary["facilities"]
 
-        self._max_sources_per_facility = self._summary["max_sources_per_facility"]
-
         self._unit2product_unit: Dict[int, int] = self._get_unit2product_unit(self._facility_info_dict)
 
-        # Key 1: Facility id
-        # Key 2: Product id
-        # Value: Index in product list
-        self._product_id2idx = self._get_product_id2idx(self._facility_info_dict)
+        # Key 1: Facility id; Key 2: Product id; Value: Index in product list
+        self._product_id2idx: Dict[int, Dict[int, int]] = self._get_product_id2idx(self._facility_info_dict)
 
-        self._cur_metrics = None
+        # Key: Consumer unit id; Value: corresponding product id.
+        self._consumer2product_id: Dict[int, int] = self._get_consumer2product_id(self._facility_info_dict)
+        # Key: Consumer unit it; Value: source facility id list.
+        self._consumer2source_facilities: Dict[int, List[int]] = self._get_consumer2source_facilities(
+            self._facility_info_dict
+        )
 
-        self._cur_balance_sheet_reward = None
+        self._cur_metrics: dict = self._learn_env.metrics
+
+        # Key: facility/unit id; Value: (balance, reward)
+        self._cur_balance_sheet_reward: Dict[int, Tuple[float, float]] = None
 
         # States of current tick, extracted from snapshot list.
         self._cur_distribution_states = None
@@ -91,32 +100,15 @@ class SCEnvSampler(AbsEnvSampler):
         # Key: facility id; List Index: sku idx; Value: in transition product quantity.
         self._facility_in_transit_orders: Dict[int, List[int]] = {}
 
-        self._facility_product_utilization: Dict[int, int] = {
-            facility_id: 0
-            for facility_id, facility_info in self._facility_info_dict.items()
-            if facility_info.storage_info is not None
-        }
+        self._facility_product_utilization: Dict[int, int] = {}
 
         # Key: facility id
-        self._storage_product_quantity: Dict[int, List[int]] = {
-            facility_id: [0] * self._sku_number
-            for facility_id, facility_info in self._facility_info_dict.items()
-            if facility_info.storage_info is not None
-        }
+        self._storage_product_quantity: Dict[int, List[int]] = defaultdict(lambda: [0] * self._sku_number)
 
-        # cache for ppf value.
-        self._service_index_ppf_cache = {}
-
+        # Key: service level; Value: the cached return value of Percentage Point Function.
+        self._service_index_ppf_cache: Dict[float, float] = {}
 
         self._state_template = STATE_TEMPLATE
-
-        # self._stock_status = {}
-        # self._demand_status = {}
-        # key: product unit id, value: number
-        # self._orders_from_downstreams = {}
-        # self._consumer_orders = {}
-        # self._order_in_transit_status = {}
-        # self._order_to_distribute_status = {}
 
     def _get_unit2product_unit(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
         unit2product: Dict[int, int] = {}
@@ -140,13 +132,34 @@ class SCEnvSampler(AbsEnvSampler):
 
         return product_id2idx
 
-    def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: list) -> float:
+    def _get_consumer2product_id(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
+        consumer2product_id: Dict[int, int] = {}
+
+        for facility_info in facility_info_dict.values():
+            for product_id, product in facility_info.products_info.items():
+                if product.consumer_info:
+                    consumer2product_id[product.consumer_info.id] = product_id
+
+        return consumer2product_id
+
+    def _get_consumer2source_facilities(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, List[int]]:
+        consumer2source_facilities: Dict[int, List[int]] = {}
+
+        for facility_info in facility_info_dict.values():
+            for product in facility_info.products_info.values():
+                if product.consumer_info:
+                    consumer2source_facilities[product.consumer_info.id] = product.consumer_info.source_facility_id_list
+
+        return consumer2source_facilities
+
+    def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
             return np.float32(bwt[1]) / np.float32(self._env_settings["reward_normalization"])
         else:
             return .0
 
     def get_or_policy_state(self, state: dict, entity: SupplyChainEntity) -> np.ndarray:
+        # TODO: check the correctness of the implementation
         if entity.skus is None:
             return np.array([1])
 
@@ -196,11 +209,6 @@ class SCEnvSampler(AbsEnvSampler):
         # self._add_price_features(state, entity)
         self._update_global_features(state)
 
-        # self._stock_status[entity.id] = state['inventory_in_stock']
-        # self._demand_status[entity.id] = state['sale_hist'][-1]
-        # self._order_in_transit_status[entity.id] = state['inventory_in_transit']
-        # self._order_to_distribute_status[entity.id] = state['distributor_in_transit_orders_qty']
-
         np_state = _serialize_state(state)
         return np_state
 
@@ -240,20 +248,14 @@ class SCEnvSampler(AbsEnvSampler):
             sale_hist_ticks::seller_features
         ].astype(np.int)
 
-        # 1. Reset facility product utilization.
-        # 2. Update facility in transition order quantity info.
-        for facility_id in self._facility_product_utilization:  # TODO: check keep in __init__ or not.
-            # reset for each step
-            self._facility_product_utilization[facility_id] = 0
-
-            self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
-
-            for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
-                self._facility_in_transit_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
-
         # 1. Update storage product quantity info.
         # 2. Update facility product utilization info.
+        # 3. Update facility in transition order quantity info.
         for facility_id, facility_info in self._facility_info_dict.items():
+            # Reset for each step
+            self._facility_product_utilization[facility_id] = 0
+            self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
+
             product_quantities = self._learn_env.snapshot_list["storage"][
                 tick:facility_info.storage_info.node_index:"product_quantity"
             ].flatten().astype(np.int)
@@ -263,6 +265,9 @@ class SCEnvSampler(AbsEnvSampler):
 
                 self._storage_product_quantity[facility_id][self._global_sku_id2idx[pid]] = product_quantity
                 self._facility_product_utilization[facility_id] += product_quantity
+
+            for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
+                self._facility_in_transit_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
         state = {
             id_: self._get_state_shaper(id_)(self._state_template[id_], entity)
@@ -275,60 +280,46 @@ class SCEnvSampler(AbsEnvSampler):
         # get related product, seller, consumer, manufacture unit id
         # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
         self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
+
         return {
-            f_id: self._get_reward_for_entity(self._entity_dict[f_id], list(bwt))
-            for f_id, bwt in self._cur_balance_sheet_reward.items() if f_id in self._agent2policy
+            unit_id: self._get_reward_for_entity(self._entity_dict[unit_id], bwt)
+            for unit_id, bwt in self._cur_balance_sheet_reward.items()
+            if unit_id in self._agent2policy
         }
 
     def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
-        # cache the sources for each consumer if not yet cached
-        if not hasattr(self, "consumer2source"):
-            self.consumer2source, self.consumer2product = {}, {}
-            facility_info_dict: Dict[int, FacilityInfo] = self._learn_env.summary["node_mapping"]["facilities"]
-            for facility_info in facility_info_dict.values():
-                for product_id, product in facility_info.products_info.items():
-                    if product.consumer_info:
-                        self.consumer2source[product.consumer_info.id] = product.consumer_info.source_facility_id_list
-                        self.consumer2product[product.consumer_info.id] = product_id
+        env_action_dict: Dict[int, SupplyChainAction] = {}
 
-        env_action_dict = {}
         for agent_id, action in action_dict.items():
-            # ignore facility to reduce action number
-            if agent_id not in self._units_mapping:
-                continue
+            entity_id = agent_id
+            env_action: Optional[SupplyChainAction] = None
 
-            unit_id = agent_id
-
-            # consumer action
+            # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
-                product_id = self.consumer2product.get(unit_id, 0)
-                sources = self.consumer2source.get(unit_id, [])
-                if sources:
-                    source_id = sources[0]
-                    product_unit_id = self._unit2product_unit[unit_id]
-                    try:
-                        action_number = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
-                    except ValueError:
-                        action_number = 0
+                # TODO: vehicle type selection and source selection
+                product_id: int = self._consumer2product_id.get(entity_id, 0)
+                sources: List[int] = self._consumer2source_facilities.get(entity_id, [])
+                product_unit_id: int = self._unit2product_unit[entity_id]
 
-                    # ignore 0 quantity to reduce action number
-                    if action_number:
-                        # sku = self._units_mapping[unit_id][3]
-                        env_action_dict[agent_id] = ConsumerAction(
-                            # TODO: add logic for vehicle type selection
-                            unit_id, product_id, source_id, action_number, "train",
-                        )
-                        # self._consumer_orders[product_unit_id] = action_number
-                        # self._orders_from_downstreams[
-                        #     self._facility_info_dict[source_id].products_info[product_id].id
-                        # ] = action_number
-            # manufacturer action
+                if sources:
+                    try:
+                        action_quantity = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                    except ValueError:
+                        action_quantity = 0
+
+                    # Ignore 0 quantity to reduce action number
+                    if action_quantity:
+                        env_action = ConsumerAction(entity_id, product_id, sources[0], action_quantity, "train")
+
+            # Manufacturer action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
-                sku = self._units_mapping[unit_id][3]
-                action = sku.production_rate
-                # ignore invalid actions
-                if action:
-                    env_action_dict[agent_id] = ManufactureAction(id=unit_id, production_rate=int(action))
+                # TODO: update ManufactureUnit's logic to keep the production rate by default.
+                sku = self._units_mapping[entity_id][3]
+                if sku.production_rate:
+                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.production_rate))
+
+            if env_action:
+                env_action_dict[agent_id] = env_action
 
         return env_action_dict
 
