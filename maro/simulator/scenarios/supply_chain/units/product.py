@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
+
 from .consumer import ConsumerUnit, ConsumerUnitInfo
 from .distribution import DistributionUnit
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo

@@ -7,7 +7,6 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
 from maro.backends.frame import FrameBase
-
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnit
 
 from .facilities import FacilityBase
