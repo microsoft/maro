@@ -2,15 +2,29 @@
 # Licensed under the MIT license.
 
 from functools import partial
+from typing import Any, Dict
 
+from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit, ProductUnit, SellerUnit
+from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
 from .algorithms.ppo import get_policy, get_ppo
 from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy
-from .config import NUM_CONSUMER_ACTIONS
-from .env_helper import entity_dict
+from .config import NUM_CONSUMER_ACTIONS, env_conf
 from .state_template import STATE_DIM
+
+
+# Create an env to get entity list
+env = Env(**env_conf)
+
+helper_business_engine = env.business_engine
+assert isinstance(helper_business_engine, SupplyChainBusinessEngine)
+
+entity_dict: Dict[Any, SupplyChainEntity] = {
+    entity.id: entity
+    for entity in helper_business_engine.get_entity_list()
+}
 
 
 def entity2policy(entity: SupplyChainEntity) -> str:

@@ -4,7 +4,14 @@
 import numpy as np
 from typing import Dict
 
-from .env_helper import STORAGE_INFO, env
+from maro.simulator import Env
+from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
+
+from .config import env_conf, workflow_settings
+
+
+# Create an env to extract some required information
+env = Env(**env_conf)
 
 
 def stock_constraint(f_state) -> bool:
@@ -26,25 +33,6 @@ def low_stock_constraint(f_state) -> bool:
 def out_of_stock(f_state) -> bool:
     return 0 < f_state['inventory_in_stock']
 
-
-workflow_settings: dict = {
-    "global_reward_weight_producer": 0.50,
-    "global_reward_weight_consumer": 0.50,
-    "downsampling_rate": 1,
-    "episod_duration": 21,
-    "initial_balance": 100000,
-    "consumption_hist_len": 4,
-    "sale_hist_len": 4,
-    "pending_order_len": 4,
-    "constraint_state_hist_len": 8,
-    "total_echelons": 3,
-    "replenishment_discount": 0.9,
-    "reward_normalization": 1e7,
-    "constraint_violate_reward": -1e6,
-    "gamma": 0.99,
-    "tail_timesteps": 7,
-    "heading_timesteps": 7,
-}
 
 atoms = {
     'stock_constraint': stock_constraint,
@@ -77,10 +65,12 @@ sku_id2idx: Dict[int, int] = {}
 for idx, sku_id in enumerate(list(env.summary["node_mapping"]["skus"].keys())):
     sku_id2idx[sku_id] = idx + 1
 
+facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+
 STATE_TEMPLATE = {}
 for entity in env.business_engine.get_entity_list():
     state = {}
-    facility = STORAGE_INFO["facility_levels"][entity.facility_id]
+    facility_info = facility_info_dict[entity.facility_id]
 
     # global features
     state["global_time"] = 0
@@ -96,7 +86,7 @@ for entity in env.business_engine.get_entity_list():
     state['sku_info'] = {} if entity.is_facility else entity.skus
     state['echelon_level'] = 0
 
-    state['facility_info'] = facility['config']
+    state['facility_info'] = facility_info.configs
     state["is_positive_balance"] = 0
 
     if entity.skus is not None:
@@ -109,7 +99,7 @@ for entity in env.business_engine.get_entity_list():
     state['storage_levels'] = [0] * num_skus
 
     state['storage_capacity'] = 0
-    for sub_storage in facility["storage"].config:
+    for sub_storage in facility_info.storage_info.config:
         state["storage_capacity"] += sub_storage.capacity
 
     state['storage_utilization'] = 0
@@ -127,7 +117,7 @@ for entity in env.business_engine.get_entity_list():
     current_source_list = []
 
     if entity.skus is not None:
-        current_source_list = facility["upstreams"].get(entity.skus.id, [])
+        current_source_list = facility_info.upstreams.get(entity.skus.id, [])
 
     max_src_num = env.summary["node_mapping"]["max_sources_per_facility"]
     vlt_len = max_src_num * num_skus
@@ -136,10 +126,10 @@ for entity in env.business_engine.get_entity_list():
 
     if entity.skus is not None:
         # only for sku product
-        product_info = facility[entity.skus.id]
+        product_info = facility_info.products_info[entity.skus.id]
 
-        if "consumer" in product_info and len(current_source_list) > 0:
-            state['max_vlt'] = product_info["skuproduct"].max_vlt
+        if product_info.consumer_info is not None and len(current_source_list) > 0:
+            state['max_vlt'] = product_info.max_vlt
 
             for i, source in enumerate(current_source_list):
                 for j, sku in enumerate(sku_list.values()):
@@ -167,10 +157,11 @@ for entity in env.business_engine.get_entity_list():
     if entity.skus is not None:
         state['service_level'] = entity.skus.service_level
 
-        product_info = facility[entity.skus.id]
+        product_info = facility_info.products_info[entity.skus.id]
 
-        if "seller" in product_info:
-            state['sale_gamma'] = facility["skus"][entity.skus.id].sale_gamma
+        if product_info.seller_info is not None:
+
+            state['sale_gamma'] = facility_info.skus[entity.skus.id].sale_gamma
 
     # distribution features
     state['distributor_in_transit_orders'] = 0
