@@ -10,7 +10,10 @@ env_conf = {
 }
 
 distribution_features = ("pending_product_quantity", "pending_order_number")
+IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER = 0, 1
+
 seller_features = ("total_demand", "sold", "demand")
+IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND = 0, 1, 2
 
 NUM_CONSUMER_ACTIONS = 10
 

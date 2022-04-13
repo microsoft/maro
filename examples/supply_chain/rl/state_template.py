@@ -6,6 +6,7 @@ from typing import Dict
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
+from maro.simulator.scenarios.supply_chain.objects import SkuMeta
 
 from .config import env_conf, workflow_settings
 
@@ -59,11 +60,13 @@ keys_in_state = [
 
 # Create initial state structure. We will build the final state with default and const values,
 # then update dynamic part per step
-num_skus = len(env.summary["node_mapping"]["skus"]) + 1
 
-sku_id2idx: Dict[int, int] = {}
-for idx, sku_id in enumerate(list(env.summary["node_mapping"]["skus"].keys())):
-    sku_id2idx[sku_id] = idx + 1
+sku_metas: Dict[int, SkuMeta] = env.summary['node_mapping']["skus"]
+global_sku_id2idx: Dict[int, int] = {
+    sku_id: idx
+    for idx, sku_id in enumerate(sku_metas.keys())
+}
+sku_number = len(sku_metas)
 
 facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
 
@@ -82,7 +85,7 @@ for entity in env.business_engine.get_entity_list():
     # ]
     state["is_accepted"] = [0] * workflow_settings["constraint_state_hist_len"]
     state['constraint_idx'] = [0]
-    state['facility_id'] = [0] * num_skus
+    state['facility_id'] = [0] * sku_number
     state['sku_info'] = {} if entity.is_facility else entity.skus
     state['echelon_level'] = 0
 
@@ -90,13 +93,13 @@ for entity in env.business_engine.get_entity_list():
     state["is_positive_balance"] = 0
 
     if entity.skus is not None:
-        state['facility_id'][sku_id2idx[entity.skus.id]] = 1
+        state['facility_id'][global_sku_id2idx[entity.skus.id]] = 1
 
     for atom_name in atoms.keys():
         state[atom_name] = list(np.ones(workflow_settings['constraint_state_hist_len']))
 
     # storage features
-    state['storage_levels'] = [0] * num_skus
+    state['storage_levels'] = [0] * sku_number
 
     state['storage_capacity'] = 0
     for sub_storage in facility_info.storage_info.config:
@@ -105,12 +108,12 @@ for entity in env.business_engine.get_entity_list():
     state['storage_utilization'] = 0
 
     # bom features
-    state['bom_inputs'] = [0] * num_skus
-    state['bom_outputs'] = [0] * num_skus
+    state['bom_inputs'] = [0] * sku_number
+    state['bom_outputs'] = [0] * sku_number
 
     if entity.skus is not None:
-        state['bom_inputs'][sku_id2idx[entity.skus.id]] = 1
-        state['bom_outputs'][sku_id2idx[entity.skus.id]] = 1
+        state['bom_inputs'][global_sku_id2idx[entity.skus.id]] = 1
+        state['bom_outputs'][global_sku_id2idx[entity.skus.id]] = 1
 
     # vlt features
     sku_list = env.summary["node_mapping"]["skus"]
@@ -120,7 +123,7 @@ for entity in env.business_engine.get_entity_list():
         current_source_list = facility_info.upstreams.get(entity.skus.id, [])
 
     max_src_num = env.summary["node_mapping"]["max_sources_per_facility"]
-    vlt_len = max_src_num * num_skus
+    vlt_len = max_src_num * sku_number
     state['vlt'] = [0] * vlt_len
     state['max_vlt'] = 0
 
@@ -136,7 +139,7 @@ for entity in env.business_engine.get_entity_list():
                     # NOTE: different with original code, our config can make sure that source has product we need
 
                     if sku.id == entity.skus.id:
-                        state['vlt'][i * max_src_num + j + 1] =\
+                        state['vlt'][i * max_src_num + j] =\
                             env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)
 
     # sale features
@@ -169,8 +172,8 @@ for entity in env.business_engine.get_entity_list():
 
     # consumer features
     state['consumer_source_export_mask'] = [0] * vlt_len
-    state['consumer_source_inventory'] = [0] * num_skus
-    state['consumer_in_transit_orders'] = [0] * num_skus
+    state['consumer_source_inventory'] = [0] * sku_number
+    state['consumer_in_transit_orders'] = [0] * sku_number
 
     state['inventory_in_stock'] = 0
     state['inventory_in_transit'] = 0
@@ -185,7 +188,7 @@ for entity in env.business_engine.get_entity_list():
         for i, source in enumerate(current_source_list):
             for j, sku in enumerate(sku_list.values()):
                 if sku.id == entity.skus.id:
-                    state['consumer_source_export_mask'][i * max_src_num + j + 1] = \
+                    state['consumer_source_export_mask'][i * max_src_num + j] = \
                         env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)
 
     # price features
