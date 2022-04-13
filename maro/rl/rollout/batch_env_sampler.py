@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import os
 import time
 from itertools import chain
 from typing import Dict, List, Optional, Tuple
 
+import torch
 import zmq
 from zmq import Context, Poller
 
@@ -12,6 +13,7 @@ from maro.rl.utils.common import bytes_to_pyobj, get_own_ip_address, pyobj_to_by
 from maro.utils import DummyLogger, LoggerV2
 
 from .env_sampler import ExpElement
+from ..utils.objects import FILE_SUFFIX
 
 
 class ParallelTaskController(object):
@@ -188,6 +190,25 @@ class BatchEnvSampler:
         return {
             "info": [res["info"][0] for res in results],
         }
+
+    def load_policy_state(self, path: str) -> List[str]:
+        file_list = os.listdir(path)
+        policy_state_dict = {}
+        loaded = []
+        for file_name in file_list:
+            if "non_policy" in file_name or not file_name.endswith(f"_policy.{FILE_SUFFIX}"):  # TODO: remove hardcode
+                continue
+            policy_name, policy_state = torch.load(os.path.join(path, file_name))
+            policy_state_dict[policy_name] = policy_state
+            loaded.append(policy_name)
+
+        req = {
+            "type": "set_policy_state",
+            "policy_state": policy_state_dict,
+            "index": (self._ep, -1),
+        }
+        self._controller.collect(req, self._sampling_parallelism)
+        return loaded
 
     def exit(self) -> None:
         self._controller.exit()

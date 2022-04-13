@@ -88,12 +88,13 @@ class ConfigParser:
                 raise KeyError(
                     f"{self._validation_err_pfx}: missing field 'sampling' under section 'rollout.parallelism'"
                 )
-            if not isinstance(conf["sampling"], int) or conf["sampling"] <= 0:
-                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.sampling' must be a positive int")
-            if "eval" in conf and not isinstance(conf["eval"], int) or conf["eval"] <= 0:
-                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.eval' must be a positive int")
 
-            train_prl, eval_prl = conf["sampling"], conf.get("eval", 1)
+            train_prl = conf["sampling"]
+            eval_prl = 1 if "eval" not in conf or conf["eval"] is None else conf["eval"]
+            if not isinstance(train_prl, int) or train_prl <= 0:
+                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.sampling' must be a positive int")
+            if not isinstance(eval_prl, int) or eval_prl <= 0:
+                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.eval' must be a positive int")
             if max(train_prl, eval_prl) > 1:
                 if "controller" not in conf:
                     raise KeyError(
@@ -300,8 +301,9 @@ class ConfigParser:
             })
 
         if "parallelism" in self._config["rollout"]:
-            env_sampling_parallelism = self._config["rollout"]["parallelism"]["sampling"]
-            env_eval_parallelism = self._config["rollout"]["parallelism"].get("eval", 1)
+            conf = self._config["rollout"]["parallelism"]
+            env_sampling_parallelism = conf["sampling"]
+            env_eval_parallelism = 1 if "eval" not in conf or conf["eval"] is None else conf["eval"]
         else:
             env_sampling_parallelism = env_eval_parallelism = 1
         rollout_parallelism = max(env_sampling_parallelism, env_eval_parallelism)

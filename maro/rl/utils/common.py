@@ -76,6 +76,9 @@ def get_own_ip_address() -> str:
 
 
 def get_ip_address_by_hostname(host: str) -> str:
+    if host in ("localhost", "127.0.0.1"):
+        return get_own_ip_address()
+
     while True:
         try:
             return socket.gethostbyname(host)
