@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import typing
-import numpy as np
 import warnings
 from abc import ABC, abstractmethod
 from collections import namedtuple
@@ -14,6 +13,7 @@ from datetime import datetime
 from typing import Optional, Union
 
 import dateutil
+import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import SellerDataModel
 

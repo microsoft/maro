@@ -4,12 +4,12 @@
 from __future__ import annotations
 
 import typing
-import numpy as np
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
+
+import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
-
 from .consumer import ConsumerUnit, ConsumerUnitInfo
 from .distribution import DistributionUnit
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
@@ -56,7 +56,7 @@ class ProductUnit(ExtendUnitBase):
         self.distribution: Optional[DistributionUnit] = None
 
         # 1st element: out product_id; 2nd element: self consumption / out product quantity
-        self.bom_out_info_list: List[Tuple(int, float)] = []
+        self.bom_out_info_list: List[Tuple[int, float]] = []
 
         # Internal states to track distribution.
         self._check_in_quantity_in_order: int = 0

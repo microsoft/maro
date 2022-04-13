@@ -36,13 +36,15 @@ class SkuInfo:
     production_rate: Optional[int] = None  # The initial production rate.
     # Consumer config
     has_consumer: bool = False  # To indicate whether the ProductUnit has a ConsumerUnit or not
-    unit_order_cost: Optional[float] = None  # SKU specific one would be used if set, else the one for its facility would be used.
+    # SKU specific one would be used if set, else the one for its facility would be used.
+    unit_order_cost: Optional[float] = None
     # Seller config
     has_seller: bool = False  # To indicate whether the SellerUnit has a ConsumerUnit or not
     sale_gamma: Optional[int] = None
     backlog_ratio: Optional[float] = None
     # Distribution config
-    unit_delay_order_penalty: Optional[float] = None  # SKU specific one would be used if set, else the one for its facility would be used.
+    # SKU specific one would be used if set, else the one for its facility would be used.
+    unit_delay_order_penalty: Optional[float] = None
     # For policy only
     service_level: float = 0.95
 

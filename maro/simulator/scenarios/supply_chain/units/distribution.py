@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order
-from .unitbase import UnitBase, BaseUnitInfo
+
+from .unitbase import BaseUnitInfo, UnitBase
 from .vehicle import VehicleStatus, VehicleUnit
 
 if typing.TYPE_CHECKING:

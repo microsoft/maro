@@ -5,8 +5,6 @@ import os
 import time
 from typing import List
 
-import torch
-
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainingManager
 from maro.rl.training.utils import get_latest_ep
