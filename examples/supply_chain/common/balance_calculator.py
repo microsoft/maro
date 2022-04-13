@@ -10,6 +10,7 @@ from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
+from ..rl.env_helper import STORAGE_INFO
 
 
 ProductInfo = namedtuple(
@@ -49,6 +50,7 @@ class BalanceSheetCalculator:
     product_features = (
         "id", "price", 'check_in_quantity_in_order', 'delay_order_penalty', "transportation_cost")
     storage_features = ("capacity", "remaining_space")
+    distribution_features = ("pending_product_quantity", "pending_order_number")
 
     def __init__(self, env: Env, team_reward) -> None:
         self._env: Env = env
@@ -72,12 +74,15 @@ class BalanceSheetCalculator:
         self.tick_cached = set()
         self.facility_info = self._env.summary['node_mapping']['facilities']
         self.sku_meta_info = self._env.summary['node_mapping']['skus']
-        for col in ['id', 'sku_id', 'facility_id', 'facility_name', 'name', 'tick', 'inventory_in_stock', 'unit_inventory_holding_cost']:
+
+        for col in ['id', 'sku_id', 'facility_id', 'facility_name', 'name', 'tick', 'inventory_in_stock', 
+                    'inventory_in_transit', 'inventory_to_distribute', 'unit_inventory_holding_cost']:
             self.product_metric_track[col] = []
         for (name, cols) in [("consumer", self.consumer_features),
                              ("seller", self.seller_features),
                              ("manufacture", self.manufacture_features),
-                             ("product", self.product_features)]:
+                             ("product", self.product_features),
+                             ("distribution", self.distribution_features)]:
             for fea in cols:
                 if fea == 'id':
                     continue
@@ -306,9 +311,12 @@ class BalanceSheetCalculator:
         storage_product_step_cost: List[Dict[int, float]],
         product_distribution_step_profit: np.ndarray,
         product_distribution_step_cost: np.ndarray,
+        tick: int,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         product_step_profit = np.zeros(self.num_products)
         product_step_cost = np.zeros(self.num_products)
+
+        self._cur_metrics = self._env._business_engine.get_metrics()
 
         # product = consumer + seller + manufacture + storage + distribution + downstreams
         for product in self._ordered_products:
@@ -329,20 +337,40 @@ class BalanceSheetCalculator:
                         self.product_metric_track[f"product_{fea}"].append(val)
                 for fea in self.consumer_features:
                     if fea != 'id':
-                        val = (self._get_attributes("consumer", fea, tick)[product.consumer_index] if product.consumer_index else 0)
+                        val = (self._get_attributes("consumer", fea, tick)[product.consumer_index] if product.consumer_index is not None else 0)
                         self.product_metric_track[f"consumer_{fea}"].append(val)
                 for fea in self.seller_features:
                     if fea != 'id':
-                        val = (self._get_attributes("seller", fea, tick)[product.seller_index] if product.seller_index else 0)
+                        val = (self._get_attributes("seller", fea, tick)[product.seller_index] if product.seller_index is not None else 0)
                         self.product_metric_track[f"seller_{fea}"].append(val)
                 for fea in self.manufacture_features:
                     if fea != 'id':
-                        val = (self._get_attributes("manufacture", fea, tick)[product.manufacture_index] if product.manufacture_index else 0)
+                        val = (self._get_attributes("manufacture", fea, tick)[product.manufacture_index] if product.manufacture_index is not None else 0)
                         self.product_metric_track[f"manufacture_{fea}"].append(val)
-                self.product_metric_track['unit_inventory_holding_cost'].append(self._get_list_attributes("storage", "unit_storage_cost", tick)[product.storage_index])
-                product_idx_in_storage = np.where(self._get_list_attributes("storage", "product_list", tick)[product.storage_index] == product.sku_id)[0]
-                self.product_metric_track['inventory_in_stock'].append(self._get_list_attributes("storage", "product_quantity", tick)[product.storage_index][product_idx_in_storage])
+                for fea in self.distribution_features:
+                    if fea != 'id':
+                        val = (self._get_attributes("distribution", fea, tick)[product.distribution_index] if product.distribution_index is not None else 0)
+                        self.product_metric_track[f"distribution_{fea}"].append(val)
+                
+                storage_index = product.storage_index
+                unit_storage_cost = self._get_list_attributes("storage", "unit_storage_cost", tick)[storage_index]
+                product_storage_index = int(np.where(self._get_list_attributes("storage", "product_list", tick)[storage_index] == product.sku_id)[0])
+                stock = self._get_list_attributes("storage", "product_quantity", tick)[storage_index][product_storage_index]
+                inner_storage_index = int(self._get_list_attributes("storage", "product_storage_index", tick)[storage_index][product_storage_index])
+                self.product_metric_track['unit_inventory_holding_cost'].append(unit_storage_cost[inner_storage_index])
+                self.product_metric_track['inventory_in_stock'].append(stock)
 
+                in_transit_stock = self._cur_metrics['facilities'][product.facility_id]["in_transit_orders"][product.sku_id]
+                self.product_metric_track['inventory_in_transit'].append(in_transit_stock)
+                
+                if self._cur_metrics['facilities'][product.facility_id]["pending_order"]:      
+                    to_distribute_stock = self._cur_metrics['facilities'][product.facility_id]["pending_order"][product.sku_id]
+                else:
+                    to_distribute_stock = 0
+                self.product_metric_track['inventory_to_distribute'].append(to_distribute_stock)
+                
+
+                
             if product.consumer_index:
                 product_step_cost[i] += consumer_step_cost[product.consumer_index]
 
@@ -468,7 +496,8 @@ class BalanceSheetCalculator:
             tick
         )
 
-        _, _, facility_step_balance = self._calc_facility(product_step_profit, product_step_cost, tick
+        _, _, facility_step_balance = self._calc_facility(facility_storage_step_cost, None,
+            product_step_profit, product_step_cost
         )
 
         balance_and_reward = self._update_balance_sheet(

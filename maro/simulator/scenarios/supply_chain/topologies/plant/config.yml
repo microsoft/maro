@@ -148,27 +148,27 @@ world:
       definition_ref: "VendorFacility"
       skus:  # would be parsed by FacilityBase.parse_skus() => SkuInfo
         "food_1":  # The key can be sku id or name
-          price: 33
-          init_stock: 10000
+          price: 60
+          init_stock: 1000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 10000
+          production_rate: 100
           unit_product_cost: 14
           unit_delay_order_penalty: 1000
         "component_1":
-          price: 33
-          init_stock: 10000
+          price: 5
+          init_stock: 5000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 10000
+          production_rate: 300
           unit_product_cost: 14
           unit_delay_order_penalty: 900
         "component_2":
-          price: 33
-          init_stock: 10000
+          price: 10
+          init_stock: 5000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 10000
+          production_rate: 300
           unit_product_cost: 14
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
@@ -182,24 +182,24 @@ world:
       definition_ref: "PlantFacility"
       skus:
         "component_1":
-          price: 33
-          init_stock: 5000
+          price: 5
+          init_stock: 3000
           sub_storage_id: 1
           has_consumer: True
-          unit_order_cost: 80
+          unit_order_cost: 5
         "component_2":
-          price: 33
-          init_stock: 5000
+          price: 10
+          init_stock: 4000
           sub_storage_id: 1
           has_consumer: True
-          unit_order_cost: 80
+          unit_order_cost: 10
         "hobby_1":
-          price: 33
-          init_stock: 5000
+          price: 70
+          init_stock: 2500
           sub_storage_id: 2
           has_manufacture: True
-          production_rate: 10000
-          unit_product_cost: 14
+          production_rate: 300
+          unit_product_cost: 35
       children:
         storage: *multi_storage
         distribution: *simple_distribution
@@ -211,13 +211,13 @@ world:
       definition_ref: "WarehouseFacility"
       skus:
         "food_1":
-          price: 33
-          init_stock: 10000
+          price: 60
+          init_stock: 2000
           sub_storage_id: 0
           has_consumer: True
         "hobby_1":
-          price: 33
-          init_stock: 5000
+          price: 70
+          init_stock: 2000
           sub_storage_id: 0
           has_consumer: True
       children:
@@ -231,21 +231,21 @@ world:
       definition_ref: "StoreFacility"
       skus:
         "food_1":
-          price: 33
-          init_stock: 10000
+          price: 150
+          init_stock: 500
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 160
-          backlog_ratio: 0.0
+          sale_gamma: 60
+          backlog_ratio: 0.1
         "hobby_1":
-          price: 33
-          init_stock: 5000
+          price: 180
+          init_stock: 600
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 160
-          backlog_ratio: 0.0
+          sale_gamma: 100
+          backlog_ratio: 0.1
       children:
         storage: *single_storage
       config:
@@ -257,8 +257,54 @@ world:
         datetime_column: Date
         file_path: "/data/songlei/maro_ms/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
 
+    - name: "Store_002"
+      definition_ref: "StoreFacility"
+      skus:
+        "food_1":
+          price: 150
+          init_stock: 500
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 60
+          backlog_ratio: 0.1
+        "hobby_1":
+          price: 180
+          init_stock: 600
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          backlog_ratio: 0.1
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 200
+        seller_sampler_type: data
+        sku_column: SKU
+        price_column: Price
+        sale_column: Sales
+        datetime_column: Date
+        file_path: "/data/songlei/maro_ms/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
+
+
   topology:
     "Store_001":
+      "food_1":
+        "Warehouse_001":
+          "air":
+            vlt: 2
+            cost: 3.0
+          "train":
+            vlt: 7
+            cost: 0.5
+      "hobby_1":
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 0.6
+    
+    "Store_002":
       "food_1":
         "Warehouse_001":
           "air":

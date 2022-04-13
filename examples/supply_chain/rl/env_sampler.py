@@ -25,11 +25,9 @@ from .config import distribution_features, env_conf, seller_features, TEAM_REWAR
 from .env_helper import STORAGE_INFO
 from .policies import agent2policy, trainable_policies
 from .state_template import STATE_TEMPLATE, sku_id2idx, workflow_settings, _serialize_state
-<<<<<<< HEAD
 from .algorithms.rule_based import ConsumerEOQPolicy as ConsumerBaselinePolicy
 from .render_tools import SimulationTracker
-=======
->>>>>>> sc_refinement
+
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -54,7 +52,6 @@ class SCEnvSampler(AbsEnvSampler):
         
         self._agent2policy = agent2policy
         self._entity_dict = {entity.id: entity for entity in self._learn_env.business_engine.get_entity_list()}
-        self._balance_calculator = BalanceSheetCalculator(self._learn_env, TEAM_REWARD)
         self._cur_balance_sheet_reward = None
 
         self._summary = self._learn_env.summary['node_mapping']
@@ -66,6 +63,8 @@ class SCEnvSampler(AbsEnvSampler):
 
         # state for each tick
         self._cur_metrics = self._learn_env.metrics
+        self._balance_calculator = BalanceSheetCalculator(self._learn_env, TEAM_REWARD)
+
         # cache for ppf value.
         self._service_index_ppf_cache = {}
 
@@ -135,12 +134,9 @@ class SCEnvSampler(AbsEnvSampler):
         extend_state([facility['storage'].config[0].capacity])
         extend_state(self._storage_info["storage_product_num"][entity.facility_id])
         extend_state(self._facility_in_transit_orders[entity.facility_id])
-        extend_state([self._storage_info["storage_product_indexes"][entity.facility_id][entity.skus.id] + 1])
-<<<<<<< HEAD
-        extend_state([self._env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
-=======
+        # extend_state([self._storage_info["storage_product_indexes"][entity.facility_id][entity.skus.id] + 1])
+        extend_state([sku_id2idx[entity.skus.id]])
         extend_state([be.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
->>>>>>> sc_refinement
         extend_state([entity.skus.service_level])
         return np.array(np_state + offsets)
 
@@ -167,11 +163,17 @@ class SCEnvSampler(AbsEnvSampler):
         state['baseline_action'] = baseline_action
 
         self._stock_status[entity.id] = state['inventory_in_stock']
-        self._demand_status[entity.id] = state['demand_hist'][-1]
+
+        facility = self._storage_info["facility_levels"][entity.facility_id]
+        if entity.skus and ("seller" in facility[entity.skus.id]):        
+            self._demand_status[entity.id] = state['demand_hist'][-1]
+            self._sold_status[entity.id] = state['sale_hist'][-1]
+        else:
+            self._demand_status[entity.id] = state['sale_mean']
+            self._sold_status[entity.id] = state['sale_mean']
+
         self._order_in_transit_status[entity.id] = state['inventory_in_transit']
         self._order_to_distribute_status[entity.id] = state['distributor_in_transit_orders_qty']
-        self._sold_status[entity.id] = state['sale_hist'][-1]
-        
         np_state = _serialize_state(state)
         return np_state
 
@@ -291,12 +293,8 @@ class SCEnvSampler(AbsEnvSampler):
                     if action_number:
                         # sku = self._units_mapping[unit_id][3]
                         env_action_dict[agent_id] = ConsumerAction(
-<<<<<<< HEAD
-                            unit_id, product_id, source_id, action_number, "train",  # TODO: add logic for vehicle type selection
-=======
                             # TODO: add logic for vehicle type selection
                             unit_id, product_id, source_id, action_number, "train",
->>>>>>> sc_refinement
                         )
                         self._consumer_orders[product_unit_id] = action_number
                         self._orders_from_downstreams[
@@ -372,9 +370,9 @@ class SCEnvSampler(AbsEnvSampler):
 
         # FIX: we need plus 1 to this, as it is 0 based index, but we already aligned with 1 more
         # slot to use sku id as index ( 1 based).
-        product_index = self._storage_info["storage_product_indexes"][entity.facility_id][entity.skus.id] + 1
+        product_index = sku_id2idx[entity.skus.id]
         state['inventory_in_stock'] = self._storage_info["storage_product_num"][entity.facility_id][product_index]
-        state['inventory_in_transit'] = state['consumer_in_transit_orders'][sku_id2idx[entity.skus.id]]
+        state['inventory_in_transit'] = state['consumer_in_transit_orders'][product_index]
 
         pending_order = self._cur_metrics["facilities"][entity.facility_id]["pending_order"]
 

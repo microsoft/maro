@@ -12,9 +12,13 @@ from pyecharts.globals import SymbolType
 from pyecharts.components import Table
 from datetime import datetime, timedelta
 
+COLORS = ["Blue", "Orange", "Green", "CadetBlue", "SteelBlue", "SkyBlue",
+          "RoyalBlue", "Aquamarine", "MediumTurquoise", "YellowGreen", "DarkGreen"]
+
 """
 tick,id,sku_id,facility_id,
 facility_name,name,inventory_in_stock,
+inventory_in_transit, inventory_to_distribute,
 unit_inventory_holding_cost,
 consumer_purchased,
 consumer_received,consumer_order_cost,
@@ -24,6 +28,8 @@ manufacture_manufacture_quantity,
 manufacture_unit_product_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
+distribution_pending_product_quantity, 
+distribution_pending_order_number
 """
 
 def compute_store_balance(row):
@@ -34,12 +40,13 @@ def compute_store_balance(row):
            - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
 
 def compute_warehouse_balance(row):
-    return (-row['product_delay_order_penalty']
+    return (row['product_check_in_quantity_in_order']*row['product_price']
+            -row['product_delay_order_penalty']
             -row['product_transportation_cost']
             - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
 
 def compute_supplier_balance(row):
-    return (row['consumer_order_product_cost']
+    return (row['product_check_in_quantity_in_order']*row['product_price']
             -row['manufacture_unit_product_cost']*row['manufacture_manufacture_quantity']
             -row['product_delay_order_penalty']
             -row['product_transportation_cost']
@@ -63,8 +70,6 @@ class SimulationComparisionTrackerHtml:
         df2.loc[:, "model_name"] = self.model2
         df = pd.concat([df1, df2])
         df.loc[:, 'sale_dt'] = df['tick'].map(lambda x: self.start_dt+timedelta(days=x))
-        df.loc[:, 'inventory_in_stock'] = df['inventory_in_stock'].map(lambda x: np.sum([int(float(s)) for s in x[1:-1].split(",")]))
-        df.loc[:, 'unit_inventory_holding_cost'] = df['unit_inventory_holding_cost'].map(lambda x: np.sum([float(s) for s in x[1:-1].split(",")]))
         facility_name_list = [facility_name for facility_name in df['facility_name'].unique() if facility_name.startswith("store")]
         df = df[df['facility_name'].isin(facility_name_list)]
         return df
@@ -159,6 +164,7 @@ class SimulationComparisionTrackerHtml:
 """
 tick,id,sku_id,facility_id,
 facility_name,name,inventory_in_stock,
+inventory_in_transit,inventory_to_distribute
 unit_inventory_holding_cost,
 consumer_purchased,
 consumer_received,consumer_order_cost,
@@ -168,6 +174,8 @@ manufacture_manufacture_quantity,
 manufacture_unit_product_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
+distribution_pending_product_quantity, 
+distribution_pending_order_number
 """
 class SimulationTrackerHtml:
     def __init__(self, log_path, start_dt='2022-01-01'):
@@ -186,8 +194,6 @@ class SimulationTrackerHtml:
             else:
                 compute_balance = compute_store_balance
             df = df_all[df_all['facility_name'] == facility_name]
-            df.loc[:, 'inventory_in_stock'] = df['inventory_in_stock'].map(lambda x: np.sum([int(float(s)) for s in x[1:-1].split(",")]))
-            df.loc[:, 'unit_inventory_holding_cost'] = df['unit_inventory_holding_cost'].map(lambda x: np.sum([int(float(s)) for s in x[1:-1].split(",")]))
             df.loc[:, "profit"] = df.apply(lambda x: compute_balance(x), axis=1)
             if df.shape[0] > 0:
                 df = df[['tick', 'facility_name', 'profit', 'inventory_in_stock']].groupby('tick').sum().reset_index()
@@ -297,16 +303,19 @@ class SimulationTrackerHtml:
                     x = df['sale_dt'].tolist()
                     y_demand = df['seller_demand'].tolist()
                     y_sales = df['seller_sold'].tolist()
-                    df.loc[:, 'inventory_in_stock'] = df['inventory_in_stock'].map(lambda x: np.sum([float(s) for s in x[1:-1].split(",")]))
-                    df.loc[:, 'unit_inventory_holding_cost'] = df['unit_inventory_holding_cost'].map(lambda x: np.sum([float(s) for s in x[1:-1].split(",")]))
                     y_stock = [int(x) for x in df['inventory_in_stock'].tolist()]
                     y_consumer = [int(x) for x in df['consumer_purchased'].tolist()]
                     y_received = [int(x) for x in df['consumer_received'].tolist()]
                     y_inventory_holding_cost = [round(x,0) for x in (df['unit_inventory_holding_cost']*df['inventory_in_stock']).tolist()]
-                    y_gmv = [round(x,0) for x in (df['seller_price'] * df['seller_sold']).tolist()]
+                    y_gmv = [round(x,0) for x in (df['seller_price'] * df['seller_sold']
+                                                  + df['product_check_in_quantity_in_order']*df['product_price']).tolist()]
                     y_product_cost = [round(x,0) for x in (df['consumer_order_product_cost']+df['consumer_order_cost']).tolist()]
                     y_oos_loss = [round(x,0) for x in ((df['seller_demand'] - df['seller_sold']) * df['seller_price'] * df['seller_backlog_ratio']).tolist()]
                     y_distribution_cost = [round(x,0) for x in (df['product_transportation_cost'] + df['product_delay_order_penalty']).tolist()]
+                    y_manufacture_quantity = [round(x,0) for x in df['manufacture_manufacture_quantity']]
+                    y_manufacture_cost = [round(x, 0) for x in df['manufacture_manufacture_quantity']*df['manufacture_unit_product_cost']]
+                    y_in_transit = [round(x, 0) for x in df['inventory_in_transit']]
+                    y_to_distribute = [round(x, 0) for x in df['inventory_to_distribute']]
                 else:
                     x = [self.start_dt.strftime('%Y-%m-%d')]
                     y_demand = [0]
@@ -319,6 +328,10 @@ class SimulationTrackerHtml:
                     y_product_cost = [0]
                     y_oos_loss = [0]
                     y_distribution_cost = [0]
+                    y_manufacture_quantity = [0]
+                    y_manufacture_cost = [0]
+                    y_in_transit = [0]
+                    y_to_distribute = [0]
 
                 tl = Timeline(init_opts=opts.InitOpts(width="1500px", height="800px"))
                 tl.add_schema(pos_bottom="bottom", is_auto_play=False, label_opts=opts.LabelOpts(is_show=True, position="bottom"))
@@ -326,57 +339,30 @@ class SimulationTrackerHtml:
                 l1 = (
                     Line()
                     .add_xaxis(xaxis_data=x)
-                    .add_yaxis(
-                        series_name="Sales",
-                        y_axis=y_sales,
-                        symbol_size=8,
-                        is_hover_animation=False,
-                        label_opts=opts.LabelOpts(is_show=True, color='blue'),
-                        linestyle_opts=opts.LineStyleOpts(width=1.5, color='blue'),
-                        is_smooth=True,
-                        itemstyle_opts=opts.ItemStyleOpts(color="blue"),
-                    )
-                    .add_yaxis(
-                        series_name="Demand",
-                        y_axis=y_demand,
-                        symbol_size=8,
-                        is_hover_animation=False,
-                        label_opts=opts.LabelOpts(is_show=True, color='orange'),
-                        linestyle_opts=opts.LineStyleOpts(width=1.5, color='orange'),
-                        is_smooth=True,
-                        itemstyle_opts=opts.ItemStyleOpts(color="orange"),
-                    )
-                    .add_yaxis(
-                        series_name="Stock",
-                        y_axis=y_stock,
-                        symbol_size=8,
-                        is_hover_animation=False,
-                        label_opts=opts.LabelOpts(is_show=True, color='green'),
-                        linestyle_opts=opts.LineStyleOpts(width=1.5, color='green'),
-                        is_smooth=True,
-                        itemstyle_opts=opts.ItemStyleOpts(color="green"),
-                    )
-                    .add_yaxis(
-                        series_name="Replenishing Quantity",
-                        y_axis=y_consumer,
-                        symbol_size=8,
-                        is_hover_animation=False,
-                        label_opts=opts.LabelOpts(is_show=True, color='aqua'),
-                        linestyle_opts=opts.LineStyleOpts(width=1.5, color='aqua'),
-                        is_smooth=True,
-                        itemstyle_opts=opts.ItemStyleOpts(color="aqua"),
-                    )
-                    .add_yaxis(
-                        series_name="Inventory Received",
-                        y_axis=y_received,
-                        symbol_size=8,
-                        is_hover_animation=False,
-                        label_opts=opts.LabelOpts(is_show=True, color='green'),
-                        linestyle_opts=opts.LineStyleOpts(width=1.5, color='green'),
-                        is_smooth=True,
-                        itemstyle_opts=opts.ItemStyleOpts(color="green"),
-                    )
-                    .set_global_opts(
+                )
+
+                l1_to_render = [("Sales", y_sales),
+                                ("Demand", y_demand),
+                                ("Stock", y_stock),
+                                ("Replenishing Quantity", y_consumer),
+                                ("Inventory Received", y_received),
+                                ("Manufacture Quantity", y_manufacture_quantity),
+                                ("Products in Transit", y_in_transit),
+                                ("Products to Distribute", y_to_distribute)]
+                for i, (l_name, vals) in enumerate(l1_to_render):
+                    if np.all(np.array(vals) == 0):
+                        continue
+                    l1.add_yaxis(
+                            series_name=l_name,
+                            y_axis=vals,
+                            symbol_size=8,
+                            is_hover_animation=False,
+                            label_opts=opts.LabelOpts(is_show=True, color=COLORS[i]),
+                            linestyle_opts=opts.LineStyleOpts(width=1.5, color=COLORS[i]),
+                            is_smooth=True,
+                            itemstyle_opts=opts.ItemStyleOpts(color=COLORS[i]),
+                        )
+                l1.set_global_opts(
                             title_opts=opts.TitleOpts(title="Replenishing Decisions", pos_top="top", pos_left='left', pos_right='left'),
                             xaxis_opts=opts.AxisOpts(type_="category", name='Date', boundary_gap=False, axisline_opts=opts.AxisLineOpts(is_on_zero=True)),
                             yaxis_opts=opts.AxisOpts(type_="value", is_scale=True, splitline_opts=opts.SplitLineOpts(is_show=True)),
@@ -386,41 +372,31 @@ class SimulationTrackerHtml:
                                 opts.DataZoomOpts(is_realtime=True, type_="inside", xaxis_index=[0, 1], range_start=45, range_end=65),
                                 opts.DataZoomOpts(is_realtime=True, type_="slider", xaxis_index=[0, 1], range_start=45, range_end=65, pos_bottom='55px'),
                             ],
-                    )
                 )
+                
+                bar_to_render = [("Holding Cost", y_inventory_holding_cost),
+                                 ("GMV", y_gmv),
+                                 ("Replenishing Cost", y_product_cost),
+                                 ("Out of Stock Cost", y_oos_loss),
+                                 ("Fulfillment Cost", y_distribution_cost),
+                                 ("Manufacture Cost", y_manufacture_cost)]
+                
+
                 bar =(Bar()
                     .add_xaxis(xaxis_data=x)
-                    .add_yaxis(
-                        series_name="Holding Cost",
-                        y_axis=y_inventory_holding_cost,
-                        itemstyle_opts=opts.ItemStyleOpts(color="#123456"),
+                )
+
+                for i, (l_name, vals) in enumerate(bar_to_render):
+                    if np.all(np.array(vals) == 0):
+                        continue
+                    bar.add_yaxis(
+                        series_name=l_name,
+                        y_axis=vals,
+                        itemstyle_opts=opts.ItemStyleOpts(color=COLORS[i]),
                         label_opts=opts.LabelOpts(is_show=True),
                     )
-                    .add_yaxis(
-                        series_name="GMV",
-                        y_axis=y_gmv,
-                        itemstyle_opts=opts.ItemStyleOpts(color="orange"),
-                        label_opts=opts.LabelOpts(is_show=True),
-                    )
-                    .add_yaxis(
-                        series_name="Replenishing Cost",
-                        y_axis=y_product_cost,
-                        itemstyle_opts=opts.ItemStyleOpts(color="green"),
-                        label_opts=opts.LabelOpts(is_show=True),
-                    )
-                    .add_yaxis(
-                        series_name="Out of Stock Cost",
-                        y_axis=y_oos_loss,
-                        itemstyle_opts=opts.ItemStyleOpts(color="aqua"),
-                        label_opts=opts.LabelOpts(is_show=True),
-                    )
-                    .add_yaxis(
-                        series_name="Fulfillment Cost",
-                        y_axis=y_distribution_cost,
-                        itemstyle_opts=opts.ItemStyleOpts(color="blue"),
-                        label_opts=opts.LabelOpts(is_show=True),
-                    )
-                    .set_global_opts(
+                    
+                bar.set_global_opts(
                         title_opts=opts.TitleOpts(
                             title="Cost Details", subtitle="", pos_left="left", pos_right='left', pos_top='45%'
                         ),
@@ -435,7 +411,6 @@ class SimulationTrackerHtml:
                                 opts.DataZoomOpts(is_realtime=True, type_="inside", xaxis_index=[0, 1], range_start=45, range_end=65),
                                 opts.DataZoomOpts(is_realtime=True, type_="slider", xaxis_index=[0, 1], range_start=45, range_end=65, pos_bottom='55px'),
                             ],
-                    )
                 )
 
                 grid = (
