@@ -10,10 +10,10 @@ import zmq
 from zmq import Context, Poller
 
 from maro.rl.utils.common import bytes_to_pyobj, get_own_ip_address, pyobj_to_bytes
+from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import DummyLogger, LoggerV2
 
 from .env_sampler import ExpElement
-from ..utils.objects import FILE_SUFFIX
 
 
 class ParallelTaskController(object):
