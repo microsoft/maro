@@ -14,6 +14,8 @@ class DataModelBase(NodeBase):
     facility_id = NodeAttribute(AttributeType.Int)
 
     def __init__(self) -> None:
+        super(DataModelBase, self).__init__()
+
         self._unit_id = 0
         self._facility_id = 0
 

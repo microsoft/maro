@@ -29,10 +29,10 @@ class DistributionUnit(UnitBase):
     """
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(DistributionUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
         # Vehicle unit dict of this distribution unit. Key: vehicle type; Value: a list of vehicle instances.
@@ -74,14 +74,14 @@ class DistributionUnit(UnitBase):
 
         return counter
 
-    def place_order(self, order: Order) -> int:
+    def place_order(self, order: Order) -> float:
         """Place an order in the pending order queue, and calculate the corresponding order fee.
 
         Args:
             order (Order): Order to insert.
 
         Returns:
-            int: The corresponding total order fee, will paid by the consumer.
+            float: The corresponding total order fee, will paid by the consumer.
         """
         if order.quantity > 0:
             sku = self.facility.skus[order.product_id]
@@ -99,13 +99,13 @@ class DistributionUnit(UnitBase):
 
         return 0
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(DistributionUnit, self).initialize()
 
         for product_id in self.facility.products.keys():
             self._unit_delay_order_penalty[product_id] = self.facility.skus[product_id].unit_delay_order_penalty
 
-    def _step_impl(self, tick: int):
+    def _step_impl(self, tick: int) -> None:
         # TODO: update vehicle types and distribution step logic
         for vehicle_type, vehicle_list in self.vehicles.items():
             for vehicle in vehicle_list:
@@ -133,7 +133,7 @@ class DistributionUnit(UnitBase):
             for order in order_queue:
                 self.delay_order_penalty[order.product_id] += self._unit_delay_order_penalty[order.product_id]
 
-    def flush_states(self):
+    def flush_states(self) -> None:
         super(DistributionUnit, self).flush_states()
 
         for vehicle_list in self.vehicles.values():
@@ -153,7 +153,7 @@ class DistributionUnit(UnitBase):
                 for order_queue in self._order_queues.values()
             )
 
-    def reset(self):
+    def reset(self) -> None:
         super(DistributionUnit, self).reset()
 
         # Reset status in Python side.

@@ -52,8 +52,8 @@ class World:
 
         self.entity_list = []
 
-        self.max_sources_per_facility = 0
-        self.max_price = 0  # TODO: update it according to needs
+        self.max_sources_per_facility: int = 0
+        self.max_price: float = 0  # TODO: update it according to needs
 
     def get_sku_by_id(self, sku_id: int) -> SkuMeta:
         """Get sku information by sku id.
@@ -170,7 +170,7 @@ class World:
         self._create_entities()
 
         # Step 3: Build frame and assign data model instances to entities.
-        self._build_frame_and_assgin_to_entities(snapshot_number)
+        self._build_frame_and_assign_to_entities(snapshot_number)
 
         # Step 4: Construct the upstream & downstream topology, and add the corresponding VLT infos.
         self._construct_topology_and_add_vlt_info()
@@ -266,7 +266,7 @@ class World:
             facility=facility,
             parent=parent,
             world=self,
-            config=config.get("config", {})
+            config=config.get("config", {}),
         )
 
         # Prepare children.
@@ -297,11 +297,12 @@ class World:
 
         return unit_instance
 
-    def _build_distribution_unit(self, facility: FacilityBase, config:dict) -> DistributionUnit:
+    def _build_distribution_unit(self, facility: FacilityBase, config: dict) -> DistributionUnit:
         unit_def: EntityDef = self.configs.entity_defs[config["class"]]
         assert issubclass(unit_def.class_type, DistributionUnit)
 
-        distribution_unit: DistributionUnit = self._build_unit(facility, facility, config)
+        distribution_unit = self._build_unit(facility, facility, config)
+        assert isinstance(distribution_unit, DistributionUnit)
         distribution_unit.children = []
         distribution_unit.vehicles = defaultdict(list)
 
@@ -320,7 +321,6 @@ class World:
         Args:
             facility (FacilityBase): Facility this product belongs to.
             config (dict): Config of children unit.
-            unit_def (object): Definition of the unit (from config).
 
         Returns:
             dict: Dictionary of product unit, key is the product id, value is ProductUnit.
@@ -337,7 +337,8 @@ class World:
 
         if facility.skus is not None and len(facility.skus) > 0:
             for sku_id, sku in facility.skus.items():
-                product_unit: ProductUnit = self._build_unit(facility, facility, config)
+                product_unit = self._build_unit(facility, facility, config)
+                assert isinstance(product_unit, ProductUnit)
                 product_unit.product_id = sku_id
                 product_unit.children = []
                 product_unit.storage = product_unit.facility.storage
@@ -390,7 +391,7 @@ class World:
                 data_model_name=data_model_def.name_in_frame,
                 data_model_index=data_model_index,
                 world=self,
-                config=facility_conf.get("config", {})
+                config=facility_conf.get("config", {}),
             )
 
             # Parse sku info.
@@ -447,7 +448,7 @@ class World:
 
         return frame
 
-    def _build_frame_and_assgin_to_entities(self, snapshot_number: int) -> None:
+    def _build_frame_and_assign_to_entities(self, snapshot_number: int) -> None:
         self.frame = self._build_frame(snapshot_number)
 
         for unit in self.units.values():

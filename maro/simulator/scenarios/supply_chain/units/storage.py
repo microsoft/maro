@@ -56,10 +56,10 @@ class StorageUnit(UnitBase):
 
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(StorageUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
         # Key: Sub-Storage ID
@@ -237,7 +237,7 @@ class StorageUnit(UnitBase):
             elif add_strategy == AddStrategy.IgnoreUpperBoundProportional:
                 fulfill_ratio_dict: Dict[int, float] = {}
                 for storage_id, requirement in space_requirements.items():
-                    fulfill_ratio_dict[storage_id] = min(1, self._remaining_space_dict[storage_id] / requirement)
+                    fulfill_ratio_dict[storage_id] = min(1.0, self._remaining_space_dict[storage_id] / requirement)
 
                 for product_id, quantity in product_quantities.items():
                     storage_id = self._product2storage[product_id]

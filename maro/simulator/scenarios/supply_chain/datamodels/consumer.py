@@ -23,7 +23,7 @@ class ConsumerDataModel(ExtendDataModel):
 
         self._order_cost = 0
 
-    def initialize(self, order_cost: int) -> None:
+    def initialize(self, order_cost: float) -> None:
         self._order_cost = order_cost
 
         self.reset()

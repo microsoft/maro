@@ -6,7 +6,7 @@ from __future__ import annotations
 import typing
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 
@@ -37,10 +37,10 @@ class ProductUnit(ExtendUnitBase):
 
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(ProductUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
         # The consumer unit of this SKU.
@@ -174,7 +174,7 @@ class ProductUnit(ExtendUnitBase):
         return price
 
     def _get_max_vlt(self) -> Optional[int]:
-        upstream_infos: Optional[List[VendorLeadingTimeInfo]] = self.facility.upstream_vlt_infos
+        upstream_infos: Optional[Dict[int, List[VendorLeadingTimeInfo]]] = self.facility.upstream_vlt_infos
         if upstream_infos is not None and self.product_id in upstream_infos:
             return max([info.vlt for info in upstream_infos[self.product_id]])
         else:
@@ -184,10 +184,10 @@ class ProductUnit(ExtendUnitBase):
 class StoreProductUnit(ProductUnit):
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(StoreProductUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
     def get_sale_mean(self) -> float:

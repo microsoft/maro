@@ -30,7 +30,7 @@ class ManufactureUnit(ExtendUnitBase):
     """
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(ManufactureUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
 
@@ -138,10 +138,10 @@ class SimpleManufactureUnit(ManufactureUnit):
 
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(SimpleManufactureUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
     def _step_impl(self, tick: int) -> None:

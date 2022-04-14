@@ -36,10 +36,10 @@ class SellerUnit(ExtendUnitBase):
     """
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(SellerUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
         self._gamma = 0
@@ -109,7 +109,7 @@ class SellerUnit(ExtendUnitBase):
             self.data_model.demand = 0
             self._demand = 0
 
-    def reset(self):
+    def reset(self) -> None:
         super(SellerUnit, self).reset()
 
         # Reset status in Python side.
@@ -153,7 +153,7 @@ class SellerDemandSampler(ABC):
             tick (int): Tick of environment, NOTE: this tick is start from 0,
                 you may need to transform it to your time system.
         """
-        pass
+        raise NotImplementedError
 
 
 class DataFileDemandSampler(SellerDemandSampler):
@@ -237,10 +237,10 @@ class OuterSellerUnit(SellerUnit):
 
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(OuterSellerUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
     # Sample used to sample demand.

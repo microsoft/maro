@@ -54,7 +54,7 @@ class MyTestCase(unittest.TestCase):
 
     """
 
-    def test_manufacture_meet_storage_limitation(self):
+    def test_manufacture_meet_storage_limitation(self) -> None:
         """Test sku3 manufacturing. -- Supplier_SKU3"""
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -65,7 +65,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id"
+            "id", "facility_id", "manufacture_quantity", "product_id",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
 
@@ -91,7 +91,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(all([
             sku3_data_model_index is not None,
             sku3_manufacture_id is not None,
-            sku3_facility_id is not None
+            sku3_facility_id is not None,
         ]))
 
         # try to find sku3's storage from env.summary
@@ -173,7 +173,7 @@ class MyTestCase(unittest.TestCase):
         # sku3 quantity should be 100
         self.assertEqual(80 + 1 + 19, product_dict[SKU3_ID])
 
-    def test_manufacture_meet_source_lack(self):
+    def test_manufacture_meet_source_lack(self) -> None:
         """Test sku4 manufacturing. -- Supplier_SKU4.
         This sku supplier does not have enough source material at the begining,
         so it cannot produce anything without consumer purchase."""
@@ -186,7 +186,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
+            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
 
@@ -212,7 +212,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(all([
             sku4_data_model_index is not None,
             sku4_manufacture_id is not None,
-            sku4_facility_id is not None
+            sku4_facility_id is not None,
         ]))
 
         # try to find sku4's storage from env.summary
@@ -278,7 +278,7 @@ class MyTestCase(unittest.TestCase):
         # 0 sku2
         self.assertEqual(0, product_dict[SKU2_ID])
 
-    def test_manufacture_meet_avg_storage_limitation(self):
+    def test_manufacture_meet_avg_storage_limitation(self) -> None:
         """Test on sku1 -- Supplier_SKU1.
         It is configured with nearly full initial states."""
 
@@ -291,7 +291,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost"
+            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
 
@@ -316,7 +316,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(all([
             sku1_data_model_index is not None,
             sku1_manufacture_id is not None,
-            sku1_facility_id is not None
+            sku1_facility_id is not None,
         ]))
 
         sku1_facility_info: FacilityInfo = env.summary["node_mapping"]["facilities"][sku1_facility_id]
@@ -378,7 +378,7 @@ class MyTestCase(unittest.TestCase):
         # 4 sku1 cost 4*2 source material (sku3)
         self.assertEqual(100 - 4 * 2, product_dict[SKU3_ID])
 
-    def test_simple_manufacture_without_using_source(self):
+    def test_simple_manufacture_without_using_source(self) -> None:
         """Test sku2 simple manufacturing. -- Supplier_SKU2"""
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -389,7 +389,7 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id"
+            "id", "facility_id", "manufacture_quantity", "product_id",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
 
@@ -414,7 +414,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(all([
             sku2_data_model_index is not None,
             sku2_manufacture_id is not None,
-            sku2_facility_id is not None
+            sku2_facility_id is not None,
         ]))
 
         # try to find sku2's storage from env.summary
@@ -497,7 +497,7 @@ class MyTestCase(unittest.TestCase):
 
     """
 
-    def test_storage_get_product_quantity_and_capacity_and_remaining_space(self):
+    def test_storage_get_product_quantity_and_capacity_and_remaining_space(self) -> None:
         """Supplier_SKU1"""
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -561,7 +561,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(200 - 96 - 100, storage_unit.remaining_space)
         self.assertEqual(200 - 96 - 100, init_remaining_spaces.sum())
 
-    def test_storage_take_available(self):
+    def test_storage_take_available(self) -> None:
         """Facility with single SKU. -- Supplier_SKU3"""
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -602,7 +602,7 @@ class MyTestCase(unittest.TestCase):
         # The product quantity should be 0, as we took all available
         self.assertEqual(0, product_dict[SKU3_ID])
 
-    def test_storage_try_add_products(self):
+    def test_storage_try_add_products(self) -> None:
         """Facility with multiple SKUs -- Supplier_SKU2
         NOTE:
             try_add_products method do not check avg storage capacity checking, so we will ignore it here.
@@ -640,7 +640,7 @@ class MyTestCase(unittest.TestCase):
 
         result = storage_unit.try_add_products(
             products_to_put,
-            add_strategy=AddStrategy.IgnoreUpperBoundAllOrNothing
+            add_strategy=AddStrategy.IgnoreUpperBoundAllOrNothing,
         )
         # the method will return an empty dictionary if fail to add
         self.assertEqual(0, len(result))
@@ -654,9 +654,9 @@ class MyTestCase(unittest.TestCase):
 
         # ############################### IgnoreUpperBound AddInOrder ######################################
         # Part of the product will be added to storage, and cause remaining space being 0
-        result = storage_unit.try_add_products(
+        storage_unit.try_add_products(
             products_to_put,
-            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder
+            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,
         )
         # all sku1 would be added successfully
         self.assertEqual(50 + (50 + 1), storage_unit._product_level[SKU1_ID])
@@ -695,9 +695,9 @@ class MyTestCase(unittest.TestCase):
             SKU2_ID: 150,
         }
         # Part of the product will be added to storage, and cause remaining space being 0
-        result = storage_unit.try_add_products(
+        storage_unit.try_add_products(
             products_to_put,
-            add_strategy=AddStrategy.IgnoreUpperBoundProportional
+            add_strategy=AddStrategy.IgnoreUpperBoundProportional,
         )
         # Only 100 // (50 + 150) = 1/2 incoming products can be added.
         self.assertEqual(50 + 50 // 2, storage_unit._product_level[SKU1_ID])
@@ -733,9 +733,9 @@ class MyTestCase(unittest.TestCase):
             SKU2_ID: 40,
         }
 
-        result = storage_unit.try_add_products(
+        storage_unit.try_add_products(
             products_to_put,
-            add_strategy=AddStrategy.LimitedByUpperBound
+            add_strategy=AddStrategy.LimitedByUpperBound,
         )
         # the default upper bound is the avg capacity, so it would be 100 for both sku1 and sku2
         self.assertEqual(50 + min(100 - 50, 60), storage_unit._product_level[SKU1_ID])
@@ -754,7 +754,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(50 + 50, product_dict[SKU1_ID])
         self.assertEqual(50 + 40, product_dict[SKU2_ID])
 
-    def test_storage_try_take_products(self):
+    def test_storage_try_take_products(self) -> None:
         """Facility with single SKU. -- Supplier_SKU3"""
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -798,7 +798,7 @@ class MyTestCase(unittest.TestCase):
         # remaining space should be same as capacity in snapshot
         self.assertEqual(capacities.sum(), remaining_spaces.sum())
 
-    def test_storage_upper_bound(self):
+    def test_storage_upper_bound(self) -> None:
         """Warehouse_001."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -851,7 +851,7 @@ class MyTestCase(unittest.TestCase):
 
     """
 
-    def test_consumer_init_state(self):
+    def test_consumer_init_state(self) -> None:
         """Consumer of sku3 in Supplier_SKU1."""
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -864,7 +864,7 @@ class MyTestCase(unittest.TestCase):
 
         features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
         IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
+        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
         consumer_nodes = env.snapshot_list["consumer"]
 
@@ -912,7 +912,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(sku3_consumer_unit.id, states[IDX_ID])
         self.assertEqual(SKU3_ID, states[IDX_PRODUCT_ID])
 
-    def test_consumer_action(self):
+    def test_consumer_action(self) -> None:
         """Consumer of sku3 in Supplier_SKU1, which would purchase from Supplier_SKU3."""
         env = build_env("case_01", 100)
         be = env.business_engine
@@ -928,7 +928,7 @@ class MyTestCase(unittest.TestCase):
 
         features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
         IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
+        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
         consumer_nodes = env.snapshot_list["consumer"]
 
@@ -963,7 +963,7 @@ class MyTestCase(unittest.TestCase):
         # no receives
         self.assertEqual(0, states[IDX_RECEIVED])
 
-    def test_consumer_on_order_reception(self):
+    def test_consumer_on_order_reception(self) -> None:
         env = build_env("case_01", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1004,7 +1004,7 @@ class MyTestCase(unittest.TestCase):
         . target storage can take all
     """
 
-    def test_vehicle_unit_state(self):
+    def test_vehicle_unit_state(self) -> None:
         """Test the first Vehicle of Supplier_SKU3."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -1061,7 +1061,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, vehicle_unit.data_model.payload)
         self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
 
-    def test_vehicle_unit_schedule(self):
+    def test_vehicle_unit_schedule(self) -> None:
         """Schedule the first Vehicle of Supplier_SKU3 to Warehouse_001."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -1136,7 +1136,7 @@ class MyTestCase(unittest.TestCase):
         # check states
         self.assertEqual(0, states[IDX_PAYLOAD])
 
-    def test_vehicle_unit_no_patient(self):
+    def test_vehicle_unit_no_patient(self) -> None:
         """Test Vehicle no patient by trying to load more products than Supplier_SKU3 has to Warehouse_001."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -1208,7 +1208,7 @@ class MyTestCase(unittest.TestCase):
         states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
         self.assertEqual(0, states[IDX_PAYLOAD])
 
-    def test_vehicle_unit_cannot_unload_at_destination(self):
+    def test_vehicle_unit_cannot_unload_at_destination(self) -> None:
         """Test Vehicle can not unload by scheduling more than Warehouse_001's remaining space from Supplier_SKU3.
         NOTE: If vehicle cannot unload at destination, it will keep waiting, until success to unload.
         """
@@ -1255,7 +1255,7 @@ class MyTestCase(unittest.TestCase):
     . dispatch order with vehicle
     """
 
-    def test_distribution_unit_initial_state(self):
+    def test_distribution_unit_initial_state(self) -> None:
         """Test initial state of the DistributionUnit of Supplier_SKU3."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -1275,7 +1275,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(0, sum([len(order_queue) for order_queue in distribution_unit._order_queues.values()]))
 
-    def test_distribution_unit_dispatch_order(self):
+    def test_distribution_unit_dispatch_order(self) -> None:
         """Test initial state of the DistributionUnit of Supplier_SKU3."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -1351,7 +1351,7 @@ class MyTestCase(unittest.TestCase):
         . with built in one
     """
 
-    def test_seller_unit_initial_states(self):
+    def test_seller_unit_initial_states(self) -> None:
         """Test the initial states of sku3's SellerUnit of Retailer_001."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -1390,7 +1390,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(seller_unit._demand, seller_unit.data_model.demand)
         self.assertEqual(seller_unit._total_sold, seller_unit.data_model.total_sold)
 
-    def test_seller_unit_demand_states(self):
+    def test_seller_unit_demand_states(self) -> None:
         """Test the demand states of sku3's SellerUnit of Retailer_001."""
         env = build_env("case_02", 100)
         be = env.business_engine
@@ -1451,7 +1451,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(seller_unit._demand, states[IDX_DEMAND])
         self.assertEqual(actual_sold + actual_sold_2, states[IDX_TOTAL_SOLD])
 
-    def test_seller_unit_customized(self):
+    def test_seller_unit_customized(self) -> None:
         """Test customized SellerUnit of sku3 in Retailer_001."""
         env = build_env("case_03", 100)
         be = env.business_engine
@@ -1507,7 +1507,7 @@ class MyTestCase(unittest.TestCase):
         . Order with 0-vlt
     """
 
-    def test_consumer_receive_products_after_vlt_days(self):
+    def test_consumer_receive_products_after_vlt_days(self) -> None:
         """Test Supplier_SKU1 ask products from Supplier_SKU3 and Supplier_SKU4 respectively.
         The Supplier_SKU3's DistributionUnit would be processed before Supplier_SKU1,
         so there would be vlt + 1 days before receiving,
@@ -1527,8 +1527,8 @@ class MyTestCase(unittest.TestCase):
         consumer_node_index = sku3_consumer_unit.data_model_index
 
         features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
-        IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
+        # IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
         consumer_nodes = env.snapshot_list["consumer"]
 

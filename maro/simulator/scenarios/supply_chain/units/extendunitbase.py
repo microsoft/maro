@@ -24,16 +24,16 @@ class ExtendUnitBase(UnitBase):
 
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
     ) -> None:
         super(ExtendUnitBase, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config
+            id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
         # Product id (sku id), 0 means invalid.
         self.product_id: int = 0
 
-    def initialize(self):
+    def initialize(self) -> None:
         super(ExtendUnitBase, self).initialize()
 
         if self.data_model is not None:
