@@ -10,10 +10,10 @@ from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBus
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
+from .agent_state import STATE_DIM
 from .algorithms.ppo import get_policy, get_ppo
 from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy
 from .config import NUM_CONSUMER_ACTIONS, env_conf
-from .state_template import STATE_DIM
 
 
 # Create an env to get entity list and env summary

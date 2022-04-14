@@ -6,7 +6,7 @@ from __future__ import annotations
 import typing
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 

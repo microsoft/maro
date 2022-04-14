@@ -17,17 +17,17 @@ from maro.simulator.scenarios.supply_chain import (
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
-from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity
+from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
+from .agent_state import serialize_state, SCAgentStates
 from .config import (
     distribution_features, env_conf, seller_features, workflow_settings,
     IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER,
     IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND,
 )
 from .policies import agent2policy, trainable_policies
-from .state_template import STATE_TEMPLATE, _serialize_state
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -108,7 +108,15 @@ class SCEnvSampler(AbsEnvSampler):
         # Key: service level; Value: the cached return value of Percentage Point Function.
         self._service_index_ppf_cache: Dict[float, float] = {}
 
-        self._state_template = STATE_TEMPLATE
+        self._agent_states: SCAgentStates = SCAgentStates(
+            entity_dict=self._entity_dict,
+            facility_info_dict=self._facility_info_dict,
+            global_sku_id2idx=self._global_sku_id2idx,
+            sku_number=self._sku_number,
+            max_src_per_facility=self._summary["max_sources_per_facility"],
+            max_price=self._summary["max_price"],
+            settings=self._env_settings,
+        )
 
     def _get_unit2product_unit(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
         unit2product: Dict[int, int] = {}
@@ -158,7 +166,7 @@ class SCEnvSampler(AbsEnvSampler):
         else:
             return .0
 
-    def get_or_policy_state(self, state: dict, entity: SupplyChainEntity) -> np.ndarray:
+    def get_or_policy_state(self, entity: SupplyChainEntity) -> np.ndarray:
         # TODO: check the correctness of the implementation
         if entity.skus is None:
             return np.array([1])
@@ -198,25 +206,26 @@ class SCEnvSampler(AbsEnvSampler):
         extend_state([entity.skus.service_level])
         return np.array(np_state + offsets)
 
-    def get_rl_policy_state(self, state: dict, entity: SupplyChainEntity) -> np.ndarray:
+    def get_rl_policy_state(self, entity_id: int, entity: SupplyChainEntity) -> np.ndarray:
+        state = self._agent_states.templates[entity_id]
+
+        self._update_global_features(state)
         self._update_facility_features(state, entity)
         self._update_storage_features(state, entity)
-        # bom do not need to update
-        self._update_distribution_features(state, entity)
         self._update_sale_features(state, entity)
-        # vlt do not need to update
+        self._update_distribution_features(state, entity)
         self._update_consumer_features(state, entity)
-        # self._add_price_features(state, entity)
-        self._update_global_features(state)
 
-        np_state = _serialize_state(state)
+        np_state = serialize_state(state)
         return np_state
 
-    def _get_state_shaper(self, entity_id: int) -> Callable[[dict, SupplyChainEntity], np.ndarray]:
+    def _get_entity_state(self, entity_id: int) -> np.ndarray:
+        entity = self._entity_dict[entity_id]
+
         if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy):
-            return self.get_rl_policy_state
+            return self.get_rl_policy_state(entity_id, entity)
         else:
-            return self.get_or_policy_state
+            return self.get_or_policy_state(entity)
 
     def _get_global_and_agent_state(self, event: CascadeEvent, tick: int = None) -> tuple:
         """Update the status variables first, then call the state shaper for each agent."""
@@ -270,9 +279,8 @@ class SCEnvSampler(AbsEnvSampler):
                 self._facility_in_transit_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
         state = {
-            id_: self._get_state_shaper(id_)(self._state_template[id_], entity)
-            for id_, entity in self._entity_dict.items()
-            if id_ in self._agent2policy
+            id_: self._get_entity_state(id_)
+            for id_ in self._agent2policy.keys()
         }
         return None, state
 
@@ -296,12 +304,24 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
-                # TODO: vehicle type selection and source selection
                 product_id: int = self._consumer2product_id.get(entity_id, 0)
-                sources: List[int] = self._consumer2source_facilities.get(entity_id, [])
                 product_unit_id: int = self._unit2product_unit[entity_id]
 
-                if sources:
+                # TODO: vehicle type selection and source selection
+                facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
+                vlt_info_cadidates: List[VendorLeadingTimeInfo] = [
+                    vlt_info
+                    for vlt_info in facility_info.upstream_vlt_infos[product_id]
+                    if any([
+                        self._env_settings["default_vehicle_type"] == None,
+                        vlt_info.vehicle_type == self._env_settings["default_vehicle_type"],
+                    ])
+                ]
+
+                if len(vlt_info_cadidates):
+                    src_f_id = vlt_info_cadidates[0].src_facility.id
+                    vehicle_type = vlt_info_cadidates[0].vehicle_type
+
                     try:
                         action_quantity = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
                     except ValueError:
@@ -309,11 +329,10 @@ class SCEnvSampler(AbsEnvSampler):
 
                     # Ignore 0 quantity to reduce action number
                     if action_quantity:
-                        env_action = ConsumerAction(entity_id, product_id, sources[0], action_quantity, "train")
+                        env_action = ConsumerAction(entity_id, product_id, src_f_id, action_quantity, vehicle_type)
 
-            # Manufacturer action
+            # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
-                # TODO: update ManufactureUnit's logic to keep the production rate by default.
                 sku = self._units_mapping[entity_id][3]
                 if sku.production_rate:
                     env_action = ManufactureAction(id=entity_id, production_rate=int(sku.production_rate))
@@ -327,8 +346,6 @@ class SCEnvSampler(AbsEnvSampler):
         state['is_positive_balance'] = 1 if self._balance_calculator.accumulated_balance_sheet[entity.id] > 0 else 0
 
     def _update_storage_features(self, state: dict, entity: SupplyChainEntity) -> None:
-        state['storage_utilization'] = 0
-
         state['storage_levels'] = self._storage_product_quantity[entity.facility_id]
         state['storage_utilization'] = self._facility_product_utilization[entity.facility_id]
 
@@ -385,6 +402,7 @@ class SCEnvSampler(AbsEnvSampler):
         state['inventory_estimated'] = (
             state['inventory_in_stock'] + state['inventory_in_transit'] - state['inventory_in_distribution']
         )
+
         if state['inventory_estimated'] >= 0.5 * state['storage_capacity']:
             state['is_over_stock'] = 1
 
