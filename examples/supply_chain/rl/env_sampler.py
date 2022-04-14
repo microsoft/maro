@@ -82,10 +82,6 @@ class SCEnvSampler(AbsEnvSampler):
 
         # Key: Consumer unit id; Value: corresponding product id.
         self._consumer2product_id: Dict[int, int] = self._get_consumer2product_id(self._facility_info_dict)
-        # Key: Consumer unit it; Value: source facility id list.
-        self._consumer2source_facilities: Dict[int, List[int]] = self._get_consumer2source_facilities(
-            self._facility_info_dict
-        )
 
         self._cur_metrics: dict = self._learn_env.metrics
 
@@ -149,16 +145,6 @@ class SCEnvSampler(AbsEnvSampler):
                     consumer2product_id[product.consumer_info.id] = product_id
 
         return consumer2product_id
-
-    def _get_consumer2source_facilities(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, List[int]]:
-        consumer2source_facilities: Dict[int, List[int]] = {}
-
-        for facility_info in facility_info_dict.values():
-            for product in facility_info.products_info.values():
-                if product.consumer_info:
-                    consumer2source_facilities[product.consumer_info.id] = product.consumer_info.source_facility_id_list
-
-        return consumer2source_facilities
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
