@@ -86,7 +86,6 @@ for entity in env.business_engine.get_entity_list():
 
     # global features
     state["global_time"] = 0
-
     # facility features
     state["facility"] = None
     # state["facility_type"] = [
@@ -132,7 +131,7 @@ for entity in env.business_engine.get_entity_list():
         current_source_list = facility["upstreams"].get(entity.skus.id, [])
 
     max_src_num = env.summary["node_mapping"]["max_sources_per_facility"]
-    vlt_len = max_src_num * num_skus
+    vlt_len = max_src_num * num_skus + 1
     state['vlt'] = [0] * vlt_len
     state['max_vlt'] = 0
 
@@ -146,7 +145,6 @@ for entity in env.business_engine.get_entity_list():
             for i, source in enumerate(current_source_list):
                 for j, sku in enumerate(sku_list.values()):
                     # NOTE: different with original code, our config can make sure that source has product we need
-
                     if sku.id == entity.skus.id:
                         state['vlt'][i * max_src_num + j + 1] =\
                             env.business_engine.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)

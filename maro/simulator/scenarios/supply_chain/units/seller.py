@@ -216,7 +216,7 @@ class DataFileDemandSampler(SellerDemandSampler):
                 if sku_name not in self._world._sku_name2id_mapping:
                     continue
 
-                sales = int(row[self._sale_column_name])
+                sales = int(float(row[self._sale_column_name]))
                 price = float(row[self._price_column_name])
                 date = dateutil.parser.parse(row[self._datetime_column_name], ignoretz=True)
 

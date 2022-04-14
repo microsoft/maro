@@ -87,11 +87,11 @@ class SCEnvSampler(AbsEnvSampler):
         self._sold_status = {}
         self._reward_status = {}
         self._balance_status = {}
-
         self._storage_info = STORAGE_INFO
         self._state_template = STATE_TEMPLATE
-
         self._env_settings = workflow_settings
+
+        print("total num of agents: ", len(self._entity_dict.keys()))
 
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: list) -> float:
