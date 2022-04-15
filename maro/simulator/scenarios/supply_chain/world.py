@@ -82,6 +82,7 @@ class World:
             assert id_or_name in self._sku_collection.keys()
             return id_or_name, self._sku_collection[id_or_name].name
         else:
+            # print(id_or_name)
             assert id_or_name in self._sku_name2id_mapping.keys()
             return self._sku_name2id_mapping[id_or_name], id_or_name
 

@@ -12,7 +12,7 @@ from .config import workflow_settings
 keys_in_state = [
     (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 'consumption_hist']),
     ('storage_capacity', ['storage_utilization']),
-    ('sale_mean', [
+    ('storage_capacity', [
         'sale_std',
         'sale_hist',
         'pending_order',
@@ -22,6 +22,7 @@ keys_in_state = [
         'inventory_rop',
     ]),
     ('max_price', ['sku_price', 'sku_cost']),
+    (None, ["baseline_action"])
 ]
 
 # Count the defined state dimension.
@@ -102,6 +103,7 @@ class SCAgentStates:
         self._init_distribution_feature(state)
         self._init_consumer_feature(state, entity, facility_info)
         self._init_price_feature(state, entity)
+        state["baseline_action"] = 0
 
         return state
 
@@ -171,6 +173,7 @@ class SCAgentStates:
         # state['sale_gamma'] = 1.0
         # state['total_backlog_demand'] = 0
         state['sale_hist'] = [0] * self._settings['sale_hist_len']
+        state['demand_hist'] = [0] * self._settings['sale_hist_len']
         # state['backlog_demand_hist'] = [0] * self._settings['sale_hist_len']
         state['consumption_hist'] = [0] * self._settings['consumption_hist_len']
         state['pending_order'] = [0] * self._settings['pending_order_len']
@@ -186,8 +189,8 @@ class SCAgentStates:
         return
 
     def _init_distribution_feature(self, state: dict) -> None:
-        # state['distributor_in_transit_orders'] = 0
-        # state['distributor_in_transit_orders_qty'] = 0
+        state['distributor_in_transit_orders'] = 0
+        state['distributor_in_transit_orders_qty'] = 0
         return
 
     def _init_consumer_feature(self, state: dict, entity: SupplyChainEntity, facility_info: FacilityInfo) -> None:

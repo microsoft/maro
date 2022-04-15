@@ -20,12 +20,13 @@ from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
+from examples.supply_chain.rl.algorithms.rule_based import ConsumerEOQPolicy as ConsumerBaselinePolicy
 
 from .agent_state import serialize_state, SCAgentStates
 from .config import (
     distribution_features, env_conf, seller_features, workflow_settings,
     IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER,
-    IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND,
+    IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND, ALGO, TEAM_REWARD
 )
 from .policies import agent2policy, trainable_policies
 
@@ -52,9 +53,11 @@ class SCEnvSampler(AbsEnvSampler):
             reward_eval_delay=reward_eval_delay,
             get_test_env=get_test_env,
         )
+        self.baseline_policy = ConsumerBaselinePolicy('baseline_eoq')
+
         self._env_settings: dict = workflow_settings
 
-        self._balance_calculator: BalanceSheetCalculator = BalanceSheetCalculator(self._learn_env)
+        self._balance_calculator: BalanceSheetCalculator = BalanceSheetCalculator(self._learn_env, TEAM_REWARD)
 
         self._configs: dict = self._learn_env.configs
 
@@ -97,6 +100,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         # Key: facility id; List Index: sku idx; Value: in transition product quantity.
         self._facility_in_transit_orders: Dict[int, List[int]] = {}
+        self._facility_to_distribute_orders: Dict[int, List[int]] = {}
 
         self._facility_product_utilization: Dict[int, int] = {}
 
@@ -115,6 +119,16 @@ class SCEnvSampler(AbsEnvSampler):
             max_price=self._summary["max_price"],
             settings=self._env_settings,
         )
+        self._stock_status = {}
+        self._demand_status = {}
+        # key: product unit id, value: number
+        # self._orders_from_downstreams = {}
+        # self._consumer_orders = {}
+        self._order_in_transit_status = {}
+        self._order_to_distribute_status = {}
+        self._sold_status = {}
+        self._reward_status = {}
+        self._balance_status = {}
 
     def _get_unit2product_unit(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
         unit2product: Dict[int, int] = {}
@@ -189,7 +203,10 @@ class SCEnvSampler(AbsEnvSampler):
         extend_state([facility_info.storage_info.config[0].capacity])
         extend_state(self._storage_product_quantity[entity.facility_id])
         extend_state(self._facility_in_transit_orders[entity.facility_id])
-        extend_state([self._product_id2idx[entity.facility_id][entity.skus.id] + 1])  # TODO: check +1 or not
+        extend_state(self._facility_to_distribute_orders[entity.facility_id])
+
+        # extend_state([self._product_id2idx[entity.facility_id][entity.skus.id] + 1])  # TODO: check +1 or not
+        extend_state([self._global_sku_id2idx[entity.skus.id]])
         extend_state([be.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
         extend_state([entity.skus.service_level])
         return np.array(np_state + offsets)
@@ -203,6 +220,26 @@ class SCEnvSampler(AbsEnvSampler):
         self._update_sale_features(state, entity)
         self._update_distribution_features(state, entity)
         self._update_consumer_features(state, entity)
+
+        baseline_action = 0
+        if issubclass(entity.class_type, ConsumerUnit):
+            bs_state = self.get_or_policy_state(entity)
+            bs_state = np.reshape(bs_state, (1, -1))
+            baseline_action = self.baseline_policy.get_actions(bs_state)[0]
+        state['baseline_action'] = baseline_action
+
+        self._stock_status[entity.id] = state['inventory_in_stock']
+
+        facility = self._facility_info_dict[entity.facility_id]
+        if entity.skus and (facility.products_info[entity.skus.id].seller_info is not None):        
+            self._demand_status[entity.id] = state['demand_hist'][-1]
+            self._sold_status[entity.id] = state['sale_hist'][-1]
+        else:
+            self._demand_status[entity.id] = state['sale_mean']
+            self._sold_status[entity.id] = state['sale_mean']
+
+        self._order_in_transit_status[entity.id] = state['inventory_in_transit']
+        self._order_to_distribute_status[entity.id] = state['distributor_in_transit_orders_qty']
 
         np_state = serialize_state(state)
         return np_state
@@ -252,6 +289,7 @@ class SCEnvSampler(AbsEnvSampler):
             # Reset for each step
             self._facility_product_utilization[facility_id] = 0
             self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
+            self._facility_to_distribute_orders[facility_id] = [0] * self._sku_number
 
             product_quantities = self._learn_env.snapshot_list["storage"][
                 tick:facility_info.storage_info.node_index:"product_quantity"
@@ -266,9 +304,12 @@ class SCEnvSampler(AbsEnvSampler):
             for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
                 self._facility_in_transit_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
+            for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["pending_order"].items():
+                self._facility_to_distribute_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
+
         # to keep track infor
         for id_, entity in self._entity_dict.items():
-            self.get_rl_policy_state(self._state_template[id_], entity)
+            self.get_rl_policy_state(id_, entity)
 
         state = {
             id_: self._get_entity_state(id_)
@@ -280,6 +321,8 @@ class SCEnvSampler(AbsEnvSampler):
         # get related product, seller, consumer, manufacture unit id
         # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
         self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
+        self._reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self._cur_balance_sheet_reward.items()}
+        self._balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self._cur_balance_sheet_reward.items()}
         return {
             unit_id: self._get_reward_for_entity(self._entity_dict[unit_id], bwt)
             for unit_id, bwt in self._cur_balance_sheet_reward.items()
@@ -292,11 +335,12 @@ class SCEnvSampler(AbsEnvSampler):
         for agent_id, action in action_dict.items():
             entity_id = agent_id
             env_action: Optional[SupplyChainAction] = None
-
+            if np.isscalar(action):
+                action = [action]
+            product_unit_id: int = self._unit2product_unit[entity_id]
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
                 product_id: int = self._consumer2product_id.get(entity_id, 0)
-                product_unit_id: int = self._unit2product_unit[entity_id]
 
                 # TODO: vehicle type selection and source selection
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
@@ -312,11 +356,13 @@ class SCEnvSampler(AbsEnvSampler):
                 if len(vlt_info_cadidates):
                     src_f_id = vlt_info_cadidates[0].src_facility.id
                     vehicle_type = vlt_info_cadidates[0].vehicle_type
-
-                    try:
-                        action_quantity = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
-                    except ValueError:
-                        action_quantity = 0
+                    
+                    if (ALGO == "PPO" and isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy)):
+                        or_action = self._agent_state_dict[agent_id][-1]
+                        action_idx = max(0, int(action[0] - 1 + or_action))
+                    else:
+                        action_idx = action[0]
+                    action_quantity = int(int(action_idx) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
 
                     # Ignore 0 quantity to reduce action number
                     if action_quantity:
@@ -324,10 +370,11 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
-                sku = self._units_mapping[entity_id][3]
-                if sku.production_rate:
-                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.production_rate))
-
+                # sku = self._units_mapping[entity_id][3]
+                # if sku.production_rate:
+                #     env_action = ManufactureAction(id=entity_id, production_rate=int(sku.production_rate))
+                action_quantity = int(action[0] * self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                env_action = ManufactureAction(id=entity_id, production_rate=action_quantity)
             if env_action:
                 env_action_dict[agent_id] = env_action
 
@@ -359,6 +406,7 @@ class SCEnvSampler(AbsEnvSampler):
             # For total demand, we need latest one.
             state['total_backlog_demand'] = seller_states[:, IDX_SELLER_TOTAL_DEMAND][-1][0]
             state['sale_hist'] = list(seller_states[:, IDX_SELLER_SOLD].flatten())
+            state['demand_hist'] = list(seller_states[:, IDX_SELLER_DEMAND].flatten())
             state['backlog_demand_hist'] = list(seller_states[:, IDX_SELLER_DEMAND])
 
         else:
@@ -434,7 +482,7 @@ class SCEnvSampler(AbsEnvSampler):
         self.total_balance = 0.0
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
-        tracker = SimulationTracker(180, 1, self, [0, 180])
+        tracker = SimulationTracker(env_conf["durations"], 1, self, [0, env_conf["durations"]])
         step_idx = 0
         self._env = self._test_env
         if policy_state is not None:
@@ -449,7 +497,7 @@ class SCEnvSampler(AbsEnvSampler):
         while not is_done:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
-            env_action_dict = self._translate_to_env_action(action_dict, self._event, agent_state_dict)
+            env_action_dict = self._translate_to_env_action(action_dict, self._event)
             
             # Store experiences in the cache
             cache_element = CacheElement(
@@ -473,7 +521,7 @@ class SCEnvSampler(AbsEnvSampler):
                     consumer_action_dict[entity_id] = (action, reward[entity_id])
             print(step_idx, consumer_action_dict)
             self._state, self._agent_state_dict = (None, {}) if is_done \
-                else self._get_global_and_agent_state(self._event, cache_element.tick)
+                else self._get_global_and_agent_state(self._event)
 
             step_balances = self._balance_status
             step_rewards = self._reward_status
@@ -490,9 +538,9 @@ class SCEnvSampler(AbsEnvSampler):
             order_to_distribute_status = self._order_to_distribute_status
 
             tracker.add_sku_status(0, step_idx, stock_status,
-                                order_in_transit_status, demand_status, sold_status,
-                                reward_status, balance_status,
-                                order_to_distribute_status)
+                                   order_in_transit_status, demand_status, sold_status,
+                                   reward_status, balance_status,
+                                   order_to_distribute_status)
             step_idx += 1
             self._info["sold"] = 0
             self._info["demand"] = 1

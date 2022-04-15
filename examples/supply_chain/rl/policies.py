@@ -47,15 +47,12 @@ def entity2policy(entity: SupplyChainEntity, baseline) -> str:
     if entity.skus is None:
         return "facility_policy"
     elif issubclass(entity.class_type, ManufactureUnit):
-        return "manufacturer_policy"
+        return "manufacturer.policy"
     elif issubclass(entity.class_type, ProductUnit):
         return "product_policy"
     elif issubclass(entity.class_type, SellerUnit):
         return "seller_policy"
     elif issubclass(entity.class_type, ConsumerUnit):
-<<<<<<< HEAD
-        return ("consumer.eoq_policy" if baseline else "consumer.policy")
-=======
         facility_name = facility_info_dict[entity.facility_id].name
         if "Plant" in facility_name:
             # Return the policy name if needed
@@ -66,15 +63,14 @@ def entity2policy(entity: SupplyChainEntity, baseline) -> str:
         elif "Store" in facility_name:
             # Return the policy name if needed
             pass
-        return "ppo.policy"
->>>>>>> Jinyu/sc_refinement
+        return ("consumer.eoq_policy" if baseline else "consumer.policy")
     raise TypeError(f"Unrecognized entity class type: {entity.class_type}")
 
 
 policy_creator = {
     "consumer.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS),
     "consumer.eoq_policy": lambda name: ConsumerEOQPolicy(name),
-    "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
+    "manufacturer.policy": lambda name: ManufacturerBaselinePolicy(name),
     "facility_policy": lambda name: DummyPolicy(name),
     "product_policy": lambda name: DummyPolicy(name),
     "seller_policy": lambda name: DummyPolicy(name),

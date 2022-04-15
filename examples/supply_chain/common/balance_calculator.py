@@ -10,7 +10,7 @@ from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
-from ..rl.env_helper import STORAGE_INFO
+# from ..rl.env_helper import STORAGE_INFO
 
 
 ProductInfo = namedtuple(
