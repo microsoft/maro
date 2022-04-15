@@ -180,8 +180,8 @@ class SCAgentStates:
         return
 
     def _init_distribution_feature(self, state: dict) -> None:
-        # state['distributor_in_transit_orders'] = 0
-        # state['distributor_in_transit_orders_qty'] = 0
+        state['distributor_in_transit_orders'] = 0
+        state['distributor_in_transit_orders_qty'] = 0
         return
 
     def _init_bom_feature(self, state: dict, entity: SupplyChainEntity) -> dict:

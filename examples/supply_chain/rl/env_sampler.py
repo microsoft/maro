@@ -23,7 +23,7 @@ from examples.supply_chain.rl.algorithms.rule_based import ConsumerEOQPolicy as 
 
 from .agent_state import serialize_state, SCAgentStates
 from .config import (
-    distribution_features, env_conf, seller_features, workflow_settings, ALGO
+    distribution_features, env_conf, seller_features, workflow_settings, ALGO, TEAM_REWARD
 )
 from .policies import agent2policy, trainable_policies
 
@@ -183,7 +183,7 @@ class SCEnvSampler(AbsEnvSampler):
         extend_state([product_metrics["sale_std"] if product_metrics else 0])
 
         extend_state([unit_storage_cost])
-        extend_state([1])
+        extend_state([1]) # order_cost
         facility_info = self._facility_info_dict[entity.facility_id]
         product_info = facility_info.products_info[entity.skus.id]
         if product_info.consumer_info is not None:
@@ -301,9 +301,9 @@ class SCEnvSampler(AbsEnvSampler):
 
             for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
                 self._facility_in_transit_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
-
-            for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["pending_order"].items():
-                self._facility_to_distribute_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
+            if self._cur_metrics['facilities'][facility_id]["pending_order"]:
+                for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["pending_order"].items():
+                    self._facility_to_distribute_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
         # to keep track infor
         for id_, entity in self._entity_dict.items():
@@ -335,11 +335,11 @@ class SCEnvSampler(AbsEnvSampler):
             env_action: Optional[SupplyChainAction] = None
             if np.isscalar(action):
                 action = [action]
-            product_unit_id: int = self._unit2product_unit[entity_id]
+            
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
                 product_id: int = self._consumer2product_id.get(entity_id, 0)
-
+                product_unit_id: int = self._unit2product_unit[entity_id]
                 # TODO: vehicle type selection and source selection
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
                 vlt_info_cadidates: List[VendorLeadingTimeInfo] = [
@@ -368,6 +368,7 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
+                product_unit_id: int = self._unit2product_unit[entity_id]
                 # sku = self._units_mapping[entity_id][3]
                 # if sku.production_rate:
                 #     env_action = ManufactureAction(id=entity_id, production_rate=int(sku.production_rate))
