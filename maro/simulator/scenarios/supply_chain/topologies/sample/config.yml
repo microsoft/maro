@@ -10,7 +10,7 @@
 
 facility_definitions:
   # facility definition
-  WarehouseFacility: &warehouse_facility
+  WarehouseFacility:
     class: "WarehouseFacility"
     children:
       storage:
@@ -24,7 +24,7 @@ facility_definitions:
         consumer:
           class: "ConsumerUnit"
 
-  SupplierFacility: &supplier_facility
+  SupplierFacility:
     class: "SupplierFacility"
     children:
       storage:
@@ -39,7 +39,7 @@ facility_definitions:
         manufacture:
           class: "ManufactureUnit"
 
-  RetailerFacility: &retailer_facility
+  RetailerFacility:
     class: "RetailerFacility"
     children:
       storage:
@@ -214,7 +214,7 @@ world:
   topology:
     # key is current facility, value if upstream facilities that will provide a certain sku
     Supplier_002:
-      # this config means "Supplier1" will purchase "sku3" from facility "Supplier3",
+      # this config means "Supplier_002" will purchase "sku3" from facility "Supplier_001",
       # or any other facility in the list
       sku3:
         "Supplier_001":

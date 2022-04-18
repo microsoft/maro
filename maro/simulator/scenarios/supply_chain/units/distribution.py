@@ -89,13 +89,10 @@ class DistributionUnit(UnitBase):
 
             if sku is not None:
                 self._is_order_changed = True
-
                 self._order_queues[order.vehicle_type].append(order)
-
-                order_total_price = sku.price * order.quantity
-
                 self.check_in_quantity_in_order[order.product_id] += order.quantity
 
+                order_total_price = sku.price * order.quantity
                 return order_total_price
 
         return 0

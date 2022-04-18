@@ -38,6 +38,7 @@ def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[i
                     unit2product[unit.id] = product_info.id
     return unit2product
 
+
 def get_product_id2idx(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, Dict[int, int]]:
     # Key 1: facility id; Key 2: product id; Value: index in product list.
     product_id2idx: Dict[int, Dict[int, int]] = defaultdict(dict)
@@ -48,6 +49,7 @@ def get_product_id2idx(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int,
                 product_id2idx[facility_id][pid] = i
 
     return product_id2idx
+
 
 def get_consumer2product_id(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
     consumer2product_id: Dict[int, int] = {}

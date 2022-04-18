@@ -6,7 +6,7 @@ import scipy.stats as st
 from typing import Callable, Dict, List
 
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ProductUnit
-from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
+from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
 from .config import (
@@ -179,7 +179,7 @@ class SCAgentStates:
         # state["is_accepted"] = [0] * self._settings["constraint_state_hist_len"]
         # state['constraint_idx'] = [0]
         # state['facility_id'] = [0] * self._sku_number
-        # state['sku_info'] = {} if entity.is_facility else entity.skus
+        # state['sku_info'] = {} if issubclass(entity.class_type, FacilityBase) else entity.skus
         # state['echelon_level'] = 0
 
         # state['facility_info'] = facility_info.configs

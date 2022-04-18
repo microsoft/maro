@@ -129,7 +129,7 @@ class World:
             facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()
         }
 
-        id2index_mapping = {}
+        unit_mapping = {}
 
         for unit_id, unit in self.units.items():
             sku = None
@@ -139,12 +139,12 @@ class World:
 
             if unit.data_model is not None:
                 # TODO: replace with data class or named tuple
-                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
+                unit_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
             else:
-                id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
+                unit_mapping[unit_id] = (None, None, unit.facility.id, sku)
 
         return {
-            "unit_mapping": id2index_mapping,
+            "unit_mapping": unit_mapping,
             "skus": {id_: sku for id_, sku in self._sku_collection.items()},
             "facilities": facility_info_dict,
             "max_price": self.max_price,
@@ -268,29 +268,6 @@ class World:
             world=self,
             config=config.get("config", {}),
         )
-
-        # Prepare children.
-        children_conf = config.get("children", None)
-
-        if children_conf:
-            unit_instance.children = []
-
-            for child_name, child_conf in children_conf.items():
-                # If child configuration is a dict, then we add it as a property by name (key).
-                if type(child_conf) == dict:
-                    child_instance = self._build_unit(facility, unit_instance, child_conf)
-
-                    setattr(unit_instance, child_name, child_instance)
-                    unit_instance.children.append(child_instance)
-
-                elif type(child_conf) == list:
-                    # If child configuration is a list, then will treat it as list property, named same as key.
-                    child_list = []
-                    for conf in child_conf:
-                        child_list.append(self._build_unit(facility, unit_instance, conf))
-
-                    setattr(unit_instance, child_name, child_list)
-                    unit_instance.children.extend(child_list)
 
         # Record the id.
         self.units[unit_instance.id] = unit_instance
