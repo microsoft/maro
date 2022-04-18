@@ -41,6 +41,7 @@ STATE_DIM = sum(
     for _, keys in keys_in_state for key in keys
 )
 
+
 def serialize_state(state: dict) -> np.ndarray:
     result = []
 
@@ -82,7 +83,8 @@ class SCAgentStates:
 
         self._templates: Dict[int, dict] = {}
 
-    def _init_atom(self) -> Dict[str, Callable]:
+    @staticmethod
+    def _init_atom() -> Dict[str, Callable]:
         atom = {
             'stock_constraint': (
                 lambda f_state: 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean']
@@ -114,19 +116,42 @@ class SCAgentStates:
         return state
 
     def update_entity_state(
-            self,
-            entity_id: int,
-            tick: int,
-            cur_metrics: dict,
-            cur_distribution_states: np.ndarray,
-            cur_seller_states: np.ndarray,
-            cur_consumer_states: np.ndarray,
-            accumulated_balance: float,
-            storage_product_quantity: Dict[int, List[int]],
-            facility_product_utilization: Dict[int, int],
-            facility_in_transit_orders: Dict[int, List[int]],
-        ) -> dict:
-        """
+        self,
+        entity_id: int,
+        tick: int,
+        cur_metrics: dict,
+        cur_distribution_states: np.ndarray,
+        cur_seller_states: np.ndarray,
+        cur_consumer_states: np.ndarray,
+        accumulated_balance: float,
+        storage_product_quantity: Dict[int, List[int]],
+        facility_product_utilization: Dict[int, int],
+        facility_in_transit_orders: Dict[int, List[int]],
+    ) -> dict:
+        """Update the state dict of the given entity_id in the given tick.
+
+        Args:
+            entity_id (int): The id of the target entity unit.
+            tick (int): The target environment tick.
+            cur_metrics (dict): The environment metrics of the given tick. It is an attribution of the business engine.
+            cur_distribution_states (np.ndarray): The distribution attributes of the pre-defined time window, extracted
+                from the snapshot list.
+            cur_seller_states (np.ndarray): The seller attributes of the pre-defined time window, extracted from the
+                snapshot list.
+            cur_consumer_states (np.ndarray): The consumer attributes of the pre-defined time window, extracted from the
+                snapshot list.
+            accumulated_balance (float): The accumulated balance of the given entity in the given tick.
+            storage_product_quantity (Dict[int, List[int]]): The current product quantity in the facility's storage. The
+                key is the id of the facility the entity belongs to, the value is the product quantity list which is
+                indexed by the global_sku_id2idx.
+            facility_product_utilization (Dict[int, int]): The current total product quantity in corresponding facility.
+                The key is the id of the facility the entity belongs to, the value is the total product quantity.
+            facility_in_transit_orders (Dict[int, List[int]]): The current in-transition product quantity. The key is
+                the id of the facility the entity belongs to, the value is the in-transition product quantity list which
+                is indexed by the global_sku_id2idx.
+
+        Returns:
+            dict: The state dict of the given entity in the given tick.
         """
         entity: SupplyChainEntity = self._entity_dict[entity_id]
 
@@ -252,7 +277,7 @@ class SCAgentStates:
         return
 
     def _init_price_feature(self, state: dict, entity: SupplyChainEntity) -> None:
-        state['max_price'] = self._max_price
+        state['max_price'] = self._max_price  # TODO: update it to be the max price of this unit/facility/sku?
         state['sku_price'] = 0
         state['sku_cost'] = 0
 
