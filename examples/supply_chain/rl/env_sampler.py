@@ -227,9 +227,8 @@ class SCEnvSampler(AbsEnvSampler):
         state['baseline_action'] = baseline_action
 
         self._stock_status[entity.id] = state['inventory_in_stock']
-
         facility = self._facility_info_dict[entity.facility_id]
-        if entity.skus and (facility.products_info[entity.skus.id].seller_info is not None):        
+        if issubclass(entity.class_type, ProductUnit) and (facility.products_info[entity.skus.id].seller_info is not None):        
             self._demand_status[entity.id] = state['demand_hist'][-1]
             self._sold_status[entity.id] = state['sale_hist'][-1]
         else:
@@ -237,7 +236,7 @@ class SCEnvSampler(AbsEnvSampler):
             self._sold_status[entity.id] = state['sale_mean']
 
         self._order_in_transit_status[entity.id] = state['inventory_in_transit']
-        self._order_to_distribute_status[entity.id] = state['distributor_in_transit_orders_qty']
+        self._order_to_distribute_status[entity.id] = state['inventory_in_distribution']
 
         np_state = serialize_state(state)
         return np_state
@@ -428,12 +427,13 @@ class SCEnvSampler(AbsEnvSampler):
             # Update env and get new states (global & agent)
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
             reward = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
-            consumer_action_dict = {}
-            for entity_id, entity in self._entity_dict.items():
-                if issubclass(entity.class_type, ConsumerUnit):
-                    action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
-                    consumer_action_dict[entity_id] = (action, reward[entity_id])
-            print(step_idx, consumer_action_dict)
+            # consumer_action_dict = {}
+            # for entity_id, entity in self._entity_dict.items():
+            #     if issubclass(entity.class_type, ConsumerUnit):
+            #         action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
+            #         consumer_action_dict[entity_id] = (action, reward[entity_id])
+            # print(step_idx, consumer_action_dict)
+            print("evaluate step: ", step_idx)
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event)
 

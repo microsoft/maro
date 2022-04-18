@@ -187,6 +187,8 @@ class SimulationTrackerHtml:
         df_all = pd.read_csv(self.log_path)
         facility_list = df_all['facility_name'].unique().tolist()
         for facility_name in facility_list:
+            if facility_name.startswith("VNDR"):
+                continue
             if facility_name.startswith('supplier'):
                 compute_balance = compute_supplier_balance
             elif facility_name.startswith('warehouse'):
@@ -291,6 +293,8 @@ class SimulationTrackerHtml:
         df_all = pd.read_csv(self.log_path)
         facility_list = df_all['facility_name'].unique().tolist()
         for facility_name in facility_list:
+            if facility_name.startswith("VNDR"):
+                continue
             df_facility = df_all[df_all['facility_name'] == facility_name]
             sku_list = df_facility['name'].unique().tolist()
             for sku_name in sku_list:
@@ -509,6 +513,9 @@ class SimulationTracker:
             entity = self.entity_dict[entity_id]
             if not issubclass(entity.class_type, ProductUnit):
                 continue
+            facility = self.facility_info[entity.facility_id]
+            if facility.name.startswith("VNDR"):
+                continue
             fig, ax = plt.subplots(4, 1, figsize=(25, 10))
             x = np.linspace(0, self.episod_len, self.episod_len)[self.eval_period[0]:self.eval_period[1]]
             stock = self.stock_status[0, :, i][self.eval_period[0]:self.eval_period[1]]
@@ -549,6 +556,8 @@ class SimulationTracker:
             if not (entity.class_type.__name__ in facility_types):
                 continue
             facility = self.facility_info[entity_id]
+            if facility.name.startswith("VNDR"):
+                continue
             _agent_list.append(f"{facility.name}_{entity_id}")
             _step_idx.append(i)
         _step_metrics = [metrics[0, self.eval_period[0]:self.eval_period[1], i] for i in _step_idx]

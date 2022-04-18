@@ -21,6 +21,7 @@ keys_in_state = [
     ('storage_capacity', [
         'sale_std',
         'sale_hist',
+        'demand_hist',
         'pending_order',
         'inventory_in_stock',
         'inventory_in_transit',
@@ -34,6 +35,7 @@ keys_in_state = [
 # Count the defined state dimension.
 list_state_dim = {
     'sale_hist': workflow_settings['sale_hist_len'],
+    'demand_hist': workflow_settings['sale_hist_len'],
     'consumption_hist': workflow_settings['consumption_hist_len'],
     'pending_order': workflow_settings['pending_order_len'],
 }
@@ -306,11 +308,11 @@ class SCAgentStates:
         cur_seller_states: np.ndarray,
         cur_consumer_states: np.ndarray,
     ) -> None:
-        if entity.class_type not in {ConsumerUnit, ProductUnit}:
+        if not issubclass(entity.class_type, (ConsumerUnit, ProductUnit)):
             return
 
         # Get product unit id for current agent.
-        product_unit_id = entity.id if entity.class_type == ProductUnit else entity.parent_id
+        product_unit_id = entity.id if issubclass(entity.class_type, ProductUnit) else entity.parent_id
 
         state['sale_mean'] = cur_metrics["products"][product_unit_id]["sale_mean"]
         state['sale_std'] = cur_metrics["products"][product_unit_id]["sale_std"]
@@ -323,7 +325,9 @@ class SCAgentStates:
             # For total demand, we need latest one.
             # state['total_backlog_demand'] = seller_states[:, IDX_SELLER_TOTAL_DEMAND][-1][0]
             state['sale_hist'] = list(seller_states[:, IDX_SELLER_SOLD].flatten())
+            state['demand_hist'] = list(seller_states[:, IDX_SELLER_DEMAND].flatten())
             # state['backlog_demand_hist'] = list(seller_states[:, IDX_SELLER_DEMAND])
+            # print(state['sale_hist'], state['demand_hist'])
 
         else:
             # state['sale_gamma'] = state['sale_mean']
