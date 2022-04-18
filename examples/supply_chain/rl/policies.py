@@ -30,6 +30,20 @@ entity_dict: Dict[Any, SupplyChainEntity] = {
 }
 
 
+# Create an env to get entity list and env summary
+env = Env(**env_conf)
+
+facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
+
+helper_business_engine = env.business_engine
+assert isinstance(helper_business_engine, SupplyChainBusinessEngine)
+
+entity_dict: Dict[Any, SupplyChainEntity] = {
+    entity.id: entity
+    for entity in helper_business_engine.get_entity_list()
+}
+
+
 if ALGO == "PPO":
     from .algorithms.ppo import get_policy, get_ppo
     trainer_creator = {

@@ -23,11 +23,43 @@ from examples.supply_chain.rl.algorithms.rule_based import ConsumerEOQPolicy as 
 
 from .agent_state import serialize_state, SCAgentStates
 from .config import (
-    distribution_features, env_conf, seller_features, workflow_settings, ALGO, TEAM_REWARD
+    distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD
 )
 from .policies import agent2policy, trainable_policies
-
 from .render_tools import SimulationTracker
+
+
+def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
+    unit2product: Dict[int, int] = {}
+    for facility_info in facility_info_dict.values():
+        for product_info in facility_info.products_info.values():
+            for unit in (
+                product_info, product_info.seller_info, product_info.consumer_info, product_info.manufacture_info
+            ):
+                if unit is not None:
+                    unit2product[unit.id] = product_info.id
+    return unit2product
+
+def get_product_id2idx(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, Dict[int, int]]:
+    # Key 1: facility id; Key 2: product id; Value: index in product list.
+    product_id2idx: Dict[int, Dict[int, int]] = defaultdict(dict)
+
+    for facility_id, facility_info in facility_info_dict.items():
+        if facility_info.storage_info is not None:
+            for i, pid in enumerate(facility_info.storage_info.product_list):
+                product_id2idx[facility_id][pid] = i
+
+    return product_id2idx
+
+def get_consumer2product_id(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
+    consumer2product_id: Dict[int, int] = {}
+
+    for facility_info in facility_info_dict.values():
+        for product_id, product in facility_info.products_info.items():
+            if product.consumer_info:
+                consumer2product_id[product.consumer_info.id] = product_id
+
+    return consumer2product_id
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -77,13 +109,13 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._facility_info_dict: Dict[int, FacilityInfo] = self._summary["facilities"]
 
-        self._unit2product_unit: Dict[int, int] = self._get_unit2product_unit(self._facility_info_dict)
+        self._unit2product_unit: Dict[int, int] = get_unit2product_unit(self._facility_info_dict)
 
         # Key 1: Facility id; Key 2: Product id; Value: Index in product list
-        self._product_id2idx: Dict[int, Dict[int, int]] = self._get_product_id2idx(self._facility_info_dict)
+        self._product_id2idx: Dict[int, Dict[int, int]] = get_product_id2idx(self._facility_info_dict)
 
         # Key: Consumer unit id; Value: corresponding product id.
-        self._consumer2product_id: Dict[int, int] = self._get_consumer2product_id(self._facility_info_dict)
+        self._consumer2product_id: Dict[int, int] = get_consumer2product_id(self._facility_info_dict)
 
         self._cur_metrics: dict = self._learn_env.metrics
 
@@ -97,7 +129,6 @@ class SCEnvSampler(AbsEnvSampler):
 
         # Key: facility id; List Index: sku idx; Value: in transition product quantity.
         self._facility_in_transit_orders: Dict[int, List[int]] = {}
-        self._facility_to_distribute_orders: Dict[int, List[int]] = {}
 
         self._facility_product_utilization: Dict[int, int] = {}
 
@@ -123,38 +154,6 @@ class SCEnvSampler(AbsEnvSampler):
         self._sold_status = {}
         self._reward_status = {}
         self._balance_status = {}
-
-    def _get_unit2product_unit(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
-        unit2product: Dict[int, int] = {}
-        for facility_info in facility_info_dict.values():
-            for product_info in facility_info.products_info.values():
-                for unit in (
-                    product_info, product_info.seller_info, product_info.consumer_info, product_info.manufacture_info
-                ):
-                    if unit is not None:
-                        unit2product[unit.id] = product_info.id
-        return unit2product
-
-    def _get_product_id2idx(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, Dict[int, int]]:
-        # Key 1: facility id; Key 2: product id; Value: index in product list.
-        product_id2idx: Dict[int, Dict[int, int]] = defaultdict(dict)
-
-        for facility_id, facility_info in facility_info_dict.items():
-            if facility_info.storage_info is not None:
-                for i, pid in enumerate(facility_info.storage_info.product_list):
-                    product_id2idx[facility_id][pid] = i
-
-        return product_id2idx
-
-    def _get_consumer2product_id(self, facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
-        consumer2product_id: Dict[int, int] = {}
-
-        for facility_info in facility_info_dict.values():
-            for product_id, product in facility_info.products_info.items():
-                if product.consumer_info:
-                    consumer2product_id[product.consumer_info.id] = product_id
-
-        return consumer2product_id
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
@@ -183,7 +182,7 @@ class SCEnvSampler(AbsEnvSampler):
         extend_state([product_metrics["sale_std"] if product_metrics else 0])
 
         extend_state([unit_storage_cost])
-        extend_state([1]) # order_cost
+        extend_state([1])
         facility_info = self._facility_info_dict[entity.facility_id]
         product_info = facility_info.products_info[entity.skus.id]
         if product_info.consumer_info is not None:
@@ -339,13 +338,14 @@ class SCEnvSampler(AbsEnvSampler):
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
                 product_id: int = self._consumer2product_id.get(entity_id, 0)
                 product_unit_id: int = self._unit2product_unit[entity_id]
+
                 # TODO: vehicle type selection and source selection
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
-                vlt_info_cadidates: List[VendorLeadingTimeInfo] = [
+                vlt_info_candidates: List[VendorLeadingTimeInfo] = [
                     vlt_info
                     for vlt_info in facility_info.upstream_vlt_infos[product_id]
                     if any([
-                        self._env_settings["default_vehicle_type"] == None,
+                        self._env_settings["default_vehicle_type"] is None,
                         vlt_info.vehicle_type == self._env_settings["default_vehicle_type"],
                     ])
                 ]
