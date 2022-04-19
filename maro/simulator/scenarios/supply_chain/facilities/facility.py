@@ -29,7 +29,7 @@ class FacilityInfo:
     class_name: type
     configs: dict
     skus: Dict[int, SkuInfo]
-    upstreams: Dict[int, List[int]]
+    upstream_vlt_infos: Dict[int, List[VendorLeadingTimeInfo]]
     downstreams: Dict[int, List[int]]  # Key: product_id; Value: facility id list
     storage_info: Optional[StorageUnitInfo]
     distribution_info: Optional[DistributionUnitInfo]
@@ -158,10 +158,7 @@ class FacilityBase(ABC):
             class_name=type(self),
             configs=self.configs,
             skus=self.skus,
-            upstreams={
-                product_id: [info.src_facility.id for info in info_list]
-                for product_id, info_list in self.upstream_vlt_infos.items()
-            },
+            upstream_vlt_infos=self.upstream_vlt_infos,
             downstreams={
                 product_id: [info.dest_facility.id for info in info_list]
                 for product_id, info_list in self.downstream_vlt_infos.items()

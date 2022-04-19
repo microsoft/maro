@@ -52,8 +52,8 @@ class World:
 
         self.entity_list = []
 
-        self.max_sources_per_facility = 0
-        self.max_price = 0  # TODO: update it according to needs
+        self.max_sources_per_facility: int = 0
+        self.max_price: float = 0  # TODO: update it according to needs
 
     def get_sku_by_id(self, sku_id: int) -> SkuMeta:
         """Get sku information by sku id.
