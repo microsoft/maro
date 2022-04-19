@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import collections
 from collections import defaultdict, namedtuple
 from typing import Dict, List, Tuple
 
@@ -114,52 +114,38 @@ class BalanceSheetCalculator:
         return facility_levels, products, product_id2idx, consumer_id2product_id
 
     def _get_products_sorted_from_downstreams_to_upstreams(self) -> List[ProductInfo]:
-        # TODO: Sort products from downstream to upstream.
+        # Topological sorting
         ordered_products: List[ProductInfo] = []
+        product_unit_dict = {product.unit_id: product for product in self.products}
+        in_degree = collections.Counter()
 
-        tmp_product_unit_dict = {product.unit_id: product for product in self.products}
-        tmp_stack = []
         for product in self.products:
-            # Skip if the product has already added.
-            if tmp_product_unit_dict[product.unit_id] is None:
-                continue
+            for downstream_unit_id in product.downstream_product_unit_id_list:
+                in_degree[downstream_unit_id] += 1
 
-            # Add the downstreams to the stack.
-            for product_unit_id in product.downstream_product_unit_id_list:
-                tmp_stack.append(product_unit_id)
+        queue = collections.deque()
+        for unit_id, deg in in_degree.items():
+            if deg == 0:
+                queue.append(unit_id)
 
-            # Insert current product to the head and mark it as already added.
-            ordered_products.insert(0, product)
-            tmp_product_unit_dict[product.unit_id] = None
-
-            # Processing and add the downstreams of current product.
-            while len(tmp_stack) > 0:
-                downstream_product_unit_id = tmp_stack.pop()
-
-                # Skip if it has already added.
-                if tmp_product_unit_dict[downstream_product_unit_id] is None:
-                    continue
-
-                # Extract the downstream product unit.
-                downstream_product_unit = tmp_product_unit_dict[downstream_product_unit_id]
-
-                # Add the downstreams to the stack.
-                for product_unit_id in downstream_product_unit.downstream_product_unit_id_list:
-                    tmp_stack.append(product_unit_id)
-
-                # Insert the unit to the head and mark it as already added.
-                ordered_products.insert(0, downstream_product_unit)
-                tmp_product_unit_dict[downstream_product_unit_id] = None
+        while queue:
+            unit_id = queue.popleft()
+            product = product_unit_dict[unit_id]
+            ordered_products.append(product)
+            for downstream_unit_id in product.downstream_product_unit_id_list:
+                in_degree[downstream_unit_id] -= 1
+                if in_degree[downstream_unit_id] == 0:
+                    queue.append(downstream_unit_id)
 
         return ordered_products
 
     def _check_attribute_keys(self, target_type: str, attribute: str) -> None:
-        valid_target_types = list(self._env.summary["node_detail"].keys())
-        assert target_type in valid_target_types, f"Target_type {target_type} not in {valid_target_types}!"
+        valid_target_types = set(self._env.summary["node_detail"].keys())
+        assert target_type in valid_target_types, f"Target_type {target_type} not in {list(valid_target_types)}!"
 
-        valid_attributes = list(self._env.summary["node_detail"][target_type]["attributes"].keys())
+        valid_attributes = set(self._env.summary["node_detail"][target_type]["attributes"].keys())
         assert attribute in valid_attributes, (
-            f"Attribute {attribute} not valid for {target_type}. Valid attributes: {valid_attributes}"
+            f"Attribute {attribute} not valid for {target_type}. Valid attributes: {list(valid_attributes)}"
         )
 
     def _get_attributes(self, target_type: str, attribute: str, tick: int = None) -> np.ndarray:

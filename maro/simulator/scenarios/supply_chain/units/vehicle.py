@@ -168,7 +168,7 @@ class VehicleUnit(UnitBase):
         if self._status == VehicleStatus.UnloadingProducts:
             # Try to unload.
             if self.payload > 0:
-                self.try_unload()  # TODO: to confrim -- the logic is to try unload until all. Add a patient for it?
+                self.try_unload()  # TODO: to confirm -- the logic is to try unload until all. Add a patient for it?
 
             # Back to source if we unload all.
             if self.payload == 0:  # TODO: should we simulate the return time cost?

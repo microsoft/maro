@@ -26,14 +26,17 @@ class SkuInfo:
     id: int
     name: str
     price: float  # Would be used both in SellerUnit (to end customers) and DistributionUnit (to downstream facilities)
+
     # Storage config
     init_stock: int
     sub_storage_id: int = DEFAULT_SUB_STORAGE_ID  # TODO: decide whether it could be a default setting
-    storage_upper_bound: Optional[int] = None  # TODO: Or separate the storage directly?
+    storage_upper_bound: Optional[int] = None  # TODO: Or split the storage directly?
+
     # Manufacture config
     has_manufacture: bool = False  # To indicate whether the ProductUnit has a ManufactureUnit or not
     unit_product_cost: Optional[float] = None
     production_rate: Optional[int] = None  # The initial production rate.
+
     # Consumer config
     has_consumer: bool = False  # To indicate whether the ProductUnit has a ConsumerUnit or not
     # SKU specific one would be used if set, else the one for its facility would be used.
@@ -42,6 +45,7 @@ class SkuInfo:
     has_seller: bool = False  # To indicate whether the SellerUnit has a ConsumerUnit or not
     sale_gamma: Optional[int] = None
     backlog_ratio: Optional[float] = None
+
     # Distribution config
     # SKU specific one would be used if set, else the one for its facility would be used.
     unit_delay_order_penalty: Optional[float] = None
@@ -72,8 +76,3 @@ class SupplyChainEntity:
     skus: Optional[SkuInfo]
     facility_id: int
     parent_id: Optional[int]
-
-    @property
-    def is_facility(self) -> bool:
-        from .facilities import FacilityBase
-        return issubclass(self.class_type, FacilityBase)

@@ -42,7 +42,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         # States in python side.
         self._received: int = 0  # The quantity of product received in current step.
-        self._purchased: int = 0  # The quantity of product that purchased from upperstream.
+        self._purchased: int = 0  # The quantity of product that purchased from upstream.
         self._order_product_cost: float = 0
         self.source_facility_id_list: List[int] = []
         self.pending_order_daily: Optional[List[int]] = None
@@ -95,7 +95,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         assert isinstance(self.action, ConsumerAction)
 
-        # NOTE: id == 0 means invalid,as our id is 1 based.
+        # NOTE: id == 0 means invalid, as our id is 1-based.
         if self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
 
@@ -171,12 +171,7 @@ class ConsumerUnit(ExtendUnitBase):
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
     def get_in_transit_quantity(self) -> int:
-        quantity = 0
-
-        for _, orders in self._open_orders.items():
-            quantity += orders.get(self.product_id, 0)
-
-        return quantity
+        return sum([orders.get(self.product_id, 0) for orders in self._open_orders.values()])
 
     def _update_pending_order(self) -> None:
         self.pending_order_daily = shift(self.pending_order_daily, -1, cval=0)

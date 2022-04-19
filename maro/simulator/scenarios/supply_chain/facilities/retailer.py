@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from typing import Type
 
-from maro.simulator.scenarios.supply_chain.units import DataFileDemandSampler, OuterSellerUnit
+from maro.simulator.scenarios.supply_chain.units import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler
 from maro.simulator.scenarios.supply_chain.world import World
 
 from .facility import FacilityBase
@@ -36,7 +37,7 @@ class OuterRetailerFacility(RetailerFacility):
         super(OuterRetailerFacility, self).initialize()
 
         # What kind of sampler we need?
-        sampler_cls = sampler_mapping[self.configs.get("seller_sampler_type", "data")]
+        sampler_cls: Type[SellerDemandSampler] = sampler_mapping[self.configs.get("seller_sampler_type", "data")]
 
         sampler = sampler_cls(self.configs, self.world)
 
