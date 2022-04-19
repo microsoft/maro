@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 
@@ -213,7 +213,9 @@ class SCEnvSampler(AbsEnvSampler):
         else:
             return self.get_or_policy_state(entity)
 
-    def _get_global_and_agent_state(self, event: CascadeEvent, tick: int = None) -> tuple:
+    def _get_global_and_agent_state_impl(
+        self, event: CascadeEvent, tick: int = None,
+    ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         """Update the status variables first, then call the state shaper for each agent."""
         if tick is None:
             tick = self._learn_env.tick
@@ -281,7 +283,9 @@ class SCEnvSampler(AbsEnvSampler):
             if unit_id in self._agent2policy
         }
 
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
+    def _translate_to_env_action(
+        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: object,
+    ) -> Dict[Any, object]:
         env_action_dict: Dict[int, SupplyChainAction] = {}
 
         for agent_id, action in action_dict.items():
