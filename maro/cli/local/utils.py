@@ -101,13 +101,15 @@ def exec(cmd: str, env: dict, debug: bool = False) -> subprocess.Popen:
     )
 
 
-def start_rl_job(env_by_component: Dict[str, dict], maro_root: str, background: bool = False) -> List[subprocess.Popen]:
+def start_rl_job(
+    env_by_component: Dict[str, dict], maro_root: str, evaluate_only: bool, background: bool = False,
+) -> List[subprocess.Popen]:
     def get_local_script_path(component: str):
         return os.path.join(maro_root, "maro", "rl", "workflows", f"{component.split('-')[0]}.py")
 
     procs = [
         exec(
-            f"python {get_local_script_path(component)}",
+            f"python {get_local_script_path(component)}" + ("" if not evaluate_only else " --evaluate_only"),
             format_env_vars({**env, "PYTHONPATH": maro_root}, mode="proc"),
             debug=not background
         )
@@ -152,13 +154,13 @@ def start_rl_job_in_containers(
     return containers
 
 
-def get_docker_compose_yml_path() -> str:
-    return os.path.join(os.getcwd(), "docker-compose.yml")
+def get_docker_compose_yml_path(maro_root: str) -> str:
+    return os.path.join(maro_root, "tmp", "docker-compose.yml")
 
 
 def start_rl_job_with_docker_compose(
     conf: dict, context: str, dockerfile_path: str, image_name: str, env_by_component: Dict[str, dict],
-    path_mapping: Dict[str, str]
+    path_mapping: Dict[str, str], evaluate_only: bool,
 ) -> None:
     common_spec = {
         "build": {"context": context, "dockerfile": dockerfile_path},
@@ -172,19 +174,21 @@ def start_rl_job_with_docker_compose(
             **deepcopy(common_spec),
             **{
                 "container_name": f"{job}.{component}",
-                "command": f"python3 /maro/maro/rl/workflows/{component.split('-')[0]}.py",
+                "command": f"python3 /maro/maro/rl/workflows/{component.split('-')[0]}.py" + (
+                    "" if not evaluate_only else "--evaluate_only"),
                 "environment": format_env_vars(env, mode="docker-compose")
             }
         }
         for component, env in env_by_component.items()
     }
 
-    with open(get_docker_compose_yml_path(), "w") as fp:
+    docker_compose_file_path = get_docker_compose_yml_path(maro_root=context)
+    with open(docker_compose_file_path, "w") as fp:
         yaml.safe_dump(manifest, fp)
 
-    subprocess.run(["docker-compose", "--project-name", job, "up", "--remove-orphans"])
+    subprocess.run(["docker-compose", "--project-name", job, "-f", docker_compose_file_path, "up", "--remove-orphans"])
 
 
-def stop_rl_job_with_docker_compose(job_name: str):
+def stop_rl_job_with_docker_compose(job_name: str, context: str):
     subprocess.run(["docker-compose", "--project-name", job_name, "down"])
-    os.remove(get_docker_compose_yml_path())
+    os.remove(get_docker_compose_yml_path(maro_root=context))

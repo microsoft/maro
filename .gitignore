@@ -18,6 +18,7 @@ tools/schedule
 docs/_build
 test/
 data/
+tmp/
 .eggs/
 maro_venv/
 pyvenv.cfg
