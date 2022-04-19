@@ -9,5 +9,5 @@ from .manufacture import ManufactureUnit, ManufactureUnitInfo, SimpleManufacture
 from .product import ProductUnit, ProductUnitInfo, StoreProductUnit
 from .seller import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler, SellerUnit, SellerUnitInfo
 from .storage import DEFAULT_SUB_STORAGE_ID, StorageUnit, StorageUnitInfo
-from .unitbase import UnitBase, BaseUnitInfo
+from .unitbase import BaseUnitInfo, UnitBase
 from .vehicle import VehicleUnit

@@ -175,15 +175,13 @@ class DiscreteACBasedOps(AbsTrainOps):
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
-    def get_state(self) -> dict:
+    def get_non_policy_state(self) -> dict:
         return {
-            "policy": self._policy.get_state(),
             "critic": self._v_critic_net.get_state(),
         }
 
-    def set_state(self, ops_state_dict: dict) -> None:
-        self._policy.set_state(ops_state_dict["policy"])
-        self._v_critic_net.set_state(ops_state_dict["critic"])
+    def set_non_policy_state(self, state: dict) -> None:
+        self._v_critic_net.set_state(state["critic"])
 
     def _preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
         """Preprocess the batch to get the returns & advantages.

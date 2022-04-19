@@ -11,7 +11,7 @@ from maro.simulator.scenarios.supply_chain.units.distribution import Distributio
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .objects import SkuMeta, SkuInfo, SupplyChainEntity, VendorLeadingTimeInfo, LeadingTimeInfo
+from .objects import LeadingTimeInfo, SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
 from .units import ExtendUnitBase, ProductUnit, UnitBase
 
@@ -333,7 +333,7 @@ class World:
         products_dict: Dict[int, ProductUnit] = {}
 
         # Key: src product id; Value element: (out product id, src quantity / out quantity)
-        bom_out_info_dict: Dict[int, List[Tuple(int, int)]] = defaultdict(list)
+        bom_out_info_dict: Dict[int, List[Tuple[int, float]]] = defaultdict(list)
 
         if facility.skus is not None and len(facility.skus) > 0:
             for sku_id, sku in facility.skus.items():
@@ -474,7 +474,7 @@ class World:
                 for src_name, src_conf in source_configs.items():
                     src_facility = self._get_facility_by_name(src_name)
                     for vehicle_type, vehicle_conf in src_conf.items():
-                        assert vehicle_conf["vlt"] > 0, f"Do not support 0-vlt now!"
+                        assert vehicle_conf["vlt"] > 0, "Do not support 0-vlt now!"
                         facility.upstream_vlt_infos[sku_id].append(
                             VendorLeadingTimeInfo(src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
                         )

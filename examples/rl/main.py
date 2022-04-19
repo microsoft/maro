@@ -1,9 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import os
 from os.path import dirname, join, realpath
 
 from maro.rl.training import TrainingManager
+from maro.rl.training.utils import get_latest_ep
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
@@ -14,6 +15,8 @@ NUM_EPISODES = 50
 NUM_STEPS = None
 CHECKPOINT_PATH = join(dirname(SCENARIO_PATH), "checkpoints")
 CHECKPOINT_INTERVAL = 5
+LOAD_PATH = CHECKPOINT_PATH
+LOAD_EPISODE = None
 EVAL_SCHEDULE = [10, 20, 30, 40, 50]
 LOG_PATH = join(dirname(SCENARIO_PATH), "logs", SCENARIO_NAME)
 
@@ -49,8 +52,21 @@ if __name__ == "__main__":
         logger=logger
     )
 
+    if LOAD_PATH is not None:
+        ep = LOAD_EPISODE if LOAD_EPISODE is not None else get_latest_ep(LOAD_PATH)
+        path = os.path.join(LOAD_PATH, str(ep))
+
+        loaded = env_sampler.load_policy_state(path)
+        logger.info(f"Loaded policies {loaded} into env sampler from {path}")
+
+        loaded = training_manager.load(path)
+        logger.info(f"Loaded trainers {loaded} from {path}")
+        start_ep = ep + 1
+    else:
+        start_ep = 1
+
     # main loop
-    for ep in range(1, NUM_EPISODES + 1):
+    for ep in range(start_ep, NUM_EPISODES + 1):
         collect_time = training_time = 0
         segment, end_of_episode = 1, False
         while not end_of_episode:
