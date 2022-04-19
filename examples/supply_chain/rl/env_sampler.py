@@ -11,20 +11,21 @@ from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit
+    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit
 )
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
-from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
-from .agent_state import serialize_state, SCAgentStates
+from .algorithms.rule_based import ConsumerBasePolicy
 from .config import (
-    distribution_features, env_conf, seller_features, workflow_settings,
+    consumer_features, distribution_features, env_conf, seller_features, workflow_settings,
 )
+from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
+from .rl_agent_state import ScRlAgentStates
 
 
 def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
@@ -122,8 +123,8 @@ class SCEnvSampler(AbsEnvSampler):
 
         # States of current tick, extracted from snapshot list.
         self._cur_distribution_states: Optional[np.ndarray] = None
-        self._cur_consumer_states: Optional[np.ndarray] = None
-        self._cur_seller_states: Optional[np.ndarray] = None
+        self._cur_seller_hist_states: Optional[np.ndarray] = None
+        self._cur_consumer_hist_states: Optional[np.ndarray] = None
 
         # Key: facility id; List Index: sku idx; Value: in transition product quantity.
         self._facility_in_transit_orders: Dict[int, List[int]] = {}
@@ -133,7 +134,7 @@ class SCEnvSampler(AbsEnvSampler):
         # Key: facility id
         self._storage_product_quantity: Dict[int, List[int]] = defaultdict(lambda: [0] * self._sku_number)
 
-        self._agent_states: SCAgentStates = SCAgentStates(
+        self._rl_agent_states: ScRlAgentStates = ScRlAgentStates(
             entity_dict=self._entity_dict,
             facility_info_dict=self._facility_info_dict,
             global_sku_id2idx=self._global_sku_id2idx,
@@ -143,75 +144,80 @@ class SCEnvSampler(AbsEnvSampler):
             settings=self._env_settings,
         )
 
+        self._storage_unit_cost_dict: Optional[Dict[int, Dict[int, int]]] = None
+        self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
+
+        self._or_agent_states: ScOrAgentStates = ScOrAgentStates(
+            entity_dict=self._entity_dict,
+            facility_info_dict=self._facility_info_dict,
+            global_sku_id2idx=self._global_sku_id2idx,
+        )
+
+    def _get_storage_unit_cost_and_capacity_info(self) -> Tuple[Dict[int, Dict[int, int]], Dict[int, Dict[int, int]]]:
+        # Key1: storage node index; Key2: product id/sku id; Value: storage unit cost.
+        storage_unit_cost_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
+        # Key1: storage node index; Key2: product id/sku id; Value: sub storage capacity.
+        storage_capacity_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
+
+        storage_snapshots = self._learn_env.snapshot_list["storage"]
+        for node_index in range(len(storage_snapshots)):
+            storage_unit_cost_list = storage_snapshots[0:node_index:"unit_storage_cost"].flatten()
+            storage_capacity_list = storage_snapshots[0:node_index:"capacity"].flatten().astype(int)
+            product_storage_index_list = storage_snapshots[0:node_index:"product_storage_index"].flatten().astype(int)
+            product_id_list = storage_snapshots[0:node_index:"product_list"].flatten().astype(int)
+
+            for product_id, sub_storage_idx in zip(product_id_list, product_storage_index_list):
+                storage_unit_cost_dict[node_index][product_id] = storage_unit_cost_list[sub_storage_idx]
+                storage_capacity_dict[node_index][product_id] = storage_capacity_list[sub_storage_idx]
+
+        return storage_unit_cost_dict, storage_capacity_dict
+
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
             return np.float32(bwt[1]) / np.float32(self._env_settings["reward_normalization"])
         else:
             return .0
 
-    def get_or_policy_state(self, entity: SupplyChainEntity) -> np.ndarray:
-        # TODO: check the correctness of the implementation
-        if entity.skus is None:
-            return np.array([1])
+    def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
+        if self._storage_unit_cost_dict is None:
+            self._storage_unit_cost_dict, self._storage_capacity_dict = self._get_storage_unit_cost_and_capacity_info()
 
-        np_state, offsets = [0], [1]
+        state = self._or_agent_states._update_entity_state(
+            entity_id=entity.id,
+            storage_unit_cost_dict=self._storage_unit_cost_dict,
+            storage_capacity_dict=self._storage_capacity_dict,
+            product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
+            cur_consumer_hist_states=self._cur_consumer_hist_states,
+            product_levels=self._storage_product_quantity[entity.facility_id],
+            in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
+        )
 
-        def extend_state(value: list) -> None:
-            np_state.extend(value)
-            offsets.append(len(np_state))
+        return state
 
-        product_unit_id = entity.id if entity.class_type == ProductUnit else entity.parent_id
-
-        product_index = self._balance_calculator.product_id2idx.get(product_unit_id, None)
-        unit_storage_cost = self._balance_calculator.products[product_index][4] if product_index is not None else 0
-
-        product_metrics = self._cur_metrics["products"].get(product_unit_id, None)
-        extend_state([product_metrics["sale_mean"] if product_metrics else 0])
-        extend_state([product_metrics["sale_std"] if product_metrics else 0])
-
-        extend_state([unit_storage_cost])
-        extend_state([1])
-        facility_info = self._facility_info_dict[entity.facility_id]
-        product_info = facility_info.products_info[entity.skus.id]
-        if product_info.consumer_info is not None:
-            idx = product_info.consumer_info.node_index
-            np_state[-1] = self._learn_env.snapshot_list["consumer"][
-                self._learn_env.tick:idx:"order_cost"
-            ].flatten()[0]
-
-        be = self._env.business_engine
-        assert isinstance(be, SupplyChainBusinessEngine)
-        extend_state([facility_info.storage_info.config[0].capacity])
-        extend_state(self._storage_product_quantity[entity.facility_id])
-        extend_state(self._facility_in_transit_orders[entity.facility_id])
-        extend_state([self._product_id2idx[entity.facility_id][entity.skus.id] + 1])  # TODO: check +1 or not
-        extend_state([be.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
-        extend_state([entity.skus.service_level])
-        return np.array(np_state + offsets)
-
-    def get_rl_policy_state(self, entity_id: int, entity: SupplyChainEntity) -> np.ndarray:
-        state = self._agent_states.update_entity_state(
+    def get_rl_policy_state(self, entity_id: int) -> np.ndarray:
+        np_state = self._rl_agent_states.update_entity_state(
             entity_id=entity_id,
             tick=self._learn_env.tick,
             cur_metrics=self._cur_metrics,
             cur_distribution_states=self._cur_distribution_states,
-            cur_seller_states=self._cur_seller_states,
-            cur_consumer_states=self._cur_consumer_states,
+            cur_seller_hist_states=self._cur_seller_hist_states,
+            cur_consumer_hist_states=self._cur_consumer_hist_states,
             accumulated_balance=self._balance_calculator.accumulated_balance_sheet[entity_id],
             storage_product_quantity=self._storage_product_quantity,
             facility_product_utilization=self._facility_product_utilization,
             facility_in_transit_orders=self._facility_in_transit_orders,
         )
-        np_state = serialize_state(state)
         return np_state
 
-    def _get_entity_state(self, entity_id: int) -> np.ndarray:
+    def _get_entity_state(self, entity_id: int) -> Union[np.ndarray, dict]:
         entity = self._entity_dict[entity_id]
 
         if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy):
-            return self.get_rl_policy_state(entity_id, entity)
-        else:
+            return self.get_rl_policy_state(entity_id)
+        elif isinstance(self._policy_dict[self._agent2policy[entity_id]], ConsumerBasePolicy):
             return self.get_or_policy_state(entity)
+        else:
+            return []
 
     def _get_global_and_agent_state_impl(
         self, event: CascadeEvent, tick: int = None,
@@ -235,15 +241,15 @@ class SCEnvSampler(AbsEnvSampler):
 
         # Get consumer features of specific ticks from snapshot list.
         consumption_hist_ticks = [tick - i for i in range(self._env_settings['consumption_hist_len'] - 1, -1, -1)]
-        self._cur_consumer_states = self._learn_env.snapshot_list["consumer"][
-            consumption_hist_ticks::"latest_consumptions"
-        ].flatten().reshape(-1, len(self._learn_env.snapshot_list["consumer"]))
+        self._cur_consumer_hist_states = self._learn_env.snapshot_list["consumer"][
+            consumption_hist_ticks::consumer_features
+        ].reshape(self._env_settings['consumption_hist_len'], -1, len(consumer_features))
 
         # Get seller features of specific ticks from snapshot list.
         sale_hist_ticks = [tick - i for i in range(self._env_settings['sale_hist_len'] - 1, -1, -1)]
-        self._cur_seller_states = self._learn_env.snapshot_list["seller"][
+        self._cur_seller_hist_states = self._learn_env.snapshot_list["seller"][
             sale_hist_ticks::seller_features
-        ].astype(np.int)
+        ].reshape(self._env_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
 
         # 1. Update storage product quantity info.
         # 2. Update facility product utilization info.

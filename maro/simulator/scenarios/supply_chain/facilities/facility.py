@@ -177,7 +177,7 @@ class FacilityBase(ABC):
         ]
         return np.mean(src_prices) if len(src_prices) > 0 else self.skus[sku_id].price
 
-    def get_max_vlt(self, sku_id: int) -> float:
+    def get_max_vlt(self, sku_id: int) -> int:
         max_vlt: int = 0
         for vlt_info in self.upstream_vlt_infos[sku_id]:
             max_vlt = max(max_vlt, vlt_info.vlt)
