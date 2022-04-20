@@ -8,7 +8,7 @@ import os
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import torch
@@ -45,15 +45,18 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
             if isinstance(policy, RLPolicy):
                 policy.set_state(policy_state)
 
-    def choose_actions(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
+    def choose_actions(
+        self, state_by_agent: Dict[Any, Union[np.ndarray, List[object]]]
+    ) -> Dict[Any, Union[np.ndarray, List[object]]]:
         """Choose action according to the given (observable) states of all agents.
 
         Args:
-            state_by_agent (Dict[Any, np.ndarray]): Dictionary containing each agent's state vector.
-                The keys are agent names.
+            state_by_agent (Dict[Any, Union[np.ndarray, List[object]]]): Dictionary containing each agent's states.
+                If the policy is a `RLPolicy`, its state is a Numpy array. Otherwise, its state is a list of objects.
 
         Returns:
-            actions (Dict[Any, np.ndarray]): Dict that contains the action for all agents.
+            actions (Dict[Any, Union[np.ndarray, List[object]]]): Dict that contains the action for all agents.
+                If the policy is a `RLPolicy`, its action is a Numpy array. Otherwise, its action is a list of objects.
         """
         self.switch_to_eval_mode()
         with torch.no_grad():
@@ -61,7 +64,9 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         return ret
 
     @abstractmethod
-    def _choose_actions_impl(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
+    def _choose_actions_impl(
+        self, state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
+    ) -> Dict[Any, Union[np.ndarray, List[object]]]:
         """Implementation of `choose_actions`.
         """
         raise NotImplementedError
@@ -93,7 +98,9 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     ) -> None:
         super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
 
-    def _choose_actions_impl(self, state_by_agent: Dict[Any, np.ndarray]) -> Dict[Any, np.ndarray]:
+    def _choose_actions_impl(
+        self, state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
+    ) -> Dict[Any, Union[np.ndarray, List[object]]]:
         # Aggregate states by policy
         states_by_policy = defaultdict(list)  # {str: list of np.ndarray}
         agents_by_policy = defaultdict(list)  # {str: list of str}
@@ -105,11 +112,14 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         action_dict = {}
         for policy_name in agents_by_policy:
             policy = self._policy_dict[policy_name]
-            states = np.vstack(states_by_policy[policy_name])  # np.ndarray
-            action_dict.update(zip(
-                agents_by_policy[policy_name],  # list of str (agent name)
-                policy.get_actions(states),  # list of action
-            ))
+
+            if isinstance(policy, RLPolicy):
+                states = np.vstack(states_by_policy[policy_name])  # np.ndarray
+            else:
+                states = states_by_policy[policy_name]  # List[object]
+            actions = policy.get_actions(states)  # np.ndarray or List[object]
+            action_dict.update(zip(agents_by_policy[policy_name], actions))
+
         return action_dict
 
     def explore(self) -> None:
@@ -134,7 +144,7 @@ class CacheElement:
     state: np.ndarray
     agent_state_dict: Dict[Any, np.ndarray]
     action_dict: Dict[Any, np.ndarray]
-    env_action_dict: Dict[Any, object]
+    env_action_dict: Dict[Any, np.ndarray]
 
 
 @dataclass
@@ -237,6 +247,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
         }
 
+        assert all([policy_name in self._rl_policy_dict for policy_name in self._trainable_policies]), \
+            "All trainable policies must be RL policies!"
+
         # Global state & agent state
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
@@ -250,10 +263,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def rl_policy_dict(self) -> Dict[str, RLPolicy]:
         return self._rl_policy_dict
 
-    @abstractmethod
     def _get_global_and_agent_state(
         self, event: object, tick: int = None,
-    ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
+    ) -> Tuple[Optional[object], Dict[Any, Union[np.ndarray, List[object]]]]:
         """Get the global and individual agents' states.
 
         Args:
@@ -261,17 +273,33 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             tick (int, default=None): Current tick.
 
         Returns:
-            Global state (np.ndarray)
-            Dict of agent states (Dict[Any, np.ndarray])
+            Global state (Optional[object])
+            Dict of agent states (Dict[Any, Union[np.ndarray, List[object]]]). If the policy is a `RLPolicy`,
+                its state is a Numpy array. Otherwise, its state is a list of objects.
         """
+        global_state, agent_state_dict = self._get_global_and_agent_state_impl(event, tick)
+        for agent_name, state in agent_state_dict.items():
+            policy_name = self._agent2policy[agent_name]
+            policy = self._policy_dict[policy_name]
+            if isinstance(policy, RLPolicy) and not isinstance(state, np.ndarray):
+                raise ValueError(f"Agent {agent_name} uses a RLPolicy but its state is not a np.ndarray.")
+        return global_state, agent_state_dict
+
+    @abstractmethod
+    def _get_global_and_agent_state_impl(
+        self, event: object, tick: int = None,
+    ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         raise NotImplementedError
 
     @abstractmethod
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object) -> Dict[Any, object]:
+    def _translate_to_env_action(
+        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: object,
+    ) -> Dict[Any, object]:
         """Translate model-generated actions into an object that can be executed by the env.
 
         Args:
-            action_dict (Dict[Any, np.ndarray]): Action for all agents.
+            action_dict (Dict[Any, Union[np.ndarray, List[object]]]): Action for all agents. If the policy is a
+                `RLPolicy`, its (input) action is a Numpy array. Otherwise, its (input) action is a list of objects.
             event (object): Decision event.
 
         Returns:
@@ -336,11 +364,16 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     event=self._event,
                     state=self._state,
                     agent_state_dict={
-                        id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
+                        id_: state
+                        for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
                     },
-                    action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
+                    action_dict={
+                        id_: action
+                        for id_, action in action_dict.items() if id_ in self._trainable_agents
+                    },
                     env_action_dict={
-                        id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
+                        id_: env_action
+                        for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
                     },
                 )
             )

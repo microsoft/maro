@@ -13,6 +13,9 @@ IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER
 seller_features = ("total_demand", "sold", "demand")
 IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND = 0, 1, 2
 
+consumer_features = ("order_cost", "latest_consumptions")
+IDX_CONSUMER_ORDER_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
+
 NUM_CONSUMER_ACTIONS = 10
 
 workflow_settings: dict = {
@@ -20,6 +23,7 @@ workflow_settings: dict = {
     "sale_hist_len": 4,
     "pending_order_len": 4,
     # "constraint_state_hist_len": 8,
+    "or_policy_vlt_buffer_days": 7,
     "reward_normalization": 1e7,
     "default_vehicle_type": "train",
 }
