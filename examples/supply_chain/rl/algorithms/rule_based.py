@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from abc import abstractmethod
 import math, random
 from typing import List, Optional
 
@@ -9,6 +10,7 @@ from maro.rl.policy import RuleBasedPolicy
 
 
 VLT_BUFFER_DAYS = workflow_settings["or_policy_vlt_buffer_days"]
+
 
 class DummyPolicy(RuleBasedPolicy):
     def _rule(self, states: List[dict]) -> list:
@@ -41,6 +43,7 @@ class ConsumerBasePolicy(RuleBasedPolicy):
 
         return capacity_mask and replenishment_mask
 
+    @abstractmethod
     def _get_action_quantity(self, state: dict) -> int:
         raise NotImplementedError
 

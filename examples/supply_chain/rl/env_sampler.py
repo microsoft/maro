@@ -209,7 +209,7 @@ class SCEnvSampler(AbsEnvSampler):
         )
         return np_state
 
-    def _get_entity_state(self, entity_id: int) -> Union[np.ndarray, dict]:
+    def _get_entity_state(self, entity_id: int) -> Union[np.ndarray, dict, None]:
         entity = self._entity_dict[entity_id]
 
         if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy):
@@ -217,7 +217,7 @@ class SCEnvSampler(AbsEnvSampler):
         elif isinstance(self._policy_dict[self._agent2policy[entity_id]], ConsumerBasePolicy):
             return self.get_or_policy_state(entity)
         else:
-            return []
+            return None
 
     def _get_global_and_agent_state_impl(
         self, event: CascadeEvent, tick: int = None,

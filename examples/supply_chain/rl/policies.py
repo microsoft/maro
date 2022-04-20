@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from functools import partial
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ManufactureUnit
@@ -30,7 +30,7 @@ entity_dict: Dict[Any, SupplyChainEntity] = {
 }
 
 
-def entity2policy(entity: SupplyChainEntity) -> str:
+def entity2policy(entity: SupplyChainEntity) -> Optional[str]:
     if issubclass(entity.class_type, ManufactureUnit):
         return "manufacturer_policy"
 
