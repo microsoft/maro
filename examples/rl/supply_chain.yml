@@ -1,14 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# Example RL config file for VM scheduling scenario.
+# Example RL config file for supply chain scenario.
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
-# Run this workflow by executing `maro local run .\examples\vm_scheduling\rl\config.yml` (requires installing
-# MARO from source)
 
-job: cim_rl_workflow
-scenario_path: "examples/vm_scheduling/rl"
-log_path: "tmp/rl_workspace/vm_scheduling/log"
+# Run this workflow by executing one of the following commands:
+# - python .\examples\rl\run_rl_example.py .\examples\rl\supply_chain.yml
+# - (Requires installing MARO from source) maro local run .\examples\rl\supply_chain.yml
+
+job: supply_chain_rl_workflow
+scenario_path: "examples/supply_chain/rl"
+log_path: "tmp/rl_workspace/supply_chain/log"
 main:
   num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_steps: null
@@ -25,7 +27,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "tmp/rl_workspace/vm_scheduling/checkpoints"
+    path: "tmp/rl_workspace/supply_chain/checkpoints"
     interval: 5
   logging:
     stdout: INFO

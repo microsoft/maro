@@ -1,13 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# Example RL config file for CIM scenario.
+# Example RL config file for VM scheduling scenario.
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
-# Run this workflow by executing `maro local run .\examples\cim\rl\config.yml` (requires installing MARO from source)
 
-job: cim_rl_workflow
-scenario_path: "examples/cim/rl"
-log_path: "tmp/rl_workspace/cim/log"
+# Run this workflow by executing one of the following commands:
+# - python .\examples\rl\run_rl_example.py .\examples\rl\vm_scheduling.yml
+# - (Requires installing MARO from source) maro local run .\examples\rl\vm_scheduling.yml
+
+job: vm_scheduling_rl_workflow
+scenario_path: "examples/vm_scheduling/rl"
+log_path: "tmp/rl_workspace/vm_scheduling/log"
 main:
   num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_steps: null
@@ -24,7 +27,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "tmp/rl_workspace/cim/checkpoints"
+    path: "tmp/rl_workspace/vm_scheduling/checkpoints"
     interval: 5
   logging:
     stdout: INFO
