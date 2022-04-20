@@ -13,6 +13,7 @@ from .config import (
     workflow_settings,
     IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER,
     IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND,
+    IDX_CONSUMER_ORDER_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS,
 )
 
 keys_in_state = [
@@ -57,7 +58,7 @@ def serialize_state(state: dict) -> np.ndarray:
     return np.asarray(result, dtype=np.float32)
 
 
-class SCAgentStates:
+class ScRlAgentStates:
     def __init__(
         self,
         entity_dict: Dict[int, SupplyChainEntity],
@@ -121,24 +122,24 @@ class SCAgentStates:
         tick: int,
         cur_metrics: dict,
         cur_distribution_states: np.ndarray,
-        cur_seller_states: np.ndarray,
-        cur_consumer_states: np.ndarray,
+        cur_seller_hist_states: np.ndarray,
+        cur_consumer_hist_states: np.ndarray,
         accumulated_balance: float,
         storage_product_quantity: Dict[int, List[int]],
         facility_product_utilization: Dict[int, int],
         facility_in_transit_orders: Dict[int, List[int]],
-    ) -> dict:
+    ) -> np.ndarray:
         """Update the state dict of the given entity_id in the given tick.
 
         Args:
             entity_id (int): The id of the target entity unit.
             tick (int): The target environment tick.
             cur_metrics (dict): The environment metrics of the given tick. It is an attribution of the business engine.
-            cur_distribution_states (np.ndarray): The distribution attributes of the pre-defined time window, extracted
-                from the snapshot list.
-            cur_seller_states (np.ndarray): The seller attributes of the pre-defined time window, extracted from the
+            cur_distribution_states (np.ndarray): The distribution attributes of current tick, extracted from the
                 snapshot list.
-            cur_consumer_states (np.ndarray): The consumer attributes of the pre-defined time window, extracted from the
+            cur_seller_hist_states (np.ndarray): The seller attributes of the pre-defined time window, extracted from the
+                snapshot list.
+            cur_consumer_hist_states (np.ndarray): The consumer attributes of the pre-defined time window, extracted from the
                 snapshot list.
             accumulated_balance (float): The accumulated balance of the given entity in the given tick.
             storage_product_quantity (Dict[int, List[int]]): The current product quantity in the facility's storage. The
@@ -162,11 +163,11 @@ class SCAgentStates:
         self._update_global_features(state, tick)
         self._update_facility_features(state, accumulated_balance)
         self._update_storage_features(state, entity, storage_product_quantity, facility_product_utilization)
-        self._update_sale_features(state, entity, cur_metrics, cur_seller_states, cur_consumer_states)
+        self._update_sale_features(state, entity, cur_metrics, cur_seller_hist_states, cur_consumer_hist_states)
         self._update_distribution_features(state, entity, cur_distribution_states)
         self._update_consumer_features(state, entity, cur_metrics, storage_product_quantity, facility_in_transit_orders)
 
-        return state
+        return serialize_state(state)
 
     def _init_global_feature(self, state: dict) -> None:
         # state["global_time"] = 0
@@ -325,8 +326,8 @@ class SCAgentStates:
         state: dict,
         entity: SupplyChainEntity,
         cur_metrics: dict,
-        cur_seller_states: np.ndarray,
-        cur_consumer_states: np.ndarray,
+        cur_seller_hist_states: np.ndarray,
+        cur_consumer_hist_states: np.ndarray,
     ) -> None:
         if entity.class_type not in {ConsumerUnit, ProductUnit}:
             return
@@ -340,11 +341,11 @@ class SCAgentStates:
         product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
 
         if product_info.seller_info is not None:
-            seller_states = cur_seller_states[:, product_info.seller_info.node_index, :]
+            seller_states = cur_seller_hist_states[:, product_info.seller_info.node_index, :]
 
             # For total demand, we need latest one.
-            # state['total_backlog_demand'] = seller_states[:, IDX_SELLER_TOTAL_DEMAND][-1][0]
-            state['sale_hist'] = list(seller_states[:, IDX_SELLER_SOLD].flatten())
+            # state['total_backlog_demand'] = seller_states[-1, IDX_SELLER_TOTAL_DEMAND]
+            state['sale_hist'] = list(seller_states[:, IDX_SELLER_SOLD])
             # state['backlog_demand_hist'] = list(seller_states[:, IDX_SELLER_DEMAND])
 
         else:
@@ -352,7 +353,8 @@ class SCAgentStates:
             pass
 
         if product_info.consumer_info is not None:
-            state['consumption_hist'] = list(cur_consumer_states[:, product_info.consumer_info.node_index])
+            consumer_states = cur_consumer_hist_states[:, product_info.consumer_info.node_index, :]
+            state['consumption_hist'] = list(consumer_states[:, IDX_CONSUMER_LATEST_CONSUMPTIONS])
             state['pending_order'] = list(cur_metrics["products"][product_unit_id]["pending_order_daily"])
 
         return

@@ -283,8 +283,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             policy = self._policy_dict[policy_name]
             if isinstance(policy, RLPolicy) and not isinstance(state, np.ndarray):
                 raise ValueError(f"Agent {agent_name} uses a RLPolicy but its state is not a np.ndarray.")
-            if not isinstance(policy, RLPolicy) and not isinstance(state, list):
-                raise ValueError(f"Agent {agent_name} uses a non RLPolicy but its state is not a list.")
         return global_state, agent_state_dict
 
     @abstractmethod
