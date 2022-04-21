@@ -19,7 +19,9 @@ import numpy as np
 from dateutil.parser import parse
 from tqdm import tqdm
 
-from maro.data_lib.supply_chain import DATE_INDEX_COLUMN_NAME, get_preprocessed_file_path, preprocess_file
+from maro.data_lib.supply_chain import (
+    DATE_INDEX_COLUMN_NAME, get_date_index, get_preprocessed_file_path, preprocess_file,
+)
 from maro.simulator.scenarios.supply_chain.datamodels import SellerDataModel
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
@@ -189,7 +191,7 @@ class PreprocessedFileDemandSampler(SellerDemandSampler, metaclass=ABCMeta):
         self._start_date_index: Optional[int] = None
         start_date_time = self._world.configs.settings["start_date_time"]
         if start_date_time is not None:
-            self._start_date_index = (parse(start_date_time) - datetime(1970, 1, 1)).days
+            self._start_date_index = get_date_index(parse(start_date_time))
 
         self._sku_column_name = configs.get("sku_column", "SKU")
         self._price_column_name = configs.get("price_column", "Price")

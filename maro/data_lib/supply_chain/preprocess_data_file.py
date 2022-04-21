@@ -16,13 +16,17 @@ def get_preprocessed_file_path(path: str) -> str:
     return path.rstrip(CSV_SUFFIX) + PREPROCESS_SUFFIX + CSV_SUFFIX
 
 
-def preprocess_file(input_path: str):
+def get_date_index(date: datetime) -> int:
+    return (date - datetime(1970, 1, 1)).days
+
+
+def preprocess_file(input_path: str) -> None:
     output_path = get_preprocessed_file_path(input_path)
 
     df = pd.read_csv(input_path)
     date_list = list(df[DATE_COLUMN_NAME])
     date_index_list = [
-        (parse(date, ignoretz=True) - datetime(1970, 1, 1)).days
+        get_date_index(parse(date, ignoretz=True))
         for date in tqdm(date_list, desc=f"Preprocessing {input_path}", total=df.shape[0])
     ]
     df[DATE_INDEX_COLUMN_NAME] = date_index_list
