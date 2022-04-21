@@ -144,7 +144,6 @@ class SCEnvSampler(AbsEnvSampler):
             settings=self._env_settings,
         )
 
-        self._storage_unit_cost_dict: Optional[Dict[int, Dict[int, int]]] = None
         self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
 
         self._or_agent_states: ScOrAgentStates = ScOrAgentStates(
@@ -153,24 +152,20 @@ class SCEnvSampler(AbsEnvSampler):
             global_sku_id2idx=self._global_sku_id2idx,
         )
 
-    def _get_storage_unit_cost_and_capacity_info(self) -> Tuple[Dict[int, Dict[int, int]], Dict[int, Dict[int, int]]]:
-        # Key1: storage node index; Key2: product id/sku id; Value: storage unit cost.
-        storage_unit_cost_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
+    def _get_storage_capacity_dict_info(self) -> Dict[int, Dict[int, int]]:
         # Key1: storage node index; Key2: product id/sku id; Value: sub storage capacity.
         storage_capacity_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
 
         storage_snapshots = self._learn_env.snapshot_list["storage"]
         for node_index in range(len(storage_snapshots)):
-            storage_unit_cost_list = storage_snapshots[0:node_index:"unit_storage_cost"].flatten()
             storage_capacity_list = storage_snapshots[0:node_index:"capacity"].flatten().astype(int)
             product_storage_index_list = storage_snapshots[0:node_index:"product_storage_index"].flatten().astype(int)
             product_id_list = storage_snapshots[0:node_index:"product_list"].flatten().astype(int)
 
             for product_id, sub_storage_idx in zip(product_id_list, product_storage_index_list):
-                storage_unit_cost_dict[node_index][product_id] = storage_unit_cost_list[sub_storage_idx]
                 storage_capacity_dict[node_index][product_id] = storage_capacity_list[sub_storage_idx]
 
-        return storage_unit_cost_dict, storage_capacity_dict
+        return storage_capacity_dict
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
@@ -179,12 +174,11 @@ class SCEnvSampler(AbsEnvSampler):
             return .0
 
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
-        if self._storage_unit_cost_dict is None:
-            self._storage_unit_cost_dict, self._storage_capacity_dict = self._get_storage_unit_cost_and_capacity_info()
+        if self._storage_capacity_dict is None:
+            self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
         state = self._or_agent_states._update_entity_state(
             entity_id=entity.id,
-            storage_unit_cost_dict=self._storage_unit_cost_dict,
             storage_capacity_dict=self._storage_capacity_dict,
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
             cur_consumer_hist_states=self._cur_consumer_hist_states,
@@ -330,8 +324,8 @@ class SCEnvSampler(AbsEnvSampler):
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
                 sku = self._units_mapping[entity_id][3]
-                if sku.production_rate:
-                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.production_rate))
+                if sku.manufacture_rate:
+                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.manufacture_rate))
 
             if env_action:
                 env_action_dict[agent_id] = env_action

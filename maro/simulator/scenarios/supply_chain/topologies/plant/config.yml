@@ -152,7 +152,7 @@ world:
           init_stock: 10000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 10000
+          manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 1000
         "component_1":
@@ -160,7 +160,7 @@ world:
           init_stock: 10000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 10000
+          manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 900
         "component_2":
@@ -168,7 +168,7 @@ world:
           init_stock: 10000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 10000
+          manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
@@ -198,7 +198,7 @@ world:
           init_stock: 5000
           sub_storage_id: 2
           has_manufacture: True
-          production_rate: 10000
+          manufacture_rate: 10000
           unit_product_cost: 14
       children:
         storage: *multi_storage

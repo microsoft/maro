@@ -23,7 +23,6 @@ class ScOrAgentStates:
         self._facility_info_dict: Dict[int, FacilityInfo] = facility_info_dict
         self._global_sku_id2idx: Dict[int, int] = global_sku_id2idx
 
-        self._storage_unit_cost_dict: Optional[Dict[int, Dict[int, int]]] = None
         self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
 
         self._templates: Dict[int, dict] = {}
@@ -35,7 +34,7 @@ class ScOrAgentStates:
         state: dict = {
             "sale_mean": 0,
             "sale_std": 0,
-            "unit_storage_cost": self._storage_unit_cost_dict[storage_index][entity.skus.id],
+            "unit_storage_cost": entity.skus.unit_storage_cost,
             "order_cost": 1,
             "storage_capacity": self._storage_capacity_dict[storage_index][entity.skus.id],
             "storage_utilization": 0,
@@ -51,7 +50,6 @@ class ScOrAgentStates:
     def _update_entity_state(
         self,
         entity_id: int,
-        storage_unit_cost_dict: Optional[Dict[int, Dict[int, int]]],
         storage_capacity_dict: Optional[Dict[int, Dict[int, int]]],
         product_metrics: Optional[dict],
         cur_consumer_hist_states: np.ndarray,
@@ -64,8 +62,7 @@ class ScOrAgentStates:
             return {}
 
         if entity_id not in self._templates:
-            if self._storage_unit_cost_dict is None:
-                self._storage_unit_cost_dict = storage_unit_cost_dict
+            if self._storage_capacity_dict is None:
                 self._storage_capacity_dict = storage_capacity_dict
 
             self._templates[entity_id] = self._init_entity_state(entity)

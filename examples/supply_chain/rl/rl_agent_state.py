@@ -198,7 +198,7 @@ class ScRlAgentStates:
         # state['storage_levels'] = [0] * self._sku_number
 
         state['storage_capacity'] = 0
-        for sub_storage in facility_info.storage_info.config:
+        for sub_storage in facility_info.storage_info.config.values():
             state["storage_capacity"] += sub_storage.capacity
 
         return
