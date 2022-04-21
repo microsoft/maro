@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
+import collections
+import os.path
 import typing
 import warnings
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from collections import namedtuple
 from csv import DictReader
 from dataclasses import dataclass
@@ -14,7 +16,10 @@ from typing import Optional, Union
 
 import dateutil
 import numpy as np
+from dateutil.parser import parse
+from tqdm import tqdm
 
+from maro.data_lib.supply_chain import DATE_INDEX_COLUMN_NAME, get_preprocessed_file_path, preprocess_file
 from maro.simulator.scenarios.supply_chain.datamodels import SellerDataModel
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
@@ -156,6 +161,142 @@ class SellerDemandSampler(ABC):
         raise NotImplementedError
 
 
+SkuRow = namedtuple("SkuRow", ("price", "sales"))
+
+
+class PreprocessedFileDemandSampler(SellerDemandSampler, metaclass=ABCMeta):
+    """Sampler to read sample demand from preprocessed data files, one store one file.
+    The preprocessed file has a `DateIndex` column which represents its date's index, starting from 01/01/1970.
+
+    NOTE:
+        This sampler need to configure the start time that to be treated as tick 0 in world.settings, or
+        it will use first row as start time.
+
+    Args:
+        configs (dict): Configuration from retail facility, it should contains following keys.
+            . "file_path", the path to the data file
+            . "sku_column", column name contains sku name, this must be match with current seller, or will be ignored.
+            . "price_column", column name that will be treated as price.
+            . "sale_column", column name that will be treated as sale number (demand).
+            . "datetime_column", column name that contains datetime, NOTE: we will parse it that ignore the time zone.
+    """
+    def __init__(self, configs: dict, world: World) -> None:
+        super(PreprocessedFileDemandSampler, self).__init__(configs, world)
+
+        self._file_path = configs["file_path"]
+        self._preprocessed_file_path = get_preprocessed_file_path(configs["file_path"])
+
+        self._start_date_index: Optional[int] = None
+        start_date_time = self._world.configs.settings["start_date_time"]
+        if start_date_time is not None:
+            self._start_date_index = (parse(start_date_time) - datetime(1970, 1, 1)).days
+
+        self._sku_column_name = configs.get("sku_column", "SKU")
+        self._price_column_name = configs.get("price_column", "Price")
+        self._sale_column_name = configs.get("sale_column", "Sales")
+        self._datetime_column_name = configs.get("datetime_column", "DT")
+
+        if not os.path.exists(self._preprocessed_file_path):
+            print(f"Preprocessed file {self._preprocessed_file_path} does not exist. Start preprocessing now.")
+            preprocess_file(self._file_path)
+
+        self._cache = collections.defaultdict(dict)
+
+
+class PreprocessedFileDemandSimpleSampler(PreprocessedFileDemandSampler):
+    """Load & cache all data when initialing.
+    """
+    def __init__(self, configs: dict, world: World) -> None:
+        super(PreprocessedFileDemandSimpleSampler, self).__init__(configs, world)
+        self._load_all_data()
+
+    def sample_demand(self, product_id: int, tick: int) -> int:
+        if tick not in self._cache or product_id not in self._cache[tick]:
+            return 0
+        return self._cache[tick][product_id].sales
+
+    def _load_all_data(self) -> None:
+        with open(self._preprocessed_file_path, "rt") as fp:
+            reader = DictReader(fp)
+
+            for row in tqdm(reader, desc=f"Loading data from {fp.name}"):
+                sku_name = row[self._sku_column_name]
+                if sku_name not in self._world.sku_name2id_mapping:
+                    continue
+
+                sales = int(row[self._sale_column_name])
+                price = float(row[self._price_column_name])
+                date_index = int(row[DATE_INDEX_COLUMN_NAME])
+
+                if self._start_date_index is None:
+                    self._start_date_index = date_index
+
+                # So one day one tick.
+                target_tick = date_index - self._start_date_index
+                sku = self._world.get_sku_by_name(sku_name)
+
+                if sku is not None:
+                    self._cache[target_tick][sku.id] = SkuRow(price, sales)
+                else:
+                    warnings.warn(f"{sku_name} not configured in config file.")
+
+
+class PreprocessedFileDemandStreamSampler(PreprocessedFileDemandSampler):
+    """Load & cache data in streaming fashion, i.e., only load data when necessary.
+
+    `PreprocessedFileDemandStreamSampler` works based on the following assumptions: the `tick` parameter of
+    `sample_demand()` method is monotonically increasing, and the data file is also sorted by date increasingly.
+
+    Using `PreprocessedFileDemandStreamSampler` results in faster env creation (if we do not need to preprocess data),
+    but slower execution of the first episode, since the data are loaded when executing the first episode. The
+    execution efficiency will back to normal starting from the second episode.
+    """
+    def __init__(self, configs: dict, world: World) -> None:
+        super(PreprocessedFileDemandStreamSampler, self).__init__(configs, world)
+        self._fp = open(self._preprocessed_file_path, "rt")
+        self._reader = DictReader(self._fp)
+        self._is_fp_closed = False
+        self._latest_tick = None
+
+    def sample_demand(self, product_id: int, tick: int) -> int:
+        self._load_data_until_tick(tick)
+        if tick not in self._cache or product_id not in self._cache[tick]:
+            return 0
+        return self._cache[tick][product_id].sales
+
+    def _load_data_until_tick(self, tick: int) -> None:
+        """Load all data that are no later than `tick`
+
+        May load one more extra entry to ensure that all data at tick `tick` are loaded.
+        """
+        while not self._is_fp_closed and (self._latest_tick is None or self._latest_tick <= tick):
+            row = next(self._reader)  # This entry may be after `tick`. We have to process it as we already loaded it.
+            if row is None:
+                self._fp.close()
+                self._is_fp_closed = True
+                break
+
+            sku_name = row[self._sku_column_name]
+            if sku_name not in self._world.sku_name2id_mapping:
+                continue
+
+            sales = int(row[self._sale_column_name])
+            price = float(row[self._price_column_name])
+            date_index = int(row[DATE_INDEX_COLUMN_NAME])
+
+            if self._start_date_index is None:
+                self._start_date_index = date_index
+
+            # So one day one tick.
+            self._latest_tick = target_tick = date_index - self._start_date_index
+            sku = self._world.get_sku_by_name(sku_name)
+
+            if sku is not None:
+                self._cache[target_tick][sku.id] = SkuRow(price, sales)
+            else:
+                warnings.warn(f"{sku_name} not configured in config file.")
+
+
 class DataFileDemandSampler(SellerDemandSampler):
     """Sampler to read sample demand from data files, one store one file.
 
@@ -171,9 +312,6 @@ class DataFileDemandSampler(SellerDemandSampler):
             . "sale_column", column name that will be treated as sale number (demand).
             . "datetime_column", column name that contains datetime, NOTE: we will parse it that ignore the time zone.
     """
-
-    SkuRow = namedtuple("SkuRow", ("price", "sales"))
-
     def __init__(self, configs: dict, world: World) -> None:
         super(DataFileDemandSampler, self).__init__(configs, world)
 
@@ -183,7 +321,7 @@ class DataFileDemandSampler(SellerDemandSampler):
         self._start_date_time: Optional[Union[str, datetime]] = self._world.configs.settings["start_date_time"]
 
         if self._start_date_time is not None:
-            self._start_date_time = dateutil.parser.parse(self._start_date_time, ignoretz=True)
+            self._start_date_time = parse(self._start_date_time, ignoretz=True)
 
         self._sku_column_name = configs.get("sku_column", "SKU")
         self._price_column_name = configs.get("price_column", "Price")
@@ -191,8 +329,7 @@ class DataFileDemandSampler(SellerDemandSampler):
         self._datetime_column_name = configs.get("datetime_column", "DT")
 
         # Tick -> sku -> (sale, price).
-        self._cache = {}
-
+        self._cache = collections.defaultdict(dict)
         self._cache_data()
 
     def sample_demand(self, product_id: int, tick: int) -> int:
@@ -205,10 +342,10 @@ class DataFileDemandSampler(SellerDemandSampler):
         with open(self._file_path, "rt") as fp:
             reader = DictReader(fp)
 
-            for row in reader:
+            for row in tqdm(reader, desc=f"Loading data from {fp.name}"):
                 sku_name = row[self._sku_column_name]
 
-                if sku_name not in self._world._sku_name2id_mapping:
+                if sku_name not in self._world.sku_name2id_mapping:
                     continue
 
                 sales = int(row[self._sale_column_name])
@@ -221,13 +358,10 @@ class DataFileDemandSampler(SellerDemandSampler):
                 # So one day one tick.
                 target_tick = (date - self._start_date_time).days
 
-                if target_tick not in self._cache:
-                    self._cache[target_tick] = {}
-
                 sku = self._world.get_sku_by_name(sku_name)
 
                 if sku is not None:
-                    self._cache[target_tick][sku.id] = DataFileDemandSampler.SkuRow(price, sales)
+                    self._cache[target_tick][sku.id] = SkuRow(price, sales)
                 else:
                     warnings.warn(f"{sku_name} not configured in config file.")
 
