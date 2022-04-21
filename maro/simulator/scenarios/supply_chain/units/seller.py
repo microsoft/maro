@@ -204,7 +204,7 @@ class PreprocessedFileDemandSampler(SellerDemandSampler, metaclass=ABCMeta):
 
 
 class PreprocessedFileDemandSimpleSampler(PreprocessedFileDemandSampler):
-    """Load & cache all data when initialing.
+    """Load & cache all data when initializing.
     """
     def __init__(self, configs: dict, world: World) -> None:
         super(PreprocessedFileDemandSimpleSampler, self).__init__(configs, world)
@@ -245,11 +245,13 @@ class PreprocessedFileDemandStreamSampler(PreprocessedFileDemandSampler):
     """Load & cache data in streaming fashion, i.e., only load data when necessary.
 
     `PreprocessedFileDemandStreamSampler` works based on the following assumptions: the `tick` parameter of
-    `sample_demand()` method is monotonically increasing, and the data file is also sorted by date increasingly.
+    `sample_demand()` methods' calling is monotonically increasing, and the data file is also sorted by date
+    increasingly.
 
-    Using `PreprocessedFileDemandStreamSampler` results in faster env creation (if we do not need to preprocess data),
-    but slower execution of the first episode, since the data are loaded when executing the first episode. The
-    execution efficiency will back to normal starting from the second episode.
+    Using `PreprocessedFileDemandStreamSampler` results in faster env creation (if we do not need to preprocess data)
+    since we do not have to load all data at the beginning. But it also results in slower execution of the first
+    episode because the data are loaded while executing the first episode. The execution efficiency will back to normal
+    starting from the second episode.
     """
     def __init__(self, configs: dict, world: World) -> None:
         super(PreprocessedFileDemandStreamSampler, self).__init__(configs, world)
