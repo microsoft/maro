@@ -181,7 +181,6 @@ class SCEnvSampler(AbsEnvSampler):
             entity_id=entity.id,
             storage_capacity_dict=self._storage_capacity_dict,
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
-            cur_consumer_hist_states=self._cur_consumer_hist_states,
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
         )

@@ -181,9 +181,9 @@ class BalanceSheetCalculator:
     def _calc_consumer(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         consumer_ids = self._get_attributes("consumer", "id", tick).astype(np.int)
 
-        # order_cost + order_product_cost
+        # order_base_cost + order_product_cost
         consumer_step_cost = -1 * (
-            self._get_attributes("consumer", "order_cost", tick)
+            self._get_attributes("consumer", "order_base_cost", tick)
             + self._get_attributes("consumer", "order_product_cost", tick)
         )
 

@@ -862,7 +862,7 @@ class MyTestCase(unittest.TestCase):
 
         consumer_node_index = sku3_consumer_unit.data_model_index
 
-        features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
+        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
         IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
         IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
@@ -875,7 +875,7 @@ class MyTestCase(unittest.TestCase):
 
         # check data model state
         # order cost from configuration
-        self.assertEqual(200, sku3_consumer_unit.data_model.order_cost)
+        self.assertEqual(200, sku3_consumer_unit._unit_order_cost)
 
         # NOTE: 0 is an invalid(initial) id
         self.assertEqual(0, sku3_consumer_unit.data_model.purchased)
@@ -897,7 +897,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(sku3_consumer_unit.id, states[IDX_ID])
         self.assertEqual(sku3_consumer_unit.facility.id, states[IDX_FACILITY_ID])
         self.assertEqual(SKU3_ID, states[IDX_PRODUCT_ID])
-        self.assertEqual(200, states[IDX_ORDER_COST])
+        self.assertEqual(0, states[IDX_ORDER_COST])
 
         env.reset()
         env.step(None)
@@ -926,7 +926,7 @@ class MyTestCase(unittest.TestCase):
 
         consumer_node_index = sku3_consumer_unit.data_model_index
 
-        features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
+        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
         IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
         IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
@@ -1526,7 +1526,7 @@ class MyTestCase(unittest.TestCase):
         sku3_consumer_unit = supplier_1.products[SKU3_ID].consumer
         consumer_node_index = sku3_consumer_unit.data_model_index
 
-        features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
+        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
         # IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
         IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
@@ -1611,7 +1611,7 @@ class MyTestCase(unittest.TestCase):
     #     sku1_consumer_unit = supplier_2.products[SKU1_ID].consumer
     #     consumer_node_index = sku1_consumer_unit.data_model_index
 
-    #     features = ("id", "facility_id", "product_id", "order_cost", "purchased", "received", "order_product_cost")
+    #     features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
     #     IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
     #     IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
 
