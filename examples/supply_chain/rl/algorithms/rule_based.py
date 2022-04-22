@@ -61,7 +61,7 @@ class ConsumerBaselinePolicy(ConsumerBasePolicy):
 
 class ConsumerEOQPolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
-        quantity = math.sqrt(2 * state["sale_mean"] * state["order_cost"] / state["unit_storage_cost"])
+        quantity = math.sqrt(2 * state["sale_mean"] * state["unit_order_cost"] / state["unit_storage_cost"])
         quantity /= (state["sale_mean"] + 1e-8)
         return int(quantity)
 

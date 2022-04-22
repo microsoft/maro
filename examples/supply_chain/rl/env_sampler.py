@@ -16,6 +16,7 @@ from maro.simulator.scenarios.supply_chain import (
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
+from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
@@ -85,10 +86,6 @@ class SCEnvSampler(AbsEnvSampler):
         )
         self._env_settings: dict = workflow_settings
 
-        self._balance_calculator: BalanceSheetCalculator = BalanceSheetCalculator(self._learn_env)
-
-        self._configs: dict = self._learn_env.configs
-
         self._entity_dict: Dict[int, SupplyChainEntity] = {
             entity.id: entity
             for entity in self._learn_env.business_engine.get_entity_list()
@@ -116,6 +113,15 @@ class SCEnvSampler(AbsEnvSampler):
         # Key: Consumer unit id; Value: corresponding product id.
         self._consumer2product_id: Dict[int, int] = get_consumer2product_id(self._facility_info_dict)
 
+        self._configs: SupplyChainConfiguration = self._learn_env.configs
+        self._policy_parameter: Dict[str, Any] = self._parse_policy_parameter(self._configs.policy_parameters)
+
+        self._balance_calculator: BalanceSheetCalculator = BalanceSheetCalculator(self._learn_env)
+
+        ########################################################################
+        # Internal Variables. Would be updated and used.
+        ########################################################################
+
         self._cur_metrics: dict = self._learn_env.metrics
 
         # Key: facility/unit id; Value: (balance, reward)
@@ -134,18 +140,21 @@ class SCEnvSampler(AbsEnvSampler):
         # Key: facility id
         self._storage_product_quantity: Dict[int, List[int]] = defaultdict(lambda: [0] * self._sku_number)
 
+        self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
+
+        ########################################################################
+        # State managers.
+        ########################################################################
+
         self._rl_agent_states: ScRlAgentStates = ScRlAgentStates(
             entity_dict=self._entity_dict,
             facility_info_dict=self._facility_info_dict,
             global_sku_id2idx=self._global_sku_id2idx,
             sku_number=self._sku_number,
             max_src_per_facility=self._summary["max_sources_per_facility"],
-            max_price=self._summary["max_price"],
+            max_price_dict=self._policy_parameter["max_price"],
             settings=self._env_settings,
         )
-
-        self._storage_unit_cost_dict: Optional[Dict[int, Dict[int, int]]] = None
-        self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
 
         self._or_agent_states: ScOrAgentStates = ScOrAgentStates(
             entity_dict=self._entity_dict,
@@ -153,24 +162,45 @@ class SCEnvSampler(AbsEnvSampler):
             global_sku_id2idx=self._global_sku_id2idx,
         )
 
-    def _get_storage_unit_cost_and_capacity_info(self) -> Tuple[Dict[int, Dict[int, int]], Dict[int, Dict[int, int]]]:
-        # Key1: storage node index; Key2: product id/sku id; Value: storage unit cost.
-        storage_unit_cost_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
+    def _parse_policy_parameter(self, raw_info: dict) -> Dict[str, Any]:
+        facility_name2id: Dict[str, int] = {
+            facility_info.name: facility_id
+            for facility_id, facility_info in self._facility_info_dict.items()
+        }
+
+        max_prices: Dict[int, float] = {}
+        global_max_price: float = 0
+        for facility_name, infos in raw_info.get("facilities", {}).items():
+            if infos.get("max_price", None) is not None:
+                max_price = float(infos["max_price"])
+                max_prices[facility_name2id[facility_name]] = max_price
+                global_max_price = max(global_max_price, max_price)
+
+        # Set the global max price for the facilities whose max_price is not set.
+        for facility_id in self._facility_info_dict.keys():
+            if facility_id not in max_prices:
+                max_prices[facility_id] = global_max_price
+
+        policy_parameter: Dict[str, Any] = {
+            "max_price": max_prices,
+        }
+
+        return policy_parameter
+
+    def _get_storage_capacity_dict_info(self) -> Dict[int, Dict[int, int]]:
         # Key1: storage node index; Key2: product id/sku id; Value: sub storage capacity.
         storage_capacity_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
 
         storage_snapshots = self._learn_env.snapshot_list["storage"]
         for node_index in range(len(storage_snapshots)):
-            storage_unit_cost_list = storage_snapshots[0:node_index:"unit_storage_cost"].flatten()
             storage_capacity_list = storage_snapshots[0:node_index:"capacity"].flatten().astype(int)
             product_storage_index_list = storage_snapshots[0:node_index:"product_storage_index"].flatten().astype(int)
             product_id_list = storage_snapshots[0:node_index:"product_list"].flatten().astype(int)
 
             for product_id, sub_storage_idx in zip(product_id_list, product_storage_index_list):
-                storage_unit_cost_dict[node_index][product_id] = storage_unit_cost_list[sub_storage_idx]
                 storage_capacity_dict[node_index][product_id] = storage_capacity_list[sub_storage_idx]
 
-        return storage_unit_cost_dict, storage_capacity_dict
+        return storage_capacity_dict
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
@@ -179,15 +209,13 @@ class SCEnvSampler(AbsEnvSampler):
             return .0
 
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
-        if self._storage_unit_cost_dict is None:
-            self._storage_unit_cost_dict, self._storage_capacity_dict = self._get_storage_unit_cost_and_capacity_info()
+        if self._storage_capacity_dict is None:
+            self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
         state = self._or_agent_states._update_entity_state(
             entity_id=entity.id,
-            storage_unit_cost_dict=self._storage_unit_cost_dict,
             storage_capacity_dict=self._storage_capacity_dict,
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
-            cur_consumer_hist_states=self._cur_consumer_hist_states,
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
         )
@@ -330,8 +358,8 @@ class SCEnvSampler(AbsEnvSampler):
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
                 sku = self._units_mapping[entity_id][3]
-                if sku.production_rate:
-                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.production_rate))
+                if sku.manufacture_rate:
+                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.manufacture_rate))
 
             if env_action:
                 env_action_dict[agent_id] = env_action

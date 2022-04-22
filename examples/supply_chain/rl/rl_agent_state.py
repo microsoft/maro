@@ -13,7 +13,7 @@ from .config import (
     workflow_settings,
     IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER,
     IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND,
-    IDX_CONSUMER_ORDER_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS,
+    IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS,
 )
 
 keys_in_state = [
@@ -66,7 +66,7 @@ class ScRlAgentStates:
         global_sku_id2idx: Dict[int, int],
         sku_number: int,
         max_src_per_facility: int,
-        max_price: float,
+        max_price_dict: Dict[int, float],
         settings: dict,
     ) -> None:
         self._entity_dict: Dict[int, SupplyChainEntity] = entity_dict
@@ -74,7 +74,7 @@ class ScRlAgentStates:
         self._global_sku_id2idx: Dict[int, int] = global_sku_id2idx
         self._sku_number: int = sku_number
         self._max_src_per_facility: int = max_src_per_facility
-        self._max_price: float = max_price
+        self._max_price_dict: Dict[int, float] = max_price_dict
         self._settings: dict = settings
 
         self._atom = self._init_atom()
@@ -198,7 +198,7 @@ class ScRlAgentStates:
         # state['storage_levels'] = [0] * self._sku_number
 
         state['storage_capacity'] = 0
-        for sub_storage in facility_info.storage_info.config:
+        for sub_storage in facility_info.storage_info.config.values():
             state["storage_capacity"] += sub_storage.capacity
 
         return
@@ -278,7 +278,7 @@ class ScRlAgentStates:
         return
 
     def _init_price_feature(self, state: dict, entity: SupplyChainEntity) -> None:
-        state['max_price'] = self._max_price  # TODO: update it to be the max price of this unit/facility/sku?
+        state['max_price'] = self._max_price_dict[entity.facility_id]
         state['sku_price'] = 0
         state['sku_cost'] = 0
 

@@ -11,7 +11,10 @@ from maro.simulator.scenarios.supply_chain.units.distribution import Distributio
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .objects import LeadingTimeInfo, SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
+from .objects import (
+    DEFAULT_SUB_STORAGE_ID, LeadingTimeInfo, SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo,
+    parse_storage_config,
+)
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
 from .units import ExtendUnitBase, ProductUnit, UnitBase
 
@@ -53,7 +56,6 @@ class World:
         self.entity_list = []
 
         self.max_sources_per_facility: int = 0
-        self.max_price: float = 0  # TODO: update it according to needs
 
     def get_sku_by_id(self, sku_id: int) -> SkuMeta:
         """Get sku information by sku id.
@@ -147,7 +149,6 @@ class World:
             "unit_mapping": unit_mapping,
             "skus": {id_: sku for id_, sku in self._sku_collection.items()},
             "facilities": facility_info_dict,
-            "max_price": self.max_price,
             "max_sources_per_facility": self.max_sources_per_facility,
         }
 
@@ -353,6 +354,11 @@ class World:
 
     def _create_entities(self) -> None:
         for facility_conf in self.configs.world["facilities"]:
+            # TODO: decide parse here or require the config to be
+            facility_conf["children"]["storage"]["config"] = parse_storage_config(
+                facility_conf["children"]["storage"]["config"]
+            )
+
             facility_def: EntityDef = self.configs.entity_defs[facility_conf["class"]]
             assert issubclass(facility_def.class_type, FacilityBase)
 
@@ -376,14 +382,23 @@ class World:
                 sku_id, sku_name = self._get_sku_id_and_name(sku_id_or_name)
                 sku_config["id"] = sku_id
                 sku_config["name"] = sku_name
+
+                sub_storage_id: int = sku_config.get("sub_storage_id", DEFAULT_SUB_STORAGE_ID)
+                sku_config["unit_storage_cost"] = sku_config.get(
+                    "unit_storage_cost",
+                    facility_conf["children"]["storage"]["config"][sub_storage_id].unit_storage_cost
+                )
+
                 sku_config["unit_order_cost"] = sku_config.get(
                     "unit_order_cost",
                     facility_conf["config"].get("unit_order_cost", None)
                 )
+
                 sku_config["unit_delay_order_penalty"] = sku_config.get(
                     "unit_delay_order_penalty",
                     facility_conf["config"].get("unit_delay_order_penalty", None)
                 )
+
                 facility.skus[sku_id] = SkuInfo(**sku_config)
 
             # Build children Units.

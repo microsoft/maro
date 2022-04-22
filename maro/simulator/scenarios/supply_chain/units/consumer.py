@@ -43,9 +43,12 @@ class ConsumerUnit(ExtendUnitBase):
         # States in python side.
         self._received: int = 0  # The quantity of product received in current step.
         self._purchased: int = 0  # The quantity of product that purchased from upstream.
-        self._order_product_cost: float = 0
+        self._order_product_cost: float = 0  # order.quantity * upstream.price
+        self._order_base_cost: float = 0  # order.quantity * unit_order_cost
         self.source_facility_id_list: List[int] = []
         self.pending_order_daily: Optional[List[int]] = None
+
+        self._unit_order_cost: float = 0
 
     def on_order_reception(
         self, source_id: int, product_id: int, received_quantity: int, required_quantity: int,
@@ -76,12 +79,13 @@ class ConsumerUnit(ExtendUnitBase):
     def initialize(self) -> None:
         super(ConsumerUnit, self).initialize()
 
+        self._unit_order_cost = self.facility.skus[self.product_id].unit_order_cost
+
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
         assert isinstance(self.data_model, ConsumerDataModel)
 
-        unit_order_cost = self.facility.skus[self.product_id].unit_order_cost
-        self.data_model.initialize(order_cost=unit_order_cost)  # TODO: rename to unit_order_cost
+        self.data_model.initialize()
 
         self.source_facility_id_list = [
             info.src_facility.id for info in self.facility.upstream_vlt_infos.get(self.product_id, [])
@@ -132,6 +136,8 @@ class ConsumerUnit(ExtendUnitBase):
         # TODO: the order would be cancelled if there is no available vehicles,
         # TODO: but the cost is not decreased at that time.
 
+        self._order_base_cost = order.quantity * self._unit_order_cost
+
         self._purchased = self.action.quantity
 
     def flush_states(self) -> None:
@@ -144,6 +150,9 @@ class ConsumerUnit(ExtendUnitBase):
 
         if self._order_product_cost > 0:
             self.data_model.order_product_cost = self._order_product_cost
+
+        if self._order_base_cost > 0:
+            self.data_model.order_base_cost = self._order_base_cost
 
     def post_step(self, tick: int) -> None:
         if self._received > 0:
@@ -159,6 +168,10 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.order_product_cost = 0
             self._order_product_cost = 0
 
+        if self._order_base_cost > 0:
+            self.data_model.order_base_cost = 0
+            self._order_base_cost = 0
+
     def reset(self) -> None:
         super(ConsumerUnit, self).reset()
 
@@ -168,6 +181,7 @@ class ConsumerUnit(ExtendUnitBase):
         self._received = 0
         self._purchased = 0
         self._order_product_cost = 0
+        self._order_base_cost = 0
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
     def get_in_transit_quantity(self) -> int:

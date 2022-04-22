@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
 
 @dataclass
 class DistributionUnitInfo(BaseUnitInfo):
-    vehicle_node_index_list: List[int]
+    pass
 
 
 class DistributionUnit(UnitBase):
@@ -171,5 +171,4 @@ class DistributionUnit(UnitBase):
     def get_unit_info(self) -> DistributionUnitInfo:
         return DistributionUnitInfo(
             **super(DistributionUnit, self).get_unit_info().__dict__,
-            vehicle_node_index_list=[vehicle.data_model_index for vehicle in self.children],
         )
