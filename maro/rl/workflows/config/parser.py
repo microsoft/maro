@@ -257,10 +257,12 @@ class ConfigParser:
         path_mapping = self.get_path_mapping(containerize=containerize)
         scenario_path = path_mapping[self._config["scenario_path"]]
         num_episodes = self._config["main"]["num_episodes"]
+        min_n_sample = self._config["main"].get("min_n_sample", 1)
         env = {
             "main": {
                 "JOB": self._config["job"],
                 "NUM_EPISODES": str(num_episodes),
+                "MIN_N_SAMPLE": str(min_n_sample),
                 "TRAIN_MODE": self._config["training"]["mode"],
                 "SCENARIO_PATH": scenario_path,
             }
