@@ -196,19 +196,17 @@ class DDPGOps(AbsTrainOps):
         self._policy.train()
         self._policy.train_step(self._get_actor_loss(batch))
 
-    def get_state(self) -> dict:
+    def get_non_policy_state(self) -> dict:
         return {
-            "policy": self._policy.get_state(),
             "target_policy": self._target_policy.get_state(),
             "critic": self._q_critic_net.get_state(),
             "target_critic": self._target_q_critic_net.get_state(),
         }
 
-    def set_state(self, ops_state_dict: dict) -> None:
-        self._policy.set_state(ops_state_dict["policy"])
-        self._target_policy.set_state(ops_state_dict["target_policy"])
-        self._q_critic_net.set_state(ops_state_dict["critic"])
-        self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
+    def set_non_policy_state(self, state: dict) -> None:
+        self._target_policy.set_state(state["target_policy"])
+        self._q_critic_net.set_state(state["critic"])
+        self._target_q_critic_net.set_state(state["target_critic"])
 
     def soft_update_target(self) -> None:
         """Soft update the target policy and target critic.

@@ -12,6 +12,7 @@
 .vs/
 build/
 log/
+checkpoint/
 dist/
 *.egg-info/
 tools/schedule

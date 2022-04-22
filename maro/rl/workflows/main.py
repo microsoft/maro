@@ -1,21 +1,33 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import argparse
 import os
 import time
 from typing import List
 
-import torch
-
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainingManager
+from maro.rl.training.utils import get_latest_ep
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 
-def main(scenario: Scenario) -> None:
+def get_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="MARO RL workflow parser")
+    parser.add_argument("--evaluate_only", action="store_true", help="Only run evaluation part of the workflow")
+    return parser.parse_args()
+
+
+def main(scenario: Scenario, args: argparse.Namespace) -> None:
+    if args.evaluate_only:
+        evaluate_only_workflow(scenario)
+    else:
+        training_workflow(scenario)
+
+
+def training_workflow(scenario: Scenario) -> None:
     num_episodes = int(get_env("NUM_EPISODES"))
     num_steps = int_or_none(get_env("NUM_STEPS", required=False))
 
@@ -26,6 +38,7 @@ def main(scenario: Scenario) -> None:
         stdout_level=get_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),
         file_level=get_env("LOG_LEVEL_FILE", required=False, default="CRITICAL"),
     )
+    logger.info("Start training workflow.")
 
     env_sampling_parallelism = int_or_none(get_env("ENV_SAMPLE_PARALLELISM", required=False))
     env_eval_parallelism = int_or_none(get_env("ENV_EVAL_PARALLELISM", required=False))
@@ -82,15 +95,26 @@ def main(scenario: Scenario) -> None:
     )
 
     load_path = get_env("LOAD_PATH", required=False)
+    load_episode = int_or_none(get_env("LOAD_EPISODE", required=False))
     if load_path:
         assert isinstance(load_path, str)
-        loaded = training_manager.load(load_path)
-        logger.info(f"Loaded states for {loaded} from {load_path}")
+
+        ep = load_episode if load_episode is not None else get_latest_ep(load_path)
+        path = os.path.join(load_path, str(ep))
+
+        loaded = env_sampler.load_policy_state(path)
+        logger.info(f"Loaded policies {loaded} into env sampler from {path}")
+
+        loaded = training_manager.load(path)
+        logger.info(f"Loaded trainers {loaded} from {path}")
+        start_ep = ep + 1
+    else:
+        start_ep = 1
 
     checkpoint_path = get_env("CHECKPOINT_PATH", required=False)
     checkpoint_interval = int_or_none(get_env("CHECKPOINT_INTERVAL", required=False))
     # main loop
-    for ep in range(1, num_episodes + 1):
+    for ep in range(start_ep, num_episodes + 1):
         collect_time = training_time = 0
         segment, end_of_episode = 1, False
         while not end_of_episode:
@@ -121,7 +145,7 @@ def main(scenario: Scenario) -> None:
             segment += 1
 
         # performance details
-        logger.info(f"ep {ep} - roll-out time: {collect_time}, training time: {training_time}")
+        logger.info(f"ep {ep} - roll-out time: {collect_time:.2f} seconds, training time: {training_time:.2f} seconds")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             result = env_sampler.eval(
@@ -135,7 +159,53 @@ def main(scenario: Scenario) -> None:
     training_manager.exit()
 
 
+def evaluate_only_workflow(scenario: Scenario) -> None:
+    logger = LoggerV2(
+        "MAIN",
+        dump_path=get_env("LOG_PATH"),
+        dump_mode="a",
+        stdout_level=get_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),
+        file_level=get_env("LOG_LEVEL_FILE", required=False, default="CRITICAL"),
+    )
+    logger.info("Start evaluate only workflow.")
+
+    env_sampling_parallelism = int_or_none(get_env("ENV_SAMPLE_PARALLELISM", required=False))
+    env_eval_parallelism = int_or_none(get_env("ENV_EVAL_PARALLELISM", required=False))
+    parallel_rollout = env_sampling_parallelism is not None or env_eval_parallelism is not None
+
+    policy_creator = scenario.policy_creator
+    if parallel_rollout:
+        env_sampler = BatchEnvSampler(
+            sampling_parallelism=env_sampling_parallelism,
+            port=int(get_env("ROLLOUT_CONTROLLER_PORT")),
+            min_env_samples=int_or_none(get_env("MIN_ENV_SAMPLES", required=False)),
+            grace_factor=float_or_none(get_env("GRACE_FACTOR", required=False)),
+            eval_parallelism=env_eval_parallelism,
+            logger=logger,
+        )
+    else:
+        env_sampler = scenario.env_sampler_creator(policy_creator)
+
+    load_path = get_env("LOAD_PATH", required=False)
+    load_episode = int_or_none(get_env("LOAD_EPISODE", required=False))
+    if load_path:
+        assert isinstance(load_path, str)
+
+        ep = load_episode if load_episode is not None else get_latest_ep(load_path)
+        path = os.path.join(load_path, str(ep))
+
+        loaded = env_sampler.load_policy_state(path)
+        logger.info(f"Loaded policies {loaded} into env sampler from {path}")
+
+    result = env_sampler.eval()
+    if scenario.post_evaluate:
+        scenario.post_evaluate(result["info"], -1)
+
+    if isinstance(env_sampler, BatchEnvSampler):
+        env_sampler.exit()
+
+
 if __name__ == "__main__":
     # get user-defined scenario ingredients
-    scenario = Scenario(get_env("SCENARIO_PATH"))
-    main(scenario)
+    run_scenario = Scenario(get_env("SCENARIO_PATH"))
+    main(run_scenario, args=get_args())
