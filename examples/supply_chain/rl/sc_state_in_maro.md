@@ -30,14 +30,6 @@ env.summary["node_mapping"]["skus"]
 
 当前配置中的所有sku
 
-### max_price:
-
-```python
-env.summary["node_mapping"]["max_price"]
-```
-
-当前配置中最大的price
-
 ### max_sources_per_facility：
 
 ```python

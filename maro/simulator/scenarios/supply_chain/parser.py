@@ -75,6 +75,9 @@ class SupplyChainConfiguration:
         # Other settings.
         self.settings = {}
 
+        # Policy parameters, optional.
+        self.policy_parameters = {}
+
     def add_data_definition(self, alias: str, class_name: str, module_path: str, name_in_frame: str) -> None:
         """Add a data model definition.
 
@@ -211,3 +214,5 @@ class ConfigParser:
                 self._result.world["facilities"].append(facility)
 
             self._result.settings = conf.get("settings", {})
+
+            self._result.policy_parameters = conf.get("policy_parameters", {})

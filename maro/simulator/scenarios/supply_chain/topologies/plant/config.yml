@@ -303,3 +303,15 @@ world:
 settings:
   pending_order_len: 4  # For initialization of Consumer Units
   start_date_time: "2021-01-01"
+
+
+policy_parameter:
+  facilities:
+    Vendor_001:
+      max_price: 33
+    Plant_001:
+      max_price: 33
+    Warehouse_001:
+      max_price: 33
+    Store_001:
+      max_price: 33

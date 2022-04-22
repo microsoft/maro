@@ -246,3 +246,15 @@ world:
 
 settings:
   pending_order_len: 4
+
+
+policy_parameter:
+  facilities:
+    Supplier_001:
+      max_price: 10
+    Supplier_002:
+      max_price: 100
+    Warehouse_001:
+      max_price: 100
+    Retailer_001:
+      max_price: 300
