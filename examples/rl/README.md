@@ -4,10 +4,11 @@ This folder contains scenarios that employ reinforcement learning. MARO's RL too
 
 ## How to Run
 
-The ``main.py`` script can be used to run the scenarios under ``examples/SCENARIO_NAME/rl`` or any user-defined scenario that provides the necessary components (see the section below for details) . To choose a scenario, edit ``SCENARIO_PATH`` in the script to point to the desired scenario folder. You may also edit the rest of the config variables to your own preference. Note that this script runs in single-thread mode only.
-To run a scenario in multi-process mode on a local machine, you will need to use the CLI tool (which requires MARO [installation from the source](https://github.com/microsoft/maro#install-maro-from-pypi)). Start by creating a configuration file (.yml) that follows the template ``maro/maro/rl/workflows/config/template.yml`` to specify the scenario-independent settings. Then use the command ``maro local run [-c] path/to/your/config`` to run in containerized (with ``-c``) or non-containerized (without ``-c``) environments.
+The entrance of a RL workflow is a YAML config file. For readers' convenience, we call this config file `config.yml` in the rest part of this doc. `config.yml` specifies the path of all necessary resources, definitions, and configurations to run the job. MARO provides a comprehensive template of the config file with detailed explanations (`maro/maro/rl/workflows/config/template.yml`). Meanwhile, MARO also provides several simple examples of `config.yml` under the current folder.
 
-The ``main_evaluation_only.py`` works similarly to ``main.py``. The difference is that it only execute the evaluation workflow without trying to train policies, which means it can be directly used for Non-RL policies. To run ``main_evaluation_only.py``, you only need to implemenent ``agent2policy``, ``policy_creator``, and ``env_sampler_creator`` in the scenario folder (see details below).
+There are two ways to start the RL job:
+- If you only need to have a quick look and try to start an out-of-box workflow, just run `python .\examples\rl\run_rl_example.py PATH_TO_CONFIG_YAML`. For example, `python .\examples\rl\run_rl_example.py .\examples\rl\cim.yml` will run the complete example RL training workflow of CIM scenario. If you only want to run the evaluation workflow, you could start the job with `--evaluate_only`.
+- (**Require install MARO from source**) You could also start the job through MARO CLI. Use the command `maro local run [-c] path/to/your/config` to run in containerized (with `-c`) or non-containerized (without `-c`) environments. Similar, you could add `--evaluate_only` if you only need to run the evaluation workflow.
 
 ## Create Your Own Scenarios
 
