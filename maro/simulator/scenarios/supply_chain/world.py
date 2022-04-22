@@ -39,7 +39,7 @@ class World:
         self._id_counter = itertools.count(1)
 
         # Sku name to id mapping, used for querying.
-        self._sku_name2id_mapping = {}
+        self.sku_name2id_mapping = {}
 
         # All the sku in this world.
         self._sku_collection: Dict[int, SkuMeta] = {}
@@ -75,15 +75,15 @@ class World:
         Returns:
             SkuMeta: Meta information for sku.
         """
-        return self._sku_collection[self._sku_name2id_mapping[name]]
+        return self._sku_collection[self.sku_name2id_mapping[name]]
 
     def _get_sku_id_and_name(self, id_or_name: Union[int, str]) -> Tuple[int, str]:
         if isinstance(id_or_name, int):
             assert id_or_name in self._sku_collection.keys()
             return id_or_name, self._sku_collection[id_or_name].name
         else:
-            assert id_or_name in self._sku_name2id_mapping.keys()
-            return self._sku_name2id_mapping[id_or_name], id_or_name
+            assert id_or_name in self.sku_name2id_mapping.keys()
+            return self.sku_name2id_mapping[id_or_name], id_or_name
 
     def get_facility_by_id(self, facility_id: int) -> FacilityBase:
         """Get facility by id.
@@ -203,7 +203,7 @@ class World:
         for sku_conf in self.configs.world["skus"]:
             sku = SkuMeta(**sku_conf)
 
-            self._sku_name2id_mapping[sku.name] = sku.id
+            self.sku_name2id_mapping[sku.name] = sku.id
             self._sku_collection[sku.id] = sku
 
         # Format bom info to use sku id as key.

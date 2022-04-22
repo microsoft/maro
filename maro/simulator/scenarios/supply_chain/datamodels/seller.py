@@ -22,7 +22,7 @@ class SellerDataModel(ExtendDataModel):
         self._price = 0
         self._backlog_ratio = 0
 
-    def initialize(self, price: int, backlog_ratio: float) -> None:
+    def initialize(self, price: float, backlog_ratio: float) -> None:
         self._price = price
         self._backlog_ratio = backlog_ratio
 
