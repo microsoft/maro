@@ -13,7 +13,7 @@ from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
 from .trainer import AbsTrainer, MultiAgentTrainer
-from .utils import extract_trainer_name, get_trainer_state_path
+from .utils import extract_trainer_name
 
 
 class TrainingManager(object):
@@ -111,17 +111,14 @@ class TrainingManager(object):
     def load(self, path: str) -> List[str]:
         loaded = []
         for trainer_name, trainer in self._trainer_dict.items():
-            pth = get_trainer_state_path(path, trainer_name)
-            if os.path.isfile(pth):
-                trainer.load(pth)
-                loaded.append(trainer_name)
-
+            trainer.load(path)
+            loaded.append(trainer_name)
         return loaded
 
     def save(self, path: str) -> None:
         os.makedirs(path, exist_ok=True)
         for trainer_name, trainer in self._trainer_dict.items():
-            trainer.save(get_trainer_state_path(path, trainer_name))
+            trainer.save(path)
 
     def exit(self) -> None:
         if self._proxy_address:

@@ -4,7 +4,7 @@
 import sys
 from collections import defaultdict
 from os.path import dirname, realpath
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -31,9 +31,9 @@ class VMEnvSampler(AbsEnvSampler):
         self._pm_state_history = np.zeros((pm_window_size - 1, self.num_pms, 2))
         self._legal_pm_mask = None
 
-    def _get_global_and_agent_state(
-        self, event: DecisionPayload, tick: int = None
-    ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
+    def _get_global_and_agent_state_impl(
+        self, event: DecisionPayload, tick: int = None,
+    ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         pm_state, vm_state = self._get_pm_state(), self._get_vm_state(event)
         # get the legal number of PM.
         legal_pm_mask = np.zeros(self.num_pms + 1)
@@ -55,7 +55,9 @@ class VMEnvSampler(AbsEnvSampler):
         state = np.concatenate((pm_state.flatten(), vm_state.flatten(), legal_pm_mask)).astype(np.float32)
         return None, {"AGENT": state}
 
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: DecisionPayload) -> Dict[Any, object]:
+    def _translate_to_env_action(
+        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: DecisionPayload,
+    ) -> Dict[Any, object]:
         if action_dict["AGENT"] == self.num_pms:
             return {"AGENT": PostponeAction(vm_id=event.vm_id, postpone_step=1)}
         else:
