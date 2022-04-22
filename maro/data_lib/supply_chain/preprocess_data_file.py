@@ -4,7 +4,6 @@ import pandas as pd
 from dateutil.parser import parse
 from tqdm import tqdm
 
-DATE_COLUMN_NAME = "Date"
 DATE_INDEX_COLUMN_NAME = "DateIndex"
 CSV_SUFFIX = ".csv"
 PREPROCESS_SUFFIX = "_preprocessed"
@@ -20,17 +19,17 @@ def get_date_index(date: datetime) -> int:
     return (date - datetime(1970, 1, 1)).days
 
 
-def preprocess_file(input_path: str) -> None:
+def preprocess_file(input_path: str, date_column_name: str) -> None:
     output_path = get_preprocessed_file_path(input_path)
 
     df = pd.read_csv(input_path)
-    date_list = list(df[DATE_COLUMN_NAME])
+    date_list = list(df[date_column_name])
     date_index_list = [
         get_date_index(parse(date, ignoretz=True))
         for date in tqdm(date_list, desc=f"Preprocessing {input_path}", total=df.shape[0])
     ]
     df[DATE_INDEX_COLUMN_NAME] = date_index_list
-    df.drop([DATE_COLUMN_NAME], axis=1)
+    df.drop([date_column_name], axis=1)
     df.sort_values(by=[DATE_INDEX_COLUMN_NAME])
 
     df.to_csv(output_path)

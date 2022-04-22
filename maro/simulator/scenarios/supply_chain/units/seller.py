@@ -14,7 +14,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Union
 
-import dateutil
 import numpy as np
 from dateutil.parser import parse
 from tqdm import tqdm
@@ -200,7 +199,7 @@ class PreprocessedFileDemandSampler(SellerDemandSampler, metaclass=ABCMeta):
 
         if not os.path.exists(self._preprocessed_file_path):
             print(f"Preprocessed file {self._preprocessed_file_path} does not exist. Start preprocessing now.")
-            preprocess_file(self._file_path)
+            preprocess_file(self._file_path, date_column_name=self._datetime_column_name)
 
         self._cache = collections.defaultdict(dict)
 
@@ -354,7 +353,7 @@ class DataFileDemandSampler(SellerDemandSampler):
 
                 sales = int(row[self._sale_column_name])
                 price = float(row[self._price_column_name])
-                date = dateutil.parser.parse(row[self._datetime_column_name], ignoretz=True)
+                date = parse(row[self._datetime_column_name], ignoretz=True)
 
                 if self._start_date_time is None:
                     self._start_date_time = date
