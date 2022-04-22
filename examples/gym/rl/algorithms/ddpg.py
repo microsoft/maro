@@ -1,5 +1,3 @@
-from typing import Dict, Tuple
-
 import torch
 from torch.optim import Adam
 
@@ -71,6 +69,6 @@ def get_ddpg(name: str) -> DDPGTrainer:
             soft_update_coef=0.01,
             update_target_every=1,
             num_epochs=100,
-            n_start_train=10000,
+            min_num_to_trigger_training=10000,
         ),
     )

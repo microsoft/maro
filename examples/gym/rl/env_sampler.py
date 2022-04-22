@@ -6,13 +6,12 @@ from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator import Env
 from maro.simulator.scenarios.gym.business_engine import GymBusinessEngine
-
 from .config import algorithm
 from .env_helper import env_conf, helper_env
 
 
 class GymEnvSampler(AbsEnvSampler):
-    def _get_global_and_agent_state(
+    def _get_global_and_agent_state_impl(
         self, event: np.ndarray, tick: int = None,
     ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
         return None, {0: event}
