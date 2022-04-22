@@ -145,7 +145,7 @@ def training_workflow(scenario: Scenario) -> None:
             segment += 1
 
         # performance details
-        logger.info(f"ep {ep} - roll-out time: {collect_time}, training time: {training_time}")
+        logger.info(f"ep {ep} - roll-out time: {collect_time:.2f} seconds, training time: {training_time:.2f} seconds")
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             result = env_sampler.eval(
