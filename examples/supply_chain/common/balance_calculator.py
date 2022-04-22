@@ -37,7 +37,6 @@ FacilityLevelInfo = namedtuple(
         "product_unit_id_list",
         "storage_index",
         "distribution_index",
-        "vehicle_index_list",
     ),
 )
 
@@ -115,7 +114,6 @@ class BalanceSheetCalculator:
                     product_unit_id_list=product_id_list,
                     storage_index=storage_info.node_index,
                     distribution_index=distribution_info.node_index if distribution_info else None,
-                    vehicle_index_list=distribution_info.vehicle_node_index_list if distribution_info else [],
                 )
             )
 
@@ -310,11 +308,6 @@ class BalanceSheetCalculator:
         for i, facility in enumerate(self.facility_levels):
             # TODO: check is it still needed, since we already add it into the product
             # facility_step_cost[i] += storage_step_cost[facility.storage_index]
-
-            # TODO: check is it still needed, since we already add it into the product.
-            # Also, pending penalty not included here.
-            # for vidx in facility.vehicle_index_list:
-            #     facility_step_cost[i] += vehicle_step_cost[vidx]
 
             for pid in facility.product_unit_id_list:
                 facility_step_profit[i] += product_step_profit[self.product_id2idx[pid]]
