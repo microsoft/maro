@@ -28,7 +28,7 @@ class DDPGParams(TrainerParams):
     random_overwrite (bool, default=False): This specifies overwrite behavior when the replay memory capacity
         is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
         sequentially with wrap-around.
-    n_start_train (int, default=0): Minimum number required to start training.
+    min_num_to_trigger_training (int, default=0): Minimum number required to start training.
     """
     get_q_critic_net_func: Callable[[], QNet] = None
     reward_discount: float = 0.9
@@ -37,7 +37,7 @@ class DDPGParams(TrainerParams):
     q_value_loss_cls: Callable = None
     soft_update_coef: float = 1.0
     random_overwrite: bool = False
-    n_start_train: int = 0
+    min_num_to_trigger_training: int = 0
 
     def __post_init__(self) -> None:
         assert self.get_q_critic_net_func is not None
@@ -60,9 +60,8 @@ class DDPGOps(AbsTrainOps):
         name: str,
         policy_creator: Callable[[], RLPolicy],
         get_q_critic_net_func: Callable[[], QNet],
-        parallelism: int = 1,
-        *,
         reward_discount: float,
+        parallelism: int = 1,
         q_value_loss_cls: Callable = None,
         soft_update_coef: float = 1.0,
     ) -> None:
@@ -259,10 +258,10 @@ class DDPGTrainer(SingleAgentTrainer):
     def train_step(self) -> None:
         assert isinstance(self._ops, DDPGOps)
 
-        if self._replay_memory.n_sample < self._params.n_start_train:
+        if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})"
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})"
             )
             return
 
@@ -276,10 +275,10 @@ class DDPGTrainer(SingleAgentTrainer):
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
 
-        if self._replay_memory.n_sample < self._params.n_start_train:
+        if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})"
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})"
             )
             return
 

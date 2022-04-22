@@ -47,7 +47,6 @@ class ACBasedOps(AbsTrainOps):
         policy_creator: Callable[[str], RLPolicy],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
-        *,
         reward_discount: float = 0.9,
         critic_loss_cls: Callable = None,
         clip_ratio: float = None,

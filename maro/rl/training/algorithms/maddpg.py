@@ -60,7 +60,6 @@ class DiscreteMADDPGOps(AbsTrainOps):
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
         parallelism: int = 1,
-        *,
         shared_critic: bool = False,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.5,

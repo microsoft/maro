@@ -417,7 +417,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         return {
             "end_of_episode": not self._agent_state_dict,
             "experiences": [experiences],
-            "info": [deepcopy(self._info)],
+            "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
         }
 
     def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:

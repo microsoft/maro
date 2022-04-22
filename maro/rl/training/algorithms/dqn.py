@@ -50,7 +50,6 @@ class DQNOps(AbsTrainOps):
         name: str,
         policy_creator: Callable[[str], RLPolicy],
         parallelism: int = 1,
-        *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
         double: bool = False,

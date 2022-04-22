@@ -134,21 +134,19 @@ class SoftActorCriticOps(AbsTrainOps):
         self._policy.train()
         self._policy.train_step(self._get_actor_loss(batch))
 
-    def get_state(self) -> dict:
+    def get_non_policy_state(self) -> dict:
         return {
-            "policy": self._policy.get_state(),
             "q_net1": self._q_net1.get_state(),
             "q_net2": self._q_net2.get_state(),
             "target_q_net1": self._target_q_net1.get_state(),
             "target_q_net2": self._target_q_net2.get_state(),
         }
 
-    def set_state(self, ops_state_dict: dict) -> None:
-        self._policy.set_state(ops_state_dict["policy"])
-        self._q_net1.set_state(ops_state_dict["q_net1"])
-        self._q_net2.set_state(ops_state_dict["q_net2"])
-        self._target_q_net1.set_state(ops_state_dict["target_q_net1"])
-        self._target_q_net2.set_state(ops_state_dict["target_q_net2"])
+    def set_non_policy_state(self, state: dict) -> None:
+        self._q_net1.set_state(state["q_net1"])
+        self._q_net2.set_state(state["q_net2"])
+        self._target_q_net1.set_state(state["target_q_net1"])
+        self._target_q_net2.set_state(state["target_q_net2"])
 
     def soft_update_target(self) -> None:
         self._target_q_net1.soft_update(self._q_net1, self._soft_update_coef)
