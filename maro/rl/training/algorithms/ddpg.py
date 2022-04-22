@@ -1,19 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# TODO: DDPG has net been tested in a real test case
-
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict
 
-import numpy as np
 import torch
 
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy, RLPolicy
-from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, remote, RemoteOps, SingleAgentTrainer, TrainerParams
+from maro.rl.utils import get_torch_device, ndarray_to_tensor, TransitionBatch
 from maro.utils import clone
 
 
@@ -32,6 +28,7 @@ class DDPGParams(TrainerParams):
     random_overwrite (bool, default=False): This specifies overwrite behavior when the replay memory capacity
         is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
         sequentially with wrap-around.
+    n_start_train (int, default=0): Minimum number required to start training.
     """
     get_q_critic_net_func: Callable[[], QNet] = None
     reward_discount: float = 0.9
@@ -40,6 +37,7 @@ class DDPGParams(TrainerParams):
     q_value_loss_cls: Callable = None
     soft_update_coef: float = 1.0
     random_overwrite: bool = False
+    n_start_train: int = 0
 
     def __post_init__(self) -> None:
         assert self.get_q_critic_net_func is not None
@@ -50,7 +48,6 @@ class DDPGParams(TrainerParams):
             "reward_discount": self.reward_discount,
             "q_value_loss_cls": self.q_value_loss_cls,
             "soft_update_coef": self.soft_update_coef,
-            "data_parallelism": self.data_parallelism,
         }
 
 
@@ -112,7 +109,7 @@ class DDPGOps(AbsTrainOps):
             )  # Q_targ(s', miu_targ(s'))
 
         # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
-        target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
+        target_q_values = (rewards + self._reward_discount * (1 - terminals.long()) * next_q_values).detach()
         q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
         return self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
 
@@ -234,7 +231,7 @@ class DDPGTrainer(SingleAgentTrainer):
         super(DDPGTrainer, self).__init__(name, params)
         self._params = params
         self._policy_version = self._target_policy_version = 0
-        self._replay_memory: Optional[RandomReplayMemory] = None
+        self._memory_size = 0
 
     def build(self) -> None:
         self._ops = self.get_ops()
@@ -245,19 +242,8 @@ class DDPGTrainer(SingleAgentTrainer):
             random_overwrite=self._params.random_overwrite,
         )
 
-    def record(self, env_idx: int, exp_element: ExpElement) -> None:
-        for agent_name in exp_element.agent_names:
-            transition_batch = TransitionBatch(
-                states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
-                actions=np.expand_dims(exp_element.action_dict[agent_name], axis=0),
-                rewards=np.array([exp_element.reward_dict[agent_name]]),
-                terminals=np.array([exp_element.terminal_dict[agent_name]]),
-                next_states=np.expand_dims(
-                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
-                    axis=0,
-                ),
-            )
-            self._replay_memory.put(transition_batch)
+    def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
+        return transition_batch
 
     def get_local_ops(self) -> AbsTrainOps:
         return DDPGOps(
@@ -272,21 +258,37 @@ class DDPGTrainer(SingleAgentTrainer):
 
     def train_step(self) -> None:
         assert isinstance(self._ops, DDPGOps)
+
+        if self._replay_memory.n_sample < self._params.n_start_train:
+            print(
+                f"Skip this training step due to lack of experiences "
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})"
+            )
+            return
+
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
 
-        self._try_soft_update_target()
+            self._try_soft_update_target()
 
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
+
+        if self._replay_memory.n_sample < self._params.n_start_train:
+            print(
+                f"Skip this training step due to lack of experiences "
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})"
+            )
+            return
+
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
             self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))
 
-        self._try_soft_update_target()
+            self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
         """Soft update the target policy and target critic.

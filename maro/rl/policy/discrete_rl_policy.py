@@ -85,6 +85,8 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         self._call_cnt = 0
         self._warmup = warmup
 
+        self._softmax = torch.nn.Softmax(dim=1)
+
     @property
     def q_net(self) -> DiscreteQNet:
         return self._q_net
@@ -147,18 +149,43 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def explore(self) -> None:
         pass  # Overwrite the base method and turn off explore mode.
 
-    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
+    def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        actions, _ = self._get_actions_with_probs_impl(states)
+        return actions
+
+    def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         self._call_cnt += 1
         if self._call_cnt <= self._warmup:
-            return ndarray_to_tensor(np.random.randint(self.action_num, size=(states.shape[0], 1)), device=self._device)
+            actions = ndarray_to_tensor(
+                np.random.randint(self.action_num, size=(states.shape[0], 1)),
+                device=self._device,
+            )
+            probs = torch.ones(states.shape[0]).float() * (1.0 / self.action_num)
+            return actions, probs
 
         q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
+        q_matrix_softmax = self._softmax(q_matrix)
         _, actions = q_matrix.max(dim=1)  # [B], [B]
 
-        if exploring:
+        if self._is_exploring:
             actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, **self._exploration_params)
             actions = ndarray_to_tensor(actions, device=self._device)
-        return actions.unsqueeze(1)  # [B, 1]
+
+        actions = actions.unsqueeze(1)
+        return actions, q_matrix_softmax.gather(1, actions).squeeze(-1)  # [B, 1]
+
+    def _get_actions_with_logps_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        actions, probs = self._get_actions_with_probs_impl(states)
+        return actions, torch.log(probs)
+
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        q_matrix = self.q_values_for_all_actions_tensor(states)
+        q_matrix_softmax = self._softmax(q_matrix)
+        return q_matrix_softmax.gather(1, actions).squeeze(-1)  # [B]
+
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        probs = self._get_states_actions_probs_impl(states, actions)
+        return torch.log(probs)
 
     def train_step(self, loss: torch.Tensor) -> None:
         return self._q_net.step(loss)
@@ -184,7 +211,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def get_state(self) -> object:
         return self._q_net.get_state()
 
-    def set_state(self, policy_state: object) -> None:
+    def set_state(self, policy_state: dict) -> None:
         self._q_net.set_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
@@ -223,8 +250,20 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def policy_net(self) -> DiscretePolicyNet:
         return self._policy_net
 
-    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
-        return self._policy_net.get_actions(states, exploring)
+    def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_actions(states, self._is_exploring)
+
+    def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_probs(states, self._is_exploring)
+
+    def _get_actions_with_logps_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_logps(states, self._is_exploring)
+
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_states_actions_probs(states, actions)
+
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_states_actions_logps(states, actions)
 
     def train_step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)
@@ -250,7 +289,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def get_state(self) -> object:
         return self._policy_net.get_state()
 
-    def set_state(self, policy_state: object) -> None:
+    def set_state(self, policy_state: dict) -> None:
         self._policy_net.set_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
@@ -285,31 +324,13 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         """
         return torch.log(self.get_action_probs(states))
 
-    def get_state_action_probs(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        """Get the probabilities of the given state-action pairs.
-
-        Args:
-            states (torch.Tensor): States.
-            actions (torch.Tensor): Actions. Should has same length with states.
-
-        Returns:
-            action_probs (torch.Tensor): Probabilities of the given state-action pairs.
-        """
-        assert self._shape_check(states=states, actions=actions)
+    def _get_state_action_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         action_probs = self.get_action_probs(states)
-        return action_probs.gather(1, actions).squeeze()  # [B]
+        return action_probs.gather(1, actions).squeeze(-1)  # [B]
 
-    def get_state_action_logps(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        """Get the log-probabilities of the given state-action pairs.
-
-        Args:
-            states (torch.Tensor): States.
-            actions (torch.Tensor): Actions. Should has same length with states.
-
-        Returns:
-            action_logps (torch.Tensor): Probabilities of the given state-action pairs.
-        """
-        return torch.log(self.get_state_action_probs(states, actions))
+    def _get_state_action_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        action_logps = self.get_action_logps(states)
+        return action_logps.gather(1, actions).squeeze(-1)  # [B]
 
     def _to_device_impl(self, device: torch.device) -> None:
         self._policy_net.to(device)

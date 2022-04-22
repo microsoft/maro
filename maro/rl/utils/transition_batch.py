@@ -32,9 +32,6 @@ class TransitionBatch:
             assert self.next_states.shape == self.states.shape
             assert len(self.terminals.shape) == 1 and self.terminals.shape[0] == self.states.shape[0]
 
-    def calc_returns(self, discount_factor: float) -> None:
-        self.returns = discount_cumsum(self.rewards, discount_factor)
-
     def make_kth_sub_batch(self, i: int, k: int) -> TransitionBatch:
         return TransitionBatch(
             states=self.states[i::k],

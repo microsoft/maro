@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import asyncio
+import collections
 import os
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Tuple
@@ -102,11 +103,15 @@ class TrainingManager(object):
                 tick. Please refers to the definition of ExpElement for detailed explanation of ExpElement.
         """
         for env_idx, env_experience in enumerate(experiences):
+            trainer_exp_pool = collections.defaultdict(list)
             for exp_element in env_experience:  # Dispatch experiences to trainers tick by tick.
                 exp_dict = exp_element.split_contents(self._agent2trainer)
                 for trainer_name, exp_elem in exp_dict.items():
-                    trainer = self._trainer_dict[trainer_name]
-                    trainer.record(env_idx, exp_elem)
+                    trainer_exp_pool[trainer_name].append(exp_elem)
+
+            for trainer_name, exp_elems in trainer_exp_pool.items():
+                trainer = self._trainer_dict[trainer_name]
+                trainer.record_multiple(env_idx, exp_elems)
 
     def load(self, path: str) -> List[str]:
         loaded = []

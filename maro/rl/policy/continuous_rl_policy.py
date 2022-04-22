@@ -7,7 +7,6 @@ import numpy as np
 import torch
 
 from maro.rl.model import ContinuousPolicyNet
-
 from .abs_policy import RLPolicy
 
 
@@ -73,12 +72,24 @@ class ContinuousRLPolicy(RLPolicy):
 
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
         return all([
-            (np.array(self._lbounds) <= actions.cpu().numpy()).all(),
-            (actions.cpu().numpy() < np.array(self._ubounds)).all()
+            (np.array(self._lbounds) <= actions.detach().cpu().numpy()).all(),
+            (actions.detach().cpu().numpy() < np.array(self._ubounds)).all()
         ])
 
-    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
-        return self._policy_net.get_actions(states, exploring)
+    def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_actions(states, self._is_exploring)
+
+    def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_probs(states, self._is_exploring)
+
+    def _get_actions_with_logps_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_logps(states, self._is_exploring)
+
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_states_actions_probs(states, actions)
+
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_states_actions_logps(states, actions)
 
     def train_step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)
@@ -104,7 +115,7 @@ class ContinuousRLPolicy(RLPolicy):
     def get_state(self) -> object:
         return self._policy_net.get_state()
 
-    def set_state(self, policy_state: object) -> None:
+    def set_state(self, policy_state: dict) -> None:
         self._policy_net.set_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:

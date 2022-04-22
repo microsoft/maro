@@ -1,10 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+import collections
 import os
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
@@ -12,8 +14,10 @@ from maro.rl.rollout import ExpElement
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import LoggerV2
 
+from .replay_memory import ReplayMemory
 from .train_ops import AbsTrainOps, RemoteOps
 from .utils import extract_trainer_name
+from ..utils import TransitionBatch
 
 
 @dataclass
@@ -124,13 +128,13 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def record(self, env_idx: int, exp_element: ExpElement) -> None:
-        """Record rollout experiences in the replay memory.
+    def record_multiple(self, env_idx: int, exp_elements: List[ExpElement]) -> None:
+        """Record rollout all experiences from an environment in the replay memory.
 
         Args:
             env_idx (int): The index of the environment that generates this batch of experiences. This is used
                 when there are more than one environment collecting experiences in parallel.
-            exp_element (ExpElement): Experiences.
+            exp_elements (List[ExpElement]): Experiences.
         """
         raise NotImplementedError
 
@@ -168,6 +172,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         self._policy_name: Optional[str] = None
         self._policy_creator: Optional[Callable[[str], RLPolicy]] = None
         self._ops: Optional[AbsTrainOps] = None
+        self._replay_memory: Optional[ReplayMemory] = None
 
     @property
     def ops(self):
@@ -231,6 +236,33 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
         torch.save(policy_state, os.path.join(path, f"{self.name}_policy.{FILE_SUFFIX}"))
         torch.save(non_policy_state, os.path.join(path, f"{self.name}_non_policy.{FILE_SUFFIX}"))
+
+    def record_multiple(self, env_idx: int, exp_elements: List[ExpElement]) -> None:
+        agent_exp_pool = collections.defaultdict(list)
+        for exp_element in exp_elements:
+            for agent_name in exp_element.agent_names:
+                agent_exp_pool[agent_name].append((
+                    exp_element.agent_state_dict[agent_name],
+                    exp_element.action_dict[agent_name],
+                    exp_element.reward_dict[agent_name],
+                    exp_element.terminal_dict[agent_name],
+                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
+                ))
+
+        for agent_name, exps in agent_exp_pool.items():
+            transition_batch = TransitionBatch(
+                states=np.vstack([exp[0] for exp in exps]),
+                actions=np.vstack([exp[1] for exp in exps]),
+                rewards=np.array([exp[2] for exp in exps]),
+                terminals=np.array([exp[3] for exp in exps]),
+                next_states=np.vstack([exp[4] for exp in exps]),
+            )
+            transition_batch = self._preprocess_batch(transition_batch)
+            self._replay_memory.put(transition_batch)
+
+    @abstractmethod
+    def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
+        raise NotImplementedError
 
     def _assert_ops_exists(self) -> None:
         if not self._ops:
