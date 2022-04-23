@@ -10,7 +10,7 @@
 
 facility_definitions:
   # facility definition
-  WarehouseFacility: &warehouse_facility
+  WarehouseFacility:
     class: "WarehouseFacility"
     children:
       storage:
@@ -24,7 +24,7 @@ facility_definitions:
         consumer:
           class: "ConsumerUnit"
 
-  SupplierFacility: &supplier_facility
+  SupplierFacility:
     class: "SupplierFacility"
     children:
       storage:
@@ -39,7 +39,7 @@ facility_definitions:
         manufacture:
           class: "ManufactureUnit"
 
-  RetailerFacility: &retailer_facility
+  RetailerFacility:
     class: "RetailerFacility"
     children:
       storage:
@@ -121,7 +121,7 @@ world:
         sku3: # sku name and attributes needed for this facility
           init_stock: 100
           unit_product_cost: 1
-          production_rate: 1
+          manufacture_rate: 1
           has_manufacture: True
           price: 10
 
@@ -145,12 +145,12 @@ world:
         sku1:
           init_stock: 100
           unit_product_cost: 1
-          production_rate: 1
+          manufacture_rate: 1
           has_manufacture: True
           price: 100
         sku3:
           init_stock: 100
-          production_rate: 1
+          manufacture_rate: 1
           has_consumer: True
           price: 100
 
@@ -214,7 +214,7 @@ world:
   topology:
     # key is current facility, value if upstream facilities that will provide a certain sku
     Supplier_002:
-      # this config means "Supplier1" will purchase "sku3" from facility "Supplier3",
+      # this config means "Supplier_002" will purchase "sku3" from facility "Supplier_001",
       # or any other facility in the list
       sku3:
         "Supplier_001":
@@ -246,3 +246,15 @@ world:
 
 settings:
   pending_order_len: 4
+
+
+policy_parameter:
+  facilities:
+    Supplier_001:
+      max_price: 10
+    Supplier_002:
+      max_price: 100
+    Warehouse_001:
+      max_price: 100
+    Retailer_001:
+      max_price: 300

@@ -9,17 +9,18 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
+import numpy as np
+
 from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
-from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.product import ProductUnitInfo
+from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain import UnitBase
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
-    from maro.simulator.scenarios.supply_chain.units import UnitBase
 
 
 @dataclass
@@ -120,7 +121,6 @@ class FacilityBase(ABC):
         for unit in self.children:
             unit.step(tick)
 
-    # TODO: confirm Why not call flush_states() immediately after each unit.step()?
     def flush_states(self) -> None:
         """Flush states into frame."""
         for unit in self.children:
@@ -139,7 +139,7 @@ class FacilityBase(ABC):
         if self.data_model is not None:
             self.data_model.reset()
 
-    def get_in_transit_orders(self) -> dict:
+    def get_in_transit_orders(self) -> Dict[int, int]:
         in_transit_orders = defaultdict(int)
 
         for product_id, product in self.products.items():
@@ -147,9 +147,6 @@ class FacilityBase(ABC):
                 in_transit_orders[product_id] = product.consumer.get_in_transit_quantity()
 
         return in_transit_orders
-
-    def set_action(self, action: object) -> None:
-        pass
 
     def get_node_info(self) -> FacilityInfo:
         return FacilityInfo(
@@ -174,15 +171,13 @@ class FacilityBase(ABC):
 
     def get_sku_cost(self, sku_id: int) -> float:
         # TODO: updating for manufacture, ...
-        src_prices: List[float] = []
-        for vlt_info in self.upstream_vlt_infos[sku_id]:
-            src_prices.append(vlt_info.src_facility.skus[sku_id].price)
-        if len(src_prices) > 0:
-            return sum(src_prices) / len(src_prices)
-        else:
-            return self.skus[sku_id].price
+        src_prices: List[float] = [
+            vlt_info.src_facility.skus[sku_id].price
+            for vlt_info in self.upstream_vlt_infos[sku_id]
+        ]
+        return np.mean(src_prices) if len(src_prices) > 0 else self.skus[sku_id].price
 
-    def get_max_vlt(self, sku_id: int) -> float:
+    def get_max_vlt(self, sku_id: int) -> int:
         max_vlt: int = 0
         for vlt_info in self.upstream_vlt_infos[sku_id]:
             max_vlt = max(max_vlt, vlt_info.vlt)

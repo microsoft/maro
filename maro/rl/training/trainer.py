@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import os
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -9,6 +9,7 @@ import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import ExpElement
+from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps, RemoteOps
@@ -212,11 +213,24 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def load(self, path: str) -> None:
         self._assert_ops_exists()
-        self._ops.set_state(torch.load(path))
+
+        policy_state = torch.load(os.path.join(path, f"{self.name}_policy.{FILE_SUFFIX}"))
+        non_policy_state = torch.load(os.path.join(path, f"{self.name}_non_policy.{FILE_SUFFIX}"))
+
+        self._ops.set_state({
+            "policy": policy_state,
+            "non_policy": non_policy_state,
+        })
 
     def save(self, path: str) -> None:
         self._assert_ops_exists()
-        torch.save(self._ops.get_state(), path)
+
+        ops_state = self._ops.get_state()
+        policy_state = ops_state["policy"]
+        non_policy_state = ops_state["non_policy"]
+
+        torch.save(policy_state, os.path.join(path, f"{self.name}_policy.{FILE_SUFFIX}"))
+        torch.save(non_policy_state, os.path.join(path, f"{self.name}_non_policy.{FILE_SUFFIX}"))
 
     def _assert_ops_exists(self) -> None:
         if not self._ops:

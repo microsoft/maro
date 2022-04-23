@@ -234,7 +234,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
 
         # Facility config.
         facility["config"] = {}
-        facility["config"]["order_cost"] = 200
+        facility["config"]["unit_order_cost"] = 200
         facility["config"]["delay_order_penalty"] = 1000
 
         # Sku list of this facility.
@@ -271,7 +271,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
             facility["children"]["distribution"]["children"]["vehicles"].append(vehicle_conf)
 
         facility["config"] = {}
-        facility["config"]["order_cost"] = 500
+        facility["config"]["unit_order_cost"] = 500
         facility["config"]["delay_order_penalty"] = 1000
 
         sku_list = {}
@@ -305,7 +305,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
         facility["children"]["storage"]["config"]["capacity"] = total_gamma * 20
 
         facility["config"] = {}
-        facility["config"]["order_cost"] = 500
+        facility["config"]["unit_order_cost"] = 500
 
         sku_list = {}
 

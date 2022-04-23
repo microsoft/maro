@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import collections
 from collections import defaultdict, namedtuple
 from typing import Dict, List, Tuple
 
@@ -8,6 +8,7 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 # from ..rl.env_helper import STORAGE_INFO
@@ -37,7 +38,6 @@ FacilityLevelInfo = namedtuple(
         "product_unit_id_list",
         "storage_index",
         "distribution_index",
-        "vehicle_index_list",
     ),
 )
 
@@ -55,6 +55,13 @@ class BalanceSheetCalculator:
     def __init__(self, env: Env, team_reward) -> None:
         self._env: Env = env
         self._team_reward = team_reward
+
+        self._facility_info_dict: Dict[int, FacilityInfo] = self._env.summary["node_mapping"]["facilities"]
+
+        self._entity_dict: Dict[int, SupplyChainEntity] = {
+            entity.id: entity
+            for entity in self._env.business_engine.get_entity_list()
+        }
 
         facilities, products, pid2idx, cid2pid = self._extract_facility_and_product_info()
 
@@ -97,8 +104,7 @@ class BalanceSheetCalculator:
         product_id2idx: Dict[int, int] = {}
         consumer_id2product_id: Dict[int, int] = {}
 
-        facility_info_dict: Dict[int, FacilityInfo] = self._env.summary["node_mapping"]["facilities"]
-        for facility_id, facility_info in facility_info_dict.items():
+        for facility_id, facility_info in self._facility_info_dict.items():
             distribution_info: DistributionUnitInfo = facility_info.distribution_info
             storage_info: StorageUnitInfo = facility_info.storage_info
             downstreams: Dict[int, List[int]] = facility_info.downstreams
@@ -106,7 +112,7 @@ class BalanceSheetCalculator:
             product_id_list = []
             for product_id, product_info in facility_info.products_info.items():
                 product_id_list.append(product_info.id)
-                product_id2idx[product_info.id] = len(products)
+                product_id2idx[product_id] = len(products)
 
                 if product_info.consumer_info:
                     consumer_id2product_id[product_info.consumer_info.id] = product_info.id
@@ -120,7 +126,8 @@ class BalanceSheetCalculator:
                         storage_index=storage_info.node_index,
                         distribution_index=distribution_info.node_index if distribution_info else None,
                         downstream_product_unit_id_list=[
-                            facility_info_dict[fid].products_info[product_id].id for fid in downstreams[product_id]
+                            self._facility_info_dict[fid].products_info[product_id].id
+                            for fid in downstreams[product_id]
                         ] if product_id in downstreams else [],
                         consumer_index=product_info.consumer_info.node_index if product_info.consumer_info else None,
                         seller_index=product_info.seller_info.node_index if product_info.seller_info else None,
@@ -136,59 +143,44 @@ class BalanceSheetCalculator:
                     product_unit_id_list=product_id_list,
                     storage_index=storage_info.node_index,
                     distribution_index=distribution_info.node_index if distribution_info else None,
-                    vehicle_index_list=distribution_info.vehicle_node_index_list if distribution_info else [],
                 )
             )
 
         return facility_levels, products, product_id2idx, consumer_id2product_id
 
     def _get_products_sorted_from_downstreams_to_upstreams(self) -> List[ProductInfo]:
-        # TODO: Sort products from downstream to upstream.
+        # Topological sorting
         ordered_products: List[ProductInfo] = []
+        product_unit_dict = {product.unit_id: product for product in self.products}
+        in_degree = collections.Counter()
 
-        tmp_product_unit_dict = {product.unit_id: product for product in self.products}
-        tmp_stack = []
         for product in self.products:
-            # Skip if the product has already added.
-            if tmp_product_unit_dict[product.unit_id] is None:
-                continue
+            for downstream_unit_id in product.downstream_product_unit_id_list:
+                in_degree[downstream_unit_id] += 1
 
-            # Add the downstreams to the stack.
-            for product_unit_id in product.downstream_product_unit_id_list:
-                tmp_stack.append(product_unit_id)
+        queue = collections.deque()
+        for unit_id, deg in in_degree.items():
+            if deg == 0:
+                queue.append(unit_id)
 
-            # Insert current product to the head and mark it as already added.
-            ordered_products.insert(0, product)
-            tmp_product_unit_dict[product.unit_id] = None
-
-            # Processing and add the downstreams of current product.
-            while len(tmp_stack) > 0:
-                downstream_product_unit_id = tmp_stack.pop()
-
-                # Skip if it has already added.
-                if tmp_product_unit_dict[downstream_product_unit_id] is None:
-                    continue
-
-                # Extract the downstream product unit.
-                downstream_product_unit = tmp_product_unit_dict[downstream_product_unit_id]
-
-                # Add the downstreams to the stack.
-                for product_unit_id in downstream_product_unit.downstream_product_unit_id_list:
-                    tmp_stack.append(product_unit_id)
-
-                # Insert the unit to the head and mark it as already added.
-                ordered_products.insert(0, downstream_product_unit)
-                tmp_product_unit_dict[downstream_product_unit_id] = None
+        while queue:
+            unit_id = queue.popleft()
+            product = product_unit_dict[unit_id]
+            ordered_products.append(product)
+            for downstream_unit_id in product.downstream_product_unit_id_list:
+                in_degree[downstream_unit_id] -= 1
+                if in_degree[downstream_unit_id] == 0:
+                    queue.append(downstream_unit_id)
 
         return ordered_products
 
     def _check_attribute_keys(self, target_type: str, attribute: str) -> None:
-        valid_target_types = list(self._env.summary["node_detail"].keys())
-        assert target_type in valid_target_types, f"Target_type {target_type} not in {valid_target_types}!"
+        valid_target_types = set(self._env.summary["node_detail"].keys())
+        assert target_type in valid_target_types, f"Target_type {target_type} not in {list(valid_target_types)}!"
 
-        valid_attributes = list(self._env.summary["node_detail"][target_type]["attributes"].keys())
+        valid_attributes = set(self._env.summary["node_detail"][target_type]["attributes"].keys())
         assert attribute in valid_attributes, (
-            f"Attribute {attribute} not valid for {target_type}. Valid attributes: {valid_attributes}"
+            f"Attribute {attribute} not valid for {target_type}. Valid attributes: {list(valid_attributes)}"
         )
 
     def _get_attributes(self, target_type: str, attribute: str, tick: int = None) -> np.ndarray:
@@ -216,9 +208,9 @@ class BalanceSheetCalculator:
     def _calc_consumer(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         consumer_ids = self._get_attributes("consumer", "id", tick).astype(np.int)
 
-        # order_cost + order_product_cost
+        # order_base_cost + order_product_cost
         consumer_step_cost = -1 * (
-            self._get_attributes("consumer", "order_cost", tick)
+            self._get_attributes("consumer", "order_base_cost", tick)
             + self._get_attributes("consumer", "order_product_cost", tick)
         )
 
@@ -251,33 +243,21 @@ class BalanceSheetCalculator:
 
         return manufacture_ids, manufacture_step_cost
 
-    def _calc_storage(self, tick: int) -> Tuple[List[float], List[Dict[int, float]]]:
-        unit_storage_cost = self._get_list_attributes("storage", "unit_storage_cost", tick)
-
-        # loss = (capacity - remaining space) * cost
-        facility_storage_step_cost = [
-            -((_capacity - _remaining) * _cost).sum()
-            for _capacity, _remaining, _cost in zip(
-                self._get_list_attributes("storage", "capacity", tick),
-                self._get_list_attributes("storage", "remaining_space", tick),
-                unit_storage_cost,
-            )
-        ]
-
+    def _calc_storage(self, tick: int) -> List[Dict[int, float]]:
         storage_product_step_cost: List[Dict[int, float]] = [
             {
-                product_id: -quantity * unit_cost_list[storage_index]
-                for product_id, quantity, storage_index in zip(id_list, quantity_list, storage_index_list)
+                product_id: -quantity * self._entity_dict[
+                    self.products[self.product_id2idx[product_id]].unit_id
+                ].skus.unit_storage_cost
+                for product_id, quantity in zip(id_list, quantity_list)
             }
-            for id_list, quantity_list, storage_index_list, unit_cost_list in zip(
+            for id_list, quantity_list in zip(
                 [il.astype(np.int) for il in self._get_list_attributes("storage", "product_list", tick)],
                 [ql.astype(np.int) for ql in self._get_list_attributes("storage", "product_quantity", tick)],
-                [si.astype(np.int) for si in self._get_list_attributes("storage", "product_storage_index", tick)],
-                [uc.astype(np.float) for uc in unit_storage_cost],
             )
         ]
 
-        return facility_storage_step_cost, storage_product_step_cost
+        return storage_product_step_cost
 
     def _calc_vehicle(self, tick: int) -> np.ndarray:
         # loss = cost * payload
@@ -410,11 +390,6 @@ class BalanceSheetCalculator:
             # TODO: check is it still needed, since we already add it into the product
             # facility_step_cost[i] += storage_step_cost[facility.storage_index]
 
-            # TODO: check is it still needed, since we already add it into the product.
-            # Also, pending penalty not included here.
-            # for vidx in facility.vehicle_index_list:
-            #     facility_step_cost[i] += vehicle_step_cost[vidx]
-
             for pid in facility.product_unit_id_list:
                 facility_step_profit[i] += product_step_profit[self.product_id2idx[pid]]
                 facility_step_cost[i] += product_step_cost[self.product_id2idx[pid]]
@@ -481,7 +456,7 @@ class BalanceSheetCalculator:
         consumer_ids, consumer_step_cost = self._calc_consumer(tick)
         seller_step_profit, seller_step_cost = self._calc_seller(tick)
         manufacture_ids, manufacture_step_cost = self._calc_manufacture(tick)
-        facility_storage_step_cost, storage_product_step_cost = self._calc_storage(tick)
+        storage_product_step_cost = self._calc_storage(tick)
         product_distribution_step_profit, product_distribution_step_cost = self._calc_product_distribution(tick)
 
         # Product: profit, cost & balance

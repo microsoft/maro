@@ -30,14 +30,6 @@ env.summary["node_mapping"]["skus"]
 
 当前配置中的所有sku
 
-### max_price:
-
-```python
-env.summary["node_mapping"]["max_price"]
-```
-
-当前配置中最大的price
-
 ### max_sources_per_facility：
 
 ```python
@@ -254,7 +246,7 @@ demand_hist = cur_seller_hist[:, 1].flatten()
 # 实际情况需要用这3个计算出对应的product unit的balance sheet,这里只是作为示例
 
 # 计算所需要属性
-consumer_features = ("id", "order_cost", "order_product_cost")
+consumer_features = ("id", "order_base_cost", "order_product_cost")
 seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
 manufacture_features = ("id", "manufacture_quantity", "unit_product_cost")
 
@@ -278,7 +270,7 @@ man_states = manufacture_ss[tick::manufacture_features].flatten().reshape(-1, le
 # balance sheet计算，通常balance sheet 包含profit和loss两部分，这里分开保存。
 
 # consumer部分
-# loss = -1 * (order_cost + order_product_cost)
+# loss = -1 * (order_base_cost + order_product_cost)
 consumer_loss = -1 * (consumer_states[:, 1] + consumer_states[:, 2])
 
 # discount在代码里似乎没有用到

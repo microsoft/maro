@@ -1224,13 +1224,13 @@ slots: 1
 
 Price per product.
 
-order_cost
+order_base_cost
 **********
 
 type: float
 slots: 1
 
-Cost per order.
+Base cost for orders in this tick.
 
 reward_discount
 ***************

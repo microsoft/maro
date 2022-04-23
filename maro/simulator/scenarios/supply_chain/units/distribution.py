@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order
-from .unitbase import UnitBase, BaseUnitInfo
+
+from .unitbase import BaseUnitInfo, UnitBase
 from .vehicle import VehicleStatus, VehicleUnit
 
 if typing.TYPE_CHECKING:
@@ -19,7 +20,7 @@ if typing.TYPE_CHECKING:
 
 @dataclass
 class DistributionUnitInfo(BaseUnitInfo):
-    vehicle_node_index_list: List[int]
+    pass
 
 
 class DistributionUnit(UnitBase):
@@ -88,12 +89,10 @@ class DistributionUnit(UnitBase):
 
             if sku is not None:
                 self._is_order_changed = True
-
                 self._order_queues[order.vehicle_type].append(order)
+                self.check_in_quantity_in_order[order.product_id] += order.quantity
 
                 order_total_price = sku.price * order.quantity
-
-                self.check_in_quantity_in_order[order.product_id] += order.quantity
                 return order_total_price
 
         return 0
@@ -172,5 +171,4 @@ class DistributionUnit(UnitBase):
     def get_unit_info(self) -> DistributionUnitInfo:
         return DistributionUnitInfo(
             **super(DistributionUnit, self).get_unit_info().__dict__,
-            vehicle_node_index_list=[vehicle.data_model_index for vehicle in self.children],
         )

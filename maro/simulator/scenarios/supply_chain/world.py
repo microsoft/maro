@@ -11,7 +11,10 @@ from maro.simulator.scenarios.supply_chain.units.distribution import Distributio
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .objects import SkuMeta, SkuInfo, SupplyChainEntity, VendorLeadingTimeInfo, LeadingTimeInfo
+from .objects import (
+    DEFAULT_SUB_STORAGE_ID, LeadingTimeInfo, SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo,
+    parse_storage_config,
+)
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
 from .units import ExtendUnitBase, ProductUnit, UnitBase
 
@@ -39,7 +42,7 @@ class World:
         self._id_counter = itertools.count(1)
 
         # Sku name to id mapping, used for querying.
-        self._sku_name2id_mapping = {}
+        self.sku_name2id_mapping = {}
 
         # All the sku in this world.
         self._sku_collection: Dict[int, SkuMeta] = {}
@@ -53,7 +56,6 @@ class World:
         self.entity_list = []
 
         self.max_sources_per_facility: int = 0
-        self.max_price: float = 0  # TODO: update it according to needs
 
     def get_sku_by_id(self, sku_id: int) -> SkuMeta:
         """Get sku information by sku id.
@@ -75,16 +77,15 @@ class World:
         Returns:
             SkuMeta: Meta information for sku.
         """
-        return self._sku_collection[self._sku_name2id_mapping[name]]
+        return self._sku_collection[self.sku_name2id_mapping[name]]
 
     def _get_sku_id_and_name(self, id_or_name: Union[int, str]) -> Tuple[int, str]:
         if isinstance(id_or_name, int):
             assert id_or_name in self._sku_collection.keys()
             return id_or_name, self._sku_collection[id_or_name].name
         else:
-            # print(id_or_name)
-            assert id_or_name in self._sku_name2id_mapping.keys()
-            return self._sku_name2id_mapping[id_or_name], id_or_name
+            assert id_or_name in self.sku_name2id_mapping.keys()
+            return self.sku_name2id_mapping[id_or_name], id_or_name
 
     def get_facility_by_id(self, facility_id: int) -> FacilityBase:
         """Get facility by id.
@@ -130,7 +131,7 @@ class World:
             facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()
         }
 
-        id2index_mapping = {}
+        unit_mapping = {}
 
         for unit_id, unit in self.units.items():
             sku = None
@@ -140,15 +141,14 @@ class World:
 
             if unit.data_model is not None:
                 # TODO: replace with data class or named tuple
-                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
+                unit_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
             else:
-                id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
+                unit_mapping[unit_id] = (None, None, unit.facility.id, sku)
 
         return {
-            "unit_mapping": id2index_mapping,
+            "unit_mapping": unit_mapping,
             "skus": {id_: sku for id_, sku in self._sku_collection.items()},
             "facilities": facility_info_dict,
-            "max_price": self.max_price,
             "max_sources_per_facility": self.max_sources_per_facility,
         }
 
@@ -204,7 +204,7 @@ class World:
         for sku_conf in self.configs.world["skus"]:
             sku = SkuMeta(**sku_conf)
 
-            self._sku_name2id_mapping[sku.name] = sku.id
+            self.sku_name2id_mapping[sku.name] = sku.id
             self._sku_collection[sku.id] = sku
 
         # Format bom info to use sku id as key.
@@ -270,29 +270,6 @@ class World:
             config=config.get("config", {}),
         )
 
-        # Prepare children.
-        children_conf = config.get("children", None)
-
-        if children_conf:
-            unit_instance.children = []
-
-            for child_name, child_conf in children_conf.items():
-                # If child configuration is a dict, then we add it as a property by name (key).
-                if type(child_conf) == dict:
-                    child_instance = self._build_unit(facility, unit_instance, child_conf)
-
-                    setattr(unit_instance, child_name, child_instance)
-                    unit_instance.children.append(child_instance)
-
-                elif type(child_conf) == list:
-                    # If child configuration is a list, then will treat it as list property, named same as key.
-                    child_list = []
-                    for conf in child_conf:
-                        child_list.append(self._build_unit(facility, unit_instance, conf))
-
-                    setattr(unit_instance, child_name, child_list)
-                    unit_instance.children.extend(child_list)
-
         # Record the id.
         self.units[unit_instance.id] = unit_instance
 
@@ -334,7 +311,7 @@ class World:
         products_dict: Dict[int, ProductUnit] = {}
 
         # Key: src product id; Value element: (out product id, src quantity / out quantity)
-        bom_out_info_dict: Dict[int, List[Tuple(int, int)]] = defaultdict(list)
+        bom_out_info_dict: Dict[int, List[Tuple[int, float]]] = defaultdict(list)
 
         if facility.skus is not None and len(facility.skus) > 0:
             for sku_id, sku in facility.skus.items():
@@ -377,6 +354,11 @@ class World:
 
     def _create_entities(self) -> None:
         for facility_conf in self.configs.world["facilities"]:
+            # TODO: decide parse here or require the config to be
+            facility_conf["children"]["storage"]["config"] = parse_storage_config(
+                facility_conf["children"]["storage"]["config"]
+            )
+
             facility_def: EntityDef = self.configs.entity_defs[facility_conf["class"]]
             assert issubclass(facility_def.class_type, FacilityBase)
 
@@ -400,14 +382,23 @@ class World:
                 sku_id, sku_name = self._get_sku_id_and_name(sku_id_or_name)
                 sku_config["id"] = sku_id
                 sku_config["name"] = sku_name
+
+                sub_storage_id: int = sku_config.get("sub_storage_id", DEFAULT_SUB_STORAGE_ID)
+                sku_config["unit_storage_cost"] = sku_config.get(
+                    "unit_storage_cost",
+                    facility_conf["children"]["storage"]["config"][sub_storage_id].unit_storage_cost
+                )
+
                 sku_config["unit_order_cost"] = sku_config.get(
                     "unit_order_cost",
                     facility_conf["config"].get("unit_order_cost", None)
                 )
+
                 sku_config["unit_delay_order_penalty"] = sku_config.get(
                     "unit_delay_order_penalty",
                     facility_conf["config"].get("unit_delay_order_penalty", None)
                 )
+
                 facility.skus[sku_id] = SkuInfo(**sku_config)
 
             # Build children Units.
@@ -475,7 +466,7 @@ class World:
                 for src_name, src_conf in source_configs.items():
                     src_facility = self._get_facility_by_name(src_name)
                     for vehicle_type, vehicle_conf in src_conf.items():
-                        assert vehicle_conf["vlt"] > 0, f"Do not support 0-vlt now!"
+                        assert vehicle_conf["vlt"] > 0, "Do not support 0-vlt now!"
                         facility.upstream_vlt_infos[sku_id].append(
                             VendorLeadingTimeInfo(src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
                         )

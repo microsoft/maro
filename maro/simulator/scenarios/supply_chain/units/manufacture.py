@@ -66,7 +66,7 @@ class ManufactureUnit(ExtendUnitBase):
         # TODO: Set default production rate, and produce according to it if Action not given.
 
         # Due to the processing in post_step(),
-        # self._manufacture_quantity is set to 0 at the begining of every step.
+        # self._manufacture_quantity is set to 0 at the beginning of every step.
         # Thus, there is no need to update it with None action or 0 production_rate.
 
         if self.action is None:

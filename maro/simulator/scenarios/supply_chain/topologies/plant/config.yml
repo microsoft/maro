@@ -152,7 +152,7 @@ world:
           init_stock: 1000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 100
+          manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 1000
         "component_1":
@@ -160,7 +160,7 @@ world:
           init_stock: 5000
           sub_storage_id: 0
           has_manufacture: True
-          production_rate: 300
+          manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 900
         "component_2":
@@ -168,7 +168,11 @@ world:
           init_stock: 5000
           sub_storage_id: 0
           has_manufacture: True
+<<<<<<< HEAD
           production_rate: 300
+=======
+          manufacture_rate: 10000
+>>>>>>> origin/Jinyu/sc_refinement
           unit_product_cost: 14
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
@@ -198,8 +202,8 @@ world:
           init_stock: 2500
           sub_storage_id: 2
           has_manufacture: True
-          production_rate: 300
-          unit_product_cost: 35
+          manufacture_rate: 10000
+          unit_product_cost: 14
       children:
         storage: *multi_storage
         distribution: *simple_distribution
@@ -349,3 +353,15 @@ world:
 settings:
   pending_order_len: 4  # For initialization of Consumer Units
   start_date_time: "2021-01-01"
+
+
+policy_parameter:
+  facilities:
+    Vendor_001:
+      max_price: 33
+    Plant_001:
+      max_price: 33
+    Warehouse_001:
+      max_price: 33
+    Store_001:
+      max_price: 33

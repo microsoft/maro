@@ -134,15 +134,13 @@ class DQNOps(AbsTrainOps):
         self._policy.train()
         self._policy.train_step(self._get_batch_loss(batch))
 
-    def get_state(self) -> dict:
+    def get_non_policy_state(self) -> dict:
         return {
-            "policy": self._policy.get_state(),
             "target_q_net": self._target_policy.get_state(),
         }
 
-    def set_state(self, ops_state_dict: dict) -> None:
-        self._policy.set_state(ops_state_dict["policy"])
-        self._target_policy.set_state(ops_state_dict["target_q_net"])
+    def set_non_policy_state(self, state: dict) -> None:
+        self._target_policy.set_state(state["target_q_net"])
 
     def soft_update_target(self) -> None:
         """Soft update the target policy.

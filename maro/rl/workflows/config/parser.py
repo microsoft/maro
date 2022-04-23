@@ -88,12 +88,13 @@ class ConfigParser:
                 raise KeyError(
                     f"{self._validation_err_pfx}: missing field 'sampling' under section 'rollout.parallelism'"
                 )
-            if not isinstance(conf["sampling"], int) or conf["sampling"] <= 0:
-                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.sampling' must be a positive int")
-            if "eval" in conf and not isinstance(conf["eval"], int) or conf["eval"] <= 0:
-                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.eval' must be a positive int")
 
-            train_prl, eval_prl = conf["sampling"], conf.get("eval", 1)
+            train_prl = conf["sampling"]
+            eval_prl = 1 if "eval" not in conf or conf["eval"] is None else conf["eval"]
+            if not isinstance(train_prl, int) or train_prl <= 0:
+                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.sampling' must be a positive int")
+            if not isinstance(eval_prl, int) or eval_prl <= 0:
+                raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.eval' must be a positive int")
             if max(train_prl, eval_prl) > 1:
                 if "controller" not in conf:
                     raise KeyError(
@@ -161,8 +162,12 @@ class ConfigParser:
             if "logging" in self._config["training"]:
                 self._validate_logging_section("training", self._config["training"]["logging"])
 
-        if "load_path" in self._config["training"] and not isinstance(self._config["training"]["load_path"], str):
+        load_path = self._config["training"].get("load_path", None)
+        if load_path is not None and not isinstance(load_path, str):
             raise TypeError(f"{self._validation_err_pfx}: 'training.load_path' must be a string")
+        load_episode = self._config["training"].get("load_episode", None)
+        if load_episode is not None and not isinstance(load_episode, int):
+            raise TypeError(f"{self._validation_err_pfx}: 'training.load_episode' must be a integer")
 
         if "checkpointing" in self._config["training"]:
             self._validate_checkpointing_section(self._config["training"]["checkpointing"])
@@ -275,6 +280,9 @@ class ConfigParser:
         load_path = self._config["training"].get("load_path", None)
         if load_path is not None:
             env["main"]["LOAD_PATH"] = path_mapping[load_path]
+        load_episode = self._config["training"].get("load_episode", None)
+        if load_episode is not None:
+            env["main"]["LOAD_EPISODE"] = str(load_episode)
 
         if "checkpointing" in self._config["training"]:
             conf = self._config["training"]["checkpointing"]
@@ -293,8 +301,9 @@ class ConfigParser:
             })
 
         if "parallelism" in self._config["rollout"]:
-            env_sampling_parallelism = self._config["rollout"]["parallelism"]["sampling"]
-            env_eval_parallelism = self._config["rollout"]["parallelism"].get("eval", 1)
+            conf = self._config["rollout"]["parallelism"]
+            env_sampling_parallelism = conf["sampling"]
+            env_eval_parallelism = 1 if "eval" not in conf or conf["eval"] is None else conf["eval"]
         else:
             env_sampling_parallelism = env_eval_parallelism = 1
         rollout_parallelism = max(env_sampling_parallelism, env_eval_parallelism)

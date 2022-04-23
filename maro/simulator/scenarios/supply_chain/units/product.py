@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 import typing
-import numpy as np
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union
+
+import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
 
@@ -56,7 +57,7 @@ class ProductUnit(ExtendUnitBase):
         self.distribution: Optional[DistributionUnit] = None
 
         # 1st element: out product_id; 2nd element: self consumption / out product quantity
-        self.bom_out_info_list: List[Tuple(int, float)] = []
+        self.bom_out_info_list: List[Tuple[int, float]] = []
 
         # Internal states to track distribution.
         self._check_in_quantity_in_order: int = 0
@@ -135,34 +136,32 @@ class ProductUnit(ExtendUnitBase):
             max_vlt=self._get_max_vlt(),
         )
 
-    def get_sale_mean(self) -> float:
-        """"Here the sale mean of up-streams means the sum of its down-streams,
-        which indicates the daily demand of this product from the aspect of the facility it belongs."""
-        sale_mean = 0
+    def _get_sale_means(self) -> List[float]:
+        sale_means = []
         downstream_infos: List[LeadingTimeInfo] = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
+        _cache: Dict[int, float] = {}
+
+        def _get_sale_mean(product_unit: ProductUnit) -> float:
+            if product_unit.id not in _cache:
+                _cache[product_unit.id] = product_unit.get_sale_mean()
+            return _cache[product_unit.id]
+
         for info in downstream_infos:
-            sale_mean += info.dest_facility.products[self.product_id].get_sale_mean()
-
+            sale_means.append(_get_sale_mean(info.dest_facility.products[self.product_id]))
         for out_product_id, consumption_ratio in self.bom_out_info_list:
-            # TODO: could add cache of sale_mean to avoid duplicated calling.
-            sale_mean += int(self.facility.products[out_product_id].get_sale_mean() * consumption_ratio)
+            sale_means.append(int(_get_sale_mean(self.facility.products[out_product_id]) * consumption_ratio))
 
-        return sale_mean
+        return sale_means
+
+    def get_sale_mean(self) -> float:
+        """"Here the sale mean of upstreams means the sum of its downstreams,
+        which indicates the daily demand of this product from the aspect of the facility it belongs."""
+        return float(np.sum(self._get_sale_means()))
 
     def get_sale_std(self) -> float:
-        sale_std = 0
-        downstream_infos = self.facility.downstream_vlt_infos.get(self.product_id, [])
-
-        for info in downstream_infos:
-            sale_std += info.dest_facility.products[self.product_id].get_sale_std()
-
-        for out_product_id, consumption_ratio in self.bom_out_info_list:
-            sale_std += self.facility.products[out_product_id].get_sale_std() * consumption_ratio
-
-        downstream_num = len(downstream_infos) + len(self.bom_out_info_list)
-
-        return sale_std / np.sqrt(max(1, downstream_num))
+        sale_means = self._get_sale_means()
+        return 0.0 if len(sale_means) == 0 else float(np.std(sale_means))
 
     def get_max_sale_price(self) -> float:
         price = 0.0
