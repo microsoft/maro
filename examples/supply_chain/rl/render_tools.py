@@ -70,19 +70,18 @@ class SimulationComparisionTrackerHtml:
         df2.loc[:, "model_name"] = self.model2
         df = pd.concat([df1, df2])
         df.loc[:, 'sale_dt'] = df['tick'].map(lambda x: self.start_dt+timedelta(days=x))
-        facility_name_list = [facility_name for facility_name in df['facility_name'].unique() if facility_name.startswith("store")]
-        df = df[df['facility_name'].isin(facility_name_list)]
+        self.facility_name_list = [facility_name for facility_name in df['facility_name'].unique() if len(facility_name) > 2 and facility_name[:2] in ['CA', 'TX', 'WI']]
+        # self.facility_name_list = df['facility_name'].unique().tolist()
+        df = df[df['facility_name'].isin(self.facility_name_list)]
         return df
 
     def render_overview(self):
-        df_sku = self.df.groupby(['facility_id', 'sku_id', 'sale_dt', 'model_name']).first().reset_index()
-        
-        print(df_sku[((df_sku['name']==594913) 
-                & (df_sku['facility_name']=='store_4830')
-                     & (df_sku['seller_sold'] < df_sku["seller_demand"])
-                     & (df_sku['model_name'] == 'MARL'))]
-                    [['tick', 'facility_name', 'name', 'seller_sold', 'seller_demand']].head(10))
-
+        df_agg = self.df.copy(deep=True)
+        df_agg = df_agg.groupby(['facility_name', 'sku_id', 'sale_dt', 'model_name']).first().reset_index()
+        df_agg.loc[:, "facility_name"] = 'ALL'
+        df_agg.loc[:, "facility_id"] = -1
+        df = self.df.groupby(['facility_name', 'sku_id', 'sale_dt', 'model_name']).first().reset_index()
+        df_sku = pd.concat([df, df_agg])
         df_sku.loc[:, "GMV"] = df_sku['seller_price'] * df_sku['seller_sold']
         df_sku.loc[:, "order_cost"] = df_sku["consumer_order_product_cost"] + df_sku["consumer_order_cost"]
         df_sku.loc[:, 'inventory_holding_cost'] = df_sku['inventory_in_stock'] * df_sku['unit_inventory_holding_cost']
@@ -107,7 +106,8 @@ class SimulationComparisionTrackerHtml:
         details_headers = ['name'] + cols
         details_rows = df_sku[details_headers].values.tolist()
         
-        df['x'] = df.apply(lambda x: f"{x['facility_name']}_{x['model_name']}", axis=1)
+
+        df.loc[:, 'x'] = df.apply(lambda x: f"{x['facility_name']}_{x['model_name']}", axis=1)
         x = df['x'].tolist()
         y_gmv = [round(x,2) for x in df['GMV'].tolist()]
         y_profit = [round(x,2) for x in df['profit'].tolist()]
@@ -122,13 +122,13 @@ class SimulationComparisionTrackerHtml:
         for (name, y_vals) in zip(['GMV (¥)', 'Profit (¥)', 'Inventory Holding Cost (¥)', 'Order Cost (¥)', 'Total Sales (Units)', 'Turnover Rate (Days)', 'Available Rate'],
                                 [y_gmv, y_profit, y_inventory_holding_cost, y_order_cost, y_seller_sold, y_turnover_rate, y_available_rate]):
             c = (
-            PictorialBar()
+            PictorialBar(opts.InitOpts(height=f'{100*len(self.facility_name_list)}px', width='1200px'))
             .add_xaxis(x)
             .add_yaxis(
                 "",
                 y_vals,
-                label_opts=opts.LabelOpts(is_show=True),
-                symbol_size=18,
+                label_opts=opts.LabelOpts(is_show=True, position="right"),
+                symbol_size=15,
                 symbol_repeat="fixed",
                 symbol_offset=[0, 0],
                 is_symbol_clip=True,
@@ -145,9 +145,33 @@ class SimulationComparisionTrackerHtml:
                         linestyle_opts=opts.LineStyleOpts(opacity=0)
                     ),
                 ),
+                datazoom_opts=opts.DataZoomOpts(orient='vertical'),
             )
             )
-            g = Grid().add(c, opts.GridOpts(pos_left="30%"), is_control_axis_index=True)
+
+            model1_larger_cnt, model2_larger_cnt = 0, 0
+            for facility in self.facility_name_list:
+                idx1 = x.index(f"{facility}_{self.model1}")
+                idx2 = x.index(f"{facility}_{self.model2}")
+                if y_vals[idx2] > y_vals[idx1]: model2_larger_cnt += 1
+                else: model1_larger_cnt += 1
+            
+
+            b=(
+                Bar()
+                .add_xaxis([f'{self.model1}>{self.model2}', f'{self.model2}>{self.model1}'])
+                .add_yaxis(f'larger {name} counts', [int(model1_larger_cnt), int(model2_larger_cnt)], color='RoyalBlue', bar_width="20px")
+                .set_global_opts(
+                    title_opts=opts.TitleOpts(title=name),
+                    yaxis_opts=opts.AxisOpts(name="Number of Facilities"),
+                    xaxis_opts=opts.AxisOpts(name="Models"),
+                    legend_opts=opts.LegendOpts(pos_left="center", pos_right="center", pos_top='70%'),)
+                )
+
+            g = (Grid(opts.InitOpts(height='1200px', width='1200px'))
+                 .add(c, opts.GridOpts(pos_left=100, pos_right=100, height="60%"), is_control_axis_index=True)
+                 .add(b, opts.GridOpts(pos_top="70%", height="25%"))
+                )
             tab.add(g, name)
 
         table = Table()
@@ -621,15 +645,15 @@ class SimulationTracker:
         return metric, metric_list
 
 if __name__ == "__main__":
-    html_render = SimulationTrackerHtml("/data/songlei/maro_ms/examples/supply_chain/results/dqn_15skus_tr_round5/output_product_metrics_320.csv")
+    html_render = SimulationTrackerHtml("/data/songlei/maro_ms/examples/supply_chain/results/dqn_20SKUs/output_product_metrics_470.csv")
     html_render.render_sku()
     html_render.render_facility()
 
     baseline_model = "baseline"
-    baseline_loc = "/data/songlei/maro_ms/examples/supply_chain/results/baseline_15skus/output_product_metrics.csv"
+    baseline_loc = "/data/songlei/maro_ms/examples/supply_chain/results/baseline_20SKUs/output_product_metrics.csv"
 
     RL_model = "MARL"
-    RL_loc = "/data/songlei/maro_ms/examples/supply_chain/results/dqn_15skus_tr_round5/output_product_metrics_320.csv"
+    RL_loc = "/data/songlei/maro_ms/examples/supply_chain/results/dqn_20SKUs/output_product_metrics_470.csv"
 
     html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
     html_comparison_render.render_overview()

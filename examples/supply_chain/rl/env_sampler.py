@@ -11,7 +11,7 @@ from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit
+    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit, StoreProductUnit
 )
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
@@ -23,7 +23,7 @@ from examples.supply_chain.rl.algorithms.rule_based import ConsumerEOQPolicy as 
 
 from .agent_state import serialize_state, SCAgentStates
 from .config import (
-    distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD
+    distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO
 )
 from .policies import agent2policy, trainable_policies
 from .render_tools import SimulationTracker
@@ -82,6 +82,7 @@ class SCEnvSampler(AbsEnvSampler):
             reward_eval_delay=reward_eval_delay,
             get_test_env=get_test_env,
         )
+
         self.baseline_policy = ConsumerBaselinePolicy('baseline_eoq')
 
         self._env_settings: dict = workflow_settings
@@ -129,6 +130,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         # Key: facility id; List Index: sku idx; Value: in transition product quantity.
         self._facility_in_transit_orders: Dict[int, List[int]] = {}
+        self._facility_to_distribute_orders: Dict[int, List[int]] = {}
 
         self._facility_product_utilization: Dict[int, int] = {}
 
@@ -154,6 +156,8 @@ class SCEnvSampler(AbsEnvSampler):
         self._sold_status = {}
         self._reward_status = {}
         self._balance_status = {}
+
+        print("total number of agents: ", len(self._entity_dict.keys()))
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
@@ -197,7 +201,6 @@ class SCEnvSampler(AbsEnvSampler):
         extend_state(self._storage_product_quantity[entity.facility_id])
         extend_state(self._facility_in_transit_orders[entity.facility_id])
         extend_state(self._facility_to_distribute_orders[entity.facility_id])
-
         # extend_state([self._product_id2idx[entity.facility_id][entity.skus.id] + 1])  # TODO: check +1 or not
         extend_state([self._global_sku_id2idx[entity.skus.id]])
         extend_state([be.world.get_facility_by_id(entity.facility_id).get_max_vlt(entity.skus.id)])
@@ -350,9 +353,9 @@ class SCEnvSampler(AbsEnvSampler):
                     ])
                 ]
 
-                if len(vlt_info_cadidates):
-                    src_f_id = vlt_info_cadidates[0].src_facility.id
-                    vehicle_type = vlt_info_cadidates[0].vehicle_type
+                if len(vlt_info_candidates):
+                    src_f_id = vlt_info_candidates[0].src_facility.id
+                    vehicle_type = vlt_info_candidates[0].vehicle_type
                     
                     if (ALGO == "PPO" and isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy)):
                         or_action = self._agent_state_dict[agent_id][-1]
@@ -409,31 +412,20 @@ class SCEnvSampler(AbsEnvSampler):
         self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
         while not is_done:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
+            # agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
-            
-            # Store experiences in the cache
-            cache_element = CacheElement(
-                    tick=self._env.tick,
-                    event=self._event,
-                    state=self._state,
-                    agent_state_dict=agent_state_dict,
-                    action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
-                    env_action_dict={
-                        id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
-                    },
-                )
-            self._trans_cache.append(cache_element)
             # Update env and get new states (global & agent)
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
-            reward = self._get_reward(cache_element.env_action_dict, cache_element.event, cache_element.tick)
-            # consumer_action_dict = {}
-            # for entity_id, entity in self._entity_dict.items():
-            #     if issubclass(entity.class_type, ConsumerUnit):
-            #         action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
-            #         consumer_action_dict[entity_id] = (action, reward[entity_id])
-            # print(step_idx, consumer_action_dict)
-            print("evaluate step: ", step_idx)
+            reward = self._get_reward(env_action_dict, self._event, self._env.tick)
+            consumer_action_dict = {}
+            for entity_id, entity in self._entity_dict.items():
+                if issubclass(entity.class_type, ConsumerUnit):
+                    parent_entity = self._entity_dict[entity.parent_id]
+                    if issubclass(parent_entity.class_type, StoreProductUnit):
+                        action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
+                        or_action = self._agent_state_dict[entity_id][-1]
+                        consumer_action_dict[parent_entity.id] = (action, or_action, reward[entity_id])
+            print(step_idx, consumer_action_dict)
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event)
 

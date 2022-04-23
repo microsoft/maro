@@ -33,6 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("--shared_model", action='store_true')
     args = parser.parse_args()
     
+    print(args)
 
     LOG_PATH = join(dirname(SCENARIO_PATH), "results", args.exp_name)
     os.makedirs(LOG_PATH, exist_ok=True)

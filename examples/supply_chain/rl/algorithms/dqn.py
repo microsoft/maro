@@ -18,13 +18,13 @@ from maro.rl.utils import match_shape, ndarray_to_tensor
 
 q_net_conf = {
     # "input_dim" will be filled by env_info.py
-    "hidden_dims": [256, 256, 128],
+    "hidden_dims": [256, 256, 256],
     "activation": torch.nn.Tanh,
     "softmax": True,
     "batch_norm": False,
     "skip_connection": False,
     "head": True,
-    "dropout_p": 0.0,
+    "dropout_p": 0.1,
 }
 
 learning_rate = 0.0005
@@ -103,7 +103,7 @@ def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
             "final_value": 1.0,
             }
         )],
-        warmup=1000
+        warmup=0
     )
     return policy
 
