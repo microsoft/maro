@@ -1,16 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Dict
+from typing import Dict
 
 from maro.rl.distributed import AbsWorker
-from maro.rl.policy import AbsPolicy
 from maro.rl.training import SingleAgentTrainer
 from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
 from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps
 from .trainer import AbsTrainer, MultiAgentTrainer
+from ..rl_component.rl_component_bundle import RLComponentBundle
 
 
 class TrainOpsWorker(AbsWorker):
@@ -19,10 +19,7 @@ class TrainOpsWorker(AbsWorker):
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the proxy can keep track of its connection status.
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): User-defined function registry that can be used to
-            create an "AbsPolicy" instance with a name in the registry. This is required to create train ops instances.
-        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): User-defined function registry that can be used to
-            create an "AbsTrainer" instance with a name in the registry. This is required to create train ops instances.
+        rl_component_bundle: TODO
         producer_host (str): IP address of the proxy host to connect to.
         producer_port (int, default=10001): Port of the proxy host to connect to.
     """
@@ -30,8 +27,7 @@ class TrainOpsWorker(AbsWorker):
     def __init__(
         self,
         idx: int,
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
-        trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
+        rl_component_bundle: RLComponentBundle,
         producer_host: str,
         producer_port: int = 10001,
         logger: LoggerV2 = None,
@@ -40,8 +36,7 @@ class TrainOpsWorker(AbsWorker):
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
 
-        self._policy_creator = policy_creator
-        self._trainer_creator = trainer_creator
+        self._rl_component_bundle = rl_component_bundle
         self._trainer_dict: Dict[str, AbsTrainer] = {}
 
         self._ops_dict: Dict[str, AbsTrainOps] = {}
@@ -62,8 +57,8 @@ class TrainOpsWorker(AbsWorker):
             if ops_name not in self._ops_dict:
                 trainer_name = ops_name.split(".")[0]
                 if trainer_name not in self._trainer_dict:
-                    trainer = self._trainer_creator[trainer_name](trainer_name)
-                    trainer.register_policy_dict(self._policy_creator)
+                    trainer = self._rl_component_bundle.trainer_creator[trainer_name]()
+                    trainer.register_policy_creator(self._rl_component_bundle.trainable_policy_creator)
                     self._trainer_dict[trainer_name] = trainer
 
                 trainer = self._trainer_dict[trainer_name]
