@@ -12,7 +12,6 @@ from typing import Any, Dict, Iterable, List, Tuple
 
 from maro.rl.rollout import ExpElement
 from maro.rl.training import SingleAgentTrainer
-from maro.rl.utils import extract_trainer_name
 from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
@@ -27,8 +26,8 @@ class TrainingManager(object):
     Training manager. Manage and schedule all trainers to train policies.
 
     Args:
-        rl_component_bundle: TODO
-        explicit_assign_device: TODO
+        rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
+        explicit_assign_device (bool): Whether to assign policy to its device in the training manager.
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
             it is registered to all trainers, which in turn create `RemoteOps` for distributed training.
         logger (LoggerV2, default=None): A logger for logging key events.
@@ -49,8 +48,14 @@ class TrainingManager(object):
             trainer = func()
             if self._proxy_address:
                 trainer.set_proxy_address(self._proxy_address)
-            trainer.register_agent2policy(rl_component_bundle.trainable_agent2policy)
-            trainer.register_policy_creator(rl_component_bundle.trainable_policy_creator)
+            trainer.register_agent2policy(
+                rl_component_bundle.trainable_agent2policy,
+                rl_component_bundle.policy_trainer_mapping,
+            )
+            trainer.register_policy_creator(
+                rl_component_bundle.trainable_policy_creator,
+                rl_component_bundle.policy_trainer_mapping,
+            )
             trainer.register_logger(logger)
             trainer.build()  # `build()` must be called after `register_policy_creator()`
             self._trainer_dict[trainer_name] = trainer
@@ -58,7 +63,7 @@ class TrainingManager(object):
         # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
         if explicit_assign_device:
             for policy_name, device_name in rl_component_bundle.device_mapping.items():
-                trainer = self._trainer_dict[extract_trainer_name(policy_name)]
+                trainer = self._trainer_dict[rl_component_bundle.policy_trainer_mapping[policy_name]]
 
                 if isinstance(trainer, SingleAgentTrainer):
                     ops = trainer.ops
@@ -69,7 +74,7 @@ class TrainingManager(object):
 
         self._agent2trainer: Dict[Any, str] = {}
         for agent_name, policy_name in rl_component_bundle.trainable_agent2policy.items():
-            trainer_name = extract_trainer_name(policy_name)
+            trainer_name = rl_component_bundle.policy_trainer_mapping[policy_name]
             if trainer_name not in self._trainer_dict:
                 raise MissingTrainer(f"trainer {trainer_name} does not exist")
             self._agent2trainer[agent_name] = trainer_name

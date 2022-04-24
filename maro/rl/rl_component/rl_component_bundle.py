@@ -5,11 +5,27 @@ from typing import Any, Callable, Dict, List, Optional
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
-from maro.rl.utils import extract_trainer_name
 from maro.simulator import Env
 
 
 class RLComponentBundle(object):
+    """Bundle of all necessary components to run a RL job in MARO.
+
+    Users should create their own subclass of `RLComponentBundle` and implement following methods:
+    - get_env_config()
+    - get_test_env_config()
+    - get_env_sampler()
+    - get_agent2policy()
+    - get_policy_creator()
+    - get_trainer_creator()
+
+    Following methods could be overwritten when necessary:
+    - get_device_mapping()
+    - post_collect()
+    - post_evaluate()
+
+    Please refer to the doc string of each method for detailed explanations.
+    """
     def __init__(self) -> None:
         super(RLComponentBundle, self).__init__()
 
@@ -23,45 +39,102 @@ class RLComponentBundle(object):
         self.trainable_policy_names: Optional[List[str]] = None
 
         self.device_mapping: Optional[Dict[str, str]] = None
+        self.policy_trainer_mapping: Optional[Dict[str, str]] = None
 
         self._policy_cache: Optional[Dict[str, AbsPolicy]] = None
 
     ########################################################################################
+    # Users MUST implement the following methods                                           #
+    ########################################################################################
     @abstractmethod
     def get_env_config(self) -> dict:
+        """Return the environment configuration to build the MARO Env for training.
+
+        Returns:
+            Environment configuration.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_test_env_config(self) -> Optional[dict]:
+        """Return the environment configuration to build the MARO Env for testing. If returns `None`, the training
+        environment will be reused as testing environment.
+
+        Returns:
+            Environment configuration or `None`.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_env_sampler(self) -> AbsEnvSampler:
+        """Return the environment sampler of the scenario.
+
+        Returns:
+            The environment sampler of the scenario.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_agent2policy(self) -> Dict[Any, str]:
+        """Return agent name to policy name mapping of the RL job. This mapping identifies which policy should
+        the agents use. For example: {agent1: policy1, agent2: policy1, agent3: policy2}.
+
+        Returns:
+            Agent name to policy name mapping.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_policy_creator(self) -> Dict[str, Callable[[], AbsPolicy]]:
+        """Return policy creator. Policy creator is a dictionary that contains a group of functions that generate
+        policy instances. The key of this dictionary is the policy name, and the value is the function that generate
+        the corresponding policy instance. Note that the creation function should not take any parameters.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_trainer_creator(self) -> Dict[str, Callable[[], AbsTrainer]]:
+        """Return trainer creator. Trainer creator is similar to policy creator, but is used to creator trainers.
+        """
         raise NotImplementedError
 
+    ########################################################################################
+    # Users could overwrite the following methods                                          #
+    ########################################################################################
     def get_device_mapping(self) -> Dict[str, str]:
+        """Return the device mapping that identifying which device to put each policy.
+
+        If user does not overwrite this method, then all policies will be put on CPU by default.
+        """
         return {policy_name: "cpu" for policy_name in self.get_policy_creator()}
 
+    def get_policy_trainer_mapping(self) -> Dict[str, str]:
+        """Return the policy-trainer mapping which identifying which trainer to train each policy.
+
+        If user does not overwrite this method, then a policy's trainer's name is the first segment of the policy's
+        name, seperated by dot. For example, "ppo_1.policy" is trained by "ppo_1".
+
+        Only policies that provided in policy-trainer mapping are considered as trainable polices. Policies that
+        not provided in policy-trainer mapping will not be trained since we do not assign a trainer to it.
+        """
+        return {
+            policy_name: policy_name.split(".")[0] for policy_name in self.policy_names
+        }
+
     def post_collect(self, info_list: list, ep: int, segment: int) -> None:
+        """Routines to be invoked at the end of training episodes"""
         pass
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
+        """Routines to be invoked at the end of evaluation episodes"""
         pass
 
     ########################################################################################
+    # Methods invisible to users                                                           #
+    ########################################################################################
     def complete_resources(self) -> None:
+        """Generate all attributes by calling user-defined logics. Do necessary checking and transformations.
+        """
         env_config = self.get_env_config()
         test_env_config = self.get_test_env_config()
         self.env = Env(**env_config)
@@ -74,10 +147,11 @@ class RLComponentBundle(object):
         self.policy_names = list(self.policy_creator.keys())
         self.agent2policy = self.get_agent2policy()
 
-        self.trainable_policy_names = [
-            policy_name for policy_name in self.policy_names
-            if extract_trainer_name(policy_name) in self.trainer_creator
-        ]
+        self.policy_trainer_mapping = self.get_policy_trainer_mapping()
+        assert all([policy_name in self.policy_creator for policy_name in self.policy_trainer_mapping.keys()])
+        assert all([trainer_name in self.trainer_creator for trainer_name in self.policy_trainer_mapping.values()])
+
+        self.trainable_policy_names = list(self.policy_trainer_mapping.keys())
         self.trainable_policy_creator = {
             policy_name: self.policy_creator[policy_name]
             for policy_name in self.trainable_policy_names
@@ -89,6 +163,10 @@ class RLComponentBundle(object):
         }
 
     def pre_create_policy_instances(self) -> None:
+        """Pre-create policy instances, and return the pre-created policy instances when the external callers
+        want to create new policies. This will ensure that each policy will have at most one reusable duplicate.
+        Under specific scenarios (for example, simple training & rollout), this will reduce unnecessary overheads.
+        """
         old_policy_creator = self.policy_creator
         self._policy_cache: Dict[str, AbsPolicy] = {}
         for policy_name in self.policy_names:

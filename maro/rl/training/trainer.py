@@ -11,7 +11,7 @@ import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.utils import extract_trainer_name, TransitionBatch
+from maro.rl.utils import TransitionBatch
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import LoggerV2
 
@@ -82,29 +82,32 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def register_logger(self, logger: LoggerV2) -> None:
         self._logger = logger
 
-    def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
+    def register_agent2policy(self, agent2policy: Dict[Any, str], policy_trainer_mapping: Dict[str, str]) -> None:
         """Register the agent to policy dict that correspond to the current trainer. A valid policy name should start
         with the name of its trainer. For example, "DQN.POLICY_NAME". Therefore, we could identify which policies
         should be registered to the current trainer according to the policy's name.
 
         Args:
             agent2policy (Dict[Any, str]): Agent name to policy name mapping.
+            policy_trainer_mapping (Dict[str, str]): Policy name to trainer name mapping.
         """
         self._agent2policy = {
             agent_name: policy_name for agent_name, policy_name in agent2policy.items()
-            if extract_trainer_name(policy_name) == self.name
+            if policy_trainer_mapping[policy_name] == self.name
         }
 
     @abstractmethod
     def register_policy_creator(
         self,
         global_policy_creator: Dict[str, Callable[[], AbsPolicy]],
+        policy_trainer_mapping: Dict[str, str],
     ) -> None:
         """Register the policy creator. Only keep the creators of the policies that the current trainer need to train.
 
         Args:
             global_policy_creator (Dict[str, Callable[[], AbsPolicy]]): Dict that contains the creators for all
                 policies.
+            policy_trainer_mapping (Dict[str, str]): Policy name to trainer name mapping.
         """
         raise NotImplementedError
 
@@ -180,9 +183,12 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     def register_policy_creator(
         self,
         global_policy_creator: Dict[str, Callable[[], AbsPolicy]],
+        policy_trainer_mapping: Dict[str, str],
     ) -> None:
         policy_names = [
-            policy_name for policy_name in global_policy_creator if extract_trainer_name(policy_name) == self.name
+            policy_name
+            for policy_name in global_policy_creator
+            if policy_trainer_mapping[policy_name] == self.name
         ]
         if len(policy_names) != 1:
             raise ValueError(f"Trainer {self._name} should have exactly one policy assigned to it")
@@ -290,10 +296,11 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     def register_policy_creator(
         self,
         global_policy_creator: Dict[str, Callable[[], AbsPolicy]],
+        policy_trainer_mapping: Dict[str, str],
     ) -> None:
         self._policy_creator: Dict[str, Callable[[], RLPolicy]] = {
             policy_name: func for policy_name, func in global_policy_creator.items()
-            if extract_trainer_name(policy_name) == self.name
+            if policy_trainer_mapping[policy_name] == self.name
         }
         self._policy_names = list(self._policy_creator.keys())
 

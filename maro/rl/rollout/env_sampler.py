@@ -208,7 +208,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     """Simulation data collector and policy evaluator.
 
     Args:
-        TODO
+        learn_env (Env): Environment used for training.
+        learn_env (Env): Environment used for testing.
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event.
@@ -240,7 +241,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     ) -> None:
         """
         Args:
-            rl_component_bundle: TODO
+            rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
         """
         self._env: Optional[Env] = None
         self._event = None  # Need this to remember the last event if an episode is divided into multiple segments

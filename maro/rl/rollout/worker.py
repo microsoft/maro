@@ -19,7 +19,7 @@ class RolloutWorker(AbsWorker):
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the parallel roll-out controller can keep track of its connection status.
-        rl_component_bundle: TODO
+        rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
         producer_host (str): IP address of the parallel task controller host to connect to.
         producer_port (int, default=20000): Port of the parallel task controller host to connect to.
         logger (LoggerV2, default=None): The logger of the workflow.
