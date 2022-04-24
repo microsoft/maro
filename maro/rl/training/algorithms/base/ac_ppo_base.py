@@ -44,7 +44,7 @@ class ACBasedOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], RLPolicy],
+        policy_creator: Callable[[], RLPolicy],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         reward_discount: float = 0.9,

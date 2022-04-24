@@ -1,18 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 
-from maro.rl.policy import RLPolicy
 from maro.rl.rollout import AbsEnvSampler, CacheElement
-from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
 from .config import (
-    action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
-    vessel_attributes
+    action_shaping_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
+    vessel_attributes,
 )
 
 
@@ -81,14 +79,3 @@ class CIMEnvSampler(AbsEnvSampler):
 
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._post_step(cache_element, reward)
-
-
-agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in Env(**env_conf).agent_idx_list}
-
-
-def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> CIMEnvSampler:
-    return CIMEnvSampler(
-        get_env=lambda: Env(**env_conf),
-        policy_creator=policy_creator,
-        agent2policy=agent2policy,
-    )

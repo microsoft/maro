@@ -63,7 +63,7 @@ class TrainOpsWorker(AbsWorker):
                 trainer_name = ops_name.split(".")[0]
                 if trainer_name not in self._trainer_dict:
                     trainer = self._trainer_creator[trainer_name](trainer_name)
-                    trainer.register_policy_creator(self._policy_creator)
+                    trainer.register_policy_dict(self._policy_creator)
                     self._trainer_dict[trainer_name] = trainer
 
                 trainer = self._trainer_dict[trainer_name]

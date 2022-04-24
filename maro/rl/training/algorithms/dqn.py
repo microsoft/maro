@@ -48,7 +48,7 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], RLPolicy],
+        policy_creator: Callable[[], RLPolicy],
         parallelism: int = 1,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,

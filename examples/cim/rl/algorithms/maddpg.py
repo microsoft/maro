@@ -56,7 +56,7 @@ def get_multi_critic_net(state_dim: int, action_dims: List[int]) -> MyMultiCriti
     return MyMultiCriticNet(state_dim, action_dims)
 
 
-def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
+def get_maddpg_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 

@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from maro.rl.model import MultiQNet
-from maro.rl.policy import DiscretePolicyGradient
+from maro.rl.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
 from maro.rl.utils import MultiTransitionBatch, get_torch_device, ndarray_to_tensor
@@ -56,7 +56,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], DiscretePolicyGradient],
+        policy_creator: Callable[[], RLPolicy],
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
         parallelism: int = 1,

@@ -5,16 +5,16 @@ import asyncio
 import collections
 import os
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
 
-from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import SingleAgentTrainer
 from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
 from .trainer import AbsTrainer, MultiAgentTrainer
-from .utils import extract_trainer_name
+from ..rl_component.rl_component_bundle import RLComponentBundle
+from ..utils import extract_trainer_name
 
 
 class TrainingManager(object):
@@ -22,11 +22,8 @@ class TrainingManager(object):
     Training manager. Manage and schedule all trainers to train policies.
 
     Args:
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies.
-        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
-        agent2policy (Dict[Any, str]): Agent name to policy name mapping.
-        device_mapping (Dict[str, str], default={}): User-defined device mapping from policy name to pytorch
-            device name.
+        rl_component_bundle: TODO
+        explicit_assign_device: TODO
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
             it is registered to all trainers, which in turn create `RemoteOps` for distributed training.
         logger (LoggerV2, default=None): A logger for logging key events.
@@ -34,31 +31,28 @@ class TrainingManager(object):
 
     def __init__(
         self,
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
-        trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
-        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        device_mapping: Dict[str, str] = None,
+        rl_component_bundle: RLComponentBundle,
+        explicit_assign_device: bool,
         proxy_address: Tuple[str, int] = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(TrainingManager, self).__init__()
 
         self._trainer_dict: Dict[str, AbsTrainer] = {}
-        self._agent2policy = agent2policy
         self._proxy_address = proxy_address
-        for trainer_name, func in trainer_creator.items():
-            trainer = func(trainer_name)
+        for trainer_name, func in rl_component_bundle.trainer_creator.items():
+            trainer = func()
             if self._proxy_address:
                 trainer.set_proxy_address(self._proxy_address)
-            trainer.register_agent2policy(self._agent2policy)
-            trainer.register_policy_creator(policy_creator)
+            trainer.register_agent2policy(rl_component_bundle.trainable_agent2policy)
+            trainer.register_policy_creator(rl_component_bundle.trainable_policy_creator)
             trainer.register_logger(logger)
             trainer.build()  # `build()` must be called after `register_policy_creator()`
             self._trainer_dict[trainer_name] = trainer
 
         # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
-        if device_mapping is not None:
-            for policy_name, device_name in device_mapping.items():
+        if explicit_assign_device:
+            for policy_name, device_name in rl_component_bundle.device_mapping.items():
                 trainer = self._trainer_dict[extract_trainer_name(policy_name)]
 
                 if isinstance(trainer, SingleAgentTrainer):
@@ -69,7 +63,7 @@ class TrainingManager(object):
                 ops.to_device(device_name)
 
         self._agent2trainer: Dict[Any, str] = {}
-        for agent_name, policy_name in self._agent2policy.items():
+        for agent_name, policy_name in rl_component_bundle.trainable_agent2policy.items():
             trainer_name = extract_trainer_name(policy_name)
             if trainer_name not in self._trainer_dict:
                 raise MissingTrainer(f"trainer {trainer_name} does not exist")
