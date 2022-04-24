@@ -3,7 +3,7 @@ from typing import Tuple
 
 import torch
 
-from maro.rl.model import ContinuousPolicyNet
+from maro.rl.model.policy_net import ContinuousPolicyNet
 
 
 class ContinuousDDPGNet(ContinuousPolicyNet, metaclass=ABCMeta):
