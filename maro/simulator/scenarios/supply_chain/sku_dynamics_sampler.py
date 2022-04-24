@@ -16,7 +16,7 @@ from dateutil.parser import parse
 from tqdm import tqdm
 
 from maro.data_lib.supply_chain import (
-    DATE_INDEX_COLUMN_NAME, get_date_index, get_preprocessed_file_path, preprocess_file,
+    DATE_INDEX_COLUMN_NAME, get_date_index, get_preprocessed_file_path, preprocess_file
 )
 
 from .units.seller import SellerDemandInterface
