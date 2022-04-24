@@ -20,8 +20,9 @@ from .config import (
 
 
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, policy_creator, agent2policy, get_test_env=None):
-        super().__init__(get_env, policy_creator, agent2policy, get_test_env=get_test_env)
+    def __init__(self, learn_env: Env, test_env: Env) -> None:
+        super(VMEnvSampler, self).__init__(learn_env, test_env)
+
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
 
@@ -127,14 +128,3 @@ class VMEnvSampler(AbsEnvSampler):
 
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._post_step(cache_element, reward)
-
-
-agent2policy = {"AGENT": f"{algorithm}.policy"}
-
-def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> VMEnvSampler:
-    return VMEnvSampler(
-        get_env=lambda: Env(**env_conf),
-        policy_creator=policy_creator,
-        agent2policy=agent2policy,
-        get_test_env=lambda: Env(**test_env_conf),
-    )

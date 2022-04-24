@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict
-
 import numpy as np
 import torch
 from torch.optim import SGD
@@ -11,8 +9,7 @@ from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from maro.rl.exploration import MultiLinearExplorationScheduler
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
-from maro.rl.training.algorithms import DQNTrainer, DQNParams
-
+from maro.rl.training.algorithms import DQNParams, DQNTrainer
 
 q_net_conf = {
     "hidden_dims": [64, 128, 256],
@@ -54,7 +51,7 @@ class MaskedEpsGreedy:
         ])
 
 
-def get_policy(state_dim: int, action_num: int, num_features: int, name: str) -> ValueBasedPolicy:
+def get_dqn_policy(state_dim: int, action_num: int, num_features: int, name: str) -> ValueBasedPolicy:
     return ValueBasedPolicy(
         name=name,
         q_net=MyQNet(state_dim, action_num, num_features),

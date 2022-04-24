@@ -26,7 +26,7 @@ class CIMBundle(RLComponentBundle):
         return None
 
     def get_env_sampler(self) -> AbsEnvSampler:
-        return CIMEnvSampler()
+        return CIMEnvSampler(self.env, self.test_env)
 
     def get_agent2policy(self) -> Dict[Any, str]:
         return {agent: f"{algorithm}_{agent}.policy"for agent in self.env.agent_idx_list}

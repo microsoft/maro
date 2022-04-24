@@ -208,6 +208,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     """Simulation data collector and policy evaluator.
 
     Args:
+        TODO
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event.
@@ -215,9 +216,14 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     def __init__(
         self,
+        learn_env: Env,
+        test_env: Env,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
     ) -> None:
+        self._learn_env = learn_env
+        self._test_env = test_env
+
         self._agent_wrapper_cls = agent_wrapper_cls
 
         self._state: Optional[np.ndarray] = None
@@ -236,8 +242,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         Args:
             rl_component_bundle: TODO
         """
-        self._learn_env = rl_component_bundle.env
-        self._test_env = rl_component_bundle.test_env
         self._env: Optional[Env] = None
         self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
