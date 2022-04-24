@@ -39,5 +39,6 @@ class PPOTrainer(ACBasedTrainer):
     References:
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ppo.
     """
+
     def __init__(self, name: str, params: PPOParams) -> None:
         super(PPOTrainer, self).__init__(name, params)

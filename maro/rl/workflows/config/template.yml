@@ -27,7 +27,7 @@ main:
   # Minimum number of samples to start training in one epoch. The workflow will re-run experience collection
   # until we have at least `min_n_sample` of experiences.
   min_n_sample: 1
-  logging:  # log levels for the main loop
+  logging: # log levels for the main loop
     stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
 rollout:
@@ -47,10 +47,10 @@ rollout:
     # "min_env_samples" are received. For example, if T seconds elapsed after receiving "min_env_samples" environment
     # samples, it will wait an additional T * grace_factor seconds to try to collect the remaining results.
     grace_factor: 0.2
-    controller:  # Parallel roll-out controller settings. Ignored if rollout.parallelism section is absent.
+    controller: # Parallel roll-out controller settings. Ignored if rollout.parallelism section is absent.
       host: "127.0.0.1"  # Controller's IP address. Ignored if run in containerized environments.
       port: 20000  # Controller's network port for remote roll-out workers to connect to.
-  logging:  # log levels for roll-out workers
+  logging: # log levels for roll-out workers
     stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
 training:
@@ -71,11 +71,11 @@ training:
     # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
     path: "/path/to/your/checkpoint/folder"
     interval: 10  # Interval at which trained policies / models are persisted to disk.
-  proxy:  # Proxy settings. Ignored if training.mode is "simple".
+  proxy: # Proxy settings. Ignored if training.mode is "simple".
     host: "127.0.0.1"  # Proxy service host's IP address. Ignored if run in containerized environments.
     frontend: 10000  # Proxy service's network port for trainers to send tasks to.
     backend: 10001  # Proxy service's network port for remote workers to connect to.
   num_workers: 10  # Number of workers to execute trainers' tasks.
-  logging:  # log levels for training task workers
+  logging: # log levels for training task workers
     stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
     file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS

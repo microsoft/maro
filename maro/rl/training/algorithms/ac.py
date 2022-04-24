@@ -12,6 +12,7 @@ class ActorCriticParams(ACBasedParams):
     """Identical to `ACBasedParams`. Please refer to the doc string of `ACBasedParams`
     for detailed information.
     """
+
     def extract_ops_params(self) -> Dict[str, object]:
         return {
             "get_v_critic_net_func": self.get_v_critic_net_func,
@@ -32,5 +33,6 @@ class ActorCriticTrainer(ACBasedTrainer):
     Reference:
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/vpg
     """
+
     def __init__(self, name: str, params: ActorCriticParams) -> None:
         super(ActorCriticTrainer, self).__init__(name, params)

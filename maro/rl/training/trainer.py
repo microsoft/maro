@@ -11,12 +11,12 @@ import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import ExpElement
+from maro.rl.utils import extract_trainer_name, TransitionBatch
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import LoggerV2
 
 from .replay_memory import ReplayMemory
 from .train_ops import AbsTrainOps, RemoteOps
-from ..utils import extract_trainer_name, TransitionBatch
 
 
 @dataclass

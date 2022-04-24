@@ -7,12 +7,12 @@ import sys
 import time
 from typing import List, Type
 
+from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainingManager
-from maro.rl.utils.training import get_latest_ep
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
-from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
+from maro.rl.utils.training import get_latest_ep
 from maro.utils import LoggerV2
 
 

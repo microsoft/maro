@@ -12,11 +12,11 @@ from typing import Any, Dict, Iterable, List, Tuple
 
 from maro.rl.rollout import ExpElement
 from maro.rl.training import SingleAgentTrainer
+from maro.rl.utils import extract_trainer_name
 from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
 from .trainer import AbsTrainer, MultiAgentTrainer
-from ..utils import extract_trainer_name
 
 if typing.TYPE_CHECKING:
     from maro.rl.rl_component.rl_component_bundle import RLComponentBundle

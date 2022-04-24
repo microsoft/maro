@@ -41,6 +41,7 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
 class ACBasedOps(AbsTrainOps):
     """Base class of Actor-Critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr
     """
+
     def __init__(
         self,
         name: str,
