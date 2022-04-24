@@ -79,7 +79,8 @@ class RLComponentBundle(object):
             if extract_trainer_name(policy_name) in self.trainer_creator
         ]
         self.trainable_policy_creator = {
-            self.policy_creator[policy_name] for policy_name in self.trainable_policy_names
+            policy_name: self.policy_creator[policy_name]
+            for policy_name in self.trainable_policy_names
         }
         self.trainable_agent2policy = {
             agent_name: policy_name
