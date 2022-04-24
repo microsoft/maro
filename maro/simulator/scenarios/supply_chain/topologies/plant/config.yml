@@ -78,18 +78,16 @@ facility_definitions:
 
 
 train_config: &train
-  class: "VehicleUnit"
   config:
     patient: 2
     # unit_transport_cost: 1
 
 air_config: &air
-  class: "VehicleUnit"
   config:
     patient: 1
 
 mix_distribution: &mix_distribution
-  vehicles:
+  config:
     train:
       number: 14
       config: *train
@@ -98,7 +96,7 @@ mix_distribution: &mix_distribution
       config: *air
 
 simple_distribution: &simple_distribution
-  vehicles:
+  config:
     train:
       number: 14
       config: *train

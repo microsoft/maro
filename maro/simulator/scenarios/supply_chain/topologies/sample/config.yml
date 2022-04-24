@@ -55,13 +55,12 @@ facility_definitions:
             sale_hist_len: 4
 
 train_config: &train
-  class: "VehicleUnit"
   config:
     patient: 100
 
 # a normal distribution definition
 normal_distribution: &normal_distribution
-  vehicles:
+  config:
     train:
       number: 2
       config: *train

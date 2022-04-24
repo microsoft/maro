@@ -6,16 +6,174 @@ from __future__ import annotations
 import typing
 from collections import Counter, defaultdict, deque
 from dataclasses import dataclass
+from enum import Enum
 from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order
 
+from .storage import AddStrategy
 from .unitbase import BaseUnitInfo, UnitBase
-from .vehicle import VehicleStatus, VehicleUnit
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
     from maro.simulator.scenarios.supply_chain.world import World
+
+
+class VehicleStatus(Enum):
+    Free = 0
+    LoadingProducts = 1
+    OnTheWayToDestination = 2
+    UnloadingProducts = 3
+
+
+class Vehicle():
+    """Unit used to move production from source to destination by order."""
+
+    def __init__(self, facility: FacilityBase, config: dict) -> None:
+        self.facility: FacilityBase = facility
+        self.config: dict = config
+
+        # Unit cost per quantity.
+        self._unit_transport_cost = 0
+        # Cost for transportation in current tick.
+        self.cost = 0
+
+        # The given product id of this order.
+        self.product_id = 0
+        # The destination of the product payload.
+        self._destination: Optional[FacilityBase] = None
+
+        # Requested product quantity.
+        self.requested_quantity = 0
+        # The product payload on vehicle.
+        self.payload = 0
+
+        # Remaining steps to arrive to the destination.
+        self._remaining_steps = 0
+        # The steps already traveled from the source facility.
+        self._steps = 0
+        # Vehicle status
+        self._status: VehicleStatus = VehicleStatus.Free
+
+        # Max patient to wait for the try_load() operation, order would be cancelled if patient depleted.
+        self._max_patient: int = self.config.get("patient", 100)
+        self._remaining_patient = 0
+
+    def schedule(self, destination: FacilityBase, product_id: int, quantity: int, vlt: int) -> None:
+        """Schedule a job for this vehicle.
+
+        Args:
+            destination (FacilityBase): Destination facility.
+            product_id (int): What load from storage.
+            quantity (int): How many to load.
+            vlt (int): Vendor leading time.
+        """
+        self.product_id = product_id
+        self._destination = destination
+        self.requested_quantity = quantity
+
+        # Steps to destination.
+        self._remaining_steps = vlt
+        self._status = VehicleStatus.LoadingProducts
+
+        dest_consumer = destination.products[product_id].consumer
+        if self._remaining_steps < len(dest_consumer.pending_order_daily):
+            dest_consumer.pending_order_daily[self._remaining_steps] += quantity
+
+        # We are waiting for product loading.
+        self._steps = 0
+
+        self._remaining_patient = self._max_patient
+
+    def try_load(self, quantity: int) -> bool:
+        """Try to load specified number of scheduled product.
+
+        Args:
+            quantity (int): Number to load.
+        """
+        if self.facility.storage.try_take_products({self.product_id: quantity}):
+            self.payload = quantity
+
+            return True
+
+        return False
+
+    def try_unload(self) -> None:
+        """Try unload products into destination's storage."""
+        unloaded = self._destination.storage.try_add_products(
+            {self.product_id: self.payload},
+            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
+        )
+
+        # Update order if we unloaded any.
+        if len(unloaded) > 0:
+            assert len(unloaded) == 1
+            unloaded_quantity = unloaded[self.product_id]
+
+            self._destination.products[self.product_id].consumer.on_order_reception(
+                source_id=self.facility.id,
+                product_id=self.product_id,
+                received_quantity=unloaded_quantity,
+                required_quantity=self.payload,
+            )
+
+            self.payload -= unloaded_quantity
+
+    @property
+    def status(self) -> VehicleStatus:
+        return self._status
+
+    def step(self, tick: int) -> None:
+        if self._status == VehicleStatus.LoadingProducts:
+            # Try to load by requested.
+            if not self.try_load(self.requested_quantity):
+                self._remaining_patient -= 1
+
+                # Failed to load, check the patient.
+                if self._remaining_patient <= 0:
+                    self._destination.products[self.product_id].consumer.update_open_orders(
+                        source_id=self.facility.id,
+                        product_id=self.product_id,
+                        additional_quantity=-self.requested_quantity,
+                    )
+
+                    self.reset()
+                    # TODO: Add penalty for try-load failure.
+                    return
+            else:
+                self._status = VehicleStatus.OnTheWayToDestination
+
+        if self._status == VehicleStatus.OnTheWayToDestination:
+            if self._remaining_steps > 0:
+                # Closer to destination until 0.
+                self._steps += 1
+                self._remaining_steps -= 1
+
+            if self._remaining_steps == 0:
+                self._status = VehicleStatus.UnloadingProducts
+
+        if self._status == VehicleStatus.UnloadingProducts:
+            # Try to unload.
+            if self.payload > 0:
+                self.try_unload()  # TODO: to confirm -- the logic is to try unload until all. Add a patient for it?
+
+            # Back to source if we unload all.
+            if self.payload == 0:  # TODO: should we simulate the return time cost?
+                self.reset()
+                return
+
+        self.cost = self.payload * self._unit_transport_cost
+
+    def reset(self) -> None:
+        self.cost = 0
+        self.product_id = 0
+        self._destination = None
+        self.requested_quantity = 0
+        self.payload = 0
+        self._remaining_steps = 0
+        self._steps = 0
+        self._status = VehicleStatus.Free
+        self._remaining_patient = self._max_patient
 
 
 @dataclass
@@ -37,7 +195,7 @@ class DistributionUnit(UnitBase):
         )
 
         # Vehicle unit dict of this distribution unit. Key: vehicle type; Value: a list of vehicle instances.
-        self.vehicles: Dict[str, List[VehicleUnit]] = defaultdict(list)
+        self.vehicles: Dict[str, List[Vehicle]] = defaultdict(list)
 
         # A dict of pending order queue. Key: vehicle type; Value: pending order queue.
         self._order_queues: Dict[str, deque] = defaultdict(deque)
@@ -100,6 +258,11 @@ class DistributionUnit(UnitBase):
     def initialize(self) -> None:
         super(DistributionUnit, self).initialize()
 
+        for vehicle_type, vehicle_config in self.config.items():
+            for _ in range(vehicle_config.get("number", 1)):
+                vehicle = Vehicle(self.facility, vehicle_config["config"])
+                self.vehicles[vehicle_type].append(vehicle)
+
         for product_id in self.facility.products.keys():
             self._unit_delay_order_penalty[product_id] = self.facility.skus[product_id].unit_delay_order_penalty
 
@@ -133,10 +296,6 @@ class DistributionUnit(UnitBase):
 
     def flush_states(self) -> None:
         super(DistributionUnit, self).flush_states()
-
-        for vehicle_list in self.vehicles.values():
-            for vehicle in vehicle_list:
-                vehicle.flush_states()
 
         if self._is_order_changed:
             self._is_order_changed = False
