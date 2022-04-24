@@ -8,9 +8,6 @@ datamodels:
           # class: class name, joined with the module path to find the class type
           class: "StorageDataModel"
           name_in_frame: "storage"
-        VehicleDataModel:
-          class: "VehicleDataModel"
-          name_in_frame: "vehicle"
         DistributionDataModel:
           class: "DistributionDataModel"
           name_in_frame: "distribution"
@@ -39,9 +36,6 @@ units:
           # class: class name, joined with the module path to find the class type
           class: "StorageUnit"
           datamodel: "StorageDataModel"
-        VehicleUnit:
-          class: "VehicleUnit"
-          datamodel: "VehicleDataModel"
         DistributionUnit:
           class: "DistributionUnit"
           datamodel: "DistributionDataModel"

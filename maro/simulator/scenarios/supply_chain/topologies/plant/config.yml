@@ -5,6 +5,7 @@
 #   world.facility: must have.
 #   world.topology: must have.
 # settings: optional.
+# policy_parameter: no need for environment, must have for RL-based policies.
 
 
 facility_definitions:
@@ -69,39 +70,25 @@ facility_definitions:
           config:
             sale_hist_len: 14
     config:
-      dynamics_sampler_type: processed_price_demand # data, model. What kind of sampler to use for seller.
+      dynamics_sampler_type: processed_price_demand # What kind of sampler to use.
       sku_column: "SKU" # SKU column name
       price_column: "Price" # Price column name
-      demand_column: "Sales" # Sales column name
-      datetime_column: "Date" # Datetime column name
+      demand_column: "Sales" # Demand column name
+      datetime_column: "Date" # Date-time column name
       file_path: "/path/to/data.csv" # full path to data file, override by each store instance
 
 
-train_config: &train
-  class: "VehicleUnit"
-  config:
-    patient: 2
-    # unit_transport_cost: 1
-
-air_config: &air
-  class: "VehicleUnit"
-  config:
-    patient: 1
-
 mix_distribution: &mix_distribution
-  vehicles:
+  config:
     train:
       number: 14
-      config: *train
     air:
       number: 4
-      config: *air
 
 simple_distribution: &simple_distribution
-  vehicles:
+  config:
     train:
       number: 14
-      config: *train
 
 
 multi_storage: &multi_storage
@@ -258,7 +245,7 @@ world:
         "Warehouse_001":
           "air":
             vlt: 2
-            cost: 3.0
+            cost: 3.0  # Unit transportation cost by day
           "train":
             vlt: 7
             cost: 0.5
