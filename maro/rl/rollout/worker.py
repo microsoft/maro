@@ -1,11 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
+
 from maro.rl.distributed import AbsWorker
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.utils import LoggerV2
 
-from ..rl_component.rl_component_bundle import RLComponentBundle
+if typing.TYPE_CHECKING:
+    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 class RolloutWorker(AbsWorker):

@@ -1,6 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from typing import Dict
 
 from maro.rl.distributed import AbsWorker
@@ -10,7 +13,9 @@ from maro.utils import LoggerV2
 
 from .train_ops import AbsTrainOps
 from .trainer import AbsTrainer, MultiAgentTrainer
-from ..rl_component.rl_component_bundle import RLComponentBundle
+
+if typing.TYPE_CHECKING:
+    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 class TrainOpsWorker(AbsWorker):

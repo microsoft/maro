@@ -1,9 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
 import asyncio
 import collections
 import os
+import typing
 from itertools import chain
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -13,8 +16,10 @@ from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
 from .trainer import AbsTrainer, MultiAgentTrainer
-from ..rl_component.rl_component_bundle import RLComponentBundle
 from ..utils import extract_trainer_name
+
+if typing.TYPE_CHECKING:
+    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 class TrainingManager(object):
