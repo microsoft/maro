@@ -7,6 +7,9 @@ from .multi_q_net import MultiQNet
 from .policy_net import ContinuousPolicyNet, DiscretePolicyNet, PolicyNet
 from .q_net import ContinuousQNet, DiscreteQNet, QNet
 from .v_net import VNet
+from .algorithm_nets.ac_based import ContinuousACBasedNet, DiscreteACBasedNet
+from .algorithm_nets.ddpg import ContinuousDDPGNet
+from .algorithm_nets.sac import ContinuousSACNet
 
 __all__ = [
     "AbsNet",
@@ -15,4 +18,8 @@ __all__ = [
     "ContinuousPolicyNet", "DiscretePolicyNet", "PolicyNet",
     "ContinuousQNet", "DiscreteQNet", "QNet",
     "VNet",
+
+    "ContinuousACBasedNet", "DiscreteACBasedNet",
+    "ContinuousDDPGNet",
+    "ContinuousSACNet",
 ]

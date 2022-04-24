@@ -32,35 +32,6 @@ class MyQNet(DiscreteQNet):
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
         return self._fc(states)
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._optim.zero_grad()
-        loss.backward()
-        self._optim.step()
-
-    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        self._optim.zero_grad()
-        loss.backward()
-        return {name: param.grad for name, param in self.named_parameters()}
-
-    def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
-        for name, param in self.named_parameters():
-            param.grad = grad[name]
-        self._optim.step()
-
-    def get_state(self) -> object:
-        return {"network": self.state_dict(), "optim": self._optim.state_dict()}
-
-    def set_state(self, net_state: object) -> None:
-        assert isinstance(net_state, dict)
-        self.load_state_dict(net_state["network"])
-        self._optim.load_state_dict(net_state["optim"])
-
-    def freeze(self) -> None:
-        self.freeze_all_parameters()
-
-    def unfreeze(self) -> None:
-        self.unfreeze_all_parameters()
-
 
 def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
     return ValueBasedPolicy(

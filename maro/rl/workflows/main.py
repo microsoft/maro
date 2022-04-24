@@ -30,6 +30,7 @@ def main(scenario: Scenario, args: argparse.Namespace) -> None:
 def training_workflow(scenario: Scenario) -> None:
     num_episodes = int(get_env("NUM_EPISODES"))
     num_steps = int_or_none(get_env("NUM_STEPS", required=False))
+    min_n_sample = int_or_none(get_env("MIN_N_SAMPLE"))
 
     logger = LoggerV2(
         "MAIN",
@@ -113,36 +114,41 @@ def training_workflow(scenario: Scenario) -> None:
 
     checkpoint_path = get_env("CHECKPOINT_PATH", required=False)
     checkpoint_interval = int_or_none(get_env("CHECKPOINT_INTERVAL", required=False))
+
     # main loop
     for ep in range(start_ep, num_episodes + 1):
         collect_time = training_time = 0
-        segment, end_of_episode = 1, False
-        while not end_of_episode:
-            # Experience collection
+        total_experiences: List[List[ExpElement]] = []
+        total_info_list: List[dict] = []
+        n_sample = 0
+        while n_sample < min_n_sample:
             tc0 = time.time()
             result = env_sampler.sample(
                 policy_state=training_manager.get_policy_state() if not is_single_thread else None,
                 num_steps=num_steps,
             )
             experiences: List[List[ExpElement]] = result["experiences"]
-            end_of_episode: bool = result["end_of_episode"]
+            info_list: List[dict] = result["info"]
 
-            if scenario.post_collect:
-                scenario.post_collect(result["info"], ep, segment)
+            n_sample += len(experiences[0])
+            total_experiences.extend(experiences)
+            total_info_list.extend(info_list)
 
             collect_time += time.time() - tc0
 
-            logger.info(f"Roll-out completed for episode {ep}, segment {segment}. Training started...")
-            tu0 = time.time()
-            training_manager.record_experiences(experiences)
-            training_manager.train_step()
-            if checkpoint_path and (checkpoint_interval is None or ep % checkpoint_interval == 0):
-                assert isinstance(checkpoint_path, str)
-                pth = os.path.join(checkpoint_path, str(ep))
-                training_manager.save(pth)
-                logger.info(f"All trainer states saved under {pth}")
-            training_time += time.time() - tu0
-            segment += 1
+        if scenario.post_collect:
+            scenario.post_collect(total_info_list, ep, -1)  # TODO
+
+        logger.info(f"Roll-out completed for episode {ep}. Training started...")
+        tu0 = time.time()
+        training_manager.record_experiences(total_experiences)
+        training_manager.train_step()
+        if checkpoint_path and (checkpoint_interval is None or ep % checkpoint_interval == 0):
+            assert isinstance(checkpoint_path, str)
+            pth = os.path.join(checkpoint_path, str(ep))
+            training_manager.save(pth)
+            logger.info(f"All trainer states saved under {pth}")
+        training_time += time.time() - tu0
 
         # performance details
         logger.info(f"ep {ep} - roll-out time: {collect_time:.2f} seconds, training time: {training_time:.2f} seconds")

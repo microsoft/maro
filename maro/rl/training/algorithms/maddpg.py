@@ -60,7 +60,6 @@ class DiscreteMADDPGOps(AbsTrainOps):
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
         parallelism: int = 1,
-        *,
         shared_critic: bool = False,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.5,
@@ -122,7 +121,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         agent_state = ndarray_to_tensor(batch.agent_states[self._policy_idx], device=self._device)
         self._policy.train()
         action = self._policy.get_actions_tensor(agent_state)
-        logps = self._policy.get_state_action_logps(agent_state, action)
+        logps = self._policy.get_states_actions_logps(agent_state, action)
         return action, logps
 
     def _get_critic_loss(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> torch.Tensor:
@@ -330,36 +329,44 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         assert len(self._agent2policy.keys()) == len(self._agent2policy.values())  # agent <=> policy
         self._policy2agent = {policy_name: agent_name for agent_name, policy_name in self._agent2policy.items()}
 
-    def record(self, env_idx: int, exp_element: ExpElement) -> None:
-        assert exp_element.num_agents == len(self._agent2policy.keys())
+    def record_multiple(self, env_idx: int, exp_elements: List[ExpElement]) -> None:
+        terminal_flags: List[bool] = []
+        for exp_element in exp_elements:
+            assert exp_element.num_agents == len(self._agent2policy.keys())
 
-        if min(exp_element.terminal_dict.values()) != max(exp_element.terminal_dict.values()):
-            raise ValueError("The 'terminal` flag of all agents must be identical.")
-        terminal_flag = min(exp_element.terminal_dict.values())
+            if min(exp_element.terminal_dict.values()) != max(exp_element.terminal_dict.values()):
+                raise ValueError("The 'terminal` flag of all agents at every tick must be identical.")
+            terminal_flags.append(min(exp_element.terminal_dict.values()))
 
-        actions = []
-        rewards = []
-        agent_states = []
-        next_agent_states = []
+        actions: List[np.ndarray] = []
+        rewards: List[np.ndarray] = []
+        agent_states: List[np.ndarray] = []
+        next_agent_states: List[np.ndarray] = []
         for policy_name in self._policy_names:
             agent_name = self._policy2agent[policy_name]
-            actions.append(np.expand_dims(exp_element.action_dict[agent_name], axis=0))
-            rewards.append(np.array([exp_element.reward_dict[agent_name]]))
-            agent_states.append(np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0))
-            next_agent_states.append(np.expand_dims(
-                exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]), axis=0
+            actions.append(np.vstack([exp_element.action_dict[agent_name] for exp_element in exp_elements]))
+            rewards.append(np.array([exp_element.reward_dict[agent_name] for exp_element in exp_elements]))
+            agent_states.append(np.vstack([exp_element.agent_state_dict[agent_name] for exp_element in exp_elements]))
+            next_agent_states.append(np.vstack(
+                [
+                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name])
+                    for exp_element in exp_elements
+                ]
             ))
 
         transition_batch = MultiTransitionBatch(
-            states=np.expand_dims(exp_element.state, axis=0),
+            states=np.vstack([exp_element.state for exp_element in exp_elements]),
             actions=actions,
             rewards=rewards,
-            next_states=np.expand_dims(
-                exp_element.next_state if exp_element.next_state is not None else exp_element.state, axis=0
+            next_states=np.vstack(
+                [
+                    exp_element.next_state if exp_element.next_state is not None else exp_element.state
+                    for exp_element in exp_elements
+                ]
             ),
             agent_states=agent_states,
             next_agent_states=next_agent_states,
-            terminals=np.array([terminal_flag]),
+            terminals=np.array(terminal_flags),
         )
         self._replay_memory.put(transition_batch)
 

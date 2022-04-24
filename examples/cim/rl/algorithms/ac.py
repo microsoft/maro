@@ -6,9 +6,9 @@ from typing import Dict
 import torch
 from torch.optim import Adam, RMSprop
 
-from maro.rl.model import DiscretePolicyNet, FullyConnected, VNet
+from maro.rl.model import DiscreteACBasedNet, FullyConnected, VNet
 from maro.rl.policy import DiscretePolicyGradient
-from maro.rl.training.algorithms import DiscreteActorCriticTrainer, DiscreteActorCriticParams
+from maro.rl.training.algorithms import ActorCriticTrainer, ActorCriticParams
 
 actor_net_conf = {
     "hidden_dims": [256, 128, 64],
@@ -29,7 +29,7 @@ actor_learning_rate = 0.001
 critic_learning_rate = 0.001
 
 
-class MyActorNet(DiscretePolicyNet):
+class MyActorNet(DiscreteACBasedNet):
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(MyActorNet, self).__init__(state_dim=state_dim, action_num=action_num)
         self._actor = FullyConnected(input_dim=state_dim, output_dim=action_num, **actor_net_conf)
@@ -37,37 +37,6 @@ class MyActorNet(DiscretePolicyNet):
 
     def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
         return self._actor(states)
-
-    def freeze(self) -> None:
-        self.freeze_all_parameters()
-
-    def unfreeze(self) -> None:
-        self.unfreeze_all_parameters()
-
-    def step(self, loss: torch.Tensor) -> None:
-        self._optim.zero_grad()
-        loss.backward()
-        self._optim.step()
-
-    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        self._optim.zero_grad()
-        loss.backward()
-        return {name: param.grad for name, param in self.named_parameters()}
-
-    def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
-        for name, param in self.named_parameters():
-            param.grad = grad[name]
-        self._optim.step()
-
-    def get_state(self) -> dict:
-        return {
-            "network": self.state_dict(),
-            "optim": self._optim.state_dict(),
-        }
-
-    def set_state(self, net_state: dict) -> None:
-        self.load_state_dict(net_state["network"])
-        self._optim.load_state_dict(net_state["optim"])
 
 
 class MyCriticNet(VNet):
@@ -79,46 +48,15 @@ class MyCriticNet(VNet):
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
         return self._critic(states).squeeze(-1)
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._optim.zero_grad()
-        loss.backward()
-        self._optim.step()
-
-    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        self._optim.zero_grad()
-        loss.backward()
-        return {name: param.grad for name, param in self.named_parameters()}
-
-    def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
-        for name, param in self.named_parameters():
-            param.grad = grad[name]
-        self._optim.step()
-
-    def get_state(self) -> dict:
-        return {
-            "network": self.state_dict(),
-            "optim": self._optim.state_dict(),
-        }
-
-    def set_state(self, net_state: dict) -> None:
-        self.load_state_dict(net_state["network"])
-        self._optim.load_state_dict(net_state["optim"])
-
-    def freeze(self) -> None:
-        self.freeze_all_parameters()
-
-    def unfreeze(self) -> None:
-        self.unfreeze_all_parameters()
-
 
 def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 
-def get_ac(state_dim: int, name: str) -> DiscreteActorCriticTrainer:
-    return DiscreteActorCriticTrainer(
+def get_ac(state_dim: int, name: str) -> ActorCriticTrainer:
+    return ActorCriticTrainer(
         name=name,
-        params=DiscreteActorCriticParams(
+        params=ActorCriticParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             reward_discount=.0,
             grad_iters=10,

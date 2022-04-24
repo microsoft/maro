@@ -7,6 +7,7 @@ import collections
 import os
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type, Union
 
@@ -416,7 +417,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         return {
             "end_of_episode": not self._agent_state_dict,
             "experiences": [experiences],
-            "info": [self._info],
+            "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
         }
 
     def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
