@@ -63,7 +63,10 @@ class TrainOpsWorker(AbsWorker):
                 trainer_name = ops_name.split(".")[0]
                 if trainer_name not in self._trainer_dict:
                     trainer = self._rl_component_bundle.trainer_creator[trainer_name]()
-                    trainer.register_policy_creator(self._rl_component_bundle.trainable_policy_creator)
+                    trainer.register_policy_creator(
+                        self._rl_component_bundle.trainable_policy_creator,
+                        self._rl_component_bundle.policy_trainer_mapping,
+                    )
                     self._trainer_dict[trainer_name] = trainer
 
                 trainer = self._trainer_dict[trainer_name]
