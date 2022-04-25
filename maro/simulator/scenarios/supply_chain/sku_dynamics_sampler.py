@@ -20,8 +20,6 @@ from maro.data_lib.supply_chain import (
     DATE_INDEX_COLUMN_NAME, get_date_index, get_preprocessed_file_path, preprocess_file
 )
 
-from .units.seller import SellerDemandMixin
-
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.world import World
 
