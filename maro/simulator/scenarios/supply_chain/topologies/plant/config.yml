@@ -77,29 +77,17 @@ facility_definitions:
       file_path: "/path/to/data.csv" # full path to data file, override by each store instance
 
 
-train_config: &train
-  config:
-    patient: 2
-    # unit_transport_cost: 1
-
-air_config: &air
-  config:
-    patient: 1
-
 mix_distribution: &mix_distribution
   config:
     train:
       number: 14
-      config: *train
     air:
       number: 4
-      config: *air
 
 simple_distribution: &simple_distribution
   config:
     train:
       number: 14
-      config: *train
 
 
 multi_storage: &multi_storage
@@ -256,7 +244,7 @@ world:
         "Warehouse_001":
           "air":
             vlt: 2
-            cost: 3.0
+            cost: 3.0  # Unit transportation cost by day
           "train":
             vlt: 7
             cost: 0.5

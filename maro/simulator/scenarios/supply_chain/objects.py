@@ -61,7 +61,7 @@ class VendorLeadingTimeInfo:
     src_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
     vlt: int
-    unit_transportation_cost: float
+    unit_transportation_cost: float  # Unit cost by day
 
 
 @dataclass
@@ -69,7 +69,7 @@ class LeadingTimeInfo:
     dest_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
     vlt: int
-    unit_transportation_cost: float
+    unit_transportation_cost: float  # Unit cost by day
 
 
 @dataclass

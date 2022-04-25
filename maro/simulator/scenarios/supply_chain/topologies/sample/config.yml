@@ -54,16 +54,12 @@ facility_definitions:
           config:
             sale_hist_len: 4
 
-train_config: &train
-  config:
-    patient: 100
 
 # a normal distribution definition
 normal_distribution: &normal_distribution
   config:
     train:
       number: 2
-      config: *train
 
 small_storage: &small_storage
   # config of data model of this unit
@@ -209,7 +205,6 @@ world:
   # topology used to specify the up/downstream for facilities
   # we split it from facility, so that we can support configuration inherit to override it
   # for a new topology
-  # TODO: change the name?
   topology:
     # key is current facility, value if upstream facilities that will provide a certain sku
     Supplier_002:

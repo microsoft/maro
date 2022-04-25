@@ -41,7 +41,7 @@ class FacilityInfo:
     class_name: type
     configs: dict
     skus: Dict[int, SkuInfo]
-    upstream_vlt_infos: Dict[int, List[VendorLeadingTimeInfo]]
+    upstream_vlt_infos: Dict[int, Dict[int, Dict[str, VendorLeadingTimeInfo]]]
     downstreams: Dict[int, List[int]]  # Key: product_id; Value: facility id list
     storage_info: Optional[StorageUnitInfo]
     distribution_info: Optional[DistributionUnitInfo]
@@ -82,19 +82,53 @@ class FacilityBase(ABC):
         self.distribution: Optional[DistributionUnit] = None
 
         # Upstream facility vendor leading time infos.
+        # Key: sku id, facility id, vehicle type
+        # Value: vendor leading time info, including source facility, vehicle type, vlt, transportation cost.
+        self.upstream_vlt_infos: Dict[int, Dict[int, Dict[str, VendorLeadingTimeInfo]]] = defaultdict(dict)
         # Key: sku id;
-        # Value: a list of vendor leading time info, including source facility, vehicle type, vlt, transportation cost.
-        self.upstream_vlt_infos: Dict[int, List[VendorLeadingTimeInfo]] = defaultdict(list)
+        # Value: list of upstream facility
+        self._upstream_facility_list: Optional[Dict[int, List[FacilityBase]]] = None
 
         # Downstream facility leading time infos.
+        # Key: sku id, facility id, vehicle type
+        # Value: leading time info, including destination facility, vehicle type, vlt, transportation cost.
+        self.downstream_vlt_infos: Dict[int, Dict[int, Dict[str, LeadingTimeInfo]]] = defaultdict(dict)
         # Key: sku id;
-        # Value: a list of leading time info, including destination facility, vehicle type, vlt, transportation cost.
-        self.downstream_vlt_infos: Dict[int, List[LeadingTimeInfo]] = defaultdict(list)
+        # Value: list of downstream facility
+        self._downstream_facility_list: Optional[Dict[int, List[FacilityBase]]] = None
 
         self.data_model: Optional[DataModelBase] = None
 
         # Children of this facility (valid units).
         self.children: List[UnitBase] = []
+
+    @property
+    def upstream_facility_list(self) -> Dict[int, List[FacilityBase]]:
+        if self._upstream_facility_list is None:
+            self._upstream_facility_list = defaultdict(list)
+
+            for product_id in self.products.keys():
+                by_fid_and_type = self.upstream_vlt_infos[product_id]
+                for by_type in by_fid_and_type.values():
+                    for info in by_type.values():
+                        self._upstream_facility_list[product_id].append(info.src_facility)
+                        break
+
+        return self._upstream_facility_list
+
+    @property
+    def downstream_facility_list(self) -> Dict[int, List[FacilityBase]]:
+        if self._downstream_facility_list is None:
+            self._downstream_facility_list = defaultdict(list)
+
+            for product_id in self.products.keys():
+                by_fid_and_type = self.downstream_vlt_infos[product_id]
+                for by_type in by_fid_and_type.values():
+                    for info in by_type.values():
+                        self._downstream_facility_list[product_id].append(info.dest_facility)
+                        break
+
+        return self._downstream_facility_list
 
     def get_config(self, key: str, default: object = None) -> object:
         """Get specified configuration of facility.
@@ -189,8 +223,8 @@ class FacilityBase(ABC):
             skus=self.skus,
             upstream_vlt_infos=self.upstream_vlt_infos,
             downstreams={
-                product_id: [info.dest_facility.id for info in info_list]
-                for product_id, info_list in self.downstream_vlt_infos.items()
+                product_id: [downstream_facility.id for downstream_facility in downstream_facility_list]
+                for product_id, downstream_facility_list in self.downstream_facility_list.items()
             },
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
@@ -203,13 +237,15 @@ class FacilityBase(ABC):
     def get_sku_cost(self, sku_id: int) -> float:
         # TODO: updating for manufacture, ...
         src_prices: List[float] = [
-            vlt_info.src_facility.skus[sku_id].price
-            for vlt_info in self.upstream_vlt_infos[sku_id]
+            src_facility.skus[sku_id].price
+            for src_facility in self.upstream_facility_list[sku_id]
         ]
         return np.mean(src_prices) if len(src_prices) > 0 else self.skus[sku_id].price
 
     def get_max_vlt(self, sku_id: int) -> int:
         max_vlt: int = 0
-        for vlt_info in self.upstream_vlt_infos[sku_id]:
-            max_vlt = max(max_vlt, vlt_info.vlt)
+        by_fid_and_type = self.upstream_vlt_infos[sku_id]
+        for by_type in by_fid_and_type.values():
+            for info in by_type.values():
+                max_vlt = max(max_vlt, info.vlt)
         return max_vlt

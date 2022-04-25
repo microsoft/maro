@@ -438,17 +438,23 @@ class World:
 
             for sku_id_or_name, source_configs in topology_conf.items():
                 sku_id, _ = self._get_sku_id_and_name(sku_id_or_name)
-                facility.upstream_vlt_infos[sku_id] = []
 
                 self.max_sources_per_facility = max(self.max_sources_per_facility, len(source_configs))
 
                 for src_name, src_conf in source_configs.items():
                     src_facility = self._get_facility_by_name(src_name)
+
+                    if src_facility.id not in facility.upstream_vlt_infos[sku_id]:
+                        facility.upstream_vlt_infos[sku_id][src_facility.id] = {}
+
+                    if facility.id not in src_facility.downstream_vlt_infos[sku_id]:
+                        src_facility.downstream_vlt_infos[sku_id][facility.id] = {}
+
                     for vehicle_type, vehicle_conf in src_conf.items():
                         assert vehicle_conf["vlt"] > 0, "Do not support 0-vlt now!"
-                        facility.upstream_vlt_infos[sku_id].append(
-                            VendorLeadingTimeInfo(src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
+                        facility.upstream_vlt_infos[sku_id][src_facility.id][vehicle_type] = VendorLeadingTimeInfo(
+                            src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"]
                         )
-                        src_facility.downstream_vlt_infos[sku_id].append(
-                            LeadingTimeInfo(facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
+                        src_facility.downstream_vlt_infos[sku_id][facility.id][vehicle_type] = LeadingTimeInfo(
+                            facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"]
                         )

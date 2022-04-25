@@ -16,4 +16,3 @@ class Order:
     product_id: int
     quantity: int
     vehicle_type: str
-    vlt: int
