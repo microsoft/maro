@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.simulator.scenarios.supply_chain.units import OuterSellerUnit
-from maro.simulator.scenarios.supply_chain.units.seller import SellerDemandInterface
+from maro.simulator.scenarios.supply_chain.units.seller import SellerDemandMixin
 from maro.simulator.scenarios.supply_chain.world import World
 
 from .facility import FacilityBase
@@ -31,7 +31,7 @@ class OuterRetailerFacility(RetailerFacility):
     def initialize(self) -> None:
         super(OuterRetailerFacility, self).initialize()
 
-        assert self.sampler is not None and isinstance(self.sampler, SellerDemandInterface)
+        assert self.sampler is not None and isinstance(self.sampler, SellerDemandMixin)
         # Go though product to find sellers.
         for product in self.products.values():
             seller = product.seller

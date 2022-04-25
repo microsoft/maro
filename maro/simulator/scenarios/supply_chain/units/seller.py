@@ -11,6 +11,7 @@ from typing import Optional, Union
 import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import SellerDataModel
+from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import SellerDemandMixin
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
 from .unitbase import UnitBase
@@ -127,21 +128,6 @@ class SellerUnit(ExtendUnitBase):
         )
 
 
-class SellerDemandInterface(metaclass=ABCMeta):
-    """Demand sample interface, you can inherit from this to read from file or predict from a model."""
-
-    @abstractmethod
-    def sample_demand(self, tick: int, product_id: int) -> int:
-        """Sample the demand for specified product and tick.
-
-        Args:
-            tick (int): Tick of environment, NOTE: this tick is start from 0,
-                you may need to transform it to your time system.
-            product_id (int): Id of product to sample.
-        """
-        raise NotImplementedError
-
-
 class OuterSellerUnit(SellerUnit):
     """Seller that demand is from out side sampler, like a data file or data model prediction."""
 
@@ -154,7 +140,7 @@ class OuterSellerUnit(SellerUnit):
         )
 
     # Sample used to sample demand.
-    sampler: SellerDemandInterface = None
+    sampler: SellerDemandMixin = None
 
     def market_demand(self, tick: int) -> int:
         return self.sampler.sample_demand(tick, self.product_id)

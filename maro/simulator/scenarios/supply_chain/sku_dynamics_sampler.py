@@ -9,6 +9,7 @@ import warnings
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, namedtuple
 from csv import DictReader
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Optional, Union
 
@@ -19,13 +20,17 @@ from maro.data_lib.supply_chain import (
     DATE_INDEX_COLUMN_NAME, get_date_index, get_preprocessed_file_path, preprocess_file
 )
 
-from .units.seller import SellerDemandInterface
+from .units.seller import SellerDemandMixin
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.world import World
 
 
-DynamicsInfoItem = namedtuple("DynamicsInfoItem", ("column_name", "type_name", "default_value"))
+@dataclass
+class DynamicsInfoItem:
+    column_name: str
+    type_name: type
+    default_value: object
 
 
 class SkuDynamicsSampler(metaclass=ABCMeta):
@@ -61,7 +66,7 @@ class SkuDynamicsSampler(metaclass=ABCMeta):
         self._sku_column_name = configs.get("sku_column", "SKU")
         self._info_dict: Dict[str, DynamicsInfoItem] = self._init_info_dict()
 
-        # TODO: build up SC datapipeline, and use the processed files by default.
+        # TODO: build up SC data pipeline, and use the processed files by default.
         if not os.path.exists(self._preprocessed_file_path):
             print(f"Preprocessed file {self._preprocessed_file_path} does not exist. Start preprocessing now.")
             preprocess_file(self._file_path, date_column_name=self._datetime_column_name)
@@ -74,7 +79,7 @@ class SkuDynamicsSampler(metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class OneTimeSkuDynamicsSampler(SkuDynamicsSampler):
+class OneTimeSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
     """Load & cache all data when initializing."""
     def __init__(self, configs: dict, world: World) -> None:
         super(OneTimeSkuDynamicsSampler, self).__init__(configs, world)
@@ -104,7 +109,7 @@ class OneTimeSkuDynamicsSampler(SkuDynamicsSampler):
                     self._cache[target_tick][sku_id][attr_name] = item.type_name(row[item.column_name])
 
 
-class StreamSkuDynamicsSampler(SkuDynamicsSampler, SellerDemandInterface):
+class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
     """Load & cache data in streaming fashion, i.e., only load data when necessary.
 
     `StreamSkuDynamicsSampler` works based on the following assumptions: the `tick` parameter of
@@ -153,7 +158,7 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, SellerDemandInterface):
                 self._cache[target_tick][sku_id][attr_name] = type_name(row[column_name])
 
 
-class SkuPriceInterface(metaclass=ABCMeta):
+class SkuPriceMixin(metaclass=ABCMeta):
     """Price sample interface."""
 
     @abstractmethod
@@ -171,7 +176,22 @@ class SkuPriceInterface(metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceInterface, SellerDemandInterface):
+class SellerDemandMixin(metaclass=ABCMeta):
+    """Demand sample interface, you can inherit from this to read from file or predict from a model."""
+
+    @abstractmethod
+    def sample_demand(self, tick: int, product_id: int) -> int:
+        """Sample the demand for specified product and tick.
+
+        Args:
+            tick (int): Tick of environment, NOTE: this tick is start from 0,
+                you may need to transform it to your time system.
+            product_id (int): Id of product to sample.
+        """
+        raise NotImplementedError
+
+
+class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, SellerDemandMixin):
     def _init_info_dict(self) -> Dict[str, DynamicsInfoItem]:
         return {
             "Price": DynamicsInfoItem(self._configs.get("price_column", "Price"), float, None),
@@ -186,16 +206,20 @@ class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceInterface,
         ]):
             return self._info_dict[attr_name].default_value
 
-        return self._cache[tick][product_id][attr_name]
+        return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])
 
     def sample_price(self, tick: int, product_id: int) -> Optional[float]:
-        return self._sample_attr(tick, product_id, "Price")
+        price = self._sample_attr(tick, product_id, "Price")
+        assert isinstance(price, float)
+        return price
 
     def sample_demand(self, tick: int, product_id: int) -> int:
-        return self._sample_attr(tick, product_id, "Demand")
+        demand = self._sample_attr(tick, product_id, "Demand")
+        assert isinstance(demand, int)
+        return demand
 
 
-class StreamSkuPriceDemandSampler(StreamSkuDynamicsSampler, SkuPriceInterface, SellerDemandInterface):
+class StreamSkuPriceDemandSampler(StreamSkuDynamicsSampler, SkuPriceMixin, SellerDemandMixin):
     def _init_info_dict(self) -> Dict[str, DynamicsInfoItem]:
         return {
             "Price": DynamicsInfoItem(self._configs.get("price_column", "Price"), float, None),
@@ -212,19 +236,23 @@ class StreamSkuPriceDemandSampler(StreamSkuDynamicsSampler, SkuPriceInterface, S
         ]):
             return self._info_dict[attr_name].default_value
 
-        return self._cache[tick][product_id][attr_name]
+        return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])
 
     def sample_price(self, tick: int, product_id: int) -> Optional[float]:
-        return self._sample_attr(tick, product_id, "Price")
+        price = self._sample_attr(tick, product_id, "Price")
+        assert isinstance(price, float)
+        return price
 
     def sample_demand(self, tick: int, product_id: int) -> int:
-        return self._sample_attr(tick, product_id, "Demand")
+        demand = self._sample_attr(tick, product_id, "Demand")
+        assert isinstance(demand, int)
+        return demand
 
 
 SkuRow = namedtuple("SkuRow", ("price", "demand"))
 
 
-class DataFileDemandSampler(SellerDemandInterface):
+class DataFileDemandSampler(SellerDemandMixin):
     """Sampler to read sample demand from data files, one store one file.
 
     NOTE:

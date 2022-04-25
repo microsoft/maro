@@ -13,7 +13,7 @@ import numpy as np
 
 from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import (
-    DataFileDemandSampler, OneTimeSkuPriceDemandSampler, SkuDynamicsSampler, SkuPriceInterface
+    DataFileDemandSampler, OneTimeSkuPriceDemandSampler, SkuDynamicsSampler, SkuPriceMixin
 )
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
@@ -135,7 +135,7 @@ class FacilityBase(ABC):
     def init_step(self, tick: int) -> None:
         """Update status before step. E.g. price updates, inventory updates, etc."""
         # Update SKU prices
-        if self.sampler is not None and isinstance(self.sampler, SkuPriceInterface):
+        if self.sampler is not None and isinstance(self.sampler, SkuPriceMixin):
             for sku_id in self.skus.keys():
                 price = self.sampler.sample_price(tick, sku_id)
                 if price is not None:
