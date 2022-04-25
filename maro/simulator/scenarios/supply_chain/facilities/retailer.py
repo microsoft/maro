@@ -1,16 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-from typing import Type
 
-from maro.simulator.scenarios.supply_chain.units import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler
+from maro.simulator.scenarios.supply_chain.units import OuterSellerUnit
+from maro.simulator.scenarios.supply_chain.units.seller import SellerDemandMixin
 from maro.simulator.scenarios.supply_chain.world import World
 
 from .facility import FacilityBase
-
-# Mapping for supported sampler.
-sampler_mapping = {
-    "data": DataFileDemandSampler,
-}
 
 
 class RetailerFacility(FacilityBase):
@@ -36,11 +31,7 @@ class OuterRetailerFacility(RetailerFacility):
     def initialize(self) -> None:
         super(OuterRetailerFacility, self).initialize()
 
-        # What kind of sampler we need?
-        sampler_cls: Type[SellerDemandSampler] = sampler_mapping[self.configs.get("seller_sampler_type", "data")]
-
-        sampler = sampler_cls(self.configs, self.world)
-
+        assert self.sampler is not None and isinstance(self.sampler, SellerDemandMixin)
         # Go though product to find sellers.
         for product in self.products.values():
             seller = product.seller
@@ -48,4 +39,4 @@ class OuterRetailerFacility(RetailerFacility):
             if seller is not None:
                 assert issubclass(type(seller), OuterSellerUnit)
 
-                seller.sampler = sampler
+                seller.sampler = self.sampler

@@ -12,6 +12,9 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
+from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import (
+    DataFileDemandSampler, OneTimeSkuPriceDemandSampler, SkuDynamicsSampler, SkuPriceMixin
+)
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.product import ProductUnitInfo
@@ -21,6 +24,13 @@ if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain import UnitBase
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
+
+
+# Mapping for supported sampler.
+sampler_mapping = {
+    "data": DataFileDemandSampler,
+    "processed_price_demand": OneTimeSkuPriceDemandSampler,
+}
 
 
 @dataclass
@@ -59,6 +69,7 @@ class FacilityBase(ABC):
 
         # SKUs in this facility.
         self.skus: Dict[int, SkuInfo] = {}
+        self.sampler: Optional[SkuDynamicsSampler] = None
 
         # Product units for each sku in this facility.
         # Key is sku(product) id, value is the instance of product unit.
@@ -111,6 +122,26 @@ class FacilityBase(ABC):
         if self.products is not None:
             for product in self.products.values():
                 self.children.append(product)
+
+        sampler_cls_name = self.configs.get("dynamics_sampler_type", None)
+
+        if sampler_cls_name is not None:
+            assert sampler_cls_name in sampler_mapping
+            sampler_cls = sampler_mapping[sampler_cls_name]
+
+            assert issubclass(sampler_cls, SkuDynamicsSampler)
+            self.sampler = sampler_cls(self.configs, self.world)
+
+    def init_step(self, tick: int) -> None:
+        """Update status before step. E.g. price updates, inventory updates, etc."""
+        # Update SKU prices
+        if self.sampler is not None and isinstance(self.sampler, SkuPriceMixin):
+            for sku_id in self.skus.keys():
+                price = self.sampler.sample_price(tick, sku_id)
+                if price is not None:
+                    self.skus[sku_id].price = price
+                    # Update the corresponding property in data model.
+                    self.products[sku_id].data_model.price = price
 
     def step(self, tick: int) -> None:
         """Push facility to next step.
