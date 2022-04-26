@@ -8,6 +8,8 @@ from typing import List, Optional
 from examples.supply_chain.rl.config import OR_NUM_CONSUMER_ACTIONS, workflow_settings
 from maro.rl.policy import RuleBasedPolicy
 
+from ..config import NUM_CONSUMER_ACTIONS, workflow_settings
+
 
 VLT_BUFFER_DAYS = workflow_settings["or_policy_vlt_buffer_days"]
 
