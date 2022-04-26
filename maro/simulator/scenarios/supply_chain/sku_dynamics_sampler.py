@@ -105,7 +105,7 @@ class OneTimeSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
 
                 self._cache[target_tick][sku_id] = {}
                 for attr_name, item in self._info_dict.items():
-                    self._cache[target_tick][sku_id][attr_name] = item.type_name(row[item.column_name])
+                    self._cache[target_tick][sku_id][attr_name] = item.type_name(float(row[item.column_name]))
 
 
 class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
