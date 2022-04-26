@@ -247,7 +247,7 @@ demand_hist = cur_seller_hist[:, 1].flatten()
 
 # 计算所需要属性
 consumer_features = ("id", "order_base_cost", "order_product_cost")
-seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
+seller_features = ("id", "sold", "demand", "backlog_ratio")
 manufacture_features = ("id", "manufacture_quantity", "unit_product_cost")
 
 # 对应的3种data model snapshot list
@@ -281,10 +281,10 @@ consumer_reward = consumer_loss + consumer_profit * reward_discount
 
 # seller部分
 # profit = sold * price
-seller_profit = seller_states[:, 1] * seller_states[:, 3]
+seller_profit = seller_states[:, 1] * price
 
 # loss = -1 * demand * price * backlog_ratio
-seller_loss = -1 * seller_states[:, 2] * seller_states[:, 3] * seller_states[:, 4]
+seller_loss = -1 * seller_states[:, 2] * price * seller_states[:, 4]
 
 seller_reward = seller_profit + seller_loss
 

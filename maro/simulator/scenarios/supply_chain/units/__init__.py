@@ -7,7 +7,6 @@ from .distribution import DistributionUnit, DistributionUnitInfo
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
 from .manufacture import ManufactureUnit, ManufactureUnitInfo, SimpleManufactureUnit
 from .product import ProductUnit, ProductUnitInfo, StoreProductUnit
-from .seller import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler, SellerUnit, SellerUnitInfo
+from .seller import OuterSellerUnit, SellerDemandMixin, SellerUnit, SellerUnitInfo
 from .storage import StorageUnit, StorageUnitInfo
 from .unitbase import BaseUnitInfo, UnitBase
-from .vehicle import VehicleUnit

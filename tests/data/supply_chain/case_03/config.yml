@@ -12,13 +12,12 @@ core:
 
 
 train_config: &train
-  class: "VehicleUnit"
   config:
     patient: 10
     unit_transport_cost: 12
 
 normal_distribution: &normal_distribution
-  vehicles:
+  config:
     train:
       number: 2
       config: *train

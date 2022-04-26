@@ -61,7 +61,7 @@ class VendorLeadingTimeInfo:
     src_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
     vlt: int
-    unit_transportation_cost: float
+    unit_transportation_cost: float  # Unit cost by day, the whole trip cost would be: unit cost * (vlt + 1)
 
 
 @dataclass
@@ -69,7 +69,7 @@ class LeadingTimeInfo:
     dest_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
     vlt: int
-    unit_transportation_cost: float
+    unit_transportation_cost: float  # Unit cost by day, the whole trip cost would be: unit cost * (vlt + 1)
 
 
 @dataclass
@@ -88,7 +88,7 @@ class SubStorageConfig:
     unit_storage_cost: int = 1
 
 
-def parse_storage_config(config: dict) -> Dict[int, SubStorageConfig]:  # TODO: here or in parser
+def parse_storage_config(config: dict) -> Dict[int, SubStorageConfig]:
     if not isinstance(config, list):
         id = config.get("id", DEFAULT_SUB_STORAGE_ID)
         return {id: SubStorageConfig(id=id, **config)}

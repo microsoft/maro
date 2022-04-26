@@ -133,13 +133,11 @@ class ProductUnit(ExtendUnitBase):
             consumer_info=self.consumer.get_unit_info() if self.consumer else None,
             manufacture_info=self.manufacture.get_unit_info() if self.manufacture else None,
             seller_info=self.seller.get_node_info() if self.seller else None,
-            max_vlt=self._get_max_vlt(),
+            max_vlt=self.facility.get_max_vlt(self.product_id),
         )
 
     def _get_sale_means(self) -> List[float]:
         sale_means = []
-        downstream_infos: List[LeadingTimeInfo] = self.facility.downstream_vlt_infos.get(self.product_id, [])
-
         _cache: Dict[int, float] = {}
 
         def _get_sale_mean(product_unit: ProductUnit) -> float:
@@ -147,8 +145,8 @@ class ProductUnit(ExtendUnitBase):
                 _cache[product_unit.id] = product_unit.get_sale_mean()
             return _cache[product_unit.id]
 
-        for info in downstream_infos:
-            sale_means.append(_get_sale_mean(info.dest_facility.products[self.product_id]))
+        for downstream_facility in self.facility.downstream_facility_list[self.product_id]:
+            sale_means.append(_get_sale_mean(downstream_facility.products[self.product_id]))
         for out_product_id, consumption_ratio in self.bom_out_info_list:
             sale_means.append(int(_get_sale_mean(self.facility.products[out_product_id]) * consumption_ratio))
 
@@ -165,19 +163,11 @@ class ProductUnit(ExtendUnitBase):
 
     def get_max_sale_price(self) -> float:
         price = 0.0
-        downstream_infos = self.facility.downstream_vlt_infos.get(self.product_id, [])
 
-        for info in downstream_infos:
-            price = max(price, info.dest_facility.products[self.product_id].get_max_sale_price())
+        for downstream_facility in self.facility.downstream_facility_list[self.product_id]:
+            price = max(price, downstream_facility.products[self.product_id].get_max_sale_price())
 
         return price
-
-    def _get_max_vlt(self) -> Optional[int]:
-        upstream_infos: Optional[Dict[int, List[VendorLeadingTimeInfo]]] = self.facility.upstream_vlt_infos
-        if upstream_infos is not None and self.product_id in upstream_infos:
-            return max([info.vlt for info in upstream_infos[self.product_id]])
-        else:
-            return None
 
 
 class StoreProductUnit(ProductUnit):

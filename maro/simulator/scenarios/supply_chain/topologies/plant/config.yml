@@ -5,6 +5,7 @@
 #   world.facility: must have.
 #   world.topology: must have.
 # settings: optional.
+# policy_parameter: no need for environment, must have for RL-based policies.
 
 
 facility_definitions:
@@ -69,39 +70,25 @@ facility_definitions:
           config:
             sale_hist_len: 14
     config:
-      seller_sampler_type: data # data, model. What kind of sampler to use for seller.
+      dynamics_sampler_type: processed_price_demand # What kind of sampler to use.
       sku_column: "SKU" # SKU column name
       price_column: "Price" # Price column name
-      sale_column: "Sales" # Sales column name
-      datetime_column: "DT" # Datetime column name
+      demand_column: "Sales" # Demand column name
+      datetime_column: "Date" # Date-time column name
       file_path: "/path/to/data.csv" # full path to data file, override by each store instance
 
 
-train_config: &train
-  class: "VehicleUnit"
-  config:
-    patient: 2
-    # unit_transport_cost: 1
-
-air_config: &air
-  class: "VehicleUnit"
-  config:
-    patient: 1
-
 mix_distribution: &mix_distribution
-  vehicles:
+  config:
     train:
       number: 14
-      config: *train
     air:
       number: 4
-      config: *air
 
 simple_distribution: &simple_distribution
-  vehicles:
+  config:
     train:
       number: 14
-      config: *train
 
 
 multi_storage: &multi_storage
@@ -250,43 +237,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        seller_sampler_type: data
-        sku_column: SKU
-        price_column: Price
-        sale_column: Sales
-        datetime_column: Date
-        file_path: "/data/songlei/maro_ms/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
-
-    - name: "Store_002"
-      definition_ref: "StoreFacility"
-      skus:
-        "food_1":
-          price: 150
-          init_stock: 500
-          sub_storage_id: 0
-          has_consumer: True
-          has_seller: True
-          sale_gamma: 60
-          backlog_ratio: 0.1
-        "hobby_1":
-          price: 180
-          init_stock: 600
-          sub_storage_id: 0
-          has_consumer: True
-          has_seller: True
-          sale_gamma: 100
-          backlog_ratio: 0.1
-      children:
-        storage: *single_storage
-      config:
-        unit_order_cost: 200
-        seller_sampler_type: data
-        sku_column: SKU
-        price_column: Price
-        sale_column: Sales
-        datetime_column: Date
-        file_path: "/data/songlei/maro_ms/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
-
+        file_path: "/home/Jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
 
   topology:
     "Store_001":
@@ -294,7 +245,7 @@ world:
         "Warehouse_001":
           "air":
             vlt: 2
-            cost: 3.0
+            cost: 3.0  # Unit transportation cost by day
           "train":
             vlt: 7
             cost: 0.5

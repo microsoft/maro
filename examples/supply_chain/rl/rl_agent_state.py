@@ -222,18 +222,12 @@ class ScRlAgentStates:
 
     def _init_vlt_feature(self, state: dict, entity: SupplyChainEntity, facility_info: FacilityInfo) -> None:
         state['max_vlt'] = 0
-        # state['vlt'] = [0] * self._max_src_per_facility * self._sku_number
-        # # TODO add state['vlt_cost'] for vehicle type selection etc
 
         if entity.skus is not None:
             product_info = facility_info.products_info[entity.skus.id]
 
             if product_info.consumer_info is not None:
                 state['max_vlt'] = product_info.max_vlt
-
-        #     for i, vlt_info in enumerate(facility_info.upstream_vlt_infos[entity.skus.id]):
-        #         vlt_idx = i * self._max_src_per_facility + self._global_sku_id2idx[entity.skus.id]
-        #         state['vlt'][vlt_idx] = vlt_info.vlt
 
         return
 
@@ -270,12 +264,6 @@ class ScRlAgentStates:
         state['is_out_of_stock'] = 0
         state['is_below_rop'] = 0
         state['inventory_rop'] = 0
-
-        # state['consumer_source_export_mask'] = [0] * self._max_src_per_facility * self._sku_number
-        # if entity.skus is not None:
-        #     for i, vlt_info in enumerate(facility_info.upstream_vlt_infos[entity.skus.id]):
-        #         vlt_idx = i * self._max_src_per_facility + self._global_sku_id2idx[entity.skus.id]
-        #         state['consumer_source_export_mask'][vlt_idx] = vlt_info.vlt
 
         # state['consumer_source_inventory'] = [0] * self._sku_number
 

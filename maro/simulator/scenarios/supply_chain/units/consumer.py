@@ -63,7 +63,7 @@ class ConsumerUnit(ExtendUnitBase):
         """
         self._received += received_quantity
 
-        self.update_open_orders(source_id, product_id, -required_quantity)
+        self.update_open_orders(source_id, product_id, -received_quantity)
 
     def update_open_orders(self, source_id: int, product_id: int, additional_quantity: int) -> None:
         """Update the order states.
@@ -88,8 +88,8 @@ class ConsumerUnit(ExtendUnitBase):
         self.data_model.initialize()
 
         self.source_facility_id_list = [
-            info.src_facility.id for info in self.facility.upstream_vlt_infos.get(self.product_id, [])
-        ] if self.facility.upstream_vlt_infos is not None else []
+            source_facility.id for source_facility in self.facility.upstream_facility_list[self.product_id]
+        ]
 
     def _step_impl(self, tick: int) -> None:
         self._update_pending_order()
@@ -106,17 +106,6 @@ class ConsumerUnit(ExtendUnitBase):
         assert self.action.source_id in self.source_facility_id_list
         assert self.action.product_id == self.product_id
 
-        vlt: Optional[int] = None
-        for upstream_info in self.facility.upstream_vlt_infos[self.product_id]:
-            if all([
-                upstream_info.src_facility.id == self.action.source_id,
-                upstream_info.vehicle_type == self.action.vehicle_type,
-            ]):
-                vlt = upstream_info.vlt
-                break
-
-        assert vlt is not None
-
         # NOTE: we are using product unit as destination,
         # so we expect the action.source_id is an id of product unit.
         self.update_open_orders(self.action.source_id, self.action.product_id, self.action.quantity)
@@ -126,7 +115,6 @@ class ConsumerUnit(ExtendUnitBase):
             product_id=self.product_id,
             quantity=self.action.quantity,
             vehicle_type=self.action.vehicle_type,
-            vlt=vlt,  # TODO: add random factor if needed
         )
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)

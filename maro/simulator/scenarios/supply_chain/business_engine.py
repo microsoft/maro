@@ -52,6 +52,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Clear the metrics cache.
         self._metrics_cache = None
 
+        # Initialize info maybe used in step(), including: update SKU price
+        for facility in self.world.facilities.values():
+            facility.init_step(tick)
+
         # Call step functions by facility
         # Step first.
         for facility in self.world.facilities.values():

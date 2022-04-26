@@ -26,6 +26,7 @@ ProductInfo = namedtuple(
         "storage_index",
         "distribution_index",
         "downstream_product_unit_id_list",
+        "product_index",
         "consumer_index",
         "seller_index",
         "manufacture_index",
@@ -65,13 +66,15 @@ class BalanceSheetCalculator:
             for entity in self._env.business_engine.get_entity_list()
         }
 
-        facilities, products, pid2idx, cid2pid = self._extract_facility_and_product_info()
+        facilities, products, pid2idx, cid2pid, sidx2pidx = self._extract_facility_and_product_info()
 
         self.facility_levels: List[FacilityLevelInfo] = facilities
         self.products: List[ProductInfo] = products
 
         self.product_id2idx: Dict[int, int] = pid2idx
         self.consumer_id2product_id: Dict[int, int] = cid2pid
+
+        self.seller_idx2product_idx: Dict[int, int] = sidx2pidx
 
         self.num_products = len(self.products)
         self.num_facilities = len(self.facility_levels)
@@ -106,6 +109,8 @@ class BalanceSheetCalculator:
         product_id2idx: Dict[int, int] = {}
         consumer_id2product_id: Dict[int, int] = {}
 
+        seller_idx2product_idx: Dict[int, int] = {}
+
         for facility_id, facility_info in self._facility_info_dict.items():
             distribution_info: DistributionUnitInfo = facility_info.distribution_info
             storage_info: StorageUnitInfo = facility_info.storage_info
@@ -119,6 +124,9 @@ class BalanceSheetCalculator:
                 if product_info.consumer_info:
                     consumer_id2product_id[product_info.consumer_info.id] = product_info.id
 
+                if product_info.seller_info:
+                    seller_idx2product_idx[product_info.seller_info.node_index] = product_info.node_index
+
                 products.append(
                     ProductInfo(
                         unit_id=product_info.id,
@@ -131,6 +139,7 @@ class BalanceSheetCalculator:
                             self._facility_info_dict[fid].products_info[product_id].id
                             for fid in downstreams[product_id]
                         ] if product_id in downstreams else [],
+                        product_index=product_info.node_index,
                         consumer_index=product_info.consumer_info.node_index if product_info.consumer_info else None,
                         seller_index=product_info.seller_info.node_index if product_info.seller_info else None,
                         manufacture_index=(
@@ -148,7 +157,7 @@ class BalanceSheetCalculator:
                 )
             )
 
-        return facility_levels, products, product_id2idx, consumer_id2product_id
+        return facility_levels, products, product_id2idx, consumer_id2product_id, seller_idx2product_idx
 
     def _get_products_sorted_from_downstreams_to_upstreams(self) -> List[ProductInfo]:
         # Topological sorting
@@ -220,17 +229,20 @@ class BalanceSheetCalculator:
         return consumer_ids, consumer_step_cost
 
     def _calc_seller(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
+        price = self._env.snapshot_list["product"][
+            self._env.business_engine.frame_index(tick):[
+                self.seller_idx2product_idx[sidx] for sidx in range(len(self._env.snapshot_list["seller"]))
+            ]:"price"
+        ].flatten()
+
         # profit = sold * price
-        seller_step_profit = (
-            self._get_attributes("seller", "sold", tick)
-            * self._get_attributes("seller", "price", tick)
-        )
+        seller_step_profit = self._get_attributes("seller", "sold", tick) * price
 
         # loss = demand * price * backlog_ratio
         seller_step_cost = -1 * (
             (self._get_attributes("seller", "demand", tick) - self._get_attributes("seller", "sold", tick))
-            * self._get_attributes("seller", "price", tick)
             * self._get_attributes("seller", "backlog_ratio", tick)
+            * price
         )
 
         return seller_step_profit, seller_step_cost
@@ -259,14 +271,6 @@ class BalanceSheetCalculator:
     def _calc_storage(self, tick: int) -> List[Dict[int, float]]:
         storage_product_step_cost: List[Dict[int, float]] = None
         return storage_product_step_cost
-
-    def _calc_vehicle(self, tick: int) -> np.ndarray:
-        # loss = cost * payload
-        vehicle_step_cost = -1 * (
-            self._get_attributes("vehicle", "payload", tick)
-            * self._get_attributes("vehicle", "unit_transport_cost", tick)
-        )
-        return vehicle_step_cost
 
     def _calc_product_distribution(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         # product distribution profit = check order * price
