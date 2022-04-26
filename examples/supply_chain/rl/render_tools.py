@@ -21,7 +21,7 @@ facility_name,name,inventory_in_stock,
 inventory_in_transit, inventory_to_distribute,
 unit_inventory_holding_cost,
 consumer_purchased,
-consumer_received,consumer_order_cost,
+consumer_received,consumer_order_base_cost,
 consumer_order_product_cost,seller_sold,seller_demand,
 seller_price,seller_backlog_ratio,
 manufacture_manufacture_quantity,
@@ -36,7 +36,7 @@ def compute_store_balance(row):
     return (row["seller_sold"]*row['seller_price']
            - (row["seller_demand"]-row['seller_sold'])*row['seller_price']*row['seller_backlog_ratio']
            - row["consumer_order_product_cost"]
-           - row["consumer_order_cost"]
+           - row["consumer_order_base_cost"]
            - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
 
 def compute_warehouse_balance(row):
@@ -83,7 +83,7 @@ class SimulationComparisionTrackerHtml:
         df = self.df.groupby(['facility_name', 'sku_id', 'sale_dt', 'model_name']).first().reset_index()
         df_sku = pd.concat([df, df_agg])
         df_sku.loc[:, "GMV"] = df_sku['seller_price'] * df_sku['seller_sold']
-        df_sku.loc[:, "order_cost"] = df_sku["consumer_order_product_cost"] + df_sku["consumer_order_cost"]
+        df_sku.loc[:, "order_cost"] = df_sku["consumer_order_product_cost"] + df_sku["consumer_order_base_cost"]
         df_sku.loc[:, 'inventory_holding_cost'] = df_sku['inventory_in_stock'] * df_sku['unit_inventory_holding_cost']
         df_sku.loc[:, 'out_of_stock_loss'] = df_sku['seller_backlog_ratio']*df_sku['seller_price']*(df_sku['seller_demand'] - df_sku['seller_sold'])
         df_sku.loc[:, "profit"] = df_sku["GMV"] - df_sku['order_cost'] - df_sku['inventory_holding_cost'] - df_sku['out_of_stock_loss']
@@ -191,7 +191,7 @@ facility_name,name,inventory_in_stock,
 inventory_in_transit,inventory_to_distribute
 unit_inventory_holding_cost,
 consumer_purchased,
-consumer_received,consumer_order_cost,
+consumer_received,consumer_order_base_cost,
 consumer_order_product_cost,seller_sold,seller_demand,
 seller_price,seller_backlog_ratio,
 manufacture_manufacture_quantity,
@@ -337,7 +337,7 @@ class SimulationTrackerHtml:
                     y_inventory_holding_cost = [round(x,0) for x in (df['unit_inventory_holding_cost']*df['inventory_in_stock']).tolist()]
                     y_gmv = [round(x,0) for x in (df['seller_price'] * df['seller_sold']
                                                   + df['product_check_in_quantity_in_order']*df['product_price']).tolist()]
-                    y_product_cost = [round(x,0) for x in (df['consumer_order_product_cost']+df['consumer_order_cost']).tolist()]
+                    y_product_cost = [round(x,0) for x in (df['consumer_order_product_cost']+df['consumer_order_base_cost']).tolist()]
                     y_oos_loss = [round(x,0) for x in ((df['seller_demand'] - df['seller_sold']) * df['seller_price'] * df['seller_backlog_ratio']).tolist()]
                     y_distribution_cost = [round(x,0) for x in (df['product_transportation_cost'] + df['product_delay_order_penalty']).tolist()]
                     y_manufacture_quantity = [round(x,0) for x in df['manufacture_manufacture_quantity']]
@@ -468,7 +468,7 @@ class SimulationTracker:
         self.facility_names = []
         self.entity_dict = self.env._entity_dict
         for entity_id, entity in self.entity_dict.items():
-            if entity.is_facility:
+            if issubclass(entity.class_type, FacilityBase):
                 self.facility_names.append(entity_id)
 
         self.step_balances = np.zeros(
@@ -645,15 +645,15 @@ class SimulationTracker:
         return metric, metric_list
 
 if __name__ == "__main__":
-    html_render = SimulationTrackerHtml("/data/songlei/maro_ms/examples/supply_chain/results/dqn_20SKUs/output_product_metrics_470.csv")
-    html_render.render_sku()
-    html_render.render_facility()
+    # html_render = SimulationTrackerHtml("/data/songlei/maro_ms/examples/supply_chain/results/dqn_20SKUs/output_product_metrics_470.csv")
+    # html_render.render_sku()
+    # html_render.render_facility()
 
     baseline_model = "baseline"
-    baseline_loc = "/data/songlei/maro_ms/examples/supply_chain/results/baseline_20SKUs/output_product_metrics.csv"
+    baseline_loc = "/data/songlei/maro_ms/examples/supply_chain/results/baseline_100SKUs/output_product_metrics.csv"
 
     RL_model = "MARL"
-    RL_loc = "/data/songlei/maro_ms/examples/supply_chain/results/dqn_20SKUs/output_product_metrics_470.csv"
+    RL_loc = "/data/songlei/maro_ms/examples/supply_chain/results/dqn_100SKUs/output_product_metrics_130.csv"
 
     html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
     html_comparison_render.render_overview()

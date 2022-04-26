@@ -39,6 +39,7 @@ class ScOrAgentStates:
             "storage_in_transition_quantity": 0,
             "product_level": 0,
             "in_transition_quantity": 0,
+            "to_distributed_orders": 0,
             "max_vlt": facility_info.products_info[entity.skus.id].max_vlt,
             "service_level_ppf": st.norm.ppf(entity.skus.service_level),
         }
@@ -52,6 +53,7 @@ class ScOrAgentStates:
         product_metrics: Optional[dict],
         product_levels: List[int],
         in_transit_order_quantity: List[int],
+        to_distributed_orders: List[int],
     ) -> dict:
         entity: SupplyChainEntity = self._entity_dict[entity_id]
 
@@ -74,5 +76,5 @@ class ScOrAgentStates:
 
         state["product_level"] = product_levels[self._global_sku_id2idx[entity.skus.id]]
         state["in_transition_quantity"] = in_transit_order_quantity[self._global_sku_id2idx[entity.skus.id]]
-
+        state["to_distributed_orders"] = to_distributed_orders[self._global_sku_id2idx[entity.skus.id]]
         return state

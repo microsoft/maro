@@ -292,13 +292,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-<<<<<<< HEAD
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: object, agent_state_dict) -> Dict[Any, object]:
-=======
     def _translate_to_env_action(
         self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: object,
     ) -> Dict[Any, object]:
->>>>>>> origin/Jinyu/sc_refinement
         """Translate model-generated actions into an object that can be executed by the env.
 
         Args:
@@ -349,17 +345,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         # Init the env
         self._env = self._learn_env
+        self._balance_calculator._env = self._env
         if not self._agent_state_dict:
-<<<<<<< HEAD
-            self.reset()
-            self._env.reset()
-            self._info.clear()
-            self._trans_cache.clear()
-            _, self._event, _ = self._env.step(None)
-            self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
-=======
             self._reset()
->>>>>>> origin/Jinyu/sc_refinement
 
         # Update policy state if necessary
         if policy_state is not None:
@@ -379,10 +367,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     tick=self._env.tick,
                     event=self._event,
                     state=self._state,
-<<<<<<< HEAD
-                    agent_state_dict=self._agent_state_dict,
-                    action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
-=======
                     agent_state_dict={
                         id_: state
                         for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
@@ -391,7 +375,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                         id_: action
                         for id_, action in action_dict.items() if id_ in self._trainable_agents
                     },
->>>>>>> origin/Jinyu/sc_refinement
                     env_action_dict={
                         id_: env_action
                         for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents

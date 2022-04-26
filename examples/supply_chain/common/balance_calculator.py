@@ -3,6 +3,7 @@
 import collections
 from collections import defaultdict, namedtuple
 from typing import Dict, List, Tuple
+from maro.simulator.scenarios.supply_chain.units.product import StoreProductUnit
 
 import numpy as np
 
@@ -11,6 +12,7 @@ from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityIn
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
+from maro.simulator.scenarios.supply_chain import RetailerFacility
 # from ..rl.env_helper import STORAGE_INFO
 
 
@@ -44,7 +46,7 @@ FacilityLevelInfo = namedtuple(
 
 class BalanceSheetCalculator:
     consumer_features = ("id", "purchased", "received",
-                         "order_cost", "order_product_cost")
+                         "order_base_cost", "order_product_cost")
     seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
     manufacture_features = ("id", "manufacture_quantity", "unit_product_cost")
     product_features = (
@@ -112,7 +114,7 @@ class BalanceSheetCalculator:
             product_id_list = []
             for product_id, product_info in facility_info.products_info.items():
                 product_id_list.append(product_info.id)
-                product_id2idx[product_id] = len(products)
+                product_id2idx[product_info.id] = len(products)
 
                 if product_info.consumer_info:
                     consumer_id2product_id[product_info.consumer_info.id] = product_info.id
@@ -152,25 +154,26 @@ class BalanceSheetCalculator:
         # Topological sorting
         ordered_products: List[ProductInfo] = []
         product_unit_dict = {product.unit_id: product for product in self.products}
-        in_degree = collections.Counter()
+        # in_degree = collections.Counter()
 
         for product in self.products:
-            for downstream_unit_id in product.downstream_product_unit_id_list:
-                in_degree[downstream_unit_id] += 1
-
-        queue = collections.deque()
-        for unit_id, deg in in_degree.items():
-            if deg == 0:
-                queue.append(unit_id)
-
-        while queue:
-            unit_id = queue.popleft()
-            product = product_unit_dict[unit_id]
             ordered_products.append(product)
-            for downstream_unit_id in product.downstream_product_unit_id_list:
-                in_degree[downstream_unit_id] -= 1
-                if in_degree[downstream_unit_id] == 0:
-                    queue.append(downstream_unit_id)
+        #     for downstream_unit_id in product.downstream_product_unit_id_list:
+        #         in_degree[downstream_unit_id] += 1
+
+        # queue = collections.deque()
+        # for unit_id, deg in in_degree.items():
+        #     if deg == 0:
+        #         queue.append(unit_id)
+
+        # while queue:
+        #     unit_id = queue.popleft()
+        #     product = product_unit_dict[unit_id]
+        #     ordered_products.append(product)
+        #     for downstream_unit_id in product.downstream_product_unit_id_list:
+        #         in_degree[downstream_unit_id] -= 1
+        #         if in_degree[downstream_unit_id] == 0:
+        #             queue.append(downstream_unit_id)
 
         return ordered_products
 
@@ -243,20 +246,18 @@ class BalanceSheetCalculator:
 
         return manufacture_ids, manufacture_step_cost
 
-    def _calc_storage(self, tick: int) -> List[Dict[int, float]]:
-        storage_product_step_cost: List[Dict[int, float]] = [
-            {
-                product_id: -quantity * self._entity_dict[
-                    self.products[self.product_id2idx[product_id]].unit_id
-                ].skus.unit_storage_cost
-                for product_id, quantity in zip(id_list, quantity_list)
-            }
-            for id_list, quantity_list in zip(
-                [il.astype(np.int) for il in self._get_list_attributes("storage", "product_list", tick)],
-                [ql.astype(np.int) for ql in self._get_list_attributes("storage", "product_quantity", tick)],
-            )
-        ]
+# storage_snapshots = self._env.snapshot_list["storage"]
+#         for node_index in range(len(storage_snapshots)):
+#             storage_capacity_list = storage_snapshots[0:node_index:"capacity"].flatten().astype(int)
+#             product_storage_index_list = storage_snapshots[0:node_index:"product_storage_index"].flatten().astype(int)
+#             product_id_list = storage_snapshots[0:node_index:"product_list"].flatten().astype(int)
 
+#             for product_id, sub_storage_idx in zip(product_id_list, product_storage_index_list):
+#                 storage_capacity_dict[node_index][product_id] = storage_capacity_list[sub_storage_idx]
+
+
+    def _calc_storage(self, tick: int) -> List[Dict[int, float]]:
+        storage_product_step_cost: List[Dict[int, float]] = None
         return storage_product_step_cost
 
     def _calc_vehicle(self, tick: int) -> np.ndarray:
@@ -297,10 +298,13 @@ class BalanceSheetCalculator:
         product_step_cost = np.zeros(self.num_products)
 
         self._cur_metrics = self._env._business_engine.get_metrics()
-
         # product = consumer + seller + manufacture + storage + distribution + downstreams
-        for product in self._ordered_products:
-            i = product.node_index
+        for i, product in enumerate(self.products):
+            node_idx = product.node_index
+            storage_index = product.storage_index
+            product_storage_index = int(np.where(self._get_list_attributes("storage", "product_list", tick)[storage_index] == product.sku_id)[0])
+            stock = self._get_list_attributes("storage", "product_quantity", tick)[storage_index][product_storage_index]
+            unit_inventory_holding_cost = self._entity_dict[product.unit_id].skus.unit_storage_cost
             if (tick, i) not in self.tick_cached:
                 self.tick_cached.add((tick, i))
                 meta_sku = self.sku_meta_info[product.sku_id]
@@ -313,7 +317,7 @@ class BalanceSheetCalculator:
                 self.product_metric_track['name'].append(meta_sku.name)
                 for f_id, fea in enumerate(self.product_features):
                     if fea != 'id':
-                        val = self._get_attributes("product", fea, tick)[i]
+                        val = self._get_attributes("product", fea, tick)[node_idx]
                         self.product_metric_track[f"product_{fea}"].append(val)
                 for fea in self.consumer_features:
                     if fea != 'id':
@@ -332,12 +336,7 @@ class BalanceSheetCalculator:
                         val = (self._get_attributes("distribution", fea, tick)[product.distribution_index] if product.distribution_index is not None else 0)
                         self.product_metric_track[f"distribution_{fea}"].append(val)
                 
-                storage_index = product.storage_index
-                unit_storage_cost = self._get_list_attributes("storage", "unit_storage_cost", tick)[storage_index]
-                product_storage_index = int(np.where(self._get_list_attributes("storage", "product_list", tick)[storage_index] == product.sku_id)[0])
-                stock = self._get_list_attributes("storage", "product_quantity", tick)[storage_index][product_storage_index]
-                inner_storage_index = int(self._get_list_attributes("storage", "product_storage_index", tick)[storage_index][product_storage_index])
-                self.product_metric_track['unit_inventory_holding_cost'].append(unit_storage_cost[inner_storage_index])
+                self.product_metric_track['unit_inventory_holding_cost'].append(unit_inventory_holding_cost)
                 self.product_metric_track['inventory_in_stock'].append(stock)
 
                 in_transit_stock = self._cur_metrics['facilities'][product.facility_id]["in_transit_orders"][product.sku_id]
@@ -361,7 +360,7 @@ class BalanceSheetCalculator:
             if product.manufacture_index:
                 product_step_cost[i] += manufacture_step_cost[product.manufacture_index]
 
-            product_step_cost[i] += storage_product_step_cost[product.storage_index][product.sku_id]
+            product_step_cost[i] += (unit_inventory_holding_cost*stock)
 
             if product.distribution_index:
                 product_step_profit[i] += product_distribution_step_profit[i]
@@ -390,9 +389,9 @@ class BalanceSheetCalculator:
             # TODO: check is it still needed, since we already add it into the product
             # facility_step_cost[i] += storage_step_cost[facility.storage_index]
 
-            for pid in facility.product_unit_id_list:
-                facility_step_profit[i] += product_step_profit[self.product_id2idx[pid]]
-                facility_step_cost[i] += product_step_cost[self.product_id2idx[pid]]
+            for product_id in facility.product_unit_id_list:
+                facility_step_profit[i] += product_step_profit[self.product_id2idx[product_id]]
+                facility_step_cost[i] += product_step_cost[self.product_id2idx[product_id]]
 
         facility_step_balance = facility_step_profit + facility_step_cost
 
@@ -471,7 +470,7 @@ class BalanceSheetCalculator:
             tick
         )
 
-        _, _, facility_step_balance = self._calc_facility(facility_storage_step_cost, None,
+        _, _, facility_step_balance = self._calc_facility(None, None,
             product_step_profit, product_step_cost
         )
 
@@ -485,4 +484,3 @@ class BalanceSheetCalculator:
         for key in self.product_metric_track.keys():
             self.product_metric_track[key] = []
         self.tick_cached.clear()
-            

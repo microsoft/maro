@@ -131,7 +131,7 @@ class ScRlAgentStates:
         storage_product_quantity: Dict[int, List[int]],
         facility_product_utilization: Dict[int, int],
         facility_in_transit_orders: Dict[int, List[int]],
-    ) -> np.ndarray:
+    ) -> dict:
         """Update the state dict of the given entity_id in the given tick.
 
         Args:
@@ -170,7 +170,7 @@ class ScRlAgentStates:
         self._update_distribution_features(state, entity, cur_distribution_states)
         self._update_consumer_features(state, entity, cur_metrics, storage_product_quantity, facility_in_transit_orders)
 
-        return serialize_state(state)
+        return state
 
     def _init_global_feature(self, state: dict) -> None:
         # state["global_time"] = 0

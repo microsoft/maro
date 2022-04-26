@@ -5,7 +5,7 @@ from abc import abstractmethod
 import math, random
 from typing import List, Optional
 
-from examples.supply_chain.rl.config import NUM_CONSUMER_ACTIONS, workflow_settings
+from examples.supply_chain.rl.config import OR_NUM_CONSUMER_ACTIONS, workflow_settings
 from maro.rl.policy import RuleBasedPolicy
 
 
@@ -29,17 +29,17 @@ class ConsumerBasePolicy(RuleBasedPolicy):
         self._replenishment_threshold: Optional[float] = None
 
     def _take_action_mask(self, state: dict) -> bool:
-        booked_quantity = state["product_level"] + state["in_transition_quantity"]
+        self._booked_quantity = state["product_level"] + state["in_transition_quantity"] - state["to_distributed_orders"]
         storage_booked_quantity = state["storage_utilization"] + state["storage_in_transition_quantity"]
 
-        expected_vlt = VLT_BUFFER_DAYS + state["max_vlt"]
+        expected_vlt = round(VLT_BUFFER_DAYS * state["max_vlt"], 0)
         self._replenishment_threshold = (
             expected_vlt * state["sale_mean"]
             + math.sqrt(expected_vlt) * state["sale_std"] * state["service_level_ppf"]
         )
 
         capacity_mask = storage_booked_quantity <= state["storage_capacity"]
-        replenishment_mask = booked_quantity <= self._replenishment_threshold
+        replenishment_mask = self._booked_quantity <= self._replenishment_threshold
 
         return capacity_mask and replenishment_mask
 
@@ -56,18 +56,18 @@ class ConsumerBasePolicy(RuleBasedPolicy):
 
 class ConsumerBaselinePolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
-        return random.randint(0, NUM_CONSUMER_ACTIONS - 1)
+        return random.randint(0, OR_NUM_CONSUMER_ACTIONS - 1)
 
 
 class ConsumerEOQPolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
         quantity = math.sqrt(2 * state["sale_mean"] * state["unit_order_cost"] / state["unit_storage_cost"])
         quantity /= (state["sale_mean"] + 1e-8)
-        return int(quantity)
+        return min(int(quantity), OR_NUM_CONSUMER_ACTIONS - 1)
 
 
 class ConsumerMinMaxPolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
-        quantity = 3 * self._replenishment_threshold
+        quantity = (self._replenishment_threshold - self._booked_quantity)
         quantity /= (state["sale_mean"] + 1e-8)
-        return int(quantity)
+        return min(int(quantity), OR_NUM_CONSUMER_ACTIONS - 1)

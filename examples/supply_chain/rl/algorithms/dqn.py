@@ -80,7 +80,7 @@ class ORValueBasedPolicy(ValueBasedPolicy):
         _, actions = q_matrix.max(dim=1)  # [B], [B]
         if self._exploring:
             or_actions = states[:, -1]
-            actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, or_actions, **self._exploration_params)
+            actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, or_actions.cpu().numpy(), **self._exploration_params)
             actions = ndarray_to_tensor(actions, self._device)
         return actions.unsqueeze(1)  # [B, 1]
 
@@ -133,8 +133,8 @@ def get_dqn(name: str) -> DQNTrainer:
             num_epochs=100,
             soft_update_coef=0.01,
             double=True,
-            replay_memory_capacity=100000,
+            replay_memory_capacity=1024000,
             random_overwrite=False,
-            batch_size=256,
+            batch_size=1024,
         ),
     )

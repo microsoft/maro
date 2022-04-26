@@ -11,7 +11,7 @@ from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit, StoreProductUnit
+    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, ProductUnit, StoreProductUnit, RetailerFacility
 )
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
@@ -19,7 +19,7 @@ from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, Supp
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
-from examples.supply_chain.rl.algorithms.rule_based import ConsumerEOQPolicy as ConsumerBaselinePolicy
+from examples.supply_chain.rl.algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 
 from .algorithms.rule_based import ConsumerBasePolicy
 from .config import (
@@ -27,7 +27,7 @@ from .config import (
 )
 from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
-from .rl_agent_state import ScRlAgentStates
+from .rl_agent_state import ScRlAgentStates, serialize_state
 from .render_tools import SimulationTracker
 
 
@@ -126,7 +126,6 @@ class SCEnvSampler(AbsEnvSampler):
         self._configs: SupplyChainConfiguration = self._learn_env.configs
         self._policy_parameter: Dict[str, Any] = self._parse_policy_parameter(self._configs.policy_parameters)
 
-        self._balance_calculator: BalanceSheetCalculator = BalanceSheetCalculator(self._learn_env)
 
         ########################################################################
         # Internal Variables. Would be updated and used.
@@ -214,7 +213,7 @@ class SCEnvSampler(AbsEnvSampler):
         # Key1: storage node index; Key2: product id/sku id; Value: sub storage capacity.
         storage_capacity_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
 
-        storage_snapshots = self._learn_env.snapshot_list["storage"]
+        storage_snapshots = self._env.snapshot_list["storage"]
         for node_index in range(len(storage_snapshots)):
             storage_capacity_list = storage_snapshots[0:node_index:"capacity"].flatten().astype(int)
             product_storage_index_list = storage_snapshots[0:node_index:"product_storage_index"].flatten().astype(int)
@@ -241,14 +240,14 @@ class SCEnvSampler(AbsEnvSampler):
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
+            to_distributed_orders = self._facility_to_distribute_orders[entity.facility_id],
         )
-
         return state
 
     def get_rl_policy_state(self, entity_id: int) -> np.ndarray:
-        np_state = self._rl_agent_states.update_entity_state(
+        state = self._rl_agent_states.update_entity_state(
             entity_id=entity_id,
-            tick=self._learn_env.tick,
+            tick=self._env.tick,
             cur_metrics=self._cur_metrics,
             cur_distribution_states=self._cur_distribution_states,
             cur_seller_hist_states=self._cur_seller_hist_states,
@@ -259,12 +258,11 @@ class SCEnvSampler(AbsEnvSampler):
             facility_in_transit_orders=self._facility_in_transit_orders,
         )
         
-        baseline_action = 0
         entity = self._entity_dict[entity_id]
+        baseline_action = 0
         if issubclass(entity.class_type, ConsumerUnit):
             bs_state = self.get_or_policy_state(entity)
-            bs_state = np.reshape(bs_state, (1, -1))
-            baseline_action = self.baseline_policy.get_actions(bs_state)[0]
+            baseline_action = self.baseline_policy.get_actions([bs_state])[0]
         state['baseline_action'] = baseline_action
 
         self._stock_status[entity.id] = state['inventory_in_stock']
@@ -297,30 +295,30 @@ class SCEnvSampler(AbsEnvSampler):
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         """Update the status variables first, then call the state shaper for each agent."""
         if tick is None:
-            tick = self._learn_env.tick
+            tick = self._env.tick
         else:
             # To make sure the usage of metrics is correct, the tick should be same to the current env tick.
-            assert tick == self._learn_env.tick
+            assert tick == self._env.tick
 
-        self._cur_metrics = self._learn_env.metrics
+        self._cur_metrics = self._env.metrics
 
         # Get balance info of current tick from balance calculator.
         self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
 
         # Get distribution features of current tick from snapshot list.
-        self._cur_distribution_states = self._learn_env.snapshot_list["distribution"][
+        self._cur_distribution_states = self._env.snapshot_list["distribution"][
             tick::distribution_features
         ].flatten().reshape(-1, len(distribution_features)).astype(np.int)
 
         # Get consumer features of specific ticks from snapshot list.
         consumption_hist_ticks = [tick - i for i in range(self._env_settings['consumption_hist_len'] - 1, -1, -1)]
-        self._cur_consumer_hist_states = self._learn_env.snapshot_list["consumer"][
+        self._cur_consumer_hist_states = self._env.snapshot_list["consumer"][
             consumption_hist_ticks::consumer_features
         ].reshape(self._env_settings['consumption_hist_len'], -1, len(consumer_features))
 
         # Get seller features of specific ticks from snapshot list.
         sale_hist_ticks = [tick - i for i in range(self._env_settings['sale_hist_len'] - 1, -1, -1)]
-        self._cur_seller_hist_states = self._learn_env.snapshot_list["seller"][
+        self._cur_seller_hist_states = self._env.snapshot_list["seller"][
             sale_hist_ticks::seller_features
         ].reshape(self._env_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
 
@@ -332,8 +330,7 @@ class SCEnvSampler(AbsEnvSampler):
             self._facility_product_utilization[facility_id] = 0
             self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
             self._facility_to_distribute_orders[facility_id] = [0] * self._sku_number
-
-            product_quantities = self._learn_env.snapshot_list["storage"][
+            product_quantities = self._env.snapshot_list["storage"][
                 tick:facility_info.storage_info.node_index:"product_quantity"
             ].flatten().astype(np.int)
 
@@ -350,8 +347,8 @@ class SCEnvSampler(AbsEnvSampler):
                     self._facility_to_distribute_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
         # to keep track infor
-        for id_, entity in self._entity_dict.items():
-            self.get_rl_policy_state(id_, entity)
+        for id_ in self._entity_dict.keys():
+            self.get_rl_policy_state(id_)
 
         state = {
             id_: self._get_entity_state(id_)
@@ -426,8 +423,8 @@ class SCEnvSampler(AbsEnvSampler):
 
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         tick = cache_element.tick
-        total_sold = self._learn_env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
-        total_demand = self._learn_env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
+        total_sold = self._env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
+        total_demand = self._env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
         self._info["sold"] = total_sold
         self._info["demand"] = total_demand
         self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
@@ -435,8 +432,8 @@ class SCEnvSampler(AbsEnvSampler):
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._post_step(cache_element, reward)
 
-    def reset(self):
-        # super().reset()
+    def _reset(self):
+        super()._reset()
         self._balance_calculator.reset()
         self.total_balance = 0.0
 
@@ -444,29 +441,44 @@ class SCEnvSampler(AbsEnvSampler):
         tracker = SimulationTracker(env_conf["durations"], 1, self, [0, env_conf["durations"]])
         step_idx = 0
         self._env = self._test_env
+        self._balance_calculator._env = self._env
         if policy_state is not None:
             self.set_policy_state(policy_state)
 
+        self._reset()
         self._agent_wrapper.exploit()
-        self.reset()
-        self._env.reset()
         is_done = False
-        _, self._event, _ = self._env.step(None)
-        self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
         while not is_done:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             # agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
             # Update env and get new states (global & agent)
+            exp_element = CacheElement(
+                            tick=self._env.tick,
+                            event=self._event,
+                            state=self._state,
+                            agent_state_dict={
+                                id_: state
+                                for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
+                            },
+                            action_dict={
+                                id_: action
+                                for id_, action in action_dict.items() if id_ in self._trainable_agents
+                            },
+                            env_action_dict={
+                                id_: env_action
+                                for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
+                            },
+            )
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
-            reward = self._get_reward(env_action_dict, self._event, self._env.tick)
+            reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
             consumer_action_dict = {}
             for entity_id, entity in self._entity_dict.items():
                 if issubclass(entity.class_type, ConsumerUnit):
                     parent_entity = self._entity_dict[entity.parent_id]
                     if issubclass(parent_entity.class_type, StoreProductUnit):
                         action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
-                        or_action = self._agent_state_dict[entity_id][-1]
+                        or_action = (self._agent_state_dict[entity_id][-1] if ALGO != 'EOQ' else 0)
                         consumer_action_dict[parent_entity.id] = (action, or_action, reward[entity_id])
             print(step_idx, consumer_action_dict)
             self._state, self._agent_state_dict = (None, {}) if is_done \

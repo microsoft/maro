@@ -47,6 +47,6 @@ if __name__ == "__main__":
     # df_product = df_product.groupby(['tick', 'id']).first().reset_index()
     result_file_loc = f'{LOG_PATH}/output_product_metrics.csv'
     df_product.to_csv(result_file_loc, index=False)
-    html_render = SimulationTrackerHtml(result_file_loc)
-    html_render.render_sku()
-    html_render.render_facility()
+    # html_render = SimulationTrackerHtml(result_file_loc)
+    # html_render.render_sku()
+    # html_render.render_facility()
