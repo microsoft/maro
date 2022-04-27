@@ -102,7 +102,6 @@ class OneTimeSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
                 if sku_name not in self._world.sku_name2id_mapping:
                     continue
                 sku_id = self._world.sku_name2id_mapping[sku_name]
-
                 self._cache[target_tick][sku_id] = {}
                 for attr_name, item in self._info_dict.items():
                     self._cache[target_tick][sku_id][attr_name] = item.type_name(float(row[item.column_name]))
@@ -191,6 +190,7 @@ class SellerDemandMixin(metaclass=ABCMeta):
 
 
 class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, SellerDemandMixin):
+
     def _init_info_dict(self) -> Dict[str, DynamicsInfoItem]:
         return {
             "Price": DynamicsInfoItem(self._configs.get("price_column", "Price"), float, None),
@@ -198,11 +198,12 @@ class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, Sel
         }
 
     def _sample_attr(self, tick: int, product_id: int, attr_name: str) -> object:
-        if any([
-            tick not in self._cache,
-            product_id not in self._cache[tick],
-            attr_name not in self._cache[tick][product_id],
-        ]):
+        # if any([
+        #     tick not in self._cache,
+        #     product_id not in self._cache[tick],
+        #     attr_name not in self._cache[tick][product_id],
+        # ]):
+        if (tick not in self._cache) or (product_id not in self._cache[tick]) or (attr_name not in self._cache[tick][product_id]):
             return self._info_dict[attr_name].default_value
 
         return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])

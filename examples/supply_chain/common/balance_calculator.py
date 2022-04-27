@@ -48,7 +48,7 @@ FacilityLevelInfo = namedtuple(
 class BalanceSheetCalculator:
     consumer_features = ("id", "purchased", "received",
                          "order_base_cost", "order_product_cost")
-    seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
+    seller_features = ("id", "sold", "demand", "backlog_ratio")
     manufacture_features = ("id", "manufacture_quantity", "unit_product_cost")
     product_features = (
         "id", "price", 'check_in_quantity_in_order', 'delay_order_penalty', "transportation_cost")
@@ -88,7 +88,7 @@ class BalanceSheetCalculator:
         self.sku_meta_info = self._env.summary['node_mapping']['skus']
 
         for col in ['id', 'sku_id', 'facility_id', 'facility_name', 'name', 'tick', 'inventory_in_stock', 
-                    'inventory_in_transit', 'inventory_to_distribute', 'unit_inventory_holding_cost']:
+                    'inventory_in_transit', 'inventory_to_distribute', 'unit_inventory_holding_cost', "seller_price"]:
             self.product_metric_track[col] = []
         for (name, cols) in [("consumer", self.consumer_features),
                              ("seller", self.seller_features),
@@ -302,6 +302,9 @@ class BalanceSheetCalculator:
         product_step_cost = np.zeros(self.num_products)
 
         self._cur_metrics = self._env._business_engine.get_metrics()
+        product_price_list = self._env.snapshot_list["product"][
+            self._env.business_engine.frame_index(tick)::"price"
+        ].flatten()
         # product = consumer + seller + manufacture + storage + distribution + downstreams
         for i, product in enumerate(self.products):
             node_idx = product.node_index
@@ -351,7 +354,7 @@ class BalanceSheetCalculator:
                 else:
                     to_distribute_stock = 0
                 self.product_metric_track['inventory_to_distribute'].append(to_distribute_stock)
-                
+                self.product_metric_track['seller_price'].append(product_price_list[node_idx])
 
                 
             if product.consumer_index:

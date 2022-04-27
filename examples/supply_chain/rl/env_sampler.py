@@ -29,6 +29,8 @@ from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
 from .rl_agent_state import ScRlAgentStates, serialize_state
 from .render_tools import SimulationTracker
+from .default_vendor_config import default_vendor
+from .baseline_mean_reward import mean_reward as baseline_mean_reward
 
 
 
@@ -227,6 +229,7 @@ class SCEnvSampler(AbsEnvSampler):
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
             return np.float32(bwt[1]) / np.float32(self._env_settings["reward_normalization"])
+            # return np.float32(bwt[1]) / (abs(baseline_mean_reward.get(entity.id, np.float32(self._env_settings["reward_normalization"]))) + 1.0)
         else:
             return .0
 
@@ -388,22 +391,31 @@ class SCEnvSampler(AbsEnvSampler):
                 vlt_info_candidates: List[VendorLeadingTimeInfo] = []
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
                 info_by_fid = facility_info.upstream_vlt_infos[product_id]
-                if self._env_settings["default_vehicle_type"] is None:
-                    vlt_info_candidates = [
-                        info
-                        for info_by_type in info_by_fid.values()
-                        for info in info_by_type.values()
-                    ]
-                else:
-                    vlt_info_candidates = [
-                        info_by_type[self._env_settings["default_vehicle_type"]]
-                        for info_by_type in info_by_fid.values()
-                    ]
+                
+                product_name = self._entity_dict[self._entity_dict[entity_id].parent_id].skus.name
+                facility_name = facility_info.name
+                default_vehicle_type = default_vendor[facility_name][product_name]
+                # if self._env_settings["default_vehicle_type"] is None:
+                #     vlt_info_candidates = [
+                #         info
+                #         for info_by_type in info_by_fid.values()
+                #         for info in info_by_type.values()
+                #     ]
+                # else:
+                #     vlt_info_candidates = [
+                #         info_by_type[self._env_settings["default_vehicle_type"]]
+                #         for info_by_type in info_by_fid.values()
+                #     ]
+
+                vlt_info_candidates = [
+                    info_by_type[default_vehicle_type]
+                    for info_by_type in info_by_fid.values() if default_vehicle_type in info_by_type 
+                ]
 
                 if len(vlt_info_candidates):
                     src_f_id = vlt_info_candidates[0].src_facility.id
                     vehicle_type = vlt_info_candidates[0].vehicle_type
-                    
+
                     if (ALGO == "PPO" and isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy)):
                         or_action = self._agent_state_dict[agent_id][-1]
                         action_idx = max(0, int(action[0] - 1 + or_action))
@@ -444,6 +456,7 @@ class SCEnvSampler(AbsEnvSampler):
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         tracker = SimulationTracker(env_conf["durations"], 1, self, [0, env_conf["durations"]])
+        mean_reward = {}
         step_idx = 0
         self._env = self._test_env
         self._balance_calculator._env = self._env
@@ -479,6 +492,7 @@ class SCEnvSampler(AbsEnvSampler):
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
             consumer_action_dict = {}
             for entity_id, entity in self._entity_dict.items():
+                mean_reward[entity_id] = mean_reward.get(entity_id, 0.0) + self._reward_status.get(entity_id, 0)
                 if issubclass(entity.class_type, ConsumerUnit):
                     parent_entity = self._entity_dict[entity.parent_id]
                     if issubclass(parent_entity.class_type, StoreProductUnit):
@@ -511,7 +525,8 @@ class SCEnvSampler(AbsEnvSampler):
             self._info["sold"] = 0
             self._info["demand"] = 1
             self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
-        return {"info": [self._info], "tracker": tracker}
+        mean_reward = {entity_id: val / step_idx for entity_id, val in mean_reward.items()}
+        return {"info": [self._info], "mean_reward": mean_reward, "tracker": tracker}
 
 
 def env_sampler_creator(policy_creator) -> SCEnvSampler:

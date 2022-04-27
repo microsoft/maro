@@ -50,3 +50,6 @@ if __name__ == "__main__":
     # html_render = SimulationTrackerHtml(result_file_loc)
     # html_render.render_sku()
     # html_render.render_facility()
+    mean_reward_path = join(dirname(SCENARIO_PATH), "rl")
+    with open(f"{mean_reward_path}/baseline_mean_reward.py", "w") as f:
+        f.write("mean_reward = " + str(result["mean_reward"]))

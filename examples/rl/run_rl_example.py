@@ -5,7 +5,7 @@ from maro.cli.local.commands import run
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("conf_path", help='Path of the job deployment')
+    parser.add_argument("--conf_path", help='Path of the job deployment')
     parser.add_argument("--evaluate_only", action="store_true", help="Only run evaluation part of the workflow")
     return parser.parse_args()
 

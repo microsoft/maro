@@ -237,7 +237,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        file_path: "/home/Jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
+        file_path: "/data/songlei/maro_ms/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
 
   topology:
     "Store_001":
@@ -254,36 +254,6 @@ world:
           "train":
             vlt: 7
             cost: 0.6
-    
-    "Store_002":
-      "food_1":
-        "Warehouse_001":
-          "air":
-            vlt: 2
-            cost: 3.0
-          "train":
-            vlt: 7
-            cost: 0.5
-      "hobby_1":
-        "Warehouse_001":
-          "train":
-            vlt: 7
-            cost: 0.6
-
-    "Warehouse_001":
-      "food_1":
-        "Vendor_001":
-          "air":
-            vlt: 2
-            cost: 2.0
-          "train":
-            vlt: 7
-            cost: 0.3
-      "hobby_1":
-        "Plant_001":
-          "train":
-            vlt: 7
-            cost: 0.35
 
     "Plant_001":
       "component_1":
