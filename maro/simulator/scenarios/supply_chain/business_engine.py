@@ -11,7 +11,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from .actions import SupplyChainAction
 from .objects import SupplyChainEntity
 from .parser import ConfigParser, SupplyChainConfiguration
-from .units import ProductUnit, UnitBase
+from .units import ProductUnit
 from .world import World
 
 
@@ -77,6 +77,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for facility in self.world.facilities.values():
             facility.post_step(tick)
 
+        for facility in self.world.facilities.values():
+            facility.flush_states()
+
+        self._frame.take_snapshot(self.frame_index(tick))
+
         return tick + 1 == self._max_tick
 
     def reset(self, keep_seed: bool = False) -> None:
@@ -124,8 +129,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for action in actions:
             assert isinstance(action, SupplyChainAction)
             entity = self.world.get_entity_by_id(action.id)
-            if entity is not None and isinstance(entity, UnitBase):
-                entity.set_action(action)
+            entity.on_action_received(event.tick, action)
 
     def get_metrics(self) -> dict:
         if self._metrics_cache is None:

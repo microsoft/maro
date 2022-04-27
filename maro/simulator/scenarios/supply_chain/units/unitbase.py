@@ -73,8 +73,8 @@ class UnitBase:
         # Real data model binding with this unit.
         self.data_model: Optional[DataModelBase] = None
 
-        # Current action.
-        self.action: Optional[SupplyChainAction] = None
+    def init_step(self, tick: int) -> None:
+        pass
 
     def step(self, tick: int) -> None:
         """Run related logic for current tick.
@@ -82,10 +82,6 @@ class UnitBase:
         Args:
             tick (int): Current simulator tick.
         """
-        self._step_impl(tick)
-        self._clear_action()
-
-    def _step_impl(self, tick: int) -> None:
         pass
 
     def flush_states(self) -> None:
@@ -106,8 +102,6 @@ class UnitBase:
         if self.data_model is not None:
             self.data_model.reset()
 
-        self._clear_action()
-
     def initialize(self) -> None:
         """Initialize this unit after data model is ready to use.
 
@@ -116,17 +110,14 @@ class UnitBase:
         if self.data_model is not None:
             self.data_model.set_id(self.id, self.facility.id)
 
-    def set_action(self, action: SupplyChainAction) -> None:
+    def on_action_received(self, tick: int, action: SupplyChainAction) -> None:
         """Set action for this agent.
 
         Args:
+            tick (int): Tick when action received.
             action (object): Action from outside.
         """
-        self.action = action
-
-    def _clear_action(self) -> None:
-        """Clear the action after calling step() of this Unit."""
-        self.action = None
+        pass
 
     def get_unit_info(self) -> BaseUnitInfo:
         return BaseUnitInfo(

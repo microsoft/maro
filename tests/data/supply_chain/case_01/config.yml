@@ -88,6 +88,8 @@ world:
         sku3:
           init_stock: 80
           has_manufacture: True
+          max_manufacture_rate: 10
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 10
       children:
@@ -102,6 +104,8 @@ world:
         sku1:
           init_stock: 96
           has_manufacture: True
+          max_manufacture_rate: 10
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 100
         sku3:
@@ -125,6 +129,8 @@ world:
         sku2:
           init_stock: 50
           has_manufacture: True
+          max_manufacture_rate: 10
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 100
       children:
@@ -144,6 +150,8 @@ world:
         sku4:
           init_stock: 50
           has_manufacture: True
+          max_manufacture_rate: 10
+          manufacture_leading_time: 1
           unit_product_cost: 4
           price: 100
         sku3:

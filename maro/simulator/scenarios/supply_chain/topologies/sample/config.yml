@@ -116,7 +116,7 @@ world:
         sku3: # sku name and attributes needed for this facility
           init_stock: 100
           unit_product_cost: 1
-          manufacture_rate: 1
+          max_manufacture_rate: 1
           has_manufacture: True
           price: 10
 
@@ -140,12 +140,12 @@ world:
         sku1:
           init_stock: 100
           unit_product_cost: 1
-          manufacture_rate: 1
+          max_manufacture_rate: 1
           has_manufacture: True
           price: 100
         sku3:
           init_stock: 100
-          manufacture_rate: 1
+          max_manufacture_rate: 1
           has_consumer: True
           price: 100
 

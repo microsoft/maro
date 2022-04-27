@@ -103,6 +103,8 @@ world:
         sku3:
           init_stock: 80
           has_manufacture: True
+          max_manufacture_rate: 10
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 10
       children:
