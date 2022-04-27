@@ -362,9 +362,7 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
-                sku = self._units_mapping[entity_id][3]
-                if sku.manufacture_rate:
-                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.manufacture_rate))
+                pass
 
             if env_action:
                 env_action_dict[agent_id] = env_action
