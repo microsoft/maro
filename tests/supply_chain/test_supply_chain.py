@@ -66,9 +66,9 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id",
+            "id", "facility_id", "start_manufacture_quantity", "product_id",
         )
-        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
+        IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
 
         # ############################### TICK: 0 ######################################
 
@@ -126,8 +126,8 @@ class MyTestCase(unittest.TestCase):
 
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
-        # Sku3 produce rate is 1 per tick, so manufacture_quantity should be 1.
-        self.assertEqual(1, states[IDX_MANUFACTURE_QUANTITY])
+        # Sku3 produce rate is 1 per tick, so start_manufacture_quantity should be 1.
+        self.assertEqual(1, states[IDX_START_MANUFACTURE_QUANTITY])
 
         remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
 
@@ -146,8 +146,8 @@ class MyTestCase(unittest.TestCase):
 
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
-        # so manufacture_quantity should be 0
-        self.assertEqual(0, states[IDX_MANUFACTURE_QUANTITY])
+        # so start_manufacture_quantity should be 0
+        self.assertEqual(0, states[IDX_START_MANUFACTURE_QUANTITY])
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku3_storage_index)
 
@@ -161,8 +161,8 @@ class MyTestCase(unittest.TestCase):
 
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
-        # so manufacture_number should be 19 instead 20
-        self.assertEqual(19, states[IDX_MANUFACTURE_QUANTITY])
+        # so start_manufacture_number should be 19 instead 20
+        self.assertEqual(19, states[IDX_START_MANUFACTURE_QUANTITY])
 
         remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
 
@@ -187,9 +187,9 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost",
+            "id", "facility_id", "start-manufacture_quantity", "product_id", "unit_product_cost",
         )
-        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
+        IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
 
         # ############################### TICK: 0 ######################################
 
@@ -234,7 +234,7 @@ class MyTestCase(unittest.TestCase):
         ].flatten().astype(np.int)
 
         # manufacture_quantity should be 0
-        self.assertEqual(0, manufacture_states[IDX_MANUFACTURE_QUANTITY])
+        self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
 
         # output product id should be same as configured.
         self.assertEqual(4, manufacture_states[IDX_PRODUCT_ID])
@@ -263,7 +263,7 @@ class MyTestCase(unittest.TestCase):
         ].flatten().astype(np.int)
 
         # manufacture_quantity should be 0
-        self.assertEqual(0, manufacture_states[IDX_MANUFACTURE_QUANTITY])
+        self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
 
         # output product id should be same as configured.
         self.assertEqual(SKU4_ID, manufacture_states[IDX_PRODUCT_ID])
@@ -292,9 +292,9 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id", "unit_product_cost",
+            "id", "facility_id", "start_manufacture_quantity", "product_id", "unit_product_cost",
         )
-        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
+        IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID, IDX_UNIT_PRODUCT_COST = 0, 1, 2, 3, 4
 
         # ############################### TICK: 0 ######################################
 
@@ -333,7 +333,7 @@ class MyTestCase(unittest.TestCase):
         ].flatten().astype(np.int)
 
         # we can produce 4 sku1, as it will meet storage avg limitation per sku. 4 = 200//2 - 96
-        self.assertEqual(200 // 2 - 96, manufacture_states[IDX_MANUFACTURE_QUANTITY])
+        self.assertEqual(200 // 2 - 96, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4 * 2 sku3/sku1))
         remaining_spaces = storage_nodes[
@@ -363,7 +363,7 @@ class MyTestCase(unittest.TestCase):
         ].flatten().astype(np.int)
 
         # but manufacture number is 0
-        self.assertEqual(0, manufacture_states[IDX_MANUFACTURE_QUANTITY])
+        self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4*2))
         remaining_spaces = storage_nodes[
@@ -390,9 +390,9 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_number = len(manufacture_nodes)
         manufacture_features = (
-            "id", "facility_id", "manufacture_quantity", "product_id",
+            "id", "facility_id", "start_manufacture_quantity", "product_id",
         )
-        IDX_ID, IDX_FACILITY_ID, IDX_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
+        IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_PRODUCT_ID = 0, 1, 2, 3
 
         # ############################### TICK: 0 ######################################
 
@@ -451,7 +451,7 @@ class MyTestCase(unittest.TestCase):
         states = manufacture_nodes[env.frame_index:sku2_data_model_index:manufacture_features].flatten().astype(np.int)
 
         # Sku2 produce rate is 1 per tick, so manufacture_quantity should be 1.
-        self.assertEqual(1, states[IDX_MANUFACTURE_QUANTITY])
+        self.assertEqual(1, states[IDX_START_MANUFACTURE_QUANTITY])
 
         remaining_spaces = storage_nodes[env.frame_index:sku2_storage_index:"remaining_space"].flatten().astype(np.int)
 
@@ -473,7 +473,7 @@ class MyTestCase(unittest.TestCase):
         states = manufacture_nodes[env.frame_index:sku2_data_model_index:manufacture_features].flatten().astype(np.int)
 
         # so manufacture_quantity should be 0
-        self.assertEqual(0, states[IDX_MANUFACTURE_QUANTITY])
+        self.assertEqual(0, states[IDX_START_MANUFACTURE_QUANTITY])
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku2_storage_index)
 
