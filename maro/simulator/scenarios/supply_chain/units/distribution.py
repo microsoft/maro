@@ -109,7 +109,8 @@ class DistributionUnit(UnitBase):
 
             return order_total_price
 
-        return 0
+        else:
+            return 0
 
     def get_pending_product_quantities(self) -> Dict[int, int]:
         """Count the requested product quantity in pending orders. Only used by BE metrics.
@@ -194,7 +195,7 @@ class DistributionUnit(UnitBase):
             for order in self._order_queues[vehicle_type]:
                 self.delay_order_penalty[order.product_id] += self._unit_delay_order_penalty[order.product_id]
 
-        # Update transporation cost.
+        # Update transportation cost.
         for payload_list in self._payload_on_the_way.values():
             for payload in payload_list:
                 self.transportation_cost[payload.order.product_id] += payload.transportation_cost_per_day

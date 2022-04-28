@@ -12,8 +12,13 @@ from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units.product import ProductUnit
 from maro.simulator.scenarios.supply_chain.units.seller import SellerUnit
 
+from .algorithms.ppo import get_policy as get_ppo_policy
+from .algorithms.ppo import get_ppo
+from .algorithms.dqn import get_policy as get_dqn_policy
+from .algorithms.dqn import get_dqn
+
+
 from .rl_agent_state import STATE_DIM
-from .algorithms.ppo import get_policy, get_ppo
 from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy, ConsumerMinMaxPolicy
 from .config import NUM_CONSUMER_ACTIONS, env_conf, ALGO, SHARED_MODEL
 
@@ -32,16 +37,7 @@ entity_dict: Dict[Any, SupplyChainEntity] = {
 }
 
 
-if ALGO == "PPO":
-    from .algorithms.ppo import get_policy, get_ppo
-    trainer_creator = {
-        "consumer": partial(get_ppo, STATE_DIM),
-    }
-else:
-    from .algorithms.dqn import get_dqn, get_policy
-    trainer_creator = {
-        "consumer": get_dqn,
-    }
+get_policy = (get_dqn_policy if ALGO == "DQN" else get_ppo_policy)
 
 
 
@@ -59,14 +55,13 @@ def entity2policy(entity: SupplyChainEntity, baseline) -> str:
         if baseline:
             return "consumer_eoq_policy"
         if facility_name.startswith("CA_") or facility_name.startswith("TX_") or facility_name.startswith("WI_"):
-            return ("consumer.policy" if SHARED_MODEL else f"consumer.{facility_name}.policy")
+            return ("consumer.policy" if SHARED_MODEL else f"consumer_{facility_name}.policy")
         else:
             return "consumer_eoq_policy"
     else:
         raise TypeError(f"Unrecognized entity class type: {entity.class_type}")
 
 policy_creator = {
-    "consumer.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS),
     "consumer_eoq_policy": lambda name: ConsumerMinMaxPolicy(name),
     "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
     "facility_policy": lambda name: DummyPolicy(name),
@@ -74,16 +69,36 @@ policy_creator = {
     "seller_policy": lambda name: DummyPolicy(name),
 }
 
-trainable_policies = ["consumer.policy"]
+
 
 if not SHARED_MODEL:
-    for entity_id, entity in facility_info_dict.items():
+    trainer_creator = {}
+    trainable_policies = []
+    device_mapping = {}
+    for entity_id, entity in entity_dict.items():
         if issubclass(entity.class_type, ConsumerUnit):
             facility_name = facility_info_dict[entity.facility_id].name
-            policy_key = f"consumer.{facility_name}.policy"
-            if policy_key not in policy_creator:
-                trainable_policies.append(policy_key)
-                policy_creator[policy_key] = partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
+            if facility_name.startswith("CA_") or facility_name.startswith("TX_") or facility_name.startswith("WI_"):
+                policy_key = f"consumer_{facility_name}.policy"
+                if policy_key not in policy_creator.keys():
+                    trainable_policies.append(policy_key)
+                    device_mapping[policy_key] = "cuda"
+                    policy_creator[policy_key] = partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
+                trainer_key = f"consumer_{facility_name}"
+                if trainer_key not in trainer_creator.keys():
+                    trainer_creator[trainer_key] = (get_dqn if ALGO=="DQN" else get_ppo)
+else:
+    trainable_policies = ["consumer.policy"]
+    device_mapping = {"consumer.policy": "cuda"}
+    policy_creator["consumer.policy"] =  partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
+    if ALGO == "PPO":
+        trainer_creator = {
+            "consumer": partial(get_ppo, STATE_DIM),
+        }
+    else:
+        trainer_creator = {
+            "consumer": get_dqn,
+        }
 
 
 if ALGO != "EOQ":
@@ -96,4 +111,3 @@ else:
         id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
     }
 
-device_mapping = {"consumer.policy": "cuda"}

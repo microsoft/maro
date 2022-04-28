@@ -49,7 +49,7 @@ class BalanceSheetCalculator:
     consumer_features = ("id", "purchased", "received",
                          "order_base_cost", "order_product_cost")
     seller_features = ("id", "sold", "demand", "backlog_ratio")
-    manufacture_features = ("id", "manufacture_quantity", "unit_product_cost")
+    manufacture_features = ("id", "finished_quantity", 'in_pipeline_quantity', 'manufacture_cost', 'start_manufacture_quantity')
     product_features = (
         "id", "price", 'check_in_quantity_in_order', 'delay_order_penalty', "transportation_cost")
     storage_features = ("capacity", "remaining_space")
@@ -251,10 +251,7 @@ class BalanceSheetCalculator:
         manufacture_ids = self._get_attributes("manufacture", "id", tick).astype(np.int)
 
         # loss = manufacture number * cost
-        manufacture_step_cost = -1 * (
-            self._get_attributes("manufacture", "manufacture_quantity", tick)
-            * self._get_attributes("manufacture", "unit_product_cost", tick)
-        )
+        manufacture_step_cost = -1 * self._get_attributes("manufacture", "manufacture_cost", tick)
 
         return manufacture_ids, manufacture_step_cost
 

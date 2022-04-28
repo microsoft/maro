@@ -24,8 +24,8 @@ consumer_purchased,
 consumer_received,consumer_order_base_cost,
 consumer_order_product_cost,seller_sold,seller_demand,
 seller_price,seller_backlog_ratio,
-manufacture_manufacture_quantity,
-manufacture_unit_product_cost,product_price,
+manufacture_finished_quantity,
+manufacture_manufacture_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
 distribution_pending_product_quantity, 
@@ -47,7 +47,7 @@ def compute_warehouse_balance(row):
 
 def compute_supplier_balance(row):
     return (row['product_check_in_quantity_in_order']*row['product_price']
-            -row['manufacture_unit_product_cost']*row['manufacture_manufacture_quantity']
+            -row['manufacture_manufacture_cost']*row['manufacture_finished_quantity']
             -row['product_delay_order_penalty']
             -row['product_transportation_cost']
             - row['unit_inventory_holding_cost']*row['inventory_in_stock'])
@@ -194,8 +194,8 @@ consumer_purchased,
 consumer_received,consumer_order_base_cost,
 consumer_order_product_cost,seller_sold,seller_demand,
 seller_price,seller_backlog_ratio,
-manufacture_manufacture_quantity,
-manufacture_unit_product_cost,product_price,
+manufacture_finished_quantity,
+manufacture_manufacture_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
 distribution_pending_product_quantity, 
@@ -340,8 +340,8 @@ class SimulationTrackerHtml:
                     y_product_cost = [round(x,0) for x in (df['consumer_order_product_cost']+df['consumer_order_base_cost']).tolist()]
                     y_oos_loss = [round(x,0) for x in ((df['seller_demand'] - df['seller_sold']) * df['seller_price'] * df['seller_backlog_ratio']).tolist()]
                     y_distribution_cost = [round(x,0) for x in (df['product_transportation_cost'] + df['product_delay_order_penalty']).tolist()]
-                    y_manufacture_quantity = [round(x,0) for x in df['manufacture_manufacture_quantity']]
-                    y_manufacture_cost = [round(x, 0) for x in df['manufacture_manufacture_quantity']*df['manufacture_unit_product_cost']]
+                    y_manufacture_quantity = [round(x,0) for x in df['manufacture_finished_quantity']]
+                    y_manufacture_cost = [round(x, 0) for x in df['manufacture_finished_quantity']*df['manufacture_manufacture_cost']]
                     y_in_transit = [round(x, 0) for x in df['inventory_in_transit']]
                     y_to_distribute = [round(x, 0) for x in df['inventory_to_distribute']]
                 else:
