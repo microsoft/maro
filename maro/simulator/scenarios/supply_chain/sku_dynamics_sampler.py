@@ -153,8 +153,9 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
             sku_id = self._world.sku_name2id_mapping[sku_name]
 
             self._cache[target_tick][sku_id] = {}
-            for attr_name, (column_name, type_name) in self._info_dict.items():
-                self._cache[target_tick][sku_id][attr_name] = type_name(row[column_name])
+            for attr_name, item in self._info_dict.items():
+                self._cache[target_tick][sku_id][attr_name] = item.type_name(row[item.column_name])
+
 
 
 class SkuPriceMixin(metaclass=ABCMeta):

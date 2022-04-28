@@ -11,7 +11,8 @@ from maro.simulator.scenarios.supply_chain import (
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
 from maro.simulator.scenarios.supply_chain.order import Order
-from maro.simulator.scenarios.supply_chain.units.distribution import Vehicle
+from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import SkuDynamicsSampler, OneTimeSkuPriceDemandSampler, \
+    OneTimeSkuDynamicsSampler, StreamSkuDynamicsSampler, StreamSkuPriceDemandSampler, DataFileDemandSampler
 from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 
 
@@ -1278,18 +1279,19 @@ class MyTestCase(unittest.TestCase):
 
     def test_distribution_unit_dispatch_order(self) -> None:
         """Test initial state of the DistributionUnit of Supplier_SKU3."""
-        env = build_env("case_02", 100)
+        env = build_env("case_04", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
 
-        supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
+        supplier_3 = be.world._get_facility_by_name("Vendor_001")
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
 
         distribution_unit = supplier_3.distribution
+        distribution_unit.initialize()
         product_unit = supplier_3.products[SKU3_ID]
-
-        vehicle_1: Vehicle = distribution_unit.vehicles["train"][0]
-        vehicle_2: Vehicle = distribution_unit.vehicles["train"][1]
+        vehicle = distribution_unit._vehicle_num
+        vehicle_1= distribution_unit._vehicle_num["train"][0]
+        vehicle_2= distribution_unit._vehicle_num["train"][1]
 
         order = Order(warehouse_1, SKU3_ID, 10, "train", 7)
         distribution_unit.place_order(order)
@@ -1508,127 +1510,127 @@ class MyTestCase(unittest.TestCase):
         . Order with 0-vlt
     """
 
-    def test_consumer_receive_products_after_vlt_days(self) -> None:
-        """Test Supplier_SKU1 ask products from Supplier_SKU3 and Supplier_SKU4 respectively.
-        The Supplier_SKU3's DistributionUnit would be processed before Supplier_SKU1,
-        so there would be vlt + 1 days before receiving,
-        while Supplier_SKU4's DistributionUnit would be processed after Supplier_SKU1,
-        so there would be only vlt days before Supplier_SKU1 receiving products from Supplier_SKU4.
-        """
-        env = build_env("case_01", 100)
-        be = env.business_engine
-        assert isinstance(be, SupplyChainBusinessEngine)
-
-        env.step(None)
-
-        supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
-        supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
-        supplier_4: FacilityBase = be.world._get_facility_by_name("Supplier_SKU4")
-        sku3_consumer_unit = supplier_1.products[SKU3_ID].consumer
-        consumer_node_index = sku3_consumer_unit.data_model_index
-
-        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
-        # IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
-
-        consumer_nodes = env.snapshot_list["consumer"]
-
-        # ############################## Ask products from Supplier_SKU3 #######################################
-
-        required_quantity_1 = 1
-        action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, required_quantity_1, "train")
-        purchase_tick_1: int = env.tick
-
-        # 1 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU3 in config
-        # 7 days vlt, no extra days for loading and unloading
-        expected_tick_1 = purchase_tick_1 + 1 + 7
-
-        env.step([action])
-
-        while env.tick < expected_tick_1 - 1:
-            env.step(None)
-
-        # Not received yet.
-        self.assertEqual(required_quantity_1, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])
-        self.assertEqual(0, sku3_consumer_unit._received)
-
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
-        self.assertEqual(0, states[IDX_RECEIVED])
-
-        env.step(None)
-
-        self.assertEqual(expected_tick_1, env.tick)
-
-        # now all order is done
-        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])
-        self.assertEqual(required_quantity_1, sku3_consumer_unit._received)
-
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
-        self.assertEqual(required_quantity_1, states[IDX_RECEIVED])
-
-        # ############################## Ask products from Supplier_SKU4 #######################################
-
-        required_quantity_2 = 2
-        action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_4.id, required_quantity_2, "train")
-        purchase_tick_2: int = env.tick
-
-        # 0 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU4 in config
-        # 5 days vlt, no extra days for loading and unloading
-        expected_tick_2 = purchase_tick_2 + 0 + 5
-
-        env.step([action])
-
-        while env.tick < expected_tick_2 - 1:
-            env.step(None)
-
-        # Not received yet.
-        self.assertEqual(required_quantity_2, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
-        self.assertEqual(0, sku3_consumer_unit._received)
-
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
-        self.assertEqual(0, states[IDX_RECEIVED])
-
-        env.step(None)
-
-        self.assertEqual(expected_tick_2, env.tick)
-
-        # now all order is done
-        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
-        self.assertEqual(required_quantity_2, sku3_consumer_unit._received)
-
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
-        self.assertEqual(required_quantity_2, states[IDX_RECEIVED])
-
-    # def test_0_vlt(self):
-    #     """Test Supplier_SKU2 ask products from Supplier_SKU1 with 0-vlt."""
+    # def test_consumer_receive_products_after_vlt_days(self) -> None:
+    #     """Test Supplier_SKU1 ask products from Supplier_SKU3 and Supplier_SKU4 respectively.
+    #     The Supplier_SKU3's DistributionUnit would be processed before Supplier_SKU1,
+    #     so there would be vlt + 1 days before receiving,
+    #     while Supplier_SKU4's DistributionUnit would be processed after Supplier_SKU1,
+    #     so there would be only vlt days before Supplier_SKU1 receiving products from Supplier_SKU4.
+    #     """
     #     env = build_env("case_01", 100)
     #     be = env.business_engine
     #     assert isinstance(be, SupplyChainBusinessEngine)
-
+    #
     #     env.step(None)
-
+    #
     #     supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
-    #     supplier_2: FacilityBase = be.world._get_facility_by_name("Supplier_SKU2")
-    #     sku1_consumer_unit = supplier_2.products[SKU1_ID].consumer
-    #     consumer_node_index = sku1_consumer_unit.data_model_index
-
+    #     supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
+    #     supplier_4: FacilityBase = be.world._get_facility_by_name("Supplier_SKU4")
+    #     sku3_consumer_unit = supplier_1.products[SKU3_ID].consumer
+    #     consumer_node_index = sku3_consumer_unit.data_model_index
+    #
     #     features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
-    #     IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-    #     IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
-
+    #     # IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+    #     IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
+    #
     #     consumer_nodes = env.snapshot_list["consumer"]
-
+    #
     #     # ############################## Ask products from Supplier_SKU3 #######################################
-
-    #     required_quantity_1 = 10
-    #     action = ConsumerAction(sku1_consumer_unit.id, SKU1_ID, supplier_1.id, required_quantity_1, "train")
+    #
+    #     required_quantity_1 = 1
+    #     action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, required_quantity_1, "train")
     #     purchase_tick_1: int = env.tick
-
-    #     # 1 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU2 in config
-    #     # 0 days vlt, no extra days for loading and unloading
-    #     expected_tick_1 = purchase_tick_1 + 1 + 0
-
+    #
+    #     # 1 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU3 in config
+    #     # 7 days vlt, no extra days for loading and unloading
+    #     expected_tick_1 = purchase_tick_1 + 1 + 7
+    #
     #     env.step([action])
+    #
+    #     while env.tick < expected_tick_1 - 1:
+    #         env.step(None)
+    #
+    #     # Not received yet.
+    #     self.assertEqual(required_quantity_1, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])
+    #     self.assertEqual(0, sku3_consumer_unit._received)
+    #
+    #     states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+    #     self.assertEqual(0, states[IDX_RECEIVED])
+    #
+    #     env.step(None)
+    #
+    #     self.assertEqual(expected_tick_1, env.tick)
+    #
+    #     # now all order is done
+    #     self.assertEqual(1, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])   #?
+    #     self.assertEqual(required_quantity_1, sku3_consumer_unit._received)
+    #
+    #     states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+    #     self.assertEqual(required_quantity_1, states[IDX_RECEIVED])
+    #
+    #     # ############################## Ask products from Supplier_SKU4 #######################################
+    #
+    #     required_quantity_2 = 2
+    #     action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_4.id, required_quantity_2, "train")
+    #     purchase_tick_2: int = env.tick
+    #
+    #     # 0 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU4 in config
+    #     # 5 days vlt, no extra days for loading and unloading
+    #     expected_tick_2 = purchase_tick_2 + 0 + 5
+    #
+    #     env.step([action])
+    #
+    #     while env.tick < expected_tick_2 - 1:
+    #         env.step(None)
+    #
+    #     # Not received yet.
+    #     self.assertEqual(required_quantity_2, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
+    #     self.assertEqual(0, sku3_consumer_unit._received)
+    #
+    #     states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+    #     self.assertEqual(0, states[IDX_RECEIVED])
+    #
+    #     env.step(None)
+    #
+    #     self.assertEqual(expected_tick_2, env.tick)
+    #
+    #     # now all order is done
+    #     self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
+    #     self.assertEqual(required_quantity_2, sku3_consumer_unit._received)
+    #
+    #     states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+    #     self.assertEqual(required_quantity_2, states[IDX_RECEIVED])
+    #
+    # # def test_0_vlt(self):
+    # #     """Test Supplier_SKU2 ask products from Supplier_SKU1 with 0-vlt."""
+    # #     env = build_env("case_01", 100)
+    # #     be = env.business_engine
+    # #     assert isinstance(be, SupplyChainBusinessEngine)
+    #
+    # #     env.step(None)
+    #
+    # #     supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
+    # #     supplier_2: FacilityBase = be.world._get_facility_by_name("Supplier_SKU2")
+    # #     sku1_consumer_unit = supplier_2.products[SKU1_ID].consumer
+    # #     consumer_node_index = sku1_consumer_unit.data_model_index
+    #
+    # #     features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
+    # #     IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+    # #     IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
+    #
+    # #     consumer_nodes = env.snapshot_list["consumer"]
+    #
+    # #     # ############################## Ask products from Supplier_SKU3 #######################################
+    #
+    # #     required_quantity_1 = 10
+    # #     action = ConsumerAction(sku1_consumer_unit.id, SKU1_ID, supplier_1.id, required_quantity_1, "train")
+    # #     purchase_tick_1: int = env.tick
+    #
+    # #     # 1 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU2 in config
+    # #     # 0 days vlt, no extra days for loading and unloading
+    # #     expected_tick_1 = purchase_tick_1 + 1 + 0
+    #
+    # #     env.step([action])
 
     #     # TODO: Figure out 0-vlt case
     #     # self.assertEqual(expected_tick_1, env.tick)
@@ -1639,6 +1641,82 @@ class MyTestCase(unittest.TestCase):
 
     #     states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
     #     self.assertEqual(required_quantity_1, states[IDX_RECEIVED])
+
+    def test_init_sku_dynamics_OneTimeSkuPriceDemandSampler(self):
+        """Test the reading of "store_001" SKU information of OneTimeSkuPriceDemandSampler."""
+        env = build_env("case_04", 100)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+        Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+        configs =Store_001.configs
+        world = be.world
+        sku = OneTimeSkuPriceDemandSampler(configs,world)
+        assert isinstance(sku, OneTimeSkuDynamicsSampler)
+        self.assertEqual(2, len(sku._cache[0]))
+        self.assertEqual(43.11954545454545,sku._cache[0][20]['Price'])
+        self.assertEqual(25,sku._cache[0][20]['Demand'])
+        self.assertEqual(28.32,sku._cache[0][30]['Price'])
+        self.assertEqual(80,sku._cache[0][30]['Demand'])
+
+        self.assertEqual(43.632777777777775, sku._cache[1][20]['Price'])
+        self.assertEqual(41, sku._cache[1][20]['Demand'])
+        #Test sample_price() method of onetimeskupricedemandsampler
+        product_20_price = sku.sample_price(20, 20)
+        self.assertEqual(43.117, product_20_price)
+        # Test sample_demand() method of onetimeskupricedemandsampler
+        demand_20_price = sku.sample_demand(20, 20)
+        self.assertEqual(35, demand_20_price)
+
+        product_30_price = sku.sample_price(20, 30)
+        demand_30_price = sku.sample_demand(20, 30)
+        self.assertEqual(28.320000000000004, product_30_price)
+        self.assertEqual(20, demand_30_price)
+
+
+
+    def test_init_sku_dynamics_StreamSkuPriceDemandSampler(self):
+        """Test the reading of "store_001" SKU information of StreamSkuPriceDemandSampler."""
+        env = build_env("case_04", 600)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+        Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+        configs = Store_001.configs
+        world = be.world
+        sku_stream = StreamSkuPriceDemandSampler(configs, world)
+
+        assert isinstance(sku_stream, StreamSkuPriceDemandSampler)
+
+        product_20_price=sku_stream.sample_price(20, 20)
+        demand_20_price = sku_stream.sample_demand(20, 20)
+        self.assertEqual(43.117, product_20_price)
+        self.assertEqual(35, demand_20_price)
+        product_30_price = sku_stream.sample_price(0, 30)
+        self.assertEqual(28.32, product_30_price)
+
+    def test_init_sku_dynamics_DataFileDemandSampler(self):
+        """Test the reading of "store_001" SKU information of DataFileDemandSampler."""
+        env = build_env("case_04", 600)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+        Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+        configs = Store_001.configs
+        world = be.world
+        sku_datafile = DataFileDemandSampler(configs, world)
+        product_20_price = sku_datafile.sample_demand(20,20)
+        self.assertEqual(35, product_20_price)
+
+    def test__sku_dynamics_DataFileDemandSampler(self):
+        """Test the reading of "store_001" SKU information of DataFileDemandSampler."""
+        env = build_env("case_04", 600)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+        Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+        configs = Store_001.configs
+        world = be.world
+        sku_datafile = DataFileDemandSampler(configs, world)
+        product_20_price = sku_datafile.sample_demand(20, 20)
+        self.assertEqual(35, product_20_price)
+
 
 
 if __name__ == '__main__':

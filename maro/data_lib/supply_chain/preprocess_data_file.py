@@ -29,7 +29,7 @@ def preprocess_file(input_path: str, date_column_name: str) -> None:
         for date in tqdm(date_list, desc=f"Preprocessing {input_path}", total=df.shape[0])
     ]
     df[DATE_INDEX_COLUMN_NAME] = date_index_list
-    df.drop([date_column_name], axis=1)
-    df.sort_values(by=[DATE_INDEX_COLUMN_NAME])
+    df.drop([date_column_name], axis=1, inplace=True)
+    df.sort_values(by=[DATE_INDEX_COLUMN_NAME], inplace=True)
 
     df.to_csv(output_path)
