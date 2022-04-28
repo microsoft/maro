@@ -10,11 +10,13 @@ from .extend import ExtendDataModel
 @node("manufacture")
 class ManufactureDataModel(ExtendDataModel):
     """Data model for manufacture unit."""
+    # Can be updated in ManufactureUnit._manufacture(), called in post_step()
+    manufacture_cost = NodeAttribute(AttributeType.Float)
     start_manufacture_quantity = NodeAttribute(AttributeType.UInt)
     in_pipeline_quantity = NodeAttribute(AttributeType.UInt)
-    finished_quantity = NodeAttribute(AttributeType.UInt)
 
-    manufacture_cost = NodeAttribute(AttributeType.Float)
+    # Can be updated in ManufactureUnit.post_step()
+    finished_quantity = NodeAttribute(AttributeType.UInt)
 
     def __init__(self) -> None:
         super(ManufactureDataModel, self).__init__()

@@ -144,10 +144,10 @@ class StorageUnit(UnitBase):
             capacity=capacity_list,
             remaining_space=remaining_space_list,
             product_list=[sku_id for sku_id in self._product_level.keys()],
-            product_quantity=[n for n in self._product_level.values()],
             product_storage_index=[
                 self._storage_id2idx[self._product2storage[sku_id]] for sku_id in self._product_level.keys()
             ],
+            product_quantity=[n for n in self._product_level.values()],
         )
 
     def get_product_quantity(self, product_id: int) -> int:
@@ -182,6 +182,10 @@ class StorageUnit(UnitBase):
         self._product_level_changed[product_id] = True
         self._remaining_space_dict[self._product2storage[product_id]] += quantity
 
+    """
+    - would be called by DistributionUnit.post_step() -> _try_unload()
+    - would be called by ManufactureUnit.post_step()
+    """
     def try_add_products(
         self,
         product_quantities: Dict[int, int],
@@ -245,6 +249,10 @@ class StorageUnit(UnitBase):
 
         return added_quantities
 
+    """
+    - would be called by DistributionUnit.place_order(), when action taking.
+    - would be called by DistributionUnit.step()
+    """
     def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
         """Try to take specified number of product.
 
@@ -265,6 +273,9 @@ class StorageUnit(UnitBase):
 
         return True
 
+    """
+    - would be called by SellerUnit.step()
+    """
     def take_available(self, product_id: int, quantity: int) -> int:
         """Take as much as available specified product from storage.
 

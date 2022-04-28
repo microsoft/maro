@@ -86,9 +86,9 @@ class ManufactureUnit(ExtendUnitBase):
 
     """
     ManufactureAction would be given after BE.step(), assume we take action at t0,
-    the manufacture_rate (of the next tick, t0 + 1) would be set according to the given action,
-    then we can get the produced products at the end of (t0 + 1 + leading time) in the post_step(), which means
-    at (t0 + 1 + leading time), these products can't be dispatched to fulfill the demand from the downstreams.
+    the manufacture_rate would be set according to the given action and would start manufacture in t0,
+    then we can get the produced products at the end of (t0 + leading time) in the post_step(), which means
+    these products can't be dispatched to fulfill the demand from the downstreams until (t0 + leading time + 1).
     """
 
     def on_action_received(self, tick: int, action: ManufactureAction) -> None:
@@ -97,6 +97,9 @@ class ManufactureUnit(ExtendUnitBase):
         self._manufacture_rate = max(0, min(action.manufacture_rate, self._max_manufacture_rate))
 
     def step(self, tick: int) -> None:
+        pass
+
+    def _manufacture(self, tick: int) -> None:
         # Update num_to_produce according to limitations.
         self._num_to_produce = self._manufacture_rate * self._output_units_per_lot
 
@@ -133,7 +136,7 @@ class ManufactureUnit(ExtendUnitBase):
         self._manufacture_cost = self._unit_product_cost * self._in_pipeline_quantity
 
     def post_step(self, tick: int) -> None:
-        super(ManufactureUnit, self).post_step(tick)
+        self._manufacture(tick)
 
         # Get finished products from pipeline.
         self._finished_quantity = self._products_in_pipeline.get(tick, 0)
@@ -146,9 +149,6 @@ class ManufactureUnit(ExtendUnitBase):
         self.data_model.in_pipeline_quantity = self._in_pipeline_quantity
         self.data_model.finished_quantity = self._finished_quantity
         self.data_model.manufacture_cost = self._manufacture_cost
-
-    def post_step(self, tick: int) -> None:
-        super(ManufactureUnit, self).post_step(tick)
 
     def reset(self) -> None:
         super(ManufactureUnit, self).reset()
@@ -173,7 +173,7 @@ class SimpleManufactureUnit(ManufactureUnit):
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
-    def step(self, tick: int) -> None:
+    def _manufacture(self, tick: int) -> None:
         # Update num_to_produce according to limitations.
         self._num_to_produce = self._manufacture_rate * self._output_units_per_lot
 
@@ -192,9 +192,3 @@ class SimpleManufactureUnit(ManufactureUnit):
         # Count manufacture cost.
         self._in_pipeline_quantity = sum([quantity for quantity in self._products_in_pipeline.values()])
         self._manufacture_cost = self._unit_product_cost * self._in_pipeline_quantity
-
-        # Get finished products from pipeline.
-        self._finished_quantity = self._products_in_pipeline.get(tick, 0)
-        if self._finished_quantity > 0:
-            self.facility.storage.try_add_products({self.product_id: self._finished_quantity})
-            self._products_in_pipeline.pop(tick)

@@ -70,6 +70,15 @@ class SellerUnit(ExtendUnitBase):
 
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
 
+    def init_step(self, tick: int) -> None:
+        if self._sold > 0:
+            self.data_model.sold = 0
+            self._sold = 0
+
+        if self._demand > 0:
+            self.data_model.demand = 0
+            self._demand = 0
+
     def step(self, tick: int) -> None:
         demand = self.market_demand(tick)
 
@@ -92,17 +101,6 @@ class SellerUnit(ExtendUnitBase):
         if self._demand > 0:
             self.data_model.demand = self._demand
             self.data_model.total_demand = self._total_demand
-
-    def post_step(self, tick: int) -> None:
-        super(SellerUnit, self).post_step(tick)
-
-        if self._sold > 0:
-            self.data_model.sold = 0
-            self._sold = 0
-
-        if self._demand > 0:
-            self.data_model.demand = 0
-            self._demand = 0
 
     def reset(self) -> None:
         super(SellerUnit, self).reset()

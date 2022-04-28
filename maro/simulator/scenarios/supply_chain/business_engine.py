@@ -52,18 +52,24 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Clear the metrics cache.
         self._metrics_cache = None
 
-        # Initialize info maybe used in step(), including: update SKU price
+        """
+        Initialize info & status that would be used in step(), including:
+        - update SKU price
+        - initialize internal status
+        """
         for facility in self.world.facilities.values():
             facility.init_step(tick)
 
+        # TODO: need to order Facility or not?
         # Call step functions by facility
-        # Step first.
         for facility in self.world.facilities.values():
             facility.step(tick)
 
-        # Then flush states to frame before generate decision event.
-        # The processing logic requires that: DO NOT call flush_states() immediately after step().
-        # E.g. the ProductUnit.flush_states() should be called after the DistributionUnit.step().
+        """
+        Flush states to frame before generating decision event.
+        . The processing logic requires that: DO NOT call flush_states() immediately after step().
+        E.g. the ProductUnit.flush_states() should be called after the DistributionUnit.step().
+        """
         for facility in self.world.facilities.values():
             facility.flush_states()
 

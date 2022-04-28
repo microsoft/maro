@@ -42,9 +42,11 @@ class ConsumerUnit(ExtendUnitBase):
 
         # States in python side.
         self._received: int = 0  # The quantity of product received in current step.
+
         self._purchased: int = 0  # The quantity of product that purchased from upstream.
         self._order_product_cost: float = 0  # order.quantity * upstream.price
         self._order_base_cost: float = 0  # order.quantity * unit_order_cost
+
         self.source_facility_id_list: List[int] = []
         self.pending_order_daily: Optional[List[int]] = None
 
@@ -130,21 +132,19 @@ class ConsumerUnit(ExtendUnitBase):
 
     def init_step(self, tick: int) -> None:
         if self._received > 0:
-            self.data_model.received = 0
             self._received = 0
 
+            self.data_model.received = 0
+
         if self._purchased > 0:
-            self.data_model.purchased = 0
-            self.data_model.latest_consumptions = 0
             self._purchased = 0
-
-        if self._order_product_cost > 0:
-            self.data_model.order_product_cost = 0
             self._order_product_cost = 0
-
-        if self._order_base_cost > 0:
-            self.data_model.order_base_cost = 0
             self._order_base_cost = 0
+
+            self.data_model.purchased = 0
+            self.data_model.order_product_cost = 0
+            self.data_model.order_base_cost = 0
+            self.data_model.latest_consumptions = 0
 
     def step(self, tick: int) -> None:
         self._update_pending_order()
@@ -155,13 +155,9 @@ class ConsumerUnit(ExtendUnitBase):
 
         if self._purchased > 0:
             self.data_model.purchased = self._purchased
-            self.data_model.latest_consumptions = 1.0
-
-        if self._order_product_cost > 0:
             self.data_model.order_product_cost = self._order_product_cost
-
-        if self._order_base_cost > 0:
             self.data_model.order_base_cost = self._order_base_cost
+            self.data_model.latest_consumptions = 1.0
 
     def post_step(self, tick: int) -> None:
         pass

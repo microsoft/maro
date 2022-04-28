@@ -21,7 +21,6 @@ from .unitbase import UnitBase
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
-    from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, VendorLeadingTimeInfo
     from maro.simulator.scenarios.supply_chain.world import World
 
 
@@ -72,6 +71,22 @@ class ProductUnit(ExtendUnitBase):
         assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
+    def init_step(self, tick: int) -> None:
+        for unit in self.children:
+            unit.init_step(tick)
+
+        if self._check_in_quantity_in_order > 0:
+            self.data_model.check_in_quantity_in_order = 0
+            self._check_in_quantity_in_order = 0
+
+        if self._transportation_cost > 0:
+            self.data_model.transportation_cost = 0
+            self._transportation_cost = 0
+
+        if self._delay_order_penalty > 0:
+            self.data_model.delay_order_penalty = 0
+            self._delay_order_penalty = 0
+
     def step(self, tick: int) -> None:
         for unit in self.children:
             unit.step(tick)
@@ -86,10 +101,6 @@ class ProductUnit(ExtendUnitBase):
             self._transportation_cost = self.distribution.transportation_cost[self.product_id]
             self._delay_order_penalty = self.distribution.delay_order_penalty[self.product_id]
 
-            self.distribution.check_in_quantity_in_order[self.product_id] = 0
-            self.distribution.transportation_cost[self.product_id] = 0
-            self.distribution.delay_order_penalty[self.product_id] = 0
-
         if self._check_in_quantity_in_order > 0:
             self.data_model.check_in_quantity_in_order = self._check_in_quantity_in_order
 
@@ -100,22 +111,8 @@ class ProductUnit(ExtendUnitBase):
             self.data_model.delay_order_penalty = self._delay_order_penalty
 
     def post_step(self, tick: int) -> None:
-        super().post_step(tick)
-
         for unit in self.children:
             unit.post_step(tick)
-
-        if self._check_in_quantity_in_order > 0:
-            self.data_model.check_in_quantity_in_order = 0
-            self._check_in_quantity_in_order = 0
-
-        if self._transportation_cost > 0:
-            self.data_model.transportation_cost = 0
-            self._transportation_cost = 0
-
-        if self._delay_order_penalty > 0:
-            self.data_model.delay_order_penalty = 0
-            self._delay_order_penalty = 0
 
     def reset(self) -> None:
         super().reset()
