@@ -84,12 +84,22 @@ class ManufactureUnit(ExtendUnitBase):
         assert isinstance(self.data_model, ManufactureDataModel)
         self.data_model.initialize()
 
-    def _step_impl(self, tick: int) -> None:
-        # Update manufacture_rate setting from action if given.
-        if self.action is not None:
-            assert isinstance(self.action, ManufactureAction)
-            self._manufacture_rate = max(0, min(self.action.production_rate, self._max_manufacture_rate))
+    """
+    ManufactureAction would be given after BE.step(), assume we take action at t0,
+    the manufacture_rate would be set according to the given action and would start manufacture in t0,
+    then we can get the produced products at the end of (t0 + leading time) in the post_step(), which means
+    these products can't be dispatched to fulfill the demand from the downstreams until (t0 + leading time + 1).
+    """
 
+    def on_action_received(self, tick: int, action: ManufactureAction) -> None:
+        # NOTE: the on_action_received() is called after flush_state(), so the manufacture_rate saved in the snapshot
+        # would be the one actually used to produce products in this tick.
+        self._manufacture_rate = max(0, min(action.manufacture_rate, self._max_manufacture_rate))
+
+    def step(self, tick: int) -> None:
+        pass
+
+    def _manufacture(self, tick: int) -> None:
         # Update num_to_produce according to limitations.
         self._num_to_produce = self._manufacture_rate * self._output_units_per_lot
 
@@ -102,7 +112,7 @@ class ManufactureUnit(ExtendUnitBase):
             )
 
         # Check the source material inventory limits.
-        if self._num_to_produce > 0:
+        if self._num_to_produce > 0 and len(self._bom):
             self._num_to_produce = min(
                 self._num_to_produce,
                 min([
@@ -125,6 +135,9 @@ class ManufactureUnit(ExtendUnitBase):
         self._in_pipeline_quantity = sum([quantity for quantity in self._products_in_pipeline.values()])
         self._manufacture_cost = self._unit_product_cost * self._in_pipeline_quantity
 
+    def post_step(self, tick: int) -> None:
+        self._manufacture(tick)
+
         # Get finished products from pipeline.
         self._finished_quantity = self._products_in_pipeline.get(tick, 0)
         if self._finished_quantity > 0:
@@ -137,13 +150,10 @@ class ManufactureUnit(ExtendUnitBase):
         self.data_model.finished_quantity = self._finished_quantity
         self.data_model.manufacture_cost = self._manufacture_cost
 
-    def post_step(self, tick: int) -> None:
-        # NOTE: call super at last, since it will clear the action.
-        super(ManufactureUnit, self).post_step(tick)
-
     def reset(self) -> None:
         super(ManufactureUnit, self).reset()
 
+        self._manufacture_rate = self._max_manufacture_rate
         self._products_in_pipeline.clear()
 
     def get_unit_info(self) -> ManufactureUnitInfo:
@@ -163,12 +173,7 @@ class SimpleManufactureUnit(ManufactureUnit):
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
-    def _step_impl(self, tick: int) -> None:
-        # Update manufacture_rate setting from action if given.
-        if self.action is not None:
-            assert isinstance(self.action, ManufactureAction)
-            self._manufacture_rate = max(0, min(self.action.production_rate, self._max_manufacture_rate))
-
+    def _manufacture(self, tick: int) -> None:
         # Update num_to_produce according to limitations.
         self._num_to_produce = self._manufacture_rate * self._output_units_per_lot
 
@@ -187,9 +192,3 @@ class SimpleManufactureUnit(ManufactureUnit):
         # Count manufacture cost.
         self._in_pipeline_quantity = sum([quantity for quantity in self._products_in_pipeline.values()])
         self._manufacture_cost = self._unit_product_cost * self._in_pipeline_quantity
-
-        # Get finished products from pipeline.
-        self._finished_quantity = self._products_in_pipeline.get(tick, 0)
-        if self._finished_quantity > 0:
-            self.facility.storage.try_add_products({self.product_id: self._finished_quantity})
-            self._products_in_pipeline.pop(tick)

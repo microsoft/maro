@@ -264,11 +264,6 @@ class BalanceSheetCalculator:
 #             for product_id, sub_storage_idx in zip(product_id_list, product_storage_index_list):
 #                 storage_capacity_dict[node_index][product_id] = storage_capacity_list[sub_storage_idx]
 
-
-    def _calc_storage(self, tick: int) -> List[Dict[int, float]]:
-        storage_product_step_cost: List[Dict[int, float]] = None
-        return storage_product_step_cost
-
     def _calc_product_distribution(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         # product distribution profit = check order * price
         product_distribution_step_profit = (
@@ -290,7 +285,6 @@ class BalanceSheetCalculator:
         manufacture_step_cost: np.ndarray,
         seller_step_profit: np.ndarray,
         seller_step_cost: np.ndarray,
-        storage_product_step_cost: List[Dict[int, float]],
         product_distribution_step_profit: np.ndarray,
         product_distribution_step_cost: np.ndarray,
         tick: int,
@@ -459,7 +453,6 @@ class BalanceSheetCalculator:
         consumer_ids, consumer_step_cost = self._calc_consumer(tick)
         seller_step_profit, seller_step_cost = self._calc_seller(tick)
         manufacture_ids, manufacture_step_cost = self._calc_manufacture(tick)
-        storage_product_step_cost = self._calc_storage(tick)
         product_distribution_step_profit, product_distribution_step_cost = self._calc_product_distribution(tick)
 
         # Product: profit, cost & balance
@@ -468,7 +461,6 @@ class BalanceSheetCalculator:
             manufacture_step_cost,
             seller_step_profit,
             seller_step_cost,
-            storage_product_step_cost,
             product_distribution_step_profit,
             product_distribution_step_cost,
             tick

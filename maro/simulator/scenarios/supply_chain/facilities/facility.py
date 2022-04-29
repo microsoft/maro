@@ -166,7 +166,7 @@ class FacilityBase(ABC):
             assert issubclass(sampler_cls, SkuDynamicsSampler)
             self.sampler = sampler_cls(self.configs, self.world)
 
-    def init_step(self, tick: int) -> None:
+    def pre_step(self, tick: int) -> None:
         """Update status before step. E.g. price updates, inventory updates, etc."""
         # Update SKU prices
         if self.sampler is not None and isinstance(self.sampler, SkuPriceMixin):
@@ -177,12 +177,17 @@ class FacilityBase(ABC):
                     # Update the corresponding property in data model.
                     self.products[sku_id].data_model.price = price
 
+        for unit in self.children:
+            unit.pre_step(tick)
+
     def step(self, tick: int) -> None:
         """Push facility to next step.
 
         Args:
             tick (int): Current simulator tick.
         """
+        # TODO: need to order DistributionUnit and ProductUnits or not?
+        # TODO: need to randomize the order of ProductUnits or not?
         for unit in self.children:
             unit.step(tick)
 
