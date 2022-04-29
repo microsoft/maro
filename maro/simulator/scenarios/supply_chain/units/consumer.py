@@ -130,7 +130,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._purchased = action.quantity
 
-    def init_step(self, tick: int) -> None:
+    def pre_step(self, tick: int) -> None:
         if self._received > 0:
             self._received = 0
 

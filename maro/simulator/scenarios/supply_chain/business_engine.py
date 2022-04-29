@@ -58,7 +58,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         - initialize internal status
         """
         for facility in self.world.facilities.values():
-            facility.init_step(tick)
+            facility.pre_step(tick)
 
         # TODO: need to order Facility or not?
         # Call step functions by facility

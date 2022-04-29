@@ -73,7 +73,7 @@ class UnitBase:
         # Real data model binding with this unit.
         self.data_model: Optional[DataModelBase] = None
 
-    def init_step(self, tick: int) -> None:
+    def pre_step(self, tick: int) -> None:
         pass
 
     def step(self, tick: int) -> None:
@@ -111,7 +111,7 @@ class UnitBase:
             self.data_model.set_id(self.id, self.facility.id)
 
     def on_action_received(self, tick: int, action: SupplyChainAction) -> None:
-        """Set action for this agent.
+        """Action handler for each unit.
 
         Args:
             tick (int): Tick when action received.

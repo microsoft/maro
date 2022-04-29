@@ -71,9 +71,9 @@ class ProductUnit(ExtendUnitBase):
         assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
-    def init_step(self, tick: int) -> None:
+    def pre_step(self, tick: int) -> None:
         for unit in self.children:
-            unit.init_step(tick)
+            unit.pre_step(tick)
 
         if self._check_in_quantity_in_order > 0:
             self.data_model.check_in_quantity_in_order = 0

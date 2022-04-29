@@ -70,7 +70,7 @@ class SellerUnit(ExtendUnitBase):
 
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
 
-    def init_step(self, tick: int) -> None:
+    def pre_step(self, tick: int) -> None:
         if self._sold > 0:
             self.data_model.sold = 0
             self._sold = 0

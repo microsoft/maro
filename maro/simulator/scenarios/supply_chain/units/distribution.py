@@ -190,7 +190,7 @@ class DistributionUnit(UnitBase):
 
         return vlt_info.unit_transportation_cost
 
-    def init_step(self, tick: int) -> None:
+    def pre_step(self, tick: int) -> None:
         self.check_in_quantity_in_order.clear()
         self.transportation_cost.clear()
         self.delay_order_penalty.clear()
