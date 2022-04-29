@@ -11,7 +11,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from .actions import SupplyChainAction
 from .objects import SupplyChainEntity
 from .parser import ConfigParser, SupplyChainConfiguration
-from .units import ProductUnit, UnitBase
+from .units import ProductUnit
 from .world import World
 
 
@@ -52,18 +52,24 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Clear the metrics cache.
         self._metrics_cache = None
 
-        # Initialize info maybe used in step(), including: update SKU price
+        """
+        Initialize info & status that would be used in step(), including:
+        - update SKU price
+        - initialize internal status
+        """
         for facility in self.world.facilities.values():
-            facility.init_step(tick)
+            facility.pre_step(tick)
 
+        # TODO: need to order Facility or not?
         # Call step functions by facility
-        # Step first.
         for facility in self.world.facilities.values():
             facility.step(tick)
 
-        # Then flush states to frame before generate decision event.
-        # The processing logic requires that: DO NOT call flush_states() immediately after step().
-        # E.g. the ProductUnit.flush_states() should be called after the DistributionUnit.step().
+        """
+        Flush states to frame before generating decision event.
+        . The processing logic requires that: DO NOT call flush_states() immediately after step().
+        E.g. the ProductUnit.flush_states() should be called after the DistributionUnit.step().
+        """
         for facility in self.world.facilities.values():
             facility.flush_states()
 
@@ -76,6 +82,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Call post_step functions by facility.
         for facility in self.world.facilities.values():
             facility.post_step(tick)
+
+        for facility in self.world.facilities.values():
+            facility.flush_states()
+
+        self._frame.take_snapshot(self.frame_index(tick))
 
         return tick + 1 == self._max_tick
 
@@ -124,8 +135,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for action in actions:
             assert isinstance(action, SupplyChainAction)
             entity = self.world.get_entity_by_id(action.id)
-            if entity is not None and isinstance(entity, UnitBase):
-                entity.set_action(action)
+            entity.on_action_received(event.tick, action)
 
     def get_metrics(self) -> dict:
         if self._metrics_cache is None:

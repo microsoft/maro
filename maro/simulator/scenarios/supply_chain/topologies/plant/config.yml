@@ -139,7 +139,7 @@ world:
           init_stock: 10000
           sub_storage_id: 0
           has_manufacture: True
-          manufacture_rate: 10000
+          max_manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 1000
         "component_1":
@@ -147,7 +147,7 @@ world:
           init_stock: 10000
           sub_storage_id: 0
           has_manufacture: True
-          manufacture_rate: 10000
+          max_manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 900
         "component_2":
@@ -155,7 +155,7 @@ world:
           init_stock: 10000
           sub_storage_id: 0
           has_manufacture: True
-          manufacture_rate: 10000
+          max_manufacture_rate: 10000
           unit_product_cost: 14
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
@@ -185,7 +185,7 @@ world:
           init_stock: 5000
           sub_storage_id: 2
           has_manufacture: True
-          manufacture_rate: 10000
+          max_manufacture_rate: 10000
           unit_product_cost: 14
       children:
         storage: *multi_storage
@@ -245,7 +245,7 @@ world:
         "Warehouse_001":
           "air":
             vlt: 2
-            cost: 3.0  # Unit transportation cost by day
+            cost: 3.0  # Unit transportation cost per product per day
           "train":
             vlt: 7
             cost: 0.5
