@@ -5,6 +5,7 @@ from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
+import pandas as pd
 
 from maro.event_buffer import CascadeEvent
 from maro.rl.policy import AbsPolicy, RLPolicy
@@ -23,14 +24,13 @@ from examples.supply_chain.rl.algorithms.rule_based import ConsumerMinMaxPolicy 
 
 from .algorithms.rule_based import ConsumerBasePolicy
 from .config import (
-    consumer_features, distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO
+    consumer_features, distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME
 )
 from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
 from .rl_agent_state import ScRlAgentStates, serialize_state
 from .render_tools import SimulationTracker
 from .default_vendor_config import default_vendor
-from .baseline_mean_reward import mean_reward as baseline_mean_reward
 
 
 
@@ -91,6 +91,7 @@ class SCEnvSampler(AbsEnvSampler):
         )
 
         self.baseline_policy = ConsumerBaselinePolicy('baseline_eoq')
+        self._max_eval_reward = np.float("-inf")
 
         self._env_settings: dict = workflow_settings
 
@@ -229,7 +230,6 @@ class SCEnvSampler(AbsEnvSampler):
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if entity.class_type == ConsumerUnit:
             return np.float32(bwt[1]) / np.float32(self._env_settings["reward_normalization"])
-            # return np.float32(bwt[1]) / (abs(baseline_mean_reward.get(entity.id, np.float32(self._env_settings["reward_normalization"]))) + 1.0)
         else:
             return .0
 
@@ -421,7 +421,7 @@ class SCEnvSampler(AbsEnvSampler):
                         action_idx = max(0, int(action[0] - 1 + or_action))
                     else:
                         action_idx = action[0]
-                    action_quantity = int(int(action_idx) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                    action_quantity = int(int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["sale_mean"]))
 
                     # Ignore 0 quantity to reduce action number
                     if action_quantity:
@@ -442,7 +442,7 @@ class SCEnvSampler(AbsEnvSampler):
         total_demand = self._env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
         self._info["sold"] = total_sold
         self._info["demand"] = total_demand
-        self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
+        self._info["sold/demand"] = self._info["sold"] / (self._info["demand"]+1.0)
 
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._post_step(cache_element, reward)
@@ -453,7 +453,7 @@ class SCEnvSampler(AbsEnvSampler):
         self.total_balance = 0.0
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
-        tracker = SimulationTracker(env_conf["durations"], 1, self, [0, env_conf["durations"]])
+        tracker = SimulationTracker(env_conf["durations"], 1, self, EXP_NAME, eval_period=[0, env_conf["durations"]])
         mean_reward = {}
         step_idx = 0
         self._env = self._test_env
@@ -464,6 +464,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._reset()
         self._agent_wrapper.exploit()
         is_done = False
+        eval_reward = 0.0 # only consider those that are associated with RLPolicy
         while not is_done:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             # agent_state_dict={id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents}
@@ -488,6 +489,7 @@ class SCEnvSampler(AbsEnvSampler):
             )
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
+            eval_reward = max(eval_reward, np.sum([reward[entity_id] for entity_id in self._entity_dict.keys() if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy)]))
             consumer_action_dict = {}
             for entity_id, entity in self._entity_dict.items():
                 mean_reward[entity_id] = mean_reward.get(entity_id, 0.0) + self._reward_status.get(entity_id, 0)
@@ -523,8 +525,19 @@ class SCEnvSampler(AbsEnvSampler):
             self._info["sold"] = 0
             self._info["demand"] = 1
             self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
+        
+        if eval_reward > self._max_eval_reward:
+            tracker.render(tracker.loc_path, 'a_plot_balance.png', tracker.step_balances, ["OuterRetailerFacility"])
+            tracker.render(tracker.loc_path, 'a_plot_reward.png', tracker.step_rewards, ["OuterRetailerFacility"])
+            tracker.render_sku(tracker.loc_path)
+            
+            df_product = pd.DataFrame(self._balance_calculator.product_metric_track)
+            df_product = df_product.groupby(['tick', 'id']).first().reset_index()
+            df_product.to_csv(f'{tracker.loc_path}/output_product_metrics.csv', index=False)
+            self._max_eval_reward = eval_reward
+        
         mean_reward = {entity_id: val / step_idx for entity_id, val in mean_reward.items()}
-        return {"info": [self._info], "mean_reward": mean_reward, "tracker": tracker}
+        return {"info": [self._info], "mean_reward": mean_reward}
 
 
 def env_sampler_creator(policy_creator) -> SCEnvSampler:

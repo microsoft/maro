@@ -4,7 +4,7 @@
 env_conf = {
     "scenario": "supply_chain",
     "topology": "SCI",
-    "durations": 60,  # number of ticks per episode
+    "durations": 64,  # number of ticks per episode
 }
 
 distribution_features = ("pending_product_quantity", "pending_order_number")
@@ -18,9 +18,16 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
 OR_NUM_CONSUMER_ACTIONS = 10
+
+# ALGO="EOQ"
+# EXP_NAME = "BASELINE_SCI_50SKUs_DIST"
+
 ALGO="DQN"
+EXP_NAME = "SCI_50SKUs_DIST"
+
+assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
 TEAM_REWARD = False
-SHARED_MODEL = False
+SHARED_MODEL = True
 
 if ALGO == "PPO":
     NUM_CONSUMER_ACTIONS = 3
@@ -34,7 +41,7 @@ workflow_settings: dict = {
     "consumption_hist_len": 4,
     "sale_hist_len": 4,
     "pending_order_len": 4,
-    "reward_normalization": 1e3,
+    "reward_normalization": 1,
     "or_policy_vlt_buffer_days": 1.2,
     "default_vehicle_type": "train",
 }

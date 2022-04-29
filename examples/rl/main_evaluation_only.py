@@ -32,24 +32,24 @@ if __name__ == "__main__":
     if scenario.post_evaluate:
         scenario.post_evaluate(result["info"], 0)
 
-    LOG_PATH = join(dirname(SCENARIO_PATH), "results", f"baseline_{args.exp_name}")
-    os.makedirs(LOG_PATH, exist_ok=True)
+    # LOG_PATH = join(dirname(SCENARIO_PATH), "results", f"baseline_{args.exp_name}")
+    # os.makedirs(LOG_PATH, exist_ok=True)
     # facility_types = ['ProductUnit', 'StoreProductUnit']
-    tracker = result['tracker']
-    tracker.render('%s/a_plot_balance.png' %
-                    LOG_PATH, tracker.step_balances, ["OuterRetailerFacility"])
-    tracker.render('%s/a_plot_reward.png' %
-                LOG_PATH, tracker.step_rewards, ["OuterRetailerFacility"])
-    tracker.render_sku(LOG_PATH)
+    # tracker = result['tracker']
+    # tracker.render('%s/a_plot_balance.png' %
+    #                 LOG_PATH, tracker.step_balances, ["OuterRetailerFacility"])
+    # tracker.render('%s/a_plot_reward.png' %
+    #             LOG_PATH, tracker.step_rewards, ["OuterRetailerFacility"])
+    # tracker.render_sku(LOG_PATH)
     
-    df_product = pd.DataFrame(env_sampler._balance_calculator.product_metric_track)
-    print(df_product.head())
-    # df_product = df_product.groupby(['tick', 'id']).first().reset_index()
-    result_file_loc = f'{LOG_PATH}/output_product_metrics.csv'
-    df_product.to_csv(result_file_loc, index=False)
-    # html_render = SimulationTrackerHtml(result_file_loc)
-    # html_render.render_sku()
-    # html_render.render_facility()
-    mean_reward_path = join(dirname(SCENARIO_PATH), "rl")
-    with open(f"{mean_reward_path}/baseline_mean_reward.py", "w") as f:
-        f.write("mean_reward = " + str(result["mean_reward"]))
+    # df_product = pd.DataFrame(env_sampler._balance_calculator.product_metric_track)
+    # print(df_product.head())
+    # # df_product = df_product.groupby(['tick', 'id']).first().reset_index()
+    # result_file_loc = f'{LOG_PATH}/output_product_metrics.csv'
+    # df_product.to_csv(result_file_loc, index=False)
+    # # html_render = SimulationTrackerHtml(result_file_loc)
+    # # html_render.render_sku()
+    # # html_render.render_facility()
+    # mean_reward_path = join(dirname(SCENARIO_PATH), "rl")
+    # with open(f"{mean_reward_path}/baseline_mean_reward.py", "w") as f:
+    #     f.write("mean_reward = " + str(result["mean_reward"]))

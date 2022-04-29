@@ -130,7 +130,7 @@ def get_dqn(name: str) -> DQNTrainer:
         params=DQNParams(
             reward_discount=.99,
             update_target_every=4,
-            num_epochs=100,
+            num_epochs=512,
             soft_update_coef=0.01,
             double=True,
             replay_memory_capacity=1024000,

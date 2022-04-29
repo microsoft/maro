@@ -453,7 +453,9 @@ class SimulationTrackerHtml:
 
 
 class SimulationTracker:
-    def __init__(self, episod_len, n_episods, env, eval_period=None):
+    def __init__(self, episod_len, n_episods, env, exp_name, eval_period=None):
+        self.loc_path = f"/data/songlei/maro_ms/examples/supply_chain/results/{exp_name}/"
+        os.makedirs(self.loc_path, exist_ok=True)
         self.episod_len = episod_len
         if eval_period:
             self.eval_period = eval_period
@@ -569,7 +571,7 @@ class SimulationTracker:
             fig.savefig(f"{loc_path}/{facility_type_dict[entity_id]}_{sku_name_dict[entity_id]}.png")
             plt.close(fig=fig)
 
-    def render(self, file_name, metrics, facility_types):
+    def render(self, loc_path, file_name, metrics, facility_types):
         fig, axs = plt.subplots(2, 1, figsize=(25, 10))
         x = np.linspace(0, self.episod_len, self.episod_len)[self.eval_period[0]:self.eval_period[1]]
 
@@ -596,7 +598,7 @@ class SimulationTracker:
         axs[1].plot(x, np.cumsum(_step_metrics, axis=1).T)
         axs[1].legend(_agent_list, loc='upper left')
 
-        fig.savefig(file_name)
+        fig.savefig(f"{loc_path}/{file_name}")
         plt.close(fig=fig)
         # plt.show()
 
@@ -634,13 +636,13 @@ class SimulationTracker:
         _step_metrics_list = np.cumsum(np.sum(_step_metrics, axis=0))
         return np.sum(_step_metrics), _step_metrics_list
 
-    def run_and_render(self, loc_path, facility_types):
+    def run_and_render(self, facility_types, loc_path=None):
         metric, metric_list = self.run_wth_render(
             facility_types=facility_types)
-        self.render('%s/a_plot_balance.png' %
-                    loc_path, self.step_balances, ["StoreProductUnit"])
-        self.render('%s/a_plot_reward.png' %
-                    loc_path, self.step_rewards, ["StoreProductUnit"])
+        if loc_path is None:
+            loc_path = self.loc_path
+        self.render(loc_path, 'a_plot_balance.png', self.step_balances, ["StoreProductUnit"])
+        self.render(loc_path, 'a_plot_reward.png', self.step_rewards, ["StoreProductUnit"])
         self.render_sku(loc_path)
         return metric, metric_list
 

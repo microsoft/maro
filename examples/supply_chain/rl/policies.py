@@ -40,7 +40,6 @@ entity_dict: Dict[Any, SupplyChainEntity] = {
 get_policy = (get_dqn_policy if ALGO == "DQN" else get_ppo_policy)
 
 
-
 def entity2policy(entity: SupplyChainEntity, baseline) -> str:
     if entity.skus is None:
         return "facility_policy"
@@ -55,7 +54,7 @@ def entity2policy(entity: SupplyChainEntity, baseline) -> str:
         if baseline:
             return "consumer_eoq_policy"
         if facility_name.startswith("CA_") or facility_name.startswith("TX_") or facility_name.startswith("WI_"):
-            return ("consumer.policy" if SHARED_MODEL else f"consumer_{facility_name}.policy")
+            return ("consumer.policy" if SHARED_MODEL else f"consumer_{facility_name[:2]}.policy")
         else:
             return "consumer_eoq_policy"
     else:
@@ -71,6 +70,7 @@ policy_creator = {
 
 
 
+cuda_mapping = {"CA": 1, "TX": 2, "WI": 3}
 if not SHARED_MODEL:
     trainer_creator = {}
     trainable_policies = []
@@ -79,17 +79,17 @@ if not SHARED_MODEL:
         if issubclass(entity.class_type, ConsumerUnit):
             facility_name = facility_info_dict[entity.facility_id].name
             if facility_name.startswith("CA_") or facility_name.startswith("TX_") or facility_name.startswith("WI_"):
-                policy_key = f"consumer_{facility_name}.policy"
+                policy_key = f"consumer_{facility_name[:2]}.policy"
                 if policy_key not in policy_creator.keys():
                     trainable_policies.append(policy_key)
-                    device_mapping[policy_key] = "cuda"
+                    device_mapping[policy_key] = f"cuda:{cuda_mapping[facility_name[:2]]}"
                     policy_creator[policy_key] = partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
-                trainer_key = f"consumer_{facility_name}"
+                trainer_key = f"consumer_{facility_name[:2]}"
                 if trainer_key not in trainer_creator.keys():
-                    trainer_creator[trainer_key] = (get_dqn if ALGO=="DQN" else get_ppo)
+                    trainer_creator[trainer_key] = (get_dqn if ALGO=="DQN" else partial(get_ppo, STATE_DIM))
 else:
     trainable_policies = ["consumer.policy"]
-    device_mapping = {"consumer.policy": "cuda"}
+    device_mapping = {"consumer.policy": "cuda:3"}
     policy_creator["consumer.policy"] =  partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
     if ALGO == "PPO":
         trainer_creator = {
