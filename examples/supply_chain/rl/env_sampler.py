@@ -332,15 +332,20 @@ class SCEnvSampler(AbsEnvSampler):
                 product_unit_id: int = self._unit2product_unit[entity_id]
 
                 # TODO: vehicle type selection and source selection
+                vlt_info_candidates: List[VendorLeadingTimeInfo] = []
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
-                vlt_info_candidates: List[VendorLeadingTimeInfo] = [
-                    vlt_info
-                    for vlt_info in facility_info.upstream_vlt_infos[product_id]
-                    if any([
-                        self._env_settings["default_vehicle_type"] is None,
-                        vlt_info.vehicle_type == self._env_settings["default_vehicle_type"],
-                    ])
-                ]
+                info_by_fid = facility_info.upstream_vlt_infos[product_id]
+                if self._env_settings["default_vehicle_type"] is None:
+                    vlt_info_candidates = [
+                        info
+                        for info_by_type in info_by_fid.values()
+                        for info in info_by_type.values()
+                    ]
+                else:
+                    vlt_info_candidates = [
+                        info_by_type[self._env_settings["default_vehicle_type"]]
+                        for info_by_type in info_by_fid.values()
+                    ]
 
                 if len(vlt_info_candidates):
                     src_f_id = vlt_info_candidates[0].src_facility.id
@@ -357,9 +362,7 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
-                sku = self._units_mapping[entity_id][3]
-                if sku.manufacture_rate:
-                    env_action = ManufactureAction(id=entity_id, production_rate=int(sku.manufacture_rate))
+                pass
 
             if env_action:
                 env_action_dict[agent_id] = env_action

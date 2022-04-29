@@ -4,18 +4,26 @@
 from __future__ import annotations
 
 import typing
-from collections import Counter, defaultdict, deque
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order
 
+from .storage import AddStrategy
 from .unitbase import BaseUnitInfo, UnitBase
-from .vehicle import VehicleStatus, VehicleUnit
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
     from maro.simulator.scenarios.supply_chain.world import World
+
+
+@dataclass
+class DistributionPayload:
+    arrival_tick: int
+    order: Order
+    transportation_cost_per_day: float
+    payload: int
 
 
 @dataclass
@@ -36,25 +44,99 @@ class DistributionUnit(UnitBase):
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
-        # Vehicle unit dict of this distribution unit. Key: vehicle type; Value: a list of vehicle instances.
-        self.vehicles: Dict[str, List[VehicleUnit]] = defaultdict(list)
+        self._vehicle_num: Dict[str, Optional[int]] = {}
+        self._busy_vehicle_num: Dict[str, int] = {}
+
+        # TODO：replace this with BE's event buffer
+        self._payload_on_the_way: Dict[int, List[DistributionPayload]] = defaultdict(list)
 
         # A dict of pending order queue. Key: vehicle type; Value: pending order queue.
         self._order_queues: Dict[str, deque] = defaultdict(deque)
+        self._pending_order_number: int = 0
+        self._total_pending_quantity: int = 0
+        self._pending_product_quantity: Dict[int, int] = defaultdict(int)
+        self._is_order_changed: bool = False
 
+        # Below 3 attributes are used to track states for ProductUnit's data model
         # The transportation cost of each product of current tick. Would be set to 0 in ProductUnit.
         # Do not consider the destination here.
-        self.transportation_cost = Counter()
+        self.transportation_cost: Dict[int, float] = defaultdict(float)
         # The delay penalty of each product of current tick. Would be set to 0 in ProductUnit.
         # Do not consider the destination.
-        self.delay_order_penalty = Counter()
+        self.delay_order_penalty: Dict[int, float] = defaultdict(float)
         # The check-in product quantity in orders of current tick. Would be set to 0 in ProductUnit.
         # Do not consider the destination.
-        self.check_in_quantity_in_order = Counter()
+        self.check_in_quantity_in_order: Dict[int, float] = defaultdict(float)
 
         self._unit_delay_order_penalty: Dict[int, float] = {}
 
-        self._is_order_changed: bool = False
+    def initialize(self) -> None:
+        super(DistributionUnit, self).initialize()
+
+        for vehicle_type, vehicle_config in self.config.items():
+            vehicle_num = None
+            if vehicle_config["number"] is not None:
+                vehicle_num = int(vehicle_config["number"])
+            self._vehicle_num[vehicle_type] = vehicle_num
+            self._busy_vehicle_num[vehicle_type] = 0
+
+            # TODO: add vehicle patient setting if needed
+
+        for product_id in self.facility.products.keys():
+            self._unit_delay_order_penalty[product_id] = self.facility.skus[product_id].unit_delay_order_penalty
+
+    def _has_available_vehicle(self, vehicle_type: str) -> bool:
+        return any([
+            self._vehicle_num[vehicle_type] is None,
+            self._busy_vehicle_num[vehicle_type] < self._vehicle_num[vehicle_type],
+        ])
+
+    def place_order(self, tick: int, order: Order) -> float:
+        """Place an order in the pending order queue, and calculate the corresponding order fee.
+
+        Args:
+            tick (int): tick when order received.
+            order (Order): Order to insert.
+
+        Returns:
+            float: The corresponding total order fee, will paid by the consumer.
+        """
+        # TODO: to indicate whether it is a valid order or not in Return value?
+        if all([
+            order.product_id in self.facility.downstream_vlt_infos,
+            order.destination.id in self.facility.downstream_vlt_infos[order.product_id],
+            order.vehicle_type in self.facility.downstream_vlt_infos[order.product_id][order.destination.id],
+            order.quantity > 0
+        ]):
+            # Try schedule once the order received.
+            if all([
+                self._has_available_vehicle(order.vehicle_type),
+                self._try_load(order.product_id, order.quantity),
+            ]):
+                unit_transportation_cost_per_day = self._schedule_order(tick, order)
+                self._busy_vehicle_num[order.vehicle_type] += 1
+
+                self.transportation_cost[order.product_id] += unit_transportation_cost_per_day
+
+            else:
+                # Append to order queue.
+                self._order_queues[order.vehicle_type].append(order)
+                self._pending_order_number += 1
+                self._total_pending_quantity += order.quantity
+                self._pending_product_quantity[order.product_id] += order.quantity
+                self._is_order_changed = True
+
+                self.delay_order_penalty[order.product_id] += self._unit_delay_order_penalty[order.product_id]
+
+            self.check_in_quantity_in_order[order.product_id] += order.quantity
+
+            sku = self.facility.skus[order.product_id]
+            order_total_price = sku.price * order.quantity  # TODO: add transportation cost or not?
+
+            return order_total_price
+
+        else:
+            return 0
 
     def get_pending_product_quantities(self) -> Dict[int, int]:
         """Count the requested product quantity in pending orders. Only used by BE metrics.
@@ -62,111 +144,133 @@ class DistributionUnit(UnitBase):
         Returns:
             Dict[int, int]: The key is product id, the value is accumulated requested product quantity.
         """
-        counter = defaultdict(int)
+        return self._pending_product_quantity
 
-        for order_queue in self._order_queues.values():
-            for order in order_queue:
-                counter[order.product_id] += order.quantity
-
-        for vehicle_list in self.vehicles.values():  # TODO: check whether count these quantity in or not
-            for vehicle in vehicle_list:
-                if vehicle.status != VehicleStatus.Free:
-                    counter[vehicle.product_id] += (vehicle.requested_quantity - vehicle.payload)
-
-        return counter
-
-    def place_order(self, order: Order) -> float:
-        """Place an order in the pending order queue, and calculate the corresponding order fee.
+    def _try_load(self, product_id: int, quantity: int) -> bool:
+        """Try to load specified number of scheduled product.
 
         Args:
-            order (Order): Order to insert.
-
-        Returns:
-            float: The corresponding total order fee, will paid by the consumer.
+            quantity (int): Number to load.
         """
-        if order.quantity > 0:
-            sku = self.facility.skus[order.product_id]
+        return self.facility.storage.try_take_products({product_id: quantity})
 
-            if sku is not None:
-                self._is_order_changed = True
-                self._order_queues[order.vehicle_type].append(order)
-                self.check_in_quantity_in_order[order.product_id] += order.quantity
+    def _try_unload(self, payload: DistributionPayload) -> bool:
+        """Try unload products into destination's storage."""
+        unloaded = payload.order.destination.storage.try_add_products(
+            {payload.order.product_id: payload.payload},
+            add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
+        )
 
-                order_total_price = sku.price * order.quantity
-                return order_total_price
+        # Update order if we unloaded any.
+        if len(unloaded) > 0:
+            assert len(unloaded) == 1
+            unloaded_quantity = unloaded[payload.order.product_id]
 
-        return 0
+            payload.order.destination.products[payload.order.product_id].consumer.on_order_reception(
+                source_id=self.facility.id,
+                product_id=payload.order.product_id,
+                received_quantity=unloaded_quantity,
+                required_quantity=payload.order.quantity,
+            )
 
-    def initialize(self) -> None:
-        super(DistributionUnit, self).initialize()
+            payload.payload -= unloaded_quantity
 
-        for product_id in self.facility.products.keys():
-            self._unit_delay_order_penalty[product_id] = self.facility.skus[product_id].unit_delay_order_penalty
+        return payload.payload == 0
 
-    def _step_impl(self, tick: int) -> None:
-        # TODO: update vehicle types and distribution step logic
-        for vehicle_type, vehicle_list in self.vehicles.items():
-            for vehicle in vehicle_list:
-                # If we have vehicle not on the way and there is any pending order.
-                if len(self._order_queues[vehicle_type]) > 0 and vehicle.requested_quantity == 0:
-                    order: Order = self._order_queues[vehicle_type].popleft()
+    def _schedule_order(self, tick: int, order: Order) -> float:
+        vlt_info = self.facility.downstream_vlt_infos[order.product_id][order.destination.id][order.vehicle_type]
 
-                    # Schedule a job for available vehicle.
-                    vehicle.schedule(
-                        order.destination,
-                        order.product_id,
-                        order.quantity,
-                        order.vlt,
-                    )
+        arrival_tick = tick + vlt_info.vlt  # TODO: add random factor if needed
 
+        self._payload_on_the_way[arrival_tick].append(DistributionPayload(
+            arrival_tick=arrival_tick,
+            order=order,
+            transportation_cost_per_day=vlt_info.unit_transportation_cost,
+            payload=order.quantity,
+        ))
+
+        dest_consumer = order.destination.products[order.product_id].consumer
+        if vlt_info.vlt < len(dest_consumer.pending_order_daily):  # Check use (arrival tick - tick) or vlt
+            dest_consumer.pending_order_daily[vlt_info.vlt] += order.quantity
+
+        return vlt_info.unit_transportation_cost
+
+    def pre_step(self, tick: int) -> None:
+        self.check_in_quantity_in_order.clear()
+        self.transportation_cost.clear()
+        self.delay_order_penalty.clear()
+
+    def step(self, tick: int) -> None:
+        # Schedule pending orders and count delay penalty.
+        for vehicle_type in self._vehicle_num.keys():
+            # Schedule if has available vehicle
+            order_load_failed: List[Order] = []
+            while all([
+                len(self._order_queues[vehicle_type]) > 0,
+                self._has_available_vehicle(vehicle_type),
+            ]):
+                order: Order = self._order_queues[vehicle_type].popleft()
+                if self._try_load(order.product_id, order.quantity):
+                    self._schedule_order(tick, order)
+                    # The transportation cost of this newly scheduled order would be counted soon, do not count here.
+                    self._busy_vehicle_num[vehicle_type] += 1
+                    self._pending_order_number -= 1
+                    self._total_pending_quantity -= order.quantity
+                    self._pending_product_quantity[order.product_id] -= order.quantity
                     self._is_order_changed = True
+                else:
+                    order_load_failed.append(order)
+            self._order_queues[vehicle_type].extend(order_load_failed)
 
-                # Push vehicle.
-                vehicle.step(tick)
-
-                self.transportation_cost[vehicle.product_id] += abs(vehicle.cost)
-
-        # Update order's delay penalty per tick.
-        for order_queue in self._order_queues.values():
-            for order in order_queue:
+            # Else count delay order penalty
+            for order in self._order_queues[vehicle_type]:
                 self.delay_order_penalty[order.product_id] += self._unit_delay_order_penalty[order.product_id]
+
+        # Update transportation cost.
+        for payload_list in self._payload_on_the_way.values():
+            for payload in payload_list:
+                self.transportation_cost[payload.order.product_id] += (
+                    payload.transportation_cost_per_day * payload.payload
+                )
+
+    def post_step(self, tick: int) -> None:
+        super(DistributionUnit, self).post_step(tick)
+
+        # Handle arrival payloads.
+        for payload in self._payload_on_the_way[tick]:
+            if self._try_unload(payload):
+                self._busy_vehicle_num[payload.order.vehicle_type] -= 1
+            else:
+                self._payload_on_the_way[tick + 1].append(payload)
+
+        self._payload_on_the_way.pop(tick)
 
     def flush_states(self) -> None:
         super(DistributionUnit, self).flush_states()
 
-        for vehicle_list in self.vehicles.values():
-            for vehicle in vehicle_list:
-                vehicle.flush_states()
-
         if self._is_order_changed:
+            self.data_model.pending_order_number = self._pending_order_number
+            self.data_model.pending_product_quantity = self._total_pending_quantity
             self._is_order_changed = False
-
-            self.data_model.pending_product_quantity = sum(
-                order.quantity
-                for order_queue in self._order_queues.values()
-                for order in order_queue
-            )
-            self.data_model.pending_order_number = sum(
-                len(order_queue)
-                for order_queue in self._order_queues.values()
-            )
 
     def reset(self) -> None:
         super(DistributionUnit, self).reset()
 
         # Reset status in Python side.
         self._order_queues.clear()
+        self._pending_order_number = 0
+        self._total_pending_quantity = 0
+        self._pending_product_quantity.clear()
+        self._is_order_changed = False
 
         self.transportation_cost.clear()
         self.delay_order_penalty.clear()
         self.check_in_quantity_in_order.clear()
 
-        self._is_order_changed = False
+        for vehicle_type in self._vehicle_num.keys():
+            self._busy_vehicle_num[vehicle_type] = 0
 
-        # Reset vehicles.
-        for vehicle_list in self.vehicles.values():
-            for vehicle in vehicle_list:
-                vehicle.reset()
+        self._payload_on_the_way.clear()
 
     def get_unit_info(self) -> DistributionUnitInfo:
         return DistributionUnitInfo(

@@ -63,13 +63,12 @@ multiple_storage: &multiple_storage
 
 
 train_config: &train
-  class: "VehicleUnit"
   config:
     patient: 3
     unit_transport_cost: 12
 
 normal_distribution: &normal_distribution
-  vehicles:
+  config:
     train:
       number: 2
       config: *train
@@ -108,6 +107,8 @@ world:
         sku3:
           init_stock: 80
           has_manufacture: True
+          max_manufacture_rate: 50
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 10
           unit_delay_order_penalty: 10

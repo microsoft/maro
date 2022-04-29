@@ -54,17 +54,12 @@ facility_definitions:
           config:
             sale_hist_len: 4
 
-train_config: &train
-  class: "VehicleUnit"
-  config:
-    patient: 100
 
 # a normal distribution definition
 normal_distribution: &normal_distribution
-  vehicles:
+  config:
     train:
       number: 2
-      config: *train
 
 small_storage: &small_storage
   # config of data model of this unit
@@ -121,7 +116,7 @@ world:
         sku3: # sku name and attributes needed for this facility
           init_stock: 100
           unit_product_cost: 1
-          manufacture_rate: 1
+          max_manufacture_rate: 1
           has_manufacture: True
           price: 10
 
@@ -145,12 +140,12 @@ world:
         sku1:
           init_stock: 100
           unit_product_cost: 1
-          manufacture_rate: 1
+          max_manufacture_rate: 1
           has_manufacture: True
           price: 100
         sku3:
           init_stock: 100
-          manufacture_rate: 1
+          max_manufacture_rate: 1
           has_consumer: True
           price: 100
 
@@ -210,7 +205,6 @@ world:
   # topology used to specify the up/downstream for facilities
   # we split it from facility, so that we can support configuration inherit to override it
   # for a new topology
-  # TODO: change the name?
   topology:
     # key is current facility, value if upstream facilities that will provide a certain sku
     Supplier_002:

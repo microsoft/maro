@@ -52,7 +52,7 @@ if __name__ == '__main__':
         for entity in manufacturers:
             actions.append(ManufactureAction(
                 id=entity.id,
-                production_rate=np.random.randint(low=MANUFACTURER_LOWER_BOUND, high=MANUFACTURER_UPPER_BOUND) + 1,
+                manufacture_rate=np.random.randint(low=MANUFACTURER_LOWER_BOUND, high=MANUFACTURER_UPPER_BOUND) + 1,
             ))
 
         # Generate random actions for all consumers that have at least one source

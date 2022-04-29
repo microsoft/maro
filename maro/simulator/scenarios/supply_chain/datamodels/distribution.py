@@ -11,8 +11,10 @@ from .base import DataModelBase
 class DistributionDataModel(DataModelBase):
     """Distribution data model for distribution unit."""
 
-    pending_product_quantity = NodeAttribute(AttributeType.UInt)
+    # Can be changed in DistributionUnit.step()
+    # Can be changed in DistributionUnit.place_order() <- triggered by ConsumerAction
     pending_order_number = NodeAttribute(AttributeType.UInt)
+    pending_product_quantity = NodeAttribute(AttributeType.UInt)
 
     def __init__(self) -> None:
         super(DistributionDataModel, self).__init__()

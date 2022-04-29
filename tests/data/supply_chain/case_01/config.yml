@@ -44,12 +44,11 @@ medium_storage: &medium_storage
 
 
 train_config: &train
-  class: "VehicleUnit"
   config:
     patient: 3
 
 normal_distribution: &normal_distribution
-  vehicles:
+  config:
     train:
       number: 2
       config: *train
@@ -89,6 +88,8 @@ world:
         sku3:
           init_stock: 80
           has_manufacture: True
+          max_manufacture_rate: 50
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 10
       children:
@@ -103,6 +104,8 @@ world:
         sku1:
           init_stock: 96
           has_manufacture: True
+          max_manufacture_rate: 50
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 100
         sku3:
@@ -126,6 +129,8 @@ world:
         sku2:
           init_stock: 50
           has_manufacture: True
+          max_manufacture_rate: 50
+          manufacture_leading_time: 1
           unit_product_cost: 1
           price: 100
       children:
@@ -145,6 +150,8 @@ world:
         sku4:
           init_stock: 50
           has_manufacture: True
+          max_manufacture_rate: 50
+          manufacture_leading_time: 1
           unit_product_cost: 4
           price: 100
         sku3:
@@ -172,7 +179,7 @@ world:
       sku1:
         "Supplier_SKU1":
           "train":
-            vlt: 1  # TODO: test for 0-vlt
+            vlt: 0
             cost: 1
     Supplier_SKU4:
       sku2:

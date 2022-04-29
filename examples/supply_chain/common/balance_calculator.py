@@ -219,10 +219,7 @@ class BalanceSheetCalculator:
         manufacture_ids = self._get_attributes("manufacture", "id", tick).astype(np.int)
 
         # loss = manufacture number * cost
-        manufacture_step_cost = -1 * (
-            self._get_attributes("manufacture", "manufacture_quantity", tick)
-            * self._get_attributes("manufacture", "unit_product_cost", tick)
-        )
+        manufacture_step_cost = -1 * self._get_attributes("manufacture", "manufacture_cost", tick)
 
         return manufacture_ids, manufacture_step_cost
 
@@ -241,14 +238,6 @@ class BalanceSheetCalculator:
         ]
 
         return storage_product_step_cost
-
-    def _calc_vehicle(self, tick: int) -> np.ndarray:
-        # loss = cost * payload
-        vehicle_step_cost = -1 * (
-            self._get_attributes("vehicle", "payload", tick)
-            * self._get_attributes("vehicle", "unit_transport_cost", tick)
-        )
-        return vehicle_step_cost
 
     def _calc_product_distribution(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         # product distribution profit = check order * price

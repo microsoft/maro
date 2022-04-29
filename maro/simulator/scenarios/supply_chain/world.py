@@ -275,24 +275,6 @@ class World:
 
         return unit_instance
 
-    def _build_distribution_unit(self, facility: FacilityBase, config: dict) -> DistributionUnit:
-        unit_def: EntityDef = self.configs.entity_defs[config["class"]]
-        assert issubclass(unit_def.class_type, DistributionUnit)
-
-        distribution_unit = self._build_unit(facility, facility, config)
-        assert isinstance(distribution_unit, DistributionUnit)
-        distribution_unit.children = []
-        distribution_unit.vehicles = defaultdict(list)
-
-        vehicle_configs: Dict[str, dict] = config.get("vehicles", {})
-        for vehicle_type, vehicle_config in vehicle_configs.items():
-            for _ in range(vehicle_config.get("number", 1)):
-                vehicle_unit = self._build_unit(facility, distribution_unit, vehicle_config["config"])
-                distribution_unit.children.append(vehicle_unit)
-                distribution_unit.vehicles[vehicle_type].append(vehicle_unit)
-
-        return distribution_unit
-
     def _build_product_units(self, facility: FacilityBase, config: dict) -> Dict[int, ProductUnit]:
         """Generate product unit by sku information.
 
@@ -403,10 +385,7 @@ class World:
 
             # Build children Units.
             for child_name, child_conf in facility_conf["children"].items():
-                if child_name == "distribution":
-                    child = self._build_distribution_unit(facility, child_conf)
-                else:
-                    child = self._build_unit(facility=facility, parent=facility, config=child_conf)
+                child = self._build_unit(facility=facility, parent=facility, config=child_conf)
                 setattr(facility, child_name, child)
 
             # Build ProductUnits.
@@ -459,17 +438,22 @@ class World:
 
             for sku_id_or_name, source_configs in topology_conf.items():
                 sku_id, _ = self._get_sku_id_and_name(sku_id_or_name)
-                facility.upstream_vlt_infos[sku_id] = []
 
                 self.max_sources_per_facility = max(self.max_sources_per_facility, len(source_configs))
 
                 for src_name, src_conf in source_configs.items():
                     src_facility = self._get_facility_by_name(src_name)
+
+                    if src_facility.id not in facility.upstream_vlt_infos[sku_id]:
+                        facility.upstream_vlt_infos[sku_id][src_facility.id] = {}
+
+                    if facility.id not in src_facility.downstream_vlt_infos[sku_id]:
+                        src_facility.downstream_vlt_infos[sku_id][facility.id] = {}
+
                     for vehicle_type, vehicle_conf in src_conf.items():
-                        assert vehicle_conf["vlt"] > 0, "Do not support 0-vlt now!"
-                        facility.upstream_vlt_infos[sku_id].append(
-                            VendorLeadingTimeInfo(src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
+                        facility.upstream_vlt_infos[sku_id][src_facility.id][vehicle_type] = VendorLeadingTimeInfo(
+                            src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"]
                         )
-                        src_facility.downstream_vlt_infos[sku_id].append(
-                            LeadingTimeInfo(facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"])
+                        src_facility.downstream_vlt_infos[sku_id][facility.id][vehicle_type] = LeadingTimeInfo(
+                            facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"]
                         )

@@ -87,7 +87,8 @@ class OneTimeSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
         with open(self._preprocessed_file_path, "rt") as fp:
             reader = DictReader(fp)
 
-            for row in tqdm(reader, desc=f"Loading data from {fp.name}"):
+            print(f"Loading data from {fp.name}")
+            for row in tqdm(reader):
                 date_index = int(row[DATE_INDEX_COLUMN_NAME])
 
                 if self._start_date_index is None:
@@ -296,7 +297,8 @@ class DataFileDemandSampler(SellerDemandMixin):
         with open(self._file_path, "rt") as fp:
             reader = DictReader(fp)
 
-            for row in tqdm(reader, desc=f"Loading data from {fp.name}"):
+            print(f"Loading data from {fp.name}")
+            for row in tqdm(reader):
                 sku_name = row[self._sku_column_name]
 
                 if sku_name not in self._world.sku_name2id_mapping:

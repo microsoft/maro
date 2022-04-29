@@ -34,16 +34,30 @@ class SkuInfo:
     sub_storage_id: int = DEFAULT_SUB_STORAGE_ID  # TODO: decide whether it could be a default setting
     storage_upper_bound: Optional[int] = None  # TODO: Or split the storage directly?
 
-    # Manufacture config
-    has_manufacture: bool = False  # To indicate whether the ProductUnit has a ManufactureUnit or not
+    """
+    Manufacture configs:
+    - has_manufacture: To indicate whether the ProductUnit has a ManufactureUnit or not.
+    - unit_product_cost: Must set if has_manufacture.
+        . Per unit, per tick.
+        . The manufacture/production cost would be: unit_product_cost * manufacture_rate * manufacture_leading_time.
+    - max_manufacture_rate: Must set if has_manufacture.
+        . The manufacture capacity, or said the throughput of the manufacture pipeline.
+        . It is the upper bound of valid manufacture_rate could be set in the manufacture action.
+        . Note that it is the maximal product quantity we get at the end of a manufacture cycle (after a whole leading
+        time duration, not for each tick.)
+    - manufacture_leading_time: Must set if has_manufacture.
+        . How many ticks would it take to produce products.
+    """
+    has_manufacture: bool = False
     unit_product_cost: Optional[float] = None
-    manufacture_rate: Optional[int] = None  # The initial production rate.
-    # manufacture_leading_time: Optional[int] = None
+    max_manufacture_rate: Optional[int] = None
+    manufacture_leading_time: int = 0  # TODO: update default value after BE updated
 
     # Consumer config
     has_consumer: bool = False  # To indicate whether the ProductUnit has a ConsumerUnit or not
     # SKU specific one would be used if set, else the one for its facility would be used.
     unit_order_cost: Optional[float] = None
+
     # Seller config
     has_seller: bool = False  # To indicate whether the SellerUnit has a ConsumerUnit or not
     sale_gamma: Optional[int] = None
@@ -61,7 +75,7 @@ class VendorLeadingTimeInfo:
     src_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
     vlt: int
-    unit_transportation_cost: float
+    unit_transportation_cost: float  # Unit cost by day, the whole trip cost would be: unit cost * (vlt + 1)
 
 
 @dataclass
@@ -69,7 +83,7 @@ class LeadingTimeInfo:
     dest_facility: FacilityBase  # TODO: change to facility id?
     vehicle_type: str
     vlt: int
-    unit_transportation_cost: float
+    unit_transportation_cost: float  # Unit cost by day, the whole trip cost would be: unit cost * (vlt + 1)
 
 
 @dataclass
@@ -88,7 +102,7 @@ class SubStorageConfig:
     unit_storage_cost: int = 1
 
 
-def parse_storage_config(config: dict) -> Dict[int, SubStorageConfig]:  # TODO: here or in parser
+def parse_storage_config(config: dict) -> Dict[int, SubStorageConfig]:
     if not isinstance(config, list):
         id = config.get("id", DEFAULT_SUB_STORAGE_ID)
         return {id: SubStorageConfig(id=id, **config)}

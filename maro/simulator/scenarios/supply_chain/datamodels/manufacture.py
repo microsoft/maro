@@ -10,23 +10,19 @@ from .extend import ExtendDataModel
 @node("manufacture")
 class ManufactureDataModel(ExtendDataModel):
     """Data model for manufacture unit."""
-    # Number per tick, different with original manufacturing cost, we just provide number, and cost
-    # user can determine how to calculate the cost.
-    manufacture_quantity = NodeAttribute(AttributeType.UInt)
+    # Can be updated in ManufactureUnit._manufacture(), called in post_step()
+    manufacture_cost = NodeAttribute(AttributeType.Float)
+    start_manufacture_quantity = NodeAttribute(AttributeType.UInt)
+    in_pipeline_quantity = NodeAttribute(AttributeType.UInt)
 
-    unit_product_cost = NodeAttribute(AttributeType.Float)
+    # Can be updated in ManufactureUnit.post_step()
+    finished_quantity = NodeAttribute(AttributeType.UInt)
 
     def __init__(self) -> None:
         super(ManufactureDataModel, self).__init__()
 
-        self._unit_product_cost = 0
-
-    def initialize(self, unit_product_cost) -> None:
-        self._unit_product_cost = unit_product_cost
-
+    def initialize(self) -> None:
         self.reset()
 
     def reset(self) -> None:
         super(ManufactureDataModel, self).reset()
-
-        self.unit_product_cost = self._unit_product_cost
