@@ -65,16 +65,16 @@ class VMBundle(RLComponentBundle):
 
         return trainer_creator
 
-    def post_collect(self, info_list: list, ep: int, segment: int) -> None:
+    def post_collect(self, info_list: list, ep: int) -> None:
         # print the env metric from each rollout worker
         for info in info_list:
-            print(f"env summary (episode {ep}, segment {segment}): {info['env_metric']}")
+            print(f"env summary (episode {ep}): {info['env_metric']}")
 
         # print the average env metric
         if len(info_list) > 1:
             metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
             avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
-            print(f"average env metric (episode {ep}, segment {segment}): {avg_metric}")
+            print(f"average env metric (episode {ep}): {avg_metric}")
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
         # print the env metric from each rollout worker

@@ -121,7 +121,7 @@ class RLComponentBundle(object):
             policy_name: policy_name.split(".")[0] for policy_name in self.policy_names
         }
 
-    def post_collect(self, info_list: list, ep: int, segment: int) -> None:
+    def post_collect(self, info_list: list, ep: int) -> None:
         """Routines to be invoked at the end of training episodes"""
         pass
 

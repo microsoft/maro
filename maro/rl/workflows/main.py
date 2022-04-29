@@ -123,7 +123,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
 
             collect_time += time.time() - tc0
 
-        rl_component_bundle.post_collect(total_info_list, ep, -1)  # TODO
+        rl_component_bundle.post_collect(total_info_list, ep)
 
         logger.info(f"Roll-out completed for episode {ep}. Training started...")
         tu0 = time.time()
