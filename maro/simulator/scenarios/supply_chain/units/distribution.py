@@ -3,9 +3,8 @@
 
 from __future__ import annotations
 
-import math
 import typing
-from collections import Counter, defaultdict, deque
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
@@ -45,7 +44,7 @@ class DistributionUnit(UnitBase):
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
-        self._vehicle_num: Dict[str, Union[int, float]] = {}
+        self._vehicle_num: Dict[str, Optional[int]] = {}
         self._busy_vehicle_num: Dict[str, int] = {}
 
         # TODO：replace this with BE's event buffer
@@ -75,7 +74,7 @@ class DistributionUnit(UnitBase):
         super(DistributionUnit, self).initialize()
 
         for vehicle_type, vehicle_config in self.config.items():
-            vehicle_num = math.inf
+            vehicle_num = None
             if vehicle_config["number"] is not None:
                 vehicle_num = int(vehicle_config["number"])
             self._vehicle_num[vehicle_type] = vehicle_num
@@ -85,6 +84,12 @@ class DistributionUnit(UnitBase):
 
         for product_id in self.facility.products.keys():
             self._unit_delay_order_penalty[product_id] = self.facility.skus[product_id].unit_delay_order_penalty
+
+    def _has_available_vehicle(self, vehicle_type: str) -> bool:
+        return any([
+            self._vehicle_num[vehicle_type] is None,
+            self._busy_vehicle_num[vehicle_type] < self._vehicle_num[vehicle_type],
+        ])
 
     def place_order(self, tick: int, order: Order) -> float:
         """Place an order in the pending order queue, and calculate the corresponding order fee.
@@ -105,7 +110,7 @@ class DistributionUnit(UnitBase):
         ]):
             # Try schedule once the order received.
             if all([
-                self._busy_vehicle_num[order.vehicle_type] < self._vehicle_num[order.vehicle_type],
+                self._has_available_vehicle(order.vehicle_type),
                 self._try_load(order.product_id, order.quantity),
             ]):
                 unit_transportation_cost_per_day = self._schedule_order(tick, order)
@@ -202,7 +207,7 @@ class DistributionUnit(UnitBase):
             order_load_failed: List[Order] = []
             while all([
                 len(self._order_queues[vehicle_type]) > 0,
-                self._busy_vehicle_num[vehicle_type] < self._vehicle_num[vehicle_type],
+                self._has_available_vehicle(vehicle_type),
             ]):
                 order: Order = self._order_queues[vehicle_type].popleft()
                 if self._try_load(order.product_id, order.quantity):
