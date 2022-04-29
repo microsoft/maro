@@ -224,7 +224,9 @@ class DistributionUnit(UnitBase):
         # Update transportation cost.
         for payload_list in self._payload_on_the_way.values():
             for payload in payload_list:
-                self.transportation_cost[payload.order.product_id] += payload.transportation_cost_per_day
+                self.transportation_cost[payload.order.product_id] += (
+                    payload.transportation_cost_per_day * payload.payload
+                )
 
     def post_step(self, tick: int) -> None:
         super(DistributionUnit, self).post_step(tick)

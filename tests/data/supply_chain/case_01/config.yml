@@ -179,7 +179,7 @@ world:
       sku1:
         "Supplier_SKU1":
           "train":
-            vlt: 1  # TODO: test for 0-vlt
+            vlt: 0
             cost: 1
     Supplier_SKU4:
       sku2:

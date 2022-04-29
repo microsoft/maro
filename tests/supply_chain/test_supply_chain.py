@@ -9,7 +9,6 @@ from maro.simulator.scenarios.supply_chain import (
     ConsumerAction, FacilityBase, ManufactureAction, StorageUnit
 )
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
-from maro.simulator.scenarios.supply_chain.facilities.facility import FacilityInfo
 from maro.simulator.scenarios.supply_chain.order import Order
 from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 
@@ -954,267 +953,14 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
     """
-    Vehicle unit test:
-
-    . initial state
-    . if vehicle arrive at destination within special vlt
-    . schedule job
-    . try_load until patient <= 0 to cancel the schedule
-    . try_load until patient > 0 to load order
-    . try_unload
-        . target storage cannot take all
-        . target storage can take all
-    """
-
-    # def test_vehicle_unit_state(self) -> None:
-    #     """Test the first Vehicle of Supplier_SKU3."""
-    #     env = build_env("case_02", 100)
-    #     be = env.business_engine
-    #     assert isinstance(be, SupplyChainBusinessEngine)
-
-    #     supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
-    #     vehicle_unit = supplier_3.distribution.children[0]
-    #     self.assertTrue(isinstance(vehicle_unit, VehicleUnit))
-
-    #     # ############################### Check the initial state ######################################
-    #     env.step(None)
-
-    #     # Check initial state according to configuration file
-    #     self.assertEqual(3, vehicle_unit._max_patient)
-
-    #     # no request
-    #     self.assertEqual(0, vehicle_unit.requested_quantity)
-    #     # no destination
-    #     self.assertIsNone(vehicle_unit._destination)
-    #     # no product
-    #     self.assertEqual(0, vehicle_unit.product_id)
-    #     # no steps
-    #     self.assertEqual(0, vehicle_unit._remaining_steps)
-    #     # no payloads
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     # no steps
-    #     self.assertEqual(0, vehicle_unit._steps)
-
-    #     # state in frame
-    #     self.assertEqual(0, vehicle_unit.data_model.payload)
-    #     self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
-
-    #     # ############################### Check the state after reset ######################################
-    #     # reset to check again
-    #     env.reset()
-
-    #     # check initial state according to configuration file
-    #     self.assertEqual(3, vehicle_unit._max_patient)
-
-    #     # no request
-    #     self.assertEqual(0, vehicle_unit.requested_quantity)
-    #     # no destination
-    #     self.assertIsNone(vehicle_unit._destination)
-    #     # no product
-    #     self.assertEqual(0, vehicle_unit.product_id)
-    #     # no steps
-    #     self.assertEqual(0, vehicle_unit._remaining_steps)
-    #     # no payloads
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     # no steps
-    #     self.assertEqual(0, vehicle_unit._steps)
-
-    #     # state in frame
-    #     self.assertEqual(0, vehicle_unit.data_model.payload)
-    #     self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
-
-    # def test_vehicle_unit_schedule(self) -> None:
-    #     """Schedule the first Vehicle of Supplier_SKU3 to Warehouse_001."""
-    #     env = build_env("case_02", 100)
-    #     be = env.business_engine
-    #     assert isinstance(be, SupplyChainBusinessEngine)
-
-    #     supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
-    #     warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
-
-    #     vehicle_unit: VehicleUnit = supplier_3.distribution.children[0]
-    #     self.assertTrue(isinstance(vehicle_unit, VehicleUnit))
-
-    #     # make sure the upstream in the only one supplier in config
-    #     self.assertEqual(1, len(warehouse_1.upstream_vlt_infos))
-    #     self.assertEqual(1, len(warehouse_1.upstream_vlt_infos[SKU3_ID]))
-
-    #     vehicle_nodes = env.snapshot_list["vehicle"]
-
-    #     features = ("id", "facility_id", "payload", "unit_transport_cost")
-    #     IDX_ID, IDX_FACILITY_ID, IDX_PAYLOAD, IDX_UNIT_TRANSPORT_COST = 0, 1, 2, 3
-
-    #     # ############################### Schedule Manually ######################################
-    #     self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
-
-    #     # step to take snapshot
-    #     env.step(None)
-
-    #     # schedule vehicle unit manually, from supplier to warehouse
-    #     vlt = 7
-    #     vehicle_unit.schedule(warehouse_1, SKU3_ID, 20, vlt)
-    #     schedule_tick: int = env.tick
-    #     expected_arrival_tick: int = schedule_tick + vlt
-
-    #     # check internal states
-    #     self.assertEqual(warehouse_1, vehicle_unit._destination)
-    #     self.assertEqual(SKU3_ID, vehicle_unit.product_id)
-    #     self.assertEqual(20, vehicle_unit.requested_quantity)
-    #     self.assertEqual(vlt, vehicle_unit._remaining_steps)
-
-    #     # Step to flush to data model
-    #     env.step(None)
-
-    #     states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
-
-    #     # source id
-    #     self.assertEqual(vehicle_unit.facility.id, states[IDX_FACILITY_ID])
-    #     # payload should be 20, as we already env.step
-    #     self.assertEqual(20, states[IDX_PAYLOAD])
-
-    #     # ############################### 1 tick before arrival ######################################
-    #     while env.tick < expected_arrival_tick - 1:
-    #         env.step(None)
-
-    #     states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
-
-    #     # payload
-    #     self.assertEqual(20, states[IDX_PAYLOAD])
-
-    #     # ############################### Arrival tick ######################################
-    #     env.step(None)
-
-    #     states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
-
-    #     # the product is unloaded, vehicle states will be reset to initial
-    #     # not destination at first
-    #     self.assertIsNone(vehicle_unit._destination)
-    #     self.assertEqual(0, vehicle_unit.product_id)
-    #     self.assertEqual(0, vehicle_unit._remaining_steps)
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     self.assertEqual(0, vehicle_unit._steps)
-    #     self.assertEqual(0, vehicle_unit.requested_quantity)
-
-    #     # check states
-    #     self.assertEqual(0, states[IDX_PAYLOAD])
-
-    # def test_vehicle_unit_no_patient(self) -> None:
-    #     """Test Vehicle no patient by trying to load more products than Supplier_SKU3 has to Warehouse_001."""
-    #     env = build_env("case_02", 100)
-    #     be = env.business_engine
-    #     assert isinstance(be, SupplyChainBusinessEngine)
-
-    #     supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
-    #     warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
-
-    #     vehicle_unit: VehicleUnit = supplier_3.distribution.children[0]
-    #     self.assertTrue(isinstance(vehicle_unit, VehicleUnit))
-
-    #     # make sure the upstream in the only one supplier in config
-    #     self.assertEqual(1, len(warehouse_1.upstream_vlt_infos))
-    #     self.assertEqual(1, len(warehouse_1.upstream_vlt_infos[SKU3_ID]))
-
-    #     vehicle_nodes = env.snapshot_list["vehicle"]
-
-    #     features = ("id", "facility_id", "payload", "unit_transport_cost")
-    #     IDX_ID, IDX_FACILITY_ID, IDX_PAYLOAD, IDX_UNIT_TRANSPORT_COST = 0, 1, 2, 3
-
-    #     # ############################### Try to load more than the supplier has ######################################
-    #     vehicle_unit.schedule(warehouse_1, SKU3_ID, 100, 3)
-
-    #     self.assertEqual(100, vehicle_unit.requested_quantity)
-    #     self.assertEqual(3, vehicle_unit._remaining_patient)
-
-    #     # no payload
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     self.assertEqual(0, vehicle_unit.data_model.payload)
-
-    #     # push env to next step
-    #     env.step(None)
-
-    #     self.assertEqual(3 - 1, vehicle_unit._remaining_patient)
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     self.assertEqual(0, vehicle_unit.data_model.payload)
-
-    #     # push env to next step
-    #     env.step(None)
-
-    #     self.assertEqual(3 - 1 - 1, vehicle_unit._remaining_patient)
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     self.assertEqual(0, vehicle_unit.data_model.payload)
-
-    #     env.step(None)
-
-    #     # Reset to max patient in reset function
-    #     self.assertEqual(vehicle_unit._max_patient, vehicle_unit._remaining_patient)
-
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     self.assertEqual(0, vehicle_unit.data_model.payload)
-
-    #     # ############################### ######################################
-    #     states = vehicle_nodes[:vehicle_unit.data_model_index:features[IDX_PAYLOAD]].flatten().astype(np.int)
-
-    #     # no payload from start to now
-    #     self.assertListEqual([0] * 3, list(states))
-
-    #     # ############################### ######################################
-    #     # The vehicle will be reset to initial state once it arrives at the destination and unloads products.
-    #     self.assertIsNone(vehicle_unit._destination)
-    #     self.assertEqual(0, vehicle_unit.product_id)
-    #     self.assertEqual(0, vehicle_unit._remaining_steps)
-    #     self.assertEqual(0, vehicle_unit.payload)
-    #     self.assertEqual(0, vehicle_unit._steps)
-    #     self.assertEqual(0, vehicle_unit.requested_quantity)
-
-    #     # check states
-    #     states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
-    #     self.assertEqual(0, states[IDX_PAYLOAD])
-
-    # def test_vehicle_unit_cannot_unload_at_destination(self) -> None:
-    #     """Test Vehicle can not unload by scheduling more than Warehouse_001's remaining space from Supplier_SKU3.
-    #     NOTE: If vehicle cannot unload at destination, it will keep waiting, until success to unload.
-    #     """
-    #     env = build_env("case_02", 10)
-    #     be = env.business_engine
-    #     assert isinstance(be, SupplyChainBusinessEngine)
-
-    #     supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
-    #     warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
-
-    #     vehicle_unit: VehicleUnit = supplier_3.distribution.children[0]
-    #     self.assertTrue(isinstance(vehicle_unit, VehicleUnit))
-
-    #     # make sure the upstream in the only one supplier in config
-    #     self.assertEqual(1, len(warehouse_1.upstream_vlt_infos))
-    #     self.assertEqual(1, len(warehouse_1.upstream_vlt_infos[SKU3_ID]))
-
-    #     vehicle_nodes = env.snapshot_list["vehicle"]
-
-    #     features = ("id", "facility_id", "payload", "unit_transport_cost")
-    #     IDX_ID, IDX_FACILITY_ID, IDX_PAYLOAD, IDX_UNIT_TRANSPORT_COST = 0, 1, 2, 3
-
-    #     # Move all 80 sku3 to Warehouse_001 (only 70 remaining space), will cause vehicle keep waiting there
-    #     vehicle_unit.schedule(warehouse_1, SKU3_ID, 80, 3)
-
-    #     # step to the end.
-    #     is_done = False
-
-    #     while not is_done:
-    #         _, _, is_done = env.step(None)
-
-    #     # Payload should be 80 for first 2 ticks, as it is on the way.
-    #     # Payload of tick 3 should be 10 as it will unload (100 - 10 * 3 = 70) as soon as it arrives at the destination.
-    #     # Later there is no storage space left to unload more products, so it would be 10 until the end.
-    #     states = vehicle_nodes[:vehicle_unit.data_model_index:features[IDX_PAYLOAD]].flatten().astype(np.int)
-    #     self.assertListEqual([80] * 2 + [10] * (10 - 2), list(states))
-
-    """
     Distribution unit test:
 
     . initial state
-    . place order
-    . dispatch orders without available vehicle
-    . dispatch order with vehicle
+    . place order and dispatch with available vehicle
+    . place order but has no available vehicle
+    . if arrive at destination within special vlt
+    . if support for 0-vlt
+    . try_unload if target storage cannot take all
     """
 
     def test_distribution_unit_initial_state(self) -> None:
@@ -1237,74 +983,144 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(0, sum([len(order_queue) for order_queue in distribution_unit._order_queues.values()]))
 
-    # def test_distribution_unit_dispatch_order(self) -> None:
-    #     """Test initial state of the DistributionUnit of Supplier_SKU3."""
-    #     env = build_env("case_02", 100)
-    #     be = env.business_engine
-    #     assert isinstance(be, SupplyChainBusinessEngine)
+    def test_distribution_unit_dispatch_order(self) -> None:
+        """Test initial state of the DistributionUnit of Supplier_SKU3."""
+        env = build_env("case_02", 100)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
-    #     supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
-    #     warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
+        supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
+        warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
 
-    #     distribution_unit = supplier_3.distribution
-    #     product_unit = supplier_3.products[SKU3_ID]
+        distribution_unit = supplier_3.distribution
+        product_unit = supplier_3.products[SKU3_ID]
 
-    #     vehicle_1: Vehicle = distribution_unit.vehicles["train"][0]
-    #     vehicle_2: Vehicle = distribution_unit.vehicles["train"][1]
+        order = Order(warehouse_1, SKU3_ID, 10, "train")
 
-    #     order = Order(warehouse_1, SKU3_ID, 10, "train", 7)
-    #     distribution_unit.place_order(order)
+        # There are 2 "train" in total, and 1 left after scheduling this order.
+        distribution_unit.place_order(env.tick, order)
+        self.assertEqual(0, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
-    #     # Check if the order already saved in queue
-    #     self.assertEqual(1, len(distribution_unit._order_queues["train"]))
-    #     # check get pending order correct
-    #     self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        # add another order, it would be successfully scheduled, but none available vehicle left now.
+        distribution_unit.place_order(env.tick, order)
+        self.assertEqual(0, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
-    #     # same as vehicle schedule case, distribution will try to schedule this order to vehicles from beginning to end
-    #     # so it will dispatch this order to first vehicle
-    #     env.step(None)
+        start_tick = env.tick
+        expected_tick = start_tick + 7  # vlt = 7
 
-    #     self.assertEqual(warehouse_1, vehicle_1._destination)
-    #     self.assertEqual(10, vehicle_1.requested_quantity)
-    #     self.assertEqual(SKU3_ID, vehicle_1.product_id)
+        # 3rd order, will cause the pending order increase
+        distribution_unit.place_order(env.tick, order)
+        self.assertEqual(1, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
-    #     # since we already test vehicle unit, do not check the it again here
+        while env.tick < expected_tick:
+            env.step(None)
 
-    #     # add another order to check pending order
-    #     distribution_unit.place_order(order)
+        # will arrive at the end of this tick, still on the way.
+        assert env.tick == expected_tick
+        self.assertEqual(1, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
-    #     # 1 pending order now
-    #     self.assertEqual(1, len(distribution_unit._order_queues["train"]))
-    #     self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        self.assertEqual(10 * 1, distribution_unit.delay_order_penalty[SKU3_ID])
+        self.assertEqual(1 * 10 * 2, distribution_unit.transportation_cost[SKU3_ID])
 
-    #     # another order, will cause the pending order increase
-    #     distribution_unit.place_order(order)
+        env.step(None)
 
-    #     # 2 pending orders now
-    #     self.assertEqual(2, len(distribution_unit._order_queues["train"]))
-    #     self.assertEqual(10 * 2, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        self.assertEqual(0, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
-    #     # now we have only one available vehicle, 2 pending order
-    #     # next step will cause delay_order_penalty
-    #     env.step(None)
+        self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
+        self.assertEqual(1 * 10 * 1, distribution_unit.transportation_cost[SKU3_ID])
 
-    #     self.assertEqual(warehouse_1, vehicle_2._destination)
-    #     self.assertEqual(10, vehicle_2.requested_quantity)
-    #     self.assertEqual(SKU3_ID, vehicle_2.product_id)
+    def test_distribution_unit_with_0_vlt(self):
+        """Test Supplier_SKU2 ask products from Supplier_SKU1 with 0-vlt."""
+        env = build_env("case_01", 100)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
 
-    #     # Only 1 pending order left
-    #     self.assertEqual(1, len(distribution_unit._order_queues["train"]))
-    #     self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        env.step(None)
 
-    #     # NOTE: the delay order penalty would be set to 0 by ProductUnit.
-    #     self.assertEqual(10, product_unit._delay_order_penalty)
+        supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
+        supplier_2: FacilityBase = be.world._get_facility_by_name("Supplier_SKU2")
+        sku1_consumer_unit = supplier_2.products[SKU1_ID].consumer
+        consumer_node_index = sku1_consumer_unit.data_model_index
 
-    #     distribution_unit.place_order(order)
-    #     distribution_unit.place_order(order)
-    #     env.step(None)
+        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
+        IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
 
-    #     # NOTE: the delay order penalty would be set to 0 by ProductUnit.
-    #     self.assertEqual(10 * (1 + 2), product_unit._delay_order_penalty)
+        consumer_nodes = env.snapshot_list["consumer"]
+
+        # ############################## Ask products from Supplier_SKU3 #######################################
+
+        required_quantity = 10
+        action = ConsumerAction(sku1_consumer_unit.id, SKU1_ID, supplier_1.id, required_quantity, "train")
+        purchase_tick: int = env.tick
+
+        env.step([action])
+
+        purchase_frame = env.business_engine.frame_index(purchase_tick)
+        states = consumer_nodes[purchase_frame:consumer_node_index:features].flatten().astype(np.int)
+        self.assertEqual(required_quantity, states[IDX_PURCHASED])
+        # expected tick is equal to purchase tick since vlt = 0
+        self.assertEqual(required_quantity, states[IDX_RECEIVED])
+
+    def test_distribution_unit_cannot_unload_at_destination(self) -> None:
+        """Test can not unload in one time by scheduling more than Warehouse_001's remaining space from Supplier_SKU3.
+        NOTE: If vehicle cannot unload at destination, it will keep waiting, until success to unload.
+        """
+        env = build_env("case_02", 10)
+        be = env.business_engine
+        assert isinstance(be, SupplyChainBusinessEngine)
+
+        supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
+        warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
+        distribution_unit = supplier_3.distribution
+        warehouse_storage_unit = warehouse_1.storage
+
+        env.step(None)
+
+        start_tick = env.tick
+        expected_tick = start_tick + 7
+        order = Order(warehouse_1, SKU3_ID, 80, "train")
+        distribution_unit.place_order(start_tick, order)
+
+        while env.tick <= expected_tick:
+            # Check the inventory level in target storage
+            quantity = get_product_dict_from_storage(
+                env, env.frame_index, warehouse_storage_unit.data_model_index
+            )[SKU3_ID]
+
+            self.assertEqual(10, quantity)
+
+            # Check the payload in the distribution
+            self.assertEqual(1, len(distribution_unit._payload_on_the_way[expected_tick]))
+            self.assertEqual(warehouse_1, distribution_unit._payload_on_the_way[expected_tick][0].order.destination)
+            self.assertEqual(80, distribution_unit._payload_on_the_way[expected_tick][0].payload)
+
+            env.step(None)
+
+        # 100 - 10 * 3 = 70 SKU3 would be unloaded as soon as it arrives at the destination.
+        # Later there is no storage space left to unload more products,
+        # so the inventory level would be 10 + 70 = 80, and the payload would be 10 until the end.
+        is_done = False
+        while not is_done:
+            # Check the inventory level in target storage
+            quantity = get_product_dict_from_storage(
+                env, env.frame_index, warehouse_storage_unit.data_model_index
+            )[SKU3_ID]
+
+            self.assertEqual(10 + 70, quantity)
+
+            # Check the payload in the distribution
+            expected_tick = env.tick
+            self.assertEqual(1, len(distribution_unit._payload_on_the_way[expected_tick]))
+            self.assertEqual(warehouse_1, distribution_unit._payload_on_the_way[expected_tick][0].order.destination)
+            self.assertEqual(80 - 70, distribution_unit._payload_on_the_way[expected_tick][0].payload)
+
+            _, _, is_done = env.step(None)
 
     """
     Seller unit test:
@@ -1547,47 +1363,6 @@ class MyTestCase(unittest.TestCase):
         # received.
         states = consumer_nodes[expected_frame:consumer_node_index:features].flatten().astype(np.int)
         self.assertEqual(required_quantity_2, states[IDX_RECEIVED])
-
-    # def test_0_vlt(self):
-    #     """Test Supplier_SKU2 ask products from Supplier_SKU1 with 0-vlt."""
-    #     env = build_env("case_01", 100)
-    #     be = env.business_engine
-    #     assert isinstance(be, SupplyChainBusinessEngine)
-
-    #     env.step(None)
-
-    #     supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
-    #     supplier_2: FacilityBase = be.world._get_facility_by_name("Supplier_SKU2")
-    #     sku1_consumer_unit = supplier_2.products[SKU1_ID].consumer
-    #     consumer_node_index = sku1_consumer_unit.data_model_index
-
-    #     features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
-    #     IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-    #     IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
-
-    #     consumer_nodes = env.snapshot_list["consumer"]
-
-    #     # ############################## Ask products from Supplier_SKU3 #######################################
-
-    #     required_quantity_1 = 10
-    #     action = ConsumerAction(sku1_consumer_unit.id, SKU1_ID, supplier_1.id, required_quantity_1, "train")
-    #     purchase_tick_1: int = env.tick
-
-    #     # 1 day for scheduling according to the order of Supplier_SKU1 & Supplier_SKU2 in config
-    #     # 0 days vlt, no extra days for loading and unloading
-    #     expected_tick_1 = purchase_tick_1 + 1 + 0
-
-    #     env.step([action])
-
-    #     # TODO: Figure out 0-vlt case
-    #     # self.assertEqual(expected_tick_1, env.tick)
-
-    #     # TODO: Figure out 0-vlt case
-    #     # now all order is done
-    #     # self.assertEqual(required_quantity_1, sku1_consumer_unit._received)
-
-    #     states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
-    #     self.assertEqual(required_quantity_1, states[IDX_RECEIVED])
 
 
 if __name__ == '__main__':

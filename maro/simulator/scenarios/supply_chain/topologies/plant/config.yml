@@ -245,7 +245,7 @@ world:
         "Warehouse_001":
           "air":
             vlt: 2
-            cost: 3.0  # Unit transportation cost by day
+            cost: 3.0  # Unit transportation cost per product per day
           "train":
             vlt: 7
             cost: 0.5
