@@ -427,16 +427,17 @@ class MyTestCase(unittest.TestCase):
         # leave the action as None will keep the manufacture rate as 0, so at to stop manufacturing.
         env.step(None)
 
-        states = manufacture_nodes[env.frame_index:sku2_data_model_index:manufacture_features].flatten().astype(np.int)
+        states = manufacture_nodes[
+            env.frame_index:manufacture_sku2_unit.data_model_index:manufacture_features
+        ].flatten().astype(np.int)
 
         # so manufacture_quantity should be 0
-        self.assertEqual(0, states[IDX_MANUFACTURE_QUANTITY])
+        self.assertEqual(0, states[IDX_START_MANUFACTURE_QUANTITY])
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku2_storage_index)
 
         # sku2 quantity should be same as last tick
-        self.assertEqual(50 + 1, product_dict[SKU2_ID])
-
+        self.assertEqual(50 + 1 * 2, product_dict[SKU2_ID])
     """
     Storage test:
 
@@ -1441,8 +1442,9 @@ class MyTestCase(unittest.TestCase):
         demand_FOOD_1 = sku_datafile.sample_demand(20, FOOD_1_ID)
         self.assertEqual(35, demand_FOOD_1)
 
-    def test__sku_dynamics_DataFileDemandSampler(self):
-        """Tested the store_ 001 storage_ Interaction between unit and data."""
+    def test_Storage_Unit_dynamics_DataFileDemandSampler(self):
+        """Under the DataFileDemandSampler class,
+        test the store between the storage unit and the dynamics CSV data_ 001 interaction."""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1541,8 +1543,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80000 - (10000 - 25) - (5000 - 80), storage_unit.remaining_space)
         self.assertEqual(80000 - (10000 - 25) - (5000 - 80), init_remaining_spaces.sum())
 
-    def test_sku_dynamics_OneTimeSkuPriceDemandSampler(self):
-        """Tested the store_ 001 storage_ Interaction between unit and data."""
+    def test_Storage_Unit_dynamics_OneTimeSkuPriceDemandSampler(self):
+        """Under the OneTimeSkuPriceDemandSampler class,
+        test the store between the storage unit and the dynamics CSV data_ 001 interaction."""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1649,8 +1652,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80000 - (10000 - 25) - (5000 - 80), init_remaining_spaces.sum())
 
 
-    def test_sku_dynamics_product_OneTimeSkuPriceDemandSampler(self):
-        """Tested the store_ 001 storage_ Interaction between unit and data."""
+    def test_seller_unit_dynamics_sampler(self):
+        """Tested the store_001  Interaction between seller unit and dynamics csv data."""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1659,7 +1662,6 @@ class MyTestCase(unittest.TestCase):
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
         configs = Store_001.configs
         world = be.world
-        sku_onetime = OneTimeSkuPriceDemandSampler(configs, world)
         seller_unit = Store_001.products[FOOD_1_ID].seller
 
         seller_node_index = seller_unit.data_model_index
@@ -1692,8 +1694,8 @@ class MyTestCase(unittest.TestCase):
         states = seller_nodes[:seller_node_index:features[IDX_SOLD]].flatten().astype(np.int)
         self.assertListEqual([25, 41, 40, 74, 57] , list(states))
 
-    def test_consumer_dynamics_product_OneTimeSkuPriceDemandSampler(self):
-        """Tested the store_ 001 sonsumer Interaction between unit and data."""
+    def test_consumer_unit_dynamics_sampler(self):
+        """Tested the store_001  Interaction between consumer unit and dynamics csv data."""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1701,7 +1703,6 @@ class MyTestCase(unittest.TestCase):
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
         configs = Store_001.configs
         world = be.world
-        sku_onetime = OneTimeSkuPriceDemandSampler(configs, world)
         FOOD_1_consumer_unit = Store_001.products[FOOD_1_ID].consumer
 
         consumer_node_index = FOOD_1_consumer_unit.data_model_index
@@ -1794,7 +1795,17 @@ class MyTestCase(unittest.TestCase):
 
         # no receives
         self.assertEqual(0, states[IDX_RECEIVED])
+    """
+    sku_dynamics_sampler test:
+        . initial state
+            . OneTimeSkuPriceDemandSampler
+            . StreamSkuPriceDemandSampler
+            . DataFileDemandSampler
+        . functions related to storage Unit
+        . functions related to seller unit
+        . functions related to consumer unit
 
+    """
 
 if __name__ == '__main__':
     unittest.main()
