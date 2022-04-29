@@ -219,10 +219,7 @@ class BalanceSheetCalculator:
         manufacture_ids = self._get_attributes("manufacture", "id", tick).astype(np.int)
 
         # loss = manufacture number * cost
-        manufacture_step_cost = -1 * (
-            self._get_attributes("manufacture", "manufacture_quantity", tick)
-            * self._get_attributes("manufacture", "unit_product_cost", tick)
-        )
+        manufacture_step_cost = -1 * self._get_attributes("manufacture", "manufacture_cost", tick)
 
         return manufacture_ids, manufacture_step_cost
 

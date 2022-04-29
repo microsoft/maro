@@ -12,7 +12,7 @@ from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
 from .rl_agent_state import STATE_DIM
 from .algorithms.ppo import get_policy, get_ppo
-from .algorithms.rule_based import DummyPolicy, ConsumerMinMaxPolicy
+from .algorithms.rule_based import ConsumerMinMaxPolicy
 from .config import NUM_CONSUMER_ACTIONS, env_conf
 
 
@@ -32,7 +32,7 @@ entity_dict: Dict[Any, SupplyChainEntity] = {
 
 def entity2policy(entity: SupplyChainEntity) -> Optional[str]:
     if issubclass(entity.class_type, ManufactureUnit):
-        return "manufacturer_policy"
+        return None
 
     elif issubclass(entity.class_type, ConsumerUnit):
         facility_name = facility_info_dict[entity.facility_id].name
@@ -53,7 +53,6 @@ def entity2policy(entity: SupplyChainEntity) -> Optional[str]:
 
 policy_creator = {
     "ppo.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS),
-    "manufacturer_policy": lambda name: DummyPolicy(name),
     "consumer_policy": lambda name: ConsumerMinMaxPolicy(name),
 }
 
