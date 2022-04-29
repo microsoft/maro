@@ -1673,9 +1673,6 @@ class MyTestCase(unittest.TestCase):
 
         # NOTE: this simple seller unit return demands that same as current tick
 
-        # ######################### Tick 0 ##############################
-
-
         # Tick 0 will have demand == 25.first row of data after preprocessing data.
         # from sample_preprocessed.csv
         self.assertEqual(25, seller_unit._sold)
@@ -1782,7 +1779,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(FOOD_1_ID, states[IDX_PRODUCT_ID])
 
         # ############################### Test Action with positive quantity ######################################
-        action = ConsumerAction(FOOD_1_consumer_unit.id, SKU3_ID, Store_001.id, 1, "train")
+        action = ConsumerAction(FOOD_1_consumer_unit.id, FOOD_1_ID, Store_001.id, 0, "train")
         env.step([action])
 
         self.assertEqual(action.quantity, FOOD_1_consumer_unit._purchased)
