@@ -1439,7 +1439,7 @@ class MyTestCase(unittest.TestCase):
         world = be.world
         sku_datafile = DataFileDemandSampler(configs, world)
         demand_FOOD_1 = sku_datafile.sample_demand(20, FOOD_1_ID)
-        self.assertEqual(35, demand_FOOD_1 )
+        self.assertEqual(35, demand_FOOD_1)
 
     def test__sku_dynamics_DataFileDemandSampler(self):
         """Tested the store_ 001 storage_ Interaction between unit and data."""
@@ -1540,7 +1540,6 @@ class MyTestCase(unittest.TestCase):
                                 ].flatten().astype(np.int)
         self.assertEqual(80000 - (10000 - 25) - (5000 - 80), storage_unit.remaining_space)
         self.assertEqual(80000 - (10000 - 25) - (5000 - 80), init_remaining_spaces.sum())
-
 
     def test_sku_dynamics_OneTimeSkuPriceDemandSampler(self):
         """Tested the store_ 001 storage_ Interaction between unit and data."""
@@ -1760,20 +1759,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(FOOD_1_consumer_unit.id, states[IDX_ID])
         self.assertEqual(FOOD_1_ID, states[IDX_PRODUCT_ID])
 
-
-    def test_consumer_action(self) -> None:
-        """Consumer of sku3 in Supplier_SKU1, which would purchase from Supplier_SKU3."""
-        env = build_env("case_01", 100)
-        be = env.business_engine
-        assert isinstance(be, SupplyChainBusinessEngine)
-
-        env.step(None)
-
-        supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
-        supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
-        sku3_consumer_unit = supplier_1.products[SKU3_ID].consumer
-
-        consumer_node_index = sku3_consumer_unit.data_model_index
+        """test_consumer_action"""
 
         features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
         IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
@@ -1783,7 +1769,7 @@ class MyTestCase(unittest.TestCase):
 
         # ############################### Test Action with 0 quantity ######################################
         # zero quantity will be ignore
-        action_with_zero = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, 0, "train")
+        action_with_zero = ConsumerAction(FOOD_1_consumer_unit.id,FOOD_1_ID, Store_001.id, 0, "train")
         env.step([action_with_zero])
 
         states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
@@ -1792,15 +1778,15 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(action_with_zero.product_id, states[IDX_PRODUCT_ID])
         self.assertEqual(action_with_zero.quantity, states[IDX_PURCHASED])
 
-        self.assertEqual(sku3_consumer_unit.id, states[IDX_ID])
-        self.assertEqual(SKU3_ID, states[IDX_PRODUCT_ID])
+        self.assertEqual(FOOD_1_consumer_unit.id, states[IDX_ID])
+        self.assertEqual(FOOD_1_ID, states[IDX_PRODUCT_ID])
 
         # ############################### Test Action with positive quantity ######################################
-        action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, 1, "train")
+        action = ConsumerAction(FOOD_1_consumer_unit.id, SKU3_ID, Store_001.id, 1, "train")
         env.step([action])
 
-        self.assertEqual(action.quantity, sku3_consumer_unit._purchased)
-        self.assertEqual(0, sku3_consumer_unit._received)
+        self.assertEqual(action.quantity, FOOD_1_consumer_unit._purchased)
+        self.assertEqual(0, FOOD_1_consumer_unit._received)
 
         states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
 
@@ -1811,7 +1797,6 @@ class MyTestCase(unittest.TestCase):
 
         # no receives
         self.assertEqual(0, states[IDX_RECEIVED])
-
 
 
 if __name__ == '__main__':
