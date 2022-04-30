@@ -1,5 +1,6 @@
 import argparse
-
+import sys
+sys.path.append("/data/songlei/maro/")
 from maro.cli.local.commands import run
 
 

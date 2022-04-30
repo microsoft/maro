@@ -248,8 +248,6 @@ class SCEnvSampler(AbsEnvSampler):
             in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
             to_distributed_orders = self._facility_to_distribute_orders[entity.facility_id],
         )
-        if self._entity_dict[entity.parent_id].id == 246:
-            print(state)
         return state
 
     def get_rl_policy_state(self, entity_id: int) -> np.ndarray:
