@@ -19,7 +19,7 @@ from .algorithms.dqn import get_dqn
 
 
 from .rl_agent_state import STATE_DIM
-from .algorithms.rule_based import DummyPolicy, ManufacturerBaselinePolicy, ConsumerMinMaxPolicy
+from .algorithms.rule_based import DummyPolicy, ManufacturerSSPolicy, ConsumerMinMaxPolicy
 from .config import NUM_CONSUMER_ACTIONS, env_conf, ALGO, SHARED_MODEL
 
 
@@ -62,7 +62,7 @@ def entity2policy(entity: SupplyChainEntity, baseline) -> str:
 
 policy_creator = {
     "consumer_eoq_policy": lambda name: ConsumerMinMaxPolicy(name),
-    "manufacturer_policy": lambda name: ManufacturerBaselinePolicy(name),
+    "manufacturer_policy": lambda name: ManufacturerSSPolicy(name),
     "facility_policy": lambda name: DummyPolicy(name),
     "product_policy": lambda name: DummyPolicy(name),
     "seller_policy": lambda name: DummyPolicy(name),
@@ -89,7 +89,7 @@ if not SHARED_MODEL:
                     trainer_creator[trainer_key] = (get_dqn if ALGO=="DQN" else partial(get_ppo, STATE_DIM))
 else:
     trainable_policies = ["consumer.policy"]
-    device_mapping = {"consumer.policy": "cuda:3"}
+    device_mapping = {"consumer.policy": "cpu"}
     policy_creator["consumer.policy"] =  partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
     if ALGO == "PPO":
         trainer_creator = {

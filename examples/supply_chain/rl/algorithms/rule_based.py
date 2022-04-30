@@ -23,12 +23,12 @@ class ManufacturerBaselinePolicy(RuleBasedPolicy):
     def _rule(self, states: List[dict]) -> List[int]:
         return [500] * len(states)
 
-class ManufacturerSSPolicy(RuleBasedPolicy):
+class ManufacturerSSPolicy(ManufacturerBaselinePolicy):
     def _rule(self, states: List[dict]) -> List[int]:
         actions = []
         for state in states:
             _booked_quantity = state["product_level"] + state["in_transition_quantity"] - state["to_distributed_orders"]
-            storage_booked_quantity = state["storage_utilization"] + state["storage_in_transition_quantity"]
+            # storage_booked_quantity = state["storage_utilization"] + state["storage_in_transition_quantity"]
             # TODO: manufacture leading time
             expected_vlt = round(VLT_BUFFER_DAYS * state["max_vlt"], 0)
             _replenishment_threshold = (
@@ -50,7 +50,7 @@ class ConsumerBasePolicy(RuleBasedPolicy):
         self._booked_quantity = state["product_level"] + state["in_transition_quantity"] - state["to_distributed_orders"]
         storage_booked_quantity = state["storage_utilization"] + state["storage_in_transition_quantity"]
         # TODO: manufacture leading time
-        expected_vlt = round(VLT_BUFFER_DAYS * state["max_vlt"], 0)
+        expected_vlt = VLT_BUFFER_DAYS * state["max_vlt"]
         self._replenishment_threshold = (
             expected_vlt * state["sale_mean"]
             + math.sqrt(expected_vlt) * state["sale_std"] * state["service_level_ppf"]
@@ -88,5 +88,6 @@ class ConsumerMinMaxPolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
         quantity = (self._replenishment_threshold - self._booked_quantity)
         # special care for cases when sale_mean = 0
-        quantity = (1 if state['sale_mean'] <= 0.0 else quantity/state['sale_mean'])
+        quantity = (1.0 if state['sale_mean'] <= 0.0 else quantity/state['sale_mean'])
+        quantity = max(1.0, quantity)
         return min(int(quantity), OR_NUM_CONSUMER_ACTIONS - 1)

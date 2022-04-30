@@ -23,8 +23,8 @@ import sys
 sys.path.append("/data/songlei/maro/")
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
-from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
-from .algorithms.rule_based import ConsumerBasePolicy
+from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy, ManufacturerBaselinePolicy
+from .algorithms.rule_based import ConsumerBasePolicy, ManufacturerBaselinePolicy
 from .config import (
     consumer_features, distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME
 )
@@ -248,6 +248,8 @@ class SCEnvSampler(AbsEnvSampler):
             in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
             to_distributed_orders = self._facility_to_distribute_orders[entity.facility_id],
         )
+        if self._entity_dict[entity.parent_id].id == 246:
+            print(state)
         return state
 
     def get_rl_policy_state(self, entity_id: int) -> np.ndarray:
@@ -291,7 +293,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy):
             return self.get_rl_policy_state(entity_id)
-        elif isinstance(self._policy_dict[self._agent2policy[entity_id]], ConsumerBasePolicy):
+        elif isinstance(self._policy_dict[self._agent2policy[entity_id]], (ConsumerBaselinePolicy, ManufacturerBaselinePolicy)):
             return self.get_or_policy_state(entity)
         else:
             return None
@@ -435,7 +437,8 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
-                pass
+                if action[0] > 0:
+                    env_action = ManufactureAction(id=entity_id, manufacture_rate=action[0])
 
             if env_action:
                 env_action_dict[agent_id] = env_action

@@ -102,7 +102,6 @@ class ManufactureUnit(ExtendUnitBase):
     def _manufacture(self, tick: int) -> None:
         # Update num_to_produce according to limitations.
         self._num_to_produce = self._manufacture_rate * self._output_units_per_lot
-
         # Check the remaining space limits. TODO: confirm the remaining space setting.
         if self._num_to_produce > 0:
             remaining_space = self.facility.storage.get_product_max_remaining_space(self.product_id)
@@ -110,7 +109,6 @@ class ManufactureUnit(ExtendUnitBase):
                 self._num_to_produce,
                 remaining_space // self._space_taken_per_lot if self._space_taken_per_lot > 1 else remaining_space,
             )
-
         # Check the source material inventory limits.
         if self._num_to_produce > 0 and len(self._bom):
             self._num_to_produce = min(
@@ -120,7 +118,6 @@ class ManufactureUnit(ExtendUnitBase):
                     for sku_id, consumption in self._bom.items()
                 ])
             )
-
         # Start manufacture.
         if self._num_to_produce > 0:
             # Take source SKUs.

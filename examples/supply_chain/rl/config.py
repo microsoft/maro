@@ -19,11 +19,11 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 OR_NUM_CONSUMER_ACTIONS = 10
 
-ALGO="EOQ"
-EXP_NAME = "BASELINE_SCI_50SKUs_DIST"
+# ALGO="EOQ"
+# EXP_NAME = "BASELINE_SCI_50SKUs_DIST"
 
-# ALGO="DQN"
-# EXP_NAME = "SCI_50SKUs_DIST"
+ALGO="DQN"
+EXP_NAME = "SCI_50SKUs_DIST"
 
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
 TEAM_REWARD = False
@@ -42,6 +42,6 @@ workflow_settings: dict = {
     "sale_hist_len": 4,
     "pending_order_len": 4,
     "reward_normalization": 1,
-    "or_policy_vlt_buffer_days": 1.2,
+    "or_policy_vlt_buffer_days": 1.0,
     "default_vehicle_type": "train",
 }
