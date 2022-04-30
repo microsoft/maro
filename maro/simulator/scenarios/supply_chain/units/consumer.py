@@ -120,7 +120,6 @@ class ConsumerUnit(ExtendUnitBase):
         )
 
         source_facility = self.world.get_facility_by_id(action.source_id)
-
         # Here the order cost is calculated by the upper distribution unit, with the sku price in that facility.
         self._order_product_cost = source_facility.distribution.place_order(tick, order)
         # TODO: the order would be cancelled if there is no available vehicles,

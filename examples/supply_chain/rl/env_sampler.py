@@ -19,9 +19,11 @@ from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
 
-from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
-from examples.supply_chain.rl.algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
+import sys
+sys.path.append("/data/songlei/maro/")
 
+from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
+from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 from .algorithms.rule_based import ConsumerBasePolicy
 from .config import (
     consumer_features, distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME

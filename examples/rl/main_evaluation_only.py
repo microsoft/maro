@@ -1,12 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+import sys
 
+sys.path.append("/data/songlei/maro")
 import os
 from os.path import dirname, join, realpath
 import pandas as pd
 
 from maro.rl.workflows.scenario import Scenario
-from examples.supply_chain.rl.render_tools import SimulationTracker, SimulationTrackerHtml
 
 # from examples.supply_chain.rl.policies import agent2baseline_policy
 
