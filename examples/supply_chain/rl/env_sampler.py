@@ -248,8 +248,6 @@ class SCEnvSampler(AbsEnvSampler):
             in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
             to_distributed_orders = self._facility_to_distribute_orders[entity.facility_id],
         )
-        if self._entity_dict[entity.parent_id].id == 246:
-            print(state)
         return state
 
     def get_rl_policy_state(self, entity_id: int) -> np.ndarray:
@@ -311,7 +309,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._cur_metrics = self._env.metrics
 
         # Get balance info of current tick from balance calculator.
-        self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
+        # self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
 
         # Get distribution features of current tick from snapshot list.
         self._cur_distribution_states = self._env.snapshot_list["distribution"][
@@ -402,7 +400,7 @@ class SCEnvSampler(AbsEnvSampler):
                 
                 product_name = self._entity_dict[self._entity_dict[entity_id].parent_id].skus.name
                 facility_name = facility_info.name
-                default_vehicle_type = default_vendor[facility_name][product_name]
+                
                 # if self._env_settings["default_vehicle_type"] is None:
                 #     vlt_info_candidates = [
                 #         info
@@ -415,11 +413,12 @@ class SCEnvSampler(AbsEnvSampler):
                 #         for info_by_type in info_by_fid.values()
                 #     ]
 
+                default_vehicle_type = default_vendor[facility_name][product_name]
                 vlt_info_candidates = [
                     info_by_type[default_vehicle_type]
                     for info_by_type in info_by_fid.values() if default_vehicle_type in info_by_type 
                 ]
-
+                
                 if len(vlt_info_candidates):
                     src_f_id = vlt_info_candidates[0].src_facility.id
                     vehicle_type = vlt_info_candidates[0].vehicle_type
@@ -434,7 +433,6 @@ class SCEnvSampler(AbsEnvSampler):
                     # Ignore 0 quantity to reduce action number
                     if action_quantity:
                         env_action = ConsumerAction(entity_id, product_id, src_f_id, action_quantity, vehicle_type)
-
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
                 if action[0] > 0:
@@ -497,6 +495,8 @@ class SCEnvSampler(AbsEnvSampler):
                             },
             )
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
+            self._state, self._agent_state_dict = (None, {}) if is_done \
+                else self._get_global_and_agent_state(self._event)
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
             eval_reward = max(eval_reward, np.sum([self._reward_status[entity_id] for entity_id in self._entity_dict.keys() if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy)]))
             consumer_action_dict = {}
@@ -509,8 +509,6 @@ class SCEnvSampler(AbsEnvSampler):
                         or_action = (self._agent_state_dict[entity_id][-1] if ALGO != 'EOQ' else 0)
                         consumer_action_dict[parent_entity.id] = (action, or_action, reward[entity_id])
             print(step_idx, consumer_action_dict)
-            self._state, self._agent_state_dict = (None, {}) if is_done \
-                else self._get_global_and_agent_state(self._event)
 
             step_balances = self._balance_status
             step_rewards = self._reward_status

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import sys
+sys.path.append("/data/songlei/maro/")
 from os.path import dirname, join, realpath
 
 from maro.rl.training import TrainingManager

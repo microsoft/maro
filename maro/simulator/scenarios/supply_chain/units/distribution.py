@@ -103,6 +103,7 @@ class DistributionUnit(UnitBase):
             float: The corresponding total order fee, will paid by the consumer.
         """
         # TODO: to indicate whether it is a valid order or not in Return value?
+
         if all([
             order.product_id in self.facility.downstream_vlt_infos,
             order.destination.id in self.facility.downstream_vlt_infos[order.product_id],
