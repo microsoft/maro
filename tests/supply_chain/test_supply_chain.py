@@ -998,12 +998,14 @@ class MyTestCase(unittest.TestCase):
         order = Order(warehouse_1, SKU3_ID, 10, "train")
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
-        distribution_unit.place_order(env.tick, order)
+        distribution_unit.place_order(order)
+        distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
         self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
         # add another order, it would be successfully scheduled, but none available vehicle left now.
-        distribution_unit.place_order(env.tick, order)
+        distribution_unit.place_order(order)
+        distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
         self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
@@ -1011,7 +1013,8 @@ class MyTestCase(unittest.TestCase):
         expected_tick = start_tick + 7  # vlt = 7
 
         # 3rd order, will cause the pending order increase
-        distribution_unit.place_order(env.tick, order)
+        distribution_unit.place_order(order)
+        distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
@@ -1085,7 +1088,8 @@ class MyTestCase(unittest.TestCase):
         start_tick = env.tick
         expected_tick = start_tick + 7
         order = Order(warehouse_1, SKU3_ID, 80, "train")
-        distribution_unit.place_order(start_tick, order)
+        distribution_unit.place_order(order)
+        distribution_unit.try_schedule_orders(env.tick)
 
         while env.tick <= expected_tick:
             # Check the inventory level in target storage

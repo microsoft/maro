@@ -91,8 +91,8 @@ class ManufactureUnit(ExtendUnitBase):
     these products can't be dispatched to fulfill the demand from the downstreams until (t0 + leading time + 1).
     """
 
-    def on_action_received(self, tick: int, action: ManufactureAction) -> None:
-        # NOTE: the on_action_received() is called after flush_state(), so the manufacture_rate saved in the snapshot
+    def process_action(self, tick: int, action: ManufactureAction) -> None:
+        # NOTE: the process_action() is called after flush_state(), so the manufacture_rate saved in the snapshot
         # would be the one actually used to produce products in this tick.
         self._manufacture_rate = max(0, min(action.manufacture_rate, self._max_manufacture_rate))
 
@@ -135,7 +135,7 @@ class ManufactureUnit(ExtendUnitBase):
         self._in_pipeline_quantity = sum([quantity for quantity in self._products_in_pipeline.values()])
         self._manufacture_cost = self._unit_product_cost * self._in_pipeline_quantity
 
-    def post_step(self, tick: int) -> None:
+    def execute_manufacture(self, tick: int) -> None:
         self._manufacture(tick)
 
         # Get finished products from pipeline.
