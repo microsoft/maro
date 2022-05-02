@@ -27,7 +27,7 @@ q_net_conf = {
     "dropout_p": 0.1,
 }
 
-learning_rate = 0.0005
+learning_rate = 0.001
 
 
 class MyQNet(DiscreteQNet):
@@ -91,37 +91,37 @@ class ORValueBasedPolicy(ValueBasedPolicy):
         self._exploring = False
 
 
-def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
-    policy = ORValueBasedPolicy(
-        name=name,
-        q_net=MyQNet(state_dim, action_num),
-        exploration_strategy=(or_epsilon_greedy, {"epsilon": 2.0}),
-        exploration_scheduling_options=[(
-            "epsilon", LinearExplorationScheduler, {
-            "last_ep": 1000,
-            "initial_value": 2.0,
-            "final_value": 1.0,
-            }
-        )],
-        warmup=0
-    )
-    return policy
-
 # def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
-#     policy = ValueBasedPolicy(
+#     policy = ORValueBasedPolicy(
 #         name=name,
 #         q_net=MyQNet(state_dim, action_num),
-#         exploration_strategy=(epsilon_greedy, {"epsilon": 1.0}),
+#         exploration_strategy=(or_epsilon_greedy, {"epsilon": 2.0}),
 #         exploration_scheduling_options=[(
 #             "epsilon", LinearExplorationScheduler, {
 #             "last_ep": 1000,
-#             "initial_value": 1.0,
-#             "final_value": 0.0,
+#             "initial_value": 2.0,
+#             "final_value": 1.0,
 #             }
 #         )],
-#         warmup=1000
+#         warmup=0
 #     )
 #     return policy
+
+def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
+    policy = ValueBasedPolicy(
+        name=name,
+        q_net=MyQNet(state_dim, action_num),
+        exploration_strategy=(epsilon_greedy, {"epsilon": 1.0}),
+        exploration_scheduling_options=[(
+            "epsilon", LinearExplorationScheduler, {
+            "last_ep": 1000,
+            "initial_value": 1.0,
+            "final_value": 0.0,
+            }
+        )],
+        warmup=10000
+    )
+    return policy
 
 
 def get_dqn(name: str) -> DQNTrainer:
@@ -129,9 +129,9 @@ def get_dqn(name: str) -> DQNTrainer:
         name=name,
         params=DQNParams(
             reward_discount=.99,
-            update_target_every=4,
+            update_target_every=8,
             num_epochs=512,
-            soft_update_coef=0.01,
+            soft_update_coef=0.005,
             double=True,
             replay_memory_capacity=1024000,
             random_overwrite=False,

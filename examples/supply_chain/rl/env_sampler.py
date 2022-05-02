@@ -373,9 +373,15 @@ class SCEnvSampler(AbsEnvSampler):
             for unit_id, bwt in self._cur_balance_sheet_reward.items()
             if unit_id in self._agent2policy
         }
-        reward_val_list = [r for r in rewards.values()]
-        reward_mean, reward_std = np.mean(reward_val_list), np.std(reward_val_list)
-        return {unit_id: (r-reward_mean)/(reward_std+1e-8) for unit_id, r in rewards.items()}
+
+        def get_reward_norm(entity_id):
+            entity = self._entity_dict[entity_id]
+            if issubclass(entity.class_type, ConsumerUnit):
+                return (entity.skus.price + 1e-3)
+            else: return 1.0
+
+        return {entity_id: r/get_reward_norm(entity_id) 
+                    for entity_id, r in rewards.items()}
 
     def _translate_to_env_action(
         self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: object,
@@ -437,7 +443,6 @@ class SCEnvSampler(AbsEnvSampler):
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
                 if action[0] > 0:
                     env_action = ManufactureAction(id=entity_id, manufacture_rate=action[0])
-
             if env_action:
                 env_action_dict[agent_id] = env_action
 
@@ -494,9 +499,6 @@ class SCEnvSampler(AbsEnvSampler):
                                 for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
                             },
             )
-            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if is_done \
-                else self._get_global_and_agent_state(self._event)
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
             eval_reward += np.sum([self._balance_status[entity_id] 
                                     for entity_id, entity in self._entity_dict.items() 
@@ -535,6 +537,10 @@ class SCEnvSampler(AbsEnvSampler):
             self._info["sold"] = 0
             self._info["demand"] = 1
             self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
+
+            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
+            self._state, self._agent_state_dict = (None, {}) if is_done \
+                else self._get_global_and_agent_state(self._event)
         
         self._eval_reward_list.append(eval_reward)
         self._max_eval_reward = np.max(self._eval_reward_list)

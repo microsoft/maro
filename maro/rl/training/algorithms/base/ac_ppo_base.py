@@ -280,7 +280,7 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
 
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, self._device)  # s
-        state_values = self._v_critic_net.v_values(states).detach().numpy()
+        state_values = self._v_critic_net.v_values(states).cpu().detach().numpy()
         values = np.concatenate([state_values[1:], np.zeros(1).astype(np.float32)])
         batch.advantages = (batch.rewards+self._reward_discount*values - state_values)
         return batch
@@ -297,7 +297,7 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
         self._v_critic_net.train()
         states = ndarray_to_tensor(batch.states, self._device)  # s
         state_values = self._v_critic_net.v_values(states)
-        values = state_values.detach().numpy()
+        values = state_values.cpu().detach().numpy()
         values = np.concatenate([values[1:], values[-1:]])
         returns = batch.rewards + np.where(batch.terminals, 0.0, 1.0) * self._reward_discount * values
         returns = ndarray_to_tensor(returns, self._device)

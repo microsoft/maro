@@ -20,19 +20,23 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 OR_NUM_CONSUMER_ACTIONS = 10
 
 # ALGO="EOQ"
-# EXP_NAME = "BASELINE_SCI_100SKUs_DIST"
+# EXP_NAME = "BASELINE_SCI_10SKUs_DIST"
 
 ALGO="DQN"
-EXP_NAME = "SCI_100SKUs_DIST"
+EXP_NAME = "SCI_10SKUs_DIST_DQN"
+
+# ALGO="PPO"
+# EXP_NAME = "SCI_10SKUs_DIST_PPO"
 
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
 TEAM_REWARD = False
 SHARED_MODEL = True
 
-if ALGO == "PPO":
-    NUM_CONSUMER_ACTIONS = 3
-else:
-    NUM_CONSUMER_ACTIONS = OR_NUM_CONSUMER_ACTIONS
+NUM_CONSUMER_ACTIONS = 3
+# if ALGO == "PPO":
+#     NUM_CONSUMER_ACTIONS = 3
+# else:
+#     NUM_CONSUMER_ACTIONS = OR_NUM_CONSUMER_ACTIONS
 
 OR_MANUFACTURE_ACTIONS = 20
 
@@ -41,7 +45,7 @@ workflow_settings: dict = {
     "consumption_hist_len": 4,
     "sale_hist_len": 4,
     "pending_order_len": 4,
-    "reward_normalization": 1,
+    "reward_normalization": 1.0,
     "or_policy_vlt_buffer_days": 1.0,
     "default_vehicle_type": "train",
 }

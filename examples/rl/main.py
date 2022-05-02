@@ -12,10 +12,10 @@ from maro.utils import LoggerV2
 SCENARIO_NAME = "supply_chain"
 SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME, "rl")
 NUM_EPISODES = 1000
-NUM_STEPS = 4
+NUM_STEPS = None
 CHECKPOINT_PATH = join(dirname(SCENARIO_PATH), "checkpoints")
 CHECKPOINT_INTERVAL = 10
-EVAL_SCHEDULE = list(range(100, NUM_EPISODES+50, 50))
+EVAL_SCHEDULE = list(range(10, NUM_EPISODES+10, 10))
 
 
 import argparse

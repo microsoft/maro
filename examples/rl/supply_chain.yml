@@ -12,7 +12,7 @@ job: supply_chain_rl_workflow
 scenario_path: "examples/supply_chain/rl"
 log_path: "log/rl_job/supply_chain.txt"
 main:
-  num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  num_episodes: 1000  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_steps: null
   eval_schedule: 5
   logging:
@@ -28,7 +28,7 @@ training:
   load_episode: null
   checkpointing:
     path: "checkpoint/rl_job/supply_chain"
-    interval: 5
+    interval: 20
   logging:
     stdout: INFO
     file: DEBUG

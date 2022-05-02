@@ -19,7 +19,8 @@ from .config import (
 keys_in_state = [
     (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 'consumption_hist']),
     ('storage_capacity', ['storage_utilization']),
-    ('storage_capacity', [
+    ('sale_mean', [
+        'sale_mean',
         'sale_std',
         'sale_hist',
         'demand_hist',
@@ -54,7 +55,7 @@ def serialize_state(state: dict) -> np.ndarray:
             if not isinstance(vals, list):
                 vals = [vals]
             if norm is not None:
-                vals = [max(0.0, min(20.0, x / (state[norm] + 0.01))) for x in vals]
+                vals = [max(0.0, min(10.0, x / (state[norm] + 0.01))) for x in vals]
             result.extend(vals)
 
     return np.asarray(result, dtype=np.float32)

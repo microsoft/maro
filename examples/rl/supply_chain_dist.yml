@@ -13,7 +13,7 @@ scenario_path: "examples/supply_chain/rl"
 log_path: "log/rl_job/supply_chain.txt"
 main:
   num_episodes: 1000  # Number of episodes to run. Each episode is one cycle of roll-out and training.
-  num_steps: 16
+  # num_steps: None
   eval_schedule: 5
   logging:
     stdout: INFO
