@@ -498,9 +498,12 @@ class SCEnvSampler(AbsEnvSampler):
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event)
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
-            eval_reward = max(eval_reward, np.sum([self._reward_status[entity_id] for entity_id in self._entity_dict.keys() if isinstance(self._policy_dict[self._agent2policy[entity_id]], RLPolicy)]))
+            eval_reward += np.sum([self._balance_status[entity_id] 
+                                    for entity_id, entity in self._entity_dict.items() 
+                                        if issubclass(entity.class_type, StoreProductUnit)])
             consumer_action_dict = {}
-            for entity_id, entity in self._entity_dict.items():
+            for entity_id in self._agent_state_dict.keys():
+                entity = self._entity_dict[entity_id]
                 mean_reward[entity_id] = mean_reward.get(entity_id, 0.0) + self._reward_status.get(entity_id, 0)
                 if issubclass(entity.class_type, ConsumerUnit):
                     parent_entity = self._entity_dict[entity.parent_id]
@@ -534,7 +537,8 @@ class SCEnvSampler(AbsEnvSampler):
             self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
         
         self._eval_reward_list.append(eval_reward)
-        if eval_reward > self._max_eval_reward:
+        self._max_eval_reward = np.max(self._eval_reward_list)
+        if eval_reward >= self._max_eval_reward:
             tracker.render(tracker.loc_path, 'a_plot_balance.png', tracker.step_balances, ["OuterRetailerFacility"])
             tracker.render(tracker.loc_path, 'a_plot_reward.png', tracker.step_rewards, ["OuterRetailerFacility"])
             tracker.render_sku(tracker.loc_path)

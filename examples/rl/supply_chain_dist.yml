@@ -14,13 +14,13 @@ log_path: "log/rl_job/supply_chain.txt"
 main:
   num_episodes: 1000  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_steps: 16
-  eval_schedule: 20
+  eval_schedule: 5
   logging:
     stdout: INFO
     file: DEBUG
 rollout:
   parallelism:
-    sampling: 8  # Number of parallel roll-outs to collecting training data from.
+    sampling: 4  # Number of parallel roll-outs to collecting training data from.
     # Number of parallel roll-outs to evaluate policies on. If not specified, one roll-out worker is chosen to perform
     # evaluation.
     eval: null
@@ -28,7 +28,7 @@ rollout:
     # on to the training phase. The actual number of env samples collected may be more than this value if we allow a
     # grace period (see the comment for rollout.parallelism.grace_factor for details), but never less. This value should
     # not exceed rollout.parallelism.sampling.
-    min_env_samples: 7
+    min_env_samples: 3
     # Factor that determines the additional wait time after the required number of environment samples as indicated by
     # "min_env_samples" are received. For example, if T seconds elapsed after receiving "min_env_samples" environment
     # samples, it will wait an additional T * grace_factor seconds to try to collect the remaining results.
