@@ -651,15 +651,15 @@ class SimulationTracker:
         return metric, metric_list
 
 if __name__ == "__main__":
-    html_render = SimulationTrackerHtml("/data/songlei/maro/examples/supply_chain/results/BASELINE_PLANT/output_product_metrics.csv")
-    html_render.render_sku()
-    html_render.render_facility()
+    # html_render = SimulationTrackerHtml("/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_5SKUs_DIST/output_product_metrics.csv")
+    # html_render.render_sku()
+    # html_render.render_facility()
 
-    # baseline_model = "baseline"
-    # baseline_loc = "/data/songlei/maro/examples/supply_chain/results/baseline_100SKUs/output_product_metrics.csv"
+    baseline_model = "baseline"
+    baseline_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_5SKUs_DIST/output_product_metrics.csv"
 
-    # RL_model = "MARL"
-    # RL_loc = "/data/songlei/maro/examples/supply_chain/results/dqn_100SKUs/output_product_metrics_130.csv"
+    RL_model = "MARL"
+    RL_loc = "/data/songlei/maro/examples/supply_chain/results/SCI_5SKUs_DIST_DQN/output_product_metrics.csv"
 
-    # html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
-    # html_comparison_render.render_overview()
+    html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
+    html_comparison_render.render_overview()

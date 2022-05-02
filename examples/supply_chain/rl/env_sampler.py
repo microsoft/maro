@@ -429,7 +429,7 @@ class SCEnvSampler(AbsEnvSampler):
                     src_f_id = vlt_info_candidates[0].src_facility.id
                     vehicle_type = vlt_info_candidates[0].vehicle_type
 
-                    if (ALGO == "PPO" and isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy)):
+                    if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
                         or_action = self._agent_state_dict[agent_id][-1]
                         action_idx = max(0, int(action[0] - 1 + or_action))
                     else:
@@ -499,19 +499,24 @@ class SCEnvSampler(AbsEnvSampler):
                                 for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
                             },
             )
+
+            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
+            self._state, self._agent_state_dict = (None, {}) if is_done \
+                else self._get_global_and_agent_state(self._event)
+
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
             eval_reward += np.sum([self._balance_status[entity_id] 
                                     for entity_id, entity in self._entity_dict.items() 
                                         if issubclass(entity.class_type, StoreProductUnit)])
             consumer_action_dict = {}
-            for entity_id in self._agent_state_dict.keys():
+            for entity_id in exp_element.agent_state_dict.keys():
                 entity = self._entity_dict[entity_id]
                 mean_reward[entity_id] = mean_reward.get(entity_id, 0.0) + self._reward_status.get(entity_id, 0)
                 if issubclass(entity.class_type, ConsumerUnit):
                     parent_entity = self._entity_dict[entity.parent_id]
                     if issubclass(parent_entity.class_type, StoreProductUnit):
                         action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
-                        or_action = (self._agent_state_dict[entity_id][-1] if ALGO != 'EOQ' else 0)
+                        or_action = (exp_element.agent_state_dict[entity_id][-1] if ALGO != 'EOQ' else 0)
                         consumer_action_dict[parent_entity.id] = (action, or_action, reward[entity_id])
             print(step_idx, consumer_action_dict)
 
@@ -538,9 +543,7 @@ class SCEnvSampler(AbsEnvSampler):
             self._info["demand"] = 1
             self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
 
-            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if is_done \
-                else self._get_global_and_agent_state(self._event)
+            
         
         self._eval_reward_list.append(eval_reward)
         self._max_eval_reward = np.max(self._eval_reward_list)
