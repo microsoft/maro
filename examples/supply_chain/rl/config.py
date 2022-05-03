@@ -19,11 +19,11 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 OR_NUM_CONSUMER_ACTIONS = 10
 
-# ALGO="EOQ"
-# EXP_NAME = "BASELINE_SCI_5SKUs_DIST"
+ALGO="EOQ"
+EXP_NAME = "BASELINE_SCI_100SKUs_DIST_LS"
 
-ALGO="DQN"
-EXP_NAME = "SCI_5SKUs_DIST_DQN"
+# ALGO="DQN"
+# EXP_NAME = "SCI_100SKUs_DIST_DQN"
 
 # ALGO="PPO"
 # EXP_NAME = "SCI_10SKUs_DIST_PPO"
@@ -46,6 +46,6 @@ workflow_settings: dict = {
     "sale_hist_len": 4,
     "pending_order_len": 4,
     "reward_normalization": 1.0,
-    "or_policy_vlt_buffer_days": 1.0,
+    "or_policy_vlt_buffer_days": 1.5,
     "default_vehicle_type": "train",
 }

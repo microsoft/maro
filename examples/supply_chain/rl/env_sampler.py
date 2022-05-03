@@ -26,7 +26,7 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy, ManufacturerBaselinePolicy
 from .algorithms.rule_based import ConsumerBasePolicy, ManufacturerBaselinePolicy
 from .config import (
-    consumer_features, distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME
+    OR_NUM_CONSUMER_ACTIONS, consumer_features, distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME
 )
 from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
@@ -269,7 +269,8 @@ class SCEnvSampler(AbsEnvSampler):
         if issubclass(entity.class_type, ConsumerUnit):
             bs_state = self.get_or_policy_state(entity)
             baseline_action = self.baseline_policy.get_actions([bs_state])[0]
-        state['baseline_action'] = baseline_action
+        state['baseline_action'] = [0] * OR_NUM_CONSUMER_ACTIONS
+        state['baseline_action'][baseline_action] = 1.0
 
         self._stock_status[entity.id] = state['inventory_in_stock']
         facility = self._facility_info_dict[entity.facility_id]
@@ -430,7 +431,9 @@ class SCEnvSampler(AbsEnvSampler):
                     vehicle_type = vlt_info_candidates[0].vehicle_type
 
                     if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
-                        or_action = self._agent_state_dict[agent_id][-1]
+                        baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
+                        or_action = np.where(baseline_action==1.0)[0][0]
+                        # action_idx = int(action[0] + or_action)
                         action_idx = max(0, int(action[0] - 1 + or_action))
                     else:
                         action_idx = action[0]
@@ -516,8 +519,11 @@ class SCEnvSampler(AbsEnvSampler):
                     parent_entity = self._entity_dict[entity.parent_id]
                     if issubclass(parent_entity.class_type, StoreProductUnit):
                         action = (action_dict[entity_id] if np.isscalar(action_dict[entity_id]) else action_dict[entity_id][0])
-                        or_action = (exp_element.agent_state_dict[entity_id][-1] if ALGO != 'EOQ' else 0)
-                        consumer_action_dict[parent_entity.id] = (action, or_action, reward[entity_id])
+                        or_action = 0
+                        if ALGO != "EOQ":
+                            baseline_action = np.array(exp_element.agent_state_dict[entity_id][-OR_NUM_CONSUMER_ACTIONS:])
+                            or_action = np.where(baseline_action==1.0)[0][0]
+                        consumer_action_dict[parent_entity.id] = (action, or_action, round(reward[entity_id], 2))
             print(step_idx, consumer_action_dict)
 
             step_balances = self._balance_status

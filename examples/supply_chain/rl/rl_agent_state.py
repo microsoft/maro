@@ -10,6 +10,7 @@ from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, Facil
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
 from .config import (
+    OR_NUM_CONSUMER_ACTIONS,
     workflow_settings,
     IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER,
     IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND,
@@ -19,7 +20,7 @@ from .config import (
 keys_in_state = [
     (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 'consumption_hist']),
     ('storage_capacity', ['storage_utilization']),
-    ('sale_mean', [
+    ('storage_capacity', [
         'sale_mean',
         'sale_std',
         'sale_hist',
@@ -40,6 +41,7 @@ list_state_dim = {
     'demand_hist': workflow_settings['sale_hist_len'],
     'consumption_hist': workflow_settings['consumption_hist_len'],
     'pending_order': workflow_settings['pending_order_len'],
+    'baseline_action': OR_NUM_CONSUMER_ACTIONS
 }
 STATE_DIM = sum(
     list_state_dim[key] if key in list_state_dim else 1
@@ -116,7 +118,7 @@ class ScRlAgentStates:
         self._init_distribution_feature(state)
         self._init_consumer_feature(state, entity, facility_info)
         self._init_price_feature(state, entity)
-        state["baseline_action"] = 0
+        state["baseline_action"] = [0] * OR_NUM_CONSUMER_ACTIONS
 
         return state
 
