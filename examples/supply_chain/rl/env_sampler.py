@@ -26,7 +26,7 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy, ManufacturerBaselinePolicy
 from .algorithms.rule_based import ConsumerBasePolicy, ManufacturerBaselinePolicy
 from .config import (
-    OR_NUM_CONSUMER_ACTIONS, consumer_features, distribution_features, env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME
+    EVAL_STEPS, OR_NUM_CONSUMER_ACTIONS, consumer_features, distribution_features, env_conf, test_env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME
 )
 from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
@@ -468,7 +468,7 @@ class SCEnvSampler(AbsEnvSampler):
         self.total_balance = 0.0
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
-        tracker = SimulationTracker(env_conf["durations"], 1, self, EXP_NAME, eval_period=[0, env_conf["durations"]])
+        tracker = SimulationTracker(test_env_conf["durations"], 1, self, EXP_NAME, eval_period=[env_conf["durations"], test_env_conf["durations"]])
         mean_reward = {}
         step_idx = 0
         self._env = self._test_env
@@ -508,9 +508,10 @@ class SCEnvSampler(AbsEnvSampler):
                 else self._get_global_and_agent_state(self._event)
 
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
-            eval_reward += np.sum([self._balance_status[entity_id] 
-                                    for entity_id, entity in self._entity_dict.items() 
-                                        if issubclass(entity.class_type, StoreProductUnit)])
+            if tracker.eval_period[0] <= exp_element.tick < tracker.eval_period[1]:
+                eval_reward += np.sum([self._balance_status[entity_id] 
+                                        for entity_id, entity in self._entity_dict.items() 
+                                            if issubclass(entity.class_type, StoreProductUnit)])
             consumer_action_dict = {}
             for entity_id in exp_element.agent_state_dict.keys():
                 entity = self._entity_dict[entity_id]
@@ -573,4 +574,5 @@ def env_sampler_creator(policy_creator) -> SCEnvSampler:
         policy_creator=policy_creator,
         agent2policy=agent2policy,
         trainable_policies=trainable_policies,
+        get_test_env=lambda: Env(**test_env_conf)
     )

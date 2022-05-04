@@ -4,8 +4,17 @@
 env_conf = {
     "scenario": "supply_chain",
     "topology": "SCI",
-    "durations": 64,  # number of ticks per episode
+    "durations": 180,  # number of ticks per episode
 }
+
+EVAL_STEPS = 60
+
+test_env_conf = {
+    "scenario": "supply_chain",
+    "topology": "SCI",
+    "durations": 180+EVAL_STEPS,  # number of ticks per episode
+}
+
 
 distribution_features = ("pending_product_quantity", "pending_order_number")
 IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER = 0, 1
@@ -19,11 +28,13 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 OR_NUM_CONSUMER_ACTIONS = 10
 
-ALGO="EOQ"
-EXP_NAME = "BASELINE_SCI_100SKUs_DIST_LS"
+# ALGO="EOQ"
+# EXP_NAME = "BASELINE_SCI_50SKUs_DIST"
+# 10: 1934612.420211792
+# 50: 9710599.291015625
 
-# ALGO="DQN"
-# EXP_NAME = "SCI_100SKUs_DIST_DQN"
+ALGO="DQN"
+EXP_NAME = "SCI_50SKUs_DIST_DQN"
 
 # ALGO="PPO"
 # EXP_NAME = "SCI_10SKUs_DIST_PPO"

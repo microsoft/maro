@@ -89,7 +89,7 @@ if not SHARED_MODEL:
                     trainer_creator[trainer_key] = (get_dqn if ALGO=="DQN" else partial(get_ppo, STATE_DIM))
 else:
     trainable_policies = ["consumer.policy"]
-    device_mapping = {"consumer.policy": "cuda:0"}
+    device_mapping = {"consumer.policy": "cuda:2"}
     policy_creator["consumer.policy"] =  partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
     if ALGO == "PPO":
         trainer_creator = {
