@@ -133,7 +133,11 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
         May load one more extra entry to ensure that all data at tick `tick` are loaded.
         """
         while not self._is_fp_closed and (self._latest_tick is None or self._latest_tick <= tick):
-            row = next(self._reader)  # This entry may be after `tick`. We have to process it as we already loaded it.
+            try:
+                row = next(self._reader) # This entry may be after `tick`. We have to process it as we already loaded it.
+            except StopIteration:
+                break
+
             if row is None:
                 self._fp.close()
                 self._is_fp_closed = True

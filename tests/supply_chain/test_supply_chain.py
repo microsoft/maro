@@ -1382,7 +1382,7 @@ class MyTestCase(unittest.TestCase):
         # Store_ 001 has two SKUs.
         self.assertEqual(2, len(sku._cache[0]))
         # The price of the first item of SKU with product ID 20 is 43.11954545 and the demand is 10.
-        self.assertEqual(43.11954545, sku._cache[0][FOOD_1_ID]['Price'])
+        self.assertEqual(43.0, sku._cache[0][FOOD_1_ID]['Price'])
         self.assertEqual(10, sku._cache[0][FOOD_1_ID]['Demand'])
 
         # The price of the first item of SKU with product ID 30 is 28.32 and the demand is 80.
@@ -1390,12 +1390,12 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(100, sku._cache[0][HOBBY_1_ID]['Demand'])
 
         # The price of the second item of SKU with product ID 20 is 43.63277778 and the demand is 41
-        self.assertEqual(43.63277778, sku._cache[1][FOOD_1_ID]['Price'])
+        self.assertEqual(43.1, sku._cache[1][FOOD_1_ID]['Price'])
         self.assertEqual(20, sku._cache[1][FOOD_1_ID]['Demand'])
 
         # Test sample_price() method of onetimeskupricedemandsampler
         product_FOOD_1_price = sku.sample_price(4, FOOD_1_ID)
-        self.assertEqual(43.5098, product_FOOD_1_price)
+        self.assertEqual(43.4, product_FOOD_1_price)
 
         # Test sample_demand() method of onetimeskupricedemandsampler
         demand_FOOD_1 = sku.sample_demand(4, FOOD_1_ID)
@@ -1421,12 +1421,12 @@ class MyTestCase(unittest.TestCase):
         # Streamskupricedemandsamples inherits streamskudynamicssampler，one tick one day
         product_FOOD_1_price = sku_stream.sample_price(0, FOOD_1_ID)
         demand_FOOD_1 = sku_stream.sample_demand(0, FOOD_1_ID)
-        self.assertEqual(43.11954545, product_FOOD_1_price)
+        self.assertEqual(43.0, product_FOOD_1_price)
         self.assertEqual(10, demand_FOOD_1)
 
         product_FOOD_1_price = sku_stream.sample_price(4, FOOD_1_ID)
         demand_FOOD_1 = sku_stream.sample_demand(4, FOOD_1_ID)
-        self.assertEqual(43.5098, product_FOOD_1_price)
+        self.assertEqual(43.4, product_FOOD_1_price)
         self.assertEqual(50, demand_FOOD_1)
 
         product_HOBBY_1_price = sku_stream.sample_price(0, HOBBY_1_ID)
