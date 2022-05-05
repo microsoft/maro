@@ -114,8 +114,8 @@ class MyTestCase(unittest.TestCase):
 
         start_frame = env.business_engine.frame_index(start_tick)
         states = manufacture_nodes[
-            start_frame:manufacture_sku3_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                 start_frame:manufacture_sku3_unit.data_model_index:manufacture_features
+                 ].flatten().astype(np.int)
 
         # Sku3 produce rate is 1 per tick, so start_manufacture_quantity should be 1.
         self.assertEqual(1, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -137,8 +137,8 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         states = manufacture_nodes[
-            env.frame_index:manufacture_sku3_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                 env.frame_index:manufacture_sku3_unit.data_model_index:manufacture_features
+                 ].flatten().astype(np.int)
 
         # so start_manufacture_quantity should be 0
         self.assertEqual(0, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -161,8 +161,8 @@ class MyTestCase(unittest.TestCase):
 
         start_frame = env.business_engine.frame_index(start_tick)
         states = manufacture_nodes[
-            start_frame:manufacture_sku3_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                 start_frame:manufacture_sku3_unit.data_model_index:manufacture_features
+                 ].flatten().astype(np.int)
 
         # so start_manufacture_number should be 19 instead 20
         self.assertEqual(19, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -213,8 +213,8 @@ class MyTestCase(unittest.TestCase):
 
         # no manufacture number as we have not pass any action
         manufacture_states = manufacture_nodes[
-            env.frame_index:manufacture_sku4_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                             env.frame_index:manufacture_sku4_unit.data_model_index:manufacture_features
+                             ].flatten().astype(np.int)
 
         # manufacture_quantity should be 0
         self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
@@ -239,8 +239,8 @@ class MyTestCase(unittest.TestCase):
             _, _, is_done = env.step([ManufactureAction(manufacture_sku4_unit.id, 10)])
 
         manufacture_states = manufacture_nodes[
-            env.frame_index:manufacture_sku4_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                             env.frame_index:manufacture_sku4_unit.data_model_index:manufacture_features
+                             ].flatten().astype(np.int)
 
         # manufacture_quantity should be 0
         self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
@@ -294,8 +294,8 @@ class MyTestCase(unittest.TestCase):
 
         start_frame = env.business_engine.frame_index(start_tick)
         manufacture_states = manufacture_nodes[
-            start_frame:manufacture_sku1_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                             start_frame:manufacture_sku1_unit.data_model_index:manufacture_features
+                             ].flatten().astype(np.int)
 
         # we can produce 4 sku1, as it will meet storage avg limitation per sku. 4 = 200//2 - 96
         self.assertEqual(200 // 2 - 96, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
@@ -303,8 +303,8 @@ class MyTestCase(unittest.TestCase):
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4 * 2 sku3/sku1))
         expected_frame = env.business_engine.frame_index(expected_tick)
         remaining_spaces = storage_nodes[
-            expected_frame:manufacture_sku1_unit.data_model_index:"remaining_space"
-        ].flatten().astype(np.int)
+                           expected_frame:manufacture_sku1_unit.data_model_index:"remaining_space"
+                           ].flatten().astype(np.int)
         self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku1_storage_index)
@@ -326,16 +326,16 @@ class MyTestCase(unittest.TestCase):
             _, _, is_done = env.step(None)
 
         manufacture_states = manufacture_nodes[
-            env.frame_index:manufacture_sku1_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                             env.frame_index:manufacture_sku1_unit.data_model_index:manufacture_features
+                             ].flatten().astype(np.int)
 
         # but manufacture number is 0
         self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4*2))
         remaining_spaces = storage_nodes[
-            env.frame_index:sku1_storage_index:"remaining_space"
-        ].flatten().astype(np.int)
+                           env.frame_index:sku1_storage_index:"remaining_space"
+                           ].flatten().astype(np.int)
         self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku1_storage_index)
@@ -403,8 +403,8 @@ class MyTestCase(unittest.TestCase):
 
         start_frame = env.business_engine.frame_index(start_tick)
         states = manufacture_nodes[
-            start_frame:manufacture_sku2_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                 start_frame:manufacture_sku2_unit.data_model_index:manufacture_features
+                 ].flatten().astype(np.int)
 
         # Sku2 produce rate is 1 per tick, and the output per lot is 2, so manufacture_quantity should be 2.
         self.assertEqual(1 * 2, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -428,8 +428,8 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         states = manufacture_nodes[
-            env.frame_index:manufacture_sku2_unit.data_model_index:manufacture_features
-        ].flatten().astype(np.int)
+                 env.frame_index:manufacture_sku2_unit.data_model_index:manufacture_features
+                 ].flatten().astype(np.int)
 
         # so manufacture_quantity should be 0
         self.assertEqual(0, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -438,6 +438,7 @@ class MyTestCase(unittest.TestCase):
 
         # sku2 quantity should be same as last tick
         self.assertEqual(50 + 1 * 2, product_dict[SKU2_ID])
+
     """
     Storage test:
 
@@ -488,8 +489,8 @@ class MyTestCase(unittest.TestCase):
 
         # ######################### Remaining Space ###########################
         init_remaining_spaces = storage_nodes[
-            env.frame_index:storage_node_index:"remaining_space"
-        ].flatten().astype(np.int)
+                                env.frame_index:storage_node_index:"remaining_space"
+                                ].flatten().astype(np.int)
         self.assertEqual(200 - 96 - 100, storage_unit.remaining_space)
         self.assertEqual(200 - 96 - 100, init_remaining_spaces.sum())
 
@@ -515,8 +516,8 @@ class MyTestCase(unittest.TestCase):
 
         # ######################### Remaining Space ###########################
         init_remaining_spaces = storage_nodes[
-            env.frame_index:storage_node_index:"remaining_space"
-        ].flatten().astype(np.int)
+                                env.frame_index:storage_node_index:"remaining_space"
+                                ].flatten().astype(np.int)
         self.assertEqual(200 - 96 - 100, storage_unit.remaining_space)
         self.assertEqual(200 - 96 - 100, init_remaining_spaces.sum())
 
@@ -586,8 +587,8 @@ class MyTestCase(unittest.TestCase):
         capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
 
         init_remaining_spaces = storage_nodes[
-            env.frame_index:storage_node_index:"remaining_space"
-        ].flatten().astype(np.int)
+                                env.frame_index:storage_node_index:"remaining_space"
+                                ].flatten().astype(np.int)
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
 
@@ -997,8 +998,6 @@ class MyTestCase(unittest.TestCase):
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
 
         distribution_unit = supplier_3.distribution
-        product_unit = supplier_3.products[SKU3_ID]
-
         order = Order(warehouse_1, SKU3_ID, 10, "train")
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
@@ -1053,7 +1052,7 @@ class MyTestCase(unittest.TestCase):
 
         features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
         IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5 ,6
+        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
         consumer_nodes = env.snapshot_list["consumer"]
 
@@ -1368,18 +1367,19 @@ class MyTestCase(unittest.TestCase):
         states = consumer_nodes[expected_frame:consumer_node_index:features].flatten().astype(np.int)
         self.assertEqual(required_quantity_2, states[IDX_RECEIVED])
 
-    def test_init_sku_dynamics_OneTimeSkuPriceDemandSampler(self):
-        """Test the reading of "store_001" SKU information of OneTimeSkuPriceDemandSampler.
+    def test_init_sku_dynamics_one_time_sku_price_demand_sampler(self):
+        """Test the reading of store_001 SKU information of OneTimeSkuPriceDemandSampler.
            The data file of this test is test_case_ 04.csv"""
         env = build_env("case_04", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
+
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
         configs = Store_001.configs
         world = be.world
         sku = OneTimeSkuPriceDemandSampler(configs, world)
         assert isinstance(sku, OneTimeSkuDynamicsSampler)
-        # Store_ 001 has two SKUs.
+        # Store_001 has two SKUs.
         self.assertEqual(2, len(sku._cache[0]))
         # The price of the first item of SKU with product ID 20 is 43.11954545 and the demand is 10.
         self.assertEqual(43.0, sku._cache[0][FOOD_1_ID]['Price'])
@@ -1389,11 +1389,11 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(28.32, sku._cache[0][HOBBY_1_ID]['Price'])
         self.assertEqual(100, sku._cache[0][HOBBY_1_ID]['Demand'])
 
-        # The price of the second item of SKU with product ID 20 is 43.63277778 and the demand is 41
+        # The price of the second item of SKU with product ID 20 is 43.63277778 and the demand is 41.
         self.assertEqual(43.1, sku._cache[1][FOOD_1_ID]['Price'])
         self.assertEqual(20, sku._cache[1][FOOD_1_ID]['Demand'])
 
-        # Test sample_price() method of onetimeskupricedemandsampler
+        # Test sample_price() method of onetimeskupricedemandsampler.
         product_FOOD_1_price = sku.sample_price(4, FOOD_1_ID)
         self.assertEqual(43.4, product_FOOD_1_price)
 
@@ -1406,19 +1406,19 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(28.32, product_HOBBY_1_price)
         self.assertEqual(500, demand_HOBBY_1_price)
 
-    def test_init_sku_dynamics_StreamSkuPriceDemandSampler(self):
-        """Test the reading of "store_001" SKU information of StreamSkuPriceDemandSampler.
-          The data file of this test is test_case_ 04.csv"""
+    def test_init_sku_dynamics_stream_sku_price_demand_sampler(self):
+        """Test the reading of store_001 SKU information of StreamSkuPriceDemandSampler.
+           The data file of this test is test_case_04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
+
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
         configs = Store_001.configs
         world = be.world
-
         sku_stream = StreamSkuPriceDemandSampler(configs, world)
         assert isinstance(sku_stream, StreamSkuPriceDemandSampler)
-        # Streamskupricedemandsamples inherits streamskudynamicssampler，one tick one day
+        # Streamskupricedemandsamples inherits streamskudynamicssampler,one tick one day
         product_FOOD_1_price = sku_stream.sample_price(0, FOOD_1_ID)
         demand_FOOD_1 = sku_stream.sample_demand(0, FOOD_1_ID)
         self.assertEqual(43.0, product_FOOD_1_price)
@@ -1432,12 +1432,13 @@ class MyTestCase(unittest.TestCase):
         product_HOBBY_1_price = sku_stream.sample_price(0, HOBBY_1_ID)
         self.assertEqual(28.32, product_HOBBY_1_price)
 
-    def test_init_sku_dynamics_DataFileDemandSampler(self):
-        """Test the reading of "store_001" SKU information of DataFileDemandSampler.
-          The data file of this test is test_case_ 04.csv"""
+    def test_init_sku_dynamics_data_file_demand_sampler(self):
+        """Test the reading of store_001 SKU information of DataFileDemandSampler.
+           The data file of this test is test_case_04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
+
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
         configs = Store_001.configs
         world = be.world
@@ -1445,10 +1446,9 @@ class MyTestCase(unittest.TestCase):
         demand_FOOD_1 = sku_datafile.sample_demand(4, FOOD_1_ID)
         self.assertEqual(50, demand_FOOD_1)
 
-    def test_Storage_Unit_dynamics_DataFileDemandSampler(self):
-        """Under the DataFileDemandSampler class,
-        test the store between the storage unit and the dynamics CSV data interaction.
-          The data file of this test is test_case_ 04.csv"""
+    def test_storage_unit_dynamics_data_file_demand_sampler(self):
+        """Under the DataFileDemandSampler class,test the store between the storage unit and the dynamics CSV data
+        interaction. The data file of this test is test_case_04.csv """
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1503,11 +1503,11 @@ class MyTestCase(unittest.TestCase):
         # ######################### Product Quantity ###########################
         product_dict = get_product_dict_from_storage(env, env.frame_index, storage_node_index)
         # Inside StorageUnit
-        self.assertEqual(10000 - (10+20+30+40+50), storage_unit._product_level[FOOD_1_ID])
-        self.assertEqual(5000 - (100+200+300+400+500), storage_unit._product_level[HOBBY_1_ID])
+        self.assertEqual(10000 - (10 + 20 + 30 + 40 + 50), storage_unit._product_level[FOOD_1_ID])
+        self.assertEqual(5000 - (100 + 200 + 300 + 400 + 500), storage_unit._product_level[HOBBY_1_ID])
         # In Snapshot
-        self.assertEqual(10000 - (10+20+30+40+50), product_dict[FOOD_1_ID])
-        self.assertEqual(5000 - (100+200+300+400+500), product_dict[HOBBY_1_ID])
+        self.assertEqual(10000 - (10 + 20 + 30 + 40 + 50), product_dict[FOOD_1_ID])
+        self.assertEqual(5000 - (100 + 200 + 300 + 400 + 500), product_dict[HOBBY_1_ID])
 
         # ######################### Capacity ###########################
         capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
@@ -1518,8 +1518,10 @@ class MyTestCase(unittest.TestCase):
         init_remaining_spaces = storage_nodes[
                                 env.frame_index:storage_node_index:"remaining_space"
                                 ].flatten().astype(np.int)
-        self.assertEqual(80000 - (10000 - (10+20+30+40+50)) - (5000 - (100+200+300+400+500)), storage_unit.remaining_space)
-        self.assertEqual(80000 - (10000 - (10+20+30+40+50)) - (5000 - (100+200+300+400+500)), init_remaining_spaces.sum())
+        self.assertEqual(80000 - (10000 - (10 + 20 + 30 + 40 + 50)) - (5000 - (100 + 200 + 300 + 400 + 500)),
+                         storage_unit.remaining_space)
+        self.assertEqual(80000 - (10000 - (10 + 20 + 30 + 40 + 50)) - (5000 - (100 + 200 + 300 + 400 + 500)),
+                         init_remaining_spaces.sum())
 
         # Should  change  after reset
         env.reset()
@@ -1547,10 +1549,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80000 - (10000 - 10) - (5000 - 100), storage_unit.remaining_space)
         self.assertEqual(80000 - (10000 - 10) - (5000 - 100), init_remaining_spaces.sum())
 
-    def test_Storage_Unit_dynamics_OneTimeSkuPriceDemandSampler(self):
-        """Under the OneTimeSkuPriceDemandSampler class,
-        test the store between the storage unit and the dynamics CSV data interaction.
-          The data file of this test is test_case_ 04.csv"""
+    def test_storage_unit_dynamics_one_time_sku_price_demand_sampler(self):
+        """Under the OneTimeSkuPriceDemandSampler class,test the store between the storage unit and the dynamics CSV
+        data interaction. The data file of this test is test_case_04.csv """
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1614,7 +1615,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(10000 - 100, product_dict[FOOD_1_ID])
         self.assertEqual(5000 - 1000, product_dict[HOBBY_1_ID])
 
-
         # ######################### Capacity ###########################
         capacities = storage_nodes[env.frame_index:storage_node_index:"capacity"].flatten().astype(np.int)
         self.assertEqual(80000, storage_unit.capacity)
@@ -1656,18 +1656,15 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80000 - (10000 - 10) - (5000 - 100), storage_unit.remaining_space)
         self.assertEqual(80000 - (10000 - 10) - (5000 - 100), init_remaining_spaces.sum())
 
-
     def test_seller_unit_dynamics_sampler(self):
         """Tested the store_001  Interaction between seller unit and dynamics csv data.
-          The data file of this test is test_case_ 04.csv"""
+           The data file of this test is test_case_ 04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
-        configs = Store_001.configs
-        world = be.world
         seller_unit = Store_001.products[FOOD_1_ID].seller
 
         seller_node_index = seller_unit.data_model_index
@@ -1695,21 +1692,17 @@ class MyTestCase(unittest.TestCase):
         while env.tick < expected_tick - 1:
             env.step(None)
 
-        states = seller_nodes[:seller_node_index:features[IDX_DEMAND]].flatten().astype(np.int)
-
         states = seller_nodes[:seller_node_index:features[IDX_SOLD]].flatten().astype(np.int)
-        self.assertListEqual([10, 20, 30, 40, 50] , list(states))
+        self.assertListEqual([10, 20, 30, 40, 50], list(states))
 
     def test_consumer_unit_dynamics_sampler(self):
         """Tested the store_001  Interaction between consumer unit and dynamics csv data.
-          The data file of this test is test_case_ 04.csv"""
+           The data file of this test is test_case_ 04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
         env.step(None)
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
-        configs = Store_001.configs
-        world = be.world
         FOOD_1_consumer_unit = Store_001.products[FOOD_1_ID].consumer
 
         consumer_node_index = FOOD_1_consumer_unit.data_model_index
@@ -1773,8 +1766,8 @@ class MyTestCase(unittest.TestCase):
         consumer_nodes = env.snapshot_list["consumer"]
 
         # ############################### Test Action with 0 quantity ######################################
-        # zero quantity will be ignore
-        action_with_zero = ConsumerAction(FOOD_1_consumer_unit.id,FOOD_1_ID, Store_001.id, 0, "train")
+        # zero quantity will be ignored
+        action_with_zero = ConsumerAction(FOOD_1_consumer_unit.id, FOOD_1_ID, Store_001.id, 0, "train")
         env.step([action_with_zero])
 
         states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
@@ -1802,6 +1795,7 @@ class MyTestCase(unittest.TestCase):
 
         # no receives
         self.assertEqual(0, states[IDX_RECEIVED])
+
     """
     sku_dynamics_sampler test:
         . initial state
@@ -1813,6 +1807,7 @@ class MyTestCase(unittest.TestCase):
         . functions related to consumer unit
 
     """
+
 
 if __name__ == '__main__':
     unittest.main()

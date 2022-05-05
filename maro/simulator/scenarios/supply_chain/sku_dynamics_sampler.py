@@ -136,9 +136,6 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
             try:
                 row = next(self._reader) # This entry may be after `tick`. We have to process it as we already loaded it.
             except StopIteration:
-                break
-
-            if row is None:
                 self._fp.close()
                 self._is_fp_closed = True
                 break
