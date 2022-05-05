@@ -74,6 +74,7 @@ class SimulationComparisionTrackerHtml:
         df2.loc[:, "model_name"] = self.model2
         df = pd.concat([df1, df2])
         df.loc[:, 'sale_dt'] = df['tick'].map(lambda x: self.start_dt+timedelta(days=x))
+        df = df[(df['sale_dt'] >= self.start_dt+timedelta(days=180))]
         self.facility_name_list = [facility_name for facility_name in df['facility_name'].unique() if len(facility_name) > 2 and facility_name[:2] in ['CA', 'TX', 'WI']]
         # self.facility_name_list = df['facility_name'].unique().tolist()
         df = df[df['facility_name'].isin(self.facility_name_list)]
@@ -86,6 +87,7 @@ class SimulationComparisionTrackerHtml:
         df_agg.loc[:, "facility_id"] = -1
         df = self.df.groupby(['facility_name', 'sku_id', 'sale_dt', 'model_name']).first().reset_index()
         df_sku = pd.concat([df, df_agg])
+
         df_sku.loc[:, "GMV"] = df_sku['seller_price'] * df_sku['seller_sold']
         df_sku.loc[:, "order_cost"] = df_sku["consumer_order_product_cost"] + df_sku["consumer_order_base_cost"]
         df_sku.loc[:, 'inventory_holding_cost'] = df_sku['inventory_in_stock'] * df_sku['unit_inventory_holding_cost']
@@ -97,7 +99,7 @@ class SimulationComparisionTrackerHtml:
         df_sku.loc[:, "turnover_rate"] =  df_sku['seller_demand']*num_days / df_sku['inventory_in_stock']
         df_sku.loc[:, "available_rate"] = df_sku['seller_sold'] / df_sku['seller_demand']
         cols.extend(['turnover_rate', 'available_rate'])
-        agg_func = {col: np.mean if cols not in ['turnover_rate', 'available_rate'] else np.sum
+        agg_func = {col: np.mean if col in ['turnover_rate', 'available_rate'] else np.sum
                         for col in cols[2:]}
         
         df = (df_sku[cols]
@@ -586,8 +588,6 @@ class SimulationTracker:
             if not (entity.class_type.__name__ in facility_types):
                 continue
             facility = self.facility_info[entity_id]
-            if facility.name.startswith("VNDR"):
-                continue
             _agent_list.append(f"{facility.name}_{entity_id}")
             _step_idx.append(i)
         _step_metrics = [metrics[0, self.eval_period[0]:self.eval_period[1], i] for i in _step_idx]
@@ -651,15 +651,15 @@ class SimulationTracker:
         return metric, metric_list
 
 if __name__ == "__main__":
-    # html_render = SimulationTrackerHtml("/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST/output_product_metrics.csv")
+    # html_render = SimulationTrackerHtml("/data/songlei/maro/examples/supply_chain/results/SCI_100SKUs_DIST_DQN/output_product_metrics.csv")
     # html_render.render_sku()
     # html_render.render_facility()
 
     baseline_model = "baseline"
-    baseline_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_10SKUs_DIST/output_product_metrics.csv"
+    baseline_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST/output_product_metrics.csv"
 
     RL_model = "MARL"
-    RL_loc = "/data/songlei/maro/examples/supply_chain/results/SCI_10SKUs_DIST_DQN/output_product_metrics.csv"
+    RL_loc = "/data/songlei/maro/examples/supply_chain/results/SCI_100SKUs_DIST_DQN/output_product_metrics.csv"
 
     html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
     html_comparison_render.render_overview()

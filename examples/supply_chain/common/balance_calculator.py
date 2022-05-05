@@ -296,6 +296,14 @@ class BalanceSheetCalculator:
         product_price_list = self._env.snapshot_list["product"][
             self._env.business_engine.frame_index(tick)::"price"
         ].flatten()
+
+        # price = self._env.snapshot_list["product"][
+        #     self._env.business_engine.frame_index(tick):[
+        #         self.seller_idx2product_idx[sidx] for sidx in range(len(self._env.snapshot_list["seller"]))
+        #     ]:"price"
+        # ].flatten()
+
+
         # product = consumer + seller + manufacture + storage + distribution + downstreams
         for i, product in enumerate(self.products):
             node_idx = product.node_index
@@ -358,7 +366,7 @@ class BalanceSheetCalculator:
             if product.manufacture_index:
                 product_step_cost[i] += manufacture_step_cost[product.manufacture_index]
 
-            product_step_cost[i] += (unit_inventory_holding_cost*stock)
+            product_step_cost[i] += (-unit_inventory_holding_cost*stock)
 
             if product.distribution_index:
                 product_step_profit[i] += product_distribution_step_profit[i]
