@@ -327,3 +327,53 @@ class StorageUnit(UnitBase):
             **super(StorageUnit, self).get_unit_info().__dict__,
             product_list=[i for i in self._product_level.keys()],
         )
+
+
+class SuperStorageUnit(UnitBase):
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(SuperStorageUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
+
+    def initialize(self) -> None:
+        super(SuperStorageUnit, self).initialize()
+
+    @property
+    def capacity(self) -> int:
+        raise NotImplementedError
+
+    @property
+    def remaining_space(self) -> int:
+        raise NotImplementedError
+
+    def get_product_quantity(self, product_id: int) -> int:
+        raise NotImplementedError
+
+    def get_product_max_remaining_space(self, product_id: int) -> int:
+        raise NotImplementedError
+
+    def try_add_products(
+        self,
+        product_quantities: Dict[int, int],
+        add_strategy: AddStrategy = AddStrategy.IgnoreUpperBoundAllOrNothing,
+    ) -> Dict[int, int]:
+        return product_quantities
+
+    def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
+        return True
+
+    def take_available(self, product_id: int, quantity: int) -> int:
+        return quantity
+
+    def flush_states(self) -> None:
+        return
+
+    def reset(self) -> None:
+        return
+
+    def get_unit_info(self) -> StorageUnitInfo:
+        return StorageUnitInfo(
+            **super(SuperStorageUnit, self).get_unit_info().__dict__,
+            product_list=list(self.facility.skus.keys()),
+        )

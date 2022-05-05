@@ -36,6 +36,9 @@ units:
           # class: class name, joined with the module path to find the class type
           class: "StorageUnit"
           datamodel: "StorageDataModel"
+        SuperStorageUnit:
+          class: "SuperStorageUnit"
+          datamodel:
         DistributionUnit:
           class: "DistributionUnit"
           datamodel: "DistributionDataModel"
