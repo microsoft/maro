@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List, Set, Tuple
 
 from maro.backends.frame import FrameBase
-
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
