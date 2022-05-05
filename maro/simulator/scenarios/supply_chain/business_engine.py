@@ -10,11 +10,10 @@ from maro.backends.frame import FrameBase
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from . import ConsumerUnit, DistributionUnit, ManufactureUnit
 from .actions import SupplyChainAction
 from .objects import SupplyChainEntity
 from .parser import ConfigParser, SupplyChainConfiguration
-from .units import ProductUnit
+from .units import ConsumerUnit, DistributionUnit, ManufactureUnit, ProductUnit
 from .world import World
 
 ACTIONS_PROCESS_DONE = "actions_process_done"
@@ -38,8 +37,8 @@ class DAGTaskScheduler(object):
     def __init__(self) -> None:
         super(DAGTaskScheduler, self).__init__()
 
-        self._task_dict: Dict[str, DAGTask] = {}
-        self._dependence: List[Tuple[str, str]] = []
+        self._task_dict: Dict[str, DAGTask] = {}  # "Vertex" in the DAG
+        self._dependence: List[Tuple[str, str]] = []  # "Edge" in the DAG
         self._topological_order: List[str] = []
         self._skip_task_set: Set[str] = set([])
 
@@ -50,9 +49,10 @@ class DAGTaskScheduler(object):
             args=() if args is None else args,
             kwargs={} if kwargs is None else kwargs,
         )
-        self._task_dict[task.name] = task
+        self._task_dict[name] = task
 
     def add_dependence(self, upstream: str, downstream: str) -> None:
+        assert upstream != downstream, "Self loop is not allowed."
         self._dependence.append((upstream, downstream))
 
     def update_arguments(self, name: str, args: tuple = None, kwargs: dict = None) -> None:
@@ -211,6 +211,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
     def _build_dag(self) -> None:
+        """Build the task DAG that will be used in `_on_action_received`
+        """
+
+        # Get all consumer units & manufacture units of the world.
+        # They will be reused in `_on_action_received`.
         self._consumer_units: List[ConsumerUnit] = []  # For reuse
         self._manufacture_units: List[ManufactureUnit] = []  # For reuse
         for unit in self.world.get_units_by_root_type(ConsumerUnit):
@@ -220,8 +225,19 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             assert isinstance(unit, ManufactureUnit)
             self._manufacture_units.append(unit)
 
+        # Dummy task. Used to complete the DAG's structure
+        # Executing ACTIONS_PROCESS_DONE means all consumer actions are processed.
         self._dag_task_scheduler.add_task(ACTIONS_PROCESS_DONE)
 
+        # Process consumer actions
+        for unit in self._consumer_units:
+            task_name = TASK_CONSUMER_ACTION_TEMPLATE.format(unit.id)
+            self._dag_task_scheduler.add_task(task_name, unit.process_actions)
+            self._dag_task_scheduler.add_dependence(task_name, ACTIONS_PROCESS_DONE)
+
+        # Process manufacture actions.
+        # All manufacture actions could be processed only after all consumer actions are processed.
+        # So all manufacture actions depends on ACTIONS_PROCESS_DONE.
         for unit in self._manufacture_units:
             # Allocate manufacture actions
             task_name = TASK_MANUFACTURE_ACTION_TEMPLATE.format(unit.id)
@@ -231,11 +247,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             self._dag_task_scheduler.add_task(task_name, unit.execute_manufacture)
             self._dag_task_scheduler.add_dependence(ACTIONS_PROCESS_DONE, task_name)
 
-        for unit in self._consumer_units:
-            task_name = TASK_CONSUMER_ACTION_TEMPLATE.format(unit.id)
-            self._dag_task_scheduler.add_task(task_name, unit.process_actions)
-            self._dag_task_scheduler.add_dependence(task_name, ACTIONS_PROCESS_DONE)
-
+        # All distribution units try to schedule orders and handle arrival payloads.
+        # Order scheduling must be executed after all consumer actions are processed,
+        # so let them depend on ACTIONS_PROCESS_DONE.
+        # For each distribution unit, do order scheduling first, then handle arrival payloads.
         for unit in self.world.units_by_type[DistributionUnit]:
             assert isinstance(unit, DistributionUnit)
             schedule_task_name = f"distribution_{unit.id}_try_schedule_orders"
@@ -246,9 +261,19 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             self._dag_task_scheduler.add_dependence(ACTIONS_PROCESS_DONE, schedule_task_name)
             self._dag_task_scheduler.add_dependence(schedule_task_name, arrival_task_name)
 
+        # Demonstration:
+        #                                           Manufacture actions
+        #                                         /
+        # Consumer actions - ACTIONS_PROCESS_DONE - Order scheduling - handle arrival payloads
+
+        # Generate topological order
         self._dag_task_scheduler.make_topological_order()
 
     def _on_action_received(self, event: CascadeEvent) -> None:
+        """DAG and topological order has already been generated.
+
+        Update all parameters of the action related tasks, and launch the workflow on DAG.
+        """
         tick = event.tick
 
         # Handle actions
