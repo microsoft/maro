@@ -211,7 +211,7 @@ class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, Sel
 
     def sample_price(self, tick: int, product_id: int) -> Optional[float]:
         price = self._sample_attr(tick, product_id, "Price")
-        assert isinstance(price, float)
+        assert price is None or isinstance(price, float)
         return price
 
     def sample_demand(self, tick: int, product_id: int) -> int:

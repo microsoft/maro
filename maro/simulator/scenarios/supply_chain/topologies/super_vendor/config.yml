@@ -143,17 +143,14 @@ world:
         "food_1":  # The key can be sku id or name
           price: 33
           init_stock: 10000
-          has_manufacture: False
           unit_delay_order_penalty: 1000
         "component_1":
           price: 33
           init_stock: 10000
-          has_manufacture: False
           unit_delay_order_penalty: 900
         "component_2":
           price: 33
           init_stock: 10000
-          has_manufacture: False
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
         storage: *super_storage
