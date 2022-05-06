@@ -17,11 +17,10 @@ dist/
 *.egg-info/
 tools/schedule
 docs/_build
-test/
-data/
 .eggs/
 maro_venv/
 pyvenv.cfg
 htmlcov/
 .coverage
 .coveragerc
+/tests/data/supply_chain/
