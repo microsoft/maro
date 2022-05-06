@@ -377,7 +377,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         def get_reward_norm(entity_id):
             entity = self._entity_dict[entity_id]
-            if issubclass(entity.class_type, ConsumerUnit):
+            if (not TEAM_REWARD) and issubclass(entity.class_type, ConsumerUnit):
                 return (entity.skus.price + 1e-3)
             else: return 1.0
 

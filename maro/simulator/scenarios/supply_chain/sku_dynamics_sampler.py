@@ -133,8 +133,9 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
         May load one more extra entry to ensure that all data at tick `tick` are loaded.
         """
         while not self._is_fp_closed and (self._latest_tick is None or self._latest_tick <= tick):
-            row = next(self._reader)  # This entry may be after `tick`. We have to process it as we already loaded it.
-            if row is None:
+            try:
+                row = next(self._reader) # This entry may be after `tick`. We have to process it as we already loaded it.
+            except StopIteration:
                 self._fp.close()
                 self._is_fp_closed = True
                 break
@@ -153,8 +154,9 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
             sku_id = self._world.sku_name2id_mapping[sku_name]
 
             self._cache[target_tick][sku_id] = {}
-            for attr_name, (column_name, type_name) in self._info_dict.items():
-                self._cache[target_tick][sku_id][attr_name] = type_name(row[column_name])
+            for attr_name, item in self._info_dict.items():
+                self._cache[target_tick][sku_id][attr_name] = item.type_name(row[item.column_name])
+
 
 
 class SkuPriceMixin(metaclass=ABCMeta):

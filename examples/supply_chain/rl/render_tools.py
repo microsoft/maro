@@ -594,8 +594,8 @@ class SimulationTracker:
 
         # axs[0].set_title('Global balance')
         # axs[0].plot(x, self.global_balances.T)
-
-        axs[0].set_title('Cumulative Sum')
+        total_val = np.sum(np.sum(_step_metrics, axis=0))
+        axs[0].set_title(f'Cumulative Sum_{total_val}')
         axs[0].plot(x, np.cumsum(np.sum(_step_metrics, axis=0)))
 
         axs[1].set_title('Breakdown by Agent (One Episod)')
@@ -656,10 +656,10 @@ if __name__ == "__main__":
     # html_render.render_facility()
 
     baseline_model = "baseline"
-    baseline_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST/output_product_metrics.csv"
+    baseline_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST_1.2/output_product_metrics.csv"
 
     RL_model = "MARL"
-    RL_loc = "/data/songlei/maro/examples/supply_chain/results/SCI_100SKUs_DIST_DQN/output_product_metrics.csv"
+    RL_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST_1.5/output_product_metrics.csv"
 
     html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
     html_comparison_render.render_overview()
