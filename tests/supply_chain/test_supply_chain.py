@@ -998,6 +998,8 @@ class MyTestCase(unittest.TestCase):
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
 
         distribution_unit = supplier_3.distribution
+        product_unit = supplier_3.products[SKU3_ID]
+
         order = Order(warehouse_1, SKU3_ID, 10, "train")
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
@@ -1447,8 +1449,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(50, demand_FOOD_1)
 
     def test_storage_unit_dynamics_data_file_demand_sampler(self):
-        """Under the DataFileDemandSampler class,test the store between the storage unit and the dynamics CSV data
-        interaction. The data file of this test is test_case_04.csv """
+        """Under the DataFileDemandSampler class,test the store between the storage unit and the dynamics CSV data interaction.
+           The data file of this test is test_case_04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1550,8 +1552,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80000 - (10000 - 10) - (5000 - 100), init_remaining_spaces.sum())
 
     def test_storage_unit_dynamics_one_time_sku_price_demand_sampler(self):
-        """Under the OneTimeSkuPriceDemandSampler class,test the store between the storage unit and the dynamics CSV
-        data interaction. The data file of this test is test_case_04.csv """
+        """Under the OneTimeSkuPriceDemandSampler class,test the store between the storage unit and the dynamics CSV data interaction.
+           The data file of this test is test_case_04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -1665,6 +1667,8 @@ class MyTestCase(unittest.TestCase):
 
         env.step(None)
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+        configs = Store_001.configs
+        world = be.world
         seller_unit = Store_001.products[FOOD_1_ID].seller
 
         seller_node_index = seller_unit.data_model_index
@@ -1692,6 +1696,8 @@ class MyTestCase(unittest.TestCase):
         while env.tick < expected_tick - 1:
             env.step(None)
 
+        states = seller_nodes[:seller_node_index:features[IDX_DEMAND]].flatten().astype(np.int)
+
         states = seller_nodes[:seller_node_index:features[IDX_SOLD]].flatten().astype(np.int)
         self.assertListEqual([10, 20, 30, 40, 50], list(states))
 
@@ -1703,6 +1709,8 @@ class MyTestCase(unittest.TestCase):
         assert isinstance(be, SupplyChainBusinessEngine)
         env.step(None)
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+        configs = Store_001.configs
+        world = be.world
         FOOD_1_consumer_unit = Store_001.products[FOOD_1_ID].consumer
 
         consumer_node_index = FOOD_1_consumer_unit.data_model_index
@@ -1766,7 +1774,7 @@ class MyTestCase(unittest.TestCase):
         consumer_nodes = env.snapshot_list["consumer"]
 
         # ############################### Test Action with 0 quantity ######################################
-        # zero quantity will be ignored
+        # zero quantity will be ignore
         action_with_zero = ConsumerAction(FOOD_1_consumer_unit.id, FOOD_1_ID, Store_001.id, 0, "train")
         env.step([action_with_zero])
 
