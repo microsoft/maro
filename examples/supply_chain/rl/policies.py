@@ -22,6 +22,12 @@ from .rl_agent_state import STATE_DIM
 from .algorithms.rule_based import DummyPolicy, ManufacturerSSPolicy, ConsumerMinMaxPolicy
 from .config import NUM_CONSUMER_ACTIONS, env_conf, ALGO, SHARED_MODEL
 
+import torch
+
+gpu_available = torch.cuda.is_available()
+gpu_cnts = torch.cuda.device_count()
+
+
 
 # Create an env to get entity list and env summary
 env = Env(**env_conf)
@@ -70,7 +76,9 @@ policy_creator = {
 
 
 
-cuda_mapping = {"CA": 1, "TX": 2, "WI": 3}
+cuda_mapping = {"CA": "cpu", "TX": "cpu", "WI": "cpu"}
+if gpu_available:
+    cuda_mapping = {"CA": f"cuda:{0%gpu_cnts}", "TX": f"cuda:{1%gpu_cnts}", "WI": f"cuda:{2%gpu_cnts}"}
 if not SHARED_MODEL:
     trainer_creator = {}
     trainable_policies = []
@@ -82,14 +90,14 @@ if not SHARED_MODEL:
                 policy_key = f"consumer_{facility_name[:2]}.policy"
                 if policy_key not in policy_creator.keys():
                     trainable_policies.append(policy_key)
-                    device_mapping[policy_key] = f"cuda:{cuda_mapping[facility_name[:2]]}"
+                    device_mapping[policy_key] = cuda_mapping[facility_name[:2]]
                     policy_creator[policy_key] = partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
                 trainer_key = f"consumer_{facility_name[:2]}"
                 if trainer_key not in trainer_creator.keys():
                     trainer_creator[trainer_key] = (get_dqn if ALGO=="DQN" else partial(get_ppo, STATE_DIM))
 else:
     trainable_policies = ["consumer.policy"]
-    device_mapping = {"consumer.policy": "cuda:0"}
+    device_mapping = {"consumer.policy": ("cuda:0" if gpu_available else "cpu")}
     policy_creator["consumer.policy"] =  partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS)
     if ALGO == "PPO":
         trainer_creator = {

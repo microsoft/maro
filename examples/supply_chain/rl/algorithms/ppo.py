@@ -137,7 +137,7 @@ def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
         params=DiscretePPOParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             reward_discount=.99,
-            grad_iters=128,
+            grad_iters=256,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=-4.0,
             lam=0.99,

@@ -15,7 +15,7 @@ NUM_EPISODES = 1000
 NUM_STEPS = None
 CHECKPOINT_PATH = join(dirname(SCENARIO_PATH), "checkpoints")
 CHECKPOINT_INTERVAL = 10
-EVAL_SCHEDULE = list(range(10, NUM_EPISODES+10, 10))
+EVAL_SCHEDULE = list(range(20, NUM_EPISODES+20, 20))
 
 
 import argparse

@@ -308,8 +308,10 @@ class BalanceSheetCalculator:
         for i, product in enumerate(self.products):
             node_idx = product.node_index
             storage_index = product.storage_index
-            product_storage_index = int(np.where(self._get_list_attributes("storage", "product_list", tick)[storage_index] == product.sku_id)[0])
-            stock = int(self._get_list_attributes("storage", "product_quantity", tick)[storage_index][product_storage_index])
+            stock = 0
+            if storage_index:
+                product_storage_index = int(np.where(self._get_list_attributes("storage", "product_list", tick)[storage_index] == product.sku_id)[0])
+                stock = int(self._get_list_attributes("storage", "product_quantity", tick)[storage_index][product_storage_index])
             unit_inventory_holding_cost = float(self._entity_dict[product.unit_id].skus.unit_storage_cost)
             if (tick, i) not in self.tick_cached:
                 self.tick_cached.add((tick, i))

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import importlib
+import os
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
@@ -26,15 +27,18 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy, ManufacturerBaselinePolicy
 from .algorithms.rule_based import ConsumerBasePolicy, ManufacturerBaselinePolicy
 from .config import (
-    EVAL_STEPS, OR_NUM_CONSUMER_ACTIONS, consumer_features, distribution_features, env_conf, test_env_conf, seller_features, workflow_settings, TEAM_REWARD, ALGO, EXP_NAME
+    EVAL_STEPS, OR_NUM_CONSUMER_ACTIONS, 
+    consumer_features, distribution_features, 
+    env_conf, test_env_conf, seller_features, 
+    workflow_settings, TEAM_REWARD, ALGO, EXP_NAME, num_products_to_sample
 )
 from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
 from .rl_agent_state import ScRlAgentStates, serialize_state
 from .render_tools import SimulationTracker
-from .default_vendor_config import default_vendor
 
-
+vendor_config_path = f"examples.supply_chain.rl.default_vendor_config_{num_products_to_sample}"
+default_vendor = getattr(importlib.import_module(vendor_config_path), "default_vendor")
 
 def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
     unit2product: Dict[int, int] = {}

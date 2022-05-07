@@ -12,10 +12,10 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
 
-vlt_buffer_days = 1.2
-num_products_to_sample = 1000
+vlt_buffer_days = 1.0
+num_products_to_sample = 50
 
-ALGO="EOQ"
+ALGO="PPO"
 
 TEAM_REWARD = False
 SHARED_MODEL = False
@@ -40,20 +40,23 @@ NUM_CONSUMER_ACTIONS = 3
 #     NUM_CONSUMER_ACTIONS = OR_NUM_CONSUMER_ACTIONS
 OR_MANUFACTURE_ACTIONS = 20
 
+TRAIN_STEPS = 180
+EVAL_STEPS = 60
 
 
 env_conf = {
     "scenario": "supply_chain",
     "topology": f"SCI_{num_products_to_sample}",
-    "durations": 180,  # number of ticks per episode
+    # "topology": "super_vendor",
+    "durations": TRAIN_STEPS,  # number of ticks per episode
 }
 
-EVAL_STEPS = 60
 
 test_env_conf = {
     "scenario": "supply_chain",
     "topology": f"SCI_{num_products_to_sample}",
-    "durations": 180+EVAL_STEPS,  # number of ticks per episode
+    # "topology": "super_vendor",
+    "durations": TRAIN_STEPS+EVAL_STEPS,  # number of ticks per episode
 }
 
 
