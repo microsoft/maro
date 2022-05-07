@@ -10,20 +10,17 @@
 
 facility_definitions:
   # Key: would be used as "definition_ref" in world.facilities
-  VendorFacility:
+  SuperVendor:
     # class: the class alias defined in core.yml
     class: "SupplierFacility"
     datamodel: "FacilityDataModel"
     children:
       storage:
-        class: "StorageUnit"
+        class: "SuperStorageUnit"
       distribution:
         class: "DistributionUnit"
     products:
       class: "ProductUnit"
-      config:
-        manufacture:
-          class: "SimpleManufactureUnit"
 
   PlantFacility:
     class: "SupplierFacility"
@@ -78,6 +75,11 @@ facility_definitions:
       file_path: "/path/to/data.csv" # full path to data file, override by each store instance
 
 
+super_distribution: &super_distribution
+  config:
+    train:
+      number: null  # null indicates infinite distribution capacity.
+
 mix_distribution: &mix_distribution
   config:
     train:
@@ -90,6 +92,10 @@ simple_distribution: &simple_distribution
     train:
       number: 14
 
+super_storage: &super_storage
+  config:
+    capacity: null  # null indicates infinite storage capacity.
+    unit_storage_cost: 0
 
 multi_storage: &multi_storage
   config:
@@ -132,35 +138,23 @@ world:
     - name: "Vendor_001"
       # definition_ref: key in facility_definitions,
       #   the corresponding definition would be copied to this facility.
-      definition_ref: "VendorFacility"
+      definition_ref: "SuperVendor"
       skus:  # would be parsed by FacilityBase.parse_skus() => SkuInfo
         "food_1":  # The key can be sku id or name
           price: 33
           init_stock: 10000
-          sub_storage_id: 0
-          has_manufacture: True
-          max_manufacture_rate: 10000
-          unit_product_cost: 14
           unit_delay_order_penalty: 1000
         "component_1":
           price: 33
           init_stock: 10000
-          sub_storage_id: 0
-          has_manufacture: True
-          max_manufacture_rate: 10000
-          unit_product_cost: 14
           unit_delay_order_penalty: 900
         "component_2":
           price: 33
           init_stock: 10000
-          sub_storage_id: 0
-          has_manufacture: True
-          max_manufacture_rate: 10000
-          unit_product_cost: 14
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
-        storage: *single_storage
-        distribution: *mix_distribution
+        storage: *super_storage
+        distribution: *super_distribution
       config:  # would be FacilityBase.configs directly
         unit_delay_order_penalty: 1000
         unit_order_cost: 100
@@ -258,9 +252,6 @@ world:
     "Warehouse_001":
       "food_1":
         "Vendor_001":
-          "air":
-            vlt: 2
-            cost: 2.0
           "train":
             vlt: 7
             cost: 0.3

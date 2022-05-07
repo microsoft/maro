@@ -24,7 +24,7 @@ class DataModelDef(ModuleDef):
 
 @dataclass
 class EntityDef(ModuleDef):
-    data_model_alias: str
+    data_model_alias: Optional[str]
 
 
 def find_class_type(module_path: str, class_name: str) -> type:
@@ -98,14 +98,14 @@ class SupplyChainConfiguration:
             name_in_frame,
         )
 
-    def add_entity_definition(self, alias: str, class_name: str, module_path: str, data_model: str) -> None:
+    def add_entity_definition(self, alias: str, class_name: str, module_path: str, data_model: Optional[str]) -> None:
         """Add entity (unit & facility) definition.
 
         Args:
             alias (str): Alias of this data model.
             class_name (str): Name of class.
             module_path (str): Full path of module.
-            data_model (str): Data model used for this entity.
+            data_model (Optional[str]): Data model used for this entity. None indicates no corresponding data model.
         """
         assert alias not in self.entity_defs
 

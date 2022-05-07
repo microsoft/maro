@@ -297,7 +297,7 @@ class World:
         unit_def: EntityDef = self.configs.entity_defs[config["class"]]
         assert issubclass(unit_def.class_type, ProductUnit)
 
-        product_config = config.get("config")
+        product_config = config.get("config", {})
 
         products_dict: Dict[int, ProductUnit] = {}
 

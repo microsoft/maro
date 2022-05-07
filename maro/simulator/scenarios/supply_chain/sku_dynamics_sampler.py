@@ -133,8 +133,9 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
         May load one more extra entry to ensure that all data at tick `tick` are loaded.
         """
         while not self._is_fp_closed and (self._latest_tick is None or self._latest_tick <= tick):
-            row = next(self._reader)  # This entry may be after `tick`. We have to process it as we already loaded it.
-            if row is None:
+            try:
+                row = next(self._reader) # This entry may be after `tick`. We have to process it as we already loaded it.
+            except StopIteration:
                 self._fp.close()
                 self._is_fp_closed = True
                 break
@@ -153,8 +154,9 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
             sku_id = self._world.sku_name2id_mapping[sku_name]
 
             self._cache[target_tick][sku_id] = {}
-            for attr_name, (column_name, type_name) in self._info_dict.items():
-                self._cache[target_tick][sku_id][attr_name] = type_name(row[column_name])
+            for attr_name, item in self._info_dict.items():
+                self._cache[target_tick][sku_id][attr_name] = item.type_name(row[item.column_name])
+
 
 
 class SkuPriceMixin(metaclass=ABCMeta):
@@ -198,18 +200,18 @@ class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, Sel
         }
 
     def _sample_attr(self, tick: int, product_id: int, attr_name: str) -> object:
-        if any([
-            tick not in self._cache,
-            product_id not in self._cache[tick],
-            attr_name not in self._cache[tick][product_id],
-        ]):
+        if (
+            tick not in self._cache
+            or product_id not in self._cache[tick]
+            or attr_name not in self._cache[tick][product_id]
+        ):
             return self._info_dict[attr_name].default_value
 
         return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])
 
     def sample_price(self, tick: int, product_id: int) -> Optional[float]:
         price = self._sample_attr(tick, product_id, "Price")
-        assert isinstance(price, float)
+        assert price is None or isinstance(price, float)
         return price
 
     def sample_demand(self, tick: int, product_id: int) -> int:
@@ -228,11 +230,11 @@ class StreamSkuPriceDemandSampler(StreamSkuDynamicsSampler, SkuPriceMixin, Selle
     def _sample_attr(self, tick: int, product_id: int, attr_name: str) -> object:
         self._load_data_until_tick(tick)
 
-        if any([
-            tick not in self._cache,
-            product_id not in self._cache[tick],
-            attr_name not in self._cache[tick][product_id],
-        ]):
+        if (
+            tick not in self._cache
+            or product_id not in self._cache[tick]
+            or attr_name not in self._cache[tick][product_id]
+        ):
             return self._info_dict[attr_name].default_value
 
         return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])

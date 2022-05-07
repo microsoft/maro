@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 class BaseUnitInfo:
     id: int
     node_index: int
-    node_name: str
+    node_name: Optional[str]
     class_name: type
     config: dict
     children: List[BaseUnitInfo]
@@ -113,7 +113,7 @@ class UnitBase:
         return BaseUnitInfo(
             id=self.id,
             node_index=self.data_model_index,
-            node_name=type(self.data_model).__node_name__,
+            node_name=type(self.data_model).__node_name__ if self.data_model else None,
             class_name=type(self),
             config=self.config,
             children=[c.get_unit_info() for c in self.children] if self.children else None,
