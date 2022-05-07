@@ -3,6 +3,7 @@
 *.pyd
 *.log
 *.csv
+*.parquet
 *.c
 *.cpp
 *.DS_Store
@@ -12,7 +13,10 @@
 .vs/
 build/
 log/
+logs/
 checkpoint/
+checkpoints/
+streamit/
 dist/
 *.egg-info/
 tools/schedule
@@ -23,4 +27,3 @@ pyvenv.cfg
 htmlcov/
 .coverage
 .coveragerc
-/tests/data/supply_chain/
