@@ -38,7 +38,7 @@ units:
           datamodel: "StorageDataModel"
         SuperStorageUnit:
           class: "SuperStorageUnit"
-          datamodel:
+          datamodel: null
         DistributionUnit:
           class: "DistributionUnit"
           datamodel: "DistributionDataModel"

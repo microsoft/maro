@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
 class BaseUnitInfo:
     id: int
     node_index: int
-    node_name: str
+    node_name: Optional[str]
     class_name: type
     config: dict
     children: List[BaseUnitInfo]

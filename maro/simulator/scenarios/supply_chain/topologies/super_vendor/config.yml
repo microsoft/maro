@@ -78,7 +78,7 @@ facility_definitions:
 super_distribution: &super_distribution
   config:
     train:
-      number:
+      number: null  # null indicates infinite distribution capacity.
 
 mix_distribution: &mix_distribution
   config:
@@ -94,7 +94,7 @@ simple_distribution: &simple_distribution
 
 super_storage: &super_storage
   config:
-    capacity:
+    capacity: null  # null indicates infinite storage capacity.
     unit_storage_cost: 0
 
 multi_storage: &multi_storage
@@ -231,7 +231,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        file_path: "/home/Jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
 
   topology:
     "Store_001":
