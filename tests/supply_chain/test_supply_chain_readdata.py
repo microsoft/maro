@@ -463,5 +463,5 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80000 - (10000 - 10) - (5000 - 100), storage_unit.remaining_space)
         self.assertEqual(80000 - (10000 - 10) - (5000 - 100), init_remaining_spaces.sum())
 
-    if __name__ == '__main__':
-        unittest.main()
+if __name__ == '__main__':
+    unittest.main()

@@ -237,7 +237,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        file_path: "/home/Jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/plant/sample.csv"
 
   topology:
     "Store_001":
