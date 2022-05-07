@@ -48,17 +48,17 @@ class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
 
     @property
     def capacity(self) -> int:
-        raise NotImplementedError
+        raise Exception("Only StorageUnit has capacity property, confirm which Unit to use!")
 
     @property
     def remaining_space(self) -> int:
-        raise NotImplementedError
+        raise Exception("Only StorageUnit has remaining_space property, confirm which Unit to use!")
 
     def get_product_quantity(self, product_id: int) -> int:
-        raise NotImplementedError
+        raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
 
     def get_product_max_remaining_space(self, product_id: int) -> int:
-        raise NotImplementedError
+        raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
 
     @abstractmethod
     def try_add_products(
