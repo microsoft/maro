@@ -337,15 +337,16 @@ class SCEnvSampler(AbsEnvSampler):
             self._facility_product_utilization[facility_id] = 0
             self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
             self._facility_to_distribute_orders[facility_id] = [0] * self._sku_number
-            product_quantities = self._env.snapshot_list["storage"][
-                tick:facility_info.storage_info.node_index:"product_quantity"
-            ].flatten().astype(np.int)
+            if facility_info.storage_info.node_index is not None:
+                product_quantities = self._env.snapshot_list["storage"][
+                    tick:facility_info.storage_info.node_index:"product_quantity"
+                ].flatten().astype(np.int)
 
-            for pid, index in self._product_id2idx[facility_id].items():
-                product_quantity = product_quantities[index]
+                for pid, index in self._product_id2idx[facility_id].items():
+                    product_quantity = product_quantities[index]
 
-                self._storage_product_quantity[facility_id][self._global_sku_id2idx[pid]] = product_quantity
-                self._facility_product_utilization[facility_id] += product_quantity
+                    self._storage_product_quantity[facility_id][self._global_sku_id2idx[pid]] = product_quantity
+                    self._facility_product_utilization[facility_id] += product_quantity
 
             for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
                 self._facility_in_transit_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity

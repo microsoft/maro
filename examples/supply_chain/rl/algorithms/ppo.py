@@ -4,7 +4,7 @@
 from typing import Dict
 
 import torch
-from torch.optim import Adam, RMSprop
+from torch.optim import Adam
 
 from maro.rl.model import DiscretePolicyNet, FullyConnected, VNet
 from maro.rl.policy import DiscretePolicyGradient
@@ -22,11 +22,11 @@ critic_net_conf = {
     "output_dim": 1,
     "activation": torch.nn.Tanh,
     "softmax": False,
-    "batch_norm": True,
+    "batch_norm": False,
     "head": True,
 }
 actor_learning_rate = 0.001
-critic_learning_rate = 0.001
+critic_learning_rate = 0.003
 
 
 class MyActorNet(DiscretePolicyNet):
@@ -74,7 +74,7 @@ class MyCriticNet(VNet):
     def __init__(self, state_dim: int) -> None:
         super(MyCriticNet, self).__init__(state_dim=state_dim)
         self._critic = FullyConnected(input_dim=state_dim, **critic_net_conf)
-        self._optim = RMSprop(self._critic.parameters(), lr=critic_learning_rate)
+        self._optim = Adam(self._critic.parameters(), lr=critic_learning_rate)
 
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
         return self._critic(states).squeeze(-1)
@@ -137,11 +137,11 @@ def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
         params=DiscretePPOParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             reward_discount=.99,
-            grad_iters=20,
+            grad_iters=128,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=-4.0,
             lam=0.99,
             clip_ratio=0.2,
-            replay_memory_capacity=180
+            replay_memory_capacity=540
         ),
     )

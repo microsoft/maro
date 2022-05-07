@@ -10,20 +10,17 @@
 
 facility_definitions:
   # Key: would be used as "definition_ref" in world.facilities
-  VendorFacility:
+  SuperVendor:
     # class: the class alias defined in core.yml
     class: "SupplierFacility"
     datamodel: "FacilityDataModel"
     children:
       storage:
-        class: "StorageUnit"
+        class: "SuperStorageUnit"
       distribution:
         class: "DistributionUnit"
     products:
       class: "ProductUnit"
-      config:
-        manufacture:
-          class: "SimpleManufactureUnit"
 
   PlantFacility:
     class: "SupplierFacility"
@@ -78,18 +75,27 @@ facility_definitions:
       file_path: "/path/to/data.csv" # full path to data file, override by each store instance
 
 
+super_distribution: &super_distribution
+  config:
+    train:
+      number: null  # null indicates infinite distribution capacity.
+
 mix_distribution: &mix_distribution
   config:
     train:
-      number: 140
+      number: 14
     air:
       number: 4
 
 simple_distribution: &simple_distribution
   config:
     train:
-      number: 140
+      number: 14
 
+super_storage: &super_storage
+  config:
+    capacity: null  # null indicates infinite storage capacity.
+    unit_storage_cost: 0
 
 multi_storage: &multi_storage
   config:
@@ -132,113 +138,95 @@ world:
     - name: "Vendor_001"
       # definition_ref: key in facility_definitions,
       #   the corresponding definition would be copied to this facility.
-      definition_ref: "VendorFacility"
+      definition_ref: "SuperVendor"
       skus:  # would be parsed by FacilityBase.parse_skus() => SkuInfo
         "food_1":  # The key can be sku id or name
-          price: 5
-          init_stock: 1000
-          sub_storage_id: 0
-          has_manufacture: True
-          max_manufacture_rate: 10000
-          unit_product_cost: 14
+          price: 33
+          init_stock: 10000
           unit_delay_order_penalty: 1000
-          unit_order_cost: 2.0
         "component_1":
-          price: 5
-          init_stock: 5000
-          sub_storage_id: 0
-          has_manufacture: True
-          max_manufacture_rate: 10000
-          unit_product_cost: 14
+          price: 33
+          init_stock: 10000
           unit_delay_order_penalty: 900
         "component_2":
-          price: 10
-          init_stock: 5000
-          sub_storage_id: 0
-          has_manufacture: True
-          max_manufacture_rate: 10000
-          unit_product_cost: 14
+          price: 33
+          init_stock: 10000
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
-        storage: *single_storage
-        distribution: *mix_distribution
+        storage: *super_storage
+        distribution: *super_distribution
       config:  # would be FacilityBase.configs directly
         unit_delay_order_penalty: 1000
-        unit_order_cost: 1.0
+        unit_order_cost: 100
 
     - name: "Plant_001"
       definition_ref: "PlantFacility"
       skus:
         "component_1":
-          price: 5
-          init_stock: 3000
+          price: 33
+          init_stock: 5000
           sub_storage_id: 1
           has_consumer: True
-          unit_order_cost: 5
+          unit_order_cost: 80
         "component_2":
-          price: 10
-          init_stock: 4000
+          price: 33
+          init_stock: 5000
           sub_storage_id: 1
           has_consumer: True
-          unit_order_cost: 10
+          unit_order_cost: 80
         "hobby_1":
-          price: 10
-          init_stock: 2500
+          price: 33
+          init_stock: 5000
           sub_storage_id: 2
           has_manufacture: True
           max_manufacture_rate: 10000
           unit_product_cost: 14
-          unit_order_cost: 2.0
       children:
         storage: *multi_storage
         distribution: *simple_distribution
       config:
         unit_delay_order_penalty: 1000
-        unit_order_cost: 1.0
+        unit_order_cost: 100
 
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
         "food_1":
-          price: 5
-          init_stock: 200
+          price: 33
+          init_stock: 10000
           sub_storage_id: 0
           has_consumer: True
-          unit_order_cost: 2.0
         "hobby_1":
-          price: 10
-          init_stock: 200
+          price: 33
+          init_stock: 5000
           sub_storage_id: 0
           has_consumer: True
-          unit_order_cost: 2.0
       children:
         storage: *single_storage
         distribution: *mix_distribution
       config:
         unit_delay_order_penalty: 1000
-        unit_order_cost: 1.0
+        unit_order_cost: 100
 
     - name: "Store_001"
       definition_ref: "StoreFacility"
       skus:
         "food_1":
-          price: 150
-          init_stock: 200
+          price: 33
+          init_stock: 10000
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 60
-          unit_order_cost: 2.0
-          backlog_ratio: 0.1
+          sale_gamma: 160
+          backlog_ratio: 0.0
         "hobby_1":
-          price: 180
-          init_stock: 100
+          price: 33
+          init_stock: 5000
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 100
-          unit_order_cost: 2.0
-          backlog_ratio: 0.1
+          sale_gamma: 160
+          backlog_ratio: 0.0
       children:
         storage: *single_storage
       config:
@@ -250,42 +238,39 @@ world:
       "food_1":
         "Warehouse_001":
           "air":
-            vlt: 1
+            vlt: 2
             cost: 3.0  # Unit transportation cost per product per day
           "train":
-            vlt: 1
+            vlt: 7
             cost: 0.5
       "hobby_1":
         "Warehouse_001":
           "train":
-            vlt: 1
+            vlt: 7
             cost: 0.6
 
     "Warehouse_001":
       "food_1":
         "Vendor_001":
-          "air":
-            vlt: 1
-            cost: 3.0  # Unit transportation cost per product per day
           "train":
-            vlt: 2
-            cost: 0.5
+            vlt: 7
+            cost: 0.3
       "hobby_1":
         "Plant_001":
           "train":
-            vlt: 2
-            cost: 0.6
+            vlt: 7
+            cost: 0.35
 
     "Plant_001":
       "component_1":
         "Vendor_001":
           "train":
-            vlt: 3
+            vlt: 7
             cost: 0.2
       "component_2":
         "Vendor_001":
           "train":
-            vlt: 3
+            vlt: 7
             cost: 0.2
 
 settings:

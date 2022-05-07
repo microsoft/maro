@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import typing
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
@@ -35,7 +36,60 @@ class StorageUnitInfo(BaseUnitInfo):
     product_list: List[int]
 
 
-class StorageUnit(UnitBase):
+class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(AbsStorageUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
+
+    def initialize(self) -> None:
+        super(AbsStorageUnit, self).initialize()
+
+    @property
+    def capacity(self) -> int:
+        raise Exception("Only StorageUnit has capacity property, confirm which Unit to use!")
+
+    @property
+    def remaining_space(self) -> int:
+        raise Exception("Only StorageUnit has remaining_space property, confirm which Unit to use!")
+
+    def get_product_quantity(self, product_id: int) -> int:
+        raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
+
+    def get_product_max_remaining_space(self, product_id: int) -> int:
+        raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
+
+    @abstractmethod
+    def try_add_products(
+        self,
+        product_quantities: Dict[int, int],
+        add_strategy: AddStrategy = AddStrategy.IgnoreUpperBoundAllOrNothing,
+    ) -> Dict[int, int]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    def take_available(self, product_id: int, quantity: int) -> int:
+        raise NotImplementedError
+
+    def flush_states(self) -> None:
+        super(AbsStorageUnit, self).flush_states()
+
+    def reset(self) -> None:
+        super(AbsStorageUnit, self).reset()
+
+    def get_unit_info(self) -> StorageUnitInfo:
+        return StorageUnitInfo(
+            **super(AbsStorageUnit, self).get_unit_info().__dict__,
+            product_list=list(self.facility.skus.keys()),
+        )
+
+
+class StorageUnit(AbsStorageUnit):
     """Unit that used to store skus."""
 
     def __init__(
@@ -64,14 +118,6 @@ class StorageUnit(UnitBase):
         # Mapping between the sub-storage id and the idx in the data model.
         self._storage_id2idx: Dict[int, int] = {}
         self._storage_idx2id: Dict[int, int] = {}
-
-    @property
-    def capacity(self) -> int:  # TODO: not used now. Check to remove or not.
-        return self._total_capacity
-
-    @property
-    def remaining_space(self) -> int:  # TODO: not used now. Check to remove or not.
-        return sum(self._remaining_space_dict.values())
 
     def initialize(self) -> None:
         super(StorageUnit, self).initialize()
@@ -149,6 +195,14 @@ class StorageUnit(UnitBase):
             ],
             product_quantity=[n for n in self._product_level.values()],
         )
+
+    @property
+    def capacity(self) -> int:  # TODO: not used now. Check to remove or not.
+        return self._total_capacity
+
+    @property
+    def remaining_space(self) -> int:  # TODO: not used now. Check to remove or not.
+        return sum(self._remaining_space_dict.values())
 
     def get_product_quantity(self, product_id: int) -> int:
         """Get product quantity in storage.
@@ -322,8 +376,29 @@ class StorageUnit(UnitBase):
 
             self._remaining_space_dict[sku.sub_storage_id] -= sku.init_stock
 
-    def get_unit_info(self) -> StorageUnitInfo:
-        return StorageUnitInfo(
-            **super(StorageUnit, self).get_unit_info().__dict__,
-            product_list=[i for i in self._product_level.keys()],
-        )
+
+class SuperStorageUnit(AbsStorageUnit):
+    """SuperStorageUnit is used to simulate the case where we have infinite product inventory.
+
+    Usually used to be the storage unit of a Super Vendor, along with No-Manufacture setting and No-Data-Model setting.
+    Function get_product_quantity(self, product_id: int) and get_product_max_remaining_space(self, product_id: int) are
+    only used in ManufactureUnit, so leave them to raise NotImplementError to indicate wrong setting.
+    """
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(SuperStorageUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
+
+    def try_add_products(
+        self,
+        product_quantities: Dict[int, int],
+        add_strategy: AddStrategy = AddStrategy.IgnoreUpperBoundAllOrNothing,
+    ) -> Dict[int, int]:
+        return product_quantities
+
+    def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
+        return True
+
+    def take_available(self, product_id: int, quantity: int) -> int:
+        return quantity

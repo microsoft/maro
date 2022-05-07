@@ -237,7 +237,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        file_path: "D:\\git maro\\maro\\tests\\data\\supply_chain\\case_04\\test_case_04.csv"
+        file_path: "tests/data/supply_chain/case_04/test_case_04.csv"
 
   topology:
     "Store_001":

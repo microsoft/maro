@@ -280,9 +280,17 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
 
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, self._device)  # s
+        actions = ndarray_to_tensor(batch.actions, device=self._device).long()  # a
         state_values = self._v_critic_net.v_values(states).cpu().detach().numpy()
         values = np.concatenate([state_values[1:], np.zeros(1).astype(np.float32)])
-        batch.advantages = (batch.rewards+self._reward_discount*values - state_values)
+        deltas = (batch.rewards+self._reward_discount*values - state_values)
+        advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
+        batch.advantages = advantages
+
+        if self._clip_ratio is not None:
+            self._policy_old.eval()
+            batch.old_logps = self._policy_old.get_state_action_logps(states, actions).detach().cpu().numpy()
+
         return batch
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
@@ -316,33 +324,16 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
 
         states = ndarray_to_tensor(batch.states, self._device)  # s
         actions = ndarray_to_tensor(batch.actions, self._device).long()  # a
-        state_values = self._v_critic_net.v_values(states).detach().cpu().numpy()
-        values = np.concatenate([state_values[1:], state_values[-1:]])
-        returns = batch.rewards + np.where(batch.terminals, 0.0, 1.0) * self._reward_discount * values
-        deltas = returns - state_values # r + gamma * v(s') - v(s)
-        # advantages_list = []
-        # start_idx, end_idx = 0, 0
-        # for i, terminal in enumerate(batch.terminals):
-        #     if (not terminal) and i < len(batch.terminals)-1:
-        #         end_idx += 1
-        #     else:
-        #         advantages_frag = discount_cumsum(deltas[start_idx:end_idx+1], self._reward_discount * self._lam)
-        #         advantages_list.append(advantages_frag)
-        #         end_idx += 1
-        #         start_idx = end_idx
-        # advantages = np.concatenate(advantages_list)
-        advantages = ndarray_to_tensor(deltas, self._device)
+        advantages = ndarray_to_tensor(batch.advantages, self._device) # adv
 
         if self._clip_ratio is not None:
-            self._policy_old.eval()
-            logps_old = self._policy_old.get_state_action_logps(states, actions).detach()
+            logps_old = ndarray_to_tensor(batch.old_logps, self._device) 
         else:
             logps_old = None
 
         self._policy.train()
         action_probs = self._policy.get_action_probs(states)
         dist = Categorical(action_probs)
-        # print('probs: ', action_probs)
         dist_entropy = dist.entropy()
         logps = torch.log(action_probs.gather(1, actions).squeeze())
         logps = torch.clamp(logps, min=self._min_logp, max=.0)

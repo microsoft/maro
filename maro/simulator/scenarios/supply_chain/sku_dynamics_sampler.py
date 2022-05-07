@@ -201,19 +201,18 @@ class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, Sel
         }
 
     def _sample_attr(self, tick: int, product_id: int, attr_name: str) -> object:
-        # if any([
-        #     tick not in self._cache,
-        #     product_id not in self._cache[tick],
-        #     attr_name not in self._cache[tick][product_id],
-        # ]):
-        if (tick not in self._cache) or (product_id not in self._cache[tick]) or (attr_name not in self._cache[tick][product_id]):
+        if (
+            tick not in self._cache
+            or product_id not in self._cache[tick]
+            or attr_name not in self._cache[tick][product_id]
+        ):
             return self._info_dict[attr_name].default_value
 
         return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])
 
     def sample_price(self, tick: int, product_id: int) -> Optional[float]:
         price = self._sample_attr(tick, product_id, "Price")
-        assert isinstance(price, float)
+        assert price is None or isinstance(price, float)
         return price
 
     def sample_demand(self, tick: int, product_id: int) -> int:
@@ -232,11 +231,11 @@ class StreamSkuPriceDemandSampler(StreamSkuDynamicsSampler, SkuPriceMixin, Selle
     def _sample_attr(self, tick: int, product_id: int, attr_name: str) -> object:
         self._load_data_until_tick(tick)
 
-        if any([
-            tick not in self._cache,
-            product_id not in self._cache[tick],
-            attr_name not in self._cache[tick][product_id],
-        ]):
+        if (
+            tick not in self._cache
+            or product_id not in self._cache[tick]
+            or attr_name not in self._cache[tick][product_id]
+        ):
             return self._info_dict[attr_name].default_value
 
         return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])

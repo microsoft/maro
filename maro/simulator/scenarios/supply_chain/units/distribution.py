@@ -87,10 +87,10 @@ class DistributionUnit(UnitBase):
             self._unit_delay_order_penalty[product_id] = self.facility.skus[product_id].unit_delay_order_penalty
 
     def _has_available_vehicle(self, vehicle_type: str) -> bool:
-        return any([
-            self._vehicle_num[vehicle_type] is None,
-            self._busy_vehicle_num[vehicle_type] < self._vehicle_num[vehicle_type],
-        ])
+        return (
+            self._vehicle_num[vehicle_type] is None
+            or self._busy_vehicle_num[vehicle_type] < self._vehicle_num[vehicle_type]
+        )
 
     def place_order(self, tick: int, order: Order) -> float:
         """Place an order in the pending order queue, and calculate the corresponding order fee.
