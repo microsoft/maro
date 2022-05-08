@@ -289,7 +289,8 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
 
         if self._clip_ratio is not None:
             self._policy_old.eval()
-            batch.old_logps = self._policy_old.get_state_action_logps(states, actions).detach().cpu().numpy()
+            batch.old_logps = self._policy_old.get_state_action_logps(states.cpu(), actions.cpu()).detach().cpu().numpy()
+            self._policy_old.train()
 
         return batch
 

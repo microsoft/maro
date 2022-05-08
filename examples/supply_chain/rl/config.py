@@ -13,7 +13,7 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
 vlt_buffer_days = 1.0
-num_products_to_sample = 50
+num_products_to_sample = 500
 
 ALGO="PPO"
 
