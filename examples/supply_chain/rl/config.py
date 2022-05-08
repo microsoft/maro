@@ -1,6 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from enum import Enum
+
+
+class VehicleSelection(Enum):
+    FIRST_ONE = 0  # Always choosing the first vehicle type candidate
+    RANDOM = 1  # Randomly choosing one for each decision
+    SHORTEST_LEADING_TIME = 2  # Always choosing the one with shortest leading time
+    CHEAPEST_TOTAL_COST = 3  # Always choosing the one with cheapest total cost (products, order base, transportation)
+
+
 env_conf = {
     "scenario": "supply_chain",
     "topology": "plant",
@@ -25,5 +35,6 @@ workflow_settings: dict = {
     # "constraint_state_hist_len": 8,
     "or_policy_vlt_buffer_days": 7,
     "reward_normalization": 1e7,
-    "default_vehicle_type": "train",
+    "default_vehicle_type": None,
+    "vehicle_selection_method": VehicleSelection.FIRST_ONE,
 }
