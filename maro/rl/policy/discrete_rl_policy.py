@@ -297,7 +297,6 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         """
         assert self._shape_check(states=states, actions=actions)
         action_probs = self.get_action_probs(states)
-        print(action_probs.device, actions.device, self._device)
         return action_probs.gather(1, actions).squeeze()  # [B]
 
     def get_state_action_logps(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:

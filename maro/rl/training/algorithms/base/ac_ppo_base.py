@@ -280,16 +280,18 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
 
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, self._device)  # s
-        actions = ndarray_to_tensor(batch.actions, device=self._device).long()  # a
         state_values = self._v_critic_net.v_values(states).cpu().detach().numpy()
         values = np.concatenate([state_values[1:], np.zeros(1).astype(np.float32)])
         deltas = (batch.rewards+self._reward_discount*values - state_values)
+        # special care for tail state
+        deltas[-1] = 0.0
         advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
         batch.advantages = advantages
 
         if self._clip_ratio is not None:
             self._policy_old.eval()
-            batch.old_logps = self._policy_old.get_state_action_logps(states.cpu(), actions.cpu()).detach().cpu().numpy()
+            actions = ndarray_to_tensor(batch.actions, device=torch.device('cpu')).long()  # a
+            batch.old_logps = self._policy_old.get_state_action_logps(states.cpu(), actions).detach().cpu().numpy()
             self._policy_old.train()
 
         return batch
@@ -309,6 +311,8 @@ class DiscretePPOBasedOps(DiscreteACBasedOps):
         values = state_values.cpu().detach().numpy()
         values = np.concatenate([values[1:], values[-1:]])
         returns = batch.rewards + np.where(batch.terminals, 0.0, 1.0) * self._reward_discount * values
+        # special care for tail state
+        returns[-1] = state_values[-1]
         returns = ndarray_to_tensor(returns, self._device)
         return self._critic_loss_func(state_values.float(), returns.float())
 
