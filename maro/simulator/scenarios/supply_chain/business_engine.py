@@ -66,7 +66,7 @@ class DAGTaskScheduler(object):
             edge_dict[upstream].append(downstream)
 
         queue = collections.deque()
-        for name, task in self._task_dict.items():
+        for name in self._task_dict.keys():
             if in_degree[name] == 0:
                 queue.append(name)
 
@@ -210,8 +210,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
     def _build_dag(self) -> None:
-        """Build the task DAG that will be used in `_on_action_received`
-        """
+        """Build the task DAG that will be used in `_on_action_received`."""
 
         # Get all consumer units & manufacture units of the world.
         # They will be reused in `_on_action_received`.
@@ -281,7 +280,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         # Aggregate actions
         actions_by_unit: Dict[int, List[SupplyChainAction]] = collections.defaultdict(list)
-        for i, action in enumerate(actions):
+        for action in actions:
             assert isinstance(action, SupplyChainAction)
             actions_by_unit[action.id].append(action)
 
