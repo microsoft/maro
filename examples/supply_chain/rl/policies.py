@@ -48,13 +48,13 @@ get_policy = (get_dqn_policy if ALGO == "DQN" else get_ppo_policy)
 
 def entity2policy(entity: SupplyChainEntity, baseline) -> str:
     if entity.skus is None:
-        return "facility_policy"
+        return None
     elif issubclass(entity.class_type, ProductUnit):
-        return "product_policy"
+        return None
     elif issubclass(entity.class_type, ManufactureUnit):
         return "manufacturer_policy"
     elif issubclass(entity.class_type, SellerUnit):
-        return "seller_policy"
+        return None
     elif issubclass(entity.class_type, ConsumerUnit):
         facility_name = facility_info_dict[entity.facility_id].name
         if baseline:
@@ -69,9 +69,9 @@ def entity2policy(entity: SupplyChainEntity, baseline) -> str:
 policy_creator = {
     "consumer_eoq_policy": lambda name: ConsumerMinMaxPolicy(name),
     "manufacturer_policy": lambda name: ManufacturerSSPolicy(name),
-    "facility_policy": lambda name: DummyPolicy(name),
-    "product_policy": lambda name: DummyPolicy(name),
-    "seller_policy": lambda name: DummyPolicy(name),
+    # "facility_policy": lambda name: DummyPolicy(name),
+    # "product_policy": lambda name: DummyPolicy(name),
+    # "seller_policy": lambda name: DummyPolicy(name),
 }
 
 
@@ -111,11 +111,10 @@ else:
 
 if ALGO != "EOQ":
     agent2policy = {
-        id_: entity2policy(entity, False) for id_, entity in entity_dict.items()
+        id_: entity2policy(entity, False) for id_, entity in entity_dict.items() if entity2policy(entity, False)
     }
 else:
     # baseline policies
     agent2policy = {
-        id_: entity2policy(entity, True) for id_, entity in entity_dict.items()
+        id_: entity2policy(entity, True) for id_, entity in entity_dict.items() if entity2policy(entity, True)
     }
-

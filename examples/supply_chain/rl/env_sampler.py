@@ -1,7 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import importlib
-import os
+
+# import importlib
+# import os
+import random
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
@@ -20,25 +22,26 @@ from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
 
-import sys
-sys.path.append("/data/songlei/maro/")
+# import sys
+# sys.path.append("/data/songlei/maro/")
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy, ManufacturerBaselinePolicy
 from .algorithms.rule_based import ConsumerBasePolicy, ManufacturerBaselinePolicy
 from .config import (
-    EVAL_STEPS, OR_NUM_CONSUMER_ACTIONS, 
-    consumer_features, distribution_features, 
-    env_conf, test_env_conf, seller_features, 
-    workflow_settings, TEAM_REWARD, ALGO, EXP_NAME, num_products_to_sample
+    EVAL_STEPS, OR_NUM_CONSUMER_ACTIONS,
+    consumer_features, distribution_features,
+    env_conf, test_env_conf, seller_features,
+    workflow_settings, TEAM_REWARD, ALGO, EXP_NAME, num_products_to_sample,
+    VehicleSelection
 )
 from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
 from .rl_agent_state import ScRlAgentStates, serialize_state
 from .render_tools import SimulationTracker
 
-vendor_config_path = f"examples.supply_chain.rl.default_vendor_config_{num_products_to_sample}"
-default_vendor = getattr(importlib.import_module(vendor_config_path), "default_vendor")
+# vendor_config_path = f"examples.supply_chain.rl.default_vendor_config_{num_products_to_sample}"
+# default_vendor = getattr(importlib.import_module(vendor_config_path), "default_vendor")
 
 def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
     unit2product: Dict[int, int] = {}
@@ -267,7 +270,7 @@ class SCEnvSampler(AbsEnvSampler):
             facility_product_utilization=self._facility_product_utilization,
             facility_in_transit_orders=self._facility_in_transit_orders,
         )
-        
+
         entity = self._entity_dict[entity_id]
         baseline_action = 0
         if issubclass(entity.class_type, ConsumerUnit):
@@ -278,7 +281,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._stock_status[entity.id] = state['inventory_in_stock']
         facility = self._facility_info_dict[entity.facility_id]
-        if issubclass(entity.class_type, ProductUnit) and (facility.products_info[entity.skus.id].seller_info is not None):        
+        if issubclass(entity.class_type, ProductUnit) and (facility.products_info[entity.skus.id].seller_info is not None):
             self._demand_status[entity.id] = state['demand_hist'][-1]
             self._sold_status[entity.id] = state['sale_hist'][-1]
         else:
@@ -359,7 +362,7 @@ class SCEnvSampler(AbsEnvSampler):
                     self._facility_to_distribute_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
         # to keep track infor
-        for id_ in self._entity_dict.keys():
+        for id_ in self._agent2policy.keys():
             self.get_rl_policy_state(id_)
 
         state = {
@@ -386,7 +389,7 @@ class SCEnvSampler(AbsEnvSampler):
                 return (entity.skus.price + 1e-3)
             else: return 1.0
 
-        return {entity_id: r/get_reward_norm(entity_id) 
+        return {entity_id: r/get_reward_norm(entity_id)
                     for entity_id, r in rewards.items()}
 
     def _translate_to_env_action(
@@ -399,7 +402,7 @@ class SCEnvSampler(AbsEnvSampler):
             env_action: Optional[SupplyChainAction] = None
             if np.isscalar(action):
                 action = [action]
-            
+
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
                 product_id: int = self._consumer2product_id.get(entity_id, 0)
@@ -409,31 +412,45 @@ class SCEnvSampler(AbsEnvSampler):
                 vlt_info_candidates: List[VendorLeadingTimeInfo] = []
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
                 info_by_fid = facility_info.upstream_vlt_infos[product_id]
-                
-                product_name = self._entity_dict[self._entity_dict[entity_id].parent_id].skus.name
-                facility_name = facility_info.name
-                
-                # if self._env_settings["default_vehicle_type"] is None:
-                #     vlt_info_candidates = [
-                #         info
-                #         for info_by_type in info_by_fid.values()
-                #         for info in info_by_type.values()
-                #     ]
+
+                # product_name = self._entity_dict[self._entity_dict[entity_id].parent_id].skus.name
+                # facility_name = facility_info.name
+
+                if self._env_settings["default_vehicle_type"] is None:
+                    vlt_info_candidates = [
+                        info
+                        for info_by_type in info_by_fid.values()
+                        for info in info_by_type.values()
+                    ]
                 # else:
                 #     vlt_info_candidates = [
                 #         info_by_type[self._env_settings["default_vehicle_type"]]
                 #         for info_by_type in info_by_fid.values()
                 #     ]
 
-                default_vehicle_type = default_vendor[facility_name][product_name]
-                vlt_info_candidates = [
-                    info_by_type[default_vehicle_type]
-                    for info_by_type in info_by_fid.values() if default_vehicle_type in info_by_type 
-                ]
-                
+                # default_vehicle_type = default_vendor[facility_name][product_name]
+                # vlt_info_candidates = [
+                #     info_by_type[default_vehicle_type]
+                #     for info_by_type in info_by_fid.values() if default_vehicle_type in info_by_type
+                # ]
+
                 if len(vlt_info_candidates):
-                    src_f_id = vlt_info_candidates[0].src_facility.id
-                    vehicle_type = vlt_info_candidates[0].vehicle_type
+                    vehicle_selection = self._env_settings["vehicle_selection_method"]
+                    if vehicle_selection == VehicleSelection.FIRST_ONE:
+                        vlt_info = vlt_info_candidates[0]
+                    elif vehicle_selection == VehicleSelection.RANDOM:
+                        vlt_info = random.choice(vlt_info_candidates)
+                    elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
+                        vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
+                    elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
+                        # As the product cost and order base cost are only related to product quantity,
+                        # the transportation cost is the difference of different vehicle type selections.
+                        vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
+                    else:
+                        raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
+
+                    src_f_id = vlt_info.src_facility.id
+                    vehicle_type = vlt_info.vehicle_type
 
                     if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
                         baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
@@ -514,8 +531,8 @@ class SCEnvSampler(AbsEnvSampler):
 
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
             if tracker.eval_period[0] <= exp_element.tick < tracker.eval_period[1]:
-                eval_reward += np.sum([self._balance_status[entity_id] 
-                                        for entity_id, entity in self._entity_dict.items() 
+                eval_reward += np.sum([self._balance_status[entity_id]
+                                        for entity_id, entity in self._entity_dict.items()
                                             if issubclass(entity.class_type, StoreProductUnit)])
             consumer_action_dict = {}
             for entity_id in exp_element.agent_state_dict.keys():
@@ -555,15 +572,15 @@ class SCEnvSampler(AbsEnvSampler):
             self._info["demand"] = 1
             self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
 
-            
-        
+
+
         self._eval_reward_list.append(eval_reward)
         self._max_eval_reward = np.max(self._eval_reward_list)
         if eval_reward >= self._max_eval_reward:
             tracker.render(tracker.loc_path, 'a_plot_balance.png', tracker.step_balances, ["OuterRetailerFacility"])
             tracker.render(tracker.loc_path, 'a_plot_reward.png', tracker.step_rewards, ["OuterRetailerFacility"])
             tracker.render_sku(tracker.loc_path)
-            
+
             df_product = pd.DataFrame(self._balance_calculator.product_metric_track)
             df_product = df_product.groupby(['tick', 'id']).first().reset_index()
             df_product.to_csv(f'{tracker.loc_path}/output_product_metrics.csv', index=False)

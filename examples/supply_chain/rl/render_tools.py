@@ -1,6 +1,5 @@
-
-import sys
-sys.path.append("/data/songlei/maro/")
+# import sys
+# sys.path.append("/data/songlei/maro/")
 
 from maro.simulator.scenarios.supply_chain.facilities import facility
 from maro.simulator.scenarios.supply_chain.units.product import ProductUnit
@@ -32,7 +31,7 @@ manufacture_finished_quantity,
 manufacture_manufacture_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
-distribution_pending_product_quantity, 
+distribution_pending_product_quantity,
 distribution_pending_order_number
 """
 
@@ -66,7 +65,7 @@ class SimulationComparisionTrackerHtml:
         self.start_dt = datetime.strptime(start_dt, "%Y-%m-%d")
         self.dir_loc = os.path.dirname(self.log_path2)
         self.df = self._load_data()
-    
+
     def _load_data(self):
         df1 = pd.read_csv(self.log_path1)
         df1.loc[:, "model_name"] = self.model1
@@ -101,17 +100,17 @@ class SimulationComparisionTrackerHtml:
         cols.extend(['turnover_rate', 'available_rate'])
         agg_func = {col: np.mean if col in ['turnover_rate', 'available_rate'] else np.sum
                         for col in cols[2:]}
-        
+
         df = (df_sku[cols]
                 .groupby(['facility_name', 'model_name'])
                 .agg(agg_func)
                 .reset_index()
             )
         df_sku.sort_values(by=['name', 'facility_name', 'model_name'], inplace=True)
-        
+
         details_headers = ['name'] + cols
         details_rows = df_sku[details_headers].values.tolist()
-        
+
 
         df.loc[:, 'x'] = df.apply(lambda x: f"{x['facility_name']}_{x['model_name']}", axis=1)
         x = df['x'].tolist()
@@ -161,7 +160,7 @@ class SimulationComparisionTrackerHtml:
                 idx2 = x.index(f"{facility}_{self.model2}")
                 if y_vals[idx2] > y_vals[idx1]: model2_larger_cnt += 1
                 else: model1_larger_cnt += 1
-            
+
 
             b=(
                 Bar()
@@ -185,7 +184,7 @@ class SimulationComparisionTrackerHtml:
         table.set_global_opts(
             title_opts=ComponentTitleOpts(title="SKU Cost Items", subtitle="")
         )
-        
+
         tab.add(table, "Details")
         tab.render(os.path.join(self.dir_loc, "comparision_overview.html"))
 
@@ -204,7 +203,7 @@ manufacture_finished_quantity,
 manufacture_manufacture_cost,product_price,
 product_check_in_quantity_in_order,product_delay_order_penalty,
 product_transportation_cost
-distribution_pending_product_quantity, 
+distribution_pending_product_quantity,
 distribution_pending_order_number
 """
 class SimulationTrackerHtml:
@@ -307,14 +306,14 @@ class SimulationTrackerHtml:
                                 opts.DataZoomOpts(is_realtime=True, type_="slider", xaxis_index=[0, 1], range_start=45, range_end=65, pos_bottom='55px'),
                             ],
                     )
-                
+
             )
             grid = (
                         Grid()
                         .add(l1, grid_opts=opts.GridOpts(pos_left=100, pos_right=100, height="30%"))
                         .add(l2, grid_opts=opts.GridOpts(pos_left=100, pos_right=100, pos_top="50%", height="30%"))
                     )
-                
+
             # 时间线轮播多图添加图表实例
             tl.add(grid, "{}".format(self.start_dt.strftime("%Y-%m-%d")))
             tl.render(file_name)
@@ -407,14 +406,14 @@ class SimulationTrackerHtml:
                                 opts.DataZoomOpts(is_realtime=True, type_="slider", xaxis_index=[0, 1], range_start=45, range_end=65, pos_bottom='55px'),
                             ],
                 )
-                
+
                 bar_to_render = [("Holding Cost", y_inventory_holding_cost),
                                  ("GMV", y_gmv),
                                  ("Replenishing Cost", y_product_cost),
                                  ("Out of Stock Cost", y_oos_loss),
                                  ("Fulfillment Cost", y_distribution_cost),
                                  ("Manufacture Cost", y_manufacture_cost)]
-                
+
 
                 bar =(Bar()
                     .add_xaxis(xaxis_data=x)
@@ -429,7 +428,7 @@ class SimulationTrackerHtml:
                         itemstyle_opts=opts.ItemStyleOpts(color=COLORS[i]),
                         label_opts=opts.LabelOpts(is_show=True),
                     )
-                    
+
                 bar.set_global_opts(
                         title_opts=opts.TitleOpts(
                             title="Cost Details", subtitle="", pos_left="left", pos_right='left', pos_top='45%'
@@ -452,7 +451,7 @@ class SimulationTrackerHtml:
                         .add(l1, grid_opts=opts.GridOpts(pos_left=100, pos_right=100, height="30%"))
                         .add(bar, grid_opts=opts.GridOpts(pos_left=100, pos_right=100, pos_top="50%", height="30%"))
                     )
-                
+
                 # 时间线轮播多图添加图表实例
                 tl.add(grid, "{}".format(self.start_dt.strftime("%Y-%m-%d")))
                 tl.render(file_name)
@@ -460,7 +459,7 @@ class SimulationTrackerHtml:
 
 class SimulationTracker:
     def __init__(self, episod_len, n_episods, env, exp_name, eval_period=None):
-        self.loc_path = f"/data/songlei/maro/examples/supply_chain/results/{exp_name}/"
+        self.loc_path = f"examples/supply_chain/results/{exp_name}/"
         os.makedirs(self.loc_path, exist_ok=True)
         self.episod_len = episod_len
         if eval_period:
@@ -656,10 +655,10 @@ if __name__ == "__main__":
     # html_render.render_facility()
 
     baseline_model = "baseline"
-    baseline_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST_1.2/output_product_metrics.csv"
+    baseline_loc = "examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST_1.2/output_product_metrics.csv"
 
     RL_model = "MARL"
-    RL_loc = "/data/songlei/maro/examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST_1.5/output_product_metrics.csv"
+    RL_loc = "examples/supply_chain/results/BASELINE_SCI_100SKUs_DIST_1.5/output_product_metrics.csv"
 
     html_comparison_render = SimulationComparisionTrackerHtml(baseline_model, baseline_loc, RL_model, RL_loc)
     html_comparison_render.render_overview()
