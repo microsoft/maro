@@ -209,7 +209,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     Args:
         learn_env (Env): Environment used for training.
-        learn_env (Env): Environment used for testing.
+        test_env (Env): Environment used for testing.
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event.

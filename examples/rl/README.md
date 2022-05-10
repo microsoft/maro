@@ -13,3 +13,7 @@ There are two ways to start the RL job:
 ## Create Your Own Scenarios
 
 You can create your own scenarios by supplying the necessary ingredients without worrying about putting them together in a workflow. It is necessary to create an ``__init__.py`` under your scenario folder (so that it can be treated as a package) and expose a `rl_component_bundle_cls` interface. The MARO's RL workflow will use this interface to create a `RLComponentBundle` instance and start the RL workflow based on it. a `RLComponentBundle` instance defines all necessary components to run a RL job. You can go through the doc string of `RLComponentBundle` for detailed explanation, or just read one of the examples to learn its basic usage.
+
+## Example
+
+For a complete example, please check `examples/cim/rl`.
