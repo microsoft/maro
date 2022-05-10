@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from typing import List, Optional, Union
 
 if typing.TYPE_CHECKING:
-    from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
     from maro.simulator.scenarios.supply_chain.world import World
@@ -109,15 +108,6 @@ class UnitBase:
         """
         if self.data_model is not None:
             self.data_model.set_id(self.id, self.facility.id)
-
-    def on_action_received(self, tick: int, action: SupplyChainAction) -> None:
-        """Action handler for each unit.
-
-        Args:
-            tick (int): Tick when action received.
-            action (object): Action from outside.
-        """
-        pass
 
     def get_unit_info(self) -> BaseUnitInfo:
         return BaseUnitInfo(

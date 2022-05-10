@@ -101,7 +101,12 @@ class ConsumerUnit(ExtendUnitBase):
     at (t0 + vlt), these products can't be consumed to fulfill the demand from the downstreams/customer.
     """
 
-    def on_action_received(self, tick: int, action: ConsumerAction) -> None:
+    def process_actions(self, actions: List[ConsumerAction]) -> None:
+        self._order_product_cost = self._order_base_cost = self._purchased = 0
+        for action in actions:
+            self.process_action(action)
+
+    def process_action(self, action: ConsumerAction) -> None:
         # NOTE: id == 0 means invalid, as our id is 1-based.
         if any([
             action.source_id not in self.source_facility_id_list,
@@ -122,13 +127,13 @@ class ConsumerUnit(ExtendUnitBase):
         source_facility = self.world.get_facility_by_id(action.source_id)
 
         # Here the order cost is calculated by the upper distribution unit, with the sku price in that facility.
-        self._order_product_cost = source_facility.distribution.place_order(tick, order)
+        self._order_product_cost += source_facility.distribution.place_order(order)
         # TODO: the order would be cancelled if there is no available vehicles,
         # TODO: but the cost is not decreased at that time.
 
-        self._order_base_cost = order.quantity * self._unit_order_cost
+        self._order_base_cost += order.quantity * self._unit_order_cost
 
-        self._purchased = action.quantity
+        self._purchased += action.quantity
 
     def pre_step(self, tick: int) -> None:
         if self._received > 0:
@@ -158,9 +163,6 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.order_product_cost = self._order_product_cost
             self.data_model.order_base_cost = self._order_base_cost
             self.data_model.latest_consumptions = 1.0
-
-    def post_step(self, tick: int) -> None:
-        pass
 
     def reset(self) -> None:
         super(ConsumerUnit, self).reset()

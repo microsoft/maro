@@ -4,10 +4,9 @@
 import collections
 import itertools
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 from maro.backends.frame import FrameBase
-from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnit
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
@@ -34,6 +33,7 @@ class World:
 
         # All the entities in the world.
         self.units: Dict[int, UnitBase] = {}
+        self.units_by_type: Dict[Type, List[UnitBase]] = collections.defaultdict(list)
 
         # All the facilities in this world.
         self.facilities: Dict[int, FacilityBase] = {}
@@ -119,6 +119,13 @@ class World:
             Union[FacilityBase, UnitBase]: Unit or facility instance.
         """
         return self.units[entity_id] if entity_id in self.units else self.facilities[entity_id]
+
+    def get_units_by_root_type(self, cls: Type) -> List[UnitBase]:
+        ret = []
+        for unit_type, units in self.units_by_type.items():
+            if issubclass(unit_type, cls):
+                ret += units
+        return ret
 
     def get_node_mapping(self) -> dict:
         """Collect all the entities' information.
@@ -236,7 +243,7 @@ class World:
     def _build_unit(
         self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict,
     ) -> UnitBase:
-        """Build an unit by its configuration.
+        """Build a unit by its configuration.
 
         Args:
             facility (FacilityBase): Facility of this unit belongs to.
@@ -272,6 +279,7 @@ class World:
 
         # Record the id.
         self.units[unit_instance.id] = unit_instance
+        self.units_by_type[type(unit_instance)].append(unit_instance)
 
         return unit_instance
 

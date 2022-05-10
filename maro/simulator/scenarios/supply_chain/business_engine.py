@@ -1,18 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import collections
 import os
-from typing import List
+from typing import Dict, List
 
 from maro.backends.frame import FrameBase
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from .actions import SupplyChainAction
+from .actions import ConsumerAction, ManufactureAction
 from .objects import SupplyChainEntity
 from .parser import ConfigParser, SupplyChainConfiguration
-from .units import ProductUnit
+from .units import ConsumerUnit, DistributionUnit, ManufactureUnit, ProductUnit
 from .world import World
+
+ACTIONS_PROCESS_DONE = "actions_process_done"
+TASK_CONSUMER_ACTION_TEMPLATE = "consumer_{}_process_actions"
+TASK_MANUFACTURE_ACTION_TEMPLATE = "manufacture_{}_process_action"
 
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):
@@ -22,6 +26,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
         self._build_world()
+        self._collect_units()
 
         self._product_units: List[ProductUnit] = []
 
@@ -129,13 +134,57 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
+    def _collect_units(self) -> None:
+        self._consumer_dict: Dict[int, ConsumerUnit] = {}
+        self._manufacture_dict: Dict[int, ManufactureUnit] = {}
+        self._distribution_dict: Dict[int, DistributionUnit] = {}
+        for unit in self.world.get_units_by_root_type(ConsumerUnit):
+            assert isinstance(unit, ConsumerUnit)
+            self._consumer_dict[unit.id] = unit
+        for unit in self.world.get_units_by_root_type(ManufactureUnit):
+            assert isinstance(unit, ManufactureUnit)
+            self._manufacture_dict[unit.id] = unit
+        for unit in self.world.get_units_by_root_type(DistributionUnit):
+            assert isinstance(unit, DistributionUnit)
+            self._distribution_dict[unit.id] = unit
+
     def _on_action_received(self, event: CascadeEvent) -> None:
-        assert isinstance(event.payload, list)
+        tick = event.tick
+
+        # Handle actions
         actions = event.payload
+        assert isinstance(actions, list)
+
+        consumer_actions_by_unit: Dict[int, List[ConsumerAction]] = collections.defaultdict(list)
+        manufacture_actions_by_unit: Dict[int, List[ManufactureAction]] = collections.defaultdict(list)
         for action in actions:
-            assert isinstance(action, SupplyChainAction)
-            entity = self.world.get_entity_by_id(action.id)
-            entity.on_action_received(event.tick, action)
+            if isinstance(action, ConsumerAction):
+                consumer_actions_by_unit[action.id].append(action)
+            elif isinstance(action, ManufactureAction):
+                manufacture_actions_by_unit[action.id].append(action)
+            else:
+                raise ValueError(f"Invalid action type {type(action)}.")
+
+        # Allocate consumer & manufacture actions
+        for unit_id, consumer_actions in consumer_actions_by_unit.items():
+            consumer_unit = self._consumer_dict[unit_id]
+            consumer_unit.process_actions(consumer_actions)
+        for unit_id, manufacture_actions in manufacture_actions_by_unit.items():
+            assert len(manufacture_actions) == 1  # Manufacture unit should has at most one action
+            manufacture_unit = self._manufacture_dict[unit_id]
+            manufacture_unit.process_action(tick, manufacture_actions[0])
+
+        self._step_after_action_received(tick)
+
+    def _step_after_action_received(self, tick: int) -> None:
+        # Process distributions
+        for distribution_unit in self._distribution_dict.values():
+            distribution_unit.try_schedule_orders(tick)
+            distribution_unit.handle_arrival_payloads(tick)
+
+        # Do manufacturing
+        for manufacture_unit in self._manufacture_dict.values():
+            manufacture_unit.execute_manufacture(tick)
 
     def get_metrics(self) -> dict:
         if self._metrics_cache is None:

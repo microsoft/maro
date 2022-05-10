@@ -91,12 +91,11 @@ class DistributionUnit(UnitBase):
             or self._busy_vehicle_num[vehicle_type] < self._vehicle_num[vehicle_type]
         )
 
-    def place_order(self, tick: int, order: Order) -> float:
+    def place_order(self, order: Order) -> float:
         """Place an order in the pending order queue, and calculate the corresponding order fee.
 
         Args:
-            tick (int): tick when order received.
-            order (Order): Order to insert.
+            order (Order): Order to be inserted.
 
         Returns:
             float: The corresponding total order fee, will paid by the consumer.
@@ -108,33 +107,13 @@ class DistributionUnit(UnitBase):
             order.vehicle_type in self.facility.downstream_vlt_infos[order.product_id][order.destination.id],
             order.quantity > 0
         ]):
-            # Try schedule once the order received.
-            if all([
-                self._has_available_vehicle(order.vehicle_type),
-                self._try_load(order.product_id, order.quantity),
-            ]):
-                unit_transportation_cost_per_day = self._schedule_order(tick, order)
-                self._busy_vehicle_num[order.vehicle_type] += 1
-
-                self.transportation_cost[order.product_id] += unit_transportation_cost_per_day
-
-            else:
-                # Append to order queue.
-                self._order_queues[order.vehicle_type].append(order)
-                self._pending_order_number += 1
-                self._total_pending_quantity += order.quantity
-                self._pending_product_quantity[order.product_id] += order.quantity
-                self._is_order_changed = True
-
-                self.delay_order_penalty[order.product_id] += self._unit_delay_order_penalty[order.product_id]
+            self._order_queues[order.vehicle_type].append(order)
+            self._maintain_pending_order_info(order, departure=False)
 
             self.check_in_quantity_in_order[order.product_id] += order.quantity
-
             sku = self.facility.skus[order.product_id]
             order_total_price = sku.price * order.quantity  # TODO: add transportation cost or not?
-
             return order_total_price
-
         else:
             return 0
 
@@ -200,10 +179,16 @@ class DistributionUnit(UnitBase):
         self.transportation_cost.clear()
         self.delay_order_penalty.clear()
 
-    def step(self, tick: int) -> None:
-        # Schedule pending orders and count delay penalty.
+    def _maintain_pending_order_info(self, order: Order, departure: bool) -> None:
+        indicator = 1 if departure else -1
+        self._pending_order_number -= 1 * indicator
+        self._total_pending_quantity -= order.quantity * indicator
+        self._pending_product_quantity[order.product_id] -= order.quantity * indicator
+        self._is_order_changed = True
+
+    def try_schedule_orders(self, tick: int) -> None:
         for vehicle_type in self._vehicle_num.keys():
-            # Schedule if has available vehicle
+            # Schedule if there are available vehicles
             order_load_failed: List[Order] = []
             while all([
                 len(self._order_queues[vehicle_type]) > 0,
@@ -211,13 +196,12 @@ class DistributionUnit(UnitBase):
             ]):
                 order: Order = self._order_queues[vehicle_type].popleft()
                 if self._try_load(order.product_id, order.quantity):
-                    self._schedule_order(tick, order)
+                    unit_transportation_cost_per_day = self._schedule_order(tick, order)
+                    self.transportation_cost[order.product_id] += unit_transportation_cost_per_day * order.quantity
+
                     # The transportation cost of this newly scheduled order would be counted soon, do not count here.
                     self._busy_vehicle_num[vehicle_type] += 1
-                    self._pending_order_number -= 1
-                    self._total_pending_quantity -= order.quantity
-                    self._pending_product_quantity[order.product_id] -= order.quantity
-                    self._is_order_changed = True
+                    self._maintain_pending_order_info(order, departure=True)
                 else:
                     order_load_failed.append(order)
             self._order_queues[vehicle_type].extend(order_load_failed)
@@ -226,16 +210,18 @@ class DistributionUnit(UnitBase):
             for order in self._order_queues[vehicle_type]:
                 self.delay_order_penalty[order.product_id] += self._unit_delay_order_penalty[order.product_id]
 
-        # Update transportation cost.
+    def step(self, tick: int) -> None:
+        # Update transportation cost for orders that are already on the way.
         for payload_list in self._payload_on_the_way.values():
             for payload in payload_list:
                 self.transportation_cost[payload.order.product_id] += (
                     payload.transportation_cost_per_day * payload.payload
                 )
 
-    def post_step(self, tick: int) -> None:
-        super(DistributionUnit, self).post_step(tick)
+        # Schedule orders
+        self.try_schedule_orders(tick)
 
+    def handle_arrival_payloads(self, tick: int) -> None:
         # Handle arrival payloads.
         for payload in self._payload_on_the_way[tick]:
             if self._try_unload(payload):
