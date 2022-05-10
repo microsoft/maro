@@ -11,12 +11,6 @@ class VehicleSelection(Enum):
     CHEAPEST_TOTAL_COST = 3  # Always choosing the one with cheapest total cost (products, order base, transportation)
 
 
-env_conf = {
-    "scenario": "supply_chain",
-    "topology": "plant",
-    "durations": 100,  # number of ticks per episode
-}
-
 distribution_features = ("pending_product_quantity", "pending_order_number")
 IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER = 0, 1
 
@@ -26,17 +20,61 @@ IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND = 0, 1, 2
 consumer_features = ("order_base_cost", "latest_consumptions")
 IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
-NUM_CONSUMER_ACTIONS = 10
+
+vlt_buffer_days = 1.0
+num_products_to_sample = 500
+
+ALGO="PPO"
+assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
+use_or_policy = ALGO == "EOQ"
+
+TEAM_REWARD = False
+SHARED_MODEL = False
+
+OR_NUM_CONSUMER_ACTIONS = 20
+NUM_CONSUMER_ACTIONS = 3
+OR_MANUFACTURE_ACTIONS = 20
+
+TRAIN_STEPS = 180
+EVAL_STEPS = 60
+
+
+env_conf = {
+    "scenario": "supply_chain",
+    # "topology": f"SCI_{num_products_to_sample}",
+    "topology": "SCI_1.1",
+    # "topology": "super_vendor",
+    "durations": TRAIN_STEPS,  # number of ticks per episode
+}
+
+test_env_conf = {
+    "scenario": "supply_chain",
+    # "topology": f"SCI_{num_products_to_sample}",
+    "topology": "SCI_1.1",
+    # "topology": "super_vendor",
+    "durations": TRAIN_STEPS + EVAL_STEPS,  # number of ticks per episode
+}
 
 workflow_settings: dict = {
     "consumption_hist_len": 4,
     "sale_hist_len": 4,
     "pending_order_len": 4,
-    # "constraint_state_hist_len": 8,
-    "or_policy_vlt_buffer_days": 7,
-    "reward_normalization": 1e7,
+    "or_policy_vlt_buffer_days": vlt_buffer_days,
+    "reward_normalization": 1.0,
     "default_vehicle_type": None,
-    "vehicle_selection_method": VehicleSelection.FIRST_ONE,
+    "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
 }
 
-use_or_policy = True
+EXP_NAME = f"{env_conf['topology']}_{ALGO}_{workflow_settings['vehicle_selection_method']}"
+
+# EXP_NAME = f"{ALGO}_SCI_{num_products_to_sample}SKUs_DIST_{vlt_buffer_days}"
+# if TEAM_REWARD:
+#     EXP_NAME += '_TR'
+# if SHARED_MODEL:
+#     EXP_NAME += "_SM"
+# 10: 1934612.420211792
+# 20: 14355712.158203125
+# 50: 9710599.291015625
+# 100: 36535436.5625
+
+render_log_path = f"examples/supply_chain/results/{EXP_NAME}/"
