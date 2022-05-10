@@ -5,7 +5,6 @@ import os
 from typing import Dict, List
 
 from maro.backends.frame import FrameBase
-
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
