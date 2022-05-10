@@ -165,10 +165,6 @@ def start_rl_job_with_docker_compose(
         "volumes": [f"./{src}:{dst}" for src, dst in parser.get_path_mapping(containerize=True).items()]
     }
 
-    print([f"{src}:{dst}" for src, dst in parser.get_path_mapping(containerize=True).items()])
-    for component, (script, env) in parser.get_job_spec(containerize=True).items():
-        print(component, script, env)
-
     job_name = parser.config["job"]
     manifest = {
         "version": "3.9",
