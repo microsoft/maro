@@ -7,7 +7,8 @@ from .datamodels import (
 )
 from .facilities import FacilityBase, RetailerFacility, SupplierFacility, WarehouseFacility
 from .units import (
-    ConsumerUnit, DistributionUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, SellerUnit, StorageUnit, UnitBase
+    ConsumerUnit, DistributionUnit, ExtendUnitBase, ManufactureUnit, ProductUnit, SellerUnit, StorageUnit,
+    StoreProductUnit, UnitBase,
 )
 
 __all__ = [
@@ -15,5 +16,5 @@ __all__ = [
     "ConsumerDataModel", "DistributionDataModel", "ManufactureDataModel", "SellerDataModel", "StorageDataModel",
     "FacilityBase", "RetailerFacility", "SupplierFacility", "WarehouseFacility",
     "ConsumerUnit", "DistributionUnit", "ExtendUnitBase", "ManufactureUnit", "ProductUnit", "SellerUnit",
-    "StorageUnit", "UnitBase",
+    "StorageUnit", "StoreProductUnit", "UnitBase"
 ]

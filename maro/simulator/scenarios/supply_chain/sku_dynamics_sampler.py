@@ -104,8 +104,8 @@ class OneTimeSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
                 sku_id = self._world.sku_name2id_mapping[sku_name]
 
                 self._cache[target_tick][sku_id] = {}
-                for attr_name, item in self._info_dict.items():
-                    self._cache[target_tick][sku_id][attr_name] = item.type_name(row[item.column_name])
+                for attr_name, item in self._info_dict.items():  # TODO: check why remove "float()"
+                    self._cache[target_tick][sku_id][attr_name] = item.type_name(float(row[item.column_name]))
 
 
 class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):

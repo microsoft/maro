@@ -67,6 +67,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy: ValueBasedPolicy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
+        self._device = None
 
     def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
         """Compute the loss of the batch.

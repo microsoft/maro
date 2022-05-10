@@ -7,6 +7,7 @@ from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import torch
+from torch.distributions import Categorical
 
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
@@ -144,7 +145,7 @@ class ACBasedOps(AbsTrainOps):
             kl = (logps_old - logps).mean().item()
             early_stop = (kl >= 0.01 * 1.5)  # TODO
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
+            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages))
         else:
             actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
             early_stop = False
