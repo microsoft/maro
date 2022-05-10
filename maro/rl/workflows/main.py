@@ -62,8 +62,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
             logger=logger,
         )
     else:
-        env_sampler = rl_component_bundle.get_env_sampler()
-        env_sampler.build(rl_component_bundle=rl_component_bundle)
+        env_sampler = rl_component_bundle.env_sampler
         if train_mode != "simple":
             for policy_name, device_name in rl_component_bundle.device_mapping.items():
                 env_sampler.assign_policy_to_device(policy_name, get_torch_device(device_name))
@@ -174,8 +173,7 @@ def evaluate_only_workflow(rl_component_bundle: RLComponentBundle) -> None:
             logger=logger,
         )
     else:
-        env_sampler = rl_component_bundle.get_env_sampler()
-        env_sampler.build(rl_component_bundle=rl_component_bundle)
+        env_sampler = rl_component_bundle.env_sampler
 
     load_path = get_env("LOAD_PATH", required=False)
     load_episode = int_or_none(get_env("LOAD_EPISODE", required=False))
@@ -203,5 +201,4 @@ if __name__ == "__main__":
 
     rl_component_bundle_cls: Type[RLComponentBundle] = getattr(module, "rl_component_bundle_cls")
     rl_component_bundle = rl_component_bundle_cls()
-    rl_component_bundle.complete_resources()  # Must be called
     main(rl_component_bundle, args=get_args())

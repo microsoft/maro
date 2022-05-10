@@ -36,8 +36,7 @@ class RolloutWorker(AbsWorker):
         super(RolloutWorker, self).__init__(
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
-        self._env_sampler = rl_component_bundle.get_env_sampler()
-        self._env_sampler.build(rl_component_bundle=rl_component_bundle)
+        self._env_sampler = rl_component_bundle.env_sampler
 
     def _compute(self, msg: list) -> None:
         """Perform a full or partial episode of roll-out for sampling or evaluation.

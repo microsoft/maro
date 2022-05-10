@@ -43,6 +43,11 @@ class RLComponentBundle(object):
 
         self._policy_cache: Optional[Dict[str, AbsPolicy]] = None
 
+        # Will be created when `env_sampler()` is first called
+        self._env_sampler: Optional[AbsEnvSampler] = None
+
+        self._complete_resources()
+
     ########################################################################################
     # Users MUST implement the following methods                                           #
     ########################################################################################
@@ -132,7 +137,14 @@ class RLComponentBundle(object):
     ########################################################################################
     # Methods invisible to users                                                           #
     ########################################################################################
-    def complete_resources(self) -> None:
+    @property
+    def env_sampler(self) -> AbsEnvSampler:
+        if self._env_sampler is None:
+            self._env_sampler = self.get_env_sampler()
+            self._env_sampler.build(self)
+        return self._env_sampler
+
+    def _complete_resources(self) -> None:
         """Generate all attributes by calling user-defined logics. Do necessary checking and transformations.
         """
         env_config = self.get_env_config()

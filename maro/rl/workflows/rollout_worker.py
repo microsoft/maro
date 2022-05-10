@@ -18,7 +18,6 @@ if __name__ == "__main__":
 
     rl_component_bundle_cls: Type[RLComponentBundle] = getattr(module, "rl_component_bundle_cls")
     rl_component_bundle = rl_component_bundle_cls()
-    rl_component_bundle.complete_resources()  # Must be called
 
     worker_idx = int_or_none(get_env("ID"))
     logger = LoggerV2(
