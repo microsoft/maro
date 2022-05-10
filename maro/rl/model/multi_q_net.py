@@ -6,7 +6,7 @@ from typing import List
 
 import torch
 
-from maro.rl.utils import SHAPE_CHECK_FLAG, match_shape
+from maro.rl.utils import match_shape, SHAPE_CHECK_FLAG
 
 from .abs_net import AbsNet
 

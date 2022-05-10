@@ -1,16 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import collections
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict
 
-import numpy as np
 import torch
 
 from maro.rl.policy import RLPolicy, ValueBasedPolicy
-from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, remote, RemoteOps, SingleAgentTrainer, TrainerParams
+from maro.rl.utils import get_torch_device, ndarray_to_tensor, TransitionBatch
 from maro.utils import clone
 
 
@@ -48,7 +45,7 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], RLPolicy],
+        policy_creator: Callable[[], RLPolicy],
         parallelism: int = 1,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,

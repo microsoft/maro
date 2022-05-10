@@ -39,4 +39,6 @@ state_dim = (
     + len(vessel_attributes)
 )
 
+action_num = len(action_shaping_conf["action_space"])
+
 algorithm = "ppo"  # ac, ppo, dqn or discrete_maddpg

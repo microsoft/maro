@@ -1,16 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 import argparse
+import importlib
 import os
+import sys
 import time
-from typing import List
+from typing import List, Type
 
+from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.rollout import BatchEnvSampler, ExpElement
 from maro.rl.training import TrainingManager
-from maro.rl.training.utils import get_latest_ep
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
-from maro.rl.workflows.scenario import Scenario
+from maro.rl.utils.training import get_latest_ep
 from maro.utils import LoggerV2
 
 
@@ -20,14 +22,14 @@ def get_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main(scenario: Scenario, args: argparse.Namespace) -> None:
+def main(rl_component_bundle: RLComponentBundle, args: argparse.Namespace) -> None:
     if args.evaluate_only:
-        evaluate_only_workflow(scenario)
+        evaluate_only_workflow(rl_component_bundle)
     else:
-        training_workflow(scenario)
+        training_workflow(rl_component_bundle)
 
 
-def training_workflow(scenario: Scenario) -> None:
+def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
     num_episodes = int(get_env("NUM_EPISODES"))
     num_steps = int_or_none(get_env("NUM_STEPS", required=False))
     min_n_sample = int_or_none(get_env("MIN_N_SAMPLE"))
@@ -46,16 +48,9 @@ def training_workflow(scenario: Scenario) -> None:
     parallel_rollout = env_sampling_parallelism is not None or env_eval_parallelism is not None
     train_mode = get_env("TRAIN_MODE")
 
-    agent2policy = scenario.agent2policy
-    policy_creator = scenario.policy_creator
-    trainer_creator = scenario.trainer_creator
     is_single_thread = train_mode == "simple" and not parallel_rollout
     if is_single_thread:
-        # If running in single thread mode, create policy instances here and reuse then in rollout and training.
-        # In other words, `policy_creator` will return a policy instance that has been already created in advance
-        # instead of create a new policy instance.
-        policy_dict = {name: get_policy_func(name) for name, get_policy_func in policy_creator.items()}
-        policy_creator = {name: lambda name: policy_dict[name] for name in policy_dict}
+        rl_component_bundle.pre_create_policy_instances()
 
     if parallel_rollout:
         env_sampler = BatchEnvSampler(
@@ -67,28 +62,19 @@ def training_workflow(scenario: Scenario) -> None:
             logger=logger,
         )
     else:
-        env_sampler = scenario.env_sampler_creator(policy_creator)
+        env_sampler = rl_component_bundle.env_sampler
         if train_mode != "simple":
-            for policy_name, device_name in scenario.device_mapping.items():
-                env_sampler.rl_policy_dict[policy_name].to_device(get_torch_device(device_name))
+            for policy_name, device_name in rl_component_bundle.device_mapping.items():
+                env_sampler.assign_policy_to_device(policy_name, get_torch_device(device_name))
 
     # evaluation schedule
     eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
-    if scenario.trainable_policies is None:
-        trainable_policies = set(policy_creator.keys())
-    else:
-        trainable_policies = set(scenario.trainable_policies)
-
-    trainable_policy_creator = {name: func for name, func in policy_creator.items() if name in trainable_policies}
-    trainable_agent2policy = {id_: name for id_, name in agent2policy.items() if name in trainable_policies}
     training_manager = TrainingManager(
-        policy_creator=trainable_policy_creator,
-        trainer_creator=trainer_creator,
-        agent2policy=trainable_agent2policy,
-        device_mapping=scenario.device_mapping if train_mode == "simple" else {},
+        rl_component_bundle=rl_component_bundle,
+        explicit_assign_device=(train_mode == "simple"),
         proxy_address=None if train_mode == "simple" else (
             get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
         ),
@@ -136,8 +122,7 @@ def training_workflow(scenario: Scenario) -> None:
 
             collect_time += time.time() - tc0
 
-        if scenario.post_collect:
-            scenario.post_collect(total_info_list, ep, -1)  # TODO
+        env_sampler.post_collect(total_info_list, ep)
 
         logger.info(f"Roll-out completed for episode {ep}. Training started...")
         tu0 = time.time()
@@ -157,15 +142,14 @@ def training_workflow(scenario: Scenario) -> None:
             result = env_sampler.eval(
                 policy_state=training_manager.get_policy_state() if not is_single_thread else None
             )
-            if scenario.post_evaluate:
-                scenario.post_evaluate(result["info"], ep)
+            env_sampler.post_evaluate(result["info"], ep)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()
     training_manager.exit()
 
 
-def evaluate_only_workflow(scenario: Scenario) -> None:
+def evaluate_only_workflow(rl_component_bundle: RLComponentBundle) -> None:
     logger = LoggerV2(
         "MAIN",
         dump_path=get_env("LOG_PATH"),
@@ -179,7 +163,6 @@ def evaluate_only_workflow(scenario: Scenario) -> None:
     env_eval_parallelism = int_or_none(get_env("ENV_EVAL_PARALLELISM", required=False))
     parallel_rollout = env_sampling_parallelism is not None or env_eval_parallelism is not None
 
-    policy_creator = scenario.policy_creator
     if parallel_rollout:
         env_sampler = BatchEnvSampler(
             sampling_parallelism=env_sampling_parallelism,
@@ -190,7 +173,7 @@ def evaluate_only_workflow(scenario: Scenario) -> None:
             logger=logger,
         )
     else:
-        env_sampler = scenario.env_sampler_creator(policy_creator)
+        env_sampler = rl_component_bundle.env_sampler
 
     load_path = get_env("LOAD_PATH", required=False)
     load_episode = int_or_none(get_env("LOAD_EPISODE", required=False))
@@ -204,14 +187,18 @@ def evaluate_only_workflow(scenario: Scenario) -> None:
         logger.info(f"Loaded policies {loaded} into env sampler from {path}")
 
     result = env_sampler.eval()
-    if scenario.post_evaluate:
-        scenario.post_evaluate(result["info"], -1)
+    env_sampler.post_evaluate(result["info"], -1)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()
 
 
 if __name__ == "__main__":
-    # get user-defined scenario ingredients
-    run_scenario = Scenario(get_env("SCENARIO_PATH"))
-    main(run_scenario, args=get_args())
+    scenario_path = get_env("SCENARIO_PATH")
+    scenario_path = os.path.normpath(scenario_path)
+    sys.path.insert(0, os.path.dirname(scenario_path))
+    module = importlib.import_module(os.path.basename(scenario_path))
+
+    rl_component_bundle_cls: Type[RLComponentBundle] = getattr(module, "rl_component_bundle_cls")
+    rl_component_bundle = rl_component_bundle_cls()
+    main(rl_component_bundle, args=get_args())

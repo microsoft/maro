@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.model import ContinuousPolicyNet
+
 from .abs_policy import RLPolicy
 
 

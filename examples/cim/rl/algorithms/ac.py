@@ -49,7 +49,7 @@ class MyCriticNet(VNet):
         return self._critic(states).squeeze(-1)
 
 
-def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
+def get_ac_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 

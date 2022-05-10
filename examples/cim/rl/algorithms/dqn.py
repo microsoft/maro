@@ -33,7 +33,7 @@ class MyQNet(DiscreteQNet):
         return self._fc(states)
 
 
-def get_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
+def get_dqn_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
     return ValueBasedPolicy(
         name=name,
         q_net=MyQNet(state_dim, action_num),

@@ -41,10 +41,11 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
 class ACBasedOps(AbsTrainOps):
     """Base class of Actor-Critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr
     """
+
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], RLPolicy],
+        policy_creator: Callable[[], RLPolicy],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         reward_discount: float = 0.9,
@@ -72,38 +73,41 @@ class ACBasedOps(AbsTrainOps):
 
         self._device = None
 
-    def pre_set_batch(self, batch: TransitionBatch) -> None:
-        self._states = ndarray_to_tensor(batch.states, device=self._device)
-        self._returns = ndarray_to_tensor(batch.returns, device=self._device)
-        self._actions = ndarray_to_tensor(batch.actions, device=self._device)
-        self._advantages = ndarray_to_tensor(batch.advantages, device=self._device)
-        self._logps_old = ndarray_to_tensor(batch.old_logps, device=self._device)
-        if self._is_discrete_action:
-            self._actions = self._actions.long()
-
-    def _get_critic_loss(self) -> torch.Tensor:
+    def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
 
         Returns:
             loss (torch.Tensor): The critic loss of the batch.
         """
+        states = ndarray_to_tensor(batch.states, device=self._device)
+        returns = ndarray_to_tensor(batch.returns, device=self._device)
+
         self._v_critic_net.train()
-        state_values = self._v_critic_net.v_values(self._states)
-        return self._critic_loss_func(state_values, self._returns)
+        state_values = self._v_critic_net.v_values(states)
+        return self._critic_loss_func(state_values, returns)
 
     @remote
-    def get_critic_grad(self) -> Dict[str, torch.Tensor]:
+    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         """Compute the critic network's gradients of a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
 
         Returns:
             grad (torch.Tensor): The critic gradient of the batch.
         """
-        return self._v_critic_net.get_gradients(self._get_critic_loss())
+        return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
 
-    def update_critic(self) -> None:
+    def update_critic(self, batch: TransitionBatch) -> None:
         """Update the critic network using a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
         """
-        self._v_critic_net.step(self._get_critic_loss())
+        self._v_critic_net.step(self._get_critic_loss(batch))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
         """Update the critic network with remotely computed gradients.
@@ -114,8 +118,11 @@ class ACBasedOps(AbsTrainOps):
         self._v_critic_net.train()
         self._v_critic_net.apply_gradients(grad_dict)
 
-    def _get_actor_loss(self) -> Tuple[torch.Tensor, bool]:
+    def _get_actor_loss(self, batch: TransitionBatch) -> Tuple[torch.Tensor, bool]:
         """Compute the actor loss of the batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
 
         Returns:
             loss (torch.Tensor): The actor loss of the batch.
@@ -124,48 +131,65 @@ class ACBasedOps(AbsTrainOps):
         assert isinstance(self._policy, DiscretePolicyGradient) or isinstance(self._policy, ContinuousRLPolicy)
         self._policy.train()
 
-        logps = self._policy.get_states_actions_logps(self._states, self._actions)
+        states = ndarray_to_tensor(batch.states, device=self._device)
+        actions = ndarray_to_tensor(batch.actions, device=self._device)
+        advantages = ndarray_to_tensor(batch.advantages, device=self._device)
+        logps_old = ndarray_to_tensor(batch.old_logps, device=self._device)
+        if self._is_discrete_action:
+            actions = actions.long()
+
+        logps = self._policy.get_states_actions_logps(states, actions)
         if self._clip_ratio is not None:
-            ratio = torch.exp(logps - self._logps_old)
-            kl = (self._logps_old - logps).mean().item()
+            ratio = torch.exp(logps - logps_old)
+            kl = (logps_old - logps).mean().item()
             early_stop = (kl >= 0.01 * 1.5)  # TODO
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-            actor_loss = -(torch.min(ratio * self._advantages, clipped_ratio * self._advantages)).mean()
+            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
         else:
-            actor_loss = -(logps * self._advantages).mean()  # I * delta * log pi(a|s)
+            actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
             early_stop = False
 
         return actor_loss, early_stop
 
     @remote
-    def get_actor_grad(self) -> Tuple[Dict[str, torch.Tensor], bool]:
+    def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
         """Compute the actor network's gradients of a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
 
         Returns:
             grad (torch.Tensor): The actor gradient of the batch.
             early_stop (bool): Early stop indicator.
         """
-        loss, early_stop = self._get_actor_loss()
+        loss, early_stop = self._get_actor_loss(batch)
         return self._policy.get_gradients(loss), early_stop
 
-    def update_actor(self) -> bool:
+    def update_actor(self, batch: TransitionBatch) -> bool:
         """Update the actor network using a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
 
         Returns:
             early_stop (bool): Early stop indicator.
         """
-        loss, early_stop = self._get_actor_loss()
+        loss, early_stop = self._get_actor_loss(batch)
         self._policy.train_step(loss)
         return early_stop
 
-    def update_actor_with_grad(self, grad_dict: dict) -> None:
+    def update_actor_with_grad(self, grad_dict_and_early_stop: Tuple[dict, bool]) -> bool:
         """Update the actor network with remotely computed gradients.
 
         Args:
-            grad_dict (dict): Gradients.
+            grad_dict_and_early_stop (Tuple[dict, bool]): Gradients and early stop indicator.
+
+        Returns:
+            early stop indicator
         """
         self._policy.train()
-        self._policy.apply_gradients(grad_dict)
+        self._policy.apply_gradients(grad_dict_and_early_stop[0])
+        return grad_dict_and_early_stop[1]
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -258,18 +282,22 @@ class ACBasedTrainer(SingleAgentTrainer):
     def train_step(self) -> None:
         assert isinstance(self._ops, ACBasedOps)
 
-        self._ops.pre_set_batch(self._get_batch())
+        batch = self._get_batch()
         for _ in range(self._params.grad_iters):
-            self._ops.update_critic()
+            self._ops.update_critic(batch)
 
         for _ in range(self._params.grad_iters):
-            early_stop = self._ops.update_actor()
+            early_stop = self._ops.update_actor(batch)
             if early_stop:
                 break
 
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
-        self._ops.pre_set_batch(self._get_batch())
+
+        batch = self._get_batch()
         for _ in range(self._params.grad_iters):
-            self._ops.update_critic_with_grad(await self._ops.get_critic_grad())
-            self._ops.update_actor_with_grad(await self._ops.get_actor_grad())
+            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
+
+        for _ in range(self._params.grad_iters):
+            if self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch)):  # early stop
+                break

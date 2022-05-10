@@ -3,7 +3,7 @@
 
 from .proxy import TrainingProxy
 from .replay_memory import FIFOMultiReplayMemory, FIFOReplayMemory, RandomMultiReplayMemory, RandomReplayMemory
-from .train_ops import AbsTrainOps, RemoteOps, remote
+from .train_ops import AbsTrainOps, remote, RemoteOps
 from .trainer import AbsTrainer, MultiAgentTrainer, SingleAgentTrainer, TrainerParams
 from .training_manager import TrainingManager
 from .worker import TrainOpsWorker
