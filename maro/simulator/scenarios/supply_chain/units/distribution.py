@@ -108,7 +108,7 @@ class DistributionUnit(UnitBase):
             order.quantity > 0
         ]):
             self._order_queues[order.vehicle_type].append(order)
-            self._maintain_vehicle_state(order, departure=False)
+            self._maintain_pending_order_info(order, departure=False)
 
             self.check_in_quantity_in_order[order.product_id] += order.quantity
             sku = self.facility.skus[order.product_id]
@@ -179,7 +179,7 @@ class DistributionUnit(UnitBase):
         self.transportation_cost.clear()
         self.delay_order_penalty.clear()
 
-    def _maintain_vehicle_state(self, order: Order, departure: bool) -> None:
+    def _maintain_pending_order_info(self, order: Order, departure: bool) -> None:
         indicator = 1 if departure else -1
         self._pending_order_number -= 1 * indicator
         self._total_pending_quantity -= order.quantity * indicator
@@ -201,7 +201,7 @@ class DistributionUnit(UnitBase):
 
                     # The transportation cost of this newly scheduled order would be counted soon, do not count here.
                     self._busy_vehicle_num[vehicle_type] += 1
-                    self._maintain_vehicle_state(order, departure=True)
+                    self._maintain_pending_order_info(order, departure=True)
                 else:
                     order_load_failed.append(order)
             self._order_queues[vehicle_type].extend(order_load_failed)
