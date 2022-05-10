@@ -29,6 +29,9 @@ def get_resource_client(subscription: str):
 def set_env_credentials(dump_path: str, service_principal_name: str):
     os.makedirs(dump_path, exist_ok=True)
     service_principal_file_path = os.path.join(dump_path, f"{service_principal_name}.json")
+    # If the service principal file does not exist, create one using the az CLI command.
+    # For details on service principals, refer to
+    # https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals
     if not os.path.exists(service_principal_file_path):
         with open(service_principal_file_path, 'w') as fp:
             subprocess.run(

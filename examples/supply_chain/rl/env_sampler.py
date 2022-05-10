@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import random
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
@@ -22,7 +23,7 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 
 from .algorithms.rule_based import ConsumerBasePolicy
 from .config import (
-    consumer_features, distribution_features, env_conf, seller_features, workflow_settings,
+    consumer_features, distribution_features, env_conf, seller_features, workflow_settings, VehicleSelection
 )
 from .or_agent_state import ScOrAgentStates
 from .policies import agent2policy, trainable_policies
@@ -349,8 +350,22 @@ class SCEnvSampler(AbsEnvSampler):
                     ]
 
                 if len(vlt_info_candidates):
-                    src_f_id = vlt_info_candidates[0].src_facility.id
-                    vehicle_type = vlt_info_candidates[0].vehicle_type
+                    vehicle_selection = self._env_settings["vehicle_selection_method"]
+                    if vehicle_selection == VehicleSelection.FIRST_ONE:
+                        vlt_info = vlt_info_candidates[0]
+                    elif vehicle_selection == VehicleSelection.RANDOM:
+                        vlt_info = random.choice(vlt_info_candidates)
+                    elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
+                        vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
+                    elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
+                        # As the product cost and order base cost are only related to product quantity,
+                        # the transportation cost is the difference of different vehicle type selections.
+                        vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
+                    else:
+                        raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
+
+                    src_f_id = vlt_info.src_facility.id
+                    vehicle_type = vlt_info.vehicle_type
 
                     try:
                         action_quantity = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])

@@ -7,7 +7,7 @@ import typing
 from dataclasses import dataclass
 from typing import Optional, Union
 
-from .unitbase import UnitBase, BaseUnitInfo
+from .unitbase import BaseUnitInfo, UnitBase
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase

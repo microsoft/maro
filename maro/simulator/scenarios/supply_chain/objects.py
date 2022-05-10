@@ -77,6 +77,12 @@ class VendorLeadingTimeInfo:
     vlt: int
     unit_transportation_cost: float  # Unit cost by day, the whole trip cost would be: unit cost * (vlt + 1)
 
+    def __repr__(self) -> str:
+        return (
+            f"Vehicle {self.vehicle_type} from facility {self.src_facility.name}: "
+            f"({self.unit_transportation_cost}, {self.vlt} days)"
+        )
+
 
 @dataclass
 class LeadingTimeInfo:
@@ -84,6 +90,12 @@ class LeadingTimeInfo:
     vehicle_type: str
     vlt: int
     unit_transportation_cost: float  # Unit cost by day, the whole trip cost would be: unit cost * (vlt + 1)
+
+    def __repr__(self) -> str:
+        return (
+            f"Vehicle {self.vehicle_type} to facility {self.dest_facility.name}: "
+            f"({self.unit_transportation_cost}, {self.vlt} days)"
+        )
 
 
 @dataclass
