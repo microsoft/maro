@@ -14,6 +14,8 @@ class DataModelBase(NodeBase):
     facility_id = NodeAttribute(AttributeType.Int)
 
     def __init__(self) -> None:
+        super(DataModelBase, self).__init__()
+
         self._unit_id = 0
         self._facility_id = 0
 
@@ -38,7 +40,7 @@ class DataModelBase(NodeBase):
 
         Args:
             unit_id (int): Id of related unit.
-            facility_id (int)： Id of this unit belongs to.
+            facility_id (int): Id of this unit belongs to.
         """
         self._unit_id = unit_id
         self._facility_id = facility_id

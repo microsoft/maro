@@ -1224,13 +1224,13 @@ slots: 1
 
 Price per product.
 
-order_cost
+order_base_cost
 **********
 
 type: float
 slots: 1
 
-Cost per order.
+Base cost for orders in this tick.
 
 reward_discount
 ***************
@@ -1243,21 +1243,37 @@ Reward discount from action.
 manufacture
 +++++++++++
 
-manufacture_quantity
+start_manufacture_quantity
+**************************
+
+type: unsigned int
+slots: 1
+
+How many products start to produce at current tick, controlled by action.
+
+in_pipeline_quantity
 ********************
 
 type: unsigned int
 slots: 1
 
-How many products being produced at current tick, controlled by action.
+How many products in manufacture pipeline at current tick, will lead to manufacture cost.
 
-product_unit_cost
+finished_quantity
+*****************
+
+type: unsigned int
+slots: 1
+
+How many products are finished and exit manufacture pipeline at current tick.
+
+manufacture_cost
 *****************
 
 type: float
 slots: 1
 
-Cost to procedue a product.
+Manufacture cost spent to produce products in pipeline at current tick.
 
 seller
 ++++++

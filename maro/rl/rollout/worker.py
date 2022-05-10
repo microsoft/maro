@@ -48,10 +48,13 @@ class RolloutWorker(AbsWorker):
         else:
             req = bytes_to_pyobj(msg[-1])
             assert isinstance(req, dict)
-            assert req["type"] in {"sample", "eval"}
+            assert req["type"] in {"sample", "eval", "set_policy_state"}
             if req["type"] == "sample":
                 result = self._env_sampler.sample(policy_state=req["policy_state"], num_steps=req["num_steps"])
-            else:
+            elif req["type"] == "eval":
                 result = self._env_sampler.eval(policy_state=req["policy_state"])
+            else:
+                self._env_sampler.set_policy_state(policy_state_dict=req["policy_state"])
+                result = True
 
             self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))

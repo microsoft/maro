@@ -9,4 +9,3 @@ from .manufacture import ManufactureDataModel
 from .product import ProductDataModel
 from .seller import SellerDataModel
 from .storage import StorageDataModel
-from .vehicle import VehicleDataModel

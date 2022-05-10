@@ -10,25 +10,22 @@ from .extend import ExtendDataModel
 @node("consumer")
 class ConsumerDataModel(ExtendDataModel):
     """Data model for consumer unit."""
-    purchased = NodeAttribute(AttributeType.UInt)
+    # Can be updated in on_order_reception() <- called by DistributionUnit.post_step().
     received = NodeAttribute(AttributeType.UInt)
-    order_product_cost = NodeAttribute(AttributeType.UInt)
+
+    # Below 4 attributes, can be updated in ConsumerUnit.on_action_received() <- triggered by ConsumerAction.
+    purchased = NodeAttribute(AttributeType.UInt)
+    order_product_cost = NodeAttribute(AttributeType.Float)  # order.quantity * upstream.price
+    order_base_cost = NodeAttribute(AttributeType.Float)  # order.quantity * unit_order_cost
 
     latest_consumptions = NodeAttribute(AttributeType.Float)
 
-    order_cost = NodeAttribute(AttributeType.Float)
 
     def __init__(self) -> None:
         super(ConsumerDataModel, self).__init__()
 
-        self._order_cost = 0
-
-    def initialize(self, order_cost: int) -> None:
-        self._order_cost = order_cost
-
+    def initialize(self) -> None:
         self.reset()
 
     def reset(self) -> None:
         super(ConsumerDataModel, self).reset()
-
-        self.order_cost = self._order_cost

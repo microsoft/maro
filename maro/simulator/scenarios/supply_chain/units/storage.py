@@ -1,28 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from .unitbase import BaseUnitInfo, UnitBase
+from ..objects import SubStorageConfig
 
-DEFAULT_SUB_STORAGE_ID = 0
-
-
-@dataclass
-class SubStorageConfig:
-    id: int
-    capacity: int = 100  # TODO: Is it a MUST config or could it be default?
-    unit_storage_cost: int = 1
-
-
-def parse_storage_config(config: dict) -> List[SubStorageConfig]:  # TODO: here or in parser
-    if not isinstance(config, list):
-        id = config.get("id", DEFAULT_SUB_STORAGE_ID)
-        return [SubStorageConfig(id=id, **config)]
-    return [SubStorageConfig(**cfg) for cfg in config]
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 class AddStrategy(Enum):
@@ -46,13 +38,17 @@ class StorageUnitInfo(BaseUnitInfo):
 class StorageUnit(UnitBase):
     """Unit that used to store skus."""
 
-    def __init__(self) -> None:
-        super(StorageUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+    ) -> None:
+        super(StorageUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config,
+        )
 
         # Key: Sub-Storage ID
         self._capacity_dict: Dict[int, int] = {}
         self._remaining_space_dict: Dict[int, int] = {}
-        self._unit_cost_dict: Dict[int, float] = {}
         self._total_capacity: int = 0
 
         # 1st-key: the Sub-Storage ID, 2nd-key: the SKU ID, value: the upper bound.
@@ -81,12 +77,13 @@ class StorageUnit(UnitBase):
         super(StorageUnit, self).initialize()
 
         # Initialize capacity info.
-        self.config: List[SubStorageConfig] = parse_storage_config(self.config)
-        for sub_config in self.config:
+        assert isinstance(self.config, dict)
+        assert len(self.config) > 0
+        for sub_config in self.config.values():
+            assert isinstance(sub_config, SubStorageConfig)
             assert sub_config.id not in self._capacity_dict, f"Sub-Storage {sub_config.id} already exist!"
             self._capacity_dict[sub_config.id] = sub_config.capacity
             self._remaining_space_dict[sub_config.id] = sub_config.capacity
-            self._unit_cost_dict[sub_config.id] = sub_config.unit_storage_cost
             self._total_capacity += sub_config.capacity
 
         # Initialize the product stock level
@@ -136,24 +133,21 @@ class StorageUnit(UnitBase):
 
         capacity_list: List[int] = []
         remaining_space_list: List[int] = []
-        unit_cost_list: List[float] = []
         for idx, id in enumerate(self._capacity_dict.keys()):
             self._storage_id2idx[id] = idx
             self._storage_idx2id[idx] = id
 
             capacity_list.append(self._capacity_dict[id])
             remaining_space_list.append(self._remaining_space_dict[id])
-            unit_cost_list.append(self._unit_cost_dict[id])
 
         self.data_model.initialize(
             capacity=capacity_list,
             remaining_space=remaining_space_list,
-            unit_storage_cost=unit_cost_list,
             product_list=[sku_id for sku_id in self._product_level.keys()],
-            product_quantity=[n for n in self._product_level.values()],
             product_storage_index=[
                 self._storage_id2idx[self._product2storage[sku_id]] for sku_id in self._product_level.keys()
             ],
+            product_quantity=[n for n in self._product_level.values()],
         )
 
     def get_product_quantity(self, product_id: int) -> int:
@@ -188,6 +182,10 @@ class StorageUnit(UnitBase):
         self._product_level_changed[product_id] = True
         self._remaining_space_dict[self._product2storage[product_id]] += quantity
 
+    """
+    - would be called by DistributionUnit.post_step() -> _try_unload()
+    - would be called by ManufactureUnit.post_step()
+    """
     def try_add_products(
         self,
         product_quantities: Dict[int, int],
@@ -224,7 +222,7 @@ class StorageUnit(UnitBase):
             elif add_strategy == AddStrategy.IgnoreUpperBoundProportional:
                 fulfill_ratio_dict: Dict[int, float] = {}
                 for storage_id, requirement in space_requirements.items():
-                    fulfill_ratio_dict[storage_id] = requirement / self._remaining_space_dict[storage_id]
+                    fulfill_ratio_dict[storage_id] = min(1.0, self._remaining_space_dict[storage_id] / requirement)
 
                 for product_id, quantity in product_quantities.items():
                     storage_id = self._product2storage[product_id]
@@ -251,6 +249,10 @@ class StorageUnit(UnitBase):
 
         return added_quantities
 
+    """
+    - would be called by DistributionUnit.place_order(), when action taking.
+    - would be called by DistributionUnit.step()
+    """
     def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
         """Try to take specified number of product.
 
@@ -271,6 +273,9 @@ class StorageUnit(UnitBase):
 
         return True
 
+    """
+    - would be called by SellerUnit.step()
+    """
     def take_available(self, product_id: int, quantity: int) -> int:
         """Take as much as available specified product from storage.
 
@@ -299,13 +304,16 @@ class StorageUnit(UnitBase):
             i += 1
 
         if has_changes:
-            self.data_model.remaining_space = self.remaining_space
+            i = 0
+            for remaining_space in self._remaining_space_dict.values():
+                self.data_model.remaining_space[i] = remaining_space
+                i += 1
 
     def reset(self) -> None:
         super(StorageUnit, self).reset()
 
         # Reset status in Python side.
-        for sub_config in self.config:
+        for sub_config in self.config.values():
             self._remaining_space_dict[sub_config.id] = sub_config.capacity
 
         for sku in self.facility.skus.values():

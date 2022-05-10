@@ -1,13 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
+from collections import defaultdict
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
 from maro.simulator.scenarios.supply_chain.datamodels import ManufactureDataModel
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 @dataclass
@@ -20,31 +29,37 @@ class ManufactureUnit(ExtendUnitBase):
 
     One manufacture unit per sku.
     """
-
-    def __init__(self) -> None:
-        super(ManufactureUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+    ) -> None:
+        super(ManufactureUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
 
         # Source material sku and related quantity per manufacture cycle.
         self._bom: Optional[dict] = None
-
         # How many products in each manufacture cycle.
         self._output_units_per_lot: Optional[int] = None
-
         # How many units we will consume in each manufacture cycle.
         self._input_units_per_lot: int = 0
+        self._space_taken_per_lot: int = 1
 
-        # How many products we manufacture in current step.
-        self._manufacture_quantity: int = 0
+        self._unit_product_cost: Optional[float] = None
+        self._max_manufacture_rate: Optional[int] = None
+        self._manufacture_leading_time: Optional[int] = None
+
+        self._manufacture_rate: Optional[int] = None
+        self._num_to_produce: int = 0
+        self._in_pipeline_quantity: int = 0
+        self._finished_quantity: int = 0
+        self._manufacture_cost: float = 0
+
+        # Key: expected finished tick; Value: output product quantity.
+        self._products_in_pipeline: Dict[int, int] = defaultdict(int)
 
     def initialize(self) -> None:
         super(ManufactureUnit, self).initialize()
 
-        facility_sku_info = self.facility.skus[self.product_id]
-        product_unit_cost = facility_sku_info.product_unit_cost
-
-        assert isinstance(self.data_model, ManufactureDataModel)
-        self.data_model.initialize(product_unit_cost)
-
+        # Initialize BOM info.
         global_sku_info = self.world.get_sku_by_id(self.product_id)
 
         self._bom = global_sku_info.bom
@@ -53,70 +68,127 @@ class ManufactureUnit(ExtendUnitBase):
         if len(self._bom) > 0:
             self._input_units_per_lot = sum(self._bom.values())
 
-    def _step_impl(self, tick: int) -> None:
-        # Due to the processing in post_step(),
-        # self._manufacture_quantity is set to 0 at the begining of every step.
-        # Thus, there is no need to update it with None action or 0 production_rate.
+        self._space_taken_per_lot = self._output_units_per_lot - self._input_units_per_lot
 
-        if self.action is None:
-            return
+        # Initialize SKU info.
+        self._unit_product_cost = self.facility.skus[self.product_id].unit_product_cost
+        self._max_manufacture_rate = self.facility.skus[self.product_id].max_manufacture_rate
+        self._manufacture_leading_time = self.facility.skus[self.product_id].manufacture_leading_time
+        assert self._unit_product_cost is not None
+        assert self._max_manufacture_rate is not None
+        assert self._manufacture_leading_time is not None
 
-        assert isinstance(self.action, ManufactureAction)
+        self._manufacture_rate = self._max_manufacture_rate
 
-        # Try to produce production if we have positive rate.
-        if self.action.production_rate > 0:
-            max_number_to_procedure = min(
-                self.action.production_rate * self._output_units_per_lot,
-                self.facility.storage.get_product_max_remaining_space(self.product_id),
+        # Initialize data model.
+        assert isinstance(self.data_model, ManufactureDataModel)
+        self.data_model.initialize()
+
+    """
+    ManufactureAction would be given after BE.step(), assume we take action at t0,
+    the manufacture_rate would be set according to the given action and would start manufacture in t0,
+    then we can get the produced products at the end of (t0 + leading time) in the post_step(), which means
+    these products can't be dispatched to fulfill the demand from the downstreams until (t0 + leading time + 1).
+    """
+
+    def on_action_received(self, tick: int, action: ManufactureAction) -> None:
+        # NOTE: the on_action_received() is called after flush_state(), so the manufacture_rate saved in the snapshot
+        # would be the one actually used to produce products in this tick.
+        self._manufacture_rate = max(0, min(action.manufacture_rate, self._max_manufacture_rate))
+
+    def step(self, tick: int) -> None:
+        pass
+
+    def _manufacture(self, tick: int) -> None:
+        # Update num_to_produce according to limitations.
+        self._num_to_produce = self._manufacture_rate * self._output_units_per_lot
+
+        # Check the remaining space limits. TODO: confirm the remaining space setting.
+        if self._num_to_produce > 0:
+            remaining_space = self.facility.storage.get_product_max_remaining_space(self.product_id)
+            self._num_to_produce = min(
+                self._num_to_produce,
+                remaining_space // self._space_taken_per_lot if self._space_taken_per_lot > 1 else remaining_space,
             )
 
-            if max_number_to_procedure > 0:
-                space_taken_per_cycle = self._output_units_per_lot - self._input_units_per_lot
+        # Check the source material inventory limits.
+        if self._num_to_produce > 0 and len(self._bom):
+            self._num_to_produce = min(
+                self._num_to_produce,
+                min([
+                    self.facility.storage.get_product_quantity(sku_id) // consumption
+                    for sku_id, consumption in self._bom.items()
+                ])
+            )
 
-                # Consider about the volume, we can produce all if space take per cycle <=1.
-                if space_taken_per_cycle > 1:
-                    max_number_to_procedure = max_number_to_procedure // space_taken_per_cycle
+        # Start manufacture.
+        if self._num_to_produce > 0:
+            # Take source SKUs.
+            source_sku_to_take = {}
+            for sku_id, consumption in self._bom.items():
+                source_sku_to_take[sku_id] = self._num_to_produce * consumption
+            self.facility.storage.try_take_products(source_sku_to_take)
 
-                # Do we have enough source material?
-                for source_sku_id, source_sku_cost_number in self._bom.items():
-                    source_sku_available_number = self.facility.storage.get_product_quantity(source_sku_id)
+            self._products_in_pipeline[tick + self._manufacture_leading_time] += self._num_to_produce
 
-                    max_number_to_procedure = min(
-                        source_sku_available_number // source_sku_cost_number,
-                        max_number_to_procedure,
-                    )
-
-                    if max_number_to_procedure <= 0:
-                        break
-
-                if max_number_to_procedure > 0:
-                    source_sku_to_take = {}
-                    for source_sku_id, source_sku_cost_number in self._bom.items():
-                        source_sku_to_take[source_sku_id] = max_number_to_procedure * source_sku_cost_number
-
-                    self._manufacture_quantity = max_number_to_procedure
-                    self.facility.storage.try_take_products(source_sku_to_take)
-                    self.facility.storage.try_add_products({self.product_id: self._manufacture_quantity})
-
-    def flush_states(self) -> None:
-        if self._manufacture_quantity > 0:
-            self.data_model.manufacture_quantity = self._manufacture_quantity
+        # Count manufacture cost.
+        self._in_pipeline_quantity = sum([quantity for quantity in self._products_in_pipeline.values()])
+        self._manufacture_cost = self._unit_product_cost * self._in_pipeline_quantity
 
     def post_step(self, tick: int) -> None:
-        if self._manufacture_quantity > 0:
-            self.data_model.manufacture_quantity = 0
-            self._manufacture_quantity = 0
+        self._manufacture(tick)
 
-        # NOTE: call super at last, since it will clear the action.
-        super(ManufactureUnit, self).post_step(tick)
+        # Get finished products from pipeline.
+        self._finished_quantity = self._products_in_pipeline.get(tick, 0)
+        if self._finished_quantity > 0:
+            self.facility.storage.try_add_products({self.product_id: self._finished_quantity})
+            self._products_in_pipeline.pop(tick)
+
+    def flush_states(self) -> None:
+        self.data_model.start_manufacture_quantity = self._num_to_produce
+        self.data_model.in_pipeline_quantity = self._in_pipeline_quantity
+        self.data_model.finished_quantity = self._finished_quantity
+        self.data_model.manufacture_cost = self._manufacture_cost
 
     def reset(self) -> None:
         super(ManufactureUnit, self).reset()
 
-        # Reset status in Python side.
-        self._manufacture_quantity = 0
+        self._manufacture_rate = self._max_manufacture_rate
+        self._products_in_pipeline.clear()
 
     def get_unit_info(self) -> ManufactureUnitInfo:
         return ManufactureUnitInfo(
             **super(ManufactureUnit, self).get_unit_info().__dict__,
         )
+
+
+class SimpleManufactureUnit(ManufactureUnit):
+    """This simple manufacture unit will ignore source sku, just generate specified number of product."""
+
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+    ) -> None:
+        super(SimpleManufactureUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config,
+        )
+
+    def _manufacture(self, tick: int) -> None:
+        # Update num_to_produce according to limitations.
+        self._num_to_produce = self._manufacture_rate * self._output_units_per_lot
+
+        # Check the remaining space limits. TODO: confirm the remaining space setting.
+        if self._num_to_produce > 0:
+            remaining_space = self.facility.storage.get_product_max_remaining_space(self.product_id)
+            self._num_to_produce = min(
+                self._num_to_produce,
+                remaining_space // self._space_taken_per_lot if self._space_taken_per_lot > 1 else remaining_space,
+            )
+
+        # Start manufacture.
+        if self._num_to_produce > 0:
+            self._products_in_pipeline[tick + self._manufacture_leading_time] += self._num_to_produce
+
+        # Count manufacture cost.
+        self._in_pipeline_quantity = sum([quantity for quantity in self._products_in_pipeline.values()])
+        self._manufacture_cost = self._unit_product_cost * self._in_pipeline_quantity

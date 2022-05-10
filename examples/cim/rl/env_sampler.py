@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -17,9 +17,9 @@ from .config import (
 
 
 class CIMEnvSampler(AbsEnvSampler):
-    def _get_global_and_agent_state(
-        self, event: DecisionEvent, tick: int = None
-    ) -> Tuple[Optional[np.ndarray], Dict[Any, np.ndarray]]:
+    def _get_global_and_agent_state_impl(
+        self, event: DecisionEvent, tick: int = None,
+    ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         tick = self._env.tick
         vessel_snapshots, port_snapshots = self._env.snapshot_list["vessels"], self._env.snapshot_list["ports"]
         port_idx, vessel_idx = event.port_idx, event.vessel_idx
@@ -31,7 +31,9 @@ class CIMEnvSampler(AbsEnvSampler):
         ])
         return state, {port_idx: state}
 
-    def _translate_to_env_action(self, action_dict: Dict[Any, np.ndarray], event: DecisionEvent) -> Dict[Any, object]:
+    def _translate_to_env_action(
+        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: DecisionEvent,
+    ) -> Dict[Any, object]:
         action_space = action_shaping_conf["action_space"]
         finite_vsl_space = action_shaping_conf["finite_vessel_space"]
         has_early_discharge = action_shaping_conf["has_early_discharge"]

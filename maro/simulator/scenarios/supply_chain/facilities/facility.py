@@ -9,7 +9,12 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from maro.simulator.scenarios.supply_chain.objects import SkuInfo
+import numpy as np
+
+from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
+from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import (
+    DataFileDemandSampler, OneTimeSkuPriceDemandSampler, SkuDynamicsSampler, SkuPriceMixin
+)
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.product import ProductUnitInfo
@@ -21,6 +26,13 @@ if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.world import World
 
 
+# Mapping for supported sampler.
+sampler_mapping = {
+    "data": DataFileDemandSampler,
+    "processed_price_demand": OneTimeSkuPriceDemandSampler,
+}
+
+
 @dataclass
 class FacilityInfo:
     id: int
@@ -29,7 +41,7 @@ class FacilityInfo:
     class_name: type
     configs: dict
     skus: Dict[int, SkuInfo]
-    upstreams: Dict[int, List[int]]
+    upstream_vlt_infos: Dict[int, Dict[int, Dict[str, VendorLeadingTimeInfo]]]
     downstreams: Dict[int, List[int]]  # Key: product_id; Value: facility id list
     storage_info: Optional[StorageUnitInfo]
     distribution_info: Optional[DistributionUnitInfo]
@@ -38,18 +50,26 @@ class FacilityInfo:
 
 class FacilityBase(ABC):
     """Base of all facilities."""
-    def __init__(self) -> None:
-        # Id of this facility.
-        self.id: Optional[int] = None
+    def __init__(
+        self, id: int, name: str, data_model_name: str, data_model_index: int, world: World, config: dict,
+    ) -> None:
+        # Id and name of this facility.
+        self.id: int = id
+        self.name: str = name
 
-        # Name of this facility.
-        self.name: Optional[str] = None
+        # Name of data model, and the facility instance's corresponding node index in snapshot list.
+        self.data_model_name: str = data_model_name
+        self.data_model_index: int = data_model_index
 
         # World of this facility belongs to.
-        self.world: Optional[World] = None
+        self.world: World = world
+
+        # Configuration of this facility.
+        self.configs: dict = config
 
         # SKUs in this facility.
         self.skus: Dict[int, SkuInfo] = {}
+        self.sampler: Optional[SkuDynamicsSampler] = None
 
         # Product units for each sku in this facility.
         # Key is sku(product) id, value is the instance of product unit.
@@ -61,49 +81,54 @@ class FacilityBase(ABC):
         # Distribution unit in this facility.
         self.distribution: Optional[DistributionUnit] = None
 
-        # Upstream facilities.
-        # Key is sku id, value is the list of facilities from upstream.
-        self.upstreams: Dict[int, List[FacilityBase]] = defaultdict(list)
+        # Upstream facility vendor leading time infos.
+        # Key: sku id, facility id, vehicle type
+        # Value: vendor leading time info, including source facility, vehicle type, vlt, transportation cost.
+        self.upstream_vlt_infos: Dict[int, Dict[int, Dict[str, VendorLeadingTimeInfo]]] = defaultdict(dict)
+        # Key: sku id;
+        # Value: list of upstream facility
+        self._upstream_facility_list: Optional[Dict[int, List[FacilityBase]]] = None
 
-        # Down stream facilities, value same as upstreams.
-        self.downstreams: Dict[int, List[FacilityBase]] = defaultdict(list)
-
-        # Configuration of this facility.
-        self.configs: Optional[dict] = None
-
-        # Name of data model, from configuration.
-        self.data_model_name: Optional[str] = None
-
-        # Index of the data model node.
-        self.data_model_index: int = 0
+        # Downstream facility leading time infos.
+        # Key: sku id, facility id, vehicle type
+        # Value: leading time info, including destination facility, vehicle type, vlt, transportation cost.
+        self.downstream_vlt_infos: Dict[int, Dict[int, Dict[str, LeadingTimeInfo]]] = defaultdict(dict)
+        # Key: sku id;
+        # Value: list of downstream facility
+        self._downstream_facility_list: Optional[Dict[int, List[FacilityBase]]] = None
 
         self.data_model: Optional[DataModelBase] = None
 
         # Children of this facility (valid units).
         self.children: List[UnitBase] = []
 
-        # Facility's coordinates
-        self.x: Optional[int] = None
-        self.y: Optional[int] = None
+    @property
+    def upstream_facility_list(self) -> Dict[int, List[FacilityBase]]:
+        if self._upstream_facility_list is None:
+            self._upstream_facility_list = defaultdict(list)
 
-    def parse_skus(self, configs: dict) -> None:
-        """Parse sku information from config.
+            for product_id in self.products.keys():
+                by_fid_and_type = self.upstream_vlt_infos[product_id]
+                for by_type in by_fid_and_type.values():
+                    for info in by_type.values():
+                        self._upstream_facility_list[product_id].append(info.src_facility)
+                        break
 
-        Args:
-            configs (dict): Configuration of skus belongs to this facility.
-        """
-        for sku_name, sku_config in configs.items():
-            sku_config['id'] = self.world.get_sku_id_by_name(sku_name)
-            facility_sku = SkuInfo(**sku_config)
-            self.skus[facility_sku.id] = facility_sku
+        return self._upstream_facility_list
 
-    def parse_configs(self, configs: dict) -> None:
-        """Parse configuration of this facility.
+    @property
+    def downstream_facility_list(self) -> Dict[int, List[FacilityBase]]:
+        if self._downstream_facility_list is None:
+            self._downstream_facility_list = defaultdict(list)
 
-        Args:
-            configs (dict): Configuration of this facility.
-        """
-        self.configs = configs
+            for product_id in self.products.keys():
+                by_fid_and_type = self.downstream_vlt_infos[product_id]
+                for by_type in by_fid_and_type.values():
+                    for info in by_type.values():
+                        self._downstream_facility_list[product_id].append(info.dest_facility)
+                        break
+
+        return self._downstream_facility_list
 
     def get_config(self, key: str, default: object = None) -> object:
         """Get specified configuration of facility.
@@ -132,16 +157,40 @@ class FacilityBase(ABC):
             for product in self.products.values():
                 self.children.append(product)
 
+        sampler_cls_name = self.configs.get("dynamics_sampler_type", None)
+
+        if sampler_cls_name is not None:
+            assert sampler_cls_name in sampler_mapping
+            sampler_cls = sampler_mapping[sampler_cls_name]
+
+            assert issubclass(sampler_cls, SkuDynamicsSampler)
+            self.sampler = sampler_cls(self.configs, self.world)
+
+    def pre_step(self, tick: int) -> None:
+        """Update status before step. E.g. price updates, inventory updates, etc."""
+        # Update SKU prices
+        if self.sampler is not None and isinstance(self.sampler, SkuPriceMixin):
+            for sku_id in self.skus.keys():
+                price = self.sampler.sample_price(tick, sku_id)
+                if price is not None:
+                    self.skus[sku_id].price = price
+                    # Update the corresponding property in data model.
+                    self.products[sku_id].data_model.price = price
+
+        for unit in self.children:
+            unit.pre_step(tick)
+
     def step(self, tick: int) -> None:
         """Push facility to next step.
 
         Args:
             tick (int): Current simulator tick.
         """
+        # TODO: need to order DistributionUnit and ProductUnits or not?
+        # TODO: need to randomize the order of ProductUnits or not?
         for unit in self.children:
             unit.step(tick)
 
-    # TODO: confirm Why not call flush_states() immediately after each unit.step()?
     def flush_states(self) -> None:
         """Flush states into frame."""
         for unit in self.children:
@@ -160,7 +209,7 @@ class FacilityBase(ABC):
         if self.data_model is not None:
             self.data_model.reset()
 
-    def get_in_transit_orders(self) -> dict:
+    def get_in_transit_orders(self) -> Dict[int, int]:
         in_transit_orders = defaultdict(int)
 
         for product_id, product in self.products.items():
@@ -168,9 +217,6 @@ class FacilityBase(ABC):
                 in_transit_orders[product_id] = product.consumer.get_in_transit_quantity()
 
         return in_transit_orders
-
-    def set_action(self, action: object) -> None:
-        pass
 
     def get_node_info(self) -> FacilityInfo:
         return FacilityInfo(
@@ -180,9 +226,31 @@ class FacilityBase(ABC):
             class_name=type(self),
             configs=self.configs,
             skus=self.skus,
-            upstreams={product_id: [f.id for f in f_list] for product_id, f_list in self.upstreams.items()},
-            downstreams={product_id: [f.id for f in f_list] for product_id, f_list in self.downstreams.items()},
+            upstream_vlt_infos=self.upstream_vlt_infos,
+            downstreams={
+                product_id: [downstream_facility.id for downstream_facility in downstream_facility_list]
+                for product_id, downstream_facility_list in self.downstream_facility_list.items()
+            },
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
-            products_info={product_id: product.get_unit_info() for product_id, product in self.products.items()},
+            products_info={
+                product_id: product.get_unit_info()
+                for product_id, product in self.products.items()
+            },
         )
+
+    def get_sku_cost(self, sku_id: int) -> float:
+        # TODO: updating for manufacture, ...
+        src_prices: List[float] = [
+            src_facility.skus[sku_id].price
+            for src_facility in self.upstream_facility_list[sku_id]
+        ]
+        return np.mean(src_prices) if len(src_prices) > 0 else self.skus[sku_id].price
+
+    def get_max_vlt(self, sku_id: int) -> int:
+        max_vlt: int = 0
+        by_fid_and_type = self.upstream_vlt_infos[sku_id]
+        for by_type in by_fid_and_type.values():
+            for info in by_type.values():
+                max_vlt = max(max_vlt, info.vlt)
+        return max_vlt

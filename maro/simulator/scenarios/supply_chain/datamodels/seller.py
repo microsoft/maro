@@ -14,7 +14,6 @@ class SellerDataModel(ExtendDataModel):
     sold = NodeAttribute(AttributeType.UInt)
     total_demand = NodeAttribute(AttributeType.UInt)
     total_sold = NodeAttribute(AttributeType.UInt)
-    price = NodeAttribute(AttributeType.Float)
     backlog_ratio = NodeAttribute(AttributeType.Float)
 
     def __init__(self) -> None:
@@ -22,8 +21,7 @@ class SellerDataModel(ExtendDataModel):
         self._price = 0
         self._backlog_ratio = 0
 
-    def initialize(self, price: int, backlog_ratio: float) -> None:
-        self._price = price
+    def initialize(self, backlog_ratio: float) -> None:
         self._backlog_ratio = backlog_ratio
 
         self.reset()
@@ -32,4 +30,3 @@ class SellerDataModel(ExtendDataModel):
         super(SellerDataModel, self).reset()
 
         self.backlog_ratio = self._backlog_ratio
-        self.price = self._price

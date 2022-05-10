@@ -3,12 +3,11 @@ datamodels:
   modules:
     - path: "maro.simulator.scenarios.supply_chain.datamodels"
       definitions:
+        # Key: class alias
         StorageDataModel:
+          # class: class name, joined with the module path to find the class type
           class: "StorageDataModel"
           name_in_frame: "storage"
-        VehicleDataModel:
-          class: "VehicleDataModel"
-          name_in_frame: "vehicle"
         DistributionDataModel:
           class: "DistributionDataModel"
           name_in_frame: "distribution"
@@ -32,12 +31,11 @@ units:
   modules:
     - path: "maro.simulator.scenarios.supply_chain.units"
       definitions:
+        # Key: class alias
         StorageUnit:
+          # class: class name, joined with the module path to find the class type
           class: "StorageUnit"
           datamodel: "StorageDataModel"
-        VehicleUnit:
-          class: "VehicleUnit"
-          datamodel: "VehicleDataModel"
         DistributionUnit:
           class: "DistributionUnit"
           datamodel: "DistributionDataModel"
@@ -67,7 +65,9 @@ facilities:
   modules:
     - path: "maro.simulator.scenarios.supply_chain.facilities"
       definitions:
+        # Key: class alias
         WarehouseFacility:
+          # class: class name, joined with the module path to find the class type
           class: "WarehouseFacility"
           datamodel: "FacilityDataModel"
         SupplierFacility:
