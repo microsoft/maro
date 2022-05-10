@@ -79,3 +79,17 @@ class CIMEnvSampler(AbsEnvSampler):
 
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._post_step(cache_element, reward)
+
+    def post_collect(self, info_list: list, ep: int) -> None:
+        # print the env metric from each rollout worker
+        for info in info_list:
+            print(f"env summary (episode {ep}): {info['env_metric']}")
+
+        # print the average env metric
+        if len(info_list) > 1:
+            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+            avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
+            print(f"average env summary (episode {ep}): {avg_metric}")
+
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        self.post_collect(info_list, ep)

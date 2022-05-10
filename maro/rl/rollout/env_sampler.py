@@ -514,3 +514,11 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     @abstractmethod
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError
+
+    def post_collect(self, info_list: list, ep: int) -> None:
+        """Routines to be invoked at the end of training episodes"""
+        pass
+
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        """Routines to be invoked at the end of evaluation episodes"""
+        pass

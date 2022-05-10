@@ -1,22 +1,26 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
+import time
 from collections import defaultdict
-from os.path import dirname, realpath
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from os import makedirs
+from os.path import dirname, join, realpath
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+from matplotlib import pyplot as plt
 
-from maro.rl.policy import RLPolicy
 from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
 from .config import (
-    algorithm, env_conf, num_features, pm_attributes, pm_window_size, reward_shaping_conf, seed, test_env_conf,
-    test_reward_shaping_conf, test_seed
+    num_features, pm_attributes, pm_window_size, reward_shaping_conf, seed, test_reward_shaping_conf, test_seed,
 )
+
+timestamp = str(time.time())
+plt_path = join(dirname(realpath(__file__)), "plots", timestamp)
+makedirs(plt_path, exist_ok=True)
 
 
 class VMEnvSampler(AbsEnvSampler):
@@ -128,3 +132,69 @@ class VMEnvSampler(AbsEnvSampler):
 
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         self._post_step(cache_element, reward)
+
+    def post_collect(self, info_list: list, ep: int) -> None:
+        # print the env metric from each rollout worker
+        for info in info_list:
+            print(f"env summary (episode {ep}): {info['env_metric']}")
+
+        # print the average env metric
+        if len(info_list) > 1:
+            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
+            print(f"average env metric (episode {ep}): {avg_metric}")
+
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        # print the env metric from each rollout worker
+        for info in info_list:
+            print(f"env summary (evaluation episode {ep}): {info['env_metric']}")
+
+        # print the average env metric
+        if len(info_list) > 1:
+            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
+            print(f"average env metric (evaluation episode {ep}): {avg_metric}")
+
+        for info in info_list:
+            core_requirement = info["actions_by_core_requirement"]
+            action_sequence = info["action_sequence"]
+            # plot action sequence
+            fig = plt.figure(figsize=(40, 32))
+            ax = fig.add_subplot(1, 1, 1)
+            ax.plot(action_sequence)
+            fig.savefig(f"{plt_path}/action_sequence_{ep}")
+            plt.cla()
+            plt.close("all")
+
+            # plot with legal action mask
+            fig = plt.figure(figsize=(40, 32))
+            for idx, key in enumerate(core_requirement.keys()):
+                ax = fig.add_subplot(len(core_requirement.keys()), 1, idx + 1)
+                for i in range(len(core_requirement[key])):
+                    if i == 0:
+                        ax.plot(core_requirement[key][i][0] * core_requirement[key][i][1], label=str(key))
+                        ax.legend()
+                    else:
+                        ax.plot(core_requirement[key][i][0] * core_requirement[key][i][1])
+
+            fig.savefig(f"{plt_path}/values_with_legal_action_{ep}")
+
+            plt.cla()
+            plt.close("all")
+
+            # plot without legal actin mask
+            fig = plt.figure(figsize=(40, 32))
+
+            for idx, key in enumerate(core_requirement.keys()):
+                ax = fig.add_subplot(len(core_requirement.keys()), 1, idx + 1)
+                for i in range(len(core_requirement[key])):
+                    if i == 0:
+                        ax.plot(core_requirement[key][i][0], label=str(key))
+                        ax.legend()
+                    else:
+                        ax.plot(core_requirement[key][i][0])
+
+            fig.savefig(f"{plt_path}/values_without_legal_action_{ep}")
+
+            plt.cla()
+            plt.close("all")

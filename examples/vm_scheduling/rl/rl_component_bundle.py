@@ -1,10 +1,5 @@
-import time
 from functools import partial
-from os import makedirs
-from os.path import dirname, join, realpath
 from typing import Any, Callable, Dict, Optional
-
-from matplotlib import pyplot as plt
 
 from examples.vm_scheduling.rl.algorithms.ac import get_ac_policy
 from examples.vm_scheduling.rl.algorithms.dqn import get_dqn_policy
@@ -14,10 +9,6 @@ from maro.rl.policy import AbsPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
-
-timestamp = str(time.time())
-plt_path = join(dirname(realpath(__file__)), "plots", timestamp)
-makedirs(plt_path, exist_ok=True)
 
 
 class VMBundle(RLComponentBundle):
@@ -64,69 +55,3 @@ class VMBundle(RLComponentBundle):
             raise ValueError(f"Unsupported algorithm: {algorithm}")
 
         return trainer_creator
-
-    def post_collect(self, info_list: list, ep: int) -> None:
-        # print the env metric from each rollout worker
-        for info in info_list:
-            print(f"env summary (episode {ep}): {info['env_metric']}")
-
-        # print the average env metric
-        if len(info_list) > 1:
-            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
-            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
-            print(f"average env metric (episode {ep}): {avg_metric}")
-
-    def post_evaluate(self, info_list: list, ep: int) -> None:
-        # print the env metric from each rollout worker
-        for info in info_list:
-            print(f"env summary (evaluation episode {ep}): {info['env_metric']}")
-
-        # print the average env metric
-        if len(info_list) > 1:
-            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
-            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
-            print(f"average env metric (evaluation episode {ep}): {avg_metric}")
-
-        for info in info_list:
-            core_requirement = info["actions_by_core_requirement"]
-            action_sequence = info["action_sequence"]
-            # plot action sequence
-            fig = plt.figure(figsize=(40, 32))
-            ax = fig.add_subplot(1, 1, 1)
-            ax.plot(action_sequence)
-            fig.savefig(f"{plt_path}/action_sequence_{ep}")
-            plt.cla()
-            plt.close("all")
-
-            # plot with legal action mask
-            fig = plt.figure(figsize=(40, 32))
-            for idx, key in enumerate(core_requirement.keys()):
-                ax = fig.add_subplot(len(core_requirement.keys()), 1, idx + 1)
-                for i in range(len(core_requirement[key])):
-                    if i == 0:
-                        ax.plot(core_requirement[key][i][0] * core_requirement[key][i][1], label=str(key))
-                        ax.legend()
-                    else:
-                        ax.plot(core_requirement[key][i][0] * core_requirement[key][i][1])
-
-            fig.savefig(f"{plt_path}/values_with_legal_action_{ep}")
-
-            plt.cla()
-            plt.close("all")
-
-            # plot without legal actin mask
-            fig = plt.figure(figsize=(40, 32))
-
-            for idx, key in enumerate(core_requirement.keys()):
-                ax = fig.add_subplot(len(core_requirement.keys()), 1, idx + 1)
-                for i in range(len(core_requirement[key])):
-                    if i == 0:
-                        ax.plot(core_requirement[key][i][0], label=str(key))
-                        ax.legend()
-                    else:
-                        ax.plot(core_requirement[key][i][0])
-
-            fig.savefig(f"{plt_path}/values_without_legal_action_{ep}")
-
-            plt.cla()
-            plt.close("all")

@@ -21,8 +21,6 @@ class RLComponentBundle(object):
 
     Following methods could be overwritten when necessary:
     - get_device_mapping()
-    - post_collect()
-    - post_evaluate()
 
     Please refer to the doc string of each method for detailed explanations.
     """
@@ -125,14 +123,6 @@ class RLComponentBundle(object):
         return {
             policy_name: policy_name.split(".")[0] for policy_name in self.policy_names
         }
-
-    def post_collect(self, info_list: list, ep: int) -> None:
-        """Routines to be invoked at the end of training episodes"""
-        pass
-
-    def post_evaluate(self, info_list: list, ep: int) -> None:
-        """Routines to be invoked at the end of evaluation episodes"""
-        pass
 
     ########################################################################################
     # Methods invisible to users                                                           #

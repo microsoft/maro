@@ -122,7 +122,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
 
             collect_time += time.time() - tc0
 
-        rl_component_bundle.post_collect(total_info_list, ep)
+        env_sampler.post_collect(total_info_list, ep)
 
         logger.info(f"Roll-out completed for episode {ep}. Training started...")
         tu0 = time.time()
@@ -142,7 +142,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
             result = env_sampler.eval(
                 policy_state=training_manager.get_policy_state() if not is_single_thread else None
             )
-            rl_component_bundle.post_evaluate(result["info"], ep)
+            env_sampler.post_evaluate(result["info"], ep)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()
@@ -187,7 +187,7 @@ def evaluate_only_workflow(rl_component_bundle: RLComponentBundle) -> None:
         logger.info(f"Loaded policies {loaded} into env sampler from {path}")
 
     result = env_sampler.eval()
-    rl_component_bundle.post_evaluate(result["info"], -1)
+    env_sampler.post_evaluate(result["info"], -1)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()
