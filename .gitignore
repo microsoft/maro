@@ -25,3 +25,4 @@ pyvenv.cfg
 htmlcov/
 .coverage
 .coveragerc
+.tmp/
