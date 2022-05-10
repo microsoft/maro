@@ -161,8 +161,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for action in actions:
             if isinstance(action, ConsumerAction):
                 consumer_actions_by_unit[action.id].append(action)
-            else:
+            elif isinstance(action, ManufactureAction):
                 manufacture_actions_by_unit[action.id].append(action)
+            else:
+                raise ValueError(f"Invalid action type {type(action)}.")
 
         # Allocate consumer & manufacture actions
         for unit_id, consumer_actions in consumer_actions_by_unit.items():
