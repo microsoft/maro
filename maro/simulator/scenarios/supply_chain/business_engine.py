@@ -2,14 +2,14 @@
 # Licensed under the MIT license.
 import collections
 import os
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Set, Tuple
+from typing import Dict, List
 
 from maro.backends.frame import FrameBase
+
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from .actions import SupplyChainAction
+from .actions import ConsumerAction, ManufactureAction
 from .objects import SupplyChainEntity
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ConsumerUnit, DistributionUnit, ManufactureUnit, ProductUnit
@@ -20,78 +20,6 @@ TASK_CONSUMER_ACTION_TEMPLATE = "consumer_{}_process_actions"
 TASK_MANUFACTURE_ACTION_TEMPLATE = "manufacture_{}_process_action"
 
 
-@dataclass
-class DAGTask:
-    name: str
-    func: Callable
-    args: tuple
-    kwargs: dict
-
-    def execute(self, tick: int) -> None:
-        if self.func is not None:
-            self.func(*self.args, **self.kwargs, **{"tick": tick})
-
-
-class DAGTaskScheduler(object):
-    def __init__(self) -> None:
-        super(DAGTaskScheduler, self).__init__()
-
-        self._task_dict: Dict[str, DAGTask] = {}  # "Vertex" in the DAG
-        self._dependence: List[Tuple[str, str]] = []  # "Edge" in the DAG
-        self._topological_order: List[str] = []
-        self._skip_task_set: Set[str] = set([])
-
-    def add_task(self, name: str, func: Callable = None, args: tuple = None, kwargs: dict = None) -> None:
-        task = DAGTask(
-            name=name,
-            func=func,
-            args=() if args is None else args,
-            kwargs={} if kwargs is None else kwargs,
-        )
-        self._task_dict[name] = task
-
-    def add_dependence(self, upstream: str, downstream: str) -> None:
-        assert upstream != downstream, "Self loop is not allowed."
-        self._dependence.append((upstream, downstream))
-
-    def update_arguments(self, name: str, args: tuple = None, kwargs: dict = None) -> None:
-        self._task_dict[name].args = () if args is None else args
-        self._task_dict[name].kwargs = {} if kwargs is None else kwargs
-
-    def make_topological_order(self) -> None:
-        in_degree = collections.Counter()
-        edge_dict = collections.defaultdict(list)
-        for upstream, downstream in self._dependence:
-            in_degree[downstream] += 1
-            edge_dict[upstream].append(downstream)
-
-        queue = collections.deque()
-        for name in self._task_dict.keys():
-            if in_degree[name] == 0:
-                queue.append(name)
-
-        self._topological_order = []
-        while queue:
-            upstream = queue.popleft()
-            self._topological_order.append(upstream)
-            for downstream in edge_dict[upstream]:
-                in_degree[downstream] -= 1
-                if in_degree[downstream] == 0:
-                    queue.append(downstream)
-
-        assert len(self._topological_order) == len(self._task_dict), "There are loops in the graph. Cannot form a DAG."
-
-    def skip_task_for_one_tick(self, name: str) -> None:
-        self._skip_task_set.add(name)
-
-    def run(self, tick: int) -> None:
-        for name in self._topological_order:
-            if name not in self._skip_task_set:
-                self._task_dict[name].execute(tick)
-
-        self._skip_task_set.clear()
-
-
 class SupplyChainBusinessEngine(AbsBusinessEngine):
     def __init__(self, **kwargs) -> None:
         super().__init__(scenario_name="supply_chain", **kwargs)
@@ -99,6 +27,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
         self._build_world()
+        self._collect_units()
 
         self._product_units: List[ProductUnit] = []
 
@@ -112,9 +41,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._node_mapping = self.world.get_node_mapping()
 
         self._metrics_cache = None
-
-        self._dag_task_scheduler = DAGTaskScheduler()
-        self._build_dag()
 
     @property
     def frame(self) -> FrameBase:
@@ -209,103 +135,55 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
-    def _build_dag(self) -> None:
-        """Build the task DAG that will be used in `_on_action_received`."""
-
-        # Get all consumer units & manufacture units of the world.
-        # They will be reused in `_on_action_received`.
-        self._consumer_units: List[ConsumerUnit] = []  # For reuse
-        self._manufacture_units: List[ManufactureUnit] = []  # For reuse
+    def _collect_units(self) -> None:
+        self._consumer_dict: Dict[int, ConsumerUnit] = {}
+        self._manufacture_dict: Dict[int, ManufactureUnit] = {}
+        self._distribution_dict: Dict[int, DistributionUnit] = {}
         for unit in self.world.get_units_by_root_type(ConsumerUnit):
             assert isinstance(unit, ConsumerUnit)
-            self._consumer_units.append(unit)
+            self._consumer_dict[unit.id] = unit
         for unit in self.world.get_units_by_root_type(ManufactureUnit):
             assert isinstance(unit, ManufactureUnit)
-            self._manufacture_units.append(unit)
-
-        # Dummy task. Used to complete the DAG's structure
-        # Executing ACTIONS_PROCESS_DONE means all consumer actions are processed.
-        self._dag_task_scheduler.add_task(ACTIONS_PROCESS_DONE)
-
-        # Process consumer actions
-        for unit in self._consumer_units:
-            task_name = TASK_CONSUMER_ACTION_TEMPLATE.format(unit.id)
-            self._dag_task_scheduler.add_task(task_name, unit.process_actions)
-            self._dag_task_scheduler.add_dependence(task_name, ACTIONS_PROCESS_DONE)
-
-        # Process manufacture actions.
-        # All manufacture actions could be processed only after all consumer actions are processed.
-        # So all manufacture actions depends on ACTIONS_PROCESS_DONE.
-        for unit in self._manufacture_units:
-            # Allocate manufacture actions
-            task_name = TASK_MANUFACTURE_ACTION_TEMPLATE.format(unit.id)
-            self._dag_task_scheduler.add_task(task_name, unit.process_action)
-            # Execute manufacturing
-            task_name = f"manufacture_{unit.id}_execute_manufacture"
-            self._dag_task_scheduler.add_task(task_name, unit.execute_manufacture)
-            self._dag_task_scheduler.add_dependence(ACTIONS_PROCESS_DONE, task_name)
-
-        # All distribution units try to schedule orders and handle arrival payloads.
-        # Order scheduling must be executed after all consumer actions are processed,
-        # so let them depend on ACTIONS_PROCESS_DONE.
-        # For each distribution unit, do order scheduling first, then handle arrival payloads.
-        for unit in self.world.units_by_type[DistributionUnit]:
+            self._manufacture_dict[unit.id] = unit
+        for unit in self.world.get_units_by_root_type(DistributionUnit):
             assert isinstance(unit, DistributionUnit)
-            schedule_task_name = f"distribution_{unit.id}_try_schedule_orders"
-            self._dag_task_scheduler.add_task(schedule_task_name, unit.try_schedule_orders)
-            arrival_task_name = f"distribution_{unit.id}_handle_arrival_payloads"
-            self._dag_task_scheduler.add_task(arrival_task_name, unit.handle_arrival_payloads)
-
-            self._dag_task_scheduler.add_dependence(ACTIONS_PROCESS_DONE, schedule_task_name)
-            self._dag_task_scheduler.add_dependence(schedule_task_name, arrival_task_name)
-
-        # Demonstration:
-        #                                           Manufacture actions
-        #                                         /
-        # Consumer actions - ACTIONS_PROCESS_DONE - Order scheduling - handle arrival payloads
-
-        # Generate topological order
-        self._dag_task_scheduler.make_topological_order()
+            self._distribution_dict[unit.id] = unit
 
     def _on_action_received(self, event: CascadeEvent) -> None:
-        """DAG and topological order has already been generated.
-
-        Update all parameters of the action related tasks, and launch the workflow on DAG.
-        """
         tick = event.tick
 
         # Handle actions
         actions = event.payload
         assert isinstance(actions, list)
 
-        # Aggregate actions
-        actions_by_unit: Dict[int, List[SupplyChainAction]] = collections.defaultdict(list)
+        consumer_actions_by_unit: Dict[int, List[ConsumerAction]] = collections.defaultdict(list)
+        manufacture_actions_by_unit: Dict[int, List[ManufactureAction]] = collections.defaultdict(list)
         for action in actions:
-            assert isinstance(action, SupplyChainAction)
-            actions_by_unit[action.id].append(action)
-
-        # Consumer actions
-        for unit in self._consumer_units:
-            actions = actions_by_unit.get(unit.id, [])
-            task_name = TASK_CONSUMER_ACTION_TEMPLATE.format(unit.id)
-            if len(actions) == 0:
-                self._dag_task_scheduler.skip_task_for_one_tick(task_name)
+            if isinstance(action, ConsumerAction):
+                consumer_actions_by_unit[action.id].append(action)
             else:
-                self._dag_task_scheduler.update_arguments(task_name, kwargs={"actions": actions})
+                manufacture_actions_by_unit[action.id].append(action)
 
-        # Manufacture actions
-        for unit in self._manufacture_units:
-            actions = actions_by_unit.get(unit.id, [])
-            task_name = TASK_MANUFACTURE_ACTION_TEMPLATE.format(unit.id)
-            if len(actions) == 0:
-                self._dag_task_scheduler.skip_task_for_one_tick(task_name)
-            elif len(actions) == 1:
-                self._dag_task_scheduler.update_arguments(task_name, kwargs={"action": actions[0]})
-            else:
-                raise ValueError(f"Manufacture {unit.id} receives more than 1 ({len(actions)}) actions in one tick.")
+        # Allocate consumer & manufacture actions
+        for unit_id, consumer_actions in consumer_actions_by_unit.items():
+            consumer_unit = self._consumer_dict[unit_id]
+            consumer_unit.process_actions(consumer_actions)
+        for unit_id, manufacture_actions in manufacture_actions_by_unit.items():
+            assert len(manufacture_actions) == 1  # Manufacture unit should has at most one action
+            manufacture_unit = self._manufacture_dict[unit_id]
+            manufacture_unit.process_action(tick, manufacture_actions[0])
 
-        # Run all tasks
-        self._dag_task_scheduler.run(tick)
+        self._step_after_action_received(tick)
+
+    def _step_after_action_received(self, tick: int) -> None:
+        # Process distributions
+        for distribution_unit in self._distribution_dict.values():
+            distribution_unit.try_schedule_orders(tick)
+            distribution_unit.handle_arrival_payloads(tick)
+
+        # Do manufacturing
+        for manufacture_unit in self._manufacture_dict.values():
+            manufacture_unit.execute_manufacture(tick)
 
     def get_metrics(self) -> dict:
         if self._metrics_cache is None:
