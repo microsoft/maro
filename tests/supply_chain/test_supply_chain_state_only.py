@@ -3,9 +3,11 @@ import unittest
 import numpy as np
 
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction
+from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction, StorageUnit
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.order import Order
+from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import OneTimeSkuPriceDemandSampler, \
+    DataFileDemandSampler
 
 
 def build_env(case_name: str, durations: int):
@@ -62,14 +64,16 @@ class MyTestCase(unittest.TestCase):
         distribution_unit.place_order(env.tick, order)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
         self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        warehouse_1_sku3 = 11
+
         # Here the vlt of "train" is less than "pending_order_daily" length
-        self.assertEqual([0, 0, 0, 10], env.metrics['products'][11]['pending_order_daily'])
+        self.assertEqual([0, 0, 0, 10], env.metrics['products'][warehouse_1_sku3]['pending_order_daily'])
 
         # add another order, it would be successfully scheduled, but none available vehicle left now.
         distribution_unit.place_order(env.tick, order)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
         self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
-        self.assertEqual([0, 0, 0, 10+10], env.metrics['products'][11]['pending_order_daily'])
+        self.assertEqual([0, 0, 0, 10 + 10], env.metrics['products'][warehouse_1_sku3]['pending_order_daily'])
 
         start_tick = env.tick
         expected_tick = start_tick + 3  # vlt = 3
@@ -82,18 +86,18 @@ class MyTestCase(unittest.TestCase):
         # while env.tick < expected_tick:
         #     env.step(None)
         env.step(None)
-        self.assertEqual(20, env.metrics['products'][11]['pending_order_daily'][2])
+        self.assertEqual(20, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][2])
         env.step(None)
-        self.assertEqual(20, env.metrics['products'][11]['pending_order_daily'][1])
+        self.assertEqual(20, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][1])
         env.step(None)
-        self.assertEqual(20, env.metrics['products'][11]['pending_order_daily'][0])
+        self.assertEqual(20, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][0])
         env.step(None)
-        self.assertEqual(0, env.metrics['products'][11]['pending_order_daily'][0])
+        self.assertEqual(0, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][0])
         # will arrive at the end of this tick, still on the way.
         assert env.tick == expected_tick
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
-        #self.assertIs([0, 0, 0, 0], env.metrics['products'][11]['pending_order_daily'])
+        # self.assertIs([0, 0, 0, 0], env.metrics['products'][11]['pending_order_daily'])
 
         self.assertEqual(10 * 1, distribution_unit.delay_order_penalty[SKU3_ID])
         self.assertEqual(1 * 10 * 2, distribution_unit.transportation_cost[SKU3_ID])
@@ -105,73 +109,43 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
         self.assertEqual(1 * 10 * 1, distribution_unit.transportation_cost[SKU3_ID])
-        self.assertEqual(10, env.metrics['products'][11]['pending_order_daily'][2])
+        self.assertEqual(10, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][2])
 
-        self.assertEqual(0, env.metrics['products'][11]['pending_order_daily'][3])
+        self.assertEqual(0, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][3])
         distribution_unit.place_order(env.tick, order)
-        self.assertEqual(10, env.metrics['products'][11]['pending_order_daily'][3])
+        self.assertEqual(10, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][3])
 
+        start_tick = env.tick
+        expected_tick = start_tick + 3 - 1  # vlt = 3
+        while env.tick < expected_tick:
+            env.step(None)
 
-    def test_consumer_init_state(self) -> None:
-        """Consumer of sku3 in Supplier_SKU1."""
-        env = build_env("case_01", 100)
+        self.assertEqual(10, env.metrics['products'][warehouse_1_sku3]['pending_order_daily'][0])
+
+    def test_seller_state_only(self) -> None:
+        """Test "sale_mean" and "sale_std"""
+
+        env = build_env("case_05", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
-
-        supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
-        sku3_consumer_unit = supplier_1.products[SKU3_ID].consumer
-
-        consumer_node_index = sku3_consumer_unit.data_model_index
-
-        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
-        IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
-        IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
-
-        consumer_nodes = env.snapshot_list["consumer"]
-
-        # check initial state
-        self.assertEqual(0, sku3_consumer_unit._received)
-        self.assertEqual(0, sku3_consumer_unit._purchased)
-        self.assertEqual(0, sku3_consumer_unit._order_product_cost)
-
-        # check data model state
-        # order cost from configuration
-        self.assertEqual(200, sku3_consumer_unit._unit_order_cost)
-
-        # NOTE: 0 is an invalid(initial) id
-        self.assertEqual(0, sku3_consumer_unit.data_model.purchased)
-        self.assertEqual(0, sku3_consumer_unit.data_model.received)
-        self.assertEqual(0, sku3_consumer_unit.data_model.order_product_cost)
-
-        # check sources
-        for source_facility_id in sku3_consumer_unit.source_facility_id_list:
-            source_facility: FacilityBase = be.world.get_facility_by_id(source_facility_id)
-
-            # check if source facility contains the sku3 config
-            self.assertTrue(SKU3_ID in source_facility.skus)
+        Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+        storeproductunit_sku1, storeproductunit_sku2, storeproductunit_sku3 = 1, 3, 2
+        self.assertEqual([1, 1, 1, 1, 1, 1], Store_001.children[storeproductunit_sku1].seller._sale_hist)
+        self.assertEqual([2, 2, 2, 2, 2, 2], Store_001.children[storeproductunit_sku2].seller._sale_hist)
+        self.assertEqual([3, 3, 3, 3, 3, 3], Store_001.children[storeproductunit_sku3].seller._sale_hist)
 
         env.step(None)
+        # The demand in the data file should be added after env.step, and now it is filled with 0 if it is not implemented.
+        self.assertEqual([1, 1, 1, 1, 1, 0], Store_001.children[storeproductunit_sku1].seller._sale_hist)
+        self.assertEqual([2, 2, 2, 2, 2, 0], Store_001.children[storeproductunit_sku2].seller._sale_hist)
+        self.assertEqual([3, 3, 3, 3, 3, 0], Store_001.children[storeproductunit_sku3].seller._sale_hist)
 
-        # check state
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
-
-        self.assertEqual(sku3_consumer_unit.id, states[IDX_ID])
-        self.assertEqual(sku3_consumer_unit.facility.id, states[IDX_FACILITY_ID])
-        self.assertEqual(SKU3_ID, states[IDX_PRODUCT_ID])
-        self.assertEqual(0, states[IDX_ORDER_COST])
-
-        env.reset()
-        env.step(None)
-
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
-
-        # Nothing happened at tick 0, so most states will be 0
-        self.assertEqual(0, states[IDX_PURCHASED])
-        self.assertEqual(0, states[IDX_RECEIVED])
-        self.assertEqual(0, states[IDX_ORDER_PRODUCT_COST])
-
-        self.assertEqual(sku3_consumer_unit.id, states[IDX_ID])
-        self.assertEqual(SKU3_ID, states[IDX_PRODUCT_ID])
+        # The result should be (1+1+1+1+1)/6=0.8333333333333334
+        self.assertEqual(0.8333333333333334, env.metrics['products'][26]['sale_mean'])
+        # The result should be (3+3+3+3+3)/6=2.5
+        self.assertEqual(2.5, env.metrics['products'][29]['sale_mean'])
+        # The result should be (2+2+2+2+2)/6=1.6666666666666667
+        self.assertEqual(1.6666666666666667, env.metrics['products'][29]['sale_mean'])
 
     def test_consumer_action(self) -> None:
         """Consumer of sku3 in Supplier_SKU1, which would purchase from Supplier_SKU3."""
@@ -239,7 +213,8 @@ class MyTestCase(unittest.TestCase):
         consumer_nodes = env.snapshot_list["consumer"]
         consumer_node_index = sku3_consumer_unit.data_model_index
 
-        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost", "id")
+        features = (
+            "id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost", "id")
         IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
         IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
         states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)

@@ -44,6 +44,29 @@ facility_definitions:
           config:
             sale_hist_len: 4
 
+  StoreFacility:
+      class: "OuterRetailerFacility"
+      datamodel: "FacilityDataModel"
+      children:
+        storage:
+          class: "StorageUnit"
+      products:
+        class: "StoreProductUnit"
+        config:
+          consumer:
+            class: "ConsumerUnit"
+          seller:
+            class: "OuterSellerUnit"
+            config:
+              sale_hist_len: 6
+      config:
+        dynamics_sampler_type: processed_price_demand # What kind of sampler to use.
+        sku_column: "SKU" # SKU column name
+        price_column: "Price" # Price column name
+        demand_column: "Sales" # Demand column name
+        datetime_column: "Date" # Date-time column name
+        file_path: "/path/to/data.csv" # full path to data file, override by each store instance
+
 
 small_storage: &small_storage
   config:
@@ -96,6 +119,10 @@ skus: &sku_definitions
     output_units_per_lot: 2
     bom:
       sku2: 1
+single_storage: &single_storage
+  config:
+    capacity: 80000
+    unit_storage_cost: 0.1
 
 
 world:
@@ -149,30 +176,86 @@ world:
         sku1:
           price: 300
           init_stock: 10
-          sale_gamma: 10
+          sale_gamma: 11
           backlog_ratio: 0.1
           has_consumer: True
           has_seller: True
         sku3:
           price: 200
           init_stock: 10
-          sale_gamma: 10
+          sale_gamma: 13
           backlog_ratio: 0.1
           has_consumer: True
           has_seller: True
         sku2:
           price: 100
           init_stock: 10
-          sale_gamma: 10
+          sale_gamma: 12
           backlog_ratio: 0.1
           has_consumer: True
           has_seller: True
       children:
         storage: *small_storage
       config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
+
+
+    - name: "Store_001"
+      definition_ref: "StoreFacility"
+      skus:
+        "sku1":
+          price: 33
+          init_stock: 10000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 1
+          backlog_ratio: 0.0
+        "sku3":
+          price: 33
+          init_stock: 5000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 3
+          backlog_ratio: 0.0
+        sku2:
+          price: 100
+          init_stock: 1000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 2
+          backlog_ratio: 0.1
+      children:
+        storage: *single_storage
+      config:
         unit_order_cost: 200
+        file_path: "C:\\Users\\v-heli1\\maro\\maro\\simulator\\scenarios\\supply_chain\\topologies\\tests\\data\\supply_chain\\case_04\\test_case_04.csv"
 
   topology:
+
+    "Store_001":
+      "sku1":
+        "Warehouse_001":
+          "air":
+            vlt: 7
+            cost: 3.0  # Unit transportation cost per product per day
+          "train":
+            vlt: 7
+            cost: 0.5
+      "sku2":
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 0.6
+      "sku3":
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 0.6
+
     Warehouse_001:
       sku3:
         "Supplier_SKU3":
@@ -200,3 +283,15 @@ world:
 
 settings:
   pending_order_len: 4
+  start_date_time: "2021-01-01"
+
+policy_parameter:
+  facilities:
+    Vendor_001:
+      max_price: 33
+    Plant_001:
+      max_price: 33
+    Warehouse_001:
+      max_price: 33
+    Store_001:
+      max_price: 33
