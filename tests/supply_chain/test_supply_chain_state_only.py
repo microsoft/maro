@@ -133,16 +133,16 @@ class MyTestCase(unittest.TestCase):
 
         env.step(None)
         # The demand in the data file should be added after env.step, and now it is filled with 0 if it is not implemented.
-        self.assertEqual([1, 1, 1, 1, 1, 0], Store_001.children[storeproductunit_sku1].seller._sale_hist)
-        self.assertEqual([2, 2, 2, 2, 2, 0], Store_001.children[storeproductunit_sku2].seller._sale_hist)
-        self.assertEqual([3, 3, 3, 3, 3, 0], Store_001.children[storeproductunit_sku3].seller._sale_hist)
+        self.assertEqual([1, 1, 1, 1, 1, 10], Store_001.children[storeproductunit_sku1].seller._sale_hist)
+        self.assertEqual([2, 2, 2, 2, 2, 100], Store_001.children[storeproductunit_sku2].seller._sale_hist)
+        self.assertEqual([3, 3, 3, 3, 3, 100], Store_001.children[storeproductunit_sku3].seller._sale_hist)
 
-        # The result should be (1+1+1+1+1)/6=0.8333333333333334
-        self.assertEqual(0.8333333333333334, env.metrics['products'][26]['sale_mean'])
-        # The result should be (3+3+3+3+3)/6=2.5
-        self.assertEqual(2.5, env.metrics['products'][29]['sale_mean'])
-        # The result should be (2+2+2+2+2)/6=1.6666666666666667
-        self.assertEqual(1.6666666666666667, env.metrics['products'][32]['sale_mean'])
+        # The result should be (1+1+1+1+1+10)/6=0.8333333333333334
+        self.assertEqual(2.5, env.metrics['products'][26]['sale_mean'])
+        # The result should be (3+3+3+3+3+100)/6=19.166666666666668
+        self.assertEqual(19.166666666666668, env.metrics['products'][29]['sale_mean'])
+        # The result should be (2+2+2+2+2+100)/6=18.333333333333332
+        self.assertEqual(18.333333333333332, env.metrics['products'][32]['sale_mean'])
 
     def test_distribution_state_only(self) -> None:
         """Test the 'pending_order' and 'in_transit_orders'of the distribution unit."""
@@ -231,7 +231,7 @@ class MyTestCase(unittest.TestCase):
         # when the order arrives, Retailer_1's in_transit_orders shall be the negative of retailer_1's arrived orders -10
         self.assertEqual(-10, env.metrics['facilities'][retailer_1_id]['in_transit_orders'][SKU3_ID])
 
-        # after the order arrives, the previous pending_order of supplier_3's distribution has also arrived, so warehouse_1's in_transit_orders should be -40 + (-25) equals -65
+        # after the order arrives, the previous pending_order of supplier_3's distribution has also arrived, so warehouse_1's in_transit_orders should be -40 + (-25) equals -65.
         self.assertEqual(-65, env.metrics['facilities'][warehouse_1_id]['in_transit_orders'][SKU3_ID])
 
 
