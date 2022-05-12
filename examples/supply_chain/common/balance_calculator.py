@@ -70,6 +70,9 @@ class BalanceSheetCalculator:
 
         self.accumulated_balance_sheet = defaultdict(int)
 
+    def update_env(self, env: Env) -> None:
+        self._env = env
+
     def _extract_facility_and_product_info(self) -> Tuple[
         List[FacilityLevelInfo], List[ProductInfo], Dict[int, int], Dict[int, int],
     ]:

@@ -192,7 +192,7 @@ class SCEnvSampler(AbsEnvSampler):
         # Key1: storage node index; Key2: product id/sku id; Value: sub storage capacity.
         storage_capacity_dict: Dict[int, Dict[int, int]] = defaultdict(dict)
 
-        storage_snapshots = self._learn_env.snapshot_list["storage"]
+        storage_snapshots = self._env.snapshot_list["storage"]
         for node_index in range(len(storage_snapshots)):
             storage_capacity_list = storage_snapshots[0:node_index:"capacity"].flatten().astype(int)
             product_storage_index_list = storage_snapshots[0:node_index:"product_storage_index"].flatten().astype(int)
@@ -226,7 +226,7 @@ class SCEnvSampler(AbsEnvSampler):
     def get_rl_policy_state(self, entity_id: int) -> np.ndarray:
         np_state = self._rl_agent_states.update_entity_state(
             entity_id=entity_id,
-            tick=self._learn_env.tick,
+            tick=self._env.tick,
             cur_metrics=self._cur_metrics,
             cur_distribution_states=self._cur_distribution_states,
             cur_seller_hist_states=self._cur_seller_hist_states,
@@ -253,30 +253,32 @@ class SCEnvSampler(AbsEnvSampler):
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         """Update the status variables first, then call the state shaper for each agent."""
         if tick is None:
-            tick = self._learn_env.tick
+            tick = self._env.tick
         else:
             # To make sure the usage of metrics is correct, the tick should be same to the current env tick.
-            assert tick == self._learn_env.tick
+            assert tick == self._env.tick
 
-        self._cur_metrics = self._learn_env.metrics
+        self._balance_calculator.update_env(self._env)
+
+        self._cur_metrics = self._env.metrics
 
         # Get balance info of current tick from balance calculator.
         self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
 
         # Get distribution features of current tick from snapshot list.
-        self._cur_distribution_states = self._learn_env.snapshot_list["distribution"][
+        self._cur_distribution_states = self._env.snapshot_list["distribution"][
             tick::distribution_features
         ].flatten().reshape(-1, len(distribution_features)).astype(np.int)
 
         # Get consumer features of specific ticks from snapshot list.
         consumption_hist_ticks = [tick - i for i in range(self._env_settings['consumption_hist_len'] - 1, -1, -1)]
-        self._cur_consumer_hist_states = self._learn_env.snapshot_list["consumer"][
+        self._cur_consumer_hist_states = self._env.snapshot_list["consumer"][
             consumption_hist_ticks::consumer_features
         ].reshape(self._env_settings['consumption_hist_len'], -1, len(consumer_features))
 
         # Get seller features of specific ticks from snapshot list.
         sale_hist_ticks = [tick - i for i in range(self._env_settings['sale_hist_len'] - 1, -1, -1)]
-        self._cur_seller_hist_states = self._learn_env.snapshot_list["seller"][
+        self._cur_seller_hist_states = self._env.snapshot_list["seller"][
             sale_hist_ticks::seller_features
         ].reshape(self._env_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
 
@@ -289,7 +291,7 @@ class SCEnvSampler(AbsEnvSampler):
             self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
 
             if facility_info.storage_info.node_index is not None:
-                product_quantities = self._learn_env.snapshot_list["storage"][
+                product_quantities = self._env.snapshot_list["storage"][
                     tick:facility_info.storage_info.node_index:"product_quantity"
                 ].flatten().astype(np.int)
 
@@ -311,6 +313,7 @@ class SCEnvSampler(AbsEnvSampler):
     def _get_reward(self, env_action_dict: Dict[Any, object], event: object, tick: int) -> Dict[Any, float]:
         # get related product, seller, consumer, manufacture unit id
         # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
+        self._balance_calculator.update_env(self._env)
         self._cur_balance_sheet_reward = self._balance_calculator.calc_and_update_balance_sheet(tick=tick)
 
         return {
@@ -387,8 +390,8 @@ class SCEnvSampler(AbsEnvSampler):
 
     def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         tick = cache_element.tick
-        total_sold = self._learn_env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
-        total_demand = self._learn_env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
+        total_sold = self._env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
+        total_demand = self._env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
         self._info["sold"] = total_sold
         self._info["demand"] = total_demand
         self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
