@@ -132,7 +132,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual([3, 3, 3, 3, 3, 3], Store_001.children[storeproductunit_sku3].seller._sale_hist)
 
         env.step(None)
-        # The demand in the data file should be added after env.step, and now it is filled with 0 if it is not implemented.
+        # The demand in the data file should be added after env.step.
         self.assertEqual([1, 1, 1, 1, 1, 10], Store_001.children[storeproductunit_sku1].seller._sale_hist)
         self.assertEqual([2, 2, 2, 2, 2, 100], Store_001.children[storeproductunit_sku2].seller._sale_hist)
         self.assertEqual([3, 3, 3, 3, 3, 100], Store_001.children[storeproductunit_sku3].seller._sale_hist)
