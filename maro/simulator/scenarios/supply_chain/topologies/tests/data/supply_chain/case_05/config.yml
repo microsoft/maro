@@ -267,7 +267,7 @@ world:
       sku1:
         "Warehouse_001":
           "train":
-            vlt: 7
+            vlt: 4
             cost: 1
       sku2:
         "Warehouse_001":
