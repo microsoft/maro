@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import collections
 import os
+import typing
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, deque
+from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Deque, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import torch
@@ -16,6 +18,9 @@ import torch
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.simulator import Env
+
+if typing.TYPE_CHECKING:
+    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 class AbsAgentWrapper(object, metaclass=ABCMeta):
@@ -34,11 +39,11 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         self._policy_dict = policy_dict
         self._agent2policy = agent2policy
 
-    def set_policy_state(self, policy_state_dict: Dict[str, object]) -> None:
+    def set_policy_state(self, policy_state_dict: Dict[str, dict]) -> None:
         """Set policies' states.
 
         Args:
-            policy_state_dict (Dict[str, object]): Double-deck dict with format: {policy_name: policy_state}.
+            policy_state_dict (Dict[str, dict]): Double-deck dict with format: {policy_name: policy_state}.
         """
         for policy_name, policy_state in policy_state_dict.items():
             policy = self._policy_dict[policy_name]
@@ -203,54 +208,25 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     """Simulation data collector and policy evaluator.
 
     Args:
-        get_env (Callable[[], Env]): Function used to create the rollout environment.
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies by name.
-        agent2policy (Dict[Any, str]): Mapping of agent name to policy name.
-        trainable_policies (List[str], default=None): List of trainable policy names. Experiences generated using the
-            policies specified in this list will be collected and passed to a training manager for training. Defaults
-            to None, in which case all policies are trainable.
+        learn_env (Env): Environment used for training.
+        test_env (Env): Environment used for testing.
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event.
-        get_test_env (Callable[[], Env], default=None): Function used to create the testing environment. If it is None,
-            reuse the rollout environment as the testing environment.
     """
 
     def __init__(
         self,
-        get_env: Callable[[], Env],
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
-        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        trainable_policies: List[str] = None,
+        learn_env: Env,
+        test_env: Env,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
-        get_test_env: Callable[[], Env] = None,
     ) -> None:
-        self._learn_env = get_env()
-        self._test_env = get_test_env() if get_test_env is not None else get_env()
-        self._env: Optional[Env] = None
-        self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
+        self._learn_env = learn_env
+        self._test_env = test_env
 
-        self._policy_dict: Dict[str, AbsPolicy] = {
-            policy_name: func(policy_name) for policy_name, func in policy_creator.items()
-        }
-        self._rl_policy_dict: Dict[str, RLPolicy] = {
-            name: policy for name, policy in self._policy_dict.items() if isinstance(policy, RLPolicy)
-        }
-        self._agent2policy = agent2policy
-        self._agent_wrapper = agent_wrapper_cls(self._policy_dict, agent2policy)
-        if trainable_policies is None:
-            self._trainable_policies = set(self._policy_dict.keys())
-        else:
-            self._trainable_policies = set(trainable_policies)
-        self._trainable_agents = {
-            agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
-        }
+        self._agent_wrapper_cls = agent_wrapper_cls
 
-        assert all([policy_name in self._rl_policy_dict for policy_name in self._trainable_policies]), \
-            "All trainable policies must be RL policies!"
-
-        # Global state & agent state
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
 
@@ -259,9 +235,37 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         self._info = {}
 
-    @property
-    def rl_policy_dict(self) -> Dict[str, RLPolicy]:
-        return self._rl_policy_dict
+    def build(
+        self,
+        rl_component_bundle: RLComponentBundle,
+    ) -> None:
+        """
+        Args:
+            rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
+        """
+        self._env: Optional[Env] = None
+        self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
+
+        self._policy_dict = {
+            policy_name: rl_component_bundle.policy_creator[policy_name]()
+            for policy_name in rl_component_bundle.policy_names
+        }
+
+        self._rl_policy_dict: Dict[str, RLPolicy] = {
+            name: policy for name, policy in self._policy_dict.items() if isinstance(policy, RLPolicy)
+        }
+        self._agent2policy = rl_component_bundle.agent2policy
+        self._agent_wrapper = self._agent_wrapper_cls(self._policy_dict, self._agent2policy)
+        self._trainable_policies = set(rl_component_bundle.trainable_policy_names)
+        self._trainable_agents = {
+            agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
+        }
+
+        assert all([policy_name in self._rl_policy_dict for policy_name in self._trainable_policies]), \
+            "All trainable policies must be RL policies!"
+
+    def assign_policy_to_device(self, policy_name: str, device: torch.device) -> None:
+        self._rl_policy_dict[policy_name].to_device(device)
 
     def _get_global_and_agent_state(
         self, event: object, tick: int = None,
@@ -328,11 +332,11 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         _, self._event, _ = self._env.step(None)
         self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
 
-    def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
+    def sample(self, policy_state: Optional[Dict[str, dict]] = None, num_steps: Optional[int] = None) -> dict:
         """Sample experiences.
 
         Args:
-            policy_state (Dict[str, object]): Policy state dict. If it is not None, then we need to update all
+            policy_state (Dict[str, dict]): Policy state dict. If it is not None, then we need to update all
                 policies according to the latest policy states, then start the experience collection.
             num_steps (Optional[int], default=None): Number of collecting steps. If it is None, interactions with
                 the environment will continue until the terminal state is reached.
@@ -416,7 +420,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         return {
             "end_of_episode": not self._agent_state_dict,
             "experiences": [experiences],
-            "info": [self._info],
+            "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
         }
 
     def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
@@ -442,11 +446,11 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             latest_agent_state_dict.update(experiences[i].agent_state_dict)
         return experiences
 
-    def set_policy_state(self, policy_state_dict: Dict[str, object]) -> None:
+    def set_policy_state(self, policy_state_dict: Dict[str, dict]) -> None:
         """Set policies' states.
 
         Args:
-            policy_state_dict (Dict[str, object]): Double-deck dict with format: {policy_name: policy_state}.
+            policy_state_dict (Dict[str, dict]): Double-deck dict with format: {policy_name: policy_state}.
         """
         self._agent_wrapper.set_policy_state(policy_state_dict)
 
@@ -464,7 +468,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         return loaded
 
-    def eval(self, policy_state: Dict[str, object] = None) -> dict:
+    def eval(self, policy_state: Dict[str, dict] = None) -> dict:
         self._env = self._test_env
         self._reset()
         if policy_state is not None:
@@ -510,3 +514,11 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     @abstractmethod
     def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
         raise NotImplementedError
+
+    def post_collect(self, info_list: list, ep: int) -> None:
+        """Routines to be invoked at the end of training episodes"""
+        pass
+
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        """Routines to be invoked at the end of evaluation episodes"""
+        pass

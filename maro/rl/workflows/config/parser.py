@@ -257,17 +257,15 @@ class ConfigParser:
         path_mapping = self.get_path_mapping(containerize=containerize)
         scenario_path = path_mapping[self._config["scenario_path"]]
         num_episodes = self._config["main"]["num_episodes"]
-        main_proc = f"{self._config['job']}.main"
+        min_n_sample = self._config["main"].get("min_n_sample", 1)
         env = {
-            main_proc: (
-                os.path.join(self._get_workflow_path(containerize=containerize), "main.py"),
-                {
-                    "JOB": self._config["job"],
-                    "NUM_EPISODES": str(num_episodes),
-                    "TRAIN_MODE": self._config["training"]["mode"],
-                    "SCENARIO_PATH": scenario_path,
-                }
-            )
+            "main": {
+                "JOB": self._config["job"],
+                "NUM_EPISODES": str(num_episodes),
+                "MIN_N_SAMPLE": str(min_n_sample),
+                "TRAIN_MODE": self._config["training"]["mode"],
+                "SCENARIO_PATH": scenario_path,
+            }
         }
 
         main_proc_env = env[main_proc][1]

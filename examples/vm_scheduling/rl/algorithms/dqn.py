@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict
-
 import numpy as np
 import torch
 from torch.optim import SGD
@@ -11,8 +9,7 @@ from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from maro.rl.exploration import MultiLinearExplorationScheduler
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
-from maro.rl.training.algorithms import DQNTrainer, DQNParams
-
+from maro.rl.training.algorithms import DQNParams, DQNTrainer
 
 q_net_conf = {
     "hidden_dims": [64, 128, 256],
@@ -40,35 +37,6 @@ class MyQNet(DiscreteQNet):
         q_for_all_actions = self._fc(states[:, :self._num_features])
         return q_for_all_actions + (masks - 1) * 1e8
 
-    def step(self, loss: torch.Tensor) -> None:
-        self._optim.zero_grad()
-        loss.backward()
-        self._optim.step()
-
-    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
-        self._optim.zero_grad()
-        loss.backward()
-        return {name: param.grad for name, param in self.named_parameters()}
-
-    def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
-        for name, param in self.named_parameters():
-            param.grad = grad[name]
-        self._optim.step()
-
-    def get_state(self) -> object:
-        return {"network": self.state_dict(), "optim": self._optim.state_dict()}
-
-    def set_state(self, net_state: object) -> None:
-        assert isinstance(net_state, dict)
-        self.load_state_dict(net_state["network"])
-        self._optim.load_state_dict(net_state["optim"])
-
-    def freeze(self) -> None:
-        self.freeze_all_parameters()
-
-    def unfreeze(self) -> None:
-        self.unfreeze_all_parameters()
-
 
 class MaskedEpsGreedy:
     def __init__(self, state_dim: int, num_features: int) -> None:
@@ -83,7 +51,7 @@ class MaskedEpsGreedy:
         ])
 
 
-def get_policy(state_dim: int, action_num: int, num_features: int, name: str) -> ValueBasedPolicy:
+def get_dqn_policy(state_dim: int, action_num: int, num_features: int, name: str) -> ValueBasedPolicy:
     return ValueBasedPolicy(
         name=name,
         q_net=MyQNet(state_dim, action_num, num_features),

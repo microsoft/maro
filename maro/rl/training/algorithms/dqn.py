@@ -1,16 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict
 
-import numpy as np
 import torch
 
 from maro.rl.policy import RLPolicy, ValueBasedPolicy
-from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
-from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, remote, RemoteOps, SingleAgentTrainer, TrainerParams
+from maro.rl.utils import get_torch_device, ndarray_to_tensor, TransitionBatch
 from maro.utils import clone
 
 
@@ -48,9 +45,8 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], RLPolicy],
+        policy_creator: Callable[[], RLPolicy],
         parallelism: int = 1,
-        *,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
         double: bool = False,
@@ -162,7 +158,6 @@ class DQNTrainer(SingleAgentTrainer):
         super(DQNTrainer, self).__init__(name, params)
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
-        self._replay_memory: Optional[RandomReplayMemory] = None
 
     def build(self) -> None:
         self._ops = self.get_ops()
@@ -173,19 +168,8 @@ class DQNTrainer(SingleAgentTrainer):
             random_overwrite=self._params.random_overwrite,
         )
 
-    def record(self, env_idx: int, exp_element: ExpElement) -> None:
-        for agent_name in exp_element.agent_names:
-            transition_batch = TransitionBatch(
-                states=np.expand_dims(exp_element.agent_state_dict[agent_name], axis=0),
-                actions=np.expand_dims(exp_element.action_dict[agent_name], axis=0),
-                rewards=np.array([exp_element.reward_dict[agent_name]]),
-                terminals=np.array([exp_element.terminal_dict[agent_name]]),
-                next_states=np.expand_dims(
-                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
-                    axis=0,
-                ),
-            )
-            self._replay_memory.put(transition_batch)
+    def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
+        return transition_batch
 
     def get_local_ops(self) -> AbsTrainOps:
         return DQNOps(

@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 
-from maro.rl.utils import SHAPE_CHECK_FLAG, MultiTransitionBatch, TransitionBatch, match_shape
+from maro.rl.utils import match_shape, MultiTransitionBatch, SHAPE_CHECK_FLAG, TransitionBatch
 
 
 class AbsIndexScheduler(object, metaclass=ABCMeta):
@@ -200,10 +200,19 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._rewards = np.zeros(self._capacity, dtype=np.float32)
         self._terminals = np.zeros(self._capacity, dtype=np.bool)
         self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
+        self._returns = np.zeros(self._capacity, dtype=np.float32)
+        self._advantages = np.zeros(self._capacity, dtype=np.float32)
+        self._old_logps = np.zeros(self._capacity, dtype=np.float32)
+
+        self._n_sample = 0
 
     @property
     def action_dim(self) -> int:
         return self._action_dim
+
+    @property
+    def n_sample(self) -> int:
+        return self._n_sample
 
     def put(self, transition_batch: TransitionBatch) -> None:
         """Store a transition batch in the memory.
@@ -219,8 +228,15 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             assert match_shape(transition_batch.rewards, (batch_size,))
             assert match_shape(transition_batch.terminals, (batch_size,))
             assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
+            if transition_batch.returns is not None:
+                match_shape(transition_batch.returns, (batch_size,))
+            if transition_batch.advantages is not None:
+                match_shape(transition_batch.advantages, (batch_size,))
+            if transition_batch.old_logps is not None:
+                match_shape(transition_batch.old_logps, (batch_size,))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
+        self._n_sample = min(self._n_sample + transition_batch.size, self._capacity)
 
     def _put_by_indexes(self, indexes: np.ndarray, transition_batch: TransitionBatch) -> None:
         """Store a transition batch into the memory at the give indexes.
@@ -234,6 +250,12 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._rewards[indexes] = transition_batch.rewards
         self._terminals[indexes] = transition_batch.terminals
         self._next_states[indexes] = transition_batch.next_states
+        if transition_batch.returns is not None:
+            self._returns[indexes] = transition_batch.returns
+        if transition_batch.advantages is not None:
+            self._advantages[indexes] = transition_batch.advantages
+        if transition_batch.old_logps is not None:
+            self._old_logps[indexes] = transition_batch.old_logps
 
     def sample(self, batch_size: int = None) -> TransitionBatch:
         """Generate a sample batch from the replay memory.
@@ -265,6 +287,9 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             rewards=self._rewards[indexes],
             terminals=self._terminals[indexes],
             next_states=self._next_states[indexes],
+            returns=self._returns[indexes],
+            advantages=self._advantages[indexes],
+            old_logps=self._old_logps[indexes],
         )
 
     @abstractmethod

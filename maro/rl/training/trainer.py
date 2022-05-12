@@ -1,19 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+import collections
 import os
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import ExpElement
+from maro.rl.utils import TransitionBatch
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import LoggerV2
 
+from .replay_memory import ReplayMemory
 from .train_ops import AbsTrainOps, RemoteOps
-from .utils import extract_trainer_name
 
 
 @dataclass
@@ -79,29 +82,32 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def register_logger(self, logger: LoggerV2) -> None:
         self._logger = logger
 
-    def register_agent2policy(self, agent2policy: Dict[Any, str]) -> None:
+    def register_agent2policy(self, agent2policy: Dict[Any, str], policy_trainer_mapping: Dict[str, str]) -> None:
         """Register the agent to policy dict that correspond to the current trainer. A valid policy name should start
         with the name of its trainer. For example, "DQN.POLICY_NAME". Therefore, we could identify which policies
         should be registered to the current trainer according to the policy's name.
 
         Args:
             agent2policy (Dict[Any, str]): Agent name to policy name mapping.
+            policy_trainer_mapping (Dict[str, str]): Policy name to trainer name mapping.
         """
         self._agent2policy = {
             agent_name: policy_name for agent_name, policy_name in agent2policy.items()
-            if extract_trainer_name(policy_name) == self.name
+            if policy_trainer_mapping[policy_name] == self.name
         }
 
     @abstractmethod
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], AbsPolicy]],
+        global_policy_creator: Dict[str, Callable[[], AbsPolicy]],
+        policy_trainer_mapping: Dict[str, str],
     ) -> None:
         """Register the policy creator. Only keep the creators of the policies that the current trainer need to train.
 
         Args:
-            global_policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict that contains the creators for all
+            global_policy_creator (Dict[str, Callable[[], AbsPolicy]]): Dict that contains the creators for all
                 policies.
+            policy_trainer_mapping (Dict[str, str]): Policy name to trainer name mapping.
         """
         raise NotImplementedError
 
@@ -124,13 +130,13 @@ class AbsTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def record(self, env_idx: int, exp_element: ExpElement) -> None:
-        """Record rollout experiences in the replay memory.
+    def record_multiple(self, env_idx: int, exp_elements: List[ExpElement]) -> None:
+        """Record rollout all experiences from an environment in the replay memory.
 
         Args:
             env_idx (int): The index of the environment that generates this batch of experiences. This is used
                 when there are more than one environment collecting experiences in parallel.
-            exp_element (ExpElement): Experiences.
+            exp_elements (List[ExpElement]): Experiences.
         """
         raise NotImplementedError
 
@@ -168,6 +174,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         self._policy_name: Optional[str] = None
         self._policy_creator: Optional[Callable[[str], RLPolicy]] = None
         self._ops: Optional[AbsTrainOps] = None
+        self._replay_memory: Optional[ReplayMemory] = None
 
     @property
     def ops(self):
@@ -175,10 +182,13 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], AbsPolicy]],
+        global_policy_creator: Dict[str, Callable[[], AbsPolicy]],
+        policy_trainer_mapping: Dict[str, str],
     ) -> None:
         policy_names = [
-            policy_name for policy_name in global_policy_creator if extract_trainer_name(policy_name) == self.name
+            policy_name
+            for policy_name in global_policy_creator
+            if policy_trainer_mapping[policy_name] == self.name
         ]
         if len(policy_names) != 1:
             raise ValueError(f"Trainer {self._name} should have exactly one policy assigned to it")
@@ -232,6 +242,33 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         torch.save(policy_state, os.path.join(path, f"{self.name}_policy.{FILE_SUFFIX}"))
         torch.save(non_policy_state, os.path.join(path, f"{self.name}_non_policy.{FILE_SUFFIX}"))
 
+    def record_multiple(self, env_idx: int, exp_elements: List[ExpElement]) -> None:
+        agent_exp_pool = collections.defaultdict(list)
+        for exp_element in exp_elements:
+            for agent_name in exp_element.agent_names:
+                agent_exp_pool[agent_name].append((
+                    exp_element.agent_state_dict[agent_name],
+                    exp_element.action_dict[agent_name],
+                    exp_element.reward_dict[agent_name],
+                    exp_element.terminal_dict[agent_name],
+                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
+                ))
+
+        for agent_name, exps in agent_exp_pool.items():
+            transition_batch = TransitionBatch(
+                states=np.vstack([exp[0] for exp in exps]),
+                actions=np.vstack([exp[1] for exp in exps]),
+                rewards=np.array([exp[2] for exp in exps]),
+                terminals=np.array([exp[3] for exp in exps]),
+                next_states=np.vstack([exp[4] for exp in exps]),
+            )
+            transition_batch = self._preprocess_batch(transition_batch)
+            self._replay_memory.put(transition_batch)
+
+    @abstractmethod
+    def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
+        raise NotImplementedError
+
     def _assert_ops_exists(self) -> None:
         if not self._ops:
             raise ValueError("'build' needs to be called to create an ops instance first.")
@@ -248,7 +285,7 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def __init__(self, name: str, params: TrainerParams) -> None:
         super(MultiAgentTrainer, self).__init__(name, params)
-        self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {}
+        self._policy_creator: Dict[str, Callable[[], RLPolicy]] = {}
         self._policy_names: List[str] = []
         self._ops_dict: Dict[str, AbsTrainOps] = {}
 
@@ -258,11 +295,12 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
 
     def register_policy_creator(
         self,
-        global_policy_creator: Dict[str, Callable[[str], AbsPolicy]],
+        global_policy_creator: Dict[str, Callable[[], AbsPolicy]],
+        policy_trainer_mapping: Dict[str, str],
     ) -> None:
-        self._policy_creator: Dict[str, Callable[[str], RLPolicy]] = {
+        self._policy_creator: Dict[str, Callable[[], RLPolicy]] = {
             policy_name: func for policy_name, func in global_policy_creator.items()
-            if extract_trainer_name(policy_name) == self.name
+            if policy_trainer_mapping[policy_name] == self.name
         }
         self._policy_names = list(self._policy_creator.keys())
 
