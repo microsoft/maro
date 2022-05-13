@@ -13,11 +13,6 @@ from examples.supply_chain.rl.config import OR_NUM_CONSUMER_ACTIONS, workflow_se
 VLT_BUFFER_DAYS = workflow_settings["or_policy_vlt_buffer_days"]
 
 
-class DummyPolicy(RuleBasedPolicy):
-    def _rule(self, states: List[dict]) -> list:
-        return [None] * len(states)
-
-
 class ManufacturerBaselinePolicy(RuleBasedPolicy):
     def _rule(self, states: List[dict]) -> List[int]:
         return [500] * len(states)

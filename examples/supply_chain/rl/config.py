@@ -35,23 +35,24 @@ OR_NUM_CONSUMER_ACTIONS = 20
 NUM_CONSUMER_ACTIONS = 3
 OR_MANUFACTURE_ACTIONS = 20
 
+TOPOLOGY = "super_vendor"
+# TOPOLOGY = f"SCI_{num_products_to_sample}"
+# TOPOLOGY = "SCI_1.1"
 TRAIN_STEPS = 180
 EVAL_STEPS = 60
+
+DUMP_PRODUCT_METRICS = True
 
 
 env_conf = {
     "scenario": "supply_chain",
-    # "topology": f"SCI_{num_products_to_sample}",
-    "topology": "SCI_1.1",
-    # "topology": "super_vendor",
+    "topology": TOPOLOGY,
     "durations": TRAIN_STEPS,  # number of ticks per episode
 }
 
 test_env_conf = {
     "scenario": "supply_chain",
-    # "topology": f"SCI_{num_products_to_sample}",
-    "topology": "SCI_1.1",
-    # "topology": "super_vendor",
+    "topology": TOPOLOGY,
     "durations": TRAIN_STEPS + EVAL_STEPS,  # number of ticks per episode
 }
 
@@ -65,7 +66,7 @@ workflow_settings: dict = {
     "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
 }
 
-EXP_NAME = f"{env_conf['topology']}_{ALGO}_{workflow_settings['vehicle_selection_method']}"
+EXP_NAME = f"{TOPOLOGY}_{test_env_conf['durations']}_{ALGO}_{workflow_settings['vehicle_selection_method']}"
 
 # EXP_NAME = f"{ALGO}_SCI_{num_products_to_sample}SKUs_DIST_{vlt_buffer_days}"
 # if TEAM_REWARD:

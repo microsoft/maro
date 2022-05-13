@@ -214,7 +214,7 @@ class FacilityBase(ABC):
 
         for product_id, product in self.products.items():
             if product.consumer is not None:
-                in_transit_orders[product_id] = product.consumer.get_in_transit_quantity()
+                in_transit_orders[product_id] = product.consumer.in_transit_quantity
 
         return in_transit_orders
 

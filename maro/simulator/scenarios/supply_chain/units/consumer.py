@@ -38,7 +38,8 @@ class ConsumerUnit(ExtendUnitBase):
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
-        self._open_orders = defaultdict(Counter)
+        self._open_orders = Counter()
+        self._in_transit_quantity: int = 0
 
         # States in python side.
         self._received: int = 0  # The quantity of product received in current step.
@@ -52,6 +53,10 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._unit_order_cost: float = 0
 
+    @property
+    def in_transit_quantity(self) -> int:
+        return self._in_transit_quantity
+
     def on_order_reception(
         self, source_id: int, product_id: int, received_quantity: int, required_quantity: int,
     ) -> None:
@@ -63,6 +68,7 @@ class ConsumerUnit(ExtendUnitBase):
             received_quantity (int): How many we received.
             required_quantity (int): How many we ordered.
         """
+        assert product_id == self.product_id
         self._received += received_quantity
 
         self.update_open_orders(source_id, product_id, -received_quantity)
@@ -76,7 +82,9 @@ class ConsumerUnit(ExtendUnitBase):
             additional_quantity (int): Number of product to update (sum).
         """
         # New order for product.
-        self._open_orders[source_id][product_id] += additional_quantity
+        assert product_id == self.product_id
+        self._open_orders[source_id] += additional_quantity
+        self._in_transit_quantity += additional_quantity
 
     def initialize(self) -> None:
         super(ConsumerUnit, self).initialize()
@@ -164,10 +172,14 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.order_base_cost = self._order_base_cost
             self.data_model.latest_consumptions = 1.0
 
+        if self._received > 0 or self._purchased > 0:
+            self.data_model.in_transit_quantity = self.in_transit_quantity
+
     def reset(self) -> None:
         super(ConsumerUnit, self).reset()
 
         self._open_orders.clear()
+        self._in_transit_quantity = 0
 
         # Reset status in Python side.
         self._received = 0
@@ -175,9 +187,6 @@ class ConsumerUnit(ExtendUnitBase):
         self._order_product_cost = 0
         self._order_base_cost = 0
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
-
-    def get_in_transit_quantity(self) -> int:
-        return sum([orders.get(self.product_id, 0) for orders in self._open_orders.values()])
 
     def _update_pending_order(self) -> None:
         self.pending_order_daily = shift(self.pending_order_daily, -1, cval=0)

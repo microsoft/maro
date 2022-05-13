@@ -117,7 +117,8 @@ class DistributionUnit(UnitBase):
         else:
             return 0
 
-    def get_pending_product_quantities(self) -> Dict[int, int]:
+    @property
+    def pending_product_quantity(self) -> Dict[int, int]:  # TODO: add it into data model.
         """Count the requested product quantity in pending orders. Only used by BE metrics.
 
         Returns:
