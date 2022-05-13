@@ -20,7 +20,7 @@ def worker(group_name):
                   component_type="worker",
                   expected_peers={"master": 1})
 
-    # nonrecurring receive the message from the proxy.
+    # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
         print(f"{proxy.component_name} receive message from {msg.source}. the payload is {msg.payload}.")
 
@@ -47,7 +47,7 @@ def master(group_name: str, is_immediate: bool = False):
     random_integer_list = np.random.randint(0, 100, 5)
     print(f"generate random integer list: {random_integer_list}.")
 
-    for peer in proxy.peers["worker"]:
+    for peer in proxy.peers_name["worker"]:
         message = SessionMessage(tag="sum",
                                  source=proxy.component_name,
                                  destination=peer,
@@ -55,7 +55,7 @@ def master(group_name: str, is_immediate: bool = False):
                                  session_type=SessionType.TASK)
         if is_immediate:
             session_id = proxy.isend(message)
-            # do some tasks with higher priority here.
+            # Do some tasks with higher priority here.
             replied_msgs = proxy.receive_by_id(session_id)
         else:
             replied_msgs = proxy.send(message)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     is_immediate = False
 
     master_process = mp.Process(target=master, args=(group_name, is_immediate,))
-    worker_process = mp.Process(target=worker, args=(group_name, ))
+    worker_process = mp.Process(target=worker, args=(group_name,))
     master_process.start()
     worker_process.start()
 

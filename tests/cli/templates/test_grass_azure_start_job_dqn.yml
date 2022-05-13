@@ -2,7 +2,7 @@ mode: grass
 allocation:
   mode: single-metric-balanced
   metric: cpu
-name: job_for_test
+name: test_job
 
 components:
   actor:

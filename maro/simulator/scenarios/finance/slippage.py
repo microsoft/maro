@@ -1,42 +1,44 @@
-from enum import Enum
-
 from maro.simulator.scenarios.finance.common import OrderDirection, two_decimal_price
 
 
-class SlippageType(Enum):
-    # TODO: zhanyu add correct slippage
-    no_slippage = 0
-    by_money_slippage = 1
-    by_volume_slippage = 2
-    by_trade_slippage = 3
-
-
 class Slippage():
-    __slippage_type = None
+    """Base class for calculating the slippage of an order."""
 
     def __init__(self):
         pass
 
-    def execute(self, direction: OrderDirection, volume: int, base_price: float, market_volume: int):
+    def calculate(self, order_direction: OrderDirection, order_volume: int, order_price: float, market_volume: int):
         pass
-
-    @property
-    def slippage_type(self) -> SlippageType:
-        return self.__slippage_type
 
 
 class FixedSlippage(Slippage):
-    __slippage_rate = 0
+    """Fixed slippage has a fixed slippage from the expected price.
+
+    Args:
+        slippage_rate (float): Slippage rate of the slippage.
+    """
 
     def __init__(self, slippage_rate: float = 0):
-        Slippage.__init__(self)
-        self.__slippage_type = SlippageType.by_money_slippage
-        self.__slippage_rate = slippage_rate
+        super().__init__()
+        self._slippage_rate = slippage_rate
 
-    def execute(self, direction: OrderDirection, volume: int, base_price: float, market_volume: int) -> float:
-        delta_price = base_price * self.__slippage_rate / 2
-        if direction == OrderDirection.BUY:
-            actual_price = base_price + delta_price
+    def calculate(
+        self, order_direction: OrderDirection, order_volume: int, order_price: float, market_volume: int
+    ) -> float:
+        """Calculate the slippage price of the order.
+
+        Args:
+            order_direction (OrderDirection): The direction of the order.
+            order_volume (int): The expected trade volume of the order.
+            order_price (float): The expected trade price of the order.
+            market_volume (int): The trade volume of the stock in the market during the tick.
+
+        Returns:
+            float: The actual price with the slippage.
+        """
+        delta_price = order_price * self._slippage_rate / 2
+        if order_direction == OrderDirection.BUY:
+            actual_price = order_price + delta_price
         else:
-            actual_price = base_price - delta_price
+            actual_price = order_price - delta_price
         return two_decimal_price(actual_price)

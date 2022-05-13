@@ -12,8 +12,10 @@ import uuid
 
 import yaml
 
+from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
+from tests.cli.utils import record_running_time
 
 
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require cli prerequisites.")
@@ -27,6 +29,10 @@ class TestGrass(unittest.TestCase):
     Ref: https://docs.python.org/3.7/library/unittest.html#organizing-test-code
     """
     test_id = None
+    test_name = "test_job"
+    test_func_to_time = {}
+    cluster_name = None
+    resource_group = None
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -38,9 +44,11 @@ class TestGrass(unittest.TestCase):
         cls.test_dir_path = os.path.dirname(cls.test_file_path)
         cls.maro_pkg_path = os.path.normpath(os.path.join(cls.test_file_path, "../../../../"))
         cls.create_deployment_template_path = os.path.normpath(
-            os.path.join(cls.test_dir_path, "../templates/test_grass_azure_create.yml"))
+            os.path.join(cls.test_dir_path, "../templates/test_grass_azure_create.yml")
+        )
         cls.create_deployment_path = os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_grass_azure_create.yml")
+            f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_grass_azure_create.yml"
+        )
         cls.test_config_path = os.path.normpath(os.path.join(cls.test_dir_path, "../config.yml"))
 
         # Load config and save deployment
@@ -49,7 +57,9 @@ class TestGrass(unittest.TestCase):
         with open(cls.test_config_path) as fr:
             test_config_details = yaml.safe_load(fr)
             if test_config_details["cloud/subscription"] and test_config_details["user/admin_public_key"]:
+                create_deployment_details["name"] = f"test_maro_grass_{cls.test_id}"
                 create_deployment_details["cloud"]["subscription"] = test_config_details["cloud/subscription"]
+                create_deployment_details["cloud"]["resource_group"] = f"test_maro_grass_{cls.test_id}"
                 create_deployment_details["user"]["admin_public_key"] = test_config_details["user/admin_public_key"]
             else:
                 raise Exception("Invalid config")
@@ -58,6 +68,7 @@ class TestGrass(unittest.TestCase):
 
         # Get params from deployments
         cls.cluster_name = create_deployment_details["name"]
+        cls.resource_group = create_deployment_details["cloud"]["resource_group"]
 
         # Pull "ubuntu" as testing image
         command = "docker pull alpine:latest"
@@ -67,6 +78,17 @@ class TestGrass(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
+        # Print result
+        print(
+            json.dumps(
+                cls.test_func_to_time,
+                indent=4, sort_keys=True
+            )
+        )
+
+        # Delete resource group
+        AzureExecutor.delete_resource_group(resource_group=cls.resource_group)
+
         # Delete tmp test folder
         shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}"))
 
@@ -93,11 +115,13 @@ class TestGrass(unittest.TestCase):
 
     # Tests
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test10_create(self) -> None:
         # Run cli command
         command = f"maro grass create --debug {self.create_deployment_path}"
         SubProcess.interactive_run(command)
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test11_node1(self) -> None:
         """Scale node spec Standard_D4s_v3 to 1.
 
@@ -116,6 +140,7 @@ class TestGrass(unittest.TestCase):
         for _, node_details in nodes_details.items():
             self.assertEqual("Running", node_details["state"])
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test12_image1(self) -> None:
         """Push image alpine:latest to the cluster.
 
@@ -136,6 +161,7 @@ class TestGrass(unittest.TestCase):
             self.assertEqual("Running", node_details["state"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test13_node2(self) -> None:
         """Scale node spec Standard_D4s_v3 to 2.
 
@@ -156,6 +182,7 @@ class TestGrass(unittest.TestCase):
             self.assertEqual("Running", node_details["state"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test14_stop(self) -> None:
         """Stop one Standard_D4s_v3.
 
@@ -182,6 +209,7 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(running_count, 1)
         self.assertEqual(stopped_count, 1)
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test15_image2(self) -> None:
         """Push image ubuntu:latest to the cluster.
 
@@ -213,6 +241,7 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(running_count, 1)
         self.assertEqual(stopped_count, 1)
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test16_start(self) -> None:
         """Start one Standard_D4s_v3.
 
@@ -237,6 +266,7 @@ class TestGrass(unittest.TestCase):
                 self.assertIn("ubuntu_latest", node_details["image_files"])
         self.assertEqual(running_count, 2)
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test17_data(self) -> None:
         # Create tmp files
         test_dir = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}")
@@ -290,7 +320,19 @@ class TestGrass(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/test_data")))
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F2/test_data")))
 
-    def test20_train_dqn(self) -> None:
+    @record_running_time(func_to_time=test_func_to_time)
+    def test20_train_env_provision(self):
+        # Build docker image and load docker image
+        command = (
+            f"docker build -f {self.maro_pkg_path}/docker_files/cpu.runtime.source.df -t maro_runtime_cpu:test "
+            f"{self.maro_pkg_path}"
+        )
+        SubProcess.run(command)
+        command = f"maro grass image push {self.cluster_name} --debug --image-name maro_runtime_cpu:test"
+        SubProcess.interactive_run(command)
+
+    @record_running_time(func_to_time=test_func_to_time)
+    def test21_train_dqn(self) -> None:
         # Copy dqn examples to test folder
         dqn_source_dir = os.path.normpath(os.path.join(self.test_dir_path, "../../../examples/cim/dqn"))
         dqn_target_dir = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn")
@@ -300,30 +342,29 @@ class TestGrass(unittest.TestCase):
 
         # Get cluster details and rebuild config
         master_details = self._get_master_details()
-        with open(f"{dqn_target_dir}/config.yml", 'r') as fr:
+        with open(f"{dqn_target_dir}/config.yml", "r") as fr:
             config = yaml.safe_load(fr)
-        with open(f"{dqn_target_dir}/config.yml", 'w') as fw:
-            config["general"]["total_training_episodes"] = 30
-            config["distributed"]["group_name"] = self.test_id
-            config["distributed"]["redis"]["host_name"] = master_details["private_ip_address"]
-            config["distributed"]["redis"]["port"] = master_details["redis"]["port"]
+        with open(f"{dqn_target_dir}/distributed_config.yml", "r") as fr:
+            distributed_config = yaml.safe_load(fr)
+        with open(f"{dqn_target_dir}/config.yml", "w") as fw:
+            config["general"]["max_episode"] = 30
             yaml.safe_dump(config, fw)
+        with open(f"{dqn_target_dir}/distributed_config.yml", "w") as fw:
+            distributed_config["redis"]["hostname"] = master_details["private_ip_address"]
+            distributed_config["redis"]["port"] = master_details["redis"]["port"]
+            yaml.safe_dump(distributed_config, fw)
 
         # Push dqn folder to cluster
-        command = (f"maro grass data push {self.cluster_name} --debug "
-                   f"'{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn' '/train'")
+        command = (
+            f"maro grass data push {self.cluster_name} --debug "
+            f"'{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn' '/train'"
+        )
         SubProcess.run(command)
-
-        # Build docker image and load docker image
-        command = (f"docker build -f {self.maro_pkg_path}/docker_files/cpu.runtime.df -t maro_runtime_cpu:test "
-                   f"{self.maro_pkg_path}")
-        SubProcess.run(command)
-        command = f"maro grass image push {self.cluster_name} --debug --image-name maro_runtime_cpu:test"
-        SubProcess.interactive_run(command)
 
         # Start job
         start_job_dqn_template_path = os.path.normpath(
-            os.path.join(self.test_dir_path, "../templates/test_grass_azure_start_job_dqn.yml"))
+            os.path.join(self.test_dir_path, "../templates/test_grass_azure_start_job_dqn.yml")
+        )
         command = f"maro grass job start {self.cluster_name} {start_job_dqn_template_path}"
         SubProcess.run(command)
         self._gracefully_wait(30)
@@ -334,8 +375,8 @@ class TestGrass(unittest.TestCase):
         while remain_idx <= 100:
             is_finished = True
             jobs_details = self._list_jobs_details()
-            self.assertTrue(len(jobs_details["job_for_test"]["containers"]), 2)
-            for _, container_details in jobs_details["job_for_test"]["containers"].items():
+            self.assertTrue(len(jobs_details[self.test_name]["containers"]), 2)
+            for _, container_details in jobs_details[self.test_name]["containers"].items():
                 if container_details["state"]["Status"] == "running":
                     is_finished = False
             if is_finished:
@@ -344,6 +385,7 @@ class TestGrass(unittest.TestCase):
             remain_idx += 1
         self.assertTrue(is_finished)
 
+    @record_running_time(func_to_time=test_func_to_time)
     def test30_delete(self) -> None:
         command = f"maro grass delete --debug {self.cluster_name}"
         SubProcess.interactive_run(command)

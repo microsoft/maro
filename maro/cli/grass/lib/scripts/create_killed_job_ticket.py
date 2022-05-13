@@ -18,10 +18,11 @@ def create_killed_job_ticket(cluster_name: str, job_name: str):
     redis = Redis(
         host=master_hostname,
         port=redis_port,
-        charset="utf-8", decode_responses=True
+        charset="utf-8",
+        decode_responses=True
     )
     redis.lpush(
-        f"{cluster_name}:killed_jobs",
+        f"{cluster_name}:killed_job_tickets",
         job_name
     )
 

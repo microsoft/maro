@@ -5,7 +5,7 @@ class PayloadKey(Enum):
     MODEL = "model"
     EPSILON = "epsilon"
     PERFORMANCE = "performance"
-    EXPERIENCE = "experience"
+    DETAILS = "details"
     SEED = "seed"
     DONE = "done"
     RETURN_DETAILS = "return_details"

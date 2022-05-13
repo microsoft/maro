@@ -11,9 +11,10 @@ from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
 
-def launch(config):
+def launch(config, distributed_config):
     set_input_dim(config)
     config = convert_dottable(config)
+    distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
 
@@ -24,9 +25,14 @@ def launch(config):
     )
 
     proxy_params = {
-        "group_name": os.environ["GROUP"],
-        "expected_peers": {"actor": int(os.environ["NUM_ACTORS"])},
-        "redis_address": ("localhost", 6379)
+        "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
+        "expected_peers": {
+            "actor": int(
+                os.environ["NUM_ACTORS"] if "NUM_ACTORS" in os.environ
+                else distributed_config.num_actors
+            )},
+        "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
+        "max_retries": 15
     }
 
     learner = SimpleLearner(
@@ -42,5 +48,5 @@ def launch(config):
 
 
 if __name__ == "__main__":
-    from components.config import config
-    launch(config)
+    from components.config import config, distributed_config
+    launch(config=config, distributed_config=distributed_config)

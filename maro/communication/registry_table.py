@@ -53,12 +53,13 @@ class ConditionalEvent:
     Args:
         event (str|Tuple): The description of the requisite messages' combination.
             E.g. "actor:rollout:1" or ("learner:rollout:1", "learner:update:1", "AND").
-        get_peers (callable): The callable function which returns the newest peer's name list from proxy.
+        peers_name (dict|property): The property function which returns the newest peer's name dict from proxy,
+            or the Dict with the key (peer type) and the value (peer name list).
     """
 
-    def __init__(self, event: Union[str, Tuple], get_peers: callable):
+    def __init__(self, event: Union[str, Tuple], peers_name: Union[property, dict]):
         self._event = event
-        self._get_peers = get_peers
+        self._peers_name = peers_name
         self._suffix_tree = SuffixTree()
         self._unit_event_message_dict = {}
 
@@ -122,7 +123,8 @@ class ConditionalEvent:
     def _get_request_message_number(self, unit_event: str) -> int:
         """To get the number of request messages by the given unit event."""
         component_type, _, number = unit_event.split(":")
-        peers_number = len(self._get_peers(component_type))
+        peers_number = len(self._peers_name[component_type]) if component_type != "*" else \
+            len(list(itertools.chain.from_iterable(self._peers_name.values())))
 
         if peers_number == 0:
             raise PeersMissError(f"There is no target component in peer list! Required peer type {component_type}.")
@@ -215,12 +217,13 @@ class RegisterTable:
     """The RegisterTable is responsible for matching ``conditional events`` and user-defined ``message handlers``.
 
     Args:
-        get_peers (callable): The callable function which returns the newest peer's name list from proxy.
+        peers_name (dict|property): The property function which returns the newest peer's name dict from proxy,
+            or the Dict with the key (peer type) and the value (peers name list).
     """
 
-    def __init__(self, get_peers: callable):
+    def __init__(self, peers_name: Union[property, dict]):
         self._event_handler_dict = {}
-        self._get_peers = get_peers
+        self._peers_name = peers_name
 
     def register_event_handler(self, event: Union[str, tuple], handler_fn: callable):
         """Register conditional event in the RegisterTable, and create a dict which match ``message handler`` and
@@ -230,7 +233,7 @@ class RegisterTable:
             event (str|Tuple): The description of the requisite messages' combination,
             handler_fn (callable): The user-define function which usually uses to handle incoming messages.
         """
-        event = ConditionalEvent(event, self._get_peers)
+        event = ConditionalEvent(event, self._peers_name)
         self._event_handler_dict[event] = handler_fn
 
     def push(self, message: Message):

@@ -8,10 +8,10 @@ from .abs_early_stopping_checker import AbsEarlyStoppingChecker
 
 
 class SimpleEarlyStoppingChecker(AbsEarlyStoppingChecker):
-    """Early stopping checker based on the some simple measure obtained by applying a measure function to the last
-    k metric values.
+    """Early stopping checker based on the some simple measure.
 
-    The measure function must take a list as input and output a single number.
+    The measure is obtained by applying a user-defined measure function to the last k metric values. The measure
+    function must take a list as input and output a single number.
     """
     def __init__(self, last_k, threshold, measure_func: Callable[[list], Union[int, float]]):
         super().__init__(last_k, threshold)

@@ -7,14 +7,14 @@ from maro.simulator.scenarios.finance.stock import Stock
 
 
 def build_frame(stock_num: int, snapshots_num: int):
-    """Function to build citi_bike Frame.
+    """Function to build finance Frame.
 
     Args:
-        station_num (int): Number of stations.
+        stock_num (int): Number of stocks.
         snapshot_num (int): Number of in-memory snapshots.
 
     Returns:
-        CitibikeFrame: Frame instance for citi-bike scenario.
+        StockFrame: Frame instance for finance scenario.
     """
 
     class StockFrame(FrameBase):

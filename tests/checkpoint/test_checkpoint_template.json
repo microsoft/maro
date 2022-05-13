@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.1.0",
+  "contentVersion": "1.0.0.0",
   "parameters": {
     "location": {
       "type": "string"
@@ -28,6 +28,9 @@
     },
     "adminPublicKey": {
       "type": "securestring"
+    },
+    "storageAccountName": {
+      "type": "string"
     }
   },
   "variables": {
@@ -171,6 +174,20 @@
             }
           }
         }
+      }
+    },
+    {
+      "name": "[parameters('storageAccountName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2018-07-01",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "properties": {
+        "accessTier": "Hot"
       }
     }
   ],

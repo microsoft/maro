@@ -33,8 +33,7 @@ if __name__ == "__main__":
     os.makedirs(os.path.expanduser("~/.maro-local/agents/"), exist_ok=True)
     with open(os.path.expanduser("~/.maro-local/agents/master_agent.config"), 'w') as fw:
         json.dump({
-            'cluster_name': args.cluster_name,
-            'redis_port': redis_port
+            'cluster_name': args.cluster_name
         }, fw)
 
     # Load .service
@@ -52,7 +51,8 @@ if __name__ == "__main__":
     # Exec command
     command = START_SERVICE_COMMAND.format(admin_username=admin_username)
     process = subprocess.Popen(
-        command, executable='/bin/bash', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+        command,
+        executable='/bin/bash', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
     )
     stdout, stderr = process.communicate()
     if stderr:

@@ -20,7 +20,7 @@ def worker(group_name):
     counter = 0
     print(f"{proxy.component_name}'s counter is {counter}.")
 
-    # nonrecurring receive the message from the proxy.
+    # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
         print(f"{proxy.component_name} receive message from {msg.source}.")
 
@@ -42,22 +42,32 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
                         you can do something with high priority before receiving replied messages from peers.
             Sync Mode: It will block until the proxy returns all the replied messages.
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="master",
-                  expected_peers={"worker": worker_num})
+    proxy = Proxy(
+        group_name=group_name,
+        component_type="master",
+        expected_peers={"worker": worker_num}
+    )
 
     if is_immediate:
-        session_ids = proxy.ibroadcast(tag="INC",
-                                       session_type=SessionType.NOTIFICATION)
-        # do some tasks with higher priority here.
+        session_ids = proxy.ibroadcast(
+            component_type="worker",
+            tag="INC",
+            session_type=SessionType.NOTIFICATION
+        )
+        # Do some tasks with higher priority here.
         replied_msgs = proxy.receive_by_id(session_ids)
     else:
-        replied_msgs = proxy.broadcast(tag="INC",
-                                       session_type=SessionType.NOTIFICATION)
+        replied_msgs = proxy.broadcast(
+            component_type="worker",
+            tag="INC",
+            session_type=SessionType.NOTIFICATION
+        )
 
     for msg in replied_msgs:
-        print(f"{proxy.component_name} get receive notification from {msg.source} with message session stage " +
-              f"{msg.session_stage}.")
+        print(
+            f"{proxy.component_name} get receive notification from {msg.source} with "
+            f"message session stage {msg.session_stage}."
+        )
 
 
 if __name__ == "__main__":
