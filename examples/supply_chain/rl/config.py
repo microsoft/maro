@@ -38,3 +38,5 @@ workflow_settings: dict = {
     "default_vehicle_type": None,
     "vehicle_selection_method": VehicleSelection.FIRST_ONE,
 }
+
+use_or_policy = True
