@@ -142,34 +142,21 @@ Trainers take interaction experiences and store them in the internal memory, and
 in the memory to train the policies. Like ``RLPolicy``, trainers are also concrete classes, which means they could
 be used by configuring parameters. Currently, we have 4 trainers (algorithms) in MARO:
 
-- ``DiscreteActorCriticTrainer``: Actor-critic algorithm for policies that generate discrete actions.
-- ``DiscretePPOTrainer``: PPO algorithm for policies that generate discrete actions.
+- ``ActorCriticTrainer``: Actor-critic algorithm.
+- ``PPOTrainer``: PPO algorithm.
 - ``DDPGTrainer``: DDPG algorithm for policies that generate continuous actions.
 - ``DQNTrainer``: DQN algorithm for policies that generate discrete actions.
 - ``DiscreteMADDPGTrainer``: MADDPG algorithm for policies that generate discrete actions.
 
-Each trainer has a corresponding ``Param`` class to manage all related parameters. For example,
-``DiscreteActorCriticParams`` contains all parameters used in ``DiscreteActorCriticTrainer``:
-
-.. code-block:: python
-
-   @dataclass
-   class DiscreteActorCriticParams(TrainerParams):
-       get_v_critic_net_func: Callable[[], VNet] = None
-       reward_discount: float = 0.9
-       grad_iters: int = 1
-       critic_loss_cls: Callable = None
-       clip_ratio: float = None
-       lam: float = 0.9
-       min_logp: Optional[float] = None
+Each trainer has a corresponding ``Param`` class to manage all related parameters.
 
 An example of creating an actor-critic trainer:
 
 .. code-block:: python
 
-   DiscreteActorCriticTrainer(
+   ActorCriticTrainer(
        name='ac',
-       params=DiscreteActorCriticParams(
+       params=ActorCriticParams(
            get_v_critic_net_func=lambda: MyCriticNet(state_dim=128),
            reward_discount=.0,
            grad_iters=10,
