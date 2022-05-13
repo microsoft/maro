@@ -1,11 +1,19 @@
 from abc import abstractmethod
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
 from maro.simulator import Env
+
+
+def _is_subset(a: Iterable, b: Iterable) -> bool:
+    return all(e in b for e in a)
+
+
+def _identical(a: Iterable, b: Iterable) -> bool:
+    return _is_subset(a, b) and _is_subset(b, a)
 
 
 class RLComponentBundle(object):
@@ -150,8 +158,10 @@ class RLComponentBundle(object):
         self.agent2policy = self.get_agent2policy()
 
         self.policy_trainer_mapping = self.get_policy_trainer_mapping()
-        assert all([policy_name in self.policy_creator for policy_name in self.policy_trainer_mapping.keys()])
-        assert all([trainer_name in self.trainer_creator for trainer_name in self.policy_trainer_mapping.values()])
+
+        assert _identical(self.agent2policy.values(), self.policy_creator.keys())
+        assert _identical(self.policy_trainer_mapping.values(), self.trainer_creator.keys())
+        assert _is_subset(self.policy_trainer_mapping.keys(), self.policy_creator)
 
         self.trainable_policy_names = list(self.policy_trainer_mapping.keys())
         self.trainable_policy_creator = {
