@@ -1,8 +1,0 @@
-redis_info:
-  host: "localhost"
-  port: 19999
-redis_mode: MARO          # one of MARO, customized. customized Redis won't be exited after maro process clear.
-parallel_level: 1         # Represented the maximum number of running jobs in the same times.
-keep_agent_alive: True    # If True represented the agents won't exit until the environment delete; otherwise, False.
-agent_countdown: 5        # After agent_countdown times checks, still no jobs will close agents. Available only if keep_agent_alive is 0.
-check_interval: 60        # The time interval (seconds) of agents check with Redis

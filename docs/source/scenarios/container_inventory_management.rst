@@ -571,10 +571,8 @@ Once we get a ``DecisionEvent`` from the environment, we should respond with an
 
   * **vessel_idx** (int): The id of the vessel/operation object of the port/agent.
   * **port_idx** (int): The id of the port/agent that take this action.
-  * **quantity** (int): The sign of this value denotes different meanings:
-
-    * Positive quantity means discharging empty containers from vessel to port.
-    * Negative quantity means loading empty containers from port to vessel.
+  * **action_type** (ActionType): Whether to load or discharge empty containers in this action.
+  * **quantity** (int): The (non-negative) quantity of empty containers to be loaded/discharged.
 
 Example
 ^^^^^^^
@@ -583,61 +581,36 @@ Here we will show you a simple example of interaction with the environment in
 random mode, we hope this could help you learn how to use the environment interfaces:
 
 .. code-block:: python
+  from maro.simulator import Env
+  from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
-   from maro.simulator import Env
-   from maro.simulator.scenarios.cim.common import Action, DecisionEvent
+  from random import randint
 
-   import random
+  # Initialize an Env for cim scenario
+  env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
-   # Initialize an environment of CIM scenario, with a specific topology.
-   # In Container Inventory Management, 1 tick means 1 day, durations=100 here indicates a length of 100 days.
-   env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+  metrics: object = None
+  decision_event: DecisionEvent = None
+  is_done: bool = False
+  action: Action = None
 
-   # Query for the environment summary, the business instances and intra-instance attributes
-   # will be listed in the output for your reference.
-   print(env.summary)
+  # Start the env with a None Action
+  metrics, decision_event, is_done = env.step(None)
 
-   metrics: object = None
-   decision_event: DecisionEvent = None
-   is_done: bool = False
-   action: Action = None
+  while not is_done:
+      # Generate a random Action according to the action_scope in DecisionEvent
+      action_scope = decision_event.action_scope
+      to_discharge = action_scope.discharge > 0 and randint(0, 1) > 0
 
-   num_episode = 2
-   for ep in range(num_episode):
-       # Gym-like step function.
-       metrics, decision_event, is_done = env.step(None)
+      action = Action(
+          decision_event.vessel_idx,
+          decision_event.port_idx,
+          randint(0, action_scope.discharge if to_discharge else action_scope.load),
+          ActionType.DISCHARGE if to_discharge else ActionType.LOAD
+      )
 
-       while not is_done:
-           past_week_ticks = [
-               x for x in range(decision_event.tick - 7, decision_event.tick)
-           ]
-           decision_port_idx = decision_event.port_idx
-           intr_port_infos = ["booking", "empty", "shortage"]
-
-           # Query the snapshot list of this environment to get the information of
-           # the booking, empty, shortage of the decision port in the past week.
-           past_week_info = env.snapshot_list["ports"][
-               past_week_ticks : decision_port_idx : intr_port_infos
-           ]
-
-           # Generate a random Action according to the action_scope in DecisionEvent.
-           random_quantity = random.randint(
-               -decision_event.action_scope.load,
-               decision_event.action_scope.discharge
-           )
-           action = Action(
-               vessel_idx=decision_event.vessel_idx,
-               port_idx=decision_event.port_idx,
-               quantity=random_quantity
-           )
-
-           # Drive the environment with the random action.
-           metrics, decision_event, is_done = env.step(action)
-
-       # Query for the environment business metrics at the end of each episode,
-       # it is usually users' optimized object in CIM scenario (usually includes multi-target).
-       print(f"ep: {ep}, environment metrics: {env.metrics}")
-       env.reset()
+      # Respond the environment with the generated Action
+      metrics, decision_event, is_done = env.step(action)
 
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
 for a quick experience.
@@ -646,7 +619,7 @@ Visualization
 -------------
 
 The resource holders in this scenario is the port and vessel.
-In order to facilitate users to select specific data and 
+In order to facilitate users to select specific data and
 observe the overall or partial data trend, the
 visualization tool provides data selection options in two dimensions:
 Inter-epoch view & Intra-epoch view.

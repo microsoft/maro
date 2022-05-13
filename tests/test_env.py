@@ -284,7 +284,7 @@ class TestEnv(unittest.TestCase):
 
         env_list = get_available_envs()
 
-        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties))
+        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties) + len(get_topologies("supply_chain")))
 
     def test_frame_index_to_ticks(self):
         ticks = frame_index_to_ticks(0, 10, 2)

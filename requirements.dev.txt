@@ -1,7 +1,14 @@
 Cython==0.29.14
 astroid==2.3.3
+azure-mgmt-authorization
+azure-mgmt-containerservice
+azure-mgmt-resource
+azure-mgmt-storage
+azure-storage-file-share
+azure-identity
 certifi==2019.9.11
 cycler==0.10.0
+docker
 flask==1.1.2
 flask-cors==3.0.10
 guppy3==3.0.9
@@ -12,7 +19,7 @@ mccabe==0.6.1
 pyaml==20.4.0
 pyparsing==2.4.5
 python-dateutil==2.8.1
-PyYAML==5.4
+PyYAML==5.4.1
 pyzmq==19.0.2
 six==1.13.0
 torch==1.6.0
@@ -20,7 +27,9 @@ torchsummary==1.5.1
 wrapt==1.11.2
 zmq==0.0.0
 numpy<1.20.0
+scipy==1.7.0
 tabulate==0.8.5
+markupsafe==2.0.1
 networkx==2.4
 palettable==3.3.0
 urllib3==1.26.5
@@ -42,3 +51,4 @@ editorconfig-checker
 aria2p==0.9.1
 prompt_toolkit==2.0.10
 stringcase==1.2.0
+networkx==2.4

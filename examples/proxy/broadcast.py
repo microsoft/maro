@@ -21,13 +21,13 @@ def worker(group_name):
     print(f"{proxy.name}'s counter is {counter}.")
 
     # Nonrecurring receive the message from the proxy.
-    for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.name} receive message from {msg.source}.")
+    msg = proxy.receive_once()
+    print(f"{proxy.name} received message from {msg.source}.")
 
-        if msg.tag == "INC":
-            counter += 1
-            print(f"{proxy.name} receive INC request, {proxy.name}'s count is {counter}.")
-            proxy.reply(message=msg, tag="done")
+    if msg.tag == "INC":
+        counter += 1
+        print(f"{proxy.name} receive INC request, {proxy.name}'s count is {counter}.")
+        proxy.reply(message=msg, tag="done")
 
 
 def master(group_name: str, worker_num: int, is_immediate: bool = False):

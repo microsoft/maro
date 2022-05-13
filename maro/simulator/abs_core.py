@@ -4,7 +4,7 @@
 
 from abc import ABC, abstractmethod
 from enum import IntEnum
-from typing import List
+from typing import List, Optional, Tuple
 
 from maro.backends.frame import SnapshotList
 from maro.event_buffer import EventBuffer
@@ -46,26 +46,27 @@ class AbsEnv(ABC):
         disable_finished_events: bool,
         options: dict
     ):
-        self._tick = start_tick
-        self._scenario = scenario
-        self._topology = topology
-        self._start_tick = start_tick
-        self._durations = durations
-        self._snapshot_resolution = snapshot_resolution
-        self._max_snapshots = max_snapshots
-        self._decision_mode = decision_mode
-        self._business_engine_cls = business_engine_cls
-        self._additional_options = options
+        self._tick: int = start_tick
+        self._scenario: str = scenario
+        self._topology: str = topology
+        self._start_tick: int = start_tick
+        self._durations: int = durations
+        self._snapshot_resolution: int = snapshot_resolution
+        self._max_snapshots: int = max_snapshots
+        self._decision_mode: DecisionMode = decision_mode
+        self._business_engine_cls: type = business_engine_cls
+        self._disable_finished_events: bool = disable_finished_events
+        self._additional_options: dict = options
 
-        self._business_engine: AbsBusinessEngine = None
-        self._event_buffer: EventBuffer = None
+        self._business_engine: Optional[AbsBusinessEngine] = None
+        self._event_buffer: Optional[EventBuffer] = None
 
     @property
-    def business_engine(self):
+    def business_engine(self) -> AbsBusinessEngine:
         return self._business_engine
 
     @abstractmethod
-    def step(self, action):
+    def step(self, action) -> Tuple[Optional[dict], Optional[List[object]], Optional[bool]]:
         """Push the environment to next step with action.
 
         Args:
@@ -77,12 +78,12 @@ class AbsEnv(ABC):
         pass
 
     @abstractmethod
-    def dump(self):
+    def dump(self) -> None:
         """Dump environment for restore."""
         pass
 
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         """Reset environment."""
         pass
 
@@ -111,6 +112,7 @@ class AbsEnv(ABC):
         pass
 
     @property
+    @abstractmethod
     def frame_index(self) -> int:
         """int: Frame index in snapshot list for current tick, USE this for snapshot querying."""
         pass
@@ -127,7 +129,7 @@ class AbsEnv(ABC):
         """SnapshotList: Current snapshot list, a snapshot list contains all the snapshots of frame at each tick."""
         pass
 
-    def set_seed(self, seed: int):
+    def set_seed(self, seed: int) -> None:
         """Set random seed used by simulator.
 
         NOTE:
@@ -147,10 +149,12 @@ class AbsEnv(ABC):
         """
         return {}
 
+    @abstractmethod
     def get_finished_events(self) -> list:
         """list: All events finished so far."""
         pass
 
+    @abstractmethod
     def get_pending_events(self, tick: int) -> list:
         """list: Pending events at certain tick.
 

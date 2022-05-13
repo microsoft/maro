@@ -1,0 +1,10 @@
+container_volume: 1
+dsch_cost_factor: 0.05
+future_stop_number: 3
+load_cost_factor: 0.05
+max_tick: 200
+order_mode: fixed
+past_stop_number: 4
+seed: 4096
+total_container: 100000
+version: '1'

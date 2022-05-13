@@ -11,8 +11,7 @@ from tests.communication.utils import get_random_port, proxy_generator
 
 
 def message_receive(proxy):
-    for received_message in proxy.receive(is_continuous=False):
-        return received_message.payload
+    return proxy.receive_once().body
 
 
 @unittest.skipUnless(os.environ.get("test_with_redis", False), "require redis")
@@ -51,12 +50,12 @@ class TestProxy(unittest.TestCase):
                 tag="unit_test",
                 source=TestProxy.master_proxy.name,
                 destination=worker_proxy.name,
-                payload="hello_world!"
+                body="hello_world!"
             )
             TestProxy.master_proxy.isend(send_msg)
 
-            for receive_message in worker_proxy.receive(is_continuous=False):
-                self.assertEqual(send_msg.payload, receive_message.payload)
+            recv_msg = worker_proxy.receive_once()
+            self.assertEqual(send_msg.body, recv_msg.body)
 
     def test_scatter(self):
         scatter_payload = ["worker_1", "worker_2", "worker_3", "worker_4", "worker_5"]
@@ -72,8 +71,8 @@ class TestProxy(unittest.TestCase):
         )
 
         for i, worker_proxy in enumerate(TestProxy.worker_proxies):
-            for msg in worker_proxy.receive(is_continuous=False):
-                self.assertEqual(scatter_payload[i], msg.payload)
+            msg = worker_proxy.receive_once()
+            self.assertEqual(scatter_payload[i], msg.body)
 
     def test_broadcast(self):
         with ThreadPoolExecutor(max_workers=len(TestProxy.worker_proxies)) as executor:
@@ -84,7 +83,7 @@ class TestProxy(unittest.TestCase):
                 component_type="worker",
                 tag="unit_test",
                 session_type=SessionType.NOTIFICATION,
-                payload=payload
+                body=payload
             )
 
             for task in all_tasks:
@@ -97,15 +96,15 @@ class TestProxy(unittest.TestCase):
                 tag="unit_test",
                 source=TestProxy.master_proxy.name,
                 destination=worker_proxy.name,
-                payload="hello "
+                body="hello "
             )
             session_id_list = TestProxy.master_proxy.isend(send_msg)
 
-            for receive_message in worker_proxy.receive(is_continuous=False):
-                worker_proxy.reply(message=receive_message, tag="unit_test", payload="world!")
+            recv_message = worker_proxy.receive_once()
+            worker_proxy.reply(message=recv_message, tag="unit_test", body="world!")
 
             replied_msg_list = TestProxy.master_proxy.receive_by_id(session_id_list)
-            self.assertEqual(send_msg.payload + replied_msg_list[0].payload, "hello world!")
+            self.assertEqual(send_msg.body + replied_msg_list[0].body, "hello world!")
 
 
 if __name__ == "__main__":

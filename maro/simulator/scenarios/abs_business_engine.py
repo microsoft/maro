@@ -4,6 +4,7 @@
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import List, Optional
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import EventBuffer
@@ -31,23 +32,23 @@ class AbsBusinessEngine(ABC):
         max_tick (int): Max tick of this business engine.
         snapshot_resolution (int): Frequency to take a snapshot.
         max_snapshots(int): Max number of in-memory snapshots, default is None that means max number of snapshots.
-        addition_options (dict): Additional options for this business engine from outside.
+        additional_options (dict): Additional options for this business engine from outside.
     """
 
     def __init__(
-        self, scenario_name: str, event_buffer: EventBuffer, topology: str,
-        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
+        self, scenario_name: str, event_buffer: EventBuffer, topology: Optional[str],
+        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: Optional[int],
         additional_options: dict = None
     ):
-        self._scenario_name = scenario_name
-        self._topology = topology
-        self._event_buffer = event_buffer
-        self._start_tick = start_tick
-        self._max_tick = max_tick
-        self._snapshot_resolution = snapshot_resolution
-        self._max_snapshots = max_snapshots
-        self._additional_options = additional_options
-        self._config_path = None
+        self._scenario_name: str = scenario_name
+        self._topology: str = topology
+        self._event_buffer: EventBuffer = event_buffer
+        self._start_tick: int = start_tick
+        self._max_tick: int = max_tick
+        self._snapshot_resolution: int = snapshot_resolution
+        self._max_snapshots: int = max_snapshots
+        self._additional_options: dict = additional_options
+        self._config_path: Optional[str] = None
 
         assert start_tick >= 0
         assert max_tick > start_tick
@@ -63,6 +64,14 @@ class AbsBusinessEngine(ABC):
     @abstractmethod
     def snapshots(self) -> SnapshotList:
         """SnapshotList: Snapshot list of current frame, this is used to expose querying interface for outside."""
+        pass
+
+    @property
+    def scenario_name(self) -> str:
+        return self._scenario_name
+
+    def get_agent_idx_list(self) -> List[int]:
+        """Get a list of agent index."""
         pass
 
     def frame_index(self, tick: int) -> int:
@@ -109,7 +118,7 @@ class AbsBusinessEngine(ABC):
         return self._max_snapshots if self._max_snapshots is not None \
             else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
 
-    def update_config_root_path(self, business_engine_file_path: str):
+    def update_config_root_path(self, business_engine_file_path: str) -> None:
         """Helper method used to update the config path with business engine path if you
         follow the way to load configuration file as built-in scenarios.
 
@@ -145,7 +154,7 @@ class AbsBusinessEngine(ABC):
                 self._config_path = os.path.join(be_file_path, "topologies", self._topology)
 
     @abstractmethod
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         """Method that is called at each tick, usually used to trigger business logic at current tick.
 
         Args:
@@ -154,14 +163,19 @@ class AbsBusinessEngine(ABC):
         pass
 
     @property
+    @abstractmethod
     def configs(self) -> dict:
         """dict: Configurations of this business engine."""
         pass
 
     @abstractmethod
-    def reset(self):
+    def reset(self, keep_seed: bool = False) -> None:
         """Reset states business engine."""
         pass
+
+    # @abstractmethod
+    # def set_seed(self, seed: int) -> None:
+    #     raise NotImplementedError
 
     def post_step(self, tick: int) -> bool:
         """This method will be called at the end of each tick, used to post-process for each tick,
@@ -203,7 +217,7 @@ class AbsBusinessEngine(ABC):
         """
         return {}
 
-    def dump(self, folder: str):
+    def dump(self, folder: str) -> None:
         """Dump something from business engine.
 
         Args:

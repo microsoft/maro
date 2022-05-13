@@ -30,11 +30,11 @@ class DocableDict:
 
     Args:
         doc (str): Customized doc of the dict.
-        kwargs (dict): Dictionary items to store.
+        origin_dict (dict): Dictionary items to store.
     """
 
-    def __init__(self, doc: str, **kwargs):
-        self._original_dict = kwargs
+    def __init__(self, doc: str, origin_dict: dict):
+        self._original_dict = origin_dict
         DocableDict.__doc__ = doc
 
     def __getattr__(self, name):

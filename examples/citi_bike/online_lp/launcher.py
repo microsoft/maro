@@ -8,7 +8,7 @@ import yaml
 
 from citi_bike_ilp import CitiBikeILP
 from maro.data_lib import BinaryReader, ItemTickPicker
-from maro.event_buffer import Event
+from maro.event_buffer import AbsEvent
 from maro.forecasting import OneStepFixWindowMA as Forecaster
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.adj_loader import load_adj_from_csv
@@ -50,7 +50,7 @@ class MaIlpAgent():
 
     # ============================= private start =============================
 
-    def _record_history(self, env_tick: int, finished_events: List[Event]):
+    def _record_history(self, env_tick: int, finished_events: List[AbsEvent]):
         """
         Args:
             env_tick (int): The current Env tick.
@@ -75,10 +75,10 @@ class MaIlpAgent():
             event_type = finished_events[self._next_event_idx].event_type
             if event_type == CitiBikeEvents.RequireBike:
                 # TODO: Replace it with a pre-defined PayLoad.
-                payload = finished_events[self._next_event_idx].payload
+                payload = finished_events[self._next_event_idx].body
                 demand_history[interval_idx, payload.src_station] += 1
             elif event_type == CitiBikeEvents.ReturnBike:
-                payload: BikeReturnPayload = finished_events[self._next_event_idx].payload
+                payload: BikeReturnPayload = finished_events[self._next_event_idx].body
                 supply_history[interval_idx, payload.to_station_idx] += payload.number
 
             # Update the index to the finished event that has not been processed.
@@ -129,14 +129,14 @@ class MaIlpAgent():
             # Process to get the future supply from Pending Events.
             for pending_event in ENV.get_pending_events(tick=tick):
                 if pending_event.event_type == CitiBikeEvents.ReturnBike:
-                    payload: BikeReturnPayload = pending_event.payload
+                    payload: BikeReturnPayload = pending_event.body
                     supply[interval_idx, payload.to_station_idx] += payload.number
 
         return demand, supply
 
     # ============================= private end =============================
 
-    def get_action_list(self, env_tick: int, init_inventory: np.ndarray, finished_events: List[Event]):
+    def get_action_list(self, env_tick: int, init_inventory: np.ndarray, finished_events: List[AbsEvent]):
         if PEEP_AND_USE_REAL_DATA:
             demand, supply = self.__peep_at_the_future(env_tick=env_tick)
         else:

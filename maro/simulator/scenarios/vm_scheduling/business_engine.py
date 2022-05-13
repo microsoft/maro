@@ -4,7 +4,7 @@
 import os
 import shutil
 import tarfile
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from yaml import safe_load
 
@@ -51,11 +51,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def __init__(
         self,
         event_buffer: EventBuffer,
-        topology: str,
+        topology: Optional[str],
         start_tick: int,
         max_tick: int,
         snapshot_resolution: int,
-        max_snapshots: int,
+        max_snapshots: Optional[int],
         additional_options: dict = {}
     ):
         super().__init__(
@@ -105,6 +105,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def snapshots(self) -> SnapshotList:
         """SnapshotList: Current snapshot list."""
         return self._snapshots
+
+    @property
+    def pm_amount(self) -> int:
+        return self._pm_amount
 
     def _load_configs(self):
         """Load configurations."""
@@ -405,7 +409,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_pm_id
 
-    def reset(self):
+    def reset(self, keep_seed: bool = False):
         """Reset internal states for episode."""
         self._init_metrics()
 
@@ -437,6 +441,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
         self._cpu_reader.reset()
+
+    def set_seed(self, seed: int) -> None:
+        pass
 
     def _init_frame(self):
         self._frame = build_frame(
@@ -565,19 +572,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return DocableDict(
             metrics_desc,
-            total_vm_requests=self._total_vm_requests,
-            total_incomes=self._total_incomes,
-            energy_consumption_cost=self._energy_consumption_cost,
-            total_profit=self._total_profit,
-            total_energy_consumption=self._total_energy_consumption,
-            successful_allocation=self._successful_allocation,
-            successful_completion=self._successful_completion,
-            failed_allocation=self._failed_allocation,
-            failed_completion=self._failed_completion,
-            total_latency=self._total_latency,
-            total_oversubscriptions=self._total_oversubscriptions,
-            total_overload_pms=self._total_overload_pms,
-            total_overload_vms=self._total_overload_vms
+            {
+                'total_vm_requests': self._total_vm_requests,
+                'total_incomes': self._total_incomes,
+                'energy_consumption_cost': self._energy_consumption_cost,
+                'total_profit': self._total_profit,
+                'total_energy_consumption': self._total_energy_consumption,
+                'successful_allocation': self._successful_allocation,
+                'successful_completion': self._successful_completion,
+                'failed_allocation': self._failed_allocation,
+                'failed_completion': self._failed_completion,
+                'total_latency': self._total_latency,
+                'total_oversubscriptions': self._total_oversubscriptions,
+                'total_overload_pms': self._total_overload_pms,
+                'total_overload_vms': self._total_overload_vms
+            }
         )
 
     def _register_events(self):

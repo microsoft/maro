@@ -25,7 +25,7 @@ def list_available():
 # maro env list
 def list_scenarios(**kwargs):
     """
-    Show all avaiable scenarios
+    Show all available scenarios
     """
 
     for scenario in get_scenarios():

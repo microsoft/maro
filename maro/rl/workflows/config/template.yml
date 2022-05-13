@@ -1,0 +1,81 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# This is a configuration template for running reinforcement learning workflows with MARO's CLI tools. The workflows
+# are scenario agnostic, meaning that this template can be applied to any scenario as long as the necessary components
+# are provided (see examples/rl/README.md for details about these components). Your scenario should be placed in a
+# folder and its path should be specified in the "scenario_path" field. Note that all fields with a "null" value are
+# optional and will be converted to None by the parser unless a non-null value is specified. Note that commenting them
+# out or leaving them blank are equivalent to using "null".
+
+
+job: your_job_name
+# Path to a directory that defines a business scenario and contains the necessary components to execute reinforcement
+# learning workflows in single-threaded, multi-process and distributed modes.
+scenario_path: "/path/to/your/scenario"
+log_path: "/path/to/your/log/folder"  # All logs are written to a single file for ease of viewing.
+main:
+  num_episodes: 100  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  # Number of environment steps to collect environment samples over. If null, samples are collected until the
+  # environments reach the terminal state, i.e., for a full episode. Otherwise, samples are collected until the
+  # specified number of steps or the terminal state is reached, whichever comes first.
+  num_steps: null
+  # This can be an integer or a list of integers. An integer indicates the interval at which policies are evaluated.
+  # A list indicates the episodes at the end of which policies are to be evaluated. Note that episode indexes are
+  # 1-based.
+  eval_schedule: 10
+  # Minimum number of samples to start training in one epoch. The workflow will re-run experience collection
+  # until we have at least `min_n_sample` of experiences.
+  min_n_sample: 1
+  logging:  # log levels for the main loop
+    stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+    file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+rollout:
+  # Optional section to specify roll-out parallelism settings. If absent, a single environment instance will be created
+  # locally for training and evaluation.
+  parallelism:
+    sampling: 10  # Number of parallel roll-outs to collecting training data from.
+    # Number of parallel roll-outs to evaluate policies on. If not specified, one roll-out worker is chosen to perform
+    # evaluation.
+    eval: null
+    # Minimum number of environment samples to collect from the parallel roll-outs per episode / segment before moving
+    # on to the training phase. The actual number of env samples collected may be more than this value if we allow a
+    # grace period (see the comment for rollout.parallelism.grace_factor for details), but never less. This value should
+    # not exceed rollout.parallelism.sampling.
+    min_env_samples: 8
+    # Factor that determines the additional wait time after the required number of environment samples as indicated by
+    # "min_env_samples" are received. For example, if T seconds elapsed after receiving "min_env_samples" environment
+    # samples, it will wait an additional T * grace_factor seconds to try to collect the remaining results.
+    grace_factor: 0.2
+    controller:  # Parallel roll-out controller settings. Ignored if rollout.parallelism section is absent.
+      host: "127.0.0.1"  # Controller's IP address. Ignored if run in containerized environments.
+      port: 20000  # Controller's network port for remote roll-out workers to connect to.
+  logging:  # log levels for roll-out workers
+    stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+    file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+training:
+  # Must be "simple" or "parallel". In simple mode, all underlying models are trained locally. In parallel mode,
+  # all trainers send gradient-related tasks to a proxy service where they get dispatched to a set of workers.
+  mode: simple
+  # Path to load previously saved trainer snapshots from. A policy trainer's snapshot includes the states of all
+  # the policies it manages as well as the states of auxillary models (e.g., critics in the Actor-Critic paradigm).
+  # If the path corresponds to an existing directory, the program will look under the directory for snapshot files
+  # that match the trainer names specified in the scenario and attempt to load from them.
+  load_path: "/path/to/your/models"  # or `null`
+  # Which episode of the previously saved snapshots to load. If it is not provided, the last snapshot will be loaded.
+  load_episode: null
+  # Optional section to specify model checkpointing settings.
+  checkpointing:
+    # Directory to save trainer snapshots under. Snapshot files created at different episodes will be saved under
+    # separate folders named using episode numbers. For example, if a snapshot is created for a trainer named "dqn"
+    # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
+    path: "/path/to/your/checkpoint/folder"
+    interval: 10  # Interval at which trained policies / models are persisted to disk.
+  proxy:  # Proxy settings. Ignored if training.mode is "simple".
+    host: "127.0.0.1"  # Proxy service host's IP address. Ignored if run in containerized environments.
+    frontend: 10000  # Proxy service's network port for trainers to send tasks to.
+    backend: 10001  # Proxy service's network port for remote workers to connect to.
+  num_workers: 10  # Number of workers to execute trainers' tasks.
+  logging:  # log levels for training task workers
+    stdout: INFO  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+    file: DEBUG  # DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS

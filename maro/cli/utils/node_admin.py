@@ -7,7 +7,7 @@ TERMINAL_PATH = os.path.expanduser("~/.maro/web_terminal/terminal-srv.py")
 
 
 def start_admin(*args, **kwargs):
-    print("""If got python moudle or file not found error, please run
+    print("""If got python module or file not found error, please run
     maro admin stop
     maro meta deploy
     maro admin req

@@ -69,7 +69,7 @@ class ZmqDriver(AbsDriver):
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")
-        self._logger.info(f"Receive message via unicasting at {self._ip_address}:{unicast_receiver_port}.")
+        self._logger.debug(f"Receive message via unicasting at {self._ip_address}:{unicast_receiver_port}.")
 
         # Dict about zmq.PUSH sockets, fulfills in self.connect.
         self._unicast_sender_dict = {}
@@ -80,7 +80,7 @@ class ZmqDriver(AbsDriver):
         self._broadcast_receiver = self._zmq_context.socket(zmq.SUB)
         self._broadcast_receiver.setsockopt(zmq.SUBSCRIBE, self._component_type.encode())
         broadcast_receiver_port = self._broadcast_receiver.bind_to_random_port(f"{self._protocol}://*")
-        self._logger.info(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
+        self._logger.debug(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
 
         # Record own sockets' address.
         self._address = {
@@ -122,10 +122,10 @@ class ZmqDriver(AbsDriver):
                         self._unicast_sender_dict[peer_name] = self._zmq_context.socket(zmq.PUSH)
                         self._unicast_sender_dict[peer_name].setsockopt(zmq.SNDTIMEO, self._send_timeout)
                         self._unicast_sender_dict[peer_name].connect(address)
-                        self._logger.info(f"Connects to {peer_name} via unicasting.")
+                        self._logger.debug(f"Connects to {peer_name} via unicasting.")
                     elif int(socket_type) == zmq.SUB:
                         self._broadcast_sender.connect(address)
-                        self._logger.info(f"Connects to {peer_name} via broadcasting.")
+                        self._logger.debug(f"Connects to {peer_name} via broadcasting.")
                     else:
                         raise SocketTypeError(f"Unrecognized socket type {socket_type}.")
                 except Exception as e:
@@ -158,13 +158,13 @@ class ZmqDriver(AbsDriver):
                     raise PeersDisconnectionError(f"Driver cannot disconnect to {peer_name}! Due to {str(e)}")
 
             self._disconnected_peer_name_list.append(peer_name)
-            self._logger.info(f"Disconnected with {peer_name}.")
+            self._logger.debug(f"Disconnected with {peer_name}.")
 
-    def receive(self, is_continuous: bool = True, timeout: int = None):
+    def receive(self, timeout: int = None):
         """Receive message from ``zmq.POLLER``.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Defaults to True.
+            timeout (int): Timeout for polling. If the first poll times out, the function returns None.
 
         Yields:
             recv_message (Message): The received message from the poller.
@@ -184,13 +184,38 @@ class ZmqDriver(AbsDriver):
                 recv_message = pickle.loads(recv_message)
                 self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
             else:
-                self._logger.debug(f"Cannot receive any message within {receive_timeout}.")
+                self._logger.debug(f"No message received within {receive_timeout}.")
                 return
 
             yield recv_message
 
-            if not is_continuous:
-                break
+    def receive_once(self, timeout: int = None):
+        """Receive a single message from ``zmq.POLLER``.
+
+        Args:
+            timeout (int): Time-out for ZMQ polling. If the first poll times out, the function returns None.
+
+        Returns:
+            recv_message (Message): The received message from the poller or None if the poller times out.
+        """
+        receive_timeout = timeout if timeout else self._receive_timeout
+        try:
+            sockets = dict(self._poller.poll(receive_timeout))
+        except Exception as e:
+            raise DriverReceiveError(f"Driver cannot receive message as {e}")
+
+        if self._unicast_receiver in sockets:
+            recv_message = self._unicast_receiver.recv_pyobj()
+            self._logger.debug(f"Receive a message from {recv_message.source} through unicast receiver.")
+        elif self._broadcast_receiver in sockets:
+            _, recv_message = self._broadcast_receiver.recv_multipart()
+            recv_message = pickle.loads(recv_message)
+            self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
+        else:
+            self._logger.debug(f"No message received within {receive_timeout}.")
+            return
+
+        return recv_message
 
     def send(self, message: Message):
         """Send message.

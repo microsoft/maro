@@ -78,6 +78,9 @@ extensions.append(
         extra_compile_args=[compile_flag])
 )
 
+specific_requires = []
+if sys.version.startswith("3.6"):
+    specific_requires.append("dataclasses>=0.5")
 
 readme = io.open("./maro/README.rst", encoding="utf-8").read()
 
@@ -87,8 +90,8 @@ setup(
     description="MARO Python Package",
     long_description=readme,
     long_description_content_type="text/x-rst",
-    author="Arthur Jiang",
-    author_email="shujia.jiang@microsoft.com",
+    author="MARO Team",
+    author_email="maro-team@microsoft.com",
     url="https://github.com/microsoft/maro",
     project_urls={
         "Code": "https://github.com/microsoft/maro",
@@ -116,14 +119,17 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering :: Artificial Intelligence"],
-    python_requires=">=3.6,<3.8",
+    python_requires=">=3.6",
     setup_requires=[
         "numpy<1.20.0",
     ],
     install_requires=[
         # TODO: use a helper function to collect these
         "numpy<1.20.0",
+        "scipy<=1.7.0",
         "torch<1.8.0",
         "holidays>=0.10.3",
         "pyaml>=20.4.0",
@@ -133,7 +139,7 @@ setup(
         "psutil<5.9.0",
         "deepdiff>=5.2.2",
         "azure-storage-blob<12.9.0",
-        "azure-storage-common>=2.1.0",
+        "azure-storage-common",
         "geopy>=2.0.0",
         "pandas<1.2",
         "PyYAML<5.5.0",
@@ -141,7 +147,7 @@ setup(
         "kubernetes>=12.0.1",
         "prompt_toolkit<3.1.0",
         "stringcase>=1.2.0",
-    ],
+    ] + specific_requires,
     entry_points={
         "console_scripts": [
             "maro=maro.cli.maro:main",

@@ -51,9 +51,12 @@ def get_acc_vessel_data(experiment_name: str, episode: str, start_tick: str, end
 
     """
     input_range = get_input_range(start_tick, end_tick)
+    query = f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"\
+        f" where episode='{episode}'"
+    if input_range != "()":
+        query += f" and tick in {input_range}"
     params = {
-        "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"
-        f" where episode='{episode}' and tick in {input_range}",
+        "query": query,
         "count": "true"
     }
     db_vessel_data = requests.get(
