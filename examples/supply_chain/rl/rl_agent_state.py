@@ -369,7 +369,7 @@ class ScRlAgentStates:
 
         # state['consumer_in_transit_orders'] = facility_in_transit_orders[entity.facility_id]
 
-        # entity.skus.id -> SkuInfo.id -> unit.product_id
+        # entity.skus.id -> SkuInfo.id -> unit.sku_id
         state['inventory_in_stock'] = storage_product_quantity[entity.facility_id][
             self._global_sku_id2idx[entity.skus.id]
         ]

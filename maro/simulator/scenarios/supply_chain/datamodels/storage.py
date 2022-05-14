@@ -15,7 +15,7 @@ class StorageDataModel(DataModelBase):
     capacity = NodeAttribute(AttributeType.UInt, 1, is_list=True)
     remaining_space = NodeAttribute(AttributeType.UInt, 1, is_list=True)
 
-    product_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
+    sku_id_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
     product_storage_index = NodeAttribute(AttributeType.UInt, 1, is_list=True)
 
     # Can be changed in SellerUnit.step(), DistributionUnit.step()
@@ -29,7 +29,7 @@ class StorageDataModel(DataModelBase):
         self._capacity: Optional[List[int]] = None
         self._remaining_space: Optional[List[int]] = None
 
-        self._product_list: Optional[List[int]] = None
+        self._sku_id_list: Optional[List[int]] = None
         self._product_storage_index: Optional[List[int]] = None
 
         self._product_quantity: Optional[List[int]] = None
@@ -38,14 +38,14 @@ class StorageDataModel(DataModelBase):
         self,
         capacity: List[int],
         remaining_space: List[int],
-        product_list: List[int] = None,
+        sku_id_list: List[int] = None,
         product_storage_index: List[int] = None,
         product_quantity: List[int] = None,
     ) -> None:
         self._capacity = capacity
         self._remaining_space = remaining_space
 
-        self._product_list = product_list
+        self._sku_id_list = sku_id_list
         self._product_storage_index = product_storage_index
 
         self._product_quantity = product_quantity
@@ -61,9 +61,9 @@ class StorageDataModel(DataModelBase):
         for _remaining_space in self._remaining_space:
             self.remaining_space.append(_remaining_space)
 
-        if self._product_list is not None:
-            for id in self._product_list:
-                self.product_list.append(id)
+        if self._sku_id_list is not None:
+            for id in self._sku_id_list:
+                self.sku_id_list.append(id)
 
         if self._product_storage_index is not None:
             for idx in self._product_storage_index:

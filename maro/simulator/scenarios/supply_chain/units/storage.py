@@ -33,7 +33,7 @@ class AddStrategy(Enum):
 
 @dataclass
 class StorageUnitInfo(BaseUnitInfo):
-    product_list: List[int]
+    sku_id_list: List[int]
 
 
 class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
@@ -54,10 +54,10 @@ class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
     def remaining_space(self) -> int:
         raise Exception("Only StorageUnit has remaining_space property, confirm which Unit to use!")
 
-    def get_product_quantity(self, product_id: int) -> int:
+    def get_product_quantity(self, sku_id: int) -> int:
         raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
 
-    def get_product_max_remaining_space(self, product_id: int) -> int:
+    def get_product_max_remaining_space(self, sku_id: int) -> int:
         raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
 
     @abstractmethod
@@ -73,7 +73,7 @@ class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def take_available(self, product_id: int, quantity: int) -> int:
+    def take_available(self, sku_id: int, quantity: int) -> int:
         raise NotImplementedError
 
     def flush_states(self) -> None:
@@ -85,7 +85,7 @@ class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
     def get_unit_info(self) -> StorageUnitInfo:
         return StorageUnitInfo(
             **super(AbsStorageUnit, self).get_unit_info().__dict__,
-            product_list=list(self.facility.skus.keys()),
+            sku_id_list=list(self.facility.skus.keys()),
         )
 
 
@@ -109,12 +109,12 @@ class StorageUnit(AbsStorageUnit):
         # None value indicates non-pre-limited.
         self._storage_sku_upper_bound: Dict[int, Dict[int, Optional[int]]] = defaultdict(dict)
 
-        # Key: product_id
+        # Key: sku_id
         self._product_level: Dict[int, int] = {}
         self._product_level_changed: Dict[int, bool] = {}
 
-        # Mapping from the product id to sub-storage id.
-        self._product2storage: Dict[int, int] = {}
+        # Mapping from the sku id to sub-storage id.
+        self._sku_id2sub_storage_id: Dict[int, int] = {}
         # Mapping between the sub-storage id and the idx in the data model.
         self._storage_id2idx: Dict[int, int] = {}
         self._storage_idx2id: Dict[int, int] = {}
@@ -137,7 +137,7 @@ class StorageUnit(AbsStorageUnit):
             self._product_level[sku.id] = sku.init_stock
             self._product_level_changed[sku.id] = False
 
-            self._product2storage[sku.id] = sku.sub_storage_id
+            self._sku_id2sub_storage_id[sku.id] = sku.sub_storage_id
             assert sku.sub_storage_id in self._remaining_space_dict
             self._remaining_space_dict[sku.sub_storage_id] -= sku.init_stock
             assert self._remaining_space_dict[sku.sub_storage_id] >= 0, (
@@ -189,9 +189,9 @@ class StorageUnit(AbsStorageUnit):
         self.data_model.initialize(
             capacity=capacity_list,
             remaining_space=remaining_space_list,
-            product_list=[sku_id for sku_id in self._product_level.keys()],
+            sku_id_list=[sku_id for sku_id in self._product_level.keys()],
             product_storage_index=[
-                self._storage_id2idx[self._product2storage[sku_id]] for sku_id in self._product_level.keys()
+                self._storage_id2idx[self._sku_id2sub_storage_id[sku_id]] for sku_id in self._product_level.keys()
             ],
             product_quantity=[n for n in self._product_level.values()],
         )
@@ -204,37 +204,37 @@ class StorageUnit(AbsStorageUnit):
     def remaining_space(self) -> int:  # TODO: not used now. Check to remove or not.
         return sum(self._remaining_space_dict.values())
 
-    def get_product_quantity(self, product_id: int) -> int:
+    def get_product_quantity(self, sku_id: int) -> int:
         """Get product quantity in storage.
 
         Args:
-            product_id (int): Product to check.
+            sku_id (int): SKU id of the product to check.
 
         Returns:
             int: Available quantity of product.
         """
-        return self._product_level[product_id]
+        return self._product_level[sku_id]
 
-    def get_product_max_remaining_space(self, product_id: int) -> int:
+    def get_product_max_remaining_space(self, sku_id: int) -> int:
         # ! Currently the upper bound is only used in Manufacture Unit.
-        remaining_space = self._remaining_space_dict[self._product2storage[product_id]]
+        remaining_space = self._remaining_space_dict[self._sku_id2sub_storage_id[sku_id]]
 
-        upper_bound = self._storage_sku_upper_bound[self._product2storage[product_id]][product_id]
-        remaining_quota = max(upper_bound - self._product_level[product_id], 0)
+        upper_bound = self._storage_sku_upper_bound[self._sku_id2sub_storage_id[sku_id]][sku_id]
+        remaining_quota = max(upper_bound - self._product_level[sku_id], 0)
 
         return min(remaining_space, remaining_quota)
 
-    def _add_product(self, product_id: int, quantity: int) -> None:
-        assert self._remaining_space_dict[self._product2storage[product_id]] >= quantity
-        self._product_level[product_id] += quantity
-        self._product_level_changed[product_id] = True
-        self._remaining_space_dict[self._product2storage[product_id]] -= quantity
+    def _add_product(self, sku_id: int, quantity: int) -> None:
+        assert self._remaining_space_dict[self._sku_id2sub_storage_id[sku_id]] >= quantity
+        self._product_level[sku_id] += quantity
+        self._product_level_changed[sku_id] = True
+        self._remaining_space_dict[self._sku_id2sub_storage_id[sku_id]] -= quantity
 
-    def _take_product(self, product_id: int, quantity: int) -> None:
-        assert self._product_level[product_id] >= quantity
-        self._product_level[product_id] -= quantity
-        self._product_level_changed[product_id] = True
-        self._remaining_space_dict[self._product2storage[product_id]] += quantity
+    def _take_product(self, sku_id: int, quantity: int) -> None:
+        assert self._product_level[sku_id] >= quantity
+        self._product_level[sku_id] -= quantity
+        self._product_level_changed[sku_id] = True
+        self._remaining_space_dict[self._sku_id2sub_storage_id[sku_id]] += quantity
 
     """
     - would be called by DistributionUnit.post_step() -> _try_unload()
@@ -260,8 +260,8 @@ class StorageUnit(AbsStorageUnit):
 
         if add_strategy in [AddStrategy.IgnoreUpperBoundAllOrNothing, AddStrategy.IgnoreUpperBoundProportional]:
             space_requirements: Dict[int, int] = defaultdict(lambda: 0)
-            for product_id, quantity in product_quantities.items():
-                storage_id = self._product2storage[product_id]
+            for sku_id, quantity in product_quantities.items():
+                storage_id = self._sku_id2sub_storage_id[sku_id]
                 space_requirements[storage_id] += quantity
 
             if add_strategy == AddStrategy.IgnoreUpperBoundAllOrNothing:
@@ -269,34 +269,34 @@ class StorageUnit(AbsStorageUnit):
                     if self._remaining_space_dict[storage_id] < requirement:
                         return {}
 
-                for product_id, quantity in product_quantities.items():
-                    self._add_product(product_id, quantity)
-                    added_quantities[product_id] = quantity
+                for sku_id, quantity in product_quantities.items():
+                    self._add_product(sku_id, quantity)
+                    added_quantities[sku_id] = quantity
 
             elif add_strategy == AddStrategy.IgnoreUpperBoundProportional:
                 fulfill_ratio_dict: Dict[int, float] = {}
                 for storage_id, requirement in space_requirements.items():
                     fulfill_ratio_dict[storage_id] = min(1.0, self._remaining_space_dict[storage_id] / requirement)
 
-                for product_id, quantity in product_quantities.items():
-                    storage_id = self._product2storage[product_id]
+                for sku_id, quantity in product_quantities.items():
+                    storage_id = self._sku_id2sub_storage_id[sku_id]
                     quantity = min(
                         int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id],
                     )
-                    self._add_product(product_id, quantity)
-                    added_quantities[product_id] = quantity
+                    self._add_product(sku_id, quantity)
+                    added_quantities[sku_id] = quantity
 
         elif add_strategy == AddStrategy.IgnoreUpperBoundAddInOrder:
-            for product_id, quantity in product_quantities.items():
-                quantity = min(quantity, self._remaining_space_dict[self._product2storage[product_id]])
-                self._add_product(product_id, quantity)
-                added_quantities[product_id] = quantity
+            for sku_id, quantity in product_quantities.items():
+                quantity = min(quantity, self._remaining_space_dict[self._sku_id2sub_storage_id[sku_id]])
+                self._add_product(sku_id, quantity)
+                added_quantities[sku_id] = quantity
 
         elif add_strategy == AddStrategy.LimitedByUpperBound:
-            for product_id, quantity in product_quantities.items():
-                quantity = min(quantity, self.get_product_max_remaining_space(product_id))
-                self._add_product(product_id, quantity)
-                added_quantities[product_id] = quantity
+            for sku_id, quantity in product_quantities.items():
+                quantity = min(quantity, self.get_product_max_remaining_space(sku_id))
+                self._add_product(sku_id, quantity)
+                added_quantities[sku_id] = quantity
 
         else:
             raise ValueError(f"Unrecognized storage add strategy: {add_strategy}!")
@@ -317,42 +317,42 @@ class StorageUnit(AbsStorageUnit):
             bool: Is success to take?
         """
         # Check if we can take all kinds of products?
-        for product_id, quantity in product_quantities.items():
-            if self._product_level[product_id] < quantity:
+        for sku_id, quantity in product_quantities.items():
+            if self._product_level[sku_id] < quantity:
                 return False
 
         # Take from storage.
-        for product_id, quantity in product_quantities.items():
-            self._take_product(product_id, quantity)
+        for sku_id, quantity in product_quantities.items():
+            self._take_product(sku_id, quantity)
 
         return True
 
     """
     - would be called by SellerUnit.step()
     """
-    def take_available(self, product_id: int, quantity: int) -> int:
+    def take_available(self, sku_id: int, quantity: int) -> int:
         """Take as much as available specified product from storage.
 
         Args:
-            product_id (int): Product to take.
+            sku_id (int): Product to take.
             quantity (int): Max quantity to take.
 
         Returns:
             int: Actual quantity taken.
         """
-        available = self._product_level[product_id]
+        available = self._product_level[sku_id]
         actual = min(available, quantity)
-        self._take_product(product_id, actual)
+        self._take_product(sku_id, actual)
         return actual
 
     def flush_states(self) -> None:
         # Write the changes to frame.
         i = 0
         has_changes = False
-        for product_id, quantity in self._product_level.items():
-            if self._product_level_changed[product_id]:
+        for sku_id, quantity in self._product_level.items():
+            if self._product_level_changed[sku_id]:
                 has_changes = True
-                self._product_level_changed[product_id] = False
+                self._product_level_changed[sku_id] = False
 
                 self.data_model.product_quantity[i] = quantity
             i += 1
@@ -381,8 +381,8 @@ class SuperStorageUnit(AbsStorageUnit):
     """SuperStorageUnit is used to simulate the case where we have infinite product inventory.
 
     Usually used to be the storage unit of a Super Vendor, along with No-Manufacture setting and No-Data-Model setting.
-    Function get_product_quantity(self, product_id: int) and get_product_max_remaining_space(self, product_id: int) are
-    only used in ManufactureUnit, so leave them to raise NotImplementError to indicate wrong setting.
+    Function get_product_quantity(self, sku_id: int) and get_product_max_remaining_space(self, sku_id: int) are only
+    used in ManufactureUnit, so leave them to raise NotImplementError to indicate wrong setting.
     """
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
@@ -400,5 +400,5 @@ class SuperStorageUnit(AbsStorageUnit):
     def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
         return True
 
-    def take_available(self, product_id: int, quantity: int) -> int:
+    def take_available(self, sku_id: int, quantity: int) -> int:
         return quantity

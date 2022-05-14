@@ -144,7 +144,7 @@ class World:
             sku = None
 
             if isinstance(unit, ExtendUnitBase):
-                sku = unit.facility.skus[unit.product_id]
+                sku = unit.facility.skus[unit.sku_id]
 
             if unit.data_model is not None:
                 # TODO: replace with data class or named tuple
@@ -201,7 +201,7 @@ class World:
         for unit in self.units.values():
             entity = SupplyChainEntity(
                 id=unit.id, class_type=unit.__class__,
-                skus=unit.facility.skus[unit.product_id] if isinstance(unit, ExtendUnitBase) else None,
+                skus=unit.facility.skus[unit.sku_id] if isinstance(unit, ExtendUnitBase) else None,
                 facility_id=unit.facility.id, parent_id=unit.parent.id,
             )
             self.entity_list.append(entity)
@@ -307,7 +307,7 @@ class World:
             for sku_id, sku in facility.skus.items():
                 product_unit = self._build_unit(facility, facility, config)
                 assert isinstance(product_unit, ProductUnit)
-                product_unit.product_id = sku_id
+                product_unit.sku_id = sku_id
                 product_unit.children = []
                 product_unit.storage = product_unit.facility.storage
                 product_unit.distribution = product_unit.facility.distribution
@@ -323,7 +323,8 @@ class World:
 
                     if conf is not None and has_unit:
                         child_unit = self._build_unit(facility, product_unit, conf)
-                        child_unit.product_id = sku_id
+                        assert isinstance(child_unit, ExtendUnitBase)
+                        child_unit.sku_id = sku_id
 
                         setattr(product_unit, child_name, child_unit)
 

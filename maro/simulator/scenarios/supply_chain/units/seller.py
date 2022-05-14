@@ -62,7 +62,7 @@ class SellerUnit(ExtendUnitBase):
     def initialize(self) -> None:
         super(SellerUnit, self).initialize()
 
-        sku = self.facility.skus[self.product_id]
+        sku = self.facility.skus[self.sku_id]
 
         self._gamma = sku.sale_gamma
 
@@ -85,7 +85,7 @@ class SellerUnit(ExtendUnitBase):
         demand = self.market_demand(tick)
 
         # What seller does is just count down the product number.
-        sold_qty = self.facility.storage.take_available(self.product_id, demand)
+        sold_qty = self.facility.storage.take_available(self.sku_id, demand)
 
         self._total_sold += sold_qty
         self._sold = sold_qty
@@ -145,4 +145,4 @@ class OuterSellerUnit(SellerUnit):
     sampler: SellerDemandMixin = None
 
     def market_demand(self, tick: int) -> int:
-        return self.sampler.sample_demand(tick, self.product_id)
+        return self.sampler.sample_demand(tick, self.sku_id)

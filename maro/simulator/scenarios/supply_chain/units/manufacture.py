@@ -60,7 +60,7 @@ class ManufactureUnit(ExtendUnitBase):
         super(ManufactureUnit, self).initialize()
 
         # Initialize BOM info.
-        global_sku_info = self.world.get_sku_by_id(self.product_id)
+        global_sku_info = self.world.get_sku_by_id(self.sku_id)
 
         self._bom = global_sku_info.bom
         self._output_units_per_lot = global_sku_info.output_units_per_lot
@@ -71,9 +71,9 @@ class ManufactureUnit(ExtendUnitBase):
         self._space_taken_per_lot = self._output_units_per_lot - self._input_units_per_lot
 
         # Initialize SKU info.
-        self._unit_product_cost = self.facility.skus[self.product_id].unit_product_cost
-        self._max_manufacture_rate = self.facility.skus[self.product_id].max_manufacture_rate
-        self._manufacture_leading_time = self.facility.skus[self.product_id].manufacture_leading_time
+        self._unit_product_cost = self.facility.skus[self.sku_id].unit_product_cost
+        self._max_manufacture_rate = self.facility.skus[self.sku_id].max_manufacture_rate
+        self._manufacture_leading_time = self.facility.skus[self.sku_id].manufacture_leading_time
         assert self._unit_product_cost is not None
         assert self._max_manufacture_rate is not None
         assert self._manufacture_leading_time is not None
@@ -105,7 +105,7 @@ class ManufactureUnit(ExtendUnitBase):
 
         # Check the remaining space limits. TODO: confirm the remaining space setting.
         if self._num_to_produce > 0:
-            remaining_space = self.facility.storage.get_product_max_remaining_space(self.product_id)
+            remaining_space = self.facility.storage.get_product_max_remaining_space(self.sku_id)
             self._num_to_produce = min(
                 self._num_to_produce,
                 remaining_space // self._space_taken_per_lot if self._space_taken_per_lot > 1 else remaining_space,
@@ -141,7 +141,7 @@ class ManufactureUnit(ExtendUnitBase):
         # Get finished products from pipeline.
         self._finished_quantity = self._products_in_pipeline.get(tick, 0)
         if self._finished_quantity > 0:
-            self.facility.storage.try_add_products({self.product_id: self._finished_quantity})
+            self.facility.storage.try_add_products({self.sku_id: self._finished_quantity})
             self._products_in_pipeline.pop(tick)
 
     def flush_states(self) -> None:
@@ -179,7 +179,7 @@ class SimpleManufactureUnit(ManufactureUnit):
 
         # Check the remaining space limits. TODO: confirm the remaining space setting.
         if self._num_to_produce > 0:
-            remaining_space = self.facility.storage.get_product_max_remaining_space(self.product_id)
+            remaining_space = self.facility.storage.get_product_max_remaining_space(self.sku_id)
             self._num_to_produce = min(
                 self._num_to_produce,
                 remaining_space // self._space_taken_per_lot if self._space_taken_per_lot > 1 else remaining_space,

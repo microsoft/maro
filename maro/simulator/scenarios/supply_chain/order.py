@@ -13,6 +13,6 @@ if typing.TYPE_CHECKING:
 @dataclass
 class Order:
     destination: FacilityBase
-    product_id: int
+    sku_id: int
     quantity: int
     vehicle_type: str

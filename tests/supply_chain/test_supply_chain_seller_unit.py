@@ -1,33 +1,13 @@
-import os
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import unittest
 import numpy as np
 
-from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import FacilityBase
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 
-
-def build_env(case_name: str, durations: int):
-    case_folder = os.path.join("tests", "data", "supply_chain", case_name)
-
-    env = Env(scenario="supply_chain", topology=case_folder, durations=durations)
-
-    return env
-
-
-def get_product_dict_from_storage(env: Env, frame_index: int, node_index: int):
-    product_list = env.snapshot_list["storage"][frame_index:node_index:"product_list"].flatten().astype(np.int)
-    product_quantity = env.snapshot_list["storage"][frame_index:node_index:"product_quantity"].flatten().astype(np.int)
-
-    return {product_id: quantity for product_id, quantity in zip(product_list, product_quantity)}
-
-
-SKU1_ID = 1
-SKU2_ID = 2
-SKU3_ID = 3
-SKU4_ID = 4
-FOOD_1_ID = 20
-HOBBY_1_ID = 30
+from tests.supply_chain.common import build_env, SKU3_ID, FOOD_1_ID
 
 
 class MyTestCase(unittest.TestCase):
@@ -48,7 +28,7 @@ class MyTestCase(unittest.TestCase):
         retailer_1 = be.world._get_facility_by_name("Retailer_001")
         seller_unit = retailer_1.products[SKU3_ID].seller
 
-        self.assertEqual(SKU3_ID, seller_unit.product_id)
+        self.assertEqual(SKU3_ID, seller_unit.sku_id)
 
         # from configuration
         self.assertEqual(10, seller_unit._gamma)
@@ -65,7 +45,7 @@ class MyTestCase(unittest.TestCase):
 
         env.reset()
 
-        self.assertEqual(SKU3_ID, seller_unit.product_id)
+        self.assertEqual(SKU3_ID, seller_unit.sku_id)
 
         # from configuration
         self.assertEqual(10, seller_unit._gamma)
@@ -155,7 +135,7 @@ class MyTestCase(unittest.TestCase):
         features = ("sold", "demand", "total_sold")
         IDX_SOLD, IDX_DEMAND, IDX_TOTAL_SOLD = 0, 1, 2
 
-        self.assertEqual(SKU3_ID, seller_unit.product_id)
+        self.assertEqual(SKU3_ID, seller_unit.sku_id)
 
         # NOTE: this simple seller unit return demands that same as current tick
 
@@ -207,7 +187,7 @@ class MyTestCase(unittest.TestCase):
         features = ("sold", "demand", "total_sold")
         IDX_SOLD, IDX_DEMAND, IDX_TOTAL_SOLD = 0, 1, 2
 
-        self.assertEqual(20, seller_unit.product_id)
+        self.assertEqual(20, seller_unit.sku_id)
 
         # NOTE: this simple seller unit return demands that same as current tick
 

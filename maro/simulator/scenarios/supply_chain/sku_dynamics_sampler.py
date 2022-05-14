@@ -163,13 +163,13 @@ class SkuPriceMixin(metaclass=ABCMeta):
     """Price sample interface."""
 
     @abstractmethod
-    def sample_price(self, tick: int, product_id: int) -> Optional[float]:
+    def sample_price(self, tick: int, sku_id: int) -> Optional[float]:
         """Sample the price for specified product and tick.
 
         Args:
             tick (int): Tick of environment, NOTE: this tick is start from 0,
                 you may need to transform it to your time system.
-            product_id (int): Id of product to sample.
+            sku_id (int): SKU id of the product to sample.
 
         Return:
             Optional[float]: the new price in the specific tick. None if not changed.
@@ -181,13 +181,13 @@ class SellerDemandMixin(metaclass=ABCMeta):
     """Demand sample interface, you can inherit from this to read from file or predict from a model."""
 
     @abstractmethod
-    def sample_demand(self, tick: int, product_id: int) -> int:
+    def sample_demand(self, tick: int, sku_id: int) -> int:
         """Sample the demand for specified product and tick.
 
         Args:
             tick (int): Tick of environment, NOTE: this tick is start from 0,
                 you may need to transform it to your time system.
-            product_id (int): Id of product to sample.
+            sku_id (int): SKU id of the product to sample.
         """
         raise NotImplementedError
 
@@ -199,23 +199,23 @@ class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, Sel
             "Demand": DynamicsInfoItem(self._configs.get("demand_column", "Demand"), int, 0),
         }
 
-    def _sample_attr(self, tick: int, product_id: int, attr_name: str) -> object:
+    def _sample_attr(self, tick: int, sku_id: int, attr_name: str) -> object:
         if (
             tick not in self._cache
-            or product_id not in self._cache[tick]
-            or attr_name not in self._cache[tick][product_id]
+            or sku_id not in self._cache[tick]
+            or attr_name not in self._cache[tick][sku_id]
         ):
             return self._info_dict[attr_name].default_value
 
-        return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])
+        return self._info_dict[attr_name].type_name(self._cache[tick][sku_id][attr_name])
 
-    def sample_price(self, tick: int, product_id: int) -> Optional[float]:
-        price = self._sample_attr(tick, product_id, "Price")
+    def sample_price(self, tick: int, sku_id: int) -> Optional[float]:
+        price = self._sample_attr(tick, sku_id, "Price")
         assert price is None or isinstance(price, float)
         return price
 
-    def sample_demand(self, tick: int, product_id: int) -> int:
-        demand = self._sample_attr(tick, product_id, "Demand")
+    def sample_demand(self, tick: int, sku_id: int) -> int:
+        demand = self._sample_attr(tick, sku_id, "Demand")
         assert isinstance(demand, int)
         return demand
 
@@ -227,25 +227,25 @@ class StreamSkuPriceDemandSampler(StreamSkuDynamicsSampler, SkuPriceMixin, Selle
             "Demand": DynamicsInfoItem(self._configs.get("demand_column", "Demand"), int, 0),
         }
 
-    def _sample_attr(self, tick: int, product_id: int, attr_name: str) -> object:
+    def _sample_attr(self, tick: int, sku_id: int, attr_name: str) -> object:
         self._load_data_until_tick(tick)
 
         if (
             tick not in self._cache
-            or product_id not in self._cache[tick]
-            or attr_name not in self._cache[tick][product_id]
+            or sku_id not in self._cache[tick]
+            or attr_name not in self._cache[tick][sku_id]
         ):
             return self._info_dict[attr_name].default_value
 
-        return self._info_dict[attr_name].type_name(self._cache[tick][product_id][attr_name])
+        return self._info_dict[attr_name].type_name(self._cache[tick][sku_id][attr_name])
 
-    def sample_price(self, tick: int, product_id: int) -> Optional[float]:
-        price = self._sample_attr(tick, product_id, "Price")
+    def sample_price(self, tick: int, sku_id: int) -> Optional[float]:
+        price = self._sample_attr(tick, sku_id, "Price")
         assert isinstance(price, float)
         return price
 
-    def sample_demand(self, tick: int, product_id: int) -> int:
-        demand = self._sample_attr(tick, product_id, "Demand")
+    def sample_demand(self, tick: int, sku_id: int) -> int:
+        demand = self._sample_attr(tick, sku_id, "Demand")
         assert isinstance(demand, int)
         return demand
 
@@ -289,11 +289,11 @@ class DataFileDemandSampler(SellerDemandMixin):
         self._cache = defaultdict(dict)
         self._cache_data()
 
-    def sample_demand(self, tick: int, product_id: int) -> int:
-        if tick not in self._cache or product_id not in self._cache[tick]:
+    def sample_demand(self, tick: int, sku_id: int) -> int:
+        if tick not in self._cache or sku_id not in self._cache[tick]:
             return 0
 
-        return self._cache[tick][product_id].demand
+        return self._cache[tick][sku_id].demand
 
     def _cache_data(self) -> None:
         with open(self._file_path, "rt") as fp:
