@@ -459,7 +459,7 @@ class SimulationTrackerHtml:
 
 class SimulationTracker:
     def __init__(self, episod_len, n_episods, env, exp_name, eval_period=None):
-        self.loc_path = f"examples/supply_chain/results/{exp_name}/"
+        self.loc_path = f"examples/supply_chain/logs/{exp_name}/"
         os.makedirs(self.loc_path, exist_ok=True)
         self.episod_len = episod_len
         if eval_period:

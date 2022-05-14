@@ -21,6 +21,7 @@ from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
+from maro.utils import Logger, LogFormat
 
 # import sys
 # sys.path.append("/data/songlei/maro/")
@@ -196,6 +197,8 @@ class SCEnvSampler(AbsEnvSampler):
             facility_info_dict=self._facility_info_dict,
             global_sku_id2idx=self._global_sku_id2idx,
         )
+
+        self._logger = Logger(tag="sc_render", format_=LogFormat.time_only, dump_folder=f"examples/supply_chain/logs/{EXP_NAME}/")
 
     def _parse_policy_parameter(self, raw_info: dict) -> Dict[str, Any]:
         facility_name2id: Dict[str, int] = {
@@ -490,7 +493,9 @@ class SCEnvSampler(AbsEnvSampler):
         self.total_balance = 0.0
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
-        tracker = SimulationTracker(test_env_conf["durations"], 1, self, EXP_NAME, eval_period=[env_conf["durations"], test_env_conf["durations"]])
+        tracker = SimulationTracker(
+            test_env_conf["durations"], 1, self, EXP_NAME,
+            eval_period=[env_conf["durations"], test_env_conf["durations"]])
         mean_reward = {}
         step_idx = 0
         self._env = self._test_env
@@ -530,6 +535,7 @@ class SCEnvSampler(AbsEnvSampler):
                 else self._get_global_and_agent_state(self._event)
 
             reward = self._get_reward(env_action_dict, exp_element.event, exp_element.tick)
+            self._logger.info(f"Step: {step_idx}")
             if tracker.eval_period[0] <= exp_element.tick < tracker.eval_period[1]:
                 eval_reward += np.sum([self._balance_status[entity_id]
                                         for entity_id, entity in self._entity_dict.items()
@@ -547,7 +553,7 @@ class SCEnvSampler(AbsEnvSampler):
                             baseline_action = np.array(exp_element.agent_state_dict[entity_id][-OR_NUM_CONSUMER_ACTIONS:])
                             or_action = np.where(baseline_action==1.0)[0][0]
                         consumer_action_dict[parent_entity.id] = (action, or_action, round(reward[entity_id], 2))
-            print(step_idx, consumer_action_dict)
+            self._logger.info(f"consumer action dict: {consumer_action_dict}")
 
             step_balances = self._balance_status
             step_rewards = self._reward_status
@@ -572,20 +578,26 @@ class SCEnvSampler(AbsEnvSampler):
             self._info["demand"] = 1
             self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
 
+            self._logger.info(f"tracker sample & sku status added")
 
 
         self._eval_reward_list.append(eval_reward)
         self._max_eval_reward = np.max(self._eval_reward_list)
         if eval_reward >= self._max_eval_reward:
+            self._logger.info("Start render...")
             tracker.render(tracker.loc_path, 'a_plot_balance.png', tracker.step_balances, ["OuterRetailerFacility"])
             tracker.render(tracker.loc_path, 'a_plot_reward.png', tracker.step_rewards, ["OuterRetailerFacility"])
             tracker.render_sku(tracker.loc_path)
 
+            self._logger.info("Start dump product metrics...")
             df_product = pd.DataFrame(self._balance_calculator.product_metric_track)
             df_product = df_product.groupby(['tick', 'id']).first().reset_index()
             df_product.to_csv(f'{tracker.loc_path}/output_product_metrics.csv', index=False)
+            self._logger.info("dumped")
+
             self._max_eval_reward = eval_reward
-        print(self._max_eval_reward, self._eval_reward_list)
+        self._logger.info(f"Max Eval Reward: {self._max_eval_reward}")
+        self._logger.info(f"Eval Reward List: {self._eval_reward_list}")
         mean_reward = {entity_id: val / step_idx for entity_id, val in mean_reward.items()}
         return {"info": [self._info], "mean_reward": mean_reward}
 

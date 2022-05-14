@@ -13,9 +13,9 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
 vlt_buffer_days = 1.0
-num_products_to_sample = 500
+num_products_to_sample = 10
 
-ALGO="PPO"
+ALGO="EOQ"
 
 TEAM_REWARD = False
 SHARED_MODEL = False
@@ -29,14 +29,14 @@ NUM_CONSUMER_ACTIONS = 3
 #     NUM_CONSUMER_ACTIONS = OR_NUM_CONSUMER_ACTIONS
 OR_MANUFACTURE_ACTIONS = 20
 
-TRAIN_STEPS = 180
-EVAL_STEPS = 60
+TRAIN_STEPS = 1
+EVAL_STEPS = 2
 
 
 env_conf = {
     "scenario": "supply_chain",
-    # "topology": f"SCI_{num_products_to_sample}",
-    "topology": "SCI_1.1",
+    "topology": f"SCI_{num_products_to_sample}",
+    # "topology": "SCI_1.1",
     # "topology": "super_vendor",
     "durations": TRAIN_STEPS,  # number of ticks per episode
 }
@@ -44,8 +44,8 @@ env_conf = {
 
 test_env_conf = {
     "scenario": "supply_chain",
-    # "topology": f"SCI_{num_products_to_sample}",
-    "topology": "SCI_1.1",
+    "topology": f"SCI_{num_products_to_sample}",
+    # "topology": "SCI_1.1",
     # "topology": "super_vendor",
     "durations": TRAIN_STEPS+EVAL_STEPS,  # number of ticks per episode
 }
@@ -71,7 +71,8 @@ workflow_settings: dict = {
     "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
 }
 
-EXP_NAME = f"{env_conf['topology']}_{ALGO}_{workflow_settings['vehicle_selection_method']}"
+# EXP_NAME = f"{env_conf['topology']}_{ALGO}_{workflow_settings['vehicle_selection_method']}"
+EXP_NAME = f"sc_render_{test_env_conf['topology']}"
 
 # EXP_NAME = f"{ALGO}_SCI_{num_products_to_sample}SKUs_DIST_{vlt_buffer_days}"
 # if TEAM_REWARD:
