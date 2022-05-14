@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
 class DistributionPayload:
     arrival_tick: int
     order: Order
-    transportation_cost_per_day: float
+    unit_transportation_cost_per_day: float
     payload: int
 
 
@@ -158,6 +158,15 @@ class DistributionUnit(UnitBase):
         return payload.payload == 0
 
     def _schedule_order(self, tick: int, order: Order) -> float:
+        """Schedule order and return the daily transportation cost for this order.
+
+        Args:
+            tick (int): the system tick when calling this function.
+            order (Order): the target order to schedule.
+
+        Returns:
+            float: the daily transportation cost for this order. Equals to unit_transportation_cost * payload.
+        """
         vlt_info = self.facility.downstream_vlt_infos[order.product_id][order.destination.id][order.vehicle_type]
 
         arrival_tick = tick + vlt_info.vlt  # TODO: add random factor if needed
@@ -165,7 +174,7 @@ class DistributionUnit(UnitBase):
         self._payload_on_the_way[arrival_tick].append(DistributionPayload(
             arrival_tick=arrival_tick,
             order=order,
-            transportation_cost_per_day=vlt_info.unit_transportation_cost,
+            unit_transportation_cost_per_day=vlt_info.unit_transportation_cost,
             payload=order.quantity,
         ))
 
@@ -173,7 +182,7 @@ class DistributionUnit(UnitBase):
         if vlt_info.vlt < len(dest_consumer.pending_order_daily):  # Check use (arrival tick - tick) or vlt
             dest_consumer.pending_order_daily[vlt_info.vlt] += order.quantity
 
-        return vlt_info.unit_transportation_cost
+        return vlt_info.unit_transportation_cost * order.quantity
 
     def pre_step(self, tick: int) -> None:
         self.check_in_quantity_in_order.clear()
@@ -197,8 +206,8 @@ class DistributionUnit(UnitBase):
             ]):
                 order: Order = self._order_queues[vehicle_type].popleft()
                 if self._try_load(order.product_id, order.quantity):
-                    unit_transportation_cost_per_day = self._schedule_order(tick, order)
-                    self.transportation_cost[order.product_id] += unit_transportation_cost_per_day * order.quantity
+                    transportation_cost_per_day = self._schedule_order(tick, order)
+                    self.transportation_cost[order.product_id] += transportation_cost_per_day
 
                     # The transportation cost of this newly scheduled order would be counted soon, do not count here.
                     self._busy_vehicle_num[vehicle_type] += 1
@@ -216,7 +225,7 @@ class DistributionUnit(UnitBase):
         for payload_list in self._payload_on_the_way.values():
             for payload in payload_list:
                 self.transportation_cost[payload.order.product_id] += (
-                    payload.transportation_cost_per_day * payload.payload
+                    payload.unit_transportation_cost_per_day * payload.payload
                 )
 
         # Schedule orders
