@@ -190,6 +190,7 @@ class StorageUnit(AbsStorageUnit):
             capacity=capacity_list,
             remaining_space=remaining_space_list,
             sku_id_list=[sku_id for sku_id in self._product_level.keys()],
+            product_id_list=[self.facility.products[sku_id].id for sku_id in self._product_level.keys()],
             product_storage_index=[
                 self._storage_id2idx[self._sku_id2sub_storage_id[sku_id]] for sku_id in self._product_level.keys()
             ],

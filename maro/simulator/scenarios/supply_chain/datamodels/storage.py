@@ -16,6 +16,7 @@ class StorageDataModel(DataModelBase):
     remaining_space = NodeAttribute(AttributeType.UInt, 1, is_list=True)
 
     sku_id_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
+    product_id_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
     product_storage_index = NodeAttribute(AttributeType.UInt, 1, is_list=True)
 
     # Can be changed in SellerUnit.step(), DistributionUnit.step()
@@ -30,6 +31,7 @@ class StorageDataModel(DataModelBase):
         self._remaining_space: Optional[List[int]] = None
 
         self._sku_id_list: Optional[List[int]] = None
+        self._product_id_list: Optional[List[int]] = None
         self._product_storage_index: Optional[List[int]] = None
 
         self._product_quantity: Optional[List[int]] = None
@@ -39,6 +41,7 @@ class StorageDataModel(DataModelBase):
         capacity: List[int],
         remaining_space: List[int],
         sku_id_list: List[int] = None,
+        product_id_list: List[int] = None,
         product_storage_index: List[int] = None,
         product_quantity: List[int] = None,
     ) -> None:
@@ -46,6 +49,7 @@ class StorageDataModel(DataModelBase):
         self._remaining_space = remaining_space
 
         self._sku_id_list = sku_id_list
+        self._product_id_list = product_id_list
         self._product_storage_index = product_storage_index
 
         self._product_quantity = product_quantity
@@ -64,6 +68,10 @@ class StorageDataModel(DataModelBase):
         if self._sku_id_list is not None:
             for id in self._sku_id_list:
                 self.sku_id_list.append(id)
+
+        if self._product_id_list is not None:
+            for id in self._product_id_list:
+                self.product_id_list.append(id)
 
         if self._product_storage_index is not None:
             for idx in self._product_storage_index:
