@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 from maro.backends.frame import FrameBase
+from maro.simulator.scenarios.supply_chain.units.storage import StorageUnit
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
@@ -375,10 +376,10 @@ class World:
                 sku_config["name"] = sku_name
 
                 sub_storage_id: int = sku_config.get("sub_storage_id", DEFAULT_SUB_STORAGE_ID)
-                sku_config["unit_storage_cost"] = sku_config.get(
+                sku_config["unit_storage_cost"] = float(sku_config.get(
                     "unit_storage_cost",
                     facility_conf["children"]["storage"]["config"][sub_storage_id].unit_storage_cost
-                )
+                ))
 
                 sku_config["unit_order_cost"] = sku_config.get(
                     "unit_order_cost",
