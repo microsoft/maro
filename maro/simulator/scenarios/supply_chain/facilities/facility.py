@@ -43,6 +43,7 @@ class FacilityInfo:
     skus: Dict[int, SkuInfo]
     upstream_vlt_infos: Dict[int, Dict[int, Dict[str, VendorLeadingTimeInfo]]]
     downstreams: Dict[int, List[int]]  # Key: sku_id; Value: facility id list
+    upstreams: Dict[int, List[int]]  # Key: sku_id; Value: facility id list
     storage_info: Optional[StorageUnitInfo]
     distribution_info: Optional[DistributionUnitInfo]
     products_info: Dict[int, ProductUnitInfo]  # Key: sku_id
@@ -230,6 +231,10 @@ class FacilityBase(ABC):
             downstreams={
                 sku_id: [downstream_facility.id for downstream_facility in downstream_facility_list]
                 for sku_id, downstream_facility_list in self.downstream_facility_list.items()
+            },
+            upstreams={
+                sku_id: [upstream_facility.id for upstream_facility in upstream_facility_list]
+                for sku_id, upstream_facility_list in self.upstream_facility_list.items()
             },
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
