@@ -394,6 +394,11 @@ class BalanceSheetCalculator:
         return balance_and_reward
 
     def calc_and_update_balance_sheet(self, tick: int) -> Dict[int, Tuple[float, float]]:
+        """Calculate and update balance sheet.
+
+        Returns:
+            Dict[int, Tuple[float, float]]: (step balance, step reward) for each entity, with entity id as the key.
+        """
         # TODO: Add cache for each tick.
         # TODO: Add logic to confirm the balance sheet for the same tick would not be re-calculate.
 
