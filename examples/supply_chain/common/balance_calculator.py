@@ -13,6 +13,8 @@ from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 
+from .utils import get_attributes, get_list_attributes
+
 
 @dataclass
 class GlobalProductInfo:
@@ -141,37 +143,6 @@ class BalanceSheetCalculator:
 
         return ordered_products
 
-    def _check_attribute_keys(self, target_type: str, attribute: str) -> None:
-        valid_target_types = set(self._env.summary["node_detail"].keys())
-        assert target_type in valid_target_types, f"Target_type {target_type} not in {list(valid_target_types)}!"
-
-        valid_attributes = set(self._env.summary["node_detail"][target_type]["attributes"].keys())
-        assert attribute in valid_attributes, (
-            f"Attribute {attribute} not valid for {target_type}. Valid attributes: {list(valid_attributes)}"
-        )
-
-    def _get_attributes(self, target_type: str, attribute: str, tick: int = None) -> np.ndarray:
-        self._check_attribute_keys(target_type, attribute)
-
-        if tick is None:
-            tick = self._env.tick
-
-        frame_index = self._env.business_engine.frame_index(tick)
-
-        return self._env.snapshot_list[target_type][frame_index::attribute].flatten()
-
-    def _get_list_attributes(self, target_type: str, attribute: str, tick: int = None) -> List[np.ndarray]:
-        self._check_attribute_keys(target_type, attribute)
-
-        if tick is None:
-            tick = self._env.tick
-
-        frame_index = self._env.business_engine.frame_index(tick)
-
-        indexes = list(range(len(self._env.snapshot_list[target_type])))
-
-        return [self._env.snapshot_list[target_type][frame_index:index:attribute].flatten() for index in indexes]
-
     def _calc_consumer(self, tick: int) -> Tuple[np.ndarray, np.ndarray]:
         """Calculate ConsumerUnit's step_cost and get comsumer id list.
 
@@ -179,12 +150,12 @@ class BalanceSheetCalculator:
             np.ndarray: consumer id list, with consumer node index as 1st-dim index.
             np.ndarray: consumer step cost, with consumer node index as 1st-dim index.
         """
-        consumer_ids = self._get_attributes("consumer", "id", tick).astype(np.int)
+        consumer_ids = get_attributes(self._env, "consumer", "id", tick).astype(np.int)
 
         # order_base_cost + order_product_cost
         consumer_step_cost = -1 * (
-            self._get_attributes("consumer", "order_base_cost", tick)
-            + self._get_attributes("consumer", "order_product_cost", tick)
+            get_attributes(self._env, "consumer", "order_base_cost", tick)
+            + get_attributes(self._env, "consumer", "order_product_cost", tick)
         )
 
         return consumer_ids, consumer_step_cost
@@ -203,12 +174,12 @@ class BalanceSheetCalculator:
         ].flatten()
 
         # profit = sold * price
-        seller_step_profit = self._get_attributes("seller", "sold", tick) * price
+        seller_step_profit = get_attributes(self._env, "seller", "sold", tick) * price
 
         # loss = demand * price * backlog_ratio
         seller_step_cost = -1 * (
-            (self._get_attributes("seller", "demand", tick) - self._get_attributes("seller", "sold", tick))
-            * self._get_attributes("seller", "backlog_ratio", tick)
+            (get_attributes(self._env, "seller", "demand", tick) - get_attributes(self._env, "seller", "sold", tick))
+            * get_attributes(self._env, "seller", "backlog_ratio", tick)
             * price
         )
 
@@ -221,10 +192,10 @@ class BalanceSheetCalculator:
             np.ndarray: manufacture id list, with manufacture node index as 1st-dim index.
             np.ndarray: manufacture step cost, with manufacture node index as 1st-dim index.
         """
-        manufacture_ids = self._get_attributes("manufacture", "id", tick).astype(np.int)
+        manufacture_ids = get_attributes(self._env, "manufacture", "id", tick).astype(np.int)
 
         # loss = manufacture number * cost
-        manufacture_step_cost = -1 * self._get_attributes("manufacture", "manufacture_cost", tick)
+        manufacture_step_cost = -1 * get_attributes(self._env, "manufacture", "manufacture_cost", tick)
 
         return manufacture_ids, manufacture_step_cost
 
@@ -235,9 +206,9 @@ class BalanceSheetCalculator:
             List[Dict[int, float]]: product storage step cost dict, with storage node index as list index and sku id as
                 the keys in dict.
         """
-        sku_id_lists = self._get_list_attributes("storage", "sku_id_list", tick)
-        product_id_lists = self._get_list_attributes("storage", "product_id_list", tick)
-        quantity_lists = self._get_list_attributes("storage", "product_quantity", tick)
+        sku_id_lists = get_list_attributes(self._env, "storage", "sku_id_list", tick)
+        product_id_lists = get_list_attributes(self._env, "storage", "product_id_list", tick)
+        quantity_lists = get_list_attributes(self._env, "storage", "product_quantity", tick)
 
         # Idx: storage node index. Key: sku_id, value: cost.
         product_storage_step_cost: List[Dict[int, float]] = [
@@ -261,14 +232,14 @@ class BalanceSheetCalculator:
         """
         # product distribution profit = check order * price
         product_step_distribution_profit = (
-            self._get_attributes("product", "check_in_quantity_in_order", tick)
-            * self._get_attributes("product", "price", tick)
+            get_attributes(self._env, "product", "check_in_quantity_in_order", tick)
+            * get_attributes(self._env, "product", "price", tick)
         )
 
         # product distribution loss = transportation cost + delay order penalty
         product_step_distribution_cost = -1 * (
-            self._get_attributes("product", "transportation_cost", tick)
-            + self._get_attributes("product", "delay_order_penalty", tick)
+            get_attributes(self._env, "product", "transportation_cost", tick)
+            + get_attributes(self._env, "product", "delay_order_penalty", tick)
         )
 
         return product_step_distribution_profit, product_step_distribution_cost
