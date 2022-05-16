@@ -83,14 +83,14 @@ super_distribution: &super_distribution
 mix_distribution: &mix_distribution
   config:
     train:
-      number: 14
+      number: 140
     air:
       number: 4
 
 simple_distribution: &simple_distribution
   config:
     train:
-      number: 14
+      number: 140
 
 super_storage: &super_storage
   config:
@@ -141,92 +141,110 @@ world:
       definition_ref: "SuperVendor"
       skus:  # would be parsed by FacilityBase.parse_skus() => SkuInfo
         "food_1":  # The key can be sku id or name
-          price: 33
-          init_stock: 10000
+          price: 5
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_product_cost: 14
           unit_delay_order_penalty: 1000
+          unit_order_cost: 2.0
         "component_1":
-          price: 33
-          init_stock: 10000
+          price: 5
+          init_stock: 5000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_product_cost: 14
           unit_delay_order_penalty: 900
         "component_2":
-          price: 33
-          init_stock: 10000
+          price: 10
+          init_stock: 5000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_product_cost: 14
           unit_delay_order_penalty: 900
       children:  # Would be used to initialize the facility.children
         storage: *super_storage
         distribution: *super_distribution
       config:  # would be FacilityBase.configs directly
         unit_delay_order_penalty: 1000
-        unit_order_cost: 100
+        unit_order_cost: 1.0
 
     - name: "Plant_001"
       definition_ref: "PlantFacility"
       skus:
         "component_1":
-          price: 33
-          init_stock: 5000
+          price: 5
+          init_stock: 3000
           sub_storage_id: 1
           has_consumer: True
-          unit_order_cost: 80
+          unit_order_cost: 5
         "component_2":
-          price: 33
-          init_stock: 5000
+          price: 10
+          init_stock: 4000
           sub_storage_id: 1
           has_consumer: True
-          unit_order_cost: 80
+          unit_order_cost: 10
         "hobby_1":
-          price: 33
-          init_stock: 5000
+          price: 10
+          init_stock: 2500
           sub_storage_id: 2
           has_manufacture: True
           max_manufacture_rate: 10000
           unit_product_cost: 14
+          unit_order_cost: 2.0
       children:
         storage: *multi_storage
         distribution: *simple_distribution
       config:
         unit_delay_order_penalty: 1000
-        unit_order_cost: 100
+        unit_order_cost: 1.0
 
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
         "food_1":
-          price: 33
-          init_stock: 10000
+          price: 5
+          init_stock: 200
           sub_storage_id: 0
           has_consumer: True
+          unit_order_cost: 2.0
         "hobby_1":
-          price: 33
-          init_stock: 5000
+          price: 10
+          init_stock: 200
           sub_storage_id: 0
           has_consumer: True
+          unit_order_cost: 2.0
       children:
         storage: *single_storage
         distribution: *mix_distribution
       config:
         unit_delay_order_penalty: 1000
-        unit_order_cost: 100
+        unit_order_cost: 1.0
 
     - name: "Store_001"
       definition_ref: "StoreFacility"
       skus:
         "food_1":
-          price: 33
-          init_stock: 10000
+          price: 150
+          init_stock: 200
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 160
-          backlog_ratio: 0.0
+          sale_gamma: 60
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
         "hobby_1":
-          price: 33
-          init_stock: 5000
+          price: 180
+          init_stock: 100
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 160
-          backlog_ratio: 0.0
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
       children:
         storage: *single_storage
       config:
@@ -238,39 +256,42 @@ world:
       "food_1":
         "Warehouse_001":
           "air":
-            vlt: 2
+            vlt: 1
             cost: 3.0  # Unit transportation cost per product per day
           "train":
-            vlt: 7
+            vlt: 1
             cost: 0.5
       "hobby_1":
         "Warehouse_001":
           "train":
-            vlt: 7
+            vlt: 1
             cost: 0.6
 
     "Warehouse_001":
       "food_1":
         "Vendor_001":
+          "air":
+            vlt: 1
+            cost: 3.0  # Unit transportation cost per product per day
           "train":
-            vlt: 7
-            cost: 0.3
+            vlt: 2
+            cost: 0.5
       "hobby_1":
         "Plant_001":
           "train":
-            vlt: 7
-            cost: 0.35
+            vlt: 2
+            cost: 0.6
 
     "Plant_001":
       "component_1":
         "Vendor_001":
           "train":
-            vlt: 7
+            vlt: 3
             cost: 0.2
       "component_2":
         "Vendor_001":
           "train":
-            vlt: 7
+            vlt: 3
             cost: 0.2
 
 settings:

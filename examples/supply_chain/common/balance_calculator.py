@@ -379,7 +379,6 @@ class BalanceSheetCalculator:
         # team reward
         if self._team_reward:
             team_reward = defaultdict(lambda: (0, 0))
-            # TODO: The facility balance already take all consumer balance into consideration. Still add or not?
             for id_ in consumer_ids:
                 facility_id = self.consumer_id2facility_id[id_]
                 team_reward[facility_id] = (
