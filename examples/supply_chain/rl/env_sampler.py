@@ -327,8 +327,8 @@ class SCEnvSampler(AbsEnvSampler):
                 self._demand_status[entity_id] = list(seller_states[:, IDX_SELLER_DEMAND].flatten())[-1]
                 self._sold_status[entity_id] = list(seller_states[:, IDX_SELLER_SOLD].flatten())[-1]
             else:
-                self._demand_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_mean"]
-                self._sold_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_std"]
+                self._demand_status[entity_id] = self._cur_metrics["products"][product_unit_id]["demand_mean"]
+                self._sold_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_mean"]
 
     def _get_global_and_agent_state_impl(
         self, event: CascadeEvent, tick: int = None,

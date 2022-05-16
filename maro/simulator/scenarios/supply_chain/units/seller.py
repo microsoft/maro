@@ -118,11 +118,23 @@ class SellerUnit(ExtendUnitBase):
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
         self._demand_hist = [self._gamma] * self.config["sale_hist_len"]
 
-    def sale_mean(self) -> float:  # TODO: renamed to median demand
-        return float(np.median(self._demand_hist))
+    def sale_median(self) -> float:
+        return float(np.median(self._sale_hist))
+
+    def sale_mean(self) -> float:
+        return float(np.mean(self._sale_hist))
 
     def sale_std(self) -> float:
         return float(np.std(self._sale_hist))
+
+    def demand_median(self) -> float:
+        return float(np.median(self._demand_hist))
+
+    def demand_mean(self) -> float:
+        return float(np.mean(self._demand_hist))
+
+    def demand_std(self) -> float:
+        return float(np.std(self._demand_hist))
 
     def get_node_info(self) -> SellerUnitInfo:
         return SellerUnitInfo(
