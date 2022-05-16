@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import os
+import pickle
 import random
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
@@ -32,13 +33,9 @@ from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolic
 from .config import consumer_features, distribution_features, seller_features, IDX_SELLER_DEMAND, IDX_SELLER_SOLD
 from .config import env_conf, test_env_conf, workflow_settings
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
-# from .config import num_products_to_sample
 from .or_agent_state import ScOrAgentStates
 from .rl_agent_state import ScRlAgentStates, serialize_state
 
-
-# vendor_config_path = f"examples.supply_chain.rl.default_vendor_config_{num_products_to_sample}"
-# default_vendor = getattr(importlib.import_module(vendor_config_path), "default_vendor")
 
 def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
     unit2product: Dict[int, int] = {}
@@ -86,6 +83,14 @@ class SCEnvSampler(AbsEnvSampler):
         super().__init__(learn_env, test_env, agent_wrapper_cls, reward_eval_delay)
 
         self._env_settings: dict = workflow_settings
+        if workflow_settings["vehicle_selection_method"] == VehicleSelection.DEFAULT_ONE:
+            file_path = os.path.join(
+                os.path.dirname(self._learn_env.business_engine._config_path),
+                self._learn_env.business_engine._topology,
+                "default_vendor.pkl"
+            )
+            with open(file_path, 'rb') as f:
+                self._default_vendor = pickle.load(f)
 
         business_engine = self._learn_env.business_engine
         assert isinstance(business_engine, SupplyChainBusinessEngine)
@@ -439,71 +444,64 @@ class SCEnvSampler(AbsEnvSampler):
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
                 sku_id: int = self._consumer_id2sku_id.get(entity_id, 0)
+                sku_name: str = self._entity_dict[entity_id].skus.name
                 product_unit_id: int = self._unit2product_unit[entity_id]
 
-                # TODO: vehicle type selection and source selection
-                vlt_info_candidates: List[VendorLeadingTimeInfo] = []
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
                 info_by_fid = facility_info.upstream_vlt_infos[sku_id]
 
-                # product_name = self._entity_dict[self._entity_dict[entity_id].parent_id].skus.name
-                # facility_name = facility_info.name
+                vlt_info_candidates: List[VendorLeadingTimeInfo] = [
+                    info
+                    for info_by_type in info_by_fid.values()
+                    for info in info_by_type.values()
+                ]
 
-                if self._env_settings["default_vehicle_type"] is None:
-                    vlt_info_candidates = [
-                        info
-                        for info_by_type in info_by_fid.values()
-                        for info in info_by_type.values()
-                    ]
-                # else:
-                #     vlt_info_candidates = [
-                #         info_by_type[self._env_settings["default_vehicle_type"]]
-                #         for info_by_type in info_by_fid.values()
-                #     ]
-
-                # default_vehicle_type = default_vendor[facility_name][product_name]
-                # vlt_info_candidates = [
-                #     info_by_type[default_vehicle_type]
-                #     for info_by_type in info_by_fid.values() if default_vehicle_type in info_by_type
-                # ]
-
-                if len(vlt_info_candidates):
-                    vehicle_selection = self._env_settings["vehicle_selection_method"]
-                    if vehicle_selection == VehicleSelection.FIRST_ONE:
-                        vlt_info = vlt_info_candidates[0]
-                    elif vehicle_selection == VehicleSelection.RANDOM:
-                        vlt_info = random.choice(vlt_info_candidates)
-                    elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
-                        vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
-                    elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
-                        # As the product cost and order base cost are only related to product quantity,
-                        # the transportation cost is the difference of different vehicle type selections.
-                        vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
-                    else:
-                        raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
-
-                    src_f_id = vlt_info.src_facility.id
-                    vehicle_type = vlt_info.vehicle_type
-
-                    if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
-                        baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
-                        or_action = np.where(baseline_action==1.0)[0][0]
-                        # action_idx = int(action[0] + or_action)
-                        action_idx = max(0, int(action[0] - 1 + or_action))
-                    else:
-                        action_idx = action[0]
-
-                    action_quantity = int(
-                        int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                vehicle_selection = self._env_settings["vehicle_selection_method"]
+                if vehicle_selection == VehicleSelection.RANDOM:
+                    vlt_info = random.choice(vlt_info_candidates)
+                elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
+                    vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
+                elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
+                    # As the product cost and order base cost are only related to product quantity,
+                    # the transportation cost is the difference of different vehicle type selections.
+                    vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
+                elif vehicle_selection == VehicleSelection.DEFAULT_ONE:
+                    # TODO: read default vlt info directly.
+                    default_vehicle_type = self._default_vendor[facility_info.name][sku_name]
+                    vlt_info = next(
+                        filter(lambda info: info.vehicle_type == default_vehicle_type, vlt_info_candidates),
+                        None
                     )
+                    assert vlt_info is not None, (
+                        f"Default vehicle type {default_vehicle_type} not exist for {facility_info.name}'s {sku_name}!"
+                    )
+                else:
+                    raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
 
-                    # Ignore 0 quantity to reduce action number
-                    if action_quantity:
-                        env_action = ConsumerAction(entity_id, sku_id, src_f_id, action_quantity, vehicle_type)
+                src_f_id = vlt_info.src_facility.id
+                vehicle_type = vlt_info.vehicle_type
+
+                if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
+                    baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
+                    or_action = np.where(baseline_action==1.0)[0][0]
+                    # action_idx = int(action[0] + or_action)
+                    action_idx = max(0, int(action[0] - 1 + or_action))
+                else:
+                    action_idx = action[0]
+
+                action_quantity = int(
+                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                )
+
+                # Ignore 0 quantity to reduce action number
+                if action_quantity:
+                    env_action = ConsumerAction(entity_id, sku_id, src_f_id, action_quantity, vehicle_type)
+
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
                 if action[0] > 0:
                     env_action = ManufactureAction(id=entity_id, manufacture_rate=action[0])
+
             if env_action:
                 env_action_dict[agent_id] = env_action
 
