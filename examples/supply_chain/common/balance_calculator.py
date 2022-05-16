@@ -58,7 +58,8 @@ class BalanceSheetCalculator:
         self.num_products = len(self.product_infos)
         self.num_facilities = len(self._facility_info_dict)
 
-        self._ordered_products: List[GlobalProductInfo] = self._get_products_sorted_from_downstreams_to_upstreams()
+        # NOTE: ordered list only valid for DAG-Topology.
+        # self._ordered_products: List[GlobalProductInfo] = self._get_products_sorted_from_downstreams_to_upstreams()
 
         self.accumulated_balance_sheet = defaultdict(int)
 
@@ -268,7 +269,9 @@ class BalanceSheetCalculator:
         # product = consumer + seller + manufacture + storage + distribution (+ downstreams)
         # NOTE: it must be self._ordered_products if we want to take its downstreams into consideration.
         # Otherwise, the order does not matter.
-        for product in self._ordered_products:
+        # NOTE: It is not a DAG-topology in SCI, so that we cannot use ordered one here.
+        # for product in self._ordered_products:
+        for product in self.product_infos:
             i = product.node_index
 
             if product.consumer_index:
@@ -349,6 +352,7 @@ class BalanceSheetCalculator:
 
         Returns:
             Dict[int, Tuple[float, float]]: (step balance, step reward) for each entity, with entity id as the key.
+                Currently, the entity includes: ProductUnit, ConsumerUnit, ManufactureUnit and Facility.
         """
 
         # Key: the facility/unit id; Value: (balance, reward).
@@ -397,6 +401,7 @@ class BalanceSheetCalculator:
 
         Returns:
             Dict[int, Tuple[float, float]]: (step balance, step reward) for each entity, with entity id as the key.
+                Currently, the entity includes: ProductUnit, ConsumerUnit, ManufactureUnit and Facility.
         """
         # TODO: Add cache for each tick.
         # TODO: Add logic to confirm the balance sheet for the same tick would not be re-calculate.
