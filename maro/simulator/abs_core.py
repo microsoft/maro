@@ -162,3 +162,11 @@ class AbsEnv(ABC):
             tick (int): Specified tick.
         """
         pass
+
+    def get_ticks_frame_index_mapping(self) -> dict:
+        """Helper method to get current available ticks to related frame index mapping.
+
+        Returns:
+            dict: Dictionary of avaliable tick to frame index, it would be 1 to N mapping if the resolution is not 1.
+        """
+        pass
