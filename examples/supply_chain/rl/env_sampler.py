@@ -19,14 +19,14 @@ from maro.simulator.scenarios.supply_chain import (
 )
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
-from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
+from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
 from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, StorageUnitInfo
 from maro.utils.logger import Logger, LogFormat
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
-from examples.supply_chain.common.render_tools.plt_render import SimulationTracker
+from examples.supply_chain.common.render_tools.plot_render import SimulationTracker
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 from .config import consumer_features, distribution_features, seller_features, IDX_SELLER_DEMAND, IDX_SELLER_SOLD
@@ -34,7 +34,6 @@ from .config import env_conf, test_env_conf, workflow_settings
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
 # from .config import num_products_to_sample
 from .or_agent_state import ScOrAgentStates
-from .policies import agent2policy, trainable_policies
 from .rl_agent_state import ScRlAgentStates, serialize_state
 
 
@@ -140,8 +139,8 @@ class SCEnvSampler(AbsEnvSampler):
         self._cur_consumer_hist_states: Optional[np.ndarray] = None
 
         # Key: facility id; List Index: sku idx; Value: in transition product quantity.
-        self._facility_in_transit_orders: Dict[int, List[int]] = {}
-        self._facility_to_distribute_orders: Dict[int, List[int]] = {}
+        self._facility_in_transit_quantity: Dict[int, List[int]] = {}
+        self._facility_to_distribute_quantity: Dict[int, List[int]] = {}
 
         self._facility_product_utilization: Dict[int, int] = {}
 
@@ -179,7 +178,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._tracker = SimulationTracker(
             episode_len=test_env_conf["durations"],
-            n_episods=1,
+            n_episodes=1,
             env_sampler=self,
             log_path=workflow_settings["log_path"],
             eval_period=[env_conf["durations"], test_env_conf["durations"]],
@@ -189,8 +188,8 @@ class SCEnvSampler(AbsEnvSampler):
         self._stock_status: Dict[int, int] = {}
         self._demand_status: Dict[int, Union[int, float]] = {}
         self._sold_status: Dict[int, Union[int, float]] = {}
-        self._order_in_transit_status: Dict[int, int] = {}
-        self._order_to_distribute_status: Dict[int, int] = {}
+        self._stock_in_transit_status: Dict[int, int] = {}
+        self._stock_ordered_to_distribute_status: Dict[int, int] = {}
         self._reward_status: Dict[int, float] = {}
         self._balance_status: Dict[int, float] = {}
 
@@ -266,8 +265,8 @@ class SCEnvSampler(AbsEnvSampler):
             storage_capacity_dict=self._storage_capacity_dict,
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
             product_levels=self._storage_product_quantity[entity.facility_id],
-            in_transit_order_quantity=self._facility_in_transit_orders[entity.facility_id],
-            to_distributed_orders = self._facility_to_distribute_orders[entity.facility_id],
+            in_transit_quantity=self._facility_in_transit_quantity[entity.facility_id],
+            to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
         )
         return state
 
@@ -282,7 +281,7 @@ class SCEnvSampler(AbsEnvSampler):
             accumulated_balance=self._balance_calculator.accumulated_balance_sheet[entity_id],
             storage_product_quantity=self._storage_product_quantity,
             facility_product_utilization=self._facility_product_utilization,
-            facility_in_transit_orders=self._facility_in_transit_orders,
+            facility_in_transit_quantity=self._facility_in_transit_quantity,
         )
 
         entity = self._entity_dict[entity_id]
@@ -314,12 +313,12 @@ class SCEnvSampler(AbsEnvSampler):
             self._stock_status[entity_id] = self._storage_product_quantity[entity.facility_id][
                 self._global_sku_id2idx[entity.skus.id]
             ]
-            self._order_in_transit_status[entity_id] = self._facility_in_transit_orders[entity.facility_id][
+            self._stock_in_transit_status[entity_id] = self._facility_in_transit_quantity[entity.facility_id][
                 self._global_sku_id2idx[entity.skus.id]
             ]
 
             pending_order = self._cur_metrics["facilities"][entity.facility_id]["pending_order"]
-            self._order_to_distribute_status[entity_id] = pending_order[entity.skus.id] if pending_order else 0
+            self._stock_ordered_to_distribute_status[entity_id] = pending_order[entity.skus.id] if pending_order else 0
 
             product_unit_id = entity.parent_id
             product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
@@ -366,8 +365,8 @@ class SCEnvSampler(AbsEnvSampler):
         for facility_id, facility_info in self._facility_info_dict.items():
             # Reset for each step
             self._facility_product_utilization[facility_id] = 0
-            self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
-            self._facility_to_distribute_orders[facility_id] = [0] * self._sku_number
+            self._facility_in_transit_quantity[facility_id] = [0] * self._sku_number
+            self._facility_to_distribute_quantity[facility_id] = [0] * self._sku_number
             if facility_info.storage_info.node_index is not None:
                 product_quantities = self._env.snapshot_list["storage"][
                     tick:facility_info.storage_info.node_index:"product_quantity"
@@ -380,10 +379,10 @@ class SCEnvSampler(AbsEnvSampler):
                     self._facility_product_utilization[facility_id] += product_quantity
 
             for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
-                self._facility_in_transit_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
+                self._facility_in_transit_quantity[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
             for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["pending_order"].items():
-                self._facility_to_distribute_orders[facility_id][self._global_sku_id2idx[sku_id]] = quantity
+                self._facility_to_distribute_quantity[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
         state = {
             id_: self._get_entity_state(id_)
@@ -657,7 +656,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._tracker.add_balance_and_reward(
             episode=0,
-            t=self._step_idx,
+            tick=self._step_idx,
             global_balance=sum(self._balance_status.values()),
             global_reward=sum(self._reward_status.values()),
             step_balances=self._balance_status,
@@ -666,14 +665,14 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._tracker.add_sku_status(
             episode=0,
-            t=self._step_idx,
+            tick=self._step_idx,
             stock=self._stock_status,
-            order_in_transit=self._order_in_transit_status,
+            stock_in_transit=self._stock_in_transit_status,
+            stock_ordered_to_distribute=self._stock_ordered_to_distribute_status,
             demands=self._demand_status,
             solds=self._sold_status,
             rewards=self._reward_status,
             balances=self._balance_status,
-            order_to_distribute=self._order_to_distribute_status,
         )
 
         self._step_idx += 1
@@ -692,9 +691,8 @@ class SCEnvSampler(AbsEnvSampler):
 
             if workflow_settings["plot_render"]:
                 self._logger.info("Start render...")
-                self._tracker.render('a_plot_balance.png', self._tracker.step_balances, ["OuterRetailerFacility"])
-                self._tracker.render('a_plot_reward.png', self._tracker.step_rewards, ["OuterRetailerFacility"])
-                self._tracker.render_sku()
+                self._tracker.render_facility_balance_and_reward(facility_types=(OuterRetailerFacility))
+                self._tracker.render_all_sku(entity_types=(ConsumerUnit, ManufactureUnit))
 
             if workflow_settings["dump_product_metrics"]:
                 self._logger.info(f"Start post update product metrics...")
@@ -703,7 +701,7 @@ class SCEnvSampler(AbsEnvSampler):
                 self._logger.info("Start dump product metrics...")
                 df_product = pd.DataFrame(self.product_metric_track)
                 df_product = df_product.groupby(['tick', 'id']).first().reset_index()
-                df_product.to_csv(os.path.join(self._tracker.loc_path, "output_product_metrics.csv"), index=False)
+                df_product.to_csv(os.path.join(workflow_settings["log_path"], "output_product_metrics.csv"), index=False)
 
                 self._logger.info("product metrics dumped to csv")
 

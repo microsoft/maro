@@ -133,7 +133,7 @@ class ScRlAgentStates:
         accumulated_balance: float,
         storage_product_quantity: Dict[int, List[int]],
         facility_product_utilization: Dict[int, int],
-        facility_in_transit_orders: Dict[int, List[int]],
+        facility_in_transit_quantity: Dict[int, List[int]],
     ) -> dict:
         """Update the state dict of the given entity_id in the given tick.
 
@@ -153,7 +153,7 @@ class ScRlAgentStates:
                 indexed by the global_sku_id2idx.
             facility_product_utilization (Dict[int, int]): The current total product quantity in corresponding facility.
                 The key is the id of the facility the entity belongs to, the value is the total product quantity.
-            facility_in_transit_orders (Dict[int, List[int]]): The current in-transition product quantity. The key is
+            facility_in_transit_quantity (Dict[int, List[int]]): The current in-transition product quantity. The key is
                 the id of the facility the entity belongs to, the value is the in-transition product quantity list which
                 is indexed by the global_sku_id2idx.
 
@@ -171,7 +171,9 @@ class ScRlAgentStates:
         self._update_storage_features(state, entity, storage_product_quantity, facility_product_utilization)
         self._update_sale_features(state, entity, cur_metrics, cur_seller_hist_states, cur_consumer_hist_states)
         self._update_distribution_features(state, entity, cur_distribution_states)
-        self._update_consumer_features(state, entity, cur_metrics, storage_product_quantity, facility_in_transit_orders)
+        self._update_consumer_features(
+            state, entity, cur_metrics, storage_product_quantity, facility_in_transit_quantity
+        )
 
         return state
 
@@ -362,7 +364,7 @@ class ScRlAgentStates:
         entity: SupplyChainEntity,
         cur_metrics: dict,
         storage_product_quantity: Dict[int, List[int]],
-        facility_in_transit_orders: Dict[int, List[int]],
+        facility_in_transit_quantity: Dict[int, List[int]],
     ) -> None:
         if entity.skus is None:
             return
@@ -373,7 +375,7 @@ class ScRlAgentStates:
         state['inventory_in_stock'] = storage_product_quantity[entity.facility_id][
             self._global_sku_id2idx[entity.skus.id]
         ]
-        state['inventory_in_transit'] = facility_in_transit_orders[entity.facility_id][
+        state['inventory_in_transit'] = facility_in_transit_quantity[entity.facility_id][
             self._global_sku_id2idx[entity.skus.id]
         ]
 

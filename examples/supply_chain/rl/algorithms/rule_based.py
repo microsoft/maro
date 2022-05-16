@@ -20,7 +20,7 @@ class ManufacturerBaselinePolicy(RuleBasedPolicy):
 
 class ManufacturerSSPolicy(RuleBasedPolicy):
     def _get_manufacture_action(self, state: dict) -> int:
-        _booked_quantity = state["product_level"] + state["in_transition_quantity"] - state["to_distributed_orders"]
+        _booked_quantity = state["product_level"] + state["in_transition_quantity"] - state["to_distribute_quantity"]
 
         # TODO: manufacture leading time
         expected_vlt = round(VLT_BUFFER_DAYS * state["max_vlt"], 0)
@@ -44,7 +44,7 @@ class ConsumerBasePolicy(RuleBasedPolicy):
 
     def _take_action_mask(self, state: dict) -> bool:
         self._booked_quantity = (
-            state["product_level"] + state["in_transition_quantity"] - state["to_distributed_orders"]
+            state["product_level"] + state["in_transition_quantity"] - state["to_distribute_quantity"]
         )
         storage_booked_quantity = state["storage_utilization"] + state["storage_in_transition_quantity"]
         # TODO: manufacture leading time
