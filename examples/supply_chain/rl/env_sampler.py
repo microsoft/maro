@@ -686,6 +686,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         if self._eval_reward > self._max_eval_reward:
             self._max_eval_reward = self._eval_reward
+            self._logger.info(f"Update Max Eval Reward to: {self._max_eval_reward}")
 
             if workflow_settings["plot_render"]:
                 self._logger.info("Start render...")
