@@ -195,7 +195,7 @@ class DistributionUnit(UnitBase):
         if vlt_info.vlt < len(dest_consumer.pending_order_daily):  # Check use (arrival tick - tick) or vlt
             dest_consumer.pending_order_daily[vlt_info.vlt] += order.quantity
 
-        return vlt_info.unit_transportation_cost
+        return vlt_info.unit_transportation_cost * order.quantity
 
     def pre_step(self, tick: int) -> None:
         self.check_in_quantity_in_order.clear()

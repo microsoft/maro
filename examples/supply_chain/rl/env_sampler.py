@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# import importlib
-# import os
+import importlib
+import os
 import random
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
@@ -41,8 +41,8 @@ from .policies import agent2policy, trainable_policies
 from .rl_agent_state import ScRlAgentStates, serialize_state
 from .render_tools import SimulationTracker
 
-# vendor_config_path = f"examples.supply_chain.rl.default_vendor_config_{num_products_to_sample}"
-# default_vendor = getattr(importlib.import_module(vendor_config_path), "default_vendor")
+vendor_config_path = f"examples.supply_chain.rl.default_vendor_config_{num_products_to_sample}"
+default_vendor = getattr(importlib.import_module(vendor_config_path), "default_vendor")
 
 def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
     unit2product: Dict[int, int] = {}
@@ -416,42 +416,43 @@ class SCEnvSampler(AbsEnvSampler):
                 facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
                 info_by_fid = facility_info.upstream_vlt_infos[product_id]
 
-                # product_name = self._entity_dict[self._entity_dict[entity_id].parent_id].skus.name
-                # facility_name = facility_info.name
+                product_name = self._entity_dict[self._entity_dict[entity_id].parent_id].skus.name
+                facility_name = facility_info.name
 
-                if self._env_settings["default_vehicle_type"] is None:
-                    vlt_info_candidates = [
-                        info
-                        for info_by_type in info_by_fid.values()
-                        for info in info_by_type.values()
-                    ]
+                # if self._env_settings["default_vehicle_type"] is None:
+                #     vlt_info_candidates = [
+                #         info
+                #         for info_by_type in info_by_fid.values()
+                #         for info in info_by_type.values()
+                #     ]
                 # else:
                 #     vlt_info_candidates = [
                 #         info_by_type[self._env_settings["default_vehicle_type"]]
                 #         for info_by_type in info_by_fid.values()
                 #     ]
 
-                # default_vehicle_type = default_vendor[facility_name][product_name]
-                # vlt_info_candidates = [
-                #     info_by_type[default_vehicle_type]
-                #     for info_by_type in info_by_fid.values() if default_vehicle_type in info_by_type
-                # ]
+                default_vehicle_type = default_vendor[facility_name][product_name]
+                vlt_info_candidates = [
+                    info_by_type[default_vehicle_type]
+                    for info_by_type in info_by_fid.values() if default_vehicle_type in info_by_type
+                ]
 
                 if len(vlt_info_candidates):
-                    vehicle_selection = self._env_settings["vehicle_selection_method"]
-                    if vehicle_selection == VehicleSelection.FIRST_ONE:
-                        vlt_info = vlt_info_candidates[0]
-                    elif vehicle_selection == VehicleSelection.RANDOM:
-                        vlt_info = random.choice(vlt_info_candidates)
-                    elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
-                        vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
-                    elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
-                        # As the product cost and order base cost are only related to product quantity,
-                        # the transportation cost is the difference of different vehicle type selections.
-                        vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
-                    else:
-                        raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
+                    # vehicle_selection = self._env_settings["vehicle_selection_method"]
+                    # if vehicle_selection == VehicleSelection.FIRST_ONE:
+                    #     vlt_info = vlt_info_candidates[0]
+                    # elif vehicle_selection == VehicleSelection.RANDOM:
+                    #     vlt_info = random.choice(vlt_info_candidates)
+                    # elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
+                    #     vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
+                    # elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
+                    #     # As the product cost and order base cost are only related to product quantity,
+                    #     # the transportation cost is the difference of different vehicle type selections.
+                    #     vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
+                    # else:
+                    #     raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
 
+                    vlt_info = vlt_info_candidates[0]
                     src_f_id = vlt_info.src_facility.id
                     vehicle_type = vlt_info.vehicle_type
 
@@ -584,10 +585,10 @@ class SCEnvSampler(AbsEnvSampler):
         self._eval_reward_list.append(eval_reward)
         self._max_eval_reward = np.max(self._eval_reward_list)
         if eval_reward >= self._max_eval_reward:
-            self._logger.info("Start render...")
-            tracker.render(tracker.loc_path, 'a_plot_balance.png', tracker.step_balances, ["OuterRetailerFacility"])
-            tracker.render(tracker.loc_path, 'a_plot_reward.png', tracker.step_rewards, ["OuterRetailerFacility"])
-            tracker.render_sku(tracker.loc_path)
+            # self._logger.info("Start render...")
+            # tracker.render(tracker.loc_path, 'a_plot_balance.png', tracker.step_balances, ["OuterRetailerFacility"])
+            # tracker.render(tracker.loc_path, 'a_plot_reward.png', tracker.step_rewards, ["OuterRetailerFacility"])
+            # tracker.render_sku(tracker.loc_path)
 
             self._logger.info("Start dump product metrics...")
             df_product = pd.DataFrame(self._balance_calculator.product_metric_track)
