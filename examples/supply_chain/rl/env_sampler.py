@@ -1,9 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
 import os
 import pickle
 import random
+import typing
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
@@ -35,6 +38,9 @@ from .config import env_conf, test_env_conf, workflow_settings
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
 from .or_agent_state import ScOrAgentStates
 from .rl_agent_state import ScRlAgentStates, serialize_state
+
+if typing.TYPE_CHECKING:
+    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
@@ -78,7 +84,7 @@ class SCEnvSampler(AbsEnvSampler):
         learn_env: Env,
         test_env: Env,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
-        reward_eval_delay: int = 0,
+        reward_eval_delay: Optional[int] = None,
     ) -> None:
         super().__init__(learn_env, test_env, agent_wrapper_cls, reward_eval_delay)
 
@@ -209,6 +215,9 @@ class SCEnvSampler(AbsEnvSampler):
         self.product_metric_track: Dict[str, list] = defaultdict(list)
 
         self._logger = Logger(tag="env_sampler", format_=LogFormat.time_only, dump_folder=workflow_settings["log_path"])
+
+    def build(self, rl_component_bundle: RLComponentBundle) -> None:
+        super().build(rl_component_bundle)
 
         self._logger.info(
             f"Total number of policy-related agents / entities: "
@@ -517,8 +526,11 @@ class SCEnvSampler(AbsEnvSampler):
 
             self.product_metric_track.clear()
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_step(self, cache_element: CacheElement) -> None:
         pass
+
+    def post_collect(self, info_list: list, ep: int) -> None:
+        return super().post_collect(info_list, ep)
 
     def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
         self._is_eval = False
@@ -624,7 +636,7 @@ class SCEnvSampler(AbsEnvSampler):
         ]:
             self.product_metric_track.pop(key)
 
-    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_eval_step(self, cache_element: CacheElement) -> None:
         self._logger.info(f"Step: {self._step_idx}")
         if self._tracker.eval_period[0] <= cache_element.tick < self._tracker.eval_period[1]:
             self._eval_reward += np.sum([
@@ -649,7 +661,9 @@ class SCEnvSampler(AbsEnvSampler):
                         if ALGO != "EOQ":
                             baseline_action = np.array(cache_element.agent_state_dict[entity_id][-OR_NUM_CONSUMER_ACTIONS:])
                             or_action = np.where(baseline_action==1.0)[0][0]
-                        consumer_action_dict[parent_entity.id] = (action, or_action, round(reward[entity_id], 2))
+                        consumer_action_dict[parent_entity.id] = (
+                            action, or_action, round(cache_element.reward_dict[entity_id], 2)
+                        )
             self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
 
         self._tracker.add_balance_and_reward(
@@ -711,5 +725,4 @@ class SCEnvSampler(AbsEnvSampler):
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         self._is_eval = True
         self._balance_calculator.update_env(self._test_env)
-
         return super().eval(policy_state)

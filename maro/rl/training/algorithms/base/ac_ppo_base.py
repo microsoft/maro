@@ -7,12 +7,11 @@ from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import torch
-from torch.distributions import Categorical
 
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
 from maro.rl.training import AbsTrainOps, FIFOReplayMemory, remote, RemoteOps, SingleAgentTrainer, TrainerParams
-from maro.rl.utils import (discount_cumsum, get_torch_device, ndarray_to_tensor, TransitionBatch)
+from maro.rl.utils import discount_cumsum, get_torch_device, ndarray_to_tensor, TransitionBatch
 
 
 @dataclass

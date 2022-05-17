@@ -26,7 +26,6 @@ num_products_to_sample = 500
 
 ALGO="EOQ"
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
-use_or_policy = ALGO == "EOQ"
 
 TEAM_REWARD = False
 SHARED_MODEL = False

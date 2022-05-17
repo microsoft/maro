@@ -10,7 +10,7 @@
 
 job: supply_chain_rl_workflow
 scenario_path: "examples/supply_chain/rl"
-log_path: "log/rl_job/supply_chain.txt"
+log_path: "examples/supply_chain/logs/rl_job/supply_chain.txt"
 main:
   num_episodes: 1000  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   # num_steps: None

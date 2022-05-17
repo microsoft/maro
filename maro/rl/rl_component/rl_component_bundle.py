@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from abc import abstractmethod
 from functools import partial
 from typing import Any, Callable, Dict, Iterable, List, Optional
@@ -159,7 +162,7 @@ class RLComponentBundle(object):
 
         self.policy_trainer_mapping = self.get_policy_trainer_mapping()
 
-        assert _identical(self.agent2policy.values(), self.policy_creator.keys())
+        assert _is_subset(self.agent2policy.values(), self.policy_creator.keys())
         assert _identical(self.policy_trainer_mapping.values(), self.trainer_creator.keys())
         assert _is_subset(self.policy_trainer_mapping.keys(), self.policy_creator)
 
