@@ -45,7 +45,7 @@ class ScOrAgentStates:
 
         return state
 
-    def _update_entity_state(
+    def update_entity_state(
         self,
         entity_id: int,
         storage_capacity_dict: Optional[Dict[int, Dict[int, int]]],

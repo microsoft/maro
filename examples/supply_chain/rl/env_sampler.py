@@ -1,33 +1,34 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import csv
+import os
 import random
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from os.path import dirname, join, realpath
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 
+from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 from maro.event_buffer import CascadeEvent
-from maro.rl.policy import AbsPolicy, RLPolicy
+from maro.rl.policy import RLPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit
-)
+from maro.simulator.scenarios.supply_chain import ConsumerAction, ConsumerUnit, ManufactureUnit
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
+from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
 
-from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
-
 from .algorithms.rule_based import ConsumerBasePolicy
-from .config import (
-    consumer_features, distribution_features, env_conf, seller_features, workflow_settings, VehicleSelection
-)
+from .config import VehicleSelection, consumer_features, distribution_features, seller_features, workflow_settings
 from .or_agent_state import ScOrAgentStates
-from .policies import agent2policy, trainable_policies
 from .rl_agent_state import ScRlAgentStates
+
+OUTPUT_CSV_FOLDER = join(dirname(dirname(realpath(__file__))), "results")
+os.makedirs(OUTPUT_CSV_FOLDER, exist_ok=True)
+OUTPUT_CSV_PATH = join(OUTPUT_CSV_FOLDER, "baseline.csv")
 
 
 def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[int, int]:
@@ -68,28 +69,20 @@ def get_consumer2product_id(facility_info_dict: Dict[int, FacilityInfo]) -> Dict
 class SCEnvSampler(AbsEnvSampler):
     def __init__(
         self,
-        get_env: Callable[[], Env],
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
-        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        trainable_policies: List[str] = None,
+        learn_env: Env,
+        test_env: Env,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = 0,
-        get_test_env: Callable[[], Env] = None,
     ) -> None:
-        super().__init__(
-            get_env,
-            policy_creator,
-            agent2policy,
-            trainable_policies=trainable_policies,
-            agent_wrapper_cls=agent_wrapper_cls,
-            reward_eval_delay=reward_eval_delay,
-            get_test_env=get_test_env,
-        )
+        super().__init__(learn_env, test_env, agent_wrapper_cls, reward_eval_delay)
+
         self._env_settings: dict = workflow_settings
 
+        business_engine = self._learn_env.business_engine
+        assert isinstance(business_engine, SupplyChainBusinessEngine)
         self._entity_dict: Dict[int, SupplyChainEntity] = {
             entity.id: entity
-            for entity in self._learn_env.business_engine.get_entity_list()
+            for entity in business_engine.get_entity_list()
         }
 
         self._summary: dict = self._learn_env.summary['node_mapping']
@@ -114,7 +107,8 @@ class SCEnvSampler(AbsEnvSampler):
         # Key: Consumer unit id; Value: corresponding product id.
         self._consumer2product_id: Dict[int, int] = get_consumer2product_id(self._facility_info_dict)
 
-        self._configs: SupplyChainConfiguration = self._learn_env.configs
+        self._configs = self._learn_env.configs  # TODO: Optimize type hint here
+        assert isinstance(self._configs, SupplyChainConfiguration)
         self._policy_parameter: Dict[str, Any] = self._parse_policy_parameter(self._configs.policy_parameters)
 
         self._balance_calculator: BalanceSheetCalculator = BalanceSheetCalculator(self._learn_env)
@@ -213,7 +207,7 @@ class SCEnvSampler(AbsEnvSampler):
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
-        state = self._or_agent_states._update_entity_state(
+        state = self._or_agent_states.update_entity_state(
             entity_id=entity.id,
             storage_capacity_dict=self._storage_capacity_dict,
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
@@ -388,7 +382,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         return env_action_dict
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_step(self, cache_element: CacheElement) -> None:
         tick = cache_element.tick
         total_sold = self._env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
         total_demand = self._env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
@@ -396,14 +390,19 @@ class SCEnvSampler(AbsEnvSampler):
         self._info["demand"] = total_demand
         self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
 
-    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        self._post_step(cache_element, reward)
+    def _post_eval_step(self, cache_element: CacheElement) -> None:
+        self._post_step(cache_element)
 
+    def post_collect(self, info_list: list, ep: int) -> None:
+        with open(OUTPUT_CSV_PATH, "a") as fp:
+            writer = csv.writer(fp, delimiter=' ')
+            for info in info_list:
+                writer.writerow([ep, info["sold"], info["demand"], info["sold/demand"]])
+            # print the average env metric
+            if len(info_list) > 1:
+                metric_keys, num_envs = info_list[0].keys(), len(info_list)
+                avg = {key: sum(info[key] for info in info_list) / num_envs for key in metric_keys}
+                writer.writerow([ep, avg["sold"], avg["demand"], avg["sold/demand"]])
 
-def env_sampler_creator(policy_creator) -> SCEnvSampler:
-    return SCEnvSampler(
-        get_env=lambda: Env(**env_conf),
-        policy_creator=policy_creator,
-        agent2policy=agent2policy,
-        trainable_policies=trainable_policies,
-    )
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        self.post_collect(info_list, ep)

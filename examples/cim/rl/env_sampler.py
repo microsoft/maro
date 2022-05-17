@@ -1,18 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 
-from maro.rl.policy import RLPolicy
 from maro.rl.rollout import AbsEnvSampler, CacheElement
-from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
 from .config import (
-    action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
-    vessel_attributes
+    action_shaping_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
+    vessel_attributes,
 )
 
 
@@ -76,19 +74,22 @@ class CIMEnvSampler(AbsEnvSampler):
         )
         return {agent_id: reward for agent_id, reward in zip(ports, rewards)}
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_step(self, cache_element: CacheElement) -> None:
         self._info["env_metric"] = self._env.metrics
 
-    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        self._post_step(cache_element, reward)
+    def _post_eval_step(self, cache_element: CacheElement) -> None:
+        self._post_step(cache_element)
 
+    def post_collect(self, info_list: list, ep: int) -> None:
+        # print the env metric from each rollout worker
+        for info in info_list:
+            print(f"env summary (episode {ep}): {info['env_metric']}")
 
-agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in Env(**env_conf).agent_idx_list}
+        # print the average env metric
+        if len(info_list) > 1:
+            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+            avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
+            print(f"average env summary (episode {ep}): {avg_metric}")
 
-
-def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> CIMEnvSampler:
-    return CIMEnvSampler(
-        get_env=lambda: Env(**env_conf),
-        policy_creator=policy_creator,
-        agent2policy=agent2policy,
-    )
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        self.post_collect(info_list, ep)

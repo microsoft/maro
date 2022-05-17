@@ -3,10 +3,11 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
-from typing import Any, Dict
+from abc import ABCMeta
+from typing import Any, Dict, Optional
 
 import torch.nn
+from torch.optim import Optimizer
 
 
 class AbsNet(torch.nn.Module, metaclass=ABCMeta):
@@ -17,16 +18,18 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
     def __init__(self) -> None:
         super(AbsNet, self).__init__()
 
-    @abstractmethod
+        self._optim: Optional[Optimizer] = None
+
     def step(self, loss: torch.Tensor) -> None:
         """Run a training step to update the net's parameters according to the given loss.
 
         Args:
             loss (torch.tensor): Loss used to update the model.
         """
-        raise NotImplementedError
+        self._optim.zero_grad()
+        loss.backward()
+        self._optim.step()
 
-    @abstractmethod
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         """Get the gradients with respect to all parameters according to the given loss.
 
@@ -36,37 +39,42 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         Returns:
             Gradients (Dict[str, torch.Tensor]): A dict that contains gradients for all parameters.
         """
-        raise NotImplementedError
+        self._optim.zero_grad()
+        loss.backward()
+        return {name: param.grad for name, param in self.named_parameters()}
 
-    @abstractmethod
     def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
         """Apply gradients to the net to update all parameters.
 
         Args:
             grad (Dict[str, torch.Tensor]): A dict that contains gradients for all parameters.
         """
-        raise NotImplementedError
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+        self._optim.step()
 
     def _forward_unimplemented(self, *input: Any) -> None:
         pass
 
-    @abstractmethod
     def get_state(self) -> object:
         """Get the net's state.
 
         Returns:
             state (object): A object that contains the net's state.
         """
-        raise NotImplementedError
+        return {
+            "network": self.state_dict(),
+            "optim": self._optim.state_dict(),
+        }
 
-    @abstractmethod
-    def set_state(self, net_state: object) -> None:
+    def set_state(self, net_state: dict) -> None:
         """Set the net's state.
 
         Args:
-            net_state (object): A object that contains the net's state.
+            net_state (dict): A dict that contains the net's state.
         """
-        raise NotImplementedError
+        self.load_state_dict(net_state["network"])
+        self._optim.load_state_dict(net_state["optim"])
 
     def soft_update(self, other_model: AbsNet, tau: float) -> None:
         """Soft update the net's parameters according to another net, i.e.,
@@ -83,19 +91,19 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
 
-    @abstractmethod
     def freeze(self) -> None:
         """(Partially) freeze the current model. The users should write their own strategy to determine which
-        parameters to freeze.
+        parameters to freeze. Freeze all parameters is capable in most cases. You could overwrite this method
+        when necessary.
         """
-        raise NotImplementedError
+        self.freeze_all_parameters()
 
-    @abstractmethod
     def unfreeze(self) -> None:
         """(Partially) unfreeze the current model. The users should write their own strategy to determine which
-        parameters to freeze.
+        parameters to freeze. Unfreeze all parameters is capable in most cases. You could overwrite this method
+        when necessary.
         """
-        raise NotImplementedError
+        self.unfreeze_all_parameters()
 
     def freeze_all_parameters(self) -> None:
         """Freeze all parameters.

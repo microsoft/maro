@@ -1,13 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable
+from __future__ import annotations
+
+import typing
 
 from maro.rl.distributed import AbsWorker
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.utils import LoggerV2
 
-from .env_sampler import AbsEnvSampler
+if typing.TYPE_CHECKING:
+    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 class RolloutWorker(AbsWorker):
@@ -16,8 +19,7 @@ class RolloutWorker(AbsWorker):
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the parallel roll-out controller can keep track of its connection status.
-        env_sampler_creator (Callable[[dict], AbsEnvSampler]): User-defined function to create an ``AbsEnvSampler``
-            for roll-out purposes.
+        rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
         producer_host (str): IP address of the parallel task controller host to connect to.
         producer_port (int, default=20000): Port of the parallel task controller host to connect to.
         logger (LoggerV2, default=None): The logger of the workflow.
@@ -26,7 +28,7 @@ class RolloutWorker(AbsWorker):
     def __init__(
         self,
         idx: int,
-        env_sampler_creator: Callable[[], AbsEnvSampler],
+        rl_component_bundle: RLComponentBundle,
         producer_host: str,
         producer_port: int = 20000,
         logger: LoggerV2 = None,
@@ -34,7 +36,7 @@ class RolloutWorker(AbsWorker):
         super(RolloutWorker, self).__init__(
             idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
         )
-        self._env_sampler = env_sampler_creator()
+        self._env_sampler = rl_component_bundle.env_sampler
 
     def _compute(self, msg: list) -> None:
         """Perform a full or partial episode of roll-out for sampling or evaluation.
