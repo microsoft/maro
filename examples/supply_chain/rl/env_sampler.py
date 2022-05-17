@@ -382,7 +382,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         return env_action_dict
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
+    def _post_step(self, cache_element: CacheElement) -> None:
         tick = cache_element.tick
         total_sold = self._env.snapshot_list["seller"][tick::"total_sold"].reshape(-1)
         total_demand = self._env.snapshot_list["seller"][tick::"total_demand"].reshape(-1)
@@ -390,8 +390,8 @@ class SCEnvSampler(AbsEnvSampler):
         self._info["demand"] = total_demand
         self._info["sold/demand"] = self._info["sold"] / self._info["demand"]
 
-    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        self._post_step(cache_element, reward)
+    def _post_eval_step(self, cache_element: CacheElement) -> None:
+        self._post_step(cache_element)
 
     def post_collect(self, info_list: list, ep: int) -> None:
         with open(OUTPUT_CSV_PATH, "a") as fp:
