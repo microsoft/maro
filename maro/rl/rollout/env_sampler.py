@@ -508,7 +508,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 cache_element.reward_dict = self._get_reward(
                     cache_element.env_action_dict, cache_element.event, cache_element.tick,
                 )
-                self._post_step(cache_element)
+                self._post_eval_step(cache_element)
 
             self._trans_cache.append(cache_element)
 
