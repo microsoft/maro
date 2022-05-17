@@ -1,7 +1,7 @@
 from functools import partial
 from typing import Any, Callable, Dict, Optional
 
-from examples.cim.rl.config import action_num, algorithm, env_conf, num_agents, state_dim
+from examples.cim.rl.config import action_num, algorithm, env_conf, num_agents, reward_shaping_conf, state_dim
 from examples.cim.rl.env_sampler import CIMEnvSampler
 from maro.rl.policy import AbsPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
@@ -26,7 +26,7 @@ class CIMBundle(RLComponentBundle):
         return None
 
     def get_env_sampler(self) -> AbsEnvSampler:
-        return CIMEnvSampler(self.env, self.test_env)
+        return CIMEnvSampler(self.env, self.test_env, reward_eval_delay=reward_shaping_conf["time_window"])
 
     def get_agent2policy(self) -> Dict[Any, str]:
         return {agent: f"{algorithm}_{agent}.policy"for agent in self.env.agent_idx_list}
