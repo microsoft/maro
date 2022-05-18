@@ -38,7 +38,10 @@ class TrainOpsWorker(AbsWorker):
         logger: LoggerV2 = None,
     ) -> None:
         super(TrainOpsWorker, self).__init__(
-            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
+            idx=idx,
+            producer_host=producer_host,
+            producer_port=producer_port,
+            logger=logger,
         )
 
         self._rl_component_bundle = rl_component_bundle

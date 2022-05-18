@@ -15,6 +15,7 @@ class PPOParams(ACBasedParams):
     clip_ratio (float, default=None): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf).
         If it is None, the actor loss is calculated using the usual policy gradient theorem.
     """
+
     clip_ratio: float = None
 
     def extract_ops_params(self) -> Dict[str, object]:

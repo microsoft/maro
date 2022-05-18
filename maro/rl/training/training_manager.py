@@ -84,6 +84,7 @@ class TrainingManager(object):
 
     def train_step(self) -> None:
         if self._proxy_address:
+
             async def train_step() -> Iterable:
                 return await asyncio.gather(
                     *[trainer_.train_step_as_task() for trainer_ in self._trainer_dict.values()]
@@ -134,6 +135,7 @@ class TrainingManager(object):
 
     def exit(self) -> None:
         if self._proxy_address:
+
             async def exit_all() -> Iterable:
                 return await asyncio.gather(*[trainer.exit() for trainer in self._trainer_dict.values()])
 

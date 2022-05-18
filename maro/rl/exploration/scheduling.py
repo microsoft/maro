@@ -121,7 +121,6 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         if self._ep == self._splits[self._split_index][0]:
             self._split_index += 1
             if self._split_index < len(self._splits):
-                self._delta = (
-                    (self._splits[self._split_index][1] - self._splits[self._split_index - 1][1]) /
-                    (self._splits[self._split_index][0] - self._splits[self._split_index - 1][0])
+                self._delta = (self._splits[self._split_index][1] - self._splits[self._split_index - 1][1]) / (
+                    self._splits[self._split_index][0] - self._splits[self._split_index - 1][0]
                 )

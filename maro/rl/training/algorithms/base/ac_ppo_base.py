@@ -10,8 +10,8 @@ import torch
 
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
-from maro.rl.training import AbsTrainOps, FIFOReplayMemory, remote, RemoteOps, SingleAgentTrainer, TrainerParams
-from maro.rl.utils import (discount_cumsum, get_torch_device, ndarray_to_tensor, TransitionBatch)
+from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
+from maro.rl.utils import TransitionBatch, discount_cumsum, get_torch_device, ndarray_to_tensor
 
 
 @dataclass
@@ -29,6 +29,7 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
         If it is None, it means no lower bound.
     is_discrete_action (bool, default=True): Indicator of continuous or discrete action policy.
     """
+
     get_v_critic_net_func: Callable[[], VNet] = None
     reward_discount: float = 0.9
     grad_iters: int = 1
@@ -39,8 +40,7 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
 
 
 class ACBasedOps(AbsTrainOps):
-    """Base class of Actor-Critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr
-    """
+    """Base class of Actor-Critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr"""
 
     def __init__(
         self,
@@ -142,7 +142,7 @@ class ACBasedOps(AbsTrainOps):
         if self._clip_ratio is not None:
             ratio = torch.exp(logps - logps_old)
             kl = (logps_old - logps).mean().item()
-            early_stop = (kl >= 0.01 * 1.5)  # TODO
+            early_stop = kl >= 0.01 * 1.5  # TODO
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
             actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
         else:

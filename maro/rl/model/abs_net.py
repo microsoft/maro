@@ -84,9 +84,10 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
             other_model (AbsNet): The source net. Must has same type with the current net.
             tau (float): Soft update coefficient.
         """
-        assert self.__class__ == other_model.__class__, \
-            f"Soft update can only be done between same classes. Current model type: {self.__class__}, " \
+        assert self.__class__ == other_model.__class__, (
+            f"Soft update can only be done between same classes. Current model type: {self.__class__}, "
             f"other model type: {other_model.__class__}"
+        )
 
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
@@ -106,13 +107,11 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         self.unfreeze_all_parameters()
 
     def freeze_all_parameters(self) -> None:
-        """Freeze all parameters.
-        """
+        """Freeze all parameters."""
         for p in self.parameters():
             p.requires_grad = False
 
     def unfreeze_all_parameters(self) -> None:
-        """Unfreeze all parameters.
-        """
+        """Unfreeze all parameters."""
         for p in self.parameters():
             p.requires_grad = True

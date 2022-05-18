@@ -8,8 +8,8 @@ import torch
 
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy, RLPolicy
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, remote, RemoteOps, SingleAgentTrainer, TrainerParams
-from maro.rl.utils import get_torch_device, ndarray_to_tensor, TransitionBatch
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
+from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -30,6 +30,7 @@ class DDPGParams(TrainerParams):
         sequentially with wrap-around.
     min_num_to_trigger_training (int, default=0): Minimum number required to start training.
     """
+
     get_q_critic_net_func: Callable[[], QNet] = None
     reward_discount: float = 0.9
     num_epochs: int = 1
@@ -52,8 +53,7 @@ class DDPGParams(TrainerParams):
 
 
 class DDPGOps(AbsTrainOps):
-    """DDPG algorithm implementation. Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
-    """
+    """DDPG algorithm implementation. Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html"""
 
     def __init__(
         self,
@@ -205,8 +205,7 @@ class DDPGOps(AbsTrainOps):
         self._target_q_critic_net.set_state(state["target_critic"])
 
     def soft_update_target(self) -> None:
-        """Soft update the target policy and target critic.
-        """
+        """Soft update the target policy and target critic."""
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
@@ -261,7 +260,7 @@ class DDPGTrainer(SingleAgentTrainer):
         if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})"
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})",
             )
             return
 
@@ -278,7 +277,7 @@ class DDPGTrainer(SingleAgentTrainer):
         if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})"
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})",
             )
             return
 
@@ -290,8 +289,7 @@ class DDPGTrainer(SingleAgentTrainer):
             self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
-        """Soft update the target policy and target critic.
-        """
+        """Soft update the target policy and target critic."""
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             self._ops.soft_update_target()

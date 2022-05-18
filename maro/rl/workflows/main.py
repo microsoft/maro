@@ -75,9 +75,9 @@ def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
     training_manager = TrainingManager(
         rl_component_bundle=rl_component_bundle,
         explicit_assign_device=(train_mode == "simple"),
-        proxy_address=None if train_mode == "simple" else (
-            get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
-        ),
+        proxy_address=None
+        if train_mode == "simple"
+        else (get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))),
         logger=logger,
     )
 
@@ -140,7 +140,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
         if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             result = env_sampler.eval(
-                policy_state=training_manager.get_policy_state() if not is_single_thread else None
+                policy_state=training_manager.get_policy_state() if not is_single_thread else None,
             )
             env_sampler.post_evaluate(result["info"], ep)
 

@@ -12,8 +12,8 @@ import torch
 from maro.rl.model import MultiQNet
 from maro.rl.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, remote, RemoteOps, TrainerParams
-from maro.rl.utils import get_torch_device, MultiTransitionBatch, ndarray_to_tensor
+from maro.rl.training import AbsTrainOps, MultiAgentTrainer, RandomMultiReplayMemory, RemoteOps, TrainerParams, remote
+from maro.rl.utils import MultiTransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import clone
 
@@ -30,6 +30,7 @@ class DiscreteMADDPGParams(TrainerParams):
     q_value_loss_cls (Callable, default=None): Critic loss function. If it is None, use MSE.
     shared_critic (bool, default=False): Whether different policies use shared critic or individual policies.
     """
+
     get_q_critic_net_func: Callable[[], MultiQNet] = None
     num_epoch: int = 10
     update_target_every: int = 5
@@ -66,11 +67,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         update_target_every: int = 5,
         q_value_loss_func: Callable = None,
     ) -> None:
-        super(DiscreteMADDPGOps, self).__init__(
-            name=name,
-            policy_creator=policy_creator,
-            parallelism=parallelism
-        )
+        super(DiscreteMADDPGOps, self).__init__(name=name, policy_creator=policy_creator, parallelism=parallelism)
 
         self._policy_idx = policy_idx
         self._shared_critic = shared_critic
@@ -149,9 +146,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
                 states=next_states,  # x'
                 actions=next_actions,
             )  # a'
-        target_q_values = (
-            rewards[self._policy_idx] + self._reward_discount * (1 - terminals.float()) * next_q_values
-        )
+        target_q_values = rewards[self._policy_idx] + self._reward_discount * (1 - terminals.float()) * next_q_values
         q_values = self._q_critic_net.q_values(
             states=states,  # x
             actions=actions,  # a
@@ -209,10 +204,13 @@ class DiscreteMADDPGOps(AbsTrainOps):
         actions[self._policy_idx] = latest_action
         self._policy.train()
         self._q_critic_net.freeze()
-        actor_loss = -(self._q_critic_net.q_values(
-            states=states,  # x
-            actions=actions,  # [a^j_1, ..., a_i, ..., a^j_N]
-        ) * latest_action_logp).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
+        actor_loss = -(
+            self._q_critic_net.q_values(
+                states=states,  # x
+                actions=actions,  # [a^j_1, ..., a_i, ..., a^j_N]
+            )
+            * latest_action_logp
+        ).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
         self._q_critic_net.unfreeze()
         return actor_loss
 
@@ -247,8 +245,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._policy.apply_gradients(grad_dict)
 
     def soft_update_target(self) -> None:
-        """Soft update the target policies and target critics.
-        """
+        """Soft update the target policies and target critics."""
         if self._policy_creator:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
         if not self._shared_critic:
@@ -348,12 +345,14 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             actions.append(np.vstack([exp_element.action_dict[agent_name] for exp_element in exp_elements]))
             rewards.append(np.array([exp_element.reward_dict[agent_name] for exp_element in exp_elements]))
             agent_states.append(np.vstack([exp_element.agent_state_dict[agent_name] for exp_element in exp_elements]))
-            next_agent_states.append(np.vstack(
-                [
-                    exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name])
-                    for exp_element in exp_elements
-                ]
-            ))
+            next_agent_states.append(
+                np.vstack(
+                    [
+                        exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name])
+                        for exp_element in exp_elements
+                    ],
+                ),
+            )
 
         transition_batch = MultiTransitionBatch(
             states=np.vstack([exp_element.state for exp_element in exp_elements]),
@@ -363,7 +362,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
                 [
                     exp_element.next_state if exp_element.next_state is not None else exp_element.state
                     for exp_element in exp_elements
-                ]
+                ],
             ),
             agent_states=agent_states,
             next_agent_states=next_agent_states,
@@ -374,17 +373,21 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
     def get_local_ops(self, name: str) -> AbsTrainOps:
         if name == self._shared_critic_ops_name:
             ops_params = dict(self._ops_params)
-            ops_params.update({
-                "policy_idx": -1,
-                "shared_critic": False,
-            })
+            ops_params.update(
+                {
+                    "policy_idx": -1,
+                    "shared_critic": False,
+                },
+            )
             return DiscreteMADDPGOps(name=name, **ops_params)
         else:
             ops_params = dict(self._ops_params)
-            ops_params.update({
-                "policy_creator": self._policy_creator[name],
-                "policy_idx": self._policy_names.index(name),
-            })
+            ops_params.update(
+                {
+                    "policy_creator": self._policy_creator[name],
+                    "policy_idx": self._policy_names.index(name),
+                },
+            )
             return DiscreteMADDPGOps(name=name, **ops_params)
 
     def _get_batch(self, batch_size: int = None) -> MultiTransitionBatch:
@@ -449,8 +452,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
-        """Soft update the target policies and target critics.
-        """
+        """Soft update the target policies and target critics."""
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             for ops in self._actor_ops_list:

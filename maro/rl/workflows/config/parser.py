@@ -65,13 +65,15 @@ class ConfigParser:
         eval_schedule = self._config["main"].get("eval_schedule", None)
         if eval_schedule is not None:
             if (
-                not isinstance(eval_schedule, (int, list)) or
-                isinstance(eval_schedule, int) and eval_schedule < 1 or
-                isinstance(eval_schedule, list) and any(not isinstance(val, int) or val < 1 for val in eval_schedule)
+                not isinstance(eval_schedule, (int, list))
+                or isinstance(eval_schedule, int)
+                and eval_schedule < 1
+                or isinstance(eval_schedule, list)
+                and any(not isinstance(val, int) or val < 1 for val in eval_schedule)
             ):
                 raise ValueError(
                     f"{self._validation_err_pfx}: 'main.eval_schedule' must be a single positive int or a list of "
-                    f"positive ints"
+                    f"positive ints",
                 )
 
         if "logging" in self._config["main"]:
@@ -86,7 +88,7 @@ class ConfigParser:
             conf = self._config["rollout"]["parallelism"]
             if "sampling" not in conf:
                 raise KeyError(
-                    f"{self._validation_err_pfx}: missing field 'sampling' under section 'rollout.parallelism'"
+                    f"{self._validation_err_pfx}: missing field 'sampling' under section 'rollout.parallelism'",
                 )
 
             train_prl = conf["sampling"]
@@ -98,7 +100,7 @@ class ConfigParser:
             if max(train_prl, eval_prl) > 1:
                 if "controller" not in conf:
                     raise KeyError(
-                        f"{self._validation_err_pfx}: missing field 'controller' under section 'rollout.parallelism'"
+                        f"{self._validation_err_pfx}: missing field 'controller' under section 'rollout.parallelism'",
                     )
                 self._validate_rollout_controller_section(conf["controller"])
 
@@ -108,13 +110,13 @@ class ConfigParser:
                     if not isinstance(min_env_samples, int) or min_env_samples > train_prl:
                         raise ValueError(
                             f"{self._validation_err_pfx}: 'rollout.parallelism.min_env_samples' must be an integer "
-                            f"that does not exceed the value of 'rollout.parallelism.sampling': {train_prl}"
+                            f"that does not exceed the value of 'rollout.parallelism.sampling': {train_prl}",
                         )
 
                 grace_factor = conf.get("grace_factor", None)
                 if grace_factor is not None and not isinstance(grace_factor, (int, float)):
                     raise ValueError(
-                        f"{self._validation_err_pfx}: 'rollout.parallelism.grace_factor' must be an int or float"
+                        f"{self._validation_err_pfx}: 'rollout.parallelism.grace_factor' must be an int or float",
                     )
 
                 if "logging" in self._config["rollout"]:
@@ -123,7 +125,7 @@ class ConfigParser:
     def _validate_rollout_controller_section(self, conf: dict) -> None:
         if "host" not in conf:
             raise KeyError(
-                f"{self._validation_err_pfx}: missing field 'host' under section 'rollout.parallelism.controller'"
+                f"{self._validation_err_pfx}: missing field 'host' under section 'rollout.parallelism.controller'",
             )
         if not isinstance(conf["host"], str):
             raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.controller.host' must be a string")
@@ -133,12 +135,12 @@ class ConfigParser:
             ipaddress.ip_address(conf["host"])
         except ValueError:
             raise ValueError(
-                f"{self._validation_err_pfx}: 'rollout.parallelism.controller.host' is not a valid IP address"
+                f"{self._validation_err_pfx}: 'rollout.parallelism.controller.host' is not a valid IP address",
             )
 
         if "port" not in conf:
             raise KeyError(
-                f"{self._validation_err_pfx}: missing field 'port' under section 'rollout.parallelism.controller'"
+                f"{self._validation_err_pfx}: missing field 'port' under section 'rollout.parallelism.controller'",
             )
         if not isinstance(conf["port"], int):
             raise TypeError(f"{self._validation_err_pfx}: 'rollout.parallelism.controller.port' must be an int")
@@ -150,7 +152,7 @@ class ConfigParser:
             raise KeyError(f"{self._validation_err_pfx}: missing field 'mode' under section 'training'")
         if self._config["training"]["mode"] not in {"simple", "parallel"}:
             raise ValueError(
-                f"'mode' value under section 'training' must be 'simple' or 'parallel', got {self._config['mode']}"
+                f"'mode' value under section 'training' must be 'simple' or 'parallel', got {self._config['mode']}",
             )
 
         if self._config["training"]["mode"] == "parallel":
@@ -201,20 +203,18 @@ class ConfigParser:
 
         if "interval" in section:
             if not isinstance(section["interval"], int):
-                raise TypeError(
-                    f"{self._validation_err_pfx}: 'training.checkpointing.interval' must be an int"
-                )
+                raise TypeError(f"{self._validation_err_pfx}: 'training.checkpointing.interval' must be an int")
 
     def _validate_logging_section(self, component, level_dict: dict) -> None:
         if any(key not in {"stdout", "file"} for key in level_dict):
             raise KeyError(
-                f"{self._validation_err_pfx}: fields under section '{component}.logging' must be 'stdout' or 'file'"
+                f"{self._validation_err_pfx}: fields under section '{component}.logging' must be 'stdout' or 'file'",
             )
         valid_log_levels = set(LEVEL_MAP.keys())
         for key, val in level_dict.items():
             if val not in valid_log_levels:
                 raise ValueError(
-                    f"{self._validation_err_pfx}: '{component}.logging.{key}' must be one of {valid_log_levels}."
+                    f"{self._validation_err_pfx}: '{component}.logging.{key}' must be one of {valid_log_levels}.",
                 )
 
     def get_path_mapping(self, containerize: bool = False) -> dict:
@@ -232,7 +232,7 @@ class ConfigParser:
         log_dir = os.path.dirname(self._config["log_path"])
         path_map = {
             self._config["scenario_path"]: "/scenario" if containerize else self._config["scenario_path"],
-            log_dir: "/logs" if containerize else log_dir
+            log_dir: "/logs" if containerize else log_dir,
         }
 
         load_path = self._config["training"].get("load_path", None)
@@ -268,8 +268,8 @@ class ConfigParser:
                     "MIN_N_SAMPLE": str(min_n_sample),
                     "TRAIN_MODE": self._config["training"]["mode"],
                     "SCENARIO_PATH": scenario_path,
-                }
-            )
+                },
+            ),
         }
 
         main_proc_env = env[main_proc][1]
@@ -302,10 +302,12 @@ class ConfigParser:
             main_proc_env["NUM_STEPS"] = str(num_steps)
 
         if "logging" in self._config["main"]:
-            main_proc_env.update({
-                "LOG_LEVEL_STDOUT": self.config["main"]["logging"]["stdout"],
-                "LOG_LEVEL_FILE": self.config["main"]["logging"]["file"],
-            })
+            main_proc_env.update(
+                {
+                    "LOG_LEVEL_STDOUT": self.config["main"]["logging"]["stdout"],
+                    "LOG_LEVEL_FILE": self.config["main"]["logging"]["file"],
+                },
+            )
 
         if "parallelism" in self._config["rollout"]:
             conf = self._config["rollout"]["parallelism"]
@@ -335,26 +337,31 @@ class ConfigParser:
                         "ROLLOUT_CONTROLLER_HOST": self._get_rollout_controller_host(containerize=containerize),
                         "ROLLOUT_CONTROLLER_PORT": rollout_controller_port,
                         "SCENARIO_PATH": scenario_path,
-                    }
+                    },
                 )
                 if "logging" in self._config["rollout"]:
-                    env[worker_id][1].update({
-                        "LOG_LEVEL_STDOUT": self.config["rollout"]["logging"]["stdout"],
-                        "LOG_LEVEL_FILE": self.config["rollout"]["logging"]["file"],
-                    })
+                    env[worker_id][1].update(
+                        {
+                            "LOG_LEVEL_STDOUT": self.config["rollout"]["logging"]["stdout"],
+                            "LOG_LEVEL_FILE": self.config["rollout"]["logging"]["file"],
+                        },
+                    )
 
         if self._config["training"]["mode"] == "parallel":
-            conf = self._config['training']['proxy']
+            conf = self._config["training"]["proxy"]
             producer_host = self._get_train_proxy_host(containerize=containerize)
             proxy_frontend_port = str(conf["frontend"])
             proxy_backend_port = str(conf["backend"])
             num_workers = self._config["training"]["num_workers"]
-            env[main_proc][1].update({
-                "TRAIN_PROXY_HOST": producer_host, "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port,
-            })
+            env[main_proc][1].update(
+                {
+                    "TRAIN_PROXY_HOST": producer_host,
+                    "TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port,
+                },
+            )
             env[f"{self._config['job']}.train_proxy"] = (
                 os.path.join(self._get_workflow_path(containerize=containerize), "train_proxy.py"),
-                {"TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port, "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port}
+                {"TRAIN_PROXY_FRONTEND_PORT": proxy_frontend_port, "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port},
             )
             for i in range(num_workers):
                 worker_id = f"{self._config['job']}.train_worker-{i}"
@@ -365,13 +372,15 @@ class ConfigParser:
                         "TRAIN_PROXY_HOST": producer_host,
                         "TRAIN_PROXY_BACKEND_PORT": proxy_backend_port,
                         "SCENARIO_PATH": scenario_path,
-                    }
+                    },
                 )
                 if "logging" in self._config["training"]:
-                    env[worker_id][1].update({
-                        "LOG_LEVEL_STDOUT": self.config["training"]["logging"]["stdout"],
-                        "LOG_LEVEL_FILE": self.config["training"]["logging"]["file"],
-                    })
+                    env[worker_id][1].update(
+                        {
+                            "LOG_LEVEL_STDOUT": self.config["training"]["logging"]["stdout"],
+                            "LOG_LEVEL_FILE": self.config["training"]["logging"]["file"],
+                        },
+                    )
 
         # All components write logs to the same file
         log_dir, log_file = os.path.split(self._config["log_path"])
