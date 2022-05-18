@@ -20,6 +20,7 @@ class ConsumerDataModel(ExtendDataModel):
 
     latest_consumptions = NodeAttribute(AttributeType.Float)
 
+    in_transit_quantity = NodeAttribute(AttributeType.UInt)
 
     def __init__(self) -> None:
         super(ConsumerDataModel, self).__init__()

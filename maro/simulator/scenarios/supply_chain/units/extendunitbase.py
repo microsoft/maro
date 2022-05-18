@@ -7,6 +7,8 @@ import typing
 from dataclasses import dataclass
 from typing import Optional, Union
 
+from maro.simulator.scenarios.supply_chain.datamodels.extend import ExtendDataModel
+
 from .unitbase import BaseUnitInfo, UnitBase
 
 if typing.TYPE_CHECKING:
@@ -16,7 +18,7 @@ if typing.TYPE_CHECKING:
 
 @dataclass
 class ExtendUnitInfo(BaseUnitInfo):
-    product_id: int
+    sku_id: int
 
 
 class ExtendUnitBase(UnitBase):
@@ -30,17 +32,18 @@ class ExtendUnitBase(UnitBase):
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
 
-        # Product id (sku id), 0 means invalid.
-        self.product_id: int = 0
+        # SKU id, 0 means invalid.
+        self.sku_id: int = 0
 
     def initialize(self) -> None:
         super(ExtendUnitBase, self).initialize()
 
         if self.data_model is not None:
-            self.data_model.set_product_id(self.product_id, self.parent.id)
+            assert isinstance(self.data_model, ExtendDataModel)
+            self.data_model.set_sku_id(self.sku_id, self.parent.id)
 
     def get_unit_info(self) -> ExtendUnitInfo:
         return ExtendUnitInfo(
             **super(ExtendUnitBase, self).get_unit_info().__dict__,
-            product_id=self.product_id,
+            sku_id=self.sku_id,
         )

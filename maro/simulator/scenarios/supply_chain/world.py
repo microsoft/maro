@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 from maro.backends.frame import FrameBase
+from maro.simulator.scenarios.supply_chain.units.storage import StorageUnit
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
@@ -144,7 +145,7 @@ class World:
             sku = None
 
             if isinstance(unit, ExtendUnitBase):
-                sku = unit.facility.skus[unit.product_id]
+                sku = unit.facility.skus[unit.sku_id]
 
             if unit.data_model is not None:
                 # TODO: replace with data class or named tuple
@@ -201,7 +202,7 @@ class World:
         for unit in self.units.values():
             entity = SupplyChainEntity(
                 id=unit.id, class_type=unit.__class__,
-                skus=unit.facility.skus[unit.product_id] if isinstance(unit, ExtendUnitBase) else None,
+                skus=unit.facility.skus[unit.sku_id] if isinstance(unit, ExtendUnitBase) else None,
                 facility_id=unit.facility.id, parent_id=unit.parent.id,
             )
             self.entity_list.append(entity)
@@ -307,7 +308,7 @@ class World:
             for sku_id, sku in facility.skus.items():
                 product_unit = self._build_unit(facility, facility, config)
                 assert isinstance(product_unit, ProductUnit)
-                product_unit.product_id = sku_id
+                product_unit.sku_id = sku_id
                 product_unit.children = []
                 product_unit.storage = product_unit.facility.storage
                 product_unit.distribution = product_unit.facility.distribution
@@ -323,7 +324,8 @@ class World:
 
                     if conf is not None and has_unit:
                         child_unit = self._build_unit(facility, product_unit, conf)
-                        child_unit.product_id = sku_id
+                        assert isinstance(child_unit, ExtendUnitBase)
+                        child_unit.sku_id = sku_id
 
                         setattr(product_unit, child_name, child_unit)
 
@@ -374,10 +376,10 @@ class World:
                 sku_config["name"] = sku_name
 
                 sub_storage_id: int = sku_config.get("sub_storage_id", DEFAULT_SUB_STORAGE_ID)
-                sku_config["unit_storage_cost"] = sku_config.get(
+                sku_config["unit_storage_cost"] = float(sku_config.get(
                     "unit_storage_cost",
                     facility_conf["children"]["storage"]["config"][sub_storage_id].unit_storage_cost
-                )
+                ))
 
                 sku_config["unit_order_cost"] = sku_config.get(
                     "unit_order_cost",

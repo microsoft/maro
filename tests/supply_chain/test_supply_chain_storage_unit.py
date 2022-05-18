@@ -1,35 +1,17 @@
-import os
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import unittest
 import numpy as np
 
-from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import FacilityBase, StorageUnit, ManufactureAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import OneTimeSkuPriceDemandSampler
 from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 
-
-def build_env(case_name: str, durations: int):
-    case_folder = os.path.join("tests", "data", "supply_chain", case_name)
-
-    env = Env(scenario="supply_chain", topology=case_folder, durations=durations)
-
-    return env
-
-
-def get_product_dict_from_storage(env: Env, frame_index: int, node_index: int):
-    product_list = env.snapshot_list["storage"][frame_index:node_index:"product_list"].flatten().astype(np.int)
-    product_quantity = env.snapshot_list["storage"][frame_index:node_index:"product_quantity"].flatten().astype(np.int)
-
-    return {product_id: quantity for product_id, quantity in zip(product_list, product_quantity)}
-
-
-SKU1_ID = 1
-SKU2_ID = 2
-SKU3_ID = 3
-SKU4_ID = 4
-FOOD_1_ID = 20
-HOBBY_1_ID = 30
+from tests.supply_chain.common import (
+    build_env, get_product_dict_from_storage, SKU1_ID, SKU2_ID, SKU3_ID, FOOD_1_ID, HOBBY_1_ID
+)
 
 
 class MyTestCase(unittest.TestCase):
@@ -244,8 +226,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(capacities.sum(), storage_unit.capacity)
         self.assertEqual(init_remaining_spaces.sum(), storage_unit.remaining_space)
 
-        for product_id, product_quantity in init_product_dict.items():
-            self.assertEqual(product_quantity, storage_unit._product_level[product_id])
+        for sku_id, product_quantity in init_product_dict.items():
+            self.assertEqual(product_quantity, storage_unit._product_level[sku_id])
 
         # ############################### IgnoreUpperBound Proportional ######################################
         products_to_put = {
@@ -282,8 +264,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(capacities.sum(), storage_unit.capacity)
         self.assertEqual(init_remaining_spaces.sum(), storage_unit.remaining_space)
 
-        for product_id, product_quantity in init_product_dict.items():
-            self.assertEqual(product_quantity, storage_unit._product_level[product_id])
+        for sku_id, product_quantity in init_product_dict.items():
+            self.assertEqual(product_quantity, storage_unit._product_level[sku_id])
 
         # ############################### LimitedByUpperBound ######################################
         products_to_put = {

@@ -1,36 +1,15 @@
-import os
-import unittest
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
+import unittest
 import numpy as np
 
-from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
     ConsumerAction, FacilityBase
 )
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 
-
-def build_env(case_name: str, durations: int):
-    case_folder = os.path.join("tests", "data", "supply_chain", case_name)
-
-    env = Env(scenario="supply_chain", topology=case_folder, durations=durations)
-
-    return env
-
-
-def get_product_dict_from_storage(env: Env, frame_index: int, node_index: int):
-    product_list = env.snapshot_list["storage"][frame_index:node_index:"product_list"].flatten().astype(np.int)
-    product_quantity = env.snapshot_list["storage"][frame_index:node_index:"product_quantity"].flatten().astype(np.int)
-
-    return {product_id: quantity for product_id, quantity in zip(product_list, product_quantity)}
-
-
-SKU1_ID = 1
-SKU2_ID = 2
-SKU3_ID = 3
-SKU4_ID = 4
-FOOD_1_ID = 20
-HOBBY_1_ID = 30
+from tests.supply_chain.common import build_env, SKU3_ID
 
 
 class MyTestCase(unittest.TestCase):
@@ -59,8 +38,8 @@ class MyTestCase(unittest.TestCase):
         sku3_consumer_unit = supplier_1.products[SKU3_ID].consumer
         consumer_node_index = sku3_consumer_unit.data_model_index
 
-        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
-        # IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+        features = ("id", "facility_id", "sku_id", "order_base_cost", "purchased", "received", "order_product_cost")
+        # IDX_ID, IDX_FACILITY_ID, IDX_SKU_ID, IDX_ORDER_COST = 0, 1, 2, 3
         IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
         consumer_nodes = env.snapshot_list["consumer"]
@@ -77,10 +56,10 @@ class MyTestCase(unittest.TestCase):
         env.step([action])
 
         while env.tick <= expected_tick_1:
-            self.assertEqual(required_quantity_1, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])
+            self.assertEqual(required_quantity_1, sku3_consumer_unit._open_orders[supplier_3.id])
             env.step(None)
 
-        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id][SKU3_ID])
+        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id])
 
         expected_frame = env.business_engine.frame_index(expected_tick_1)
 
@@ -104,10 +83,10 @@ class MyTestCase(unittest.TestCase):
         env.step([action])
 
         while env.tick <= expected_tick_2:
-            self.assertEqual(required_quantity_2, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
+            self.assertEqual(required_quantity_2, sku3_consumer_unit._open_orders[supplier_4.id])
             env.step(None)
 
-        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_4.id][SKU3_ID])
+        self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_4.id])
 
         expected_frame = env.business_engine.frame_index(expected_tick_2)
 

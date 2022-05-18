@@ -11,7 +11,7 @@ class SupplyChainAction:
 
 @dataclass
 class ConsumerAction(SupplyChainAction):
-    product_id: int
+    sku_id: int
     source_id: int
     quantity: int
     vehicle_type: str

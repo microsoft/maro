@@ -1,34 +1,14 @@
-import os
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import unittest
 import numpy as np
 
-from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.order import Order
 
-
-def build_env(case_name: str, durations: int):
-    case_folder = os.path.join("tests", "data", "supply_chain", case_name)
-
-    env = Env(scenario="supply_chain", topology=case_folder, durations=durations)
-
-    return env
-
-
-def get_product_dict_from_storage(env: Env, frame_index: int, node_index: int):
-    product_list = env.snapshot_list["storage"][frame_index:node_index:"product_list"].flatten().astype(np.int)
-    product_quantity = env.snapshot_list["storage"][frame_index:node_index:"product_quantity"].flatten().astype(np.int)
-
-    return {product_id: quantity for product_id, quantity in zip(product_list, product_quantity)}
-
-
-SKU1_ID = 1
-SKU2_ID = 2
-SKU3_ID = 3
-SKU4_ID = 4
-FOOD_1_ID = 20
-HOBBY_1_ID = 30
+from tests.supply_chain.common import build_env, get_product_dict_from_storage, SKU1_ID, SKU3_ID
 
 
 class MyTestCase(unittest.TestCase):
@@ -73,16 +53,19 @@ class MyTestCase(unittest.TestCase):
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
 
         distribution_unit = supplier_3.distribution
+        consumer_unit = warehouse_1.products[SKU3_ID].consumer
 
         order = Order(warehouse_1, SKU3_ID, 10, "train")
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
+        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order)
         distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
         self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
         # add another order, it would be successfully scheduled, but none available vehicle left now.
+        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order)
         distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
@@ -92,6 +75,7 @@ class MyTestCase(unittest.TestCase):
         expected_tick = start_tick + 7  # vlt = 7
 
         # 3rd order, will cause the pending order increase
+        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order)
         distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
@@ -129,8 +113,8 @@ class MyTestCase(unittest.TestCase):
         sku1_consumer_unit = supplier_2.products[SKU1_ID].consumer
         consumer_node_index = sku1_consumer_unit.data_model_index
 
-        features = ("id", "facility_id", "product_id", "order_base_cost", "purchased", "received", "order_product_cost")
-        IDX_ID, IDX_FACILITY_ID, IDX_PRODUCT_ID, IDX_ORDER_COST = 0, 1, 2, 3
+        features = ("id", "facility_id", "sku_id", "order_base_cost", "purchased", "received", "order_product_cost")
+        IDX_ID, IDX_FACILITY_ID, IDX_SKU_ID, IDX_ORDER_COST = 0, 1, 2, 3
         IDX_PURCHASED, IDX_RECEIVED, IDX_ORDER_PRODUCT_COST = 4, 5, 6
 
         consumer_nodes = env.snapshot_list["consumer"]
@@ -160,6 +144,7 @@ class MyTestCase(unittest.TestCase):
         supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
         distribution_unit = supplier_3.distribution
+        consumer_unit = warehouse_1.products[SKU3_ID].consumer
         warehouse_storage_unit = warehouse_1.storage
 
         env.step(None)
@@ -167,6 +152,7 @@ class MyTestCase(unittest.TestCase):
         start_tick = env.tick
         expected_tick = start_tick + 7
         order = Order(warehouse_1, SKU3_ID, 80, "train")
+        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 80)
         distribution_unit.place_order(order)
         distribution_unit.try_schedule_orders(start_tick)
 

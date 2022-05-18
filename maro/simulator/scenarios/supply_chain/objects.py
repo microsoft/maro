@@ -111,7 +111,7 @@ class SupplyChainEntity:
 class SubStorageConfig:
     id: int
     capacity: int = 100  # TODO: Is it a MUST config or could it be default?
-    unit_storage_cost: int = 1
+    unit_storage_cost: float = 0
 
 
 def parse_storage_config(config: dict) -> Dict[int, SubStorageConfig]:

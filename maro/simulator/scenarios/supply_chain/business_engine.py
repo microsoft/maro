@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import collections
+
 import os
+from collections import defaultdict
 from typing import Dict, List
 
 from maro.backends.frame import FrameBase
@@ -155,8 +156,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         actions = event.payload
         assert isinstance(actions, list)
 
-        consumer_actions_by_unit: Dict[int, List[ConsumerAction]] = collections.defaultdict(list)
-        manufacture_actions_by_unit: Dict[int, List[ManufactureAction]] = collections.defaultdict(list)
+        consumer_actions_by_unit: Dict[int, List[ConsumerAction]] = defaultdict(list)
+        manufacture_actions_by_unit: Dict[int, List[ManufactureAction]] = defaultdict(list)
         for action in actions:
             if isinstance(action, ConsumerAction):
                 consumer_actions_by_unit[action.id].append(action)
@@ -193,6 +194,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     product.id: {
                         "sale_mean": product.get_sale_mean(),
                         "sale_std": product.get_sale_std(),
+                        "demand_mean": product.get_demand_mean(),
                         "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
                             None if product.consumer is None else product.consumer.pending_order_daily,
@@ -202,8 +204,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     facility.id: {
                         "in_transit_orders": facility.get_in_transit_orders(),
                         "pending_order":
-                            None if facility.distribution is None
-                            else facility.distribution.get_pending_product_quantities(),
+                            defaultdict(int) if facility.distribution is None
+                            else facility.distribution.pending_product_quantity,
                     } for facility in self.world.facilities.values()
                 }
             }

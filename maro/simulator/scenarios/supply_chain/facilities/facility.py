@@ -42,10 +42,11 @@ class FacilityInfo:
     configs: dict
     skus: Dict[int, SkuInfo]
     upstream_vlt_infos: Dict[int, Dict[int, Dict[str, VendorLeadingTimeInfo]]]
-    downstreams: Dict[int, List[int]]  # Key: product_id; Value: facility id list
+    downstreams: Dict[int, List[int]]  # Key: sku_id; Value: facility id list
+    upstreams: Dict[int, List[int]]  # Key: sku_id; Value: facility id list
     storage_info: Optional[StorageUnitInfo]
     distribution_info: Optional[DistributionUnitInfo]
-    products_info: Dict[int, ProductUnitInfo]  # Key: product_id
+    products_info: Dict[int, ProductUnitInfo]  # Key: sku_id
 
 
 class FacilityBase(ABC):
@@ -68,7 +69,7 @@ class FacilityBase(ABC):
         self.configs: dict = config
 
         # SKUs in this facility.
-        self.skus: Dict[int, SkuInfo] = {}
+        self.skus: Dict[int, SkuInfo] = {}  # Key: sku id.
         self.sampler: Optional[SkuDynamicsSampler] = None
 
         # Product units for each sku in this facility.
@@ -107,11 +108,11 @@ class FacilityBase(ABC):
         if self._upstream_facility_list is None:
             self._upstream_facility_list = defaultdict(list)
 
-            for product_id in self.products.keys():
-                by_fid_and_type = self.upstream_vlt_infos[product_id]
+            for sku_id in self.products.keys():
+                by_fid_and_type = self.upstream_vlt_infos[sku_id]
                 for by_type in by_fid_and_type.values():
                     for info in by_type.values():
-                        self._upstream_facility_list[product_id].append(info.src_facility)
+                        self._upstream_facility_list[sku_id].append(info.src_facility)
                         break
 
         return self._upstream_facility_list
@@ -121,11 +122,11 @@ class FacilityBase(ABC):
         if self._downstream_facility_list is None:
             self._downstream_facility_list = defaultdict(list)
 
-            for product_id in self.products.keys():
-                by_fid_and_type = self.downstream_vlt_infos[product_id]
+            for sku_id in self.products.keys():
+                by_fid_and_type = self.downstream_vlt_infos[sku_id]
                 for by_type in by_fid_and_type.values():
                     for info in by_type.values():
-                        self._downstream_facility_list[product_id].append(info.dest_facility)
+                        self._downstream_facility_list[sku_id].append(info.dest_facility)
                         break
 
         return self._downstream_facility_list
@@ -212,9 +213,9 @@ class FacilityBase(ABC):
     def get_in_transit_orders(self) -> Dict[int, int]:
         in_transit_orders = defaultdict(int)
 
-        for product_id, product in self.products.items():
+        for sku_id, product in self.products.items():
             if product.consumer is not None:
-                in_transit_orders[product_id] = product.consumer.get_in_transit_quantity()
+                in_transit_orders[sku_id] = product.consumer.in_transit_quantity
 
         return in_transit_orders
 
@@ -228,14 +229,18 @@ class FacilityBase(ABC):
             skus=self.skus,
             upstream_vlt_infos=self.upstream_vlt_infos,
             downstreams={
-                product_id: [downstream_facility.id for downstream_facility in downstream_facility_list]
-                for product_id, downstream_facility_list in self.downstream_facility_list.items()
+                sku_id: [downstream_facility.id for downstream_facility in downstream_facility_list]
+                for sku_id, downstream_facility_list in self.downstream_facility_list.items()
+            },
+            upstreams={
+                sku_id: [upstream_facility.id for upstream_facility in upstream_facility_list]
+                for sku_id, upstream_facility_list in self.upstream_facility_list.items()
             },
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
             products_info={
-                product_id: product.get_unit_info()
-                for product_id, product in self.products.items()
+                sku_id: product.get_unit_info()
+                for sku_id, product in self.products.items()
             },
         )
 

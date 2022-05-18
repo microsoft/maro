@@ -6,10 +6,11 @@ import scipy.stats as st
 from typing import Callable, Dict, List
 
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ProductUnit
-from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
+from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
 from .config import (
+    OR_NUM_CONSUMER_ACTIONS,
     workflow_settings,
     IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER,
     IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND,
@@ -19,9 +20,11 @@ from .config import (
 keys_in_state = [
     (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 'consumption_hist']),
     ('storage_capacity', ['storage_utilization']),
-    ('sale_mean', [
+    ('storage_capacity', [
+        'sale_mean',
         'sale_std',
         'sale_hist',
+        'demand_hist',
         'pending_order',
         'inventory_in_stock',
         'inventory_in_transit',
@@ -29,19 +32,21 @@ keys_in_state = [
         'inventory_rop',
     ]),
     ('max_price', ['sku_price', 'sku_cost']),
+    (None, ["baseline_action"])
 ]
 
 # Count the defined state dimension.
 list_state_dim = {
     'sale_hist': workflow_settings['sale_hist_len'],
+    'demand_hist': workflow_settings['sale_hist_len'],
     'consumption_hist': workflow_settings['consumption_hist_len'],
     'pending_order': workflow_settings['pending_order_len'],
+    'baseline_action': OR_NUM_CONSUMER_ACTIONS
 }
 STATE_DIM = sum(
     list_state_dim[key] if key in list_state_dim else 1
     for _, keys in keys_in_state for key in keys
 )
-
 
 def serialize_state(state: dict) -> np.ndarray:
     result = []
@@ -52,7 +57,7 @@ def serialize_state(state: dict) -> np.ndarray:
             if not isinstance(vals, list):
                 vals = [vals]
             if norm is not None:
-                vals = [max(0.0, min(20.0, x / (state[norm] + 0.01))) for x in vals]
+                vals = [max(0.0, min(10.0, x / (state[norm] + 0.01))) for x in vals]
             result.extend(vals)
 
     return np.asarray(result, dtype=np.float32)
@@ -113,6 +118,7 @@ class ScRlAgentStates:
         self._init_distribution_feature(state)
         self._init_consumer_feature(state, entity, facility_info)
         self._init_price_feature(state, entity)
+        state["baseline_action"] = [0] * OR_NUM_CONSUMER_ACTIONS
 
         return state
 
@@ -127,8 +133,8 @@ class ScRlAgentStates:
         accumulated_balance: float,
         storage_product_quantity: Dict[int, List[int]],
         facility_product_utilization: Dict[int, int],
-        facility_in_transit_orders: Dict[int, List[int]],
-    ) -> np.ndarray:
+        facility_in_transit_quantity: Dict[int, List[int]],
+    ) -> dict:
         """Update the state dict of the given entity_id in the given tick.
 
         Args:
@@ -147,7 +153,7 @@ class ScRlAgentStates:
                 indexed by the global_sku_id2idx.
             facility_product_utilization (Dict[int, int]): The current total product quantity in corresponding facility.
                 The key is the id of the facility the entity belongs to, the value is the total product quantity.
-            facility_in_transit_orders (Dict[int, List[int]]): The current in-transition product quantity. The key is
+            facility_in_transit_quantity (Dict[int, List[int]]): The current in-transition product quantity. The key is
                 the id of the facility the entity belongs to, the value is the in-transition product quantity list which
                 is indexed by the global_sku_id2idx.
 
@@ -165,9 +171,11 @@ class ScRlAgentStates:
         self._update_storage_features(state, entity, storage_product_quantity, facility_product_utilization)
         self._update_sale_features(state, entity, cur_metrics, cur_seller_hist_states, cur_consumer_hist_states)
         self._update_distribution_features(state, entity, cur_distribution_states)
-        self._update_consumer_features(state, entity, cur_metrics, storage_product_quantity, facility_in_transit_orders)
+        self._update_consumer_features(
+            state, entity, cur_metrics, storage_product_quantity, facility_in_transit_quantity
+        )
 
-        return serialize_state(state)
+        return state
 
     def _init_global_feature(self, state: dict) -> None:
         # state["global_time"] = 0
@@ -204,8 +212,8 @@ class ScRlAgentStates:
         return
 
     def _init_distribution_feature(self, state: dict) -> None:
-        # state['distributor_in_transit_orders'] = 0
-        # state['distributor_in_transit_orders_qty'] = 0
+        state['distributor_in_transit_orders'] = 0
+        state['distributor_in_transit_orders_qty'] = 0
         return
 
     def _init_bom_feature(self, state: dict, entity: SupplyChainEntity) -> dict:
@@ -234,6 +242,7 @@ class ScRlAgentStates:
         # state['sale_gamma'] = 1.0
         # state['total_backlog_demand'] = 0
         state['sale_hist'] = [0] * self._settings['sale_hist_len']
+        state['demand_hist'] = [0] * self._settings['sale_hist_len']
         # state['backlog_demand_hist'] = [0] * self._settings['sale_hist_len']
         state['consumption_hist'] = [0] * self._settings['consumption_hist_len']
         state['pending_order'] = [0] * self._settings['pending_order_len']
@@ -302,11 +311,11 @@ class ScRlAgentStates:
         entity: SupplyChainEntity,
         cur_distribution_states: np.ndarray,
     ) -> None:
-        # distribution_info = self._facility_info_dict[entity.facility_id].distribution_info
-        # if distribution_info is not None:
-        #     dist_states = cur_distribution_states[distribution_info.node_index]
-        #     state['distributor_in_transit_orders_qty'] = dist_states[IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY]
-        #     state['distributor_in_transit_orders'] = dist_states[IDX_DISTRIBUTION_PENDING_ORDER_NUMBER]
+        distribution_info = self._facility_info_dict[entity.facility_id].distribution_info
+        if distribution_info is not None:
+            dist_states = cur_distribution_states[distribution_info.node_index]
+            state['distributor_in_transit_orders_qty'] = dist_states[IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY]
+            state['distributor_in_transit_orders'] = dist_states[IDX_DISTRIBUTION_PENDING_ORDER_NUMBER]
         return
 
     def _update_sale_features(
@@ -317,11 +326,11 @@ class ScRlAgentStates:
         cur_seller_hist_states: np.ndarray,
         cur_consumer_hist_states: np.ndarray,
     ) -> None:
-        if entity.class_type not in {ConsumerUnit, ProductUnit}:
+        if not issubclass(entity.class_type, (ConsumerUnit, ProductUnit)):
             return
 
         # Get product unit id for current agent.
-        product_unit_id = entity.id if entity.class_type == ProductUnit else entity.parent_id
+        product_unit_id = entity.id if issubclass(entity.class_type, ProductUnit) else entity.parent_id
 
         state['sale_mean'] = cur_metrics["products"][product_unit_id]["sale_mean"]
         state['sale_std'] = cur_metrics["products"][product_unit_id]["sale_std"]
@@ -332,9 +341,11 @@ class ScRlAgentStates:
             seller_states = cur_seller_hist_states[:, product_info.seller_info.node_index, :]
 
             # For total demand, we need latest one.
-            # state['total_backlog_demand'] = seller_states[-1, IDX_SELLER_TOTAL_DEMAND]
-            state['sale_hist'] = list(seller_states[:, IDX_SELLER_SOLD])
+            # state['total_backlog_demand'] = seller_states[:, IDX_SELLER_TOTAL_DEMAND][-1][0]
+            state['sale_hist'] = list(seller_states[:, IDX_SELLER_SOLD].flatten())
+            state['demand_hist'] = list(seller_states[:, IDX_SELLER_DEMAND].flatten())
             # state['backlog_demand_hist'] = list(seller_states[:, IDX_SELLER_DEMAND])
+            # print(state['sale_hist'], state['demand_hist'])
 
         else:
             # state['sale_gamma'] = state['sale_mean']
@@ -353,18 +364,18 @@ class ScRlAgentStates:
         entity: SupplyChainEntity,
         cur_metrics: dict,
         storage_product_quantity: Dict[int, List[int]],
-        facility_in_transit_orders: Dict[int, List[int]],
+        facility_in_transit_quantity: Dict[int, List[int]],
     ) -> None:
         if entity.skus is None:
             return
 
         # state['consumer_in_transit_orders'] = facility_in_transit_orders[entity.facility_id]
 
-        # entity.skus.id -> SkuInfo.id -> unit.product_id
+        # entity.skus.id -> SkuInfo.id -> unit.sku_id
         state['inventory_in_stock'] = storage_product_quantity[entity.facility_id][
             self._global_sku_id2idx[entity.skus.id]
         ]
-        state['inventory_in_transit'] = facility_in_transit_orders[entity.facility_id][
+        state['inventory_in_transit'] = facility_in_transit_quantity[entity.facility_id][
             self._global_sku_id2idx[entity.skus.id]
         ]
 

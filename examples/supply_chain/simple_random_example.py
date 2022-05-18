@@ -38,7 +38,7 @@ if __name__ == '__main__':
     facility_info_dict: Dict[int, FacilityInfo] = env.summary["node_mapping"]["facilities"]
     for facility_info in facility_info_dict.values():
         products = facility_info.products_info
-        for product_id, product_info in products.items():
+        for product_info in products.values():
             consumer_info = product_info.consumer_info
             if consumer_info is not None:
                 consumer2source[consumer_info.id] = consumer_info.source_facility_id_list
@@ -60,7 +60,7 @@ if __name__ == '__main__':
             if len(consumer2source[entity.id]) > 0:
                 actions.append(ConsumerAction(
                     id=entity.id,
-                    product_id=entity.skus.id,
+                    sku_id=entity.skus.id,
                     source_id=np.random.choice(consumer2source[entity.id]),  # Pick a random source
                     quantity=np.random.randint(low=CONSUMER_LOWER_BOUND, high=CONSUMER_UPPER_BOUND) + 1,
                     vehicle_type="train",

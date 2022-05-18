@@ -46,6 +46,7 @@ class SellerUnit(ExtendUnitBase):
         self._total_demand = 0
 
         self._sale_hist = []
+        self._demand_hist = []
 
     def market_demand(self, tick: int) -> int:
         """Generate market demand for current tick.
@@ -61,7 +62,7 @@ class SellerUnit(ExtendUnitBase):
     def initialize(self) -> None:
         super(SellerUnit, self).initialize()
 
-        sku = self.facility.skus[self.product_id]
+        sku = self.facility.skus[self.sku_id]
 
         self._gamma = sku.sale_gamma
 
@@ -69,6 +70,7 @@ class SellerUnit(ExtendUnitBase):
         self.data_model.initialize(sku.backlog_ratio)
 
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
+        self._demand_hist = [self._gamma] * self.config["sale_hist_len"]
 
     def pre_step(self, tick: int) -> None:
         if self._sold > 0:
@@ -83,15 +85,17 @@ class SellerUnit(ExtendUnitBase):
         demand = self.market_demand(tick)
 
         # What seller does is just count down the product number.
-        sold_qty = self.facility.storage.take_available(self.product_id, demand)
+        sold_qty = self.facility.storage.take_available(self.sku_id, demand)
 
         self._total_sold += sold_qty
         self._sold = sold_qty
         self._demand = demand
         self._total_demand += demand
 
-        self._sale_hist.append(demand)
+        self._sale_hist.append(sold_qty)
         self._sale_hist = self._sale_hist[1:]
+        self._demand_hist.append(demand)
+        self._demand_hist = self._demand_hist[1:]
 
     def flush_states(self) -> None:
         if self._sold > 0:
@@ -112,12 +116,25 @@ class SellerUnit(ExtendUnitBase):
         self._total_demand = 0
 
         self._sale_hist = [self._gamma] * self.config["sale_hist_len"]
+        self._demand_hist = [self._gamma] * self.config["sale_hist_len"]
+
+    def sale_median(self) -> float:
+        return float(np.median(self._sale_hist))
 
     def sale_mean(self) -> float:
         return float(np.mean(self._sale_hist))
 
     def sale_std(self) -> float:
         return float(np.std(self._sale_hist))
+
+    def demand_median(self) -> float:
+        return float(np.median(self._demand_hist))
+
+    def demand_mean(self) -> float:
+        return float(np.mean(self._demand_hist))
+
+    def demand_std(self) -> float:
+        return float(np.std(self._demand_hist))
 
     def get_node_info(self) -> SellerUnitInfo:
         return SellerUnitInfo(
@@ -140,4 +157,4 @@ class OuterSellerUnit(SellerUnit):
     sampler: SellerDemandMixin = None
 
     def market_demand(self, tick: int) -> int:
-        return self.sampler.sample_demand(tick, self.product_id)
+        return self.sampler.sample_demand(tick, self.sku_id)

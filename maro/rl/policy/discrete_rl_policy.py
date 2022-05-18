@@ -286,7 +286,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def train(self) -> None:
         self._policy_net.train()
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         return self._policy_net.get_state()
 
     def set_state(self, policy_state: dict) -> None:
