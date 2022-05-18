@@ -56,11 +56,11 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
     def _forward_unimplemented(self, *input: Any) -> None:
         pass
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         """Get the net's state.
 
         Returns:
-            state (object): A object that contains the net's state.
+            state (dict): A object that contains the net's state.
         """
         return {
             "network": self.state_dict(),

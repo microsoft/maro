@@ -172,7 +172,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     def __init__(self, name: str, params: TrainerParams) -> None:
         super(SingleAgentTrainer, self).__init__(name, params)
         self._policy_name: Optional[str] = None
-        self._policy_creator: Optional[Callable[[str], RLPolicy]] = None
+        self._policy_creator: Optional[Callable[[], RLPolicy]] = None
         self._ops: Optional[AbsTrainOps] = None
         self._replay_memory: Optional[ReplayMemory] = None
 

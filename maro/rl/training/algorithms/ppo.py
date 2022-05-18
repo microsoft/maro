@@ -9,7 +9,7 @@ import torch
 from torch.distributions import Categorical
 
 from maro.rl.model import VNet
-from maro.rl.policy import DiscretePolicyGradient
+from maro.rl.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl.training.algorithms.base import ACBasedOps, ACBasedParams, ACBasedTrainer
 from maro.rl.utils import discount_cumsum, ndarray_to_tensor, TransitionBatch
 
@@ -40,11 +40,11 @@ class PPOParams(ACBasedParams):
         assert self.clip_ratio is not None
 
 
-class DiscretePPOwithEntropyOps(ACBasedOps):
+class DiscretePPOWithEntropyOps(ACBasedOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], DiscretePolicyGradient],
+        policy_creator: Callable[[], RLPolicy],
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         reward_discount: float = 0.9,
@@ -54,7 +54,7 @@ class DiscretePPOwithEntropyOps(ACBasedOps):
         min_logp: float = None,
         is_discrete_action: bool = True,
     ) -> None:
-        super(DiscretePPOwithEntropyOps, self).__init__(
+        super(DiscretePPOWithEntropyOps, self).__init__(
             name=name,
             policy_creator=policy_creator,
             get_v_critic_net_func=get_v_critic_net_func,
@@ -66,12 +66,12 @@ class DiscretePPOwithEntropyOps(ACBasedOps):
             min_logp=min_logp,
             is_discrete_action=is_discrete_action,
         )
-        assert is_discrete_action == True
+        assert is_discrete_action
         assert isinstance(self._policy, DiscretePolicyGradient)
         self._policy_old = self._policy_creator()
         self.update_policy_old()
 
-    def update_policy_old(self):
+    def update_policy_old(self) -> None:
         self._policy_old.set_state(self._policy.get_state())
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
@@ -175,12 +175,12 @@ class PPOTrainer(ACBasedTrainer):
         super(PPOTrainer, self).__init__(name, params)
 
 
-class DiscretePPOTrainer(ACBasedTrainer):
+class DiscretePPOWithEntropyTrainer(ACBasedTrainer):
     def __init__(self, name: str, params: PPOParams) -> None:
-        super(DiscretePPOTrainer, self).__init__(name, params)
+        super(DiscretePPOWithEntropyTrainer, self).__init__(name, params)
 
-    def get_local_ops(self) -> DiscretePPOwithEntropyOps:
-        return DiscretePPOwithEntropyOps(
+    def get_local_ops(self) -> DiscretePPOWithEntropyOps:
+        return DiscretePPOWithEntropyOps(
             name=self._policy_name,
             policy_creator=self._policy_creator,
             parallelism=self._params.data_parallelism,
@@ -188,7 +188,7 @@ class DiscretePPOTrainer(ACBasedTrainer):
         )
 
     def train_step(self) -> None:
-        assert isinstance(self._ops, DiscretePPOwithEntropyOps)
+        assert isinstance(self._ops, DiscretePPOWithEntropyOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)

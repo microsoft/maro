@@ -11,14 +11,6 @@ from maro.rl.training import AbsTrainer
 from maro.simulator import Env
 
 
-def _is_subset(a: Iterable, b: Iterable) -> bool:
-    return all(e in b for e in a)
-
-
-def _identical(a: Iterable, b: Iterable) -> bool:
-    return _is_subset(a, b) and _is_subset(b, a)
-
-
 class RLComponentBundle(object):
     """Bundle of all necessary components to run a RL job in MARO.
 
@@ -132,7 +124,7 @@ class RLComponentBundle(object):
         not provided in policy-trainer mapping will not be trained since we do not assign a trainer to it.
         """
         return {
-            policy_name: policy_name.split(".")[0] for policy_name in self.policy_names
+            policy_name: policy_name.split(".")[0] for policy_name in self.policy_creator
         }
 
     ########################################################################################
@@ -157,14 +149,19 @@ class RLComponentBundle(object):
         self.device_mapping = self.get_device_mapping()
 
         self.policy_creator = self.get_policy_creator()
-        self.policy_names = list(self.policy_creator.keys())
         self.agent2policy = self.get_agent2policy()
 
         self.policy_trainer_mapping = self.get_policy_trainer_mapping()
 
-        assert _is_subset(self.agent2policy.values(), self.policy_creator.keys())
-        assert _identical(self.policy_trainer_mapping.values(), self.trainer_creator.keys())
-        assert _is_subset(self.policy_trainer_mapping.keys(), self.policy_creator)
+        required_policies = set(self.agent2policy.values())
+        self.policy_creator = {name: self.policy_creator[name] for name in required_policies}
+        self.policy_trainer_mapping = {name: self.policy_trainer_mapping[name] for name in required_policies}
+        self.policy_names = list(required_policies)
+        assert len(required_policies) == len(self.policy_creator)  # Should have same size after filter
+
+        required_trainers = set(self.policy_trainer_mapping.values())
+        self.trainer_creator = {name: self.trainer_creator[name] for name in required_trainers}
+        assert len(required_trainers) == len(self.trainer_creator)  # Should have same size after filter
 
         self.trainable_policy_names = list(self.policy_trainer_mapping.keys())
         self.trainable_policy_creator = {
