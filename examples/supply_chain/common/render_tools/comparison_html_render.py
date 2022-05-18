@@ -31,7 +31,7 @@ distribution_pending_order_number
 """
 
 
-class SimulationComparisionTrackerHtml:
+class SimulationComparisonTrackerHtml:
     def __init__(self, model1, log_path1, model2, log_path2, start_dt='2022-01-01'):
         self.log_path1 = log_path1
         self.model1 = model1

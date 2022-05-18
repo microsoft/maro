@@ -144,7 +144,7 @@ class ACBasedOps(AbsTrainOps):
             kl = (logps_old - logps).mean().item()
             early_stop = (kl >= 0.01 * 1.5)  # TODO
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages))
+            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
         else:
             actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
             early_stop = False

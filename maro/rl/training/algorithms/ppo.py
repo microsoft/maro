@@ -40,7 +40,7 @@ class PPOParams(ACBasedParams):
         assert self.clip_ratio is not None
 
 
-class DiscretePPOOps(ACBasedOps):
+class DiscretePPOwithEntropyOps(ACBasedOps):
     def __init__(
         self,
         name: str,
@@ -54,7 +54,7 @@ class DiscretePPOOps(ACBasedOps):
         min_logp: float = None,
         is_discrete_action: bool = True,
     ) -> None:
-        super(DiscretePPOOps, self).__init__(
+        super(DiscretePPOwithEntropyOps, self).__init__(
             name=name,
             policy_creator=policy_creator,
             get_v_critic_net_func=get_v_critic_net_func,
@@ -69,6 +69,9 @@ class DiscretePPOOps(ACBasedOps):
         assert is_discrete_action == True
         assert isinstance(self._policy, DiscretePolicyGradient)
         self._policy_old = self._policy_creator()
+        self.update_policy_old()
+
+    def update_policy_old(self):
         self._policy_old.set_state(self._policy.get_state())
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
@@ -176,8 +179,8 @@ class DiscretePPOTrainer(ACBasedTrainer):
     def __init__(self, name: str, params: PPOParams) -> None:
         super(DiscretePPOTrainer, self).__init__(name, params)
 
-    def get_local_ops(self) -> DiscretePPOOps:
-        return DiscretePPOOps(
+    def get_local_ops(self) -> DiscretePPOwithEntropyOps:
+        return DiscretePPOwithEntropyOps(
             name=self._policy_name,
             policy_creator=self._policy_creator,
             parallelism=self._params.data_parallelism,
@@ -185,9 +188,9 @@ class DiscretePPOTrainer(ACBasedTrainer):
         )
 
     def train_step(self) -> None:
-        assert isinstance(self._ops, DiscretePPOOps)
+        assert isinstance(self._ops, DiscretePPOwithEntropyOps)
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
-        self._ops._policy_old.set_state(self._ops._policy.get_state())
+        self._ops.update_policy_old()
