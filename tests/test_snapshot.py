@@ -5,7 +5,7 @@ import sys
 import unittest
 
 import numpy as np
-from .test_frame import DYNAMIC_NODE_NUM, STATIC_NODE_NUM, build_frame
+from tests.test_frame import DYNAMIC_NODE_NUM, STATIC_NODE_NUM, build_frame
 
 from tests.utils import backends_to_test
 
