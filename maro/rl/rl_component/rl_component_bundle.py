@@ -1,6 +1,9 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from abc import abstractmethod
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler
@@ -121,7 +124,7 @@ class RLComponentBundle(object):
         not provided in policy-trainer mapping will not be trained since we do not assign a trainer to it.
         """
         return {
-            policy_name: policy_name.split(".")[0] for policy_name in self.policy_names
+            policy_name: policy_name.split(".")[0] for policy_name in self.policy_creator
         }
 
     ########################################################################################
@@ -146,12 +149,19 @@ class RLComponentBundle(object):
         self.device_mapping = self.get_device_mapping()
 
         self.policy_creator = self.get_policy_creator()
-        self.policy_names = list(self.policy_creator.keys())
         self.agent2policy = self.get_agent2policy()
 
         self.policy_trainer_mapping = self.get_policy_trainer_mapping()
-        assert all([policy_name in self.policy_creator for policy_name in self.policy_trainer_mapping.keys()])
-        assert all([trainer_name in self.trainer_creator for trainer_name in self.policy_trainer_mapping.values()])
+
+        required_policies = set(self.agent2policy.values())
+        self.policy_creator = {name: self.policy_creator[name] for name in required_policies}
+        self.policy_trainer_mapping = {name: self.policy_trainer_mapping[name] for name in required_policies}
+        self.policy_names = list(required_policies)
+        assert len(required_policies) == len(self.policy_creator)  # Should have same size after filter
+
+        required_trainers = set(self.policy_trainer_mapping.values())
+        self.trainer_creator = {name: self.trainer_creator[name] for name in required_trainers}
+        assert len(required_trainers) == len(self.trainer_creator)  # Should have same size after filter
 
         self.trainable_policy_names = list(self.policy_trainer_mapping.keys())
         self.trainable_policy_creator = {
