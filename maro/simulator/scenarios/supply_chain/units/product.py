@@ -133,42 +133,56 @@ class ProductUnit(ExtendUnitBase):
             max_vlt=self.facility.get_max_vlt(self.sku_id),
         )
 
-    def _get_sale_and_demand_means(self) -> Tuple[List[float], List[float]]:
+    def _get_sale_means(self) -> List[float]:
         sale_means = []
-        demand_means = []
         _cache_sale: Dict[int, float] = {}
-        _cache_demand: Dict[int, float] = {}
 
         def _get_sale_mean(product_unit: ProductUnit) -> float:
             if product_unit.id not in _cache_sale:
                 _cache_sale[product_unit.id] = product_unit.get_sale_mean()
-                _cache_demand[product_unit.id] = product_unit.get_demand_mean()
-            return _cache_sale[product_unit.id], _cache_demand[product_unit.id]
+            return _cache_sale[product_unit.id]
 
         for downstream_facility in self.facility.downstream_facility_list[self.sku_id]:
-            _sale, _demand = _get_sale_mean(downstream_facility.products[self.sku_id])
+            _sale = _get_sale_mean(downstream_facility.products[self.sku_id])
             sale_means.append(_sale)
+
+        for out_sku_id, consumption_ratio in self.bom_out_info_list:
+            _sale = _get_sale_mean(self.facility.products[out_sku_id])
+            sale_means.append(int(_sale) * consumption_ratio)
+
+        return sale_means
+
+    def _get_demand_means(self) -> List[float]:
+        demand_means = []
+        _cache_demand: Dict[int, float] = {}
+
+        def _get_demand_mean(product_unit: ProductUnit) -> float:
+            if product_unit.id not in _cache_demand:
+                _cache_demand[product_unit.id] = product_unit.get_demand_mean()
+            return _cache_demand[product_unit.id]
+
+        for downstream_facility in self.facility.downstream_facility_list[self.sku_id]:
+            _demand = _get_demand_mean(downstream_facility.products[self.sku_id])
             demand_means.append(_demand)
 
         for out_sku_id, consumption_ratio in self.bom_out_info_list:
-            _sale, _demand = _get_sale_mean(self.facility.products[out_sku_id])
-            sale_means.append(int(_sale) * consumption_ratio)
+            _demand = _get_demand_mean(self.facility.products[out_sku_id])
             demand_means.append(int(_demand) * consumption_ratio)
 
-        return sale_means, demand_means
+        return demand_means
 
     def get_sale_mean(self) -> float:
         """"Here the sale mean of upstreams means the sum of its downstreams,
         which indicates the daily demand of this product from the aspect of the facility it belongs."""
-        sale_means, _ = self._get_sale_and_demand_means()
+        sale_means = self._get_sale_means()
         return float(np.sum(sale_means))
 
     def get_demand_mean(self) -> float:
-        _, demand_means = self._get_sale_and_demand_means()
+        demand_means = self._get_demand_means()
         return float(np.sum(demand_means))
 
     def get_sale_std(self) -> float:
-        sale_means, _ = self._get_sale_and_demand_means()
+        sale_means = self._get_sale_means()
         return 0.0 if len(sale_means) == 0 else float(np.std(sale_means))
 
     def get_max_sale_price(self) -> float:
