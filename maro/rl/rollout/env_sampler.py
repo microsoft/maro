@@ -382,18 +382,19 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
                 },
             )
-            if self._reward_eval_delay is None:
-                cache_element.reward_dict = self._get_reward(
-                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
-                )
-                self._post_step(cache_element)
-
-            self._trans_cache.append(cache_element)
 
             # Update env and get new states (global & agent)
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event)
+
+            if self._reward_eval_delay is None:
+                cache_element.reward_dict = self._get_reward(
+                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
+                )
+                self._post_step(cache_element)
+            self._trans_cache.append(cache_element)
+
             steps_to_go -= 1
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
@@ -504,18 +505,18 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
                 },
             )
-            if self._reward_eval_delay is None:
-                cache_element.reward_dict = self._get_reward(
-                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
-                )
-                self._post_eval_step(cache_element)
-
-            self._trans_cache.append(cache_element)
 
             # Update env and get new states (global & agent)
             _, self._event, is_done = self._env.step(list(env_action_dict.values()))
             self._state, self._agent_state_dict = (None, {}) if is_done \
                 else self._get_global_and_agent_state(self._event)
+
+            if self._reward_eval_delay is None:
+                cache_element.reward_dict = self._get_reward(
+                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
+                )
+                self._post_eval_step(cache_element)
+            self._trans_cache.append(cache_element)
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
