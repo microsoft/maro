@@ -33,7 +33,7 @@ def get_azurefile_volume_spec(name: str, share_name: str, secret_name: str):
     }
 
 
-def get_container_spec(image_name: str, component_name: str, env: dict, volumes):
+def get_container_spec(image_name: str, component_name: str, script: str, env: dict, volumes):
     common_container_spec = {
         "image": image_name,
         "imagePullPolicy": "Always",
@@ -43,7 +43,7 @@ def get_container_spec(image_name: str, component_name: str, env: dict, volumes)
         **common_container_spec,
         **{
             "name": component_name,
-            "command": ["python3", f"/maro/maro/rl/workflows/{component_name.split('-')[0]}.py"],
+            "command": ["python3", script],
             "env": format_env_vars(env, mode="k8s")
         }
     }

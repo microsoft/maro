@@ -4,12 +4,13 @@
 import os
 import subprocess
 from copy import deepcopy
-from typing import Dict, List
+from typing import List
 
 import docker
 import yaml
 
 from maro.cli.utils.common import format_env_vars
+from maro.rl.workflows.config.parser import ConfigParser
 
 
 class RedisHashKey:
@@ -102,18 +103,15 @@ def exec(cmd: str, env: dict, debug: bool = False) -> subprocess.Popen:
 
 
 def start_rl_job(
-    env_by_component: Dict[str, dict], maro_root: str, evaluate_only: bool, background: bool = False,
+    parser: ConfigParser, maro_root: str, evaluate_only: bool, background: bool = False,
 ) -> List[subprocess.Popen]:
-    def get_local_script_path(component: str):
-        return os.path.join(maro_root, "maro", "rl", "workflows", f"{component.split('-')[0]}.py")
-
     procs = [
         exec(
-            f"python {get_local_script_path(component)}" + ("" if not evaluate_only else " --evaluate_only"),
+            f"python {script}" + ("" if not evaluate_only else " --evaluate_only"),
             format_env_vars({**env, "PYTHONPATH": maro_root}, mode="proc"),
             debug=not background
         )
-        for component, env in env_by_component.items()
+        for script, env in parser.get_job_spec().values()
     ]
     if not background:
         for proc in procs:
@@ -122,30 +120,30 @@ def start_rl_job(
     return procs
 
 
-def start_rl_job_in_containers(
-    conf: dict, image_name: str, env_by_component: Dict[str, dict], path_mapping: Dict[str, str]
-) -> None:
-    job_name = conf["job"]
+def start_rl_job_in_containers(parser: ConfigParser, image_name: str) -> list:
+    job_name = parser.config["job"]
     client, containers = docker.from_env(), []
-    is_distributed_training = conf["training"]["mode"] != "simple"
-    is_distributed_rollout = (
-        "parallelism" in conf["rollout"] and
-        max(conf["rollout"]["parallelism"]["sampling"], conf["rollout"]["parallelism"].get("eval", 1)) > 1
-    )
-    if is_distributed_training or is_distributed_rollout:
+    training_mode = parser.config["training"]["mode"]
+    if "parallelism" in parser.config["rollout"]:
+        rollout_parallelism = max(
+            parser.config["rollout"]["parallelism"]["sampling"],
+            parser.config["rollout"]["parallelism"].get("eval", 1)
+        )
+    else:
+        rollout_parallelism = 1
+    if training_mode != "simple" or rollout_parallelism > 1:
         # create the exclusive network for the job
         client.networks.create(job_name, driver="bridge")
 
-    for component, env in env_by_component.items():
-        container_name = f"{job_name}.{component}"
+    for component, (script, env) in parser.get_job_spec(containerize=True).items():
         # volume mounts for scenario folder, policy loading, checkpointing and logging
         container = client.containers.run(
             image_name,
-            command=f"python3 /maro/maro/rl/workflows/{component.split('-')[0]}.py",
+            command=f"python3 {script}",
             detach=True,
-            name=container_name,
+            name=component,
             environment=env,
-            volumes=[f"{src}:{dst}" for src, dst in path_mapping.items()],
+            volumes=[f"{src}:{dst}" for src, dst in parser.get_path_mapping(containerize=True).items()],
             network=job_name
         )
 
@@ -155,38 +153,41 @@ def start_rl_job_in_containers(
 
 
 def get_docker_compose_yml_path(maro_root: str) -> str:
-    return os.path.join(maro_root, "tmp", "docker-compose.yml")
+    return os.path.join(maro_root, ".tmp", "docker-compose.yml")
 
 
 def start_rl_job_with_docker_compose(
-    conf: dict, context: str, dockerfile_path: str, image_name: str, env_by_component: Dict[str, dict],
-    path_mapping: Dict[str, str], evaluate_only: bool,
+    parser: ConfigParser, context: str, dockerfile_path: str, image_name: str, evaluate_only: bool,
 ) -> None:
     common_spec = {
         "build": {"context": context, "dockerfile": dockerfile_path},
         "image": image_name,
-        "volumes": [f"{src}:{dst}" for src, dst in path_mapping.items()]
+        "volumes": [f"./{src}:{dst}" for src, dst in parser.get_path_mapping(containerize=True).items()]
     }
-    job = conf["job"]
-    manifest = {"version": "3.9"}
-    manifest["services"] = {
-        component: {
-            **deepcopy(common_spec),
-            **{
-                "container_name": f"{job}.{component}",
-                "command": f"python3 /maro/maro/rl/workflows/{component.split('-')[0]}.py" + (
-                    "" if not evaluate_only else "--evaluate_only"),
-                "environment": format_env_vars(env, mode="docker-compose")
+
+    job_name = parser.config["job"]
+    manifest = {
+        "version": "3.9",
+        "services": {
+            component: {
+                **deepcopy(common_spec),
+                **{
+                    "container_name": component,
+                    "command": f"python3 {script}" + ("" if not evaluate_only else " --evaluate_only"),
+                    "environment": format_env_vars(env, mode="docker-compose")
+                }
             }
-        }
-        for component, env in env_by_component.items()
+            for component, (script, env) in parser.get_job_spec(containerize=True).items()
+        },
     }
 
     docker_compose_file_path = get_docker_compose_yml_path(maro_root=context)
     with open(docker_compose_file_path, "w") as fp:
         yaml.safe_dump(manifest, fp)
 
-    subprocess.run(["docker-compose", "--project-name", job, "-f", docker_compose_file_path, "up", "--remove-orphans"])
+    subprocess.run(
+        ["docker-compose", "--project-name", job_name, "-f", docker_compose_file_path, "up", "--remove-orphans"]
+    )
 
 
 def stop_rl_job_with_docker_compose(job_name: str, context: str):

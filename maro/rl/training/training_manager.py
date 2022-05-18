@@ -63,6 +63,9 @@ class TrainingManager(object):
         # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
         if explicit_assign_device:
             for policy_name, device_name in rl_component_bundle.device_mapping.items():
+                if policy_name not in rl_component_bundle.policy_trainer_mapping:  # No need to assign device
+                    continue
+
                 trainer = self._trainer_dict[rl_component_bundle.policy_trainer_mapping[policy_name]]
 
                 if isinstance(trainer, SingleAgentTrainer):
