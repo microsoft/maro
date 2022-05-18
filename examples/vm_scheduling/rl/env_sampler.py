@@ -115,7 +115,7 @@ class VMEnvSampler(AbsEnvSampler):
         )
         return (alpha + beta * vm_unit_price * min(self._durations - event.frame_index, event.remaining_buffer_time))
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]):
+    def _post_step(self, cache_element: CacheElement) -> None:
         self._info["env_metric"] = {k: v for k, v in self._env.metrics.items() if k != "total_latency"}
         self._info["env_metric"]["latency_due_to_agent"] = self._env.metrics["total_latency"].due_to_agent
         self._info["env_metric"]["latency_due_to_resource"] = self._env.metrics["total_latency"].due_to_resource
@@ -130,8 +130,8 @@ class VMEnvSampler(AbsEnvSampler):
             self._info["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append([action, mask])
         self._info["action_sequence"].append(action)
 
-    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        self._post_step(cache_element, reward)
+    def _post_eval_step(self, cache_element: CacheElement) -> None:
+        self._post_step(cache_element)
 
     def post_collect(self, info_list: list, ep: int) -> None:
         # print the env metric from each rollout worker
