@@ -3,11 +3,11 @@
 
 import numpy as np
 import scipy.stats as st
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 from maro.simulator.scenarios.supply_chain import ConsumerUnit, ProductUnit
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
-from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity, VendorLeadingTimeInfo
 
 from .config import (
     OR_NUM_CONSUMER_ACTIONS,
@@ -105,7 +105,12 @@ class ScRlAgentStates:
 
         return atom
 
-    def _init_entity_state(self, entity: SupplyChainEntity) -> dict:
+    def _init_entity_state(
+        self,
+        entity: SupplyChainEntity,
+        chosen_vlt_info: Optional[VendorLeadingTimeInfo],
+        fixed_vlt: bool,
+    ) -> dict:
         state: dict = {}
         facility_info: FacilityInfo = self._facility_info_dict[entity.facility_id]
 
@@ -113,7 +118,7 @@ class ScRlAgentStates:
         self._init_facility_feature(state, entity, facility_info)
         self._init_storage_feature(state, facility_info)
         self._init_bom_feature(state, entity)
-        self._init_vlt_feature(state, entity, facility_info)
+        self._init_vlt_feature(state, entity, facility_info, chosen_vlt_info, fixed_vlt)
         self._init_sale_feature(state, entity, facility_info)
         self._init_distribution_feature(state)
         self._init_consumer_feature(state, entity, facility_info)
@@ -134,6 +139,8 @@ class ScRlAgentStates:
         storage_product_quantity: Dict[int, List[int]],
         facility_product_utilization: Dict[int, int],
         facility_in_transit_quantity: Dict[int, List[int]],
+        chosen_vlt_info: Optional[VendorLeadingTimeInfo],
+        fixed_vlt: bool,
     ) -> dict:
         """Update the state dict of the given entity_id in the given tick.
 
@@ -163,12 +170,13 @@ class ScRlAgentStates:
         entity: SupplyChainEntity = self._entity_dict[entity_id]
 
         if entity_id not in self._templates:
-            self._templates[entity_id] = self._init_entity_state(entity)
+            self._templates[entity_id] = self._init_entity_state(entity, chosen_vlt_info, fixed_vlt)
         state: dict = self._templates[entity_id]
 
         self._update_global_features(state, tick)
         self._update_facility_features(state, accumulated_balance)
         self._update_storage_features(state, entity, storage_product_quantity, facility_product_utilization)
+        self._update_vlt_features(state, chosen_vlt_info)
         self._update_sale_features(state, entity, cur_metrics, cur_seller_hist_states, cur_consumer_hist_states)
         self._update_distribution_features(state, entity, cur_distribution_states)
         self._update_consumer_features(
@@ -225,14 +233,20 @@ class ScRlAgentStates:
         #     state['bom_outputs'][self._global_sku_id2idx[entity.skus.id]] = 1
         return
 
-    def _init_vlt_feature(self, state: dict, entity: SupplyChainEntity, facility_info: FacilityInfo) -> None:
-        state['max_vlt'] = 0
+    def _init_vlt_feature(
+        self,
+        state: dict,
+        entity: SupplyChainEntity,
+        facility_info: FacilityInfo,
+        chosen_vlt_info: Optional[VendorLeadingTimeInfo],
+        fixed_vlt: bool,
+    ) -> None:
+        max_vlt = facility_info.products_info[entity.skus.id].max_vlt
+        if fixed_vlt and chosen_vlt_info is not None:
+            max_vlt = chosen_vlt_info.vlt
 
-        if entity.skus is not None:
-            product_info = facility_info.products_info[entity.skus.id]
-
-            if product_info.consumer_info is not None:
-                state['max_vlt'] = product_info.max_vlt
+        state['max_vlt'] = max_vlt
+        state['cur_vlt'] = chosen_vlt_info.vlt if chosen_vlt_info else 0
 
         return
 
@@ -317,6 +331,9 @@ class ScRlAgentStates:
             state['distributor_in_transit_orders_qty'] = dist_states[IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY]
             state['distributor_in_transit_orders'] = dist_states[IDX_DISTRIBUTION_PENDING_ORDER_NUMBER]
         return
+
+    def _update_vlt_features(self, state: dict, chosen_vlt_info: VendorLeadingTimeInfo) -> None:
+        state['cur_vlt'] = chosen_vlt_info.vlt if chosen_vlt_info else 0
 
     def _update_sale_features(
         self,

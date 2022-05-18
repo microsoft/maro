@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 import scipy.stats as st
 
 from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
-from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity, VendorLeadingTimeInfo
 
 
 class ScOrAgentStates:
@@ -25,9 +25,18 @@ class ScOrAgentStates:
 
         self._templates: Dict[int, dict] = {}
 
-    def _init_entity_state(self, entity: SupplyChainEntity) -> dict:
+    def _init_entity_state(
+        self,
+        entity: SupplyChainEntity,
+        chosen_vlt_info: Optional[VendorLeadingTimeInfo],
+        fixed_vlt: bool,
+    ) -> dict:
         facility_info = self._facility_info_dict[entity.facility_id]
         storage_index = facility_info.storage_info.node_index
+
+        max_vlt = facility_info.products_info[entity.skus.id].max_vlt
+        if fixed_vlt and chosen_vlt_info is not None:
+            max_vlt = chosen_vlt_info.vlt
 
         state: dict = {
             "sale_mean": 0,
@@ -40,7 +49,8 @@ class ScOrAgentStates:
             "product_level": 0,
             "in_transition_quantity": 0,
             "to_distribute_quantity": 0,
-            "max_vlt": facility_info.products_info[entity.skus.id].max_vlt,
+            "cur_vlt": chosen_vlt_info.vlt if chosen_vlt_info else 0,
+            "max_vlt": max_vlt,
             "service_level_ppf": st.norm.ppf(entity.skus.service_level),
         }
 
@@ -54,6 +64,8 @@ class ScOrAgentStates:
         product_levels: List[int],
         in_transit_quantity: List[int],
         to_distribute_quantity: List[int],
+        chosen_vlt_info: Optional[VendorLeadingTimeInfo],
+        fixed_vlt: bool,
     ) -> dict:
         entity: SupplyChainEntity = self._entity_dict[entity_id]
 
@@ -64,7 +76,7 @@ class ScOrAgentStates:
             if self._storage_capacity_dict is None:
                 self._storage_capacity_dict = storage_capacity_dict
 
-            self._templates[entity_id] = self._init_entity_state(entity)
+            self._templates[entity_id] = self._init_entity_state(entity, chosen_vlt_info, fixed_vlt)
 
         state: dict = self._templates[entity_id]
 
@@ -77,4 +89,6 @@ class ScOrAgentStates:
         state["product_level"] = product_levels[self._global_sku_id2idx[entity.skus.id]]
         state["in_transition_quantity"] = in_transit_quantity[self._global_sku_id2idx[entity.skus.id]]
         state["to_distribute_quantity"] = to_distribute_quantity[self._global_sku_id2idx[entity.skus.id]]
+
+        state["cur_vlt"] = chosen_vlt_info.vlt if chosen_vlt_info else 0
         return state

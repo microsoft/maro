@@ -160,6 +160,9 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
 
+        self._cached_vlt: Dict[int, VendorLeadingTimeInfo] = {}
+        self._fixed_vlt = self._env_settings["vehicle_selection_method"] != VehicleSelection.RANDOM
+
         ########################################################################
         # State managers.
         ########################################################################
@@ -270,6 +273,50 @@ class SCEnvSampler(AbsEnvSampler):
         else:
             return .0
 
+    def _get_vlt_info(self, entity_id: int) -> Optional[VendorLeadingTimeInfo]:
+        if entity_id not in self._cached_vlt:
+            entity = self._entity_dict[entity_id]
+            assert issubclass(entity.class_type, (ConsumerUnit, ManufactureUnit))
+            facility_info: FacilityInfo = self._facility_info_dict[entity.facility_id]
+            sku_id: int = entity.skus.id
+            sku_name: str = entity.skus.name
+
+            info_by_fid = facility_info.upstream_vlt_infos[sku_id]
+            vlt_info_candidates: List[VendorLeadingTimeInfo] = [
+                info
+                for info_by_type in info_by_fid.values()
+                for info in info_by_type.values()
+            ]
+
+            if len(vlt_info_candidates) > 0:
+                vehicle_selection = self._env_settings["vehicle_selection_method"]
+                if vehicle_selection == VehicleSelection.RANDOM:
+                    vlt_info = random.choice(vlt_info_candidates)
+                elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
+                    vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
+                elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
+                    # As the product cost and order base cost are only related to product quantity,
+                    # the transportation cost is the difference of different vehicle type selections.
+                    vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
+                elif vehicle_selection == VehicleSelection.DEFAULT_ONE:
+                    # TODO: read default vlt info directly.
+                    default_vehicle_type = self._default_vendor[facility_info.name][sku_name]
+                    vlt_info = next(
+                        filter(lambda info: info.vehicle_type == default_vehicle_type, vlt_info_candidates),
+                        None
+                    )
+                    assert vlt_info is not None, (
+                        f"Default vehicle type {default_vehicle_type} not exist for {facility_info.name}'s {sku_name}!"
+                    )
+                else:
+                    raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
+            else:
+                vlt_info = None
+
+            self._cached_vlt[entity_id] = vlt_info
+
+        return self._cached_vlt[entity_id]
+
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
@@ -281,6 +328,8 @@ class SCEnvSampler(AbsEnvSampler):
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_quantity=self._facility_in_transit_quantity[entity.facility_id],
             to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
+            chosen_vlt_info=self._get_vlt_info(entity.id),
+            fixed_vlt=self._fixed_vlt,
         )
         return state
 
@@ -296,6 +345,8 @@ class SCEnvSampler(AbsEnvSampler):
             storage_product_quantity=self._storage_product_quantity,
             facility_product_utilization=self._facility_product_utilization,
             facility_in_transit_quantity=self._facility_in_transit_quantity,
+            chosen_vlt_info=self._get_vlt_info(entity_id),
+            fixed_vlt=self._fixed_vlt,
         )
 
         entity = self._entity_dict[entity_id]
@@ -452,44 +503,6 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
-                sku_id: int = self._consumer_id2sku_id.get(entity_id, 0)
-                sku_name: str = self._entity_dict[entity_id].skus.name
-                product_unit_id: int = self._unit2product_unit[entity_id]
-
-                facility_info: FacilityInfo = self._facility_info_dict[self._entity_dict[entity_id].facility_id]
-                info_by_fid = facility_info.upstream_vlt_infos[sku_id]
-
-                vlt_info_candidates: List[VendorLeadingTimeInfo] = [
-                    info
-                    for info_by_type in info_by_fid.values()
-                    for info in info_by_type.values()
-                ]
-
-                vehicle_selection = self._env_settings["vehicle_selection_method"]
-                if vehicle_selection == VehicleSelection.RANDOM:
-                    vlt_info = random.choice(vlt_info_candidates)
-                elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
-                    vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
-                elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
-                    # As the product cost and order base cost are only related to product quantity,
-                    # the transportation cost is the difference of different vehicle type selections.
-                    vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
-                elif vehicle_selection == VehicleSelection.DEFAULT_ONE:
-                    # TODO: read default vlt info directly.
-                    default_vehicle_type = self._default_vendor[facility_info.name][sku_name]
-                    vlt_info = next(
-                        filter(lambda info: info.vehicle_type == default_vehicle_type, vlt_info_candidates),
-                        None
-                    )
-                    assert vlt_info is not None, (
-                        f"Default vehicle type {default_vehicle_type} not exist for {facility_info.name}'s {sku_name}!"
-                    )
-                else:
-                    raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
-
-                src_f_id = vlt_info.src_facility.id
-                vehicle_type = vlt_info.vehicle_type
-
                 if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
                     baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
                     or_action = np.where(baseline_action==1.0)[0][0]
@@ -498,13 +511,22 @@ class SCEnvSampler(AbsEnvSampler):
                 else:
                     action_idx = action[0]
 
+                product_unit_id: int = self._unit2product_unit[entity_id]
                 action_quantity = int(
                     int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["sale_mean"])
                 )
 
                 # Ignore 0 quantity to reduce action number
                 if action_quantity:
-                    env_action = ConsumerAction(entity_id, sku_id, src_f_id, action_quantity, vehicle_type)
+                    sku_id: int = self._consumer_id2sku_id.get(entity_id, 0)
+                    vlt_info = self._get_vlt_info(agent_id)
+                    env_action = ConsumerAction(
+                        id=entity_id,
+                        sku_id=sku_id,
+                        source_id=vlt_info.src_facility.id,
+                        quantity=action_quantity,
+                        vehicle_type=vlt_info.vehicle_type,
+                    )
 
             # Manufacture action
             elif issubclass(self._entity_dict[agent_id].class_type, ManufactureUnit):
@@ -527,7 +549,8 @@ class SCEnvSampler(AbsEnvSampler):
             self.product_metric_track.clear()
 
     def _post_step(self, cache_element: CacheElement) -> None:
-        pass
+        if not self._fixed_vlt:
+            self._cached_vlt.clear()
 
     def post_collect(self, info_list: list, ep: int) -> None:
         return super().post_collect(info_list, ep)
@@ -694,6 +717,9 @@ class SCEnvSampler(AbsEnvSampler):
         if workflow_settings["dump_product_metrics"]:
             self._step_product_metric_track(cache_element.tick)
             self._logger.info(f"dump step product metrics updated")
+
+        if not self._fixed_vlt:
+            self._cached_vlt.clear()
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
         self._eval_reward_list.append(self._eval_reward)
