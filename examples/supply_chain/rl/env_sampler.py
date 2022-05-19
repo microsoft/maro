@@ -3,11 +3,14 @@
 
 from __future__ import annotations
 
+import json
 import os
 import pickle
 import random
+import sys
 import typing
 from collections import defaultdict
+from pprint import pprint
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
@@ -34,7 +37,7 @@ from examples.supply_chain.common.render_tools.plot_render import SimulationTrac
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 from .config import consumer_features, distribution_features, seller_features, IDX_SELLER_DEMAND, IDX_SELLER_SOLD
-from .config import env_conf, test_env_conf, workflow_settings
+from .config import env_conf, test_env_conf, workflow_settings, DUMP_CHOSEN_VLT_INFO
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
 from .or_agent_state import ScOrAgentStates
 from .rl_agent_state import ScRlAgentStates, serialize_state
@@ -196,6 +199,7 @@ class SCEnvSampler(AbsEnvSampler):
             env_sampler=self,
             log_path=workflow_settings["log_path"],
             eval_period=[env_conf["durations"], test_env_conf["durations"]],
+            # eval_period=[0, test_env_conf["durations"]],
         )
 
         # Status for evaluation results tracker.
@@ -317,6 +321,42 @@ class SCEnvSampler(AbsEnvSampler):
 
         return self._cached_vlt[entity_id]
 
+    def dump_vlt_info(self) -> None:
+        default_vendor = {}
+        for entity_id, vlt_info in self._cached_vlt.items():
+            entity = self._entity_dict[entity_id]
+            facility_info = self._facility_info_dict[entity.facility_id]
+            sku_id = entity.skus.id
+
+            facility_name = facility_info.name
+            sku_name = entity.skus.name
+
+            for src_fid, info_by_type in facility_info.upstream_vlt_infos[sku_id].items():
+                for v_type, info in info_by_type.items():
+                    if info == vlt_info:
+                        if facility_name not in default_vendor:
+                            default_vendor[facility_name] = {}
+                        default_vendor[facility_name][sku_name] = (self._facility_info_dict[src_fid].name, v_type)
+                        break
+
+        assert isinstance(self._env_settings["vehicle_selection_method"], VehicleSelection)
+        selection_method = self._env_settings["vehicle_selection_method"].value
+
+        file_dir = os.path.join(
+            os.path.dirname(self._learn_env.business_engine._config_path),
+            self._learn_env.business_engine._topology,
+        )
+        file_path = os.path.join(file_dir, f"{selection_method}_vendor.py")
+        pprint_path = os.path.join(file_dir, f"{selection_method}_vendor_pprint.py")
+        with open(file_path, 'w') as f:
+            json.dump(default_vendor, f)
+
+        stdout_fh = sys.stdout
+        sys.stdout = open(pprint_path, 'w')
+        pprint(default_vendor)
+        sys.stdout.close()
+        sys.stdout = stdout_fh
+
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
@@ -386,14 +426,8 @@ class SCEnvSampler(AbsEnvSampler):
             self._stock_ordered_to_distribute_status[entity_id] = pending_order[entity.skus.id] if pending_order else 0
 
             product_unit_id = entity.parent_id
-            product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
-            if product_info.seller_info is not None:
-                seller_states = self._cur_seller_hist_states[:, product_info.seller_info.node_index, :]
-                self._demand_status[entity_id] = list(seller_states[:, IDX_SELLER_DEMAND].flatten())[-1]
-                self._sold_status[entity_id] = list(seller_states[:, IDX_SELLER_SOLD].flatten())[-1]
-            else:
-                self._demand_status[entity_id] = self._cur_metrics["products"][product_unit_id]["demand_mean"]
-                self._sold_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_mean"]
+            self._demand_status[entity_id] = self._cur_metrics["products"][product_unit_id]["demand_mean"]
+            self._sold_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_mean"]
 
     def _get_global_and_agent_state_impl(
         self, event: CascadeEvent, tick: int = None,
@@ -747,6 +781,9 @@ class SCEnvSampler(AbsEnvSampler):
         self._logger.info(f"Max Eval Reward: {self._max_eval_reward}")
         self._logger.debug(f"Eval Reward List: {self._eval_reward_list}")
         self._mean_reward = {entity_id: val / self._step_idx for entity_id, val in self._mean_reward.items()}
+
+        if DUMP_CHOSEN_VLT_INFO:
+            self.dump_vlt_info()
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         self._is_eval = True

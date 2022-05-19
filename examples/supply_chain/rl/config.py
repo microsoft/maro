@@ -5,10 +5,10 @@ from enum import Enum
 
 
 class VehicleSelection(Enum):
-    DEFAULT_ONE = 0  # Choose the default one
-    RANDOM = 1  # Randomly choosing one for each decision
-    SHORTEST_LEADING_TIME = 2  # Always choosing the one with shortest leading time
-    CHEAPEST_TOTAL_COST = 3  # Always choosing the one with cheapest total cost (products, order base, transportation)
+    DEFAULT_ONE = "default"  # Choose the default one
+    RANDOM = "random"  # Randomly choosing one for each decision
+    SHORTEST_LEADING_TIME = "shortest"  # Always choosing the one with shortest leading time
+    CHEAPEST_TOTAL_COST = "cheapest"  # Always choosing the one with cheapest total cost (products, order base, transportation)
 
 
 distribution_features = ("pending_product_quantity", "pending_order_number")
@@ -45,6 +45,7 @@ PLOT_RENDER = True
 DUMP_PRODUCT_METRICS = True
 LOG_CONSUMER_ACTIONS = True
 
+DUMP_CHOSEN_VLT_INFO = False
 
 env_conf = {
     "scenario": "supply_chain",
@@ -64,7 +65,7 @@ workflow_settings: dict = {
     "pending_order_len": 4,
     "or_policy_vlt_buffer_days": vlt_buffer_days,
     "reward_normalization": 1.0,
-    "vehicle_selection_method": VehicleSelection.DEFAULT_ONE,
+    "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
     "log_path": "examples/supply_chain/logs/",
     "plot_render": PLOT_RENDER,
     "dump_product_metrics": DUMP_PRODUCT_METRICS,

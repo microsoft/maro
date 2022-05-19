@@ -202,10 +202,10 @@ class SimulationTracker:
 
         facility_info = self._facility_info_dict[entity.facility_id]
         file_name = (
-            f"{facility_info.class_name.__name__}_"
+            # f"{facility_info.class_name.__name__}_"
             f"{facility_info.name}_"
             f"{self._sku_metas[entity.skus.id].name}_"
-            f"{entity.id}"
+            # f"{entity.id}"
             ".png"
         )
 

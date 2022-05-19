@@ -195,6 +195,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "sale_mean": product.get_sale_mean(),
                         "sale_std": product.get_sale_std(),
                         "demand_mean": product.get_demand_mean(),
+                        "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
                             None if product.consumer is None else product.consumer.pending_order_daily,
