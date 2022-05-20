@@ -8,12 +8,19 @@ from maro.easyrl.policy import EasyPolicy
 from maro.rl.rollout import AbsEnvSampler, ExpElement
 
 
-class EasyEnvWrapper(object):
+class SimpleEasyRLJob(object):
     def __init__(self, env_sampler: AbsEnvSampler, agent_policy_dict: Dict[Any, EasyPolicy]) -> None:
-        super(EasyEnvWrapper, self).__init__()
+        super(SimpleEasyRLJob, self).__init__()
 
         self._env_sampler = env_sampler
         self._env_sampler.build_easy(agent2policy={agent: policy.actor for agent, policy in agent_policy_dict.items()})
+        self._agent_policy_dict = agent_policy_dict
+
+    def train(self, num_epoch: int) -> None:
+        for ep in range(num_epoch):
+            exps_by_agent = self.sample(ep)
+            for agent, policy in self._agent_policy_dict.items():
+                policy.train_with_experiences(exps_by_agent[agent])
 
     def sample(self, ep: int) -> Dict[Any, Dict[int, List[ExpElement]]]:
         result = self._env_sampler.sample()

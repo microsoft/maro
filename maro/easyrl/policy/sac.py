@@ -26,6 +26,9 @@ class SACPolicy(EasyPolicy):
         q_value_loss_cls: Callable = None,
         soft_update_coef: float = 1.0,
     ) -> None:
+        assert isinstance(actor, ContinuousRLPolicy)
+        assert isinstance(critic, QNet)
+
         trainer = SoftActorCriticTrainer(
             name=actor.name,
             params=SoftActorCriticParams(

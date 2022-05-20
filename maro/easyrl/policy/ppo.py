@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from maro.rl.model import VNet
-from maro.rl.policy import GradientPolicy
+from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient
 from maro.rl.training.algorithms import PPOParams, PPOTrainer
 from .base import EasyPolicy
 
@@ -12,7 +12,7 @@ from .base import EasyPolicy
 class PPOPolicy(EasyPolicy):
     def __init__(
         self,
-        actor: GradientPolicy,
+        actor: Union[DiscretePolicyGradient, ContinuousRLPolicy],
         critic: VNet,
         clip_ratio: float,
         *,
@@ -24,6 +24,9 @@ class PPOPolicy(EasyPolicy):
         lam: float = 0.9,
         min_logp: Optional[float] = None,
     ) -> None:
+        assert isinstance(actor, (ContinuousRLPolicy, DiscretePolicyGradient))
+        assert isinstance(critic, VNet)
+
         trainer = PPOTrainer(
             name=actor.name,
             params=PPOParams(
@@ -37,6 +40,6 @@ class PPOPolicy(EasyPolicy):
                 min_logp=min_logp,
                 is_discrete_action=actor.is_discrete_action,
                 clip_ratio=clip_ratio,
-            )
+            ),
         )
         super().__init__(actor, trainer)

@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .env_wrapper import EasyEnvWrapper
+from .env_wrapper import SimpleEasyRLJob
 
 __all__ = [
-    "EasyEnvWrapper",
+    "SimpleEasyRLJob",
 ]

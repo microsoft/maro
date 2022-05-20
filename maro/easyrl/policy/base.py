@@ -22,7 +22,7 @@ class EasyPolicy(object, metaclass=ABCMeta):
         self._trainer = trainer
 
         self._trainer.register_policy_creator(
-            global_policy_creator={actor.name: lambda: actor},
+            global_policy_creator={actor.name: (lambda: actor)},
             policy_trainer_mapping={actor.name: trainer.name},
         )
         self._trainer.build()

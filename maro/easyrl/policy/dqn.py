@@ -20,6 +20,8 @@ class DQNPolicy(EasyPolicy):
         double: bool = False,
         random_overwrite: bool = False,
     ) -> None:
+        assert isinstance(actor, ValueBasedPolicy)
+
         trainer = DQNTrainer(
             name=actor.name,
             params=DQNParams(

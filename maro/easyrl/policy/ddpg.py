@@ -25,6 +25,9 @@ class DDPGPolicy(EasyPolicy):
         random_overwrite: bool = False,
         min_num_to_trigger_training: int = 0,
     ) -> None:
+        assert isinstance(actor, ContinuousRLPolicy)
+        assert isinstance(critic, QNet)
+
         trainer = DDPGTrainer(
             name=actor.name,
             params=DDPGParams(

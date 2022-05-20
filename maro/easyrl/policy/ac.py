@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from maro.rl.model import VNet
-from maro.rl.policy import GradientPolicy
+from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient
 from maro.rl.training.algorithms import ActorCriticParams, ActorCriticTrainer
 from .base import EasyPolicy
 
@@ -12,7 +12,7 @@ from .base import EasyPolicy
 class A2CPolicy(EasyPolicy):
     def __init__(
         self,
-        actor: GradientPolicy,
+        actor: Union[DiscretePolicyGradient, ContinuousRLPolicy],
         critic: VNet,
         *,
         replay_memory_capacity: int = 10000,
@@ -23,6 +23,9 @@ class A2CPolicy(EasyPolicy):
         lam: float = 0.9,
         min_logp: Optional[float] = None,
     ) -> None:
+        assert isinstance(actor, (ContinuousRLPolicy, DiscretePolicyGradient))
+        assert isinstance(critic, VNet)
+
         trainer = ActorCriticTrainer(
             name=actor.name,
             params=ActorCriticParams(
@@ -35,6 +38,6 @@ class A2CPolicy(EasyPolicy):
                 lam=lam,
                 min_logp=min_logp,
                 is_discrete_action=actor.is_discrete_action,
-            )
+            ),
         )
         super(A2CPolicy, self).__init__(actor, trainer)
