@@ -5,6 +5,7 @@ from abc import ABCMeta
 from typing import Dict, List
 
 import numpy as np
+import torch
 
 from maro.rl.policy import RLPolicy
 from maro.rl.rollout import ExpElement
@@ -37,6 +38,10 @@ class EasyPolicy(object, metaclass=ABCMeta):
     def get_actions(self, states: np.ndarray) -> np.ndarray:
         return self._actor.get_actions(states)
 
+    def train_with_experiences(self, experiences: Dict[int, List[ExpElement]]) -> None:
+        self.record_experiences(experiences)
+        self.train_step()
+
     def train_step(self) -> None:
         self._trainer.train_step()
 
@@ -45,8 +50,6 @@ class EasyPolicy(object, metaclass=ABCMeta):
         for env_idx, exps in experiences.items():
             self._trainer.record_multiple(env_idx, exps)
 
-    def train(self, mode: bool = True) -> None:
-        if mode:
-            self._actor.train()
-        else:
-            self._actor.eval()
+    def to_device(self, device: torch.device) -> None:
+        self._actor.to_device(device)
+        self._trainer.ops.to_device(device)

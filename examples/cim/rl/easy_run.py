@@ -69,5 +69,4 @@ if __name__ == "__main__":
     for ep in range(30):
         exps_by_agent = env_wrapper.sample(ep)
         for agent, policy in agent_policy_dict.items():
-            policy.record_experiences(exps_by_agent[agent])
-            policy.train_step()
+            policy.train_with_experiences(exps_by_agent[agent])
