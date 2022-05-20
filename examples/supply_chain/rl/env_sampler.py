@@ -345,11 +345,11 @@ class SCEnvSampler(AbsEnvSampler):
                         default_vendor[facility_name][sku_name] = (self._facility_info_dict[src_fid].name, v_type)
                         break
 
-        assert isinstance(self._workflow_settings["vehicle_selection_method"], VehicleSelection)
-        selection_method = self._workflow_settings["vehicle_selection_method"].value
+        # assert isinstance(self._workflow_settings["vehicle_selection_method"], VehicleSelection)
+        # selection_method = self._workflow_settings["vehicle_selection_method"].value
 
-        file_path = os.path.join(self._workflow_settings["log_path"], f"{selection_method}_vendor.py")
-        pprint_path = os.path.join(self._workflow_settings["log_path"], f"{selection_method}_vendor_pprint.py")
+        file_path = os.path.join(self._workflow_settings["log_path"], f"vendor.py")
+        pprint_path = os.path.join(self._workflow_settings["log_path"], f"vendor_pprint.py")
         with open(file_path, 'w') as f:
             json.dump(default_vendor, f)
 
@@ -762,7 +762,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         if self._eval_reward > self._max_eval_reward:
             self._max_eval_reward = self._eval_reward
-            self._logger.info(f"Update Max Eval Reward to: {self._max_eval_reward}")
+            self._logger.info(f"Update Max Eval Reward to: {self._max_eval_reward:,.2f}")
 
             if self._workflow_settings["plot_render"]:
                 self._logger.info("Start render...")
@@ -784,7 +784,7 @@ class SCEnvSampler(AbsEnvSampler):
 
                 self._logger.info("product metrics dumped to csv")
 
-        self._logger.info(f"Max Eval Reward: {self._max_eval_reward}")
+        self._logger.info(f"Max Eval Reward: {self._max_eval_reward:,.2f}")
         self._logger.debug(f"Eval Reward List: {self._eval_reward_list}")
         self._mean_reward = {entity_id: val / self._step_idx for entity_id, val in self._mean_reward.items()}
 

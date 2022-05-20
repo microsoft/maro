@@ -1,16 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import json
 import os
 import pickle
 from typing import Dict, List, Tuple
 
+import graphviz
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
 from maro.simulator.scenarios.supply_chain.facilities import OuterRetailerFacility
+
+
+# "wide": use the entire screen; "centered": centered into a fixed width.
+st.set_page_config(layout="wide")
 
 
 MARKDOWN_BODY = f"""
@@ -50,9 +56,8 @@ def set_exp_option(exp_idx: int, exp_list: List[str], log_dir: str):
         return None, None, None
 
     line_col = f"Exp_{exp_idx}"
-    sku_status_path = os.path.join(log_dir, exp_name, "sku_status.pkl")
-    # st.sidebar.markdown(f"`{sku_status_path}`")
-    return exp_name, line_col, sku_status_path
+    exp_log_dir = os.path.join(log_dir, exp_name)
+    return exp_name, line_col, exp_log_dir
 
 
 def _parse_entity_info(sku_status):
@@ -77,18 +82,26 @@ def _parse_facility_info(sku_status):
     return facility_by_name
 
 
+def _parse_vendor_dict(vendor_dict):
+    upstream_set_dict = {
+        f_down: set([f_up for f_up, _ in by_sku.values() if not f_up.startswith("VNDR")])
+        for f_down, by_sku in vendor_dict.items()
+    }
+    return upstream_set_dict
+
+
 def set_exp_list(exp_num: int, exp_list: List[str], log_dir: str):
-    exp_name_list, line_col_list, sku_status_path_list = [], [], []
+    exp_name_list, line_col_list, exp_log_dir_list = [], [], []
 
     for exp_idx in range(exp_num):
-        exp_name, line_col, sku_status_path = set_exp_option(exp_idx + 1, exp_list, log_dir)
+        exp_name, line_col, exp_log_dir = set_exp_option(exp_idx + 1, exp_list, log_dir)
 
         if exp_name is not None:
             exp_name_list.append(exp_name)
             line_col_list.append(line_col)
-            sku_status_path_list.append(sku_status_path)
+            exp_log_dir_list.append(exp_log_dir)
 
-    sku_status_list = read_all_data(sku_status_path_list)
+    sku_status_list = read_all_data(exp_log_dir_list)
 
     if len(sku_status_list) > 0:
         by_fname_type_sku, len_period = _parse_entity_info(sku_status_list[0])
@@ -106,12 +119,20 @@ def set_exp_list(exp_num: int, exp_list: List[str], log_dir: str):
 
 
 @st.cache
-def read_all_data(sku_status_path_list: List[str]):
+def read_all_data(exp_log_dir_list: List[str]):
     sku_status_list = []
-    for sku_status_path in sku_status_path_list:
+    for exp_log_dir in exp_log_dir_list:
+        sku_status_path = os.path.join(exp_log_dir, "sku_status.pkl")
         with open(sku_status_path, 'rb') as f:
             sku_status = pickle.load(f)
-            sku_status_list.append(sku_status)
+
+        network_path = os.path.join(exp_log_dir, "vendor.py")
+        with open(network_path, 'r') as f:
+            vendor_dict = json.load(f)
+
+        sku_status["vendor_dict"] = vendor_dict
+        sku_status["upstream_set_dict"] = _parse_vendor_dict(vendor_dict)
+        sku_status_list.append(sku_status)
     return sku_status_list
 
 
@@ -134,7 +155,7 @@ def plot_team_balance(facility_by_name: Dict[str, tuple], len_period: int, exp_d
                 showlegend=False,
             ),
         )
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def plot_facility_balance(f_name: str, idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
@@ -154,7 +175,7 @@ def plot_facility_balance(f_name: str, idx: int, len_period: int, exp_data_list:
                 showlegend=False,
             ),
         )
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def plot_single_sku_status(
@@ -175,7 +196,7 @@ def plot_single_sku_status(
                 showlegend=False,
             ),
         )
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def plot_stock_related_status(fname: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
@@ -203,7 +224,7 @@ def plot_stock_related_status(fname: str, status_idx: int, len_period: int, exp_
                 col=1,
             )
 
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def plot_demand_and_sales(fname: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
@@ -227,7 +248,35 @@ def plot_demand_and_sales(fname: str, status_idx: int, len_period: int, exp_data
                 col=1,
             )
 
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def plot_route_network(exp_data: Tuple[str, int, dict]):
+    exp_name, line_col, sku_status = exp_data
+    upstream_set_dict = sku_status["upstream_set_dict"]
+
+    graph = graphviz.Digraph(
+        name=f"Route Network of {exp_name}",
+        edge_attr={
+            'color': LINE_TYPE[line_col].__getitem__('color'),
+        },
+        node_attr={
+            'shape': 'ellipse',
+            'color': LINE_TYPE[line_col].__getitem__('color'),
+            'fixedsize': 'true',
+            'width': '0.8',
+            'height': '0.6',
+            'fontsize': '14',
+        },
+        graph_attr={
+            'rankdir': 'LR',
+        }
+    )
+    for f_down, up_list in upstream_set_dict.items():
+        for f_up in up_list:
+            graph.edge(f_up, f_down)
+
+    st.graphviz_chart(graph, use_container_width=True)
 
 
 def main():
@@ -282,6 +331,18 @@ def main():
     if st.checkbox("Breakdown Balance by Facility", False):
         for f_name, f_idx in zip(selected_facility, facility_idx_list):
             plot_facility_balance(f_name, f_idx, len_period, exp_data_list)
+
+    ############################################################################
+    ## Topology Comparison
+    ############################################################################
+    st.header("Distribution Network Comparison")
+
+    if st.checkbox("Show topologies"):
+        exp_name_list = [exp_name for (exp_name, _, _) in exp_data_list]
+        selected_exp_names = st.multiselect("Experiments", exp_name_list, exp_name_list)
+        for exp_data in exp_data_list:
+            if exp_data[0] in selected_exp_names:
+                plot_route_network(exp_data)
 
     ############################################################################
     ## SKU Render
