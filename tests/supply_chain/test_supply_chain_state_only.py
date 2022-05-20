@@ -58,18 +58,22 @@ class MyTestCase(unittest.TestCase):
 
         order = Order(warehouse_1, SKU3_ID, 10, "train")
         consumer_unit = warehouse_1.products[SKU3_ID].consumer
+        env.step(None)
 
         #  vlt is greater than len(pending_order_len), which will cause the pending order to increase
         consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        self.assertEqual(0 * 10, distribution_unit.transportation_cost[SKU3_ID])
+
         warehouse_1_consumer_unit_id = 11
 
         env.step(None)
         # Here the vlt of "train" is less than "pending_order_daily" length
         self.assertEqual([0, 0, 10, 0],  list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
         self.assertEqual([0, 0, 10, 0],  list(consumer_unit.pending_order_daily))
+        self.assertEqual(0 * 10, distribution_unit.transportation_cost[SKU3_ID])
 
         # add another order, it would be successfully scheduled, but none available vehicle left now.
         consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
@@ -78,6 +82,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
         self.assertEqual([0, 0,  10, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
         self.assertEqual([0, 0,  10, 0], list(consumer_unit.pending_order_daily))
+
+        start_tick = env.tick
+        expected_tick = start_tick + 3
 
         # vlt is greater than len(pending_order_len), which will cause the pending order to increase
         consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
@@ -89,59 +96,69 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
         self.assertEqual([0, 10, 10, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
         self.assertEqual([0, 10, 10, 0], list(consumer_unit.pending_order_daily))
+        self.assertEqual(2 * 10, distribution_unit.transportation_cost[SKU3_ID])
 
         env.step(None)
         self.assertEqual([10, 10, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
         self.assertEqual([10, 10, 0, 0], list(consumer_unit.pending_order_daily))
 
-        env.step(None)
-        self.assertEqual([10, 0, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
-        self.assertEqual([10, 0, 0, 0], list(consumer_unit.pending_order_daily))
-        # will arrive at the end of this tick, still on the way.
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
+        self.assertEqual(2 * 10, distribution_unit.transportation_cost[SKU3_ID])
         self.assertEqual(10 * 1, distribution_unit.delay_order_penalty[SKU3_ID])
+
+        env.step(None)
+        self.assertEqual([10, 0, 10, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
+        self.assertEqual([10, 0, 10, 0], list(consumer_unit.pending_order_daily))
+        # will arrive at the end of this tick, still on the way.
+        self.assertEqual(0, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+
+        self.assertEqual(2 * 10, distribution_unit.transportation_cost[SKU3_ID])
+        self.assertEqual(10 * 0, distribution_unit.delay_order_penalty[SKU3_ID])
 
         assert env.tick == expected_tick
         env.step(None)
-        self.assertEqual([0, 0, 10, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
-        self.assertEqual([0, 0, 10, 0], list(consumer_unit.pending_order_daily))
-
-        self.assertEqual(0, len(distribution_unit._order_queues["train"]))
-        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
-
-        self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
-        self.assertEqual(1 * 10 * 1, distribution_unit.transportation_cost[SKU3_ID])
-
-        env.step(None)
-
-        self.assertEqual(0, len(distribution_unit._order_queues["train"]))
-        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
-
-        self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
-        self.assertEqual(1 * 10 * 1, distribution_unit.transportation_cost[SKU3_ID])
         self.assertEqual([0, 10, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
         self.assertEqual([0, 10, 0, 0], list(consumer_unit.pending_order_daily))
+
+        self.assertEqual(0, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+
+        self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
+        self.assertEqual(0 * 10, distribution_unit.transportation_cost[SKU3_ID])
+
+        env.step(None)
 
         consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order)
 
-        self.assertEqual([0, 10, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
-        self.assertEqual([0, 10, 0, 0], list(consumer_unit.pending_order_daily))
+        self.assertEqual([10, 0, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
+        self.assertEqual([10, 0, 0, 0], list(consumer_unit.pending_order_daily))
+
+        self.assertEqual(1, len(distribution_unit._order_queues["train"]))
+        self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+
+        self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
+        self.assertEqual(1 * 10 * 0, distribution_unit.transportation_cost[SKU3_ID])
 
         env.step(None)
 
-        self.assertEqual([10, 0, 10, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
-        self.assertEqual([10, 0, 10, 0], list(consumer_unit.pending_order_daily))
+        self.assertEqual(1 * 10 * 1, distribution_unit.transportation_cost[SKU3_ID])
+
+        self.assertEqual([0, 0, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
+        self.assertEqual([0, 0, 0, 0], list(consumer_unit.pending_order_daily))
 
         start_tick = env.tick
         expected_tick = start_tick + 3 - 1  # vlt = 3
         while env.tick < expected_tick:
             env.step(None)
 
-        self.assertEqual([10, 0, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
-        self.assertEqual([10, 0, 0, 0], list(consumer_unit.pending_order_daily))
+        self.assertEqual([0, 10, 0, 0], list(env.metrics['products'][warehouse_1_consumer_unit_id]['pending_order_daily']))
+        self.assertEqual([0, 10, 0, 0], list(consumer_unit.pending_order_daily))
+
+        self.assertEqual(1 * 10 * 0, distribution_unit.transportation_cost[SKU3_ID])
 
     def test_consumer_vlt_state_only(self) -> None:
         """Tests the "pending_order_daily" of the consumer unit when vlt is greater than the "pending_order_daily" length."""

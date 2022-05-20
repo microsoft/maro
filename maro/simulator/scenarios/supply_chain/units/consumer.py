@@ -49,7 +49,7 @@ class ConsumerUnit(ExtendUnitBase):
         self._order_base_cost: float = 0  # order.quantity * unit_order_cost
 
         self.source_facility_id_list: List[int] = []
-        self.pending_order_daily: Optional[List[int]] = None
+        # self.pending_order_daily: Optional[List[int]] = None
 
         self._unit_order_cost: float = 0
 

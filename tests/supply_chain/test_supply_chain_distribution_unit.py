@@ -124,9 +124,8 @@ class MyTestCase(unittest.TestCase):
         required_quantity = 10
         action = ConsumerAction(sku1_consumer_unit.id, SKU1_ID, supplier_1.id, required_quantity, "train")
         purchase_tick: int = env.tick
-
         env.step([action])
-
+        env.step(None)
         purchase_frame = env.business_engine.frame_index(purchase_tick)
         states = consumer_nodes[purchase_frame:consumer_node_index:features].flatten().astype(np.int)
         self.assertEqual(required_quantity, states[IDX_PURCHASED])
@@ -165,9 +164,8 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(10, quantity)
 
             # Check the payload in the distribution
-            self.assertEqual(1, len(distribution_unit._payload_on_the_way[expected_tick]))
-            self.assertEqual(warehouse_1, distribution_unit._payload_on_the_way[expected_tick][0].order.destination)
-            self.assertEqual(80, distribution_unit._payload_on_the_way[expected_tick][0].payload)
+            self.assertEqual(1, len(distribution_unit._order_quantity_on_the_way[expected_tick]))
+            self.assertEqual(80, distribution_unit._order_quantity_on_the_way[expected_tick][0].quantity)
 
             env.step(None)
 
@@ -185,9 +183,8 @@ class MyTestCase(unittest.TestCase):
 
             # Check the payload in the distribution
             expected_tick = env.tick
-            self.assertEqual(1, len(distribution_unit._payload_on_the_way[expected_tick]))
-            self.assertEqual(warehouse_1, distribution_unit._payload_on_the_way[expected_tick][0].order.destination)
-            self.assertEqual(80 - 70, distribution_unit._payload_on_the_way[expected_tick][0].payload)
+            self.assertEqual(1, len(distribution_unit._order_quantity_on_the_way[expected_tick]))
+            self.assertEqual(80 - 70, distribution_unit._order_quantity_on_the_way[expected_tick][0].quantity)
 
             _, _, is_done = env.step(None)
 
