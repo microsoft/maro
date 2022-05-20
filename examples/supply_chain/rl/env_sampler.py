@@ -547,7 +547,7 @@ class SCEnvSampler(AbsEnvSampler):
 
                 product_unit_id: int = self._unit2product_unit[entity_id]
                 action_quantity = int(
-                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"])
                 )
 
                 # Ignore 0 quantity to reduce action number
