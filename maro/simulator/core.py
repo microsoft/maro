@@ -205,6 +205,14 @@ class Env(AbsEnv):
         """
         return self._event_buffer.get_pending_events(tick)
 
+    def get_ticks_frame_index_mapping(self) -> dict:
+        """Helper method to get current available ticks to related frame index mapping.
+
+        Returns:
+            dict: Dictionary of avaliable tick to frame index, it would be 1 to N mapping if the resolution is not 1.
+        """
+        return self._business_engine.get_ticks_frame_index_mapping()
+
     def _init_business_engine(self) -> None:
         """Initialize business engine object.
 
