@@ -1,0 +1,313 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+import os
+import pickle
+from typing import Dict, List, Tuple
+
+import numpy as np
+import plotly.graph_objects as go
+import streamlit as st
+from plotly.subplots import make_subplots
+
+from maro.simulator.scenarios.supply_chain.facilities import OuterRetailerFacility
+
+
+MARKDOWN_BODY = f"""
+    <style>
+        .reportview-container .main .block-container{{
+            max-width: 3000px;
+            margin-left: 15px;
+            margin-right: 15px;
+        }}
+
+    </style>
+"""
+
+LINE_TYPE = {
+    "Exp_1": dict(color="deepskyblue", width=1,),
+    "Exp_2": dict(color="magenta", width=1,),
+    "Exp_3": dict(color="yellowgreen", width=1,),
+    "Exp_4": dict(color="orangered", width=1,),
+    "Fea_1": dict(color="dodgerblue", width=1,),
+    "Fea_2": dict(color="darkorange", width=1,),
+    "Fea_3": dict(color="lightseagreen", width=1,),
+    "Fea_4": dict(color="violet", width=1,),
+}
+
+SHOW_NAME = {
+    "deepskyblue": "Blue",
+    "magenta": "Magenta",
+    "yellowgreen": "Green",
+    "orangered": "Orange",
+}
+
+
+def set_exp_option(exp_idx: int, exp_list: List[str], log_dir: str):
+    color = SHOW_NAME[LINE_TYPE[f"Exp_{exp_idx}"].__getitem__('color')]
+    exp_name = st.sidebar.selectbox(f"Experiment {exp_idx} ({color})", exp_list)
+    if exp_name == "DUMMY":
+        return None, None, None
+
+    line_col = f"Exp_{exp_idx}"
+    sku_status_path = os.path.join(log_dir, exp_name, "sku_status.pkl")
+    # st.sidebar.markdown(f"`{sku_status_path}`")
+    return exp_name, line_col, sku_status_path
+
+
+def _parse_entity_info(sku_status):
+    entity_infos = sku_status["entity_infos"]
+    len_period = sku_status["balance_status"].shape[1]
+    by_fname_and_sku_name = {}
+    for (i, id, f_name, sku_name, class_name) in entity_infos:
+        prefix = sku_name.split("_")[0]
+        if f_name not in by_fname_and_sku_name:
+            by_fname_and_sku_name[f_name] = {}
+        if prefix not in by_fname_and_sku_name[f_name]:
+            by_fname_and_sku_name[f_name][prefix] = {}
+        by_fname_and_sku_name[f_name][prefix][sku_name] = (i, id, class_name)
+    return by_fname_and_sku_name, len_period
+
+
+def _parse_facility_info(sku_status):
+    facility_infos = sku_status["facility_infos"]
+    facility_by_name = {
+        f_name: (i, f_id, f_class) for (i, f_id, f_name, f_class) in facility_infos
+    }
+    return facility_by_name
+
+
+def set_exp_list(exp_num: int, exp_list: List[str], log_dir: str):
+    exp_name_list, line_col_list, sku_status_path_list = [], [], []
+
+    for exp_idx in range(exp_num):
+        exp_name, line_col, sku_status_path = set_exp_option(exp_idx + 1, exp_list, log_dir)
+
+        if exp_name is not None:
+            exp_name_list.append(exp_name)
+            line_col_list.append(line_col)
+            sku_status_path_list.append(sku_status_path)
+
+    sku_status_list = read_all_data(sku_status_path_list)
+
+    if len(sku_status_list) > 0:
+        by_fname_type_sku, len_period = _parse_entity_info(sku_status_list[0])
+        facility_by_name = _parse_facility_info(sku_status_list[0])
+    else:
+        by_fname_type_sku, len_period = {}, 0
+        facility_by_name = {}
+
+    exp_data_list: List[Tuple[str, int, dict]] = [
+        (exp_name, line_col, sku_status)
+        for exp_name, line_col, sku_status in zip(exp_name_list, line_col_list, sku_status_list)
+    ]
+
+    return exp_data_list, by_fname_type_sku, facility_by_name, len_period
+
+
+@st.cache
+def read_all_data(sku_status_path_list: List[str]):
+    sku_status_list = []
+    for sku_status_path in sku_status_path_list:
+        with open(sku_status_path, 'rb') as f:
+            sku_status = pickle.load(f)
+            sku_status_list.append(sku_status)
+    return sku_status_list
+
+
+def plot_team_balance(facility_by_name: Dict[str, tuple], len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
+    facility_idx_list = [info[0] for info in facility_by_name.values() if issubclass(info[2], OuterRetailerFacility)]
+
+    fig = go.Figure()
+    for exp_name, line_col, sku_status in exp_data_list:
+        balance = sku_status["step_balance"]
+        chosen_balance = [balance[0, :, i] for i in facility_idx_list]
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(len_period)),
+                y=np.cumsum(np.sum(chosen_balance, axis=0)),
+                mode="lines",
+                legendgroup=exp_name,
+                name=exp_name,
+                line=LINE_TYPE[line_col],
+                showlegend=False,
+            ),
+        )
+    st.plotly_chart(fig, use_container_width=False)
+
+
+def plot_facility_balance(f_name: str, idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
+    fig = go.Figure()
+    fig.update_layout(title_text=f"Facility {f_name}")
+    for exp_name, line_col, sku_status in exp_data_list:
+        balance = sku_status["step_balance"][0, :, idx]
+
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(len_period)),
+                y=np.cumsum(balance),
+                mode="lines",
+                legendgroup=exp_name,
+                name=exp_name,
+                line=LINE_TYPE[line_col],
+                showlegend=False,
+            ),
+        )
+    st.plotly_chart(fig, use_container_width=False)
+
+
+def plot_single_sku_status(
+    title: str, status_key: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]
+):
+    fig = go.Figure()
+    fig.update_layout(title_text=title)
+    for exp_name, line_col, sku_status in exp_data_list:
+        status = sku_status[status_key][0, :, status_idx]
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(len_period)),
+                y=status,
+                mode="lines",
+                legendgroup=exp_name,
+                name=exp_name,
+                line=LINE_TYPE[line_col],
+                showlegend=False,
+            ),
+        )
+    st.plotly_chart(fig, use_container_width=False)
+
+
+def plot_stock_related_status(fname: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
+    fig = make_subplots(rows=len(exp_data_list), cols=1, subplot_titles=[data[0] for data in exp_data_list])
+    fig.update_layout(title_text=f"[{fname}] Step Sales v.s. Step Demand")
+    for i, (exp_name, line_col, sku_status) in enumerate(exp_data_list):
+        for idx, metric, legend in zip(
+            [1, 2, 3],
+            ["stock_status", "stock_in_transit_status", "stock_ordered_to_distribute_status"],
+            ["Stock", "In-Transit", "To-Distribute"]
+        ):
+            data = sku_status[metric][0, :, status_idx]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=list(range(len_period)),
+                    y=data,
+                    mode="lines",
+                    legendgroup=exp_name,
+                    name=legend,
+                    line=LINE_TYPE[f"Fea_{idx}"],
+                    showlegend=True if i == 0 else False,
+                ),
+                row=i + 1,
+                col=1,
+            )
+
+    st.plotly_chart(fig, use_container_width=False)
+
+
+def plot_demand_and_sales(fname: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
+    fig = make_subplots(rows=len(exp_data_list), cols=1, subplot_titles=[data[0] for data in exp_data_list])
+    fig.update_layout(title_text=f"[{fname}] Step Sales v.s. Step Demand")
+    for i, (exp_name, line_col, sku_status) in enumerate(exp_data_list):
+        for idx, metric, legend in zip([1, 2], ["demand_status", "sold_status"], ["Demand", "Sales"]):
+            data = sku_status[metric][0, :, status_idx]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=list(range(len_period)),
+                    y=data,
+                    mode="lines",
+                    legendgroup=exp_name,
+                    name=legend,
+                    line=LINE_TYPE[f"Fea_{idx}"],
+                    showlegend=True if i == 0 else False,
+                ),
+                row=i + 1,
+                col=1,
+            )
+
+    st.plotly_chart(fig, use_container_width=False)
+
+
+def main():
+    st.markdown(MARKDOWN_BODY, unsafe_allow_html=True)
+
+    ############################################################################
+    ## Experiment List
+    ############################################################################
+    st.sidebar.title("Experiment List")
+
+    log_dir = os.path.join(os.path.dirname(__file__), "../logs")
+    exp_list = sorted(os.listdir(log_dir))
+    exp_list = ["DUMMY"] + [exp for exp in exp_list if exp[:3] == "SCI"]
+
+    exp_num = st.sidebar.slider("Number of experiments", 1, 4, value=1)
+    exp_data_list, by_fname_type_sku, facility_by_name, len_period = set_exp_list(exp_num, exp_list, log_dir)
+
+    ############################################################################
+    ## General
+    ############################################################################
+    st.sidebar.title("General Filter")
+
+    default_facility = [fname for fname in ["CA_3", "CA_4"] if fname in by_fname_type_sku]
+    selected_facility = st.sidebar.multiselect("Facility", list(by_fname_type_sku.keys()), default_facility)
+
+    product_type_candidates = set()
+    for facility in selected_facility:
+        for prefix in by_fname_type_sku[facility].keys():
+            product_type_candidates.add(prefix)
+    selected_product_type = st.sidebar.selectbox("Product Type", sorted(list(product_type_candidates)), 1)
+
+    sku_candidates = set()
+    for facility in selected_facility:
+        for sku_name in by_fname_type_sku[facility][selected_product_type].keys():
+            sku_candidates.add(sku_name)
+    selected_sku_name = st.sidebar.selectbox("SKU Name", sorted(list(sku_candidates)), 0)
+
+    facility_idx_list = [facility_by_name[f_name][0] for f_name in selected_facility]
+    status_idx_list = [
+        by_fname_type_sku[facility][selected_product_type][selected_sku_name][0]
+        for facility in selected_facility
+    ]
+
+    ############################################################################
+    ## Balance Comparison
+    ############################################################################
+    st.header("Facility Balance")
+
+    if st.checkbox("Team Balance (Stores only)", True):
+        plot_team_balance(facility_by_name, len_period, exp_data_list)
+
+    if st.checkbox("Breakdown Balance by Facility", False):
+        for f_name, f_idx in zip(selected_facility, facility_idx_list):
+            plot_facility_balance(f_name, f_idx, len_period, exp_data_list)
+
+    ############################################################################
+    ## SKU Render
+    ############################################################################
+    st.header("SKU Comparison")
+
+    if st.checkbox("Stock-related Data", False):
+        for status_idx, fname in zip(status_idx_list, selected_facility):
+            plot_stock_related_status(fname, status_idx, len_period, exp_data_list)
+
+    if st.checkbox("Demand", False):
+        for status_idx, fname in zip(status_idx_list, selected_facility):
+            plot_single_sku_status(
+                f"[{fname}] Step Demand", "demand_status", status_idx, len_period, exp_data_list
+            )
+
+    if st.checkbox("Sales v.s. Demand", False):
+        for status_idx, fname in zip(status_idx_list, selected_facility):
+            plot_demand_and_sales(fname, status_idx, len_period, exp_data_list)
+
+    if st.checkbox("Balance", False):
+        for status_idx, fname in zip(status_idx_list, selected_facility):
+            plot_single_sku_status(
+                f"[{fname}] Step Balance", "balance_status", status_idx, len_period, exp_data_list
+            )
+
+
+if __name__ == "__main__":
+    main()

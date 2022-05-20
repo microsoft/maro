@@ -119,8 +119,29 @@ class SimulationTracker:
         self.reward_status = np.zeros(sku_status_shape)
         self.balance_status = np.zeros(sku_status_shape)
 
-    def dump_sku_status(self) -> None:
+    def dump_sku_status(self, entity_types: Tuple[type, ...]) -> None:
         dump_data = {
+            "step_balance": self.step_balances,
+            "step_reward": self.step_rewards,
+            "facility_infos": [
+                (
+                    i,  # index in step_balance & step_reward
+                    facility_id,
+                    facility_info.name,
+                    facility_info.class_name
+                )
+                for i, (facility_id, facility_info) in enumerate(self._facility_info_dict.items())
+            ],
+            "entity_infos": [
+                (
+                    self._entity_id2idx_in_status[entity_id],  # index in status
+                    entity_id,  # entity id
+                    self._facility_info_dict[self._entity_dict[entity_id].facility_id].name,  # facility name
+                    self._sku_metas[self._entity_dict[entity_id].skus.id].name,  # sku name
+                    self._entity_dict[entity_id].class_type  # entity class type
+                ) for entity_id in self.tracking_entity_ids
+                if issubclass(self._entity_dict[entity_id].class_type, entity_types)
+            ],
             "tracking_entity_ids": self.tracking_entity_ids,
             "stock_status": self.stock_status,
             "stock_in_transit_status": self.stock_in_transit_status,
@@ -131,7 +152,7 @@ class SimulationTracker:
             "balance_status": self.balance_status,
         }
 
-        with open(os.path.join(self._log_path, "sku_status.pkl"), "w") as fout:
+        with open(os.path.join(self._log_path, "sku_status.pkl"), "wb") as fout:
             pickle.dump(dump_data, fout)
 
     def load_sku_status(self, file_path: str=None) -> None:
@@ -139,7 +160,7 @@ class SimulationTracker:
             file_path = os.path.join(self._log_path, "sku_status.pkl")
 
         dump_data = {}
-        with open(file_path, "r") as fin:
+        with open(file_path, "rb") as fin:
             dump_data = pickle.load(fin)
 
         self.tracking_entity_ids = dump_data.get("tracking_entity_ids", [])

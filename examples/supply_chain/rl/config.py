@@ -21,8 +21,8 @@ consumer_features = ("order_base_cost", "latest_consumptions")
 IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
-vlt_buffer_days = 1.0
-num_products_to_sample = 500
+vlt_buffer_days = 1
+num_products_to_sample = 10
 
 ALGO="EOQ"
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
@@ -34,18 +34,14 @@ OR_NUM_CONSUMER_ACTIONS = 20
 NUM_CONSUMER_ACTIONS = 3
 OR_MANUFACTURE_ACTIONS = 20
 
-# TOPOLOGY = "super_vendor"
-TOPOLOGY = f"SCI_{num_products_to_sample}"
-# TOPOLOGY = "SCI_1.1"
+TOPOLOGY = f"SCI_{num_products_to_sample}_default"
+# TOPOLOGY = f"SCI_{num_products_to_sample}_shortest_no_ring"
+# TOPOLOGY = f"SCI_{num_products_to_sample}_cheapest_no_ring"
 
 TRAIN_STEPS = 180
 EVAL_STEPS = 60
 
-PLOT_RENDER = True
-DUMP_PRODUCT_METRICS = True
-LOG_CONSUMER_ACTIONS = True
-
-DUMP_CHOSEN_VLT_INFO = False
+PLOT_RENDER = False
 
 env_conf = {
     "scenario": "supply_chain",
@@ -68,20 +64,15 @@ workflow_settings: dict = {
     "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
     "log_path": "examples/supply_chain/logs/",
     "plot_render": PLOT_RENDER,
-    "dump_product_metrics": DUMP_PRODUCT_METRICS,
-    "log_consumer_actions": LOG_CONSUMER_ACTIONS,
+    "dump_product_metrics": True,
+    "log_consumer_actions": True,
+    "dump_chosen_vlt_info": True,
 }
 
 EXP_NAME = (
-    f"{TOPOLOGY}_{test_env_conf['durations']}_{ALGO}_"
-    f"{workflow_settings['vehicle_selection_method']}"
+    f"{TOPOLOGY}_{test_env_conf['durations']}_{ALGO}"
     f"{'_TR' if TEAM_REWARD else ''}"
     f"{'_SM' if SHARED_MODEL else ''}"
 )
 
 workflow_settings["log_path"] = f"examples/supply_chain/logs/{EXP_NAME}/"
-
-# 10: 1934612.420211792
-# 20: 14355712.158203125
-# 50: 9710599.291015625
-# 100: 36535436.5625
