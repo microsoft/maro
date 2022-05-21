@@ -140,14 +140,16 @@ def plot_team_balance(facility_by_name: Dict[str, tuple], len_period: int, exp_d
     facility_idx_list = [info[0] for info in facility_by_name.values() if issubclass(info[2], OuterRetailerFacility)]
 
     fig = go.Figure()
+    table_data = {"Exp Name": [], "Acc Balance": []}
     for exp_name, line_col, sku_status in exp_data_list:
         balance = sku_status["step_balance"]
         chosen_balance = [balance[0, :, i] for i in facility_idx_list]
+        accumulated_balance = np.cumsum(np.sum(chosen_balance, axis=0))
 
         fig.add_trace(
             go.Scatter(
                 x=list(range(len_period)),
-                y=np.cumsum(np.sum(chosen_balance, axis=0)),
+                y=accumulated_balance,
                 mode="lines",
                 legendgroup=exp_name,
                 name=exp_name,
@@ -155,7 +157,30 @@ def plot_team_balance(facility_by_name: Dict[str, tuple], len_period: int, exp_d
                 showlegend=False,
             ),
         )
+
+        table_data["Exp Name"].append(exp_name)
+        table_data["Acc Balance"].append(f"{accumulated_balance[-1]:,.0f}")
+
     st.plotly_chart(fig, use_container_width=True)
+
+    # st.table(table_data)
+
+    fig = go.Figure(data=go.Table(
+        header=dict(
+            values=["Exp Name", "Acc Balance"],
+            font=dict(size=24),
+            height=40,
+        ),
+        columnwidth=[100, 50],
+        cells=dict(
+            values=[table_data["Exp Name"], table_data["Acc Balance"]],
+            font=dict(size=24),
+            height=40,
+            align=['left', 'right']
+        ),
+    ))
+
+    st.plotly_chart(fig)
 
 
 def plot_facility_balance(f_name: str, idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
