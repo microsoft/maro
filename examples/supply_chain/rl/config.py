@@ -22,7 +22,6 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
 vlt_buffer_days = 1
-num_products_to_sample = 10
 
 ALGO="EOQ"
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
@@ -34,9 +33,15 @@ OR_NUM_CONSUMER_ACTIONS = 20
 NUM_CONSUMER_ACTIONS = 3
 OR_MANUFACTURE_ACTIONS = 20
 
-TOPOLOGY = f"SCI_{num_products_to_sample}_default"
-# TOPOLOGY = f"SCI_{num_products_to_sample}_shortest_no_ring"
-# TOPOLOGY = f"SCI_{num_products_to_sample}_cheapest_no_ring"
+num_products_to_sample = 10
+selection = VehicleSelection.DEFAULT_ONE
+storage_enlarged = True
+
+TOPOLOGY = (
+    f"SCI_{num_products_to_sample}"
+    f"_{selection.value}"
+    f"{'_storage_enlarged' if storage_enlarged else ''}"
+)
 
 TRAIN_STEPS = 180
 EVAL_STEPS = 60
@@ -61,7 +66,7 @@ workflow_settings: dict = {
     "pending_order_len": 4,
     "or_policy_vlt_buffer_days": vlt_buffer_days,
     "reward_normalization": 1.0,
-    "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
+    "vehicle_selection_method": VehicleSelection.RANDOM,
     "log_path": "examples/supply_chain/logs/",
     "plot_render": PLOT_RENDER,
     "dump_product_metrics": True,
@@ -70,7 +75,9 @@ workflow_settings: dict = {
 }
 
 EXP_NAME = (
-    f"{TOPOLOGY}_{test_env_conf['durations']}_{ALGO}"
+    f"{TOPOLOGY}"
+    # f"_{test_env_conf['durations']}"
+    f"_{ALGO}"
     f"{'_TR' if TEAM_REWARD else ''}"
     f"{'_SM' if SHARED_MODEL else ''}"
 )
