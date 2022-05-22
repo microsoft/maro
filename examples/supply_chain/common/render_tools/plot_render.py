@@ -67,6 +67,11 @@ class SimulationTracker:
         self.reward_status: np.ndarray = None
         self.balance_status: np.ndarray = None
 
+        self.consumer_purchased: np.ndarray = None
+        self.consumer_received: np.ndarray = None
+        self.manufacture_started: np.ndarray = None
+        self.manufacture_finished: np.ndarray = None
+
     def add_balance_and_reward(
         self, episode: int, tick: int, global_balance: float, global_reward: float,
         step_balances: Dict[int, float], step_rewards: Dict[int, float]
@@ -104,6 +109,16 @@ class SimulationTracker:
             self.sold_status[episode, t, i] = solds.get(entity_id, 0)
             self.reward_status[episode, t, i] = rewards.get(entity_id, 0)
             self.balance_status[episode, t, i] = balances.get(entity_id, 0)
+
+    def add_action_status(
+        self, consumer_purchased: np.ndarray, consumer_received: np.ndarray,
+        manufacture_started: np.ndarray, manufacture_finished: np.ndarray,
+    ) -> None:
+        self.consumer_purchased = consumer_purchased
+        self.consumer_received = consumer_received
+
+        self.manufacture_started = manufacture_started
+        self.manufacture_finished = manufacture_finished
 
     def _init_sku_status(self) -> None:
         for i, entity_id in enumerate(self.tracking_entity_ids):
@@ -150,6 +165,10 @@ class SimulationTracker:
             "sold_status": self.sold_status,
             "reward_status": self.reward_status,
             "balance_status": self.balance_status,
+            "consumer_purchased": self.consumer_purchased,
+            "consumer_received": self.consumer_received,
+            "manufacture_started": self.manufacture_started,
+            "manufacture_finished": self.manufacture_finished,
         }
 
         with open(os.path.join(self._log_path, "sku_status.pkl"), "wb") as fout:

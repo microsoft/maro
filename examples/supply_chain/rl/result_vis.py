@@ -119,19 +119,26 @@ def set_exp_list(exp_num: int, exp_list: List[str], log_dir: str):
 
 
 @st.cache
+def read_data(exp_log_dir: str) -> dict:
+    sku_status_path = os.path.join(exp_log_dir, "sku_status.pkl")
+    with open(sku_status_path, 'rb') as f:
+        sku_status = pickle.load(f)
+
+    network_path = os.path.join(exp_log_dir, "vendor.py")
+    with open(network_path, 'r') as f:
+        vendor_dict = json.load(f)
+
+    sku_status["vendor_dict"] = vendor_dict
+    sku_status["upstream_set_dict"] = _parse_vendor_dict(vendor_dict)
+
+    return sku_status
+
+
+@st.cache
 def read_all_data(exp_log_dir_list: List[str]):
     sku_status_list = []
     for exp_log_dir in exp_log_dir_list:
-        sku_status_path = os.path.join(exp_log_dir, "sku_status.pkl")
-        with open(sku_status_path, 'rb') as f:
-            sku_status = pickle.load(f)
-
-        network_path = os.path.join(exp_log_dir, "vendor.py")
-        with open(network_path, 'r') as f:
-            vendor_dict = json.load(f)
-
-        sku_status["vendor_dict"] = vendor_dict
-        sku_status["upstream_set_dict"] = _parse_vendor_dict(vendor_dict)
+        sku_status = read_data(exp_log_dir)
         sku_status_list.append(sku_status)
     return sku_status_list
 
@@ -171,7 +178,7 @@ def plot_team_balance(facility_by_name: Dict[str, tuple], len_period: int, exp_d
             font=dict(size=24),
             height=40,
         ),
-        columnwidth=[100, 50],
+        columnwidth=[250, 80],
         cells=dict(
             values=[table_data["Exp Name"], table_data["Acc Balance"]],
             font=dict(size=24),
@@ -252,6 +259,36 @@ def plot_stock_related_status(fname: str, status_idx: int, len_period: int, exp_
     st.plotly_chart(fig, use_container_width=True)
 
 
+def plot_consumer_action_status(
+    fname: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]
+):
+    fig = make_subplots(rows=len(exp_data_list), cols=1, subplot_titles=[data[0] for data in exp_data_list])
+    fig.update_layout(title_text=f"[{fname}] purchased quantity & received quantity")
+    for i, (exp_name, line_col, sku_status) in enumerate(exp_data_list):
+        for idx, metric, legend in zip(
+            [1, 2],
+            ["consumer_purchased", "consumer_received"],
+            ["Purchased", "Received"]
+        ):
+            data = sku_status[metric][0, :, status_idx]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=list(range(len_period)),
+                    y=data,
+                    mode="lines",
+                    legendgroup=exp_name,
+                    name=legend,
+                    line=LINE_TYPE[f"Fea_{idx}"],
+                    showlegend=True if i == 0 else False,
+                ),
+                row=i + 1,
+                col=1,
+            )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
 def plot_demand_and_sales(fname: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]):
     fig = make_subplots(rows=len(exp_data_list), cols=1, subplot_titles=[data[0] for data in exp_data_list])
     fig.update_layout(title_text=f"[{fname}] Step Sales v.s. Step Demand")
@@ -302,6 +339,8 @@ def plot_route_network(exp_data: Tuple[str, int, dict]):
             graph.edge(f_up, f_down)
 
     st.graphviz_chart(graph, use_container_width=True)
+
+    # st.json(upstream_set_dict)
 
 
 def main():
@@ -377,6 +416,10 @@ def main():
     if st.checkbox("Stock-related Data", False):
         for status_idx, fname in zip(status_idx_list, selected_facility):
             plot_stock_related_status(fname, status_idx, len_period, exp_data_list)
+
+    if st.checkbox("Consumer Action", False):
+        for status_idx, fname in zip(status_idx_list, selected_facility):
+            plot_consumer_action_status(fname, status_idx, len_period, exp_data_list)
 
     if st.checkbox("Demand", False):
         for status_idx, fname in zip(status_idx_list, selected_facility):

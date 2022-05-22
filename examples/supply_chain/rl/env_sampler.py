@@ -27,10 +27,10 @@ from maro.simulator.scenarios.supply_chain import (
 )
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
-from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
+from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo, OuterRetailerFacility
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
-from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, StorageUnitInfo
+from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, ProductUnit, StorageUnitInfo
 from maro.utils.logger import Logger, LogFormat
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
@@ -723,7 +723,7 @@ class SCEnvSampler(AbsEnvSampler):
                         consumer_action_dict[parent_entity.id] = (
                             action, or_action, round(cache_element.reward_dict[entity_id], 2)
                         )
-            self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
+            # self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
 
         self._tracker.add_balance_and_reward(
             episode=0,
@@ -748,17 +748,62 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._step_idx += 1
 
-        self._logger.info(f"tracker sample & sku status added")
+        # self._logger.info(f"tracker sample & sku status added")
 
         if self._workflow_settings["dump_product_metrics"]:
             self._step_product_metric_track(cache_element.tick)
-            self._logger.info(f"dump step product metrics updated")
+            # self._logger.info(f"dump step product metrics updated")
 
         if not self._fixed_vlt:
             self._cached_vlt.clear()
 
+    def _get_action_status(self, ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        first_tick, last_tick = self._tracker.eval_period
+        len_period = last_tick - first_tick
+        status_shape = (1, len_period, len(self._tracker.tracking_entity_ids))
+        consumer_purchased = np.zeros(status_shape)
+        consumer_received = np.zeros(status_shape)
+        manufacture_started = np.zeros(status_shape)
+        manufacture_finished = np.zeros(status_shape)
+
+        ticks = list(range(first_tick, last_tick))
+        purchased = self._env.snapshot_list["consumer"][ticks::"purchased"].reshape(len_period, -1)
+        received = self._env.snapshot_list["consumer"][ticks::"received"].reshape(len_period, -1)
+        started = self._env.snapshot_list["manufacture"][ticks::"start_manufacture_quantity"].reshape(len_period, -1)
+        finished = self._env.snapshot_list["manufacture"][ticks::"finished_quantity"].reshape(len_period, -1)
+
+        for i, entity_id in enumerate(self._tracker.tracking_entity_ids):
+            entity = self._entity_dict[entity_id]
+
+            if issubclass(entity.class_type, FacilityBase):
+                continue
+
+            if issubclass(entity.class_type, (ConsumerUnit, ProductUnit)):
+                product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+                if product_info.consumer_info is not None:
+                    node_idx = product_info.consumer_info.node_index
+                    consumer_purchased[0, :, i] = purchased[:, node_idx]
+                    consumer_received[0, :, i] = received[:, node_idx]
+
+            if issubclass(entity.class_type, (ManufactureUnit, ProductUnit)):
+                product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+                if product_info.manufacture_info is not None:
+                    node_idx = product_info.manufacture_info.node_index
+                    manufacture_started[0, :, i] = started[:, node_idx]
+                    manufacture_finished[0, :, i] = finished[:, node_idx]
+
+        return consumer_purchased, consumer_received, manufacture_started, manufacture_finished
+
     def post_evaluate(self, info_list: list, ep: int) -> None:
         self._eval_reward_list.append(self._eval_reward)
+
+        consumer_purchased, consumer_received, manufacture_started, manufacture_finished = self._get_action_status()
+        self._tracker.add_action_status(
+            consumer_purchased=consumer_purchased,
+            consumer_received=consumer_received,
+            manufacture_started=manufacture_started,
+            manufacture_finished=manufacture_finished,
+        )
 
         if self._eval_reward > self._max_eval_reward:
             self._max_eval_reward = self._eval_reward
