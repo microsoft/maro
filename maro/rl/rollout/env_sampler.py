@@ -174,6 +174,23 @@ class ExpElement:
     def num_agents(self) -> int:
         return len(self.agent_state_dict)
 
+    def split_contents_by_agent(self) -> Dict[Any, ExpElement]:
+        ret = {}
+        for agent_name in self.agent_state_dict.keys():
+            ret[agent_name] = ExpElement(
+                tick=self.tick,
+                state=self.state,
+                agent_state_dict={agent_name: self.agent_state_dict[agent_name]},
+                action_dict={agent_name: self.action_dict[agent_name]},
+                reward_dict={agent_name: self.reward_dict[agent_name]},
+                terminal_dict={agent_name: self.terminal_dict[agent_name]},
+                next_state=self.next_state,
+                next_agent_state_dict={
+                    agent_name: self.next_agent_state_dict[agent_name]
+                } if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict else {},
+            )
+        return ret
+
     def split_contents(self, agent2trainer: Dict[Any, str]) -> Dict[str, ExpElement]:
         """Split the ExpElement's contents by trainer.
 
@@ -238,6 +255,13 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         assert self._reward_eval_delay is None or self._reward_eval_delay >= 0
 
+    def build_easy(self, agent2policy: Dict[Any, RLPolicy]) -> None:
+        self._rl_policy_dict = self._policy_dict = {policy.name: policy for policy in agent2policy.values()}
+        self._agent2policy = {agent_name: policy.name for agent_name, policy in agent2policy.items()}
+        self._agent_wrapper = self._agent_wrapper_cls(self._policy_dict, self._agent2policy)
+        self._trainable_policies = set(agent2policy.values())
+        self._trainable_agents = set(agent2policy.keys())
+
     def build(
         self,
         rl_component_bundle: RLComponentBundle,
@@ -247,7 +271,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
         """
         self._env: Optional[Env] = None
-        self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
         self._policy_dict = {
             policy_name: rl_component_bundle.policy_creator[policy_name]()
