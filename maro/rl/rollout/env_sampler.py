@@ -253,7 +253,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._agent_wrapper_cls = agent_wrapper_cls
 
         self._event = None
-        self._is_done = True
+        self._end_of_episode = True
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
 
@@ -362,9 +362,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     def _step(self, actions: Optional[list]) -> None:
-        _, self._event, self._is_done = self._env.step(actions)
+        _, self._event, self._end_of_episode = self._env.step(actions)
         self._state, self._agent_state_dict = (None, {}) \
-            if self._is_done else self._get_global_and_agent_state(self._event)
+            if self._end_of_episode else self._get_global_and_agent_state(self._event)
 
     def _calc_reward(self, cache_element: CacheElement) -> None:
         cache_element.reward_dict = self._get_reward(
@@ -392,7 +392,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._agent_last_index.clear()
         self._step(None)
 
-    def _filter_trainable_agents(self, original_dict: dict) -> dict:
+    def _select_trainable_agents(self, original_dict: dict) -> dict:
         return {
             k: v
             for k, v in original_dict.items()
@@ -413,7 +413,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         # Init the env
         self._env = self._learn_env
-        if self._is_done:
+        if self._end_of_episode:
             self._reset()
 
         # Update policy state if necessary
@@ -423,7 +423,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         # Collect experience
         self._agent_wrapper.explore()
         steps_to_go = float("inf") if num_steps is None else num_steps
-        while not self._is_done and steps_to_go > 0:
+        while not self._end_of_episode and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
@@ -433,9 +433,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 tick=self._env.tick,
                 event=self._event,
                 state=self._state,
-                agent_state_dict=self._filter_trainable_agents(self._agent_state_dict),
-                action_dict=self._filter_trainable_agents(action_dict),
-                env_action_dict=self._filter_trainable_agents(env_action_dict),
+                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                action_dict=self._select_trainable_agents(action_dict),
+                env_action_dict=self._select_trainable_agents(env_action_dict),
                 # The following will be generated later
                 reward_dict={},
                 terminal_dict={},
@@ -452,7 +452,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             steps_to_go -= 1
 
         for agent_name, i in self._agent_last_index.items():
-            self._trans_cache[i].terminal_dict[agent_name] = self._is_done
+            self._trans_cache[i].terminal_dict[agent_name] = self._end_of_episode
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
         experiences: List[ExpElement] = []
@@ -470,7 +470,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         }
 
         return {
-            "end_of_episode": self._is_done,
+            "end_of_episode": self._end_of_episode,
             "experiences": [experiences],
             "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
         }
@@ -504,7 +504,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self.set_policy_state(policy_state)
 
         self._agent_wrapper.exploit()
-        while not self._is_done:
+        while not self._end_of_episode:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
@@ -513,9 +513,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 tick=self._env.tick,
                 event=self._event,
                 state=self._state,
-                agent_state_dict=self._filter_trainable_agents(self._agent_state_dict),
-                action_dict=self._filter_trainable_agents(action_dict),
-                env_action_dict=self._filter_trainable_agents(env_action_dict),
+                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                action_dict=self._select_trainable_agents(action_dict),
+                env_action_dict=self._select_trainable_agents(env_action_dict),
                 # The following will be generated later
                 reward_dict={},
                 terminal_dict={},
@@ -532,7 +532,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self._append_cache_element(cache_element)
 
         for agent_name, i in self._agent_last_index.items():
-            self._trans_cache[i].terminal_dict[agent_name] = self._is_done
+            self._trans_cache[i].terminal_dict[agent_name] = self._end_of_episode
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
