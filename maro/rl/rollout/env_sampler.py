@@ -372,18 +372,29 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         )
         self._post_eval_step(cache_element)
 
-    def _append_cache_element(self, cache_element: CacheElement) -> None:
-        self._trans_cache.append(cache_element)
+    def _append_cache_element(self, cache_element: Optional[CacheElement]) -> None:
+        """`cache_element` == None means we are processing the last element in trans_cache"""
+        if cache_element is None:
+            if len(self._trans_cache) > 0:
+                self._trans_cache[-1].next_state = self._trans_cache[-1].state
 
-        cur_index = len(self._trans_cache) - 1
-        if len(self._trans_cache) > 0:
-            self._trans_cache[-1].next_state = cache_element.state
-        for agent_name in cache_element.agent_names:
-            if agent_name in self._agent_last_index:
-                i = self._agent_last_index[agent_name]
-                self._trans_cache[i].terminal_dict[agent_name] = False
-                self._trans_cache[i].next_agent_state_dict[agent_name] = cache_element.agent_state_dict[agent_name]
-            self._agent_last_index[agent_name] = cur_index
+            for agent_name, i in self._agent_last_index.items():
+                e = self._trans_cache[i]
+                e.terminal_dict[agent_name] = self._end_of_episode
+                e.next_agent_state_dict[agent_name] = e.agent_state_dict[agent_name]
+        else:
+            self._trans_cache.append(cache_element)
+
+            if len(self._trans_cache) > 0:
+                self._trans_cache[-1].next_state = cache_element.state
+
+            cur_index = len(self._trans_cache) - 1
+            for agent_name in cache_element.agent_names:
+                if agent_name in self._agent_last_index:
+                    i = self._agent_last_index[agent_name]
+                    self._trans_cache[i].terminal_dict[agent_name] = False
+                    self._trans_cache[i].next_agent_state_dict[agent_name] = cache_element.agent_state_dict[agent_name]
+                self._agent_last_index[agent_name] = cur_index
 
     def _reset(self) -> None:
         self._env.reset()
@@ -450,9 +461,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 self._calc_reward(cache_element)
             self._append_cache_element(cache_element)
             steps_to_go -= 1
-
-        for agent_name, i in self._agent_last_index.items():
-            self._trans_cache[i].terminal_dict[agent_name] = self._end_of_episode
+        self._append_cache_element(None)
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
         experiences: List[ExpElement] = []
@@ -530,9 +539,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 self._calc_reward(cache_element)
 
             self._append_cache_element(cache_element)
-
-        for agent_name, i in self._agent_last_index.items():
-            self._trans_cache[i].terminal_dict[agent_name] = self._end_of_episode
+        self._append_cache_element(None)
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
