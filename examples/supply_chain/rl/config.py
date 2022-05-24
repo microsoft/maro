@@ -65,22 +65,30 @@ test_env_conf = {
 }
 
 base_policy_conf = {
-    "oracle": {
+    "dynamic_from_oracle": {
         "data_loader": DataLoaderFromFile({
-            "oracle_file": "oracle_samples.csv"
-        }),
-        "update_frequency": np.inf
-    },
-    "dynamic": {
-        "data_loader": DataLoaderFromHistory(
-        {
-            "history_len": 27, 
+            "oracle_file": "oracle_samples.csv",
+            "history_len": 28, 
             "future_len": 7
-        }
-        ),
+        }),
         "update_frequency": 3
     },
-    "static": {
+    "static_from_oracle": {
+        "data_loader": DataLoaderFromFile({
+            "oracle_file": "oracle_samples.csv",
+            "history_len": np.inf, 
+            "future_len": np.inf,
+        }),
+        "update_frequency": np.inf,
+    },
+    "dynamic_from_history": {
+        "data_loader": DataLoaderFromHistory({
+            "history_len": 28, 
+            "future_len": 7
+        }),
+        "update_frequency": 3
+    },
+    "static_from_history": {
         "data_loader": DataLoaderFromHistory({
             "history_len": np.inf, 
             "future_len": 7

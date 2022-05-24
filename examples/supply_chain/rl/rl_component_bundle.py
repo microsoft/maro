@@ -85,7 +85,7 @@ class SupplyChainBundle(RLComponentBundle):
         get_policy = (get_dqn_policy if ALGO == "DQN" else get_ppo_policy)
         policy_creator = {
             "consumer_baseline_policy": lambda: ConsumerMinMaxPolicy("consumer_baseline_policy"),
-            "base_stock_policy": lambda: BaseStockPolicy("base_stock_policy", base_policy_conf["dynamic"]),
+            "base_stock_policy": lambda: BaseStockPolicy("base_stock_policy", base_policy_conf["dynamic_from_oracle"]),
             "manufacturer_policy": lambda: ManufacturerSSPolicy("manufacture_policy"),
             "consumer.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS, "consumer.policy"),
             "consumer_CA.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS, "consumer_CA.policy"),

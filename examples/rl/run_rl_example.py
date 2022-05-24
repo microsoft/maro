@@ -1,3 +1,5 @@
+import sys
+sys.path.append(".")
 import argparse
 
 from maro.cli.local.commands import run
@@ -11,5 +13,6 @@ def get_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    args = get_args()
-    run(conf_path=args.conf_path, containerize=False, evaluate_only=args.evaluate_only)
+    # args = get_args()
+    # run(conf_path=args.conf_path, containerize=False, evaluate_only=args.evaluate_only)
+    run(conf_path=r"examples\rl\supply_chain.yml", containerize=False, evaluate_only=True)

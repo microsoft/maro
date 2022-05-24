@@ -10,11 +10,10 @@ class BaseStockPolicy(RuleBasedPolicy):
 
         self.update_frequency = policy_para["update_frequency"]
         self.data_loader = policy_para["data_loader"]
-        self.start_index = 0
         self.step = {}
         self.stock_quantity = {}
 
-    def calculate_stock_quantity(self, input_df, state):
+    def calculate_stock_quantity(self, input_df, state, current_index):
         time_hrz_len = len(input_df)
         price = np.round(input_df["price"], 1)
         storage_cost = np.round(input_df["storage_cost"], 1)
@@ -36,8 +35,8 @@ class BaseStockPolicy(RuleBasedPolicy):
         constrs=[]
         constrs.extend([
             stocks >= 0, transits >= 0, sales >= 0, buy_in>=0, buy_arv>=0, buy>=0, buy[:time_hrz_len]==0,
-            stocks[0] == state["product_level"],
-            transits[0] == state["in_transition_quantity"],
+            stocks[current_index] == state["product_level"],
+            transits[current_index] == state["in_transition_quantity"],
             stocks[1:time_hrz_len+1] == stocks[0:time_hrz_len] + buy_arv - sales,
             transits[1:time_hrz_len+1] == transits[0:time_hrz_len] - buy_arv + buy_in,
             sales <= stocks[0:time_hrz_len],
@@ -56,12 +55,18 @@ class BaseStockPolicy(RuleBasedPolicy):
 
     def _get_action_quantity(self, state: dict) -> int:
         entity_id = state["entity_id"]
-        if entity_id not in self.step or self.step[entity_id] == self.update_frequency:
+        if entity_id not in self.step:
             self.step[entity_id] = 0
-            target_df, today_index = self.data_loader.load(state)
-            self.stock_quantity[entity_id] = self.calculate_stock_quantity(target_df, state)[today_index:]
-        booked_quantity = state["product_level"] + state["in_transition_quantity"]# - state["to_distribute_quantity"]
-        quantity = self.stock_quantity[entity_id][self.step[entity_id]] - booked_quantity
+        state["step"] = self.step[entity_id]
+        if self.step[entity_id] < self.data_loader.data_loader_conf["history_len"]:
+            current_index = self.step[entity_id]
+        else:
+            current_index = self.data_loader.data_loader_conf["history_len"] + self.step[entity_id] % self.update_frequency
+        if self.step[entity_id] % self.update_frequency == 0:
+            target_df = self.data_loader.load(state)
+            self.stock_quantity[entity_id] = self.calculate_stock_quantity(target_df, state, current_index)
+        booked_quantity = state["product_level"] + state["in_transition_quantity"]
+        quantity = self.stock_quantity[entity_id][current_index] - booked_quantity
         quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
         self.step[entity_id] += 1
         return int(quantity)
