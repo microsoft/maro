@@ -5,7 +5,7 @@
 from typing import Dict, List, Optional
 
 import scipy.stats as st
-
+import numpy as np
 from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity, VendorLeadingTimeInfo
 
@@ -64,6 +64,8 @@ class ScOrAgentStates:
         product_levels: List[int],
         in_transit_quantity: List[int],
         to_distribute_quantity: List[int],
+        history_demand: np.ndarray,
+        history_price: np.ndarray,
         chosen_vlt_info: Optional[VendorLeadingTimeInfo],
         fixed_vlt: bool,
     ) -> dict:
@@ -91,4 +93,12 @@ class ScOrAgentStates:
         state["to_distribute_quantity"] = to_distribute_quantity[self._global_sku_id2idx[entity.skus.id]]
 
         state["cur_vlt"] = chosen_vlt_info.vlt + 1 if chosen_vlt_info else 0
+        state["entity_id"] = entity_id
+
+        product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+        if product_info.seller_info is not None:
+            seller_index = product_info.seller_info.node_index
+            product_index = product_info.node_index
+            state["history_demand"] = history_demand[:, seller_index]
+            state["history_price"] = history_price[:, product_index]
         return state

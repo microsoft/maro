@@ -2,7 +2,9 @@
 # Licensed under the MIT license.
 
 from enum import Enum
+import numpy as np
 
+from .algorithms.base_policy_data_loader import DataLoaderFromFile, DataLoaderFromHistory
 
 class VehicleSelection(Enum):
     DEFAULT_ONE = "default"  # Choose the default one
@@ -19,6 +21,9 @@ IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND = 0, 1, 2
 
 consumer_features = ("order_base_cost", "latest_consumptions")
 IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
+
+product_features = ("price", )
+IDX_PRODUCT_PRICE = 0
 
 
 vlt_buffer_days = 1.0
@@ -57,6 +62,31 @@ test_env_conf = {
     "scenario": "supply_chain",
     "topology": TOPOLOGY,
     "durations": TRAIN_STEPS + EVAL_STEPS,  # number of ticks per episode
+}
+
+base_policy_conf = {
+    "oracle": {
+        "data_loader": DataLoaderFromFile({
+            "oracle_file": "oracle_samples.csv"
+        }),
+        "update_frequency": np.inf
+    },
+    "dynamic": {
+        "data_loader": DataLoaderFromHistory(
+        {
+            "history_len": 27, 
+            "future_len": 7
+        }
+        ),
+        "update_frequency": 3
+    },
+    "static": {
+        "data_loader": DataLoaderFromHistory({
+            "history_len": np.inf, 
+            "future_len": 7
+        }),
+        "update_frequency": 3
+    }
 }
 
 workflow_settings: dict = {

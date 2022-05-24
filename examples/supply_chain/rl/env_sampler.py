@@ -36,7 +36,7 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 from examples.supply_chain.common.render_tools.plot_render import SimulationTracker
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
-from .config import consumer_features, distribution_features, seller_features, IDX_SELLER_DEMAND, IDX_SELLER_SOLD
+from .config import IDX_SELLER_DEMAND, IDX_PRODUCT_PRICE, consumer_features, distribution_features, seller_features, product_features
 from .config import env_conf, test_env_conf, workflow_settings, DUMP_CHOSEN_VLT_INFO
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
 from .or_agent_state import ScOrAgentStates
@@ -361,6 +361,7 @@ class SCEnvSampler(AbsEnvSampler):
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
+        history_feature_shape = (len(self._env.snapshot_list), -1)
         state = self._or_agent_states.update_entity_state(
             entity_id=entity.id,
             storage_capacity_dict=self._storage_capacity_dict,
@@ -368,6 +369,8 @@ class SCEnvSampler(AbsEnvSampler):
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_quantity=self._facility_in_transit_quantity[entity.facility_id],
             to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
+            history_demand=self._env.snapshot_list["seller"][::seller_features[IDX_SELLER_DEMAND]].reshape(history_feature_shape),
+            history_price=self._env.snapshot_list["product"][::product_features[IDX_PRODUCT_PRICE]].reshape(history_feature_shape),
             chosen_vlt_info=self._get_vlt_info(entity.id),
             fixed_vlt=self._fixed_vlt,
         )
