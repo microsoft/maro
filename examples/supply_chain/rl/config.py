@@ -4,8 +4,6 @@
 from enum import Enum
 import numpy as np
 
-from .algorithms.base_policy_data_loader import DataLoaderFromFile, DataLoaderFromHistory
-
 class VehicleSelection(Enum):
     DEFAULT_ONE = "default"  # Choose the default one
     RANDOM = "random"  # Randomly choosing one for each decision
@@ -29,8 +27,8 @@ IDX_PRODUCT_PRICE = 0
 vlt_buffer_days = 1.0
 num_products_to_sample = 500
 
-ALGO="EOQ"
-assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
+ALGO="BSP"
+assert ALGO in ["DQN", "EOQ", "PPO", "BSP"], "wrong ALGO"
 
 TEAM_REWARD = False
 SHARED_MODEL = False
@@ -65,36 +63,11 @@ test_env_conf = {
 }
 
 base_policy_conf = {
-    "dynamic_from_oracle": {
-        "data_loader": DataLoaderFromFile({
-            "oracle_file": "oracle_samples.csv",
-            "history_len": 28, 
-            "future_len": 7
-        }),
-        "update_frequency": 3
-    },
-    "static_from_oracle": {
-        "data_loader": DataLoaderFromFile({
-            "oracle_file": "oracle_samples.csv",
-            "history_len": np.inf, 
-            "future_len": np.inf,
-        }),
-        "update_frequency": np.inf,
-    },
-    "dynamic_from_history": {
-        "data_loader": DataLoaderFromHistory({
-            "history_len": 28, 
-            "future_len": 7
-        }),
-        "update_frequency": 3
-    },
-    "static_from_history": {
-        "data_loader": DataLoaderFromHistory({
-            "history_len": np.inf, 
-            "future_len": 7
-        }),
-        "update_frequency": 3
-    }
+    "data_loader": "DataLoaderFromHistory",
+    "oracle_file": "oracle_samples.csv", # Only need in DataLoaderFromFile loader
+    "history_len": 28, # E.g., mapping to np.inf in instance creation if it is static
+    "future_len": 7,
+    "update_frequency": 3 # E.g., mapping to np.inf in instance creation if no update
 }
 
 workflow_settings: dict = {

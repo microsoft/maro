@@ -1,5 +1,6 @@
 import pandas as pd
-import numpy as np
+
+
 class BaseDataLoader(object):
     def __init__(self, data_loader_conf) -> None:
         super().__init__()

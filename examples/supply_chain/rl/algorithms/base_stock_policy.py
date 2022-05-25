@@ -1,15 +1,16 @@
-
 import numpy as np
 import cvxpy as cp
 from .rule_based import RuleBasedPolicy
 from typing import List
+from .base_policy_data_loader import *
+
 
 class BaseStockPolicy(RuleBasedPolicy):
     def __init__(self, name: str, policy_para) -> None:
         super().__init__(name)
 
         self.update_frequency = policy_para["update_frequency"]
-        self.data_loader = policy_para["data_loader"]
+        self.data_loader = eval(policy_para["data_loader"])(policy_para)
         self.step = {}
         self.stock_quantity = {}
 

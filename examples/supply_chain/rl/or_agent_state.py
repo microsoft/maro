@@ -4,8 +4,9 @@
 
 from typing import Dict, List, Optional
 
-import scipy.stats as st
 import numpy as np
+import scipy.stats as st
+
 from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity, VendorLeadingTimeInfo
 
