@@ -361,16 +361,16 @@ class SCEnvSampler(AbsEnvSampler):
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
-        history_feature_shape = (len(self._env.snapshot_list), -1)
         state = self._or_agent_states.update_entity_state(
             entity_id=entity.id,
+            tick=self._env.tick,
             storage_capacity_dict=self._storage_capacity_dict,
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_quantity=self._facility_in_transit_quantity[entity.facility_id],
             to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
-            history_demand=self._env.snapshot_list["seller"][::seller_features[IDX_SELLER_DEMAND]].reshape(history_feature_shape),
-            history_price=self._env.snapshot_list["product"][::product_features[IDX_PRODUCT_PRICE]].reshape(history_feature_shape),
+            history_demand=self.history_demand,
+            history_price=self.history_price,
             chosen_vlt_info=self._get_vlt_info(entity.id),
             fixed_vlt=self._fixed_vlt,
         )
@@ -460,6 +460,17 @@ class SCEnvSampler(AbsEnvSampler):
         self._cur_seller_hist_states = self._env.snapshot_list["seller"][
             sale_hist_ticks::seller_features
         ].reshape(self._env_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
+        
+        history_feature_shape = (len(self._env.snapshot_list), -1)
+        # Get all history demand from snapshot list.
+        self.history_demand=self._env.snapshot_list["seller"][
+            ::seller_features[IDX_SELLER_DEMAND]
+        ].reshape(history_feature_shape)
+
+        # Get all history selling price from snapshot list.
+        self.history_price=self._env.snapshot_list["product"][
+            ::product_features[IDX_PRODUCT_PRICE]
+        ].reshape(history_feature_shape)
 
         # 1. Update storage product quantity info.
         # 2. Update facility product utilization info.

@@ -1,8 +1,10 @@
+from typing import List
+
 import numpy as np
 import cvxpy as cp
-from .rule_based import RuleBasedPolicy
-from typing import List
+
 from .base_policy_data_loader import *
+from .rule_based import RuleBasedPolicy
 
 
 class BaseStockPolicy(RuleBasedPolicy):
@@ -14,7 +16,7 @@ class BaseStockPolicy(RuleBasedPolicy):
         self.step = {}
         self.stock_quantity = {}
 
-    def calculate_stock_quantity(self, input_df, state, current_index):
+    def calculate_stock_quantity(self, input_df: pd.DataFrame, state: dict, current_index: int) -> np.ndarray:
         time_hrz_len = len(input_df)
         price = np.round(input_df["price"], 1)
         storage_cost = np.round(input_df["storage_cost"], 1)
@@ -56,20 +58,16 @@ class BaseStockPolicy(RuleBasedPolicy):
 
     def _get_action_quantity(self, state: dict) -> int:
         entity_id = state["entity_id"]
-        if entity_id not in self.step:
-            self.step[entity_id] = 0
-        state["step"] = self.step[entity_id]
-        if self.step[entity_id] < self.data_loader.data_loader_conf["history_len"]:
-            current_index = self.step[entity_id]
+        if state["tick"] < self.data_loader.data_loader_conf["history_len"]:
+            current_index = state["tick"]
         else:
-            current_index = self.data_loader.data_loader_conf["history_len"] + self.step[entity_id] % self.update_frequency
-        if self.step[entity_id] % self.update_frequency == 0:
+            current_index = self.data_loader.data_loader_conf["history_len"] + state["tick"] % self.update_frequency
+        if state["tick"] % self.update_frequency == 0:
             target_df = self.data_loader.load(state)
             self.stock_quantity[entity_id] = self.calculate_stock_quantity(target_df, state, current_index)
         booked_quantity = state["product_level"] + state["in_transition_quantity"]
         quantity = self.stock_quantity[entity_id][current_index] - booked_quantity
         quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
-        self.step[entity_id] += 1
         return int(quantity)
     
     def _rule(self, states: List[dict]) -> List[int]:

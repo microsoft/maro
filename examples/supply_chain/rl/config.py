@@ -63,7 +63,7 @@ test_env_conf = {
 }
 
 base_policy_conf = {
-    "data_loader": "DataLoaderFromHistory",
+    "data_loader": "DataLoaderFromFile",
     "oracle_file": "oracle_samples.csv", # Only need in DataLoaderFromFile loader
     "history_len": 28, # E.g., mapping to np.inf in instance creation if it is static
     "future_len": 7,
