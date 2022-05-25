@@ -26,7 +26,6 @@ class DiscreteMADDPGParams(TrainerParams):
     update_target_every (int, default=5): Number of gradient steps between target model updates.
     soft_update_coef (float, default=0.5): Soft update coefficient, e.g.,
         target_model = (soft_update_coef) * eval_model + (1-soft_update_coef) * target_model.
-    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
     q_value_loss_cls (Callable, default=None): Critic loss function. If it is None, use MSE.
     shared_critic (bool, default=False): Whether different policies use shared critic or individual policies.
     """
@@ -34,7 +33,6 @@ class DiscreteMADDPGParams(TrainerParams):
     num_epoch: int = 10
     update_target_every: int = 5
     soft_update_coef: float = 0.5
-    reward_discount: float = 0.9
     q_value_loss_cls: Callable = None
     shared_critic: bool = False
 

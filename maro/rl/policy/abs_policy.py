@@ -142,6 +142,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         name: str,
         state_dim: int,
         action_dim: int,
+        is_discrete_action: bool,
         trainable: bool = True,
     ) -> None:
         super(RLPolicy, self).__init__(name=name, trainable=trainable)
@@ -150,6 +151,8 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         self._is_exploring = False
 
         self._device: Optional[torch.device] = None
+
+        self.is_discrete_action = is_discrete_action
 
     @property
     def state_dim(self) -> int:
