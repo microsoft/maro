@@ -431,7 +431,7 @@ def main():
     ############################################################################
     st.sidebar.title("Experiment List")
 
-    log_dir = os.path.join(os.path.dirname(__file__), "../logs")
+    log_dir = os.path.join(os.path.dirname(__file__), "../../logs")
     exp_list = sorted(os.listdir(log_dir))
     exp_list = ["DUMMY"] + [exp for exp in exp_list if exp[:3] == "SCI"]
 

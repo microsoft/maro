@@ -96,7 +96,7 @@ EXP_NAME = (
     f"_{ALGO}"
     f"{'_TR' if TEAM_REWARD else ''}"
     f"{'_SM' if SHARED_MODEL else ''}"
-    f"_vlt-{m_vlt}-{s_vlt}-{ns_vlt}"
+    # f"_vlt-{m_vlt}-{s_vlt}-{ns_vlt}"
 )
 
 workflow_settings["log_path"] = f"examples/supply_chain/logs/{EXP_NAME}/"
