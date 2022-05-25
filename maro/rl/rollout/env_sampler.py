@@ -265,13 +265,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         assert self._reward_eval_delay is None or self._reward_eval_delay >= 0
 
-    def build_easy(self, agent2policy: Dict[Any, RLPolicy]) -> None:
-        self._rl_policy_dict = self._policy_dict = {policy.name: policy for policy in agent2policy.values()}
-        self._agent2policy = {agent_name: policy.name for agent_name, policy in agent2policy.items()}
-        self._agent_wrapper = self._agent_wrapper_cls(self._policy_dict, self._agent2policy)
-        self._trainable_policies = set(agent2policy.values())
-        self._trainable_agents = set(agent2policy.keys())
-
     def build(
         self,
         rl_component_bundle: RLComponentBundle,
@@ -370,7 +363,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         cache_element.reward_dict = self._get_reward(
             cache_element.env_action_dict, cache_element.event, cache_element.tick,
         )
-        self._post_eval_step(cache_element)
 
     def _append_cache_element(self, cache_element: Optional[CacheElement]) -> None:
         """`cache_element` == None means we are processing the last element in trans_cache"""
@@ -459,6 +451,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
             if self._reward_eval_delay is None:
                 self._calc_reward(cache_element)
+                self._post_step(cache_element)
             self._append_cache_element(cache_element)
             steps_to_go -= 1
         self._append_cache_element(None)
@@ -470,6 +463,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             # !: Here the reward calculation method requires the given tick is enough and must be used then.
             if self._reward_eval_delay is not None:
                 self._calc_reward(cache_element)
+                self._post_step(cache_element)
             experiences.append(cache_element.make_exp_element())
 
         self._agent_last_index = {
@@ -537,6 +531,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
             if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
                 self._calc_reward(cache_element)
+                self._post_eval_step(cache_element)
 
             self._append_cache_element(cache_element)
         self._append_cache_element(None)
@@ -546,6 +541,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             cache_element = self._trans_cache.pop(0)
             if self._reward_eval_delay is not None:
                 self._calc_reward(cache_element)
+                self._post_eval_step(cache_element)
 
         return {"info": [self._info]}
 
