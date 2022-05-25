@@ -1,7 +1,7 @@
 from typing import List
 
-import numpy as np
 import cvxpy as cp
+import numpy as np
 import pandas as pd
 
 from .base_policy_data_loader import DataLoaderFromFile, DataLoaderFromHistory
@@ -13,7 +13,9 @@ class BaseStockPolicy(RuleBasedPolicy):
         super().__init__(name)
 
         self.update_frequency = policy_para["update_frequency"]
-        self.data_loader = eval(policy_para["data_loader"])(policy_para)
+        data_loader_class = eval(policy_para["data_loader"])
+        assert issubclass(data_loader_class, (DataLoaderFromFile, DataLoaderFromHistory))
+        self.data_loader = data_loader_class(policy_para)
         self.step = {}
         self.stock_quantity = {}
 
@@ -33,28 +35,32 @@ class BaseStockPolicy(RuleBasedPolicy):
         inv_pos = cp.Variable(time_hrz_len, integer=True)
         target_stock = cp.Variable(time_hrz_len, integer=True)
         profit = cp.Variable(1)
-        buy_in.value = np.ones(time_hrz_len, dtype = np.int)
-        
-        #add constraints
-        constrs=[]
+        buy_in.value = np.ones(time_hrz_len, dtype=np.int)
+
+        # add constraints
+        constrs = []
         constrs.extend([
-            stocks >= 0, transits >= 0, sales >= 0, buy_in>=0, buy_arv>=0, buy>=0, buy[:time_hrz_len]==0,
+            stocks >= 0, transits >= 0, sales >= 0, buy_in >= 0, buy_arv >= 0, buy >= 0, buy[:time_hrz_len] == 0,
             stocks[current_index] == state["product_level"],
             transits[current_index] == state["in_transition_quantity"],
-            stocks[1:time_hrz_len+1] == stocks[0:time_hrz_len] + buy_arv - sales,
-            transits[1:time_hrz_len+1] == transits[0:time_hrz_len] - buy_arv + buy_in,
+            stocks[1:time_hrz_len + 1] == stocks[0:time_hrz_len] + buy_arv - sales,
+            transits[1:time_hrz_len + 1] == transits[0:time_hrz_len] - buy_arv + buy_in,
             sales <= stocks[0:time_hrz_len],
             sales <= demand,
             buy_in == buy[time_hrz_len:],
             inv_pos == stocks[0:time_hrz_len] + transits[0:time_hrz_len],
-            buy_arv == buy[time_hrz_len - state["cur_vlt"] : 2 * time_hrz_len - state["cur_vlt"]],
+            buy_arv == buy[time_hrz_len - state["cur_vlt"]:2 * time_hrz_len - state["cur_vlt"]],
             target_stock == inv_pos + buy_in,
-            profit == cp.sum(cp.multiply(price, sales) - cp.multiply(order_cost, buy_in) - cp.multiply(storage_cost, stocks[1:])),
+            profit == cp.sum(
+                cp.multiply(price, sales) -
+                cp.multiply(order_cost, buy_in) -
+                cp.multiply(storage_cost, stocks[1:])
+            ),
         ])
-        
+
         obj = cp.Maximize(profit)
         prob = cp.Problem(obj, constrs)
-        prob.solve(solver = cp.GLPK_MI, verbose = True)
+        prob.solve(solver=cp.GLPK_MI, verbose=True)
         return target_stock.value
 
     def _get_action_quantity(self, state: dict) -> int:
@@ -70,6 +76,6 @@ class BaseStockPolicy(RuleBasedPolicy):
         quantity = self.stock_quantity[entity_id][current_index] - booked_quantity
         quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
         return int(quantity)
-    
+
     def _rule(self, states: List[dict]) -> List[int]:
         return [self._get_action_quantity(state) for state in states]
