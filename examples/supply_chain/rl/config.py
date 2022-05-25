@@ -3,6 +3,10 @@
 
 from enum import Enum
 
+from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
+from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
+from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, ManufactureUnit
+
 
 class VehicleSelection(Enum):
     DEFAULT_ONE = "default"  # Choose the default one
@@ -21,8 +25,18 @@ consumer_features = ("order_base_cost", "latest_consumptions")
 IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
-vlt_buffer_days = 1.0
-num_products_to_sample = 500
+m_vlt, s_vlt, ns_vlt = 2, 2, 2
+def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo) -> float:
+    if issubclass(entity.class_type, ManufactureUnit):
+        return m_vlt
+    elif issubclass(entity.class_type, ConsumerUnit):
+        if issubclass(facility_info.class_name, OuterRetailerFacility):
+            return s_vlt
+        else:
+            return ns_vlt
+    else:
+        raise(f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
+
 
 ALGO="EOQ"
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
@@ -34,18 +48,21 @@ OR_NUM_CONSUMER_ACTIONS = 20
 NUM_CONSUMER_ACTIONS = 3
 OR_MANUFACTURE_ACTIONS = 20
 
-# TOPOLOGY = "super_vendor"
-TOPOLOGY = f"SCI_{num_products_to_sample}"
-# TOPOLOGY = "SCI_1.1"
+num_products_to_sample = 500
+selection = VehicleSelection.SHORTEST_LEADING_TIME
+storage_enlarged = False
+
+# TOPOLOGY = (
+#     f"SCI_{num_products_to_sample}"
+#     f"_{selection.value}"
+#     f"{'_storage_enlarged' if storage_enlarged else ''}"
+# )
+TOPOLOGY = "super_vendor"
 
 TRAIN_STEPS = 180
 EVAL_STEPS = 60
 
-PLOT_RENDER = True
-DUMP_PRODUCT_METRICS = True
-LOG_CONSUMER_ACTIONS = True
-
-DUMP_CHOSEN_VLT_INFO = False
+PLOT_RENDER = False
 
 env_conf = {
     "scenario": "supply_chain",
@@ -63,25 +80,23 @@ workflow_settings: dict = {
     "consumption_hist_len": 4,
     "sale_hist_len": 4,
     "pending_order_len": 4,
-    "or_policy_vlt_buffer_days": vlt_buffer_days,
     "reward_normalization": 1.0,
     "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
     "log_path": "examples/supply_chain/logs/",
     "plot_render": PLOT_RENDER,
-    "dump_product_metrics": DUMP_PRODUCT_METRICS,
-    "log_consumer_actions": LOG_CONSUMER_ACTIONS,
+    "dump_product_metrics": True,
+    "log_consumer_actions": True,
+    "dump_chosen_vlt_info": True,
 }
 
 EXP_NAME = (
-    f"{TOPOLOGY}_{test_env_conf['durations']}_{ALGO}_"
-    f"{workflow_settings['vehicle_selection_method']}"
+    f"{TOPOLOGY}"
+    # f"_{test_env_conf['durations']}"
+    # f"_{workflow_settings['vehicle_selection_method'].value}"
+    f"_{ALGO}"
     f"{'_TR' if TEAM_REWARD else ''}"
     f"{'_SM' if SHARED_MODEL else ''}"
+    # f"_vlt-{m_vlt}-{s_vlt}-{ns_vlt}"
 )
 
 workflow_settings["log_path"] = f"examples/supply_chain/logs/{EXP_NAME}/"
-
-# 10: 1934612.420211792
-# 20: 14355712.158203125
-# 50: 9710599.291015625
-# 100: 36535436.5625
