@@ -3,7 +3,7 @@
 
 from abc import abstractmethod
 from functools import partial
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler
