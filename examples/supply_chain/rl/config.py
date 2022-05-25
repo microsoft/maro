@@ -25,7 +25,7 @@ consumer_features = ("order_base_cost", "latest_consumptions")
 IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
 
 
-m_vlt, s_vlt, ns_vlt = 3, 2, 3
+m_vlt, s_vlt, ns_vlt = 2, 2, 2
 def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo) -> float:
     if issubclass(entity.class_type, ManufactureUnit):
         return m_vlt
@@ -49,14 +49,15 @@ NUM_CONSUMER_ACTIONS = 3
 OR_MANUFACTURE_ACTIONS = 20
 
 num_products_to_sample = 500
-selection = VehicleSelection.CHEAPEST_TOTAL_COST
-storage_enlarged = True
+selection = VehicleSelection.SHORTEST_LEADING_TIME
+storage_enlarged = False
 
-TOPOLOGY = (
-    f"SCI_{num_products_to_sample}"
-    f"_{selection.value}"
-    f"{'_storage_enlarged' if storage_enlarged else ''}"
-)
+# TOPOLOGY = (
+#     f"SCI_{num_products_to_sample}"
+#     f"_{selection.value}"
+#     f"{'_storage_enlarged' if storage_enlarged else ''}"
+# )
+TOPOLOGY = "super_vendor"
 
 TRAIN_STEPS = 180
 EVAL_STEPS = 60
@@ -80,7 +81,7 @@ workflow_settings: dict = {
     "sale_hist_len": 4,
     "pending_order_len": 4,
     "reward_normalization": 1.0,
-    "vehicle_selection_method": VehicleSelection.RANDOM,
+    "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
     "log_path": "examples/supply_chain/logs/",
     "plot_render": PLOT_RENDER,
     "dump_product_metrics": True,
@@ -91,6 +92,7 @@ workflow_settings: dict = {
 EXP_NAME = (
     f"{TOPOLOGY}"
     # f"_{test_env_conf['durations']}"
+    # f"_{workflow_settings['vehicle_selection_method'].value}"
     f"_{ALGO}"
     f"{'_TR' if TEAM_REWARD else ''}"
     f"{'_SM' if SHARED_MODEL else ''}"
