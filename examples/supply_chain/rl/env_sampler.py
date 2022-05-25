@@ -38,7 +38,7 @@ from examples.supply_chain.common.render_tools.plot_render import SimulationTrac
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 from .config import IDX_SELLER_DEMAND, IDX_PRODUCT_PRICE, consumer_features, distribution_features, seller_features, product_features
-from .config import env_conf, test_env_conf, workflow_settings, DUMP_CHOSEN_VLT_INFO
+from .config import env_conf, test_env_conf, workflow_settings
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
 from .or_agent_state import ScOrAgentStates
 from .rl_agent_state import ScRlAgentStates, serialize_state
