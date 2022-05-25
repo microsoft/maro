@@ -10,6 +10,8 @@ import scipy.stats as st
 from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity, VendorLeadingTimeInfo
 
+from examples.supply_chain.rl.config import get_vlt_buffer_factor
+
 
 class ScOrAgentStates:
     def __init__(
@@ -52,6 +54,7 @@ class ScOrAgentStates:
             "to_distribute_quantity": 0,
             "cur_vlt": chosen_vlt_info.vlt + 1 if chosen_vlt_info else 0,
             "max_vlt": max_vlt + 1,
+            "vlt_buffer_factor": get_vlt_buffer_factor(entity, facility_info),
             "service_level_ppf": st.norm.ppf(entity.skus.service_level),
         }
 
