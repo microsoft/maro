@@ -91,7 +91,7 @@ class SimulationComparisonTrackerHtml:
             'inventory_holding_cost', 'seller_sold', 'seller_demand', 'product_price'
         ]
         df_sku = df_sku[['name'] + cols].groupby(['facility_name', 'name', 'Exp Name']).sum().reset_index()
-        df_sku.loc[:, "turnover_rate"] =  df_sku['seller_demand'] * num_days / df_sku['inventory_in_stock']
+        df_sku.loc[:, "turnover_rate"] = df_sku['seller_demand'] * num_days / df_sku['inventory_in_stock']
         df_sku.loc[:, "available_rate"] = df_sku['seller_sold'] / df_sku['seller_demand']
         cols.extend(['turnover_rate', 'available_rate'])
         agg_func = {
@@ -118,13 +118,13 @@ class SimulationComparisonTrackerHtml:
 
         df.loc[:, 'x'] = df.apply(lambda x: f"{x['facility_name']}_{x['Exp Name']}", axis=1)
         x = df['x'].tolist()
-        y_gmv = [round(x,2) for x in df['GMV'].tolist()]
-        y_profit = [round(x,2) for x in df['profit'].tolist()]
-        y_order_cost = [round(x,2) for x in df['order_cost'].tolist()]
-        y_inventory_holding_cost = [round(x,2) for x in df['inventory_holding_cost'].tolist()]
-        y_seller_sold = [round(x,2) for x in df['seller_sold'].tolist()]
-        y_turnover_rate = [round(x,3) for x in df['turnover_rate'].tolist()]
-        y_available_rate = [round(x,3) for x in df['available_rate'].tolist()]
+        y_gmv = [round(x, 2) for x in df['GMV'].tolist()]
+        y_profit = [round(x, 2) for x in df['profit'].tolist()]
+        y_order_cost = [round(x, 2) for x in df['order_cost'].tolist()]
+        y_inventory_holding_cost = [round(x, 2) for x in df['inventory_holding_cost'].tolist()]
+        y_seller_sold = [round(x, 2) for x in df['seller_sold'].tolist()]
+        y_turnover_rate = [round(x, 3) for x in df['turnover_rate'].tolist()]
+        y_available_rate = [round(x, 3) for x in df['available_rate'].tolist()]
 
         tab = Tab()
 

@@ -8,6 +8,7 @@ from typing import Dict, List, Tuple
 
 import graphviz
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
@@ -118,6 +119,46 @@ def set_exp_list(exp_num: int, exp_list: List[str], log_dir: str):
     return exp_data_list, by_fname_type_sku, facility_by_name, len_period
 
 
+def _calculate_metrics(df: pd.DataFrame, len_period: int):
+    max_tick = df['tick'].max()
+    min_tick = max_tick - len_period
+    df = df[min_tick < df['tick']][df['tick'] <= max_tick]
+
+    df.loc[:, "GMV"] = df['product_price'] * df['seller_sold']
+    df.loc[:, "order_cost"] = df["consumer_order_product_cost"] + df["consumer_order_base_cost"]
+    df.loc[:, 'inventory_holding_cost'] = df['inventory_in_stock'] * df['unit_inventory_holding_cost']
+    df.loc[:, 'out_of_stock_loss'] = (
+        df['seller_backlog_ratio'] * df['product_price'] * (df['seller_demand'] - df['seller_sold'])
+    )
+    df.loc[:, "profit"] = (
+        df["GMV"] - df['order_cost'] - df['inventory_holding_cost'] - df['out_of_stock_loss']
+        + df["product_check_in_quantity_in_order"] * df["product_price"]
+    )
+
+    cols = [
+        'facility_name', 'GMV', 'profit', 'order_cost', 'inventory_in_stock',
+        'inventory_holding_cost', 'seller_sold', 'seller_demand', 'product_price'
+    ]
+    df = df[['name'] + cols].groupby(['facility_name', 'name']).sum().reset_index()
+    df.loc[:, "turnover_rate"] = df['seller_demand'] * len_period / df['inventory_in_stock']
+    df.loc[:, "available_rate"] = df['seller_sold'] / df['seller_demand']
+    cols.extend(['turnover_rate', 'available_rate'])
+    agg_func = {
+        col: np.mean if col in ['turnover_rate', 'available_rate'] else np.sum
+        for col in cols[2:]
+    }
+    df = df[cols].groupby(['facility_name']).agg(agg_func).reset_index()
+
+    turnover_rate_dict, available_rate_dict = {}, {}
+    for facility, turnover_rate, available_rate in zip(
+        df['facility_name'].tolist(), df['turnover_rate'].tolist(), df['available_rate'].tolist()
+    ):
+        turnover_rate_dict[facility] = round(turnover_rate, 3)
+        available_rate_dict[facility] = round(available_rate, 3)
+
+    return turnover_rate_dict, available_rate_dict
+
+
 @st.cache
 def read_data(exp_log_dir: str) -> dict:
     sku_status_path = os.path.join(exp_log_dir, "sku_status.pkl")
@@ -128,8 +169,15 @@ def read_data(exp_log_dir: str) -> dict:
     with open(network_path, 'r') as f:
         vendor_dict = json.load(f)
 
+    csv_path = os.path.join(exp_log_dir, "output_product_metrics.csv")
+    df = pd.read_csv(csv_path)
+    len_period = sku_status["balance_status"].shape[1]
+    turnover_rate_dict, available_rate_dict = _calculate_metrics(df, len_period)
+
     sku_status["vendor_dict"] = vendor_dict
     sku_status["upstream_set_dict"] = _parse_vendor_dict(vendor_dict)
+    sku_status["turnover_rate_dict"] = turnover_rate_dict
+    sku_status["available_rate_dict"] = available_rate_dict
 
     return sku_status
 
@@ -340,7 +388,39 @@ def plot_route_network(exp_data: Tuple[str, int, dict]):
 
     st.graphviz_chart(graph, use_container_width=True)
 
-    # st.json(upstream_set_dict)
+
+def plot_metric_network(exp_data: Tuple[str, int, dict], metric: str):
+    """Valid metric in: ["turnover_rate", "available_rate"]."""
+    exp_name, line_col, sku_status = exp_data
+    upstream_set_dict = sku_status["upstream_set_dict"]
+    metric_dict = sku_status[f"{metric}_dict"]
+
+    graph = graphviz.Digraph(
+        name=f"{metric} of {exp_name}",
+        edge_attr={
+            'color': LINE_TYPE[line_col].__getitem__('color'),
+        },
+        node_attr={
+            'shape': 'ellipse',
+            'color': LINE_TYPE[line_col].__getitem__('color'),
+            'fixedsize': 'true',
+            'width': '0.8',
+            'height': '0.6',
+            'fontsize': '14',
+        },
+        graph_attr={
+            'rankdir': 'LR',
+        }
+    )
+    for f_down, up_list in upstream_set_dict.items():
+        for f_up in up_list:
+            if f_up[2] == '_':
+                f_up = f"{f_up}-{metric_dict[f_up]}"
+            if f_down[2] == '_':
+                f_down = f"{f_down}-{metric_dict[f_down]}"
+            graph.edge(f_up, f_down)
+
+    st.graphviz_chart(graph, use_container_width=True)
 
 
 def main():
@@ -384,6 +464,9 @@ def main():
         for facility in selected_facility
     ]
 
+    exp_name_list = [exp_name for (exp_name, _, _) in exp_data_list]
+    selected_exp_names = st.sidebar.multiselect("Experiments", exp_name_list, exp_name_list)
+
     ############################################################################
     ## Balance Comparison
     ############################################################################
@@ -401,12 +484,25 @@ def main():
     ############################################################################
     st.header("Distribution Network Comparison")
 
-    if st.checkbox("Show topologies"):
-        exp_name_list = [exp_name for (exp_name, _, _) in exp_data_list]
-        selected_exp_names = st.multiselect("Experiments", exp_name_list, exp_name_list)
+    if st.checkbox("Show topologies", False):
         for exp_data in exp_data_list:
             if exp_data[0] in selected_exp_names:
                 plot_route_network(exp_data)
+
+    ############################################################################
+    ## Metrics Comparison
+    ############################################################################
+    st.header("Metrics Comparison")
+
+    if st.checkbox("Show turnover rate", False):
+        for exp_data in exp_data_list:
+            if exp_data[0] in selected_exp_names:
+                plot_metric_network(exp_data, "turnover_rate")
+
+    if st.checkbox("Show available rate", False):
+        for exp_data in exp_data_list:
+            if exp_data[0] in selected_exp_names:
+                plot_metric_network(exp_data, "available_rate")
 
     ############################################################################
     ## SKU Render
