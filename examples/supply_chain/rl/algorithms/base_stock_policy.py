@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from .base_policy_data_loader import DataLoaderFromFile, DataLoaderFromHistory
-from .rule_based import RuleBasedPolicy
+from maro.rl.policy import RuleBasedPolicy
 
 
 class BaseStockPolicy(RuleBasedPolicy):
