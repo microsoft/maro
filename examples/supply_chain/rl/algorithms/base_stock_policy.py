@@ -24,7 +24,9 @@ class BaseStockPolicy(RuleBasedPolicy):
         self.product_level_snapshot = {}
         self.in_transit_snapshot = {}
 
-    def calculate_stock_quantity(self, input_df: pd.DataFrame, product_level: int, in_transition_quantity: int, vlt: int) -> np.ndarray:
+    def calculate_stock_quantity(
+        self, input_df: pd.DataFrame, product_level: int, in_transition_quantity: int, vlt: int
+    ) -> np.ndarray:
         time_hrz_len = len(input_df)
         price = np.round(input_df["price"], 1)
         storage_cost = np.round(input_df["storage_cost"], 1)
@@ -61,9 +63,9 @@ class BaseStockPolicy(RuleBasedPolicy):
             buy_arv == buy[time_hrz_len - vlt:2 * time_hrz_len - vlt],
             target_stock == inv_pos + buy_in,
             profit == cp.sum(
-                cp.multiply(price, sales) -
-                cp.multiply(order_cost, buy_in) -
-                cp.multiply(storage_cost, stocks[1:])
+                cp.multiply(price, sales)
+                - cp.multiply(order_cost, buy_in)
+                - cp.multiply(storage_cost, stocks[1:])
             ),
         ])
 

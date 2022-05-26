@@ -74,13 +74,13 @@ PLOT_RENDER = False
 env_conf = {
     "scenario": "supply_chain",
     "topology": TOPOLOGY,
-    "durations": TRAIN_STEPS,  # number of ticks per episode
+    "durations": TRAIN_STEPS,  # Number of ticks per episode
 }
 
 test_env_conf = {
     "scenario": "supply_chain",
     "topology": TOPOLOGY,
-    "durations": TRAIN_STEPS + EVAL_STEPS,  # number of ticks per episode
+    "durations": TRAIN_STEPS + EVAL_STEPS,  # Number of ticks per episode
 }
 
 base_policy_conf = {
