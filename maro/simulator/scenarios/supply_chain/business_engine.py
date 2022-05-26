@@ -30,6 +30,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._collect_units()
 
         self._product_units: List[ProductUnit] = []
+        self._tick : int = 0
 
         # Prepare product unit for later using.
         for unit in self.world.units.values():
@@ -83,6 +84,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         decision_event = self._event_buffer.gen_decision_event(tick, None)
 
         self._event_buffer.insert_event(decision_event)
+
+        self._tick = tick
 
     def post_step(self, tick: int) -> bool:
         # Call post_step functions by facility.
@@ -204,8 +207,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     facility.id: {
                         "in_transit_orders": facility.get_in_transit_orders(),
                         "pending_order":
-                            defaultdict(int) if facility.distribution is None
-                            else facility.distribution.pending_product_quantity,
+                            facility.distribution.pending_product_quantity if facility.distribution is not None
+                            else None,
+                        "pending_order_daily":
+                            None if facility.distribution is None
+                            else facility.distribution.pending_order_daily(self._tick),
                     } for facility in self.world.facilities.values()
                 }
             }
