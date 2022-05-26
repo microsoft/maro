@@ -86,7 +86,11 @@ base_policy_conf = {
     "oracle_file": "oracle_samples.csv", # Only need in DataLoaderFromFile loader
     "history_len": 28, # E.g., mapping to np.inf in instance creation if it is static
     "future_len": 7,
-    "update_frequency": 3 # E.g., mapping to np.inf in instance creation if no update
+    "update_frequency": 7, # E.g., mapping to np.inf in instance creation if no update
+
+    # If true, until next update, all steps will share the same stock level
+    # otherwise, each steps will calculate own stock level.
+    "share_same_stock_level": False
 }
 
 workflow_settings: dict = {

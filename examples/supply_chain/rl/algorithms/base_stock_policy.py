@@ -9,17 +9,22 @@ from .rule_based import RuleBasedPolicy
 
 
 class BaseStockPolicy(RuleBasedPolicy):
-    def __init__(self, name: str, policy_para) -> None:
+    def __init__(self, name: str, policy_para: dict) -> None:
         super().__init__(name)
 
-        self.update_frequency = policy_para["update_frequency"]
         data_loader_class = eval(policy_para["data_loader"])
         assert issubclass(data_loader_class, (DataLoaderFromFile, DataLoaderFromHistory))
         self.data_loader = data_loader_class(policy_para)
-        self.step = {}
-        self.stock_quantity = {}
+        self.share_same_stock_level = policy_para.get("share_same_stock_level", True)
+        self.update_frequency = policy_para["update_frequency"]
+        self.history_len = policy_para["history_len"]
+        self.future_len = policy_para["future_len"]
 
-    def calculate_stock_quantity(self, input_df: pd.DataFrame, state: dict, current_index: int) -> np.ndarray:
+        self.stock_quantity = {}
+        self.product_level_snapshot = {}
+        self.in_transit_snapshot = {}
+
+    def calculate_stock_quantity(self, input_df: pd.DataFrame, product_level: int, in_transition_quantity: int, vlt: int) -> np.ndarray:
         time_hrz_len = len(input_df)
         price = np.round(input_df["price"], 1)
         storage_cost = np.round(input_df["storage_cost"], 1)
@@ -33,7 +38,11 @@ class BaseStockPolicy(RuleBasedPolicy):
         buy_in = cp.Variable(time_hrz_len, integer=True)
         buy_arv = cp.Variable(time_hrz_len, integer=True)
         inv_pos = cp.Variable(time_hrz_len, integer=True)
-        target_stock = cp.Variable(time_hrz_len, integer=True)
+        if self.share_same_stock_level:
+            target_stock = cp.Variable(1, integer=True)
+        else:
+            target_stock = cp.Variable(time_hrz_len, integer=True)
+
         profit = cp.Variable(1)
         buy_in.value = np.ones(time_hrz_len, dtype=np.int)
 
@@ -41,15 +50,15 @@ class BaseStockPolicy(RuleBasedPolicy):
         constrs = []
         constrs.extend([
             stocks >= 0, transits >= 0, sales >= 0, buy_in >= 0, buy_arv >= 0, buy >= 0, buy[:time_hrz_len] == 0,
-            stocks[current_index] == state["product_level"],
-            transits[current_index] == state["in_transition_quantity"],
+            stocks[0] == product_level,
+            transits[0] == in_transition_quantity,
             stocks[1:time_hrz_len + 1] == stocks[0:time_hrz_len] + buy_arv - sales,
             transits[1:time_hrz_len + 1] == transits[0:time_hrz_len] - buy_arv + buy_in,
             sales <= stocks[0:time_hrz_len],
             sales <= demand,
             buy_in == buy[time_hrz_len:],
             inv_pos == stocks[0:time_hrz_len] + transits[0:time_hrz_len],
-            buy_arv == buy[time_hrz_len - state["cur_vlt"]:2 * time_hrz_len - state["cur_vlt"]],
+            buy_arv == buy[time_hrz_len - vlt:2 * time_hrz_len - vlt],
             target_stock == inv_pos + buy_in,
             profit == cp.sum(
                 cp.multiply(price, sales) -
@@ -65,15 +74,29 @@ class BaseStockPolicy(RuleBasedPolicy):
 
     def _get_action_quantity(self, state: dict) -> int:
         entity_id = state["entity_id"]
-        if state["tick"] < self.data_loader.data_loader_conf["history_len"]:
-            current_index = state["tick"]
+
+        current_tick = state["tick"]
+        history_start = max(current_tick - self.history_len, 0)
+        self.product_level_snapshot[current_tick] = state["product_level"]
+        self.in_transit_snapshot[current_tick] = state["in_transition_quantity"]
+        if current_tick < self.history_len:
+            current_index = current_tick
         else:
-            current_index = self.data_loader.data_loader_conf["history_len"] + state["tick"] % self.update_frequency
-        if state["tick"] % self.update_frequency == 0:
+            current_index = self.history_len + state["tick"] % self.update_frequency
+        if current_tick % self.update_frequency == 0:
             target_df = self.data_loader.load(state)
-            self.stock_quantity[entity_id] = self.calculate_stock_quantity(target_df, state, current_index)
+            self.stock_quantity[entity_id] = self.calculate_stock_quantity(
+                target_df,
+                self.product_level_snapshot[history_start],
+                self.in_transit_snapshot[history_start],
+                state["cur_vlt"]
+            )
         booked_quantity = state["product_level"] + state["in_transition_quantity"]
-        quantity = self.stock_quantity[entity_id][current_index] - booked_quantity
+        if self.share_same_stock_level:
+            stock_quantity = self.stock_quantity[entity_id][0]
+        else:
+            stock_quantity = self.stock_quantity[entity_id][current_index]
+        quantity = stock_quantity - booked_quantity
         quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
         return int(quantity)
 
