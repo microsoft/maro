@@ -25,14 +25,12 @@ def get_order_data(experiment_name: str, episode: str, tick: str) -> pd.DataFram
     params = {
         "query": f"select {request_column.order_header.value} from {experiment_name}.full_on_ports"
         f" where episode='{episode}' and tick='{tick}'",
-        "count": "true"
+        "count": "true",
     }
     original_order_data = requests.get(
-        url=request_settings.request_url.value,
-        headers=request_settings.request_header.value,
-        params=params
+        url=request_settings.request_url.value, headers=request_settings.request_header.value, params=params
     ).json()
-    order_data = get_data_in_format(original_order_data).to_json(orient='records')
+    order_data = get_data_in_format(original_order_data).to_json(orient="records")
     return order_data
 
 
@@ -50,18 +48,14 @@ def get_acc_order_data(experiment_name: str, episode: str, start_tick: str, end_
 
     """
     input_range = get_input_range(start_tick, end_tick)
-    query = f"select {request_column.order_header.value} from {experiment_name}.full_on_ports"\
-        f" where episode='{episode}'"
+    query = (
+        f"select {request_column.order_header.value} from {experiment_name}.full_on_ports" f" where episode='{episode}'"
+    )
     if input_range != "()":
         query += f" and tick in {input_range}"
-    params = {
-        "query": query,
-        "count": "true"
-    }
+    params = {"query": query, "count": "true"}
     original_order_data = requests.get(
-        url=request_settings.request_url.value,
-        headers=request_settings.request_header.value,
-        params=params
+        url=request_settings.request_url.value, headers=request_settings.request_header.value, params=params
     ).json()
     order_data = get_data_in_format(original_order_data)
     order_output = []
@@ -71,7 +65,7 @@ def get_acc_order_data(experiment_name: str, episode: str, start_tick: str, end_
         if cur_order.empty:
             order_output.append([])
         else:
-            order_in_format = cur_order.to_json(orient='records')
+            order_in_format = cur_order.to_json(orient="records")
             order_output.append(json.loads(order_in_format))
         i = i + 1
     return order_output

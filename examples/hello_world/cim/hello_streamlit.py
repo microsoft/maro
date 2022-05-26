@@ -17,13 +17,10 @@ if __name__ == "__main__":
     If you leave value to empty string, it will dump to current folder.
     For getting dump data, please uncomment below line and specify dump destination folder.
     """
-    opts['enable-dump-snapshot'] = 'YOUR_FOLDER_NAME'
+    opts["enable-dump-snapshot"] = "YOUR_FOLDER_NAME"
 
     # Initialize an environment with a specific scenario, related topology.
-    env = Env(
-        scenario="cim", topology="global_trade.22p_l0.1",
-        start_tick=0, durations=100, options=opts
-    )
+    env = Env(scenario="cim", topology="global_trade.22p_l0.1", start_tick=0, durations=100, options=opts)
 
     # To reset environmental data before starting a new experiment.
     env.reset()
@@ -40,7 +37,7 @@ if __name__ == "__main__":
                 decision_event.vessel_idx,
                 decision_event.port_idx,
                 randint(0, action_scope.discharge if to_discharge else action_scope.load),
-                ActionType.DISCHARGE if to_discharge else ActionType.LOAD
+                ActionType.DISCHARGE if to_discharge else ActionType.LOAD,
             )
 
             # Drive environment with dummy action (no repositioning)

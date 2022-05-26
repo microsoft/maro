@@ -18,17 +18,11 @@ from ..utils.resource import ContainerResource, NodeResource
 
 logger = logging.getLogger(__name__)
 
-AVAILABLE_METRICS = {
-    "cpu",
-    "memory",
-    "gpu"
-}
+AVAILABLE_METRICS = {"cpu", "memory", "gpu"}
 
 ERROR_CODE_FOR_NOT_RESTART = 64
 ERROR_CODE_FOR_STOP_JOB = 65
-ERROR_CODES_FOR_NOT_RESTART_CONTAINER = {
-    0, ERROR_CODE_FOR_NOT_RESTART, ERROR_CODE_FOR_STOP_JOB
-}
+ERROR_CODES_FOR_NOT_RESTART_CONTAINER = {0, ERROR_CODE_FOR_NOT_RESTART, ERROR_CODE_FOR_STOP_JOB}
 
 
 class MasterAgent:
@@ -43,28 +37,23 @@ class MasterAgent:
             None.
         """
         job_tracking_agent = JobTrackingAgent(
-            local_cluster_details=self._local_cluster_details,
-            local_master_details=self._local_master_details
+            local_cluster_details=self._local_cluster_details, local_master_details=self._local_master_details
         )
         job_tracking_agent.start()
         container_tracking_agent = ContainerTrackingAgent(
-            local_cluster_details=self._local_cluster_details,
-            local_master_details=self._local_master_details
+            local_cluster_details=self._local_cluster_details, local_master_details=self._local_master_details
         )
         container_tracking_agent.start()
         pending_job_agent = PendingJobAgent(
-            local_cluster_details=self._local_cluster_details,
-            local_master_details=self._local_master_details
+            local_cluster_details=self._local_cluster_details, local_master_details=self._local_master_details
         )
         pending_job_agent.start()
         container_runtime_agent = ContainerRuntimeAgent(
-            local_cluster_details=self._local_cluster_details,
-            local_master_details=self._local_master_details
+            local_cluster_details=self._local_cluster_details, local_master_details=self._local_master_details
         )
         container_runtime_agent.start()
         killed_job_agent = KilledJobAgent(
-            local_cluster_details=self._local_cluster_details,
-            local_master_details=self._local_master_details
+            local_cluster_details=self._local_cluster_details, local_master_details=self._local_master_details
         )
         killed_job_agent.start()
 
@@ -79,10 +68,7 @@ class JobTrackingAgent(multiprocessing.Process):
         super().__init__()
         self._cluster_name = local_cluster_details["name"]
 
-        self._redis_controller = RedisController(
-            host="localhost",
-            port=local_master_details["redis"]["port"]
-        )
+        self._redis_controller = RedisController(host="localhost", port=local_master_details["redis"]["port"])
 
         self._check_interval = check_interval
 
@@ -136,10 +122,7 @@ class JobTrackingAgent(multiprocessing.Process):
                         break
 
                 job_details["status"] = job_state
-                self._redis_controller.set_job_details(
-                    job_name=job_name,
-                    job_details=job_details
-                )
+                self._redis_controller.set_job_details(job_name=job_name, job_details=job_details)
 
     # Utils.
     @staticmethod
@@ -168,10 +151,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
         super().__init__()
         self._cluster_name = local_cluster_details["name"]
 
-        self._redis_controller = RedisController(
-            host="localhost",
-            port=local_master_details["redis"]["port"]
-        )
+        self._redis_controller = RedisController(host="localhost", port=local_master_details["redis"]["port"])
 
         self._check_interval = check_interval
 
@@ -219,10 +199,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         self._master_fluentd_port = local_master_details["fluentd"]["port"]
         self._master_hostname = local_master_details["hostname"]
 
-        self._redis_controller = RedisController(
-            host="localhost",
-            port=local_master_details["redis"]["port"]
-        )
+        self._redis_controller = RedisController(host="localhost", port=local_master_details["redis"]["port"])
 
         self._check_interval = check_interval
 
@@ -257,8 +234,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
 
             # Remove container.
             is_remove_container = self._is_remove_container(
-                container_details=container_details,
-                job_runtime_details=job_runtime_details
+                container_details=container_details, job_runtime_details=job_runtime_details
             )
             if is_remove_container:
                 node_name = container_details["node_name"]
@@ -270,10 +246,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                 )
 
             # Restart container.
-            if self._is_restart_container(
-                container_details=container_details,
-                job_runtime_details=job_runtime_details
-            ):
+            if self._is_restart_container(container_details=container_details, job_runtime_details=job_runtime_details):
                 self._restart_container(container_name=container_name, container_details=container_details)
 
             # Stop job.
@@ -308,8 +281,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             bool: True or False.
         """
         exceed_maximum_restart_times = self._redis_controller.get_rejoin_component_restart_times(
-            job_id=container_details["job_id"],
-            component_id=container_details["component_id"]
+            job_id=container_details["job_id"], component_id=container_details["component_id"]
         ) >= int(job_runtime_details.get("rejoin:max_restart_times", sys.maxsize))
         return (
             container_details["state"]["Status"] == "exited"
@@ -351,8 +323,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
 
         # If the mapping not exists, or the container is not in the mapping, skip the restart operation.
         if (
-            rejoin_container_name_to_component_name is None or
-            container_name not in rejoin_container_name_to_component_name
+            rejoin_container_name_to_component_name is None
+            or container_name not in rejoin_container_name_to_component_name
         ):
             logger.warning(f"Container {container_name} is not found in container_name_to_component_name mapping")
             return
@@ -363,25 +335,24 @@ class ContainerRuntimeAgent(multiprocessing.Process):
 
                 # Get resources and allocation plan.
                 free_resources = ResourceController.get_free_resources(
-                    redis_controller=self._redis_controller,
-                    cluster_name=self._cluster_name
+                    redis_controller=self._redis_controller, cluster_name=self._cluster_name
                 )
                 required_resources = [
                     ContainerResource(
                         container_name=ContainerController.build_container_name(
                             job_id=container_details["job_id"],
                             component_id=container_details["component_id"],
-                            component_index=container_details["component_index"]
+                            component_index=container_details["component_index"],
                         ),
                         cpu=float(container_details["cpu"]),
                         memory=float(container_details["memory"].replace("m", "")),
-                        gpu=float(container_details["gpu"])
+                        gpu=float(container_details["gpu"]),
                     )
                 ]
                 allocation_plan = ResourceController._get_single_metric_balanced_allocation_plan(
                     allocation_details={"metric": "cpu"},
                     required_resources=required_resources,
-                    free_resources=free_resources
+                    free_resources=free_resources,
                 )
 
                 # Start a new container.
@@ -392,11 +363,10 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                         container_name=container_name,
                         node_details=node_details,
                         job_details=job_details,
-                        component_name=component_name
+                        component_name=component_name,
                     )
                 self._redis_controller.incr_rejoin_component_restart_times(
-                    job_id=container_details["job_id"],
-                    component_id=container_details["component_id"]
+                    job_id=container_details["job_id"], component_id=container_details["component_id"]
                 )
             except ResourceAllocationFailed as e:
                 logger.warning(f"{e}")
@@ -436,13 +406,13 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                     NodeApiClientV1.remove_container(
                         node_hostname=node_details["hostname"],
                         node_api_server_port=node_details["api_server"]["port"],
-                        container_name=container_name
+                        container_name=container_name,
                     )
                 else:
                     NodeApiClientV1.stop_container(
                         node_hostname=node_details["hostname"],
                         node_api_server_port=node_details["api_server"]["port"],
-                        container_name=container_name
+                        container_name=container_name,
                     )
 
     def _start_container(self, container_name: str, node_details: dict, job_details: dict, component_name: str) -> None:
@@ -486,7 +456,6 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             "command": job_details["components"][component_type]["command"],
             "image_name": job_details["components"][component_type]["image"],
             "volumes": [f"{maro_mount_source}:{mount_target}"],
-
             # System related.
             "container_name": container_name,
             "fluentd_address": f"{self._master_hostname}:{self._master_fluentd_port}",
@@ -503,7 +472,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                 "COMPONENT_INDEX": component_index,
                 "CONTAINER_NAME": container_name,
                 "COMPONENT_NAME": component_name,
-                "PYTHONUNBUFFERED": 0
+                "PYTHONUNBUFFERED": 0,
             },
             "labels": {
                 "cluster_id": cluster_id,
@@ -518,8 +487,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                 "container_name": container_name,
                 "component_name": component_name,
                 "cpu": cpu,
-                "memory": memory
-            }
+                "memory": memory,
+            },
         }
 
         if gpu != 0:
@@ -529,7 +498,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         NodeApiClientV1.create_container(
             node_hostname=node_details["hostname"],
             node_api_server_port=node_details["api_server"]["port"],
-            create_config=create_config
+            create_config=create_config,
         )
 
 
@@ -546,10 +515,7 @@ class PendingJobAgent(multiprocessing.Process):
         self._master_fluentd_port = local_master_details["fluentd"]["port"]
         self._master_hostname = local_master_details["hostname"]
 
-        self._redis_controller = RedisController(
-            host="localhost",
-            port=local_master_details["redis"]["port"]
-        )
+        self._redis_controller = RedisController(host="localhost", port=local_master_details["redis"]["port"])
 
         self._check_interval = check_interval
 
@@ -579,8 +545,7 @@ class PendingJobAgent(multiprocessing.Process):
 
         # Get free resources at the very beginning.
         free_resources = ResourceController.get_free_resources(
-            redis_controller=self._redis_controller,
-            cluster_name=self._cluster_name
+            redis_controller=self._redis_controller, cluster_name=self._cluster_name
         )
 
         # Iterate tickets.
@@ -596,14 +561,12 @@ class PendingJobAgent(multiprocessing.Process):
                 allocation_plan = ResourceController.get_allocation_plan(
                     allocation_details=job_details["allocation"],
                     required_resources=required_resources,
-                    free_resources=free_resources
+                    free_resources=free_resources,
                 )
                 for container_name, node_name in allocation_plan.items():
                     node_details = self._redis_controller.get_node_details(node_name=node_name)
                     self._start_container(
-                        container_name=container_name,
-                        node_details=node_details,
-                        job_details=job_details
+                        container_name=container_name, node_details=node_details, job_details=job_details
                     )
                 self._redis_controller.remove_pending_job_ticket(job_name=pending_job_name)
                 job_details["status"] = JobStatus.RUNNING
@@ -654,7 +617,6 @@ class PendingJobAgent(multiprocessing.Process):
             "command": job_details["components"][component_type]["command"],
             "image_name": job_details["components"][component_type]["image"],
             "volumes": [f"{maro_mount_source}:{mount_target}"],
-
             # System related.
             "container_name": container_name,
             "fluentd_address": f"{self._master_hostname}:{self._master_fluentd_port}",
@@ -670,7 +632,7 @@ class PendingJobAgent(multiprocessing.Process):
                 "COMPONENT_TYPE": component_type,
                 "COMPONENT_INDEX": component_index,
                 "CONTAINER_NAME": container_name,
-                "PYTHONUNBUFFERED": 0
+                "PYTHONUNBUFFERED": 0,
             },
             "labels": {
                 "cluster_id": cluster_id,
@@ -684,8 +646,8 @@ class PendingJobAgent(multiprocessing.Process):
                 "component_index": component_index,
                 "container_name": container_name,
                 "cpu": cpu,
-                "memory": memory
-            }
+                "memory": memory,
+            },
         }
 
         if gpu != 0:
@@ -695,7 +657,7 @@ class PendingJobAgent(multiprocessing.Process):
         NodeApiClientV1.create_container(
             node_hostname=node_details["hostname"],
             node_api_server_port=node_details["api_server"]["port"],
-            create_config=create_config
+            create_config=create_config,
         )
 
 
@@ -710,10 +672,7 @@ class KilledJobAgent(multiprocessing.Process):
         self._cluster_name = local_cluster_details["name"]
         self._master_api_server_port = local_master_details["api_server"]["port"]
 
-        self._redis_controller = RedisController(
-            host="localhost",
-            port=local_master_details["redis"]["port"]
-        )
+        self._redis_controller = RedisController(host="localhost", port=local_master_details["redis"]["port"])
 
         self._check_interval = check_interval
 
@@ -791,13 +750,12 @@ class KilledJobAgent(multiprocessing.Process):
                 NodeApiClientV1.remove_container(
                     node_hostname=node_details["hostname"],
                     node_api_server_port=node_details["api_server"]["port"],
-                    container_name=container_name
+                    container_name=container_name,
                 )
 
 
 class ResourceController:
-    """Controller class for computing resources in MARO Nodes.
-    """
+    """Controller class for computing resources in MARO Nodes."""
 
     @staticmethod
     def get_allocation_plan(allocation_details: dict, required_resources: list, free_resources: list) -> dict:
@@ -815,21 +773,20 @@ class ResourceController:
             return ResourceController._get_single_metric_balanced_allocation_plan(
                 allocation_details=allocation_details,
                 required_resources=required_resources,
-                free_resources=free_resources
+                free_resources=free_resources,
             )
         elif allocation_details["mode"] == "single-metric-compacted":
             return ResourceController._get_single_metric_compacted_allocation_plan(
                 allocation_details=allocation_details,
                 required_resources=required_resources,
-                free_resources=free_resources
+                free_resources=free_resources,
             )
         else:
             raise ResourceAllocationFailed("Invalid allocation mode.")
 
     @staticmethod
     def _get_single_metric_compacted_allocation_plan(
-        allocation_details: dict,
-        required_resources: list, free_resources: list
+        allocation_details: dict, required_resources: list, free_resources: list
     ) -> dict:
         """Get single_metric_compacted allocation plan.
 
@@ -854,16 +811,10 @@ class ResourceController:
         # Init resources PQ.
         required_resources_pq = []
         for required_resource in required_resources:
-            heapq.heappush(
-                required_resources_pq,
-                (-getattr(required_resource, metric), required_resource)
-            )
+            heapq.heappush(required_resources_pq, (-getattr(required_resource, metric), required_resource))
         free_resources_pq = []
         for free_resource in free_resources:
-            heapq.heappush(
-                free_resources_pq,
-                (getattr(free_resource, metric), free_resource)
-            )
+            heapq.heappush(free_resources_pq, (getattr(free_resource, metric), free_resource))
 
         # Get allocation.
         while len(required_resources_pq) > 0:
@@ -888,26 +839,18 @@ class ResourceController:
                 free_resource.cpu -= required_resource.cpu
                 free_resource.memory -= required_resource.memory
                 free_resource.gpu -= required_resource.gpu
-                heapq.heappush(
-                    free_resources_pq,
-                    (getattr(free_resource, metric), free_resource)
-                )
+                heapq.heappush(free_resources_pq, (getattr(free_resource, metric), free_resource))
                 for not_usable_free_resource in not_usable_free_resources:
                     heapq.heappush(
-                        free_resources_pq,
-                        (getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                        free_resources_pq, (getattr(not_usable_free_resource, metric), not_usable_free_resource)
                     )
             else:
                 # add previous resources back, to do printing.
                 for not_usable_free_resource in not_usable_free_resources:
                     heapq.heappush(
-                        free_resources_pq,
-                        (getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                        free_resources_pq, (getattr(not_usable_free_resource, metric), not_usable_free_resource)
                     )
-                heapq.heappush(
-                    required_resources_pq,
-                    (-getattr(required_resource, metric), required_resource)
-                )
+                heapq.heappush(required_resources_pq, (-getattr(required_resource, metric), required_resource))
 
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)
@@ -920,8 +863,7 @@ class ResourceController:
 
     @staticmethod
     def _get_single_metric_balanced_allocation_plan(
-        allocation_details: dict,
-        required_resources: list, free_resources: list
+        allocation_details: dict, required_resources: list, free_resources: list
     ) -> dict:
         """Get single_metric_balanced allocation plan.
 
@@ -946,16 +888,10 @@ class ResourceController:
         # Init resources PQ.
         required_resources_pq = []
         for required_resource in required_resources:
-            heapq.heappush(
-                required_resources_pq,
-                (-getattr(required_resource, metric), required_resource)
-            )
+            heapq.heappush(required_resources_pq, (-getattr(required_resource, metric), required_resource))
         free_resources_pq = []
         for free_resource in free_resources:
-            heapq.heappush(
-                free_resources_pq,
-                (-getattr(free_resource, metric), free_resource)
-            )
+            heapq.heappush(free_resources_pq, (-getattr(free_resource, metric), free_resource))
 
         # Get allocation.
         while len(required_resources_pq) > 0:
@@ -980,26 +916,18 @@ class ResourceController:
                 free_resource.cpu -= required_resource.cpu
                 free_resource.memory -= required_resource.memory
                 free_resource.gpu -= required_resource.gpu
-                heapq.heappush(
-                    free_resources_pq,
-                    (-getattr(free_resource, metric), free_resource)
-                )
+                heapq.heappush(free_resources_pq, (-getattr(free_resource, metric), free_resource))
                 for not_usable_free_resource in not_usable_free_resources:
                     heapq.heappush(
-                        free_resources_pq,
-                        (-getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                        free_resources_pq, (-getattr(not_usable_free_resource, metric), not_usable_free_resource)
                     )
             else:
                 # add previous resources back, to do printing.
                 for not_usable_free_resource in not_usable_free_resources:
                     heapq.heappush(
-                        free_resources_pq,
-                        (-getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                        free_resources_pq, (-getattr(not_usable_free_resource, metric), not_usable_free_resource)
                     )
-                heapq.heappush(
-                    required_resources_pq,
-                    (-getattr(required_resource, metric), required_resource)
-                )
+                heapq.heappush(required_resources_pq, (-getattr(required_resource, metric), required_resource))
 
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)
@@ -1035,10 +963,7 @@ class ResourceController:
                 if node_details["state"]["status"] == "Running":
                     free_resources_list.append(
                         NodeResource(
-                            node_name=node_name,
-                            cpu=target_free_cpu,
-                            memory=target_free_memory,
-                            gpu=target_free_gpu
+                            node_name=node_name, cpu=target_free_cpu, memory=target_free_memory, gpu=target_free_gpu
                         )
                     )
             except KeyError:
@@ -1082,8 +1007,7 @@ class ResourceController:
 
 
 class ContainerController:
-    """Controller class for container.
-    """
+    """Controller class for container."""
 
     @staticmethod
     def build_container_name(job_id: str, component_id: str, component_index: int) -> str:
@@ -1103,8 +1027,7 @@ class ContainerController:
 
 
 class JobController:
-    """Controller class for MARO Job.
-    """
+    """Controller class for MARO Job."""
 
     @staticmethod
     def get_component_id_to_component_type(job_details: dict) -> dict:
@@ -1130,11 +1053,11 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     master_agent = MasterAgent(
         local_cluster_details=DetailsReader.load_local_cluster_details(),
-        local_master_details=DetailsReader.load_local_master_details()
+        local_master_details=DetailsReader.load_local_master_details(),
     )
     master_agent.start()

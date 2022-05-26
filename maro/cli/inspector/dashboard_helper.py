@@ -97,7 +97,7 @@ def get_sample_index_list(data_num: int, sample_ratio: float) -> List[float]:
 def get_filtered_formula_and_data(
     scenario: GlobalScenarios, data: pd.DataFrame, attribute_option_candidates: List[str]
 ) -> dict:
-    """ Get calculated formula and whole data.
+    """Get calculated formula and whole data.
 
     Args:
         scenario (GlobalScenarios): Type of input scenario detail.
@@ -114,9 +114,7 @@ def get_filtered_formula_and_data(
         attribute_option_candidates.append(data_generate["name"])
 
     attribute_option = st.multiselect(
-        label=" ",
-        options=attribute_option_candidates,
-        default=attribute_option_candidates
+        label=" ", options=attribute_option_candidates, default=attribute_option_candidates
     )
     attribute_option = _get_attribute_option(scenario, attribute_option, attribute_option_candidates)
     return {"data": data, "attribute_option": attribute_option}
@@ -137,10 +135,9 @@ def read_detail_csv(path: str) -> pd.DataFrame:
 
 
 def generate_by_snapshot_top_summary(
-    attr_name: str, data: pd.DataFrame, top_number: int,
-    attribute: str, snapshot_index: int = -1
+    attr_name: str, data: pd.DataFrame, top_number: int, attribute: str, snapshot_index: int = -1
 ):
-    """ Generate top-k resource holders and their according summary data.
+    """Generate top-k resource holders and their according summary data.
 
     Args:
         attr_name (str): Name of attributes needed to be summarized.
@@ -155,27 +152,17 @@ def generate_by_snapshot_top_summary(
         render_h3_title(f"Top {top_number} {attribute}")
     data = data[[attr_name, attribute]].sort_values(by=attribute, ascending=False).head(top_number)
     data["counter"] = range(len(data))
-    data[attr_name] = list(
-        map(
-            lambda x, y: f"{x+1}-{y}",
-            data["counter"],
-            data[attr_name]
+    data[attr_name] = list(map(lambda x, y: f"{x+1}-{y}", data["counter"], data[attr_name]))
+    bars = (
+        alt.Chart(data)
+        .mark_bar()
+        .encode(
+            x=f"{attribute}:Q",
+            y=f"{attr_name}:O",
         )
+        .properties(width=700, height=240)
     )
-    bars = alt.Chart(data).mark_bar().encode(
-        x=f"{attribute}:Q",
-        y=f"{attr_name}:O",
-    ).properties(
-        width=700,
-        height=240
-    )
-    text = bars.mark_text(
-        align="left",
-        baseline="middle",
-        dx=3
-    ).encode(
-        text=f"{attribute}:Q"
-    )
+    text = bars.mark_text(align="left", baseline="middle", dx=3).encode(text=f"{attribute}:Q")
     st.altair_chart(bars + text)
 
 
@@ -239,10 +226,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
 
     """
     st.sidebar.markdown("***")
-    formula_select = st.sidebar.selectbox(
-        label="formula:",
-        options=["a+b", "a-b", "a/b", "a*b", "sqrt(a)"]
-    )
+    formula_select = st.sidebar.selectbox(label="formula:", options=["a+b", "a-b", "a/b", "a*b", "sqrt(a)"])
     paras = st.sidebar.text_input("parameters separated by ;")
     res = paras.split(";")
 
@@ -253,11 +237,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
                 data_original[f"{res[0]}+{res[1]}"] = list(
-                    map(
-                        lambda x, y: x + y,
-                        data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                    map(lambda x, y: x + y, data_original[res[0]], data_original[res[1]])
                 )
             else:
                 return
@@ -271,11 +251,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
                 data_original[f"{res[0]}-{res[1]}"] = list(
-                    map(
-                        lambda x, y: x - y,
-                        data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                    map(lambda x, y: x - y, data_original[res[0]], data_original[res[1]])
                 )
             else:
                 return
@@ -289,11 +265,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
                 data_original[f"{res[0]}*{res[1]}"] = list(
-                    map(
-                        lambda x, y: x * y,
-                        data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                    map(lambda x, y: x * y, data_original[res[0]], data_original[res[1]])
                 )
             else:
                 return
@@ -307,11 +279,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
                 data_original[f"{res[0]}/{res[1]}"] = list(
-                    map(
-                        lambda x, y: x + y,
-                        data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                    map(lambda x, y: x + y, data_original[res[0]], data_original[res[1]])
                 )
             else:
                 return
@@ -324,12 +292,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
         else:
             data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
-                data_original[f"sqrt({res[0]})"] = list(
-                    map(
-                        lambda x: math.sqrt(x),
-                        data_original[res[0]]
-                    )
-                )
+                data_original[f"sqrt({res[0]})"] = list(map(lambda x: math.sqrt(x), data_original[res[0]]))
             else:
                 return
         data = {"data": data_original, "name": f"sqrt({res[0]})"}
@@ -390,23 +353,9 @@ def _get_sampled_epoch_range(epoch_num: int, sample_ratio: float) -> List[float]
         List[float]: List of sampled epoch index.
 
     """
-    start_epoch = st.sidebar.number_input(
-        label="Start Epoch",
-        min_value=0,
-        max_value=epoch_num - 1,
-        value=0
-    )
-    end_epoch = st.sidebar.number_input(
-        label="End Epoch",
-        min_value=0,
-        max_value=epoch_num - 1,
-        value=epoch_num - 1
-    )
-    down_pooling_num = st.sidebar.select_slider(
-        label="Epoch Sampling Ratio",
-        options=sample_ratio,
-        value=1
-    )
+    start_epoch = st.sidebar.number_input(label="Start Epoch", min_value=0, max_value=epoch_num - 1, value=0)
+    end_epoch = st.sidebar.number_input(label="End Epoch", min_value=0, max_value=epoch_num - 1, value=epoch_num - 1)
+    down_pooling_num = st.sidebar.select_slider(label="Epoch Sampling Ratio", options=sample_ratio, value=1)
     if down_pooling_num == 0:
         return []
     else:

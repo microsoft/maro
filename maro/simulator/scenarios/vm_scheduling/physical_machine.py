@@ -12,6 +12,7 @@ from .virtual_machine import VirtualMachine
 @node("pms")
 class PhysicalMachine(NodeBase):
     """Physical machine node definition in frame."""
+
     # Initial parameters.
     id = NodeAttribute("i")
     cpu_cores_capacity = NodeAttribute("i2")
@@ -56,9 +57,8 @@ class PhysicalMachine(NodeBase):
 
         if vm is not None:
             cpu_utilization = (
-                (self.cpu_cores_capacity * self.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
-                / self.cpu_cores_capacity
-            )
+                self.cpu_cores_capacity * self.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization
+            ) / self.cpu_cores_capacity
 
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 

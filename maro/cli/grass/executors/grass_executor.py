@@ -21,7 +21,11 @@ from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import (
-    BadRequestError, CliError, ClusterInternalError, CommandExecutionError, FileOperationError
+    BadRequestError,
+    CliError,
+    ClusterInternalError,
+    CommandExecutionError,
+    FileOperationError,
 )
 from maro.utils.logger import CliLogger
 
@@ -56,7 +60,7 @@ class GrassExecutor:
             user_id=self.user_details["id"],
             master_to_dev_encryption_private_key=self.user_details["master_to_dev_encryption_private_key"],
             dev_to_master_encryption_public_key=self.user_details["dev_to_master_encryption_public_key"],
-            dev_to_master_signing_private_key=self.user_details["dev_to_master_signing_private_key"]
+            dev_to_master_signing_private_key=self.user_details["dev_to_master_signing_private_key"],
         )
         self.master_ssh_port = self.cluster_details["master"]["ssh"]["port"]
         self.master_api_server_port = self.cluster_details["master"]["api_server"]["port"]
@@ -79,18 +83,15 @@ class GrassExecutor:
         GrassExecutor.retry_connection(
             node_username=cluster_details["master"]["username"],
             node_hostname=cluster_details["master"]["public_ip_address"],
-            node_ssh_port=cluster_details["master"]["ssh"]["port"]
+            node_ssh_port=cluster_details["master"]["ssh"]["port"],
         )
 
-        DetailsWriter.save_cluster_details(
-            cluster_name=cluster_details["name"],
-            cluster_details=cluster_details
-        )
+        DetailsWriter.save_cluster_details(cluster_name=cluster_details["name"], cluster_details=cluster_details)
 
         # Copy required files
         local_path_to_remote_dir = {
             GrassPaths.ABS_MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters",
         }
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
@@ -98,7 +99,7 @@ class GrassExecutor:
                 remote_dir=remote_dir,
                 node_username=cluster_details["master"]["username"],
                 node_hostname=cluster_details["master"]["public_ip_address"],
-                node_ssh_port=cluster_details["master"]["ssh"]["port"]
+                node_ssh_port=cluster_details["master"]["ssh"]["port"],
             )
 
         # Remote init master
@@ -106,7 +107,7 @@ class GrassExecutor:
             master_username=cluster_details["master"]["username"],
             master_hostname=cluster_details["master"]["public_ip_address"],
             master_ssh_port=cluster_details["master"]["ssh"]["port"],
-            cluster_name=cluster_details["name"]
+            cluster_name=cluster_details["name"],
         )
         # Gracefully wait
         time.sleep(10)
@@ -129,7 +130,7 @@ class GrassExecutor:
             master_hostname=cluster_details["master"]["public_ip_address"],
             master_ssh_port=cluster_details["master"]["ssh"]["port"],
             user_id=cluster_details["user"]["admin_id"],
-            user_role=UserRole.ADMIN
+            user_role=UserRole.ADMIN,
         )
 
         # Update user_details, "admin_id" change to "id"
@@ -137,17 +138,13 @@ class GrassExecutor:
 
         # Save dev_to_master private key
         os.makedirs(
-            name=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/{user_details['id']}",
-            exist_ok=True
+            name=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/{user_details['id']}", exist_ok=True
         )
         with open(
             file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/{user_details['id']}/user_details",
-            mode="w"
+            mode="w",
         ) as fw:
-            yaml.safe_dump(
-                data=user_details,
-                stream=fw
-            )
+            yaml.safe_dump(data=user_details, stream=fw)
 
         # Save default user
         with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/default_user", mode="w") as fw:
@@ -165,12 +162,7 @@ class GrassExecutor:
         nodes_details = self.master_api_client.list_nodes()
 
         # Print details
-        logger.info(
-            json.dumps(
-                nodes_details,
-                indent=4, sort_keys=True
-            )
-        )
+        logger.info(json.dumps(nodes_details, indent=4, sort_keys=True))
 
     # maro grass image
 
@@ -192,10 +184,7 @@ class GrassExecutor:
                 # Push image from local docker client.
                 new_file_name = NameCreator.get_valid_file_name(image_name)
                 abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files/{new_file_name}"
-                DockerController.save_image(
-                    image_name=image_name,
-                    abs_export_path=abs_image_path
-                )
+                DockerController.save_image(image_name=image_name, abs_export_path=abs_image_path)
             else:
                 # Push image from local image file.
                 file_name = os.path.basename(image_path)
@@ -204,7 +193,7 @@ class GrassExecutor:
                 FileSynchronizer.copy_and_rename(
                     source_path=image_path,
                     target_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files",
-                    new_name=new_file_name
+                    new_name=new_file_name,
                 )
             # Use md5_checksum to skip existed image file.
             remote_image_file_details = self.master_api_client.get_image_file(image_file_name=new_file_name)
@@ -220,13 +209,10 @@ class GrassExecutor:
                 remote_dir=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/image_files",
                 node_username=self.master_username,
                 node_hostname=self.master_public_ip_address,
-                node_ssh_port=self.master_ssh_port
+                node_ssh_port=self.master_ssh_port,
             )
             self.master_api_client.create_image_file(
-                image_file_details={
-                    "name": new_file_name,
-                    "md5_checksum": local_md5_checksum
-                }
+                image_file_details={"name": new_file_name, "md5_checksum": local_md5_checksum}
             )
             logger.info_green(f"Image {image_name} is loaded")
         else:
@@ -251,7 +237,7 @@ class GrassExecutor:
             remote_dir=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/data{remote_path}",
             node_username=self.master_username,
             node_hostname=self.master_public_ip_address,
-            node_ssh_port=self.master_ssh_port
+            node_ssh_port=self.master_ssh_port,
         )
 
     def pull_data(self, local_path: str, remote_path: str) -> None:
@@ -271,7 +257,7 @@ class GrassExecutor:
             remote_path=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/data{remote_path}",
             node_username=self.master_username,
             node_hostname=self.master_public_ip_address,
-            node_ssh_port=self.master_ssh_port
+            node_ssh_port=self.master_ssh_port,
         )
 
     # maro grass job
@@ -330,12 +316,7 @@ class GrassExecutor:
         jobs_details = self.master_api_client.list_jobs()
 
         # Print details
-        logger.info(
-            json.dumps(
-                jobs_details,
-                indent=4, sort_keys=True
-            )
-        )
+        logger.info(json.dumps(jobs_details, indent=4, sort_keys=True))
 
     def get_job_logs(self, job_name: str, export_dir: str = "./") -> None:
         """Pull logs of a job from remote MARO Cluster to local.
@@ -357,7 +338,7 @@ class GrassExecutor:
                 remote_path=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/logs/{job_details['id']}",
                 node_username=self.master_username,
                 node_hostname=self.master_public_ip_address,
-                node_ssh_port=self.master_ssh_port
+                node_ssh_port=self.master_ssh_port,
             )
         except CommandExecutionError:
             logger.error_red("No logs have been created at this time")
@@ -374,15 +355,13 @@ class GrassExecutor:
             dict: standardized job_details.
         """
         # Validate grass_azure_start_job
-        optional_key_to_value = {
-            "root['tags']": {}
-        }
+        optional_key_to_value = {"root['tags']": {}}
         with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=start_job_template,
             actual_dict=start_job_deployment,
-            optional_key_to_value=optional_key_to_value
+            optional_key_to_value=optional_key_to_value,
         )
 
         # Validate component
@@ -391,9 +370,7 @@ class GrassExecutor:
         components_details = start_job_deployment["components"]
         for _, component_details in components_details.items():
             DeploymentValidator.validate_and_fill_dict(
-                template_dict=start_job_component_template,
-                actual_dict=component_details,
-                optional_key_to_value={}
+                template_dict=start_job_component_template, actual_dict=component_details, optional_key_to_value={}
             )
 
         # Init runtime fields
@@ -455,9 +432,7 @@ class GrassExecutor:
         with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
-            template_dict=start_job_template,
-            actual_dict=start_schedule_deployment,
-            optional_key_to_value={}
+            template_dict=start_job_template, actual_dict=start_schedule_deployment, optional_key_to_value={}
         )
 
         # Validate component
@@ -466,9 +441,7 @@ class GrassExecutor:
         components_details = start_schedule_deployment["components"]
         for _, component_details in components_details.items():
             DeploymentValidator.validate_and_fill_dict(
-                template_dict=start_job_component_template,
-                actual_dict=component_details,
-                optional_key_to_value={}
+                template_dict=start_job_component_template, actual_dict=component_details, optional_key_to_value={}
             )
 
         return start_schedule_deployment
@@ -494,12 +467,7 @@ class GrassExecutor:
             raise BadRequestError(f"Resource '{resource_name}' is unsupported")
 
         # Print status
-        logger.info(
-            json.dumps(
-                return_status,
-                indent=4, sort_keys=True
-            )
-        )
+        logger.info(json.dumps(return_status, indent=4, sort_keys=True))
 
     # maro grass template
 
@@ -582,8 +550,7 @@ class GrassExecutor:
 
     @staticmethod
     def remote_create_user(
-        master_username: str, master_hostname: str, master_ssh_port: int,
-        user_id: str, user_role: str
+        master_username: str, master_hostname: str, master_ssh_port: int, user_id: str, user_role: str
     ) -> dict:
         """Remote create MARO User.
 
@@ -609,8 +576,12 @@ class GrassExecutor:
 
     @staticmethod
     def remote_join_cluster(
-        node_username: str, node_hostname: str, node_ssh_port: int,
-        master_private_ip_address: str, master_api_server_port: int, deployment_path: str
+        node_username: str,
+        node_hostname: str,
+        node_ssh_port: int,
+        master_private_ip_address: str,
+        master_api_server_port: int,
+        deployment_path: str,
     ) -> None:
         """Remote join cluster.
 
@@ -733,9 +704,7 @@ class GrassExecutor:
         while remain_retries > 0:
             try:
                 GrassExecutor.test_ssh_default_port_connection(
-                    node_ssh_port=node_ssh_port,
-                    node_username=node_username,
-                    node_hostname=node_hostname
+                    node_ssh_port=node_ssh_port, node_username=node_username, node_hostname=node_hostname
                 )
                 return
             except (CliError, TimeoutExpired):
@@ -751,7 +720,7 @@ class GrassExecutor:
 
     @staticmethod
     def _get_md5_checksum(path: str, block_size=128) -> str:
-        """ Get md5 checksum of a local file.
+        """Get md5 checksum of a local file.
 
         Args:
             path (str): path of the local file.

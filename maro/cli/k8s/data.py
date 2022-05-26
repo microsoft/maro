@@ -18,10 +18,7 @@ def push_data(cluster_name: str, local_path: str, remote_dir: str, **kwargs):
 
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.push_data(
-            local_path=local_path,
-            remote_dir=remote_dir
-        )
+        executor.push_data(local_path=local_path, remote_dir=remote_dir)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
@@ -38,10 +35,7 @@ def pull_data(cluster_name: str, local_dir: str, remote_path: str, **kwargs):
 
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.pull_data(
-            local_dir=local_dir,
-            remote_path=remote_path
-        )
+        executor.pull_data(local_dir=local_dir, remote_path=remote_path)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
@@ -58,8 +52,6 @@ def remove_data(cluster_name: str, remote_path: str, **kwargs):
 
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.remove_data(
-            remote_path=remote_path
-        )
+        executor.remove_data(remote_path=remote_path)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")

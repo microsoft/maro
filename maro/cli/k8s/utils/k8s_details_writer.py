@@ -20,15 +20,10 @@ class K8sDetailsWriter:
         k8s_client = client.CoreV1Api()
         k8s_client.create_namespaced_config_map(
             body=client.V1ConfigMap(
-                metadata=client.V1ObjectMeta(
-                    name=f"job.details-{job_name}",
-                    namespace="default"
-                ),
-                data={
-                    "encoded_data": json.dumps(job_details)
-                }
+                metadata=client.V1ObjectMeta(name=f"job.details-{job_name}", namespace="default"),
+                data={"encoded_data": json.dumps(job_details)},
             ),
-            namespace="default"
+            namespace="default",
         )
 
     @staticmethod
@@ -38,13 +33,8 @@ class K8sDetailsWriter:
         k8s_client = client.CoreV1Api()
         k8s_client.create_namespaced_config_map(
             body=client.V1ConfigMap(
-                metadata=client.V1ObjectMeta(
-                    name=f"schedule.details-{schedule_name}",
-                    namespace="default"
-                ),
-                data={
-                    "encoded_data": json.dumps(schedule_details)
-                }
+                metadata=client.V1ObjectMeta(name=f"schedule.details-{schedule_name}", namespace="default"),
+                data={"encoded_data": json.dumps(schedule_details)},
             ),
-            namespace="default"
+            namespace="default",
         )

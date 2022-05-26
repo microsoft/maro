@@ -25,14 +25,12 @@ def get_decision_data(experiment_name: str, episode: str, tick: str) -> pd.DataF
     params = {
         "query": f"select {request_column.decision_header.value} from {experiment_name}.full_on_vessels"
         f" where episode='{episode}' and tick='{tick}'",
-        "count": "true"
+        "count": "true",
     }
     decision_value = requests.get(
-        url=request_settings.request_url.value,
-        headers=request_settings.request_header.value,
-        params=params
+        url=request_settings.request_url.value, headers=request_settings.request_header.value, params=params
     ).json()
-    decision_data = get_data_in_format(decision_value).to_json(orient='records')
+    decision_data = get_data_in_format(decision_value).to_json(orient="records")
     return decision_data
 
 
@@ -50,18 +48,15 @@ def get_acc_decision_data(experiment_name: str, episode: str, start_tick: str, e
 
     """
     input_range = get_input_range(start_tick, end_tick)
-    query = f"select {request_column.decision_header.value} from {experiment_name}.full_on_vessels"\
+    query = (
+        f"select {request_column.decision_header.value} from {experiment_name}.full_on_vessels"
         f" where episode='{episode}'"
+    )
     if input_range != "()":
         query += f" and tick in {input_range}"
-    params = {
-        "query": query,
-        "count": "true"
-    }
+    params = {"query": query, "count": "true"}
     original_decision_data = requests.get(
-        url=request_settings.request_url.value,
-        headers=request_settings.request_header.value,
-        params=params
+        url=request_settings.request_url.value, headers=request_settings.request_header.value, params=params
     ).json()
     decision_data = get_data_in_format(original_decision_data)
     decision_output = []
@@ -71,7 +66,7 @@ def get_acc_decision_data(experiment_name: str, episode: str, start_tick: str, e
         if cur_decision.empty:
             decision_output.append([])
         else:
-            decision_in_format = cur_decision.to_json(orient='records')
+            decision_in_format = cur_decision.to_json(orient="records")
             decision_output.append(json.loads(decision_in_format))
         i = i + 1
     return decision_output

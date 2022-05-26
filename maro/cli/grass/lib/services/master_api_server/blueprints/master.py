@@ -22,6 +22,7 @@ URL_PREFIX = "/v1/master"
 
 # Api functions.
 
+
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 @check_jwt_validity
 def get_master():
@@ -78,29 +79,20 @@ def save_master_key(private_key: str) -> None:
     with open(file=f"{Paths.ABS_MARO_LOCAL}/cluster/{cluster_name}/master_to_node_openssh_private_key", mode="w") as fw:
         fw.write(private_key)
     os.chmod(
-        path=f"{Paths.ABS_MARO_LOCAL}/cluster/{cluster_name}/master_to_node_openssh_private_key",
-        mode=stat.S_IRWXU
+        path=f"{Paths.ABS_MARO_LOCAL}/cluster/{cluster_name}/master_to_node_openssh_private_key", mode=stat.S_IRWXU
     )
 
 
 def generate_rsa_openssh_key_pair() -> dict:
-    rsa_key = rsa.generate_private_key(
-        backend=default_backend(),
-        public_exponent=65537,
-        key_size=2048
-    )
+    rsa_key = rsa.generate_private_key(backend=default_backend(), public_exponent=65537, key_size=2048)
 
     # Format and encoding are diff from OpenSSH
     private_key = rsa_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
+        encryption_algorithm=serialization.NoEncryption(),
     )
     public_key = rsa_key.public_key().public_bytes(
-        encoding=serialization.Encoding.OpenSSH,
-        format=serialization.PublicFormat.OpenSSH
+        encoding=serialization.Encoding.OpenSSH, format=serialization.PublicFormat.OpenSSH
     )
-    return {
-        "public_key": public_key.decode("utf-8"),
-        "private_key": private_key.decode("utf-8")
-    }
+    return {"public_key": public_key.decode("utf-8"), "private_key": private_key.decode("utf-8")}

@@ -73,18 +73,14 @@ class AzureBlobCheckpoint(AbsCheckpoint):
     def set(self, key: str, value: bytes) -> None:
         super().set(key=key, value=value)
         blob_client = BlobClient.from_connection_string(
-            conn_str=self._conn_str,
-            container_name=self._container_name,
-            blob_name=key
+            conn_str=self._conn_str, container_name=self._container_name, blob_name=key
         )
         blob_client.upload_blob(value, overwrite=True)
 
     def get(self, key: str) -> bytes:
         super().get(key=key)
         blob_client = BlobClient.from_connection_string(
-            conn_str=self._conn_str,
-            container_name=self._container_name,
-            blob_name=key
+            conn_str=self._conn_str, container_name=self._container_name, blob_name=key
         )
         blob_data = blob_client.download_blob()
         bytes_io = io.BytesIO()
@@ -94,9 +90,7 @@ class AzureBlobCheckpoint(AbsCheckpoint):
     def exists(self, key: str) -> bool:
         super().exists(key=key)
         blob_client = BlobClient.from_connection_string(
-            conn_str=self._conn_str,
-            container_name=self._container_name,
-            blob_name=key
+            conn_str=self._conn_str, container_name=self._container_name, blob_name=key
         )
         return blob_client.exists()
 
@@ -109,10 +103,7 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         Returns:
             None.
         """
-        container_client = ContainerClient.from_connection_string(
-            conn_str=self._conn_str,
-            container_name=container
-        )
+        container_client = ContainerClient.from_connection_string(conn_str=self._conn_str, container_name=container)
         try:
             container_client.create_container()
         except Exception as e:
@@ -142,8 +133,7 @@ class ServerCheckpoint(AbsCheckpoint):
         # Init SFTPClient instance
         transport = paramiko.Transport((ip_address, port))
         transport.connect(
-            username=admin_username,
-            pkey=paramiko.RSAKey.from_private_key(open(f"{Path.home()}/.ssh/id_rsa"))
+            username=admin_username, pkey=paramiko.RSAKey.from_private_key(open(f"{Path.home()}/.ssh/id_rsa"))
         )
         self._sftp = paramiko.SFTPClient.from_transport(transport)
 

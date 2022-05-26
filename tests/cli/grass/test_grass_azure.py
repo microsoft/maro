@@ -89,12 +89,7 @@ class TestGrassAzure(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Print result.
-        print(
-            json.dumps(
-                cls.test_func_to_time,
-                indent=4, sort_keys=True
-            )
-        )
+        print(json.dumps(cls.test_func_to_time, indent=4, sort_keys=True))
 
         # Delete resource group.
         AzureController.delete_resource_group(resource_group=cls.resource_group)

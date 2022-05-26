@@ -70,7 +70,7 @@ def set_seeds(seed):
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
     except Exception:
-        warnings.warn("\"Torch\" not installed.")
+        warnings.warn('"Torch" not installed.')
 
     np.random.seed(seed)
     random.seed(seed)
@@ -84,32 +84,17 @@ project_root = os.path.join(LOCAL_MARO_ROOT, "maro")
 target_source_pairs = [
     (
         os.path.expanduser("~/.maro/data/citi_bike/meta"),
-        os.path.join(project_root, "simulator/scenarios/citi_bike/meta")
+        os.path.join(project_root, "simulator/scenarios/citi_bike/meta"),
     ),
-    (
-        os.path.expanduser("~/.maro/data/cim/meta"),
-        os.path.join(project_root, "simulator/scenarios/cim/meta")
-    ),
+    (os.path.expanduser("~/.maro/data/cim/meta"), os.path.join(project_root, "simulator/scenarios/cim/meta")),
     (
         os.path.expanduser("~/.maro/data/vm_scheduling/meta"),
-        os.path.join(project_root, "simulator/scenarios/vm_scheduling/meta")
+        os.path.join(project_root, "simulator/scenarios/vm_scheduling/meta"),
     ),
-    (
-        os.path.expanduser("~/.maro/lib/k8s"),
-        os.path.join(project_root, "cli/k8s/lib")
-    ),
-    (
-        os.path.expanduser("~/.maro/lib/grass"),
-        os.path.join(project_root, "cli/grass/lib")
-    ),
-    (
-        os.path.expanduser("~/.maro/vis/templates"),
-        os.path.join(project_root, "cli/inspector")
-    ),
-    (
-        os.path.expanduser("~/.maro/web_terminal"),
-        os.path.join(project_root, "cli/utils/web_terminal")
-    )
+    (os.path.expanduser("~/.maro/lib/k8s"), os.path.join(project_root, "cli/k8s/lib")),
+    (os.path.expanduser("~/.maro/lib/grass"), os.path.join(project_root, "cli/grass/lib")),
+    (os.path.expanduser("~/.maro/vis/templates"), os.path.join(project_root, "cli/inspector")),
+    (os.path.expanduser("~/.maro/web_terminal"), os.path.join(project_root, "cli/utils/web_terminal")),
 ]
 
 
@@ -177,12 +162,14 @@ def check_deployment_status() -> bool:
     elif os.path.exists(version_file_path):
         version_info = configparser.ConfigParser()
         version_info.read(version_file_path)
-        if "MARO_DATA" in version_info \
-                and "deploy_time" in version_info["MARO_DATA"] \
-                and "version" in version_info["MARO_DATA"] \
-                and "deploy_status" in version_info["MARO_DATA"] \
-                and version_info["MARO_DATA"]["version"] == __data_version__ \
-                and version_info["MARO_DATA"]["deploy_status"] != "failed":
+        if (
+            "MARO_DATA" in version_info
+            and "deploy_time" in version_info["MARO_DATA"]
+            and "version" in version_info["MARO_DATA"]
+            and "deploy_status" in version_info["MARO_DATA"]
+            and version_info["MARO_DATA"]["version"] == __data_version__
+            and version_info["MARO_DATA"]["deploy_status"] != "failed"
+        ):
             ret = True
     return ret
 

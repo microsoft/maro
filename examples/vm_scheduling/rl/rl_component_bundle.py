@@ -30,13 +30,21 @@ class VMBundle(RLComponentBundle):
         if algorithm == "ac":
             policy_creator = {
                 f"{algorithm}.policy": partial(
-                    get_ac_policy, state_dim, action_num, num_features, f"{algorithm}.policy",
+                    get_ac_policy,
+                    state_dim,
+                    action_num,
+                    num_features,
+                    f"{algorithm}.policy",
                 )
             }
         elif algorithm == "dqn":
             policy_creator = {
                 f"{algorithm}.policy": partial(
-                    get_dqn_policy, state_dim, action_num, num_features, f"{algorithm}.policy",
+                    get_dqn_policy,
+                    state_dim,
+                    action_num,
+                    num_features,
+                    f"{algorithm}.policy",
                 )
             }
         else:
@@ -47,9 +55,11 @@ class VMBundle(RLComponentBundle):
     def get_trainer_creator(self) -> Dict[str, Callable[[], AbsTrainer]]:
         if algorithm == "ac":
             from .algorithms.ac import get_ac, get_ac_policy
+
             trainer_creator = {algorithm: partial(get_ac, state_dim, num_features, algorithm)}
         elif algorithm == "dqn":
             from .algorithms.dqn import get_dqn, get_dqn_policy
+
             trainer_creator = {algorithm: partial(get_dqn, algorithm)}
         else:
             raise ValueError(f"Unsupported algorithm: {algorithm}")

@@ -38,14 +38,18 @@ def get_dqn_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPoli
         name=name,
         q_net=MyQNet(state_dim, action_num),
         exploration_strategy=(epsilon_greedy, {"epsilon": 0.4}),
-        exploration_scheduling_options=[(
-            "epsilon", MultiLinearExplorationScheduler, {
-                "splits": [(2, 0.32)],
-                "initial_value": 0.4,
-                "last_ep": 5,
-                "final_value": 0.0,
-            }
-        )],
+        exploration_scheduling_options=[
+            (
+                "epsilon",
+                MultiLinearExplorationScheduler,
+                {
+                    "splits": [(2, 0.32)],
+                    "initial_value": 0.4,
+                    "last_ep": 5,
+                    "final_value": 0.0,
+                },
+            )
+        ],
         warmup=100,
     )
 
@@ -54,7 +58,7 @@ def get_dqn(name: str) -> DQNTrainer:
     return DQNTrainer(
         name=name,
         params=DQNParams(
-            reward_discount=.0,
+            reward_discount=0.0,
             update_target_every=5,
             num_epochs=10,
             soft_update_coef=0.1,

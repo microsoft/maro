@@ -29,7 +29,7 @@ class VesselPastStopsWrapper:
         # avoid negative index
         start = max(last_stop_idx - self._stop_number + 1, 0)
 
-        past_stop_list = self._stops[vessel_idx][start: loc_idx]
+        past_stop_list = self._stops[vessel_idx][start:loc_idx]
 
         # padding with None
         for _ in range(self._stop_number - len(past_stop_list)):

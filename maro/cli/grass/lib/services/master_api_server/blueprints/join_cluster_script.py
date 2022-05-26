@@ -16,9 +16,7 @@ URL_PREFIX = "/v1/joinClusterScript"
 def get_init_node_script():
     try:
         return send_from_directory(
-            directory=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node",
-            filename="join_cluster.py",
-            as_attachment=True
+            directory=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node", filename="join_cluster.py", as_attachment=True
         )
     except FileNotFoundError:
         abort(404)

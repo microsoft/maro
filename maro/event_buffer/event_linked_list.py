@@ -83,8 +83,7 @@ class EventLinkedList:
             self._count += 1
 
     def _extract_sub_events(self, event: CascadeEvent) -> None:
-        """Extract sub events (immediate events) of CascadeEvent to the head.
-        """
+        """Extract sub events (immediate events) of CascadeEvent to the head."""
         # Make immediate event list as the head of current list.
         event.immediate_event_tail.next_event = self._head.next_event
         self._head.next_event = event.immediate_event_head.next_event
@@ -92,8 +91,8 @@ class EventLinkedList:
         event.clear()
 
     def _clear_finished_events(self) -> None:
-        """Remove all finished events from the head of the list.
-        """
+        """Remove all finished events from the head of the list."""
+
         def _is_finish(event: ActualEvent) -> bool:
             return event.state in (EventState.FINISHED, EventState.RECYCLING)
 
@@ -126,10 +125,12 @@ class EventLinkedList:
 
         if self._head.next_event is None:
             return None
-        elif any([
-            self._head.next_event.state == EventState.EXECUTING,
-            self._head.next_event.event_type != MaroEvents.PENDING_DECISION
-        ]):
+        elif any(
+            [
+                self._head.next_event.state == EventState.EXECUTING,
+                self._head.next_event.event_type != MaroEvents.PENDING_DECISION,
+            ]
+        ):
             return self._head.next_event
         else:
             return self._collect_pending_decision_events()

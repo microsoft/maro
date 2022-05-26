@@ -16,7 +16,6 @@ def message_receive(proxy):
 
 @unittest.skipUnless(os.environ.get("test_with_redis", False), "require redis")
 class TestProxy(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         print(f"The proxy unit test start!")
@@ -47,10 +46,7 @@ class TestProxy(unittest.TestCase):
     def test_send(self):
         for worker_proxy in TestProxy.worker_proxies:
             send_msg = SessionMessage(
-                tag="unit_test",
-                source=TestProxy.master_proxy.name,
-                destination=worker_proxy.name,
-                body="hello_world!"
+                tag="unit_test", source=TestProxy.master_proxy.name, destination=worker_proxy.name, body="hello_world!"
             )
             TestProxy.master_proxy.isend(send_msg)
 
@@ -60,14 +56,11 @@ class TestProxy(unittest.TestCase):
     def test_scatter(self):
         scatter_payload = ["worker_1", "worker_2", "worker_3", "worker_4", "worker_5"]
         destination_payload_list = [
-            (worker_proxy.name, scatter_payload[i])
-            for i, worker_proxy in enumerate(TestProxy.worker_proxies)
+            (worker_proxy.name, scatter_payload[i]) for i, worker_proxy in enumerate(TestProxy.worker_proxies)
         ]
 
         TestProxy.master_proxy.iscatter(
-            tag="unit_test",
-            session_type=SessionType.NOTIFICATION,
-            destination_payload_list=destination_payload_list
+            tag="unit_test", session_type=SessionType.NOTIFICATION, destination_payload_list=destination_payload_list
         )
 
         for i, worker_proxy in enumerate(TestProxy.worker_proxies):
@@ -80,10 +73,7 @@ class TestProxy(unittest.TestCase):
 
             payload = ["broadcast_unit_test"]
             TestProxy.master_proxy.ibroadcast(
-                component_type="worker",
-                tag="unit_test",
-                session_type=SessionType.NOTIFICATION,
-                body=payload
+                component_type="worker", tag="unit_test", session_type=SessionType.NOTIFICATION, body=payload
             )
 
             for task in all_tasks:
@@ -93,10 +83,7 @@ class TestProxy(unittest.TestCase):
     def test_reply(self):
         for worker_proxy in TestProxy.worker_proxies:
             send_msg = SessionMessage(
-                tag="unit_test",
-                source=TestProxy.master_proxy.name,
-                destination=worker_proxy.name,
-                body="hello "
+                tag="unit_test", source=TestProxy.master_proxy.name, destination=worker_proxy.name, body="hello "
             )
             session_id_list = TestProxy.master_proxy.isend(send_msg)
 

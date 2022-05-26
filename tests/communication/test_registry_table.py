@@ -11,7 +11,7 @@ class FakedProxy:
     def __init__(self):
         self._peers = {
             "worker_a": ["worker_a.1", "worker_a.2", "worker_a.3", "worker_a.4", "worker_a.5"],
-            "worker_b": ["worker_b.1", "worker_b.2", "worker_b.3", "worker_b.4", "worker_b.5"]
+            "worker_b": ["worker_b.1", "worker_b.2", "worker_b.3", "worker_b.4", "worker_b.5"],
         }
 
     @property
@@ -24,7 +24,6 @@ def handler(messages):
 
 
 class TestRegisterTable(unittest.TestCase):
-
     def setUp(self) -> None:
         print(f"clear register table before each test.")
         proxy = FakedProxy()
@@ -34,8 +33,7 @@ class TestRegisterTable(unittest.TestCase):
     def setUpClass(cls) -> None:
         print(f"The register table unit test start!")
         # Prepare message dict for test.
-        cls.message_dict = {"worker_a": defaultdict(list),
-                            "worker_b": defaultdict(list)}
+        cls.message_dict = {"worker_a": defaultdict(list), "worker_b": defaultdict(list)}
 
         worker_a_list = ["worker_a.1", "worker_a.2", "worker_a.3", "worker_a.4", "worker_a.5"]
         worker_b_list = ["worker_b.1", "worker_b.2", "worker_b.3", "worker_b.4", "worker_b.5"]
@@ -43,16 +41,12 @@ class TestRegisterTable(unittest.TestCase):
 
         for source in worker_a_list:
             for tag in tag_type:
-                message = SessionMessage(tag=tag,
-                                         source=source,
-                                         destination="test")
+                message = SessionMessage(tag=tag, source=source, destination="test")
                 cls.message_dict["worker_a"][tag].append(message)
 
         for source in worker_b_list:
             for tag in tag_type:
-                message = SessionMessage(tag=tag,
-                                         source=source,
-                                         destination="test")
+                message = SessionMessage(tag=tag, source=source, destination="test")
                 cls.message_dict["worker_b"][tag].append(message)
 
     @classmethod
@@ -77,7 +71,9 @@ class TestRegisterTable(unittest.TestCase):
         # Accept a message from worker_a with any tags.
         unit_event_2 = "worker_a:*:1"
         self.register_table.register_event_handler(unit_event_2, handler)
-        for msg in TestRegisterTable.message_dict["worker_a"]["tag_a"] + TestRegisterTable.message_dict["worker_a"]["tag_b"]:
+        for msg in (
+            TestRegisterTable.message_dict["worker_a"]["tag_a"] + TestRegisterTable.message_dict["worker_a"]["tag_b"]
+        ):
             # The message from worker_a with any tags, it will trigger handler function each time.
             self.register_table.push(msg)
             self.assertIsNotNone(self.register_table.get())
@@ -91,8 +87,9 @@ class TestRegisterTable(unittest.TestCase):
         # Accept messages from any source with tag_a until the number of message reach 60% of source number.
         unit_event_2 = "*:tag_a:50%"
         self.register_table.register_event_handler(unit_event_2, handler)
-        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
-                                  TestRegisterTable.message_dict["worker_b"]["tag_a"]):
+        for idx, msg in enumerate(
+            TestRegisterTable.message_dict["worker_a"]["tag_a"] + TestRegisterTable.message_dict["worker_b"]["tag_a"]
+        ):
             # The message with tag_a, it will trigger handler function until receiving 5 times.
             self.register_table.push(msg)
             if (idx + 1) % 5 == 0:
@@ -104,8 +101,9 @@ class TestRegisterTable(unittest.TestCase):
         # Accept the combination of two messages: one from worker_a with tag_a, and one from worker_b with tag_a.
         and_conditional_event = ("worker_a:tag_a:1", "worker_b:tag_a:1", "AND")
         self.register_table.register_event_handler(and_conditional_event, handler)
-        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
-                                  TestRegisterTable.message_dict["worker_b"]["tag_a"]):
+        for idx, msg in enumerate(
+            TestRegisterTable.message_dict["worker_a"]["tag_a"] + TestRegisterTable.message_dict["worker_b"]["tag_a"]
+        ):
             # The messages with tag_a from worker_a and worker_b, it will trigger handler function until the
             # combination be satisfied.
             self.register_table.push(msg)
@@ -117,8 +115,9 @@ class TestRegisterTable(unittest.TestCase):
         # Accept the message from worker_a with tag_a, or from worker_b with tag_a.
         or_conditional_event = ("worker_a:tag_a:1", "worker_b:tag_a:1", "OR")
         self.register_table.register_event_handler(or_conditional_event, handler)
-        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
-                                  TestRegisterTable.message_dict["worker_b"]["tag_a"]):
+        for idx, msg in enumerate(
+            TestRegisterTable.message_dict["worker_a"]["tag_a"] + TestRegisterTable.message_dict["worker_b"]["tag_a"]
+        ):
             # The messages with tag_a from worker_a and worker_b, it will trigger handler function each time.
             self.register_table.push(msg)
             self.assertIsNotNone(self.register_table.get())
@@ -129,8 +128,9 @@ class TestRegisterTable(unittest.TestCase):
         recurrent_conditional_event = (("worker_a:tag_a:1", "worker_b:tag_a:1", "AND"), "worker_a:tag_b:1", "AND")
         self.register_table.register_event_handler(recurrent_conditional_event, handler)
 
-        for msg in TestRegisterTable.message_dict["worker_a"]["tag_a"] + \
-                   TestRegisterTable.message_dict["worker_b"]["tag_a"]:
+        for msg in (
+            TestRegisterTable.message_dict["worker_a"]["tag_a"] + TestRegisterTable.message_dict["worker_b"]["tag_a"]
+        ):
             self.register_table.push(msg)
 
         for msg in TestRegisterTable.message_dict["worker_a"]["tag_b"]:
@@ -153,5 +153,5 @@ class TestRegisterTable(unittest.TestCase):
             self.assertEqual(res[0][1], res[1][1])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

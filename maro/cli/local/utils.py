@@ -15,6 +15,7 @@ from maro.rl.workflows.config.parser import ConfigParser
 
 class RedisHashKey:
     """Record Redis elements name, and only for maro process"""
+
     JOB_CONF = "job_conf"
     JOB_DETAILS = "job_details"
 
@@ -103,13 +104,16 @@ def exec(cmd: str, env: dict, debug: bool = False) -> subprocess.Popen:
 
 
 def start_rl_job(
-    parser: ConfigParser, maro_root: str, evaluate_only: bool, background: bool = False,
+    parser: ConfigParser,
+    maro_root: str,
+    evaluate_only: bool,
+    background: bool = False,
 ) -> List[subprocess.Popen]:
     procs = [
         exec(
             f"python {script}" + ("" if not evaluate_only else " --evaluate_only"),
             format_env_vars({**env, "PYTHONPATH": maro_root}, mode="proc"),
-            debug=not background
+            debug=not background,
         )
         for script, env in parser.get_job_spec().values()
     ]
@@ -126,8 +130,7 @@ def start_rl_job_in_containers(parser: ConfigParser, image_name: str) -> list:
     training_mode = parser.config["training"]["mode"]
     if "parallelism" in parser.config["rollout"]:
         rollout_parallelism = max(
-            parser.config["rollout"]["parallelism"]["sampling"],
-            parser.config["rollout"]["parallelism"].get("eval", 1)
+            parser.config["rollout"]["parallelism"]["sampling"], parser.config["rollout"]["parallelism"].get("eval", 1)
         )
     else:
         rollout_parallelism = 1
@@ -144,7 +147,7 @@ def start_rl_job_in_containers(parser: ConfigParser, image_name: str) -> list:
             name=component,
             environment=env,
             volumes=[f"{src}:{dst}" for src, dst in parser.get_path_mapping(containerize=True).items()],
-            network=job_name
+            network=job_name,
         )
 
         containers.append(container)
@@ -157,12 +160,16 @@ def get_docker_compose_yml_path(maro_root: str) -> str:
 
 
 def start_rl_job_with_docker_compose(
-    parser: ConfigParser, context: str, dockerfile_path: str, image_name: str, evaluate_only: bool,
+    parser: ConfigParser,
+    context: str,
+    dockerfile_path: str,
+    image_name: str,
+    evaluate_only: bool,
 ) -> None:
     common_spec = {
         "build": {"context": context, "dockerfile": dockerfile_path},
         "image": image_name,
-        "volumes": [f"./{src}:{dst}" for src, dst in parser.get_path_mapping(containerize=True).items()]
+        "volumes": [f"./{src}:{dst}" for src, dst in parser.get_path_mapping(containerize=True).items()],
     }
 
     job_name = parser.config["job"]
@@ -174,8 +181,8 @@ def start_rl_job_with_docker_compose(
                 **{
                     "container_name": component,
                     "command": f"python3 {script}" + ("" if not evaluate_only else " --evaluate_only"),
-                    "environment": format_env_vars(env, mode="docker-compose")
-                }
+                    "environment": format_env_vars(env, mode="docker-compose"),
+                },
             }
             for component, (script, env) in parser.get_job_spec(containerize=True).items()
         },

@@ -31,12 +31,9 @@ class PortOrderExporter:
             with open(f"{folder}/orders.csv", "w+", newline="") as fp:
                 writer = csv.writer(fp)
 
-                writer.writerow(
-                    ["tick", "src_port_idx", "dest_port_idx", "quantity"]
-                )
+                writer.writerow(["tick", "src_port_idx", "dest_port_idx", "quantity"])
 
                 for order in self._orders:
-                    writer.writerow(
-                        [order.tick, order.src_port_idx, order.dest_port_idx, order.quantity])
+                    writer.writerow([order.tick, order.src_port_idx, order.dest_port_idx, order.quantity])
 
             self._orders.clear()

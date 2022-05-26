@@ -17,16 +17,11 @@ logger = CliLogger(name=__name__)
 
 
 class FileSynchronizer:
-    """Synchronizer class for files.
-    """
+    """Synchronizer class for files."""
 
     @staticmethod
     def copy_files_to_node(
-        local_path: str,
-        remote_dir: str,
-        node_username: str,
-        node_hostname: str,
-        node_ssh_port: int
+        local_path: str, remote_dir: str, node_username: str, node_hostname: str, node_ssh_port: int
     ) -> None:
         """Copy local files to node, automatically create folder if not exist.
 
@@ -83,11 +78,7 @@ class FileSynchronizer:
 
     @staticmethod
     def copy_files_from_node(
-        local_dir: str,
-        remote_path: str,
-        node_username: str,
-        node_hostname: str,
-        node_ssh_port: int
+        local_dir: str, remote_path: str, node_username: str, node_hostname: str, node_ssh_port: int
     ) -> None:
         """Copy node files to local, automatically create folder if not exist.
 

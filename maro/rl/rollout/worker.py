@@ -34,7 +34,10 @@ class RolloutWorker(AbsWorker):
         logger: LoggerV2 = None,
     ) -> None:
         super(RolloutWorker, self).__init__(
-            idx=idx, producer_host=producer_host, producer_port=producer_port, logger=logger,
+            idx=idx,
+            producer_host=producer_host,
+            producer_port=producer_port,
+            logger=logger,
         )
         self._env_sampler = rl_component_bundle.env_sampler
 

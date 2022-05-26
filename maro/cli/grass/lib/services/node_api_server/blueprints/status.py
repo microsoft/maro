@@ -14,7 +14,4 @@ URL_PREFIX = "/v1/status"
 
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 def status():
-    return {
-        "status": "OK",
-        "time": time.time()
-    }
+    return {"status": "OK", "time": time.time()}

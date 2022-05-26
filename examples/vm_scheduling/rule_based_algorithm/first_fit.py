@@ -12,9 +12,6 @@ class FirstFit(RuleBasedAlgorithm):
         # Use a valid PM based on its order.
         chosen_idx: int = decision_event.valid_pms[0]
         # Take action to allocate on the chose PM.
-        action: AllocateAction = AllocateAction(
-            vm_id=decision_event.vm_id,
-            pm_id=chosen_idx
-        )
+        action: AllocateAction = AllocateAction(vm_id=decision_event.vm_id, pm_id=chosen_idx)
 
         return action

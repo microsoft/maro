@@ -29,7 +29,7 @@ if __name__ == "__main__":
                 decision_event.vessel_idx,
                 decision_event.port_idx,
                 randint(0, action_scope.discharge if to_discharge else action_scope.load),
-                ActionType.DISCHARGE if to_discharge else ActionType.LOAD
+                ActionType.DISCHARGE if to_discharge else ActionType.LOAD,
             )
 
             # Drive environment with dummy action (no repositioning)

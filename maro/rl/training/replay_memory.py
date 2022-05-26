@@ -80,11 +80,14 @@ class RandomIndexScheduler(AbsIndexScheduler):
             self._ptr += batch_size
         else:
             overwrites = self._ptr + batch_size - self._capacity
-            indexes = np.concatenate([
-                np.arange(self._ptr, self._capacity),
-                np.random.choice(self._ptr, size=overwrites, replace=False) if self._random_overwrite
-                else np.arange(overwrites)
-            ])
+            indexes = np.concatenate(
+                [
+                    np.arange(self._ptr, self._capacity),
+                    np.random.choice(self._ptr, size=overwrites, replace=False)
+                    if self._random_overwrite
+                    else np.arange(overwrites),
+                ]
+            )
             self._ptr = self._capacity if self._random_overwrite else overwrites
 
         self._size = min(self._size + batch_size, self._capacity)
@@ -119,10 +122,9 @@ class FIFOIndexScheduler(AbsIndexScheduler):
             if self._tail + batch_size <= self._capacity:
                 indexes = np.arange(self._tail, self._tail + batch_size)
             else:
-                indexes = np.concatenate([
-                    np.arange(self._tail, self._capacity),
-                    np.arange(self._tail + batch_size - self._capacity)
-                ])
+                indexes = np.concatenate(
+                    [np.arange(self._tail, self._capacity), np.arange(self._tail + batch_size - self._capacity)]
+                )
             self._tail = (self._tail + batch_size) % self._capacity
             return indexes
         else:
@@ -132,8 +134,11 @@ class FIFOIndexScheduler(AbsIndexScheduler):
 
     def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
         tmp = self._tail if not forbid_last else (self._tail - 1) % self._capacity
-        indexes = np.arange(self._head, tmp) if tmp > self._head \
+        indexes = (
+            np.arange(self._head, tmp)
+            if tmp > self._head
             else np.concatenate([np.arange(self._head, self._capacity), np.arange(tmp)])
+        )
         self._head = tmp
         return indexes
 
@@ -165,13 +170,11 @@ class AbsReplayMemory(object, metaclass=ABCMeta):
         return self._state_dim
 
     def _get_put_indexes(self, batch_size: int) -> np.ndarray:
-        """Please refer to the doc string in AbsIndexScheduler.
-        """
+        """Please refer to the doc string in AbsIndexScheduler."""
         return self._idx_scheduler.get_put_indexes(batch_size)
 
     def _get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
-        """Please refer to the doc string in AbsIndexScheduler.
-        """
+        """Please refer to the doc string in AbsIndexScheduler."""
         return self._idx_scheduler.get_sample_indexes(batch_size, forbid_last)
 
 
@@ -326,9 +329,7 @@ class FIFOReplayMemory(ReplayMemory):
         state_dim: int,
         action_dim: int,
     ) -> None:
-        super(FIFOReplayMemory, self).__init__(
-            capacity, state_dim, action_dim, FIFOIndexScheduler(capacity)
-        )
+        super(FIFOReplayMemory, self).__init__(capacity, state_dim, action_dim, FIFOIndexScheduler(capacity))
 
     def _get_forbid_last(self) -> bool:
         return not self._terminals[self._idx_scheduler.get_last_index()]
@@ -473,8 +474,7 @@ class RandomMultiReplayMemory(MultiReplayMemory):
         random_overwrite: bool = False,
     ) -> None:
         super(RandomMultiReplayMemory, self).__init__(
-            capacity, state_dim, action_dims, RandomIndexScheduler(capacity, random_overwrite),
-            agent_states_dims
+            capacity, state_dim, action_dims, RandomIndexScheduler(capacity, random_overwrite), agent_states_dims
         )
         self._random_overwrite = random_overwrite
         self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
@@ -496,7 +496,10 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
         agent_states_dims: List[int],
     ) -> None:
         super(FIFOMultiReplayMemory, self).__init__(
-            capacity, state_dim, action_dims, FIFOIndexScheduler(capacity),
+            capacity,
+            state_dim,
+            action_dims,
+            FIFOIndexScheduler(capacity),
             agent_states_dims,
         )
 

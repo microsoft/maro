@@ -75,9 +75,9 @@ def training_workflow(rl_component_bundle: RLComponentBundle) -> None:
     training_manager = TrainingManager(
         rl_component_bundle=rl_component_bundle,
         explicit_assign_device=(train_mode == "simple"),
-        proxy_address=None if train_mode == "simple" else (
-            get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))
-        ),
+        proxy_address=None
+        if train_mode == "simple"
+        else (get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT"))),
         logger=logger,
     )
 

@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionTester:
-    """Tester class for connection.
-    """
+    """Tester class for connection."""
 
     @staticmethod
     def test_ssh_default_port_connection(node_username: str, node_hostname: str, node_ssh_port: int, cluster_name: str):
@@ -36,7 +35,7 @@ class ConnectionTester:
                     node_ssh_port=node_ssh_port,
                     node_username=node_username,
                     node_hostname=node_hostname,
-                    cluster_name=cluster_name
+                    cluster_name=cluster_name,
                 )
                 return True
             except (CommandExecutionError, TimeoutExpired):

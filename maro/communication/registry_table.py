@@ -16,6 +16,7 @@ from .message import Message
 
 class Operation(Enum):
     """The Enum class of the logic operations."""
+
     AND = "AND"
     OR = "OR"
 
@@ -123,8 +124,11 @@ class ConditionalEvent:
     def _get_request_message_number(self, unit_event: str) -> int:
         """To get the number of request messages by the given unit event."""
         component_type, _, number = unit_event.split(":")
-        peers_number = len(self._peers_name[component_type]) if component_type != "*" else \
-            len(list(itertools.chain.from_iterable(self._peers_name.values())))
+        peers_number = (
+            len(self._peers_name[component_type])
+            if component_type != "*"
+            else len(list(itertools.chain.from_iterable(self._peers_name.values())))
+        )
 
         if peers_number == 0:
             raise PeersMissError(f"There is no target component in peer list! Required peer type {component_type}.")

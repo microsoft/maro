@@ -58,10 +58,10 @@ def get_ac(state_dim: int, name: str) -> ActorCriticTrainer:
         name=name,
         params=ActorCriticParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
-            reward_discount=.0,
+            reward_discount=0.0,
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=None,
-            lam=.0,
+            lam=0.0,
         ),
     )

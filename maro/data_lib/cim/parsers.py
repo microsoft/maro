@@ -45,7 +45,7 @@ def parse_vessels(conf: dict) -> (Dict[str, int], List[VesselSetting]):
                 parking["duration"],
                 parking["noise"],
                 # default no empty
-                vessel_node.get("empty", 0)
+                vessel_node.get("empty", 0),
             )
         )
 
@@ -175,10 +175,7 @@ def parse_ports(conf: dict, total_container: int) -> (Dict[str, int], List[Synth
         # orders distribution to destination
         if "targets" in dist_conf:
             for target_port_name, target_conf in dist_conf["targets"].items():
-                dist = NoisedItem(
-                    ports_mapping[target_port_name],
-                    target_conf["proportion"],
-                    target_conf["noise"])
+                dist = NoisedItem(ports_mapping[target_port_name], target_conf["proportion"], target_conf["noise"])
 
                 targets_dist.append(dist)
 
@@ -187,22 +184,10 @@ def parse_ports(conf: dict, total_container: int) -> (Dict[str, int], List[Synth
             port_name,
             port_info["capacity"],
             int(empty_ratio * total_container),
-            NoisedItem(
-                port_idx,
-                empty_return_conf["buffer_ticks"],
-                empty_return_conf["noise"]
-            ),
-            NoisedItem(
-                port_idx,
-                full_return_conf["buffer_ticks"],
-                full_return_conf["noise"]
-            ),
-            NoisedItem(
-                port_idx,
-                source_dist_conf["proportion"],
-                source_dist_conf["noise"]
-            ),
-            targets_dist
+            NoisedItem(port_idx, empty_return_conf["buffer_ticks"], empty_return_conf["noise"]),
+            NoisedItem(port_idx, full_return_conf["buffer_ticks"], full_return_conf["noise"]),
+            NoisedItem(port_idx, source_dist_conf["proportion"], source_dist_conf["noise"]),
+            targets_dist,
         )
 
         port_settings.append(port_setting)

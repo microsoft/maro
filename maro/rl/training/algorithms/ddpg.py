@@ -29,6 +29,7 @@ class DDPGParams(TrainerParams):
         sequentially with wrap-around.
     min_num_to_trigger_training (int, default=0): Minimum number required to start training.
     """
+
     get_q_critic_net_func: Callable[[], QNet] = None
     num_epochs: int = 1
     update_target_every: int = 5
@@ -50,8 +51,7 @@ class DDPGParams(TrainerParams):
 
 
 class DDPGOps(AbsTrainOps):
-    """DDPG algorithm implementation. Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html
-    """
+    """DDPG algorithm implementation. Reference: https://spinningup.openai.com/en/latest/algorithms/ddpg.html"""
 
     def __init__(
         self,
@@ -203,8 +203,7 @@ class DDPGOps(AbsTrainOps):
         self._target_q_critic_net.set_state(state["target_critic"])
 
     def soft_update_target(self) -> None:
-        """Soft update the target policy and target critic.
-        """
+        """Soft update the target policy and target critic."""
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
@@ -288,8 +287,7 @@ class DDPGTrainer(SingleAgentTrainer):
             self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
-        """Soft update the target policy and target critic.
-        """
+        """Soft update the target policy and target critic."""
         self._policy_version += 1
         if self._policy_version - self._target_policy_version == self._params.update_target_every:
             self._ops.soft_update_target()

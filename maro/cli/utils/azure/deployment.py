@@ -5,12 +5,7 @@ from .general import get_resource_client
 
 
 def create_deployment(
-    subscription: str,
-    resource_group: str,
-    deployment_name: str,
-    template: dict,
-    params: dict,
-    sync: bool = True
+    subscription: str, resource_group: str, deployment_name: str, template: dict, params: dict, sync: bool = True
 ) -> None:
     params = {k: {"value": v} for k, v in params.items()}
     resource_client = get_resource_client(subscription)

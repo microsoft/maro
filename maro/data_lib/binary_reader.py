@@ -53,7 +53,7 @@ class ItemBuffer:
         index = 0
 
         while index < self.item_number:
-            yield self._meta.item_from_bytes(self._bytes[index * self._meta.item_size:], self._enable_adjust_ratio)
+            yield self._meta.item_from_bytes(self._bytes[index * self._meta.item_size :], self._enable_adjust_ratio)
 
             index += 1
 
@@ -63,7 +63,7 @@ class ItemBuffer:
 
             return
 
-        self._bytes[0:len(contents)] = contents
+        self._bytes[0 : len(contents)] = contents
 
         self.item_number = int(len(contents) / self._meta.item_size)
 
@@ -153,18 +153,15 @@ class BinaryReader:
         self._file_fp = open(file_path, "rb")
 
         if sys.platform == "win32":
-            self._mmap = mmap.mmap(
-                self._file_fp.fileno(), 0, access=mmap.ACCESS_READ)
+            self._mmap = mmap.mmap(self._file_fp.fileno(), 0, access=mmap.ACCESS_READ)
         else:
-            self._mmap = mmap.mmap(
-                self._file_fp.fileno(), 0, prot=mmap.PROT_READ)
+            self._mmap = mmap.mmap(self._file_fp.fileno(), 0, prot=mmap.PROT_READ)
 
         self._read_header()
         self._read_meta()
 
         # double buffer to read data
-        self._item_buffer = ItemBuffer(
-            buffer_size, self._meta, enable_value_adjust)
+        self._item_buffer = ItemBuffer(buffer_size, self._meta, enable_value_adjust)
 
         # contains starttime offset related file offset, used in items() method
         # use this to speedup the querying
@@ -229,8 +226,7 @@ class BinaryReader:
         if end_time_offset is None:
             end_time = self.header.endtime
         else:
-            end_time = calc_time_offset(
-                self.header.starttime, end_time_offset, time_unit)
+            end_time = calc_time_offset(self.header.starttime, end_time_offset, time_unit)
 
         # check if we have used this filter
         has_filter_history = False
@@ -307,26 +303,24 @@ class BinaryReader:
 
         # TODO: make it as a common method
         if sys.platform == "win32":
-            return (timestamp_start + relativedelta(seconds=timestamp))
+            return timestamp_start + relativedelta(seconds=timestamp)
         else:
             return datetime.utcfromtimestamp(timestamp).replace(tzinfo=UTC)
 
     def _read_header(self):
         """Read header part."""
-        header_bytes = memoryview(self._mmap[0:header_struct.size])
+        header_bytes = memoryview(self._mmap[0 : header_struct.size])
 
         self.header = FileHeader._make(header_struct.unpack_from(header_bytes))
 
         # validate header
         # if current version less than file, then a warning
         if VERSION < self.header.version:
-            warnings.warn(
-                "File version is greater than current reader version, may cause unknown behavior!.")
+            warnings.warn("File version is greater than current reader version, may cause unknown behavior!.")
 
     def _read_meta(self):
         """Read meta part."""
-        meta_bytes = self._mmap[self.header.meta_offset:
-                                self.header.meta_offset + self.header.meta_size]
+        meta_bytes = self._mmap[self.header.meta_offset : self.header.meta_offset + self.header.meta_size]
 
         self._meta.from_bytes(meta_bytes)
 
@@ -350,4 +344,4 @@ class BinaryReader:
             buffer.write(item_bytes)
 
 
-__all__ = ['BinaryReader']
+__all__ = ["BinaryReader"]

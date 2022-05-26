@@ -17,7 +17,4 @@ URL_PREFIX = "/v1/status"
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 @check_jwt_validity
 def status():
-    return {
-        "status": "OK",
-        "time": time.time()
-    }
+    return {"status": "OK", "time": time.time()}

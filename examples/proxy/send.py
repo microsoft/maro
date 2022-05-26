@@ -16,9 +16,7 @@ def worker(group_name):
     Args:
         group_name (str): Identifier for the group of all communication components
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="worker",
-                  expected_peers={"master": 1})
+    proxy = Proxy(group_name=group_name, component_type="worker", expected_peers={"master": 1})
 
     # Nonrecurring receive the message from the proxy.
     msg = proxy.receive_once()
@@ -40,19 +38,15 @@ def master(group_name: str, is_immediate: bool = False):
                         you can do something with high priority before receiving replied messages from peers.
             Sync Mode: It will block until the proxy returns all the replied messages.
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="master",
-                  expected_peers={"worker": 1})
+    proxy = Proxy(group_name=group_name, component_type="master", expected_peers={"worker": 1})
 
     random_integer_list = np.random.randint(0, 100, 5)
     print(f"generate random integer list: {random_integer_list}.")
 
     for peer in proxy.peers["worker"]:
-        message = SessionMessage(tag="sum",
-                                 source=proxy.name,
-                                 destination=peer,
-                                 body=random_integer_list,
-                                 session_type=SessionType.TASK)
+        message = SessionMessage(
+            tag="sum", source=proxy.name, destination=peer, body=random_integer_list, session_type=SessionType.TASK
+        )
         if is_immediate:
             session_id = proxy.isend(message)
             # Do some tasks with higher priority here.
@@ -74,7 +68,13 @@ if __name__ == "__main__":
     group_name = "proxy_send_simple_example"
     is_immediate = False
 
-    master_process = mp.Process(target=master, args=(group_name, is_immediate,))
+    master_process = mp.Process(
+        target=master,
+        args=(
+            group_name,
+            is_immediate,
+        ),
+    )
     worker_process = mp.Process(target=worker, args=(group_name,))
     master_process.start()
     worker_process.start()

@@ -27,12 +27,10 @@ def get_vessel_data(experiment_name: str, episode: str, tick: str) -> json:
     params = {
         "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"
         f" where episode='{episode}' and tick='{tick}'",
-        "count": "true"
+        "count": "true",
     }
     db_vessel_data = requests.get(
-        url=request_settings.request_url.value,
-        headers=request_settings.request_header.value,
-        params=params
+        url=request_settings.request_url.value, headers=request_settings.request_header.value, params=params
     ).json()
     return jsonify(process_vessel_data(db_vessel_data, tick))
 
@@ -51,18 +49,15 @@ def get_acc_vessel_data(experiment_name: str, episode: str, start_tick: str, end
 
     """
     input_range = get_input_range(start_tick, end_tick)
-    query = f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"\
+    query = (
+        f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"
         f" where episode='{episode}'"
+    )
     if input_range != "()":
         query += f" and tick in {input_range}"
-    params = {
-        "query": query,
-        "count": "true"
-    }
+    params = {"query": query, "count": "true"}
     db_vessel_data = requests.get(
-        url=request_settings.request_url.value,
-        headers=request_settings.request_header.value,
-        params=params
+        url=request_settings.request_url.value, headers=request_settings.request_header.value, params=params
     ).json()
     return jsonify(process_vessel_data(db_vessel_data, start_tick))
 
@@ -81,7 +76,7 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
     """
     exec_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))))
     config_file_path = f"{exec_path}/nginx/static/config.json"
-    with open(config_file_path, "r")as mapping_file:
+    with open(config_file_path, "r") as mapping_file:
         cim_information = json.load(mapping_file)
         vessel_list = list(cim_information["vessels"].keys())
         vessel_info = cim_information["vessels"]
@@ -108,16 +103,13 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
                 original_vessel_data["tick"] == str(vessel_index + start_tick)
             ].copy()
             acc_vessel_data.append(
-                get_single_snapshot_vessel_data(
-                    cur_vessel_data, vessel_list, vessel_info, route_list, cim_information
-                )
+                get_single_snapshot_vessel_data(cur_vessel_data, vessel_list, vessel_info, route_list, cim_information)
             )
         return acc_vessel_data
 
 
 def get_single_snapshot_vessel_data(
-        original_vessel_data: pd.DataFrame, vessel_list: list, vessel_info: json,
-        route_list: list, cim_information: json
+    original_vessel_data: pd.DataFrame, vessel_list: list, vessel_info: json, route_list: list, cim_information: json
 ):
     """Generate compulsory data and change vessel data format.
 
@@ -132,32 +124,18 @@ def get_single_snapshot_vessel_data(
             json: Jsonified formatted vessel value.
 
     """
-    original_vessel_data["name"] = list(
-        map(
-            lambda x: vessel_list[int(x)],
-            original_vessel_data["index"]
-        )
-    )
+    original_vessel_data["name"] = list(map(lambda x: vessel_list[int(x)], original_vessel_data["index"]))
     original_vessel_data["speed"] = list(
-        map(
-            lambda x: vessel_info[x]['sailing']['speed'],
-            original_vessel_data["name"]
-        )
+        map(lambda x: vessel_info[x]["sailing"]["speed"], original_vessel_data["name"])
     )
     original_vessel_data["route name"] = list(
-        map(
-            lambda x: vessel_info[x]['route']['route_name'],
-            original_vessel_data["name"]
-        )
+        map(lambda x: vessel_info[x]["route"]["route_name"], original_vessel_data["name"])
     )
     original_vessel_data["start port"] = list(
-        map(
-            lambda x: vessel_info[x]['route']['initial_port_name'],
-            original_vessel_data["name"]
-        )
+        map(lambda x: vessel_info[x]["route"]["initial_port_name"], original_vessel_data["name"])
     )
     original_vessel_data["start"] = 0
-    vessel_data = original_vessel_data.to_json(orient='records')
+    vessel_data = original_vessel_data.to_json(orient="records")
     vessel_json_data = json.loads(vessel_data)
     output = []
     for item in route_list:

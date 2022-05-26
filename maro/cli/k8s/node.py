@@ -18,10 +18,7 @@ def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.scale_node(
-            replicas=replicas,
-            node_size=node_size
-        )
+        executor.scale_node(replicas=replicas, node_size=node_size)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 

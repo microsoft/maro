@@ -94,8 +94,7 @@ class TestGrassOnPremises(unittest.TestCase):
         with open(file=cls.join_cluster_deployment_template_path, mode="r") as fr:
             join_cluster_deployment = yaml.safe_load(stream=fr)
         cls._prepare_create_deployment(
-            create_deployment=create_deployment,
-            join_cluster_deployment=join_cluster_deployment
+            create_deployment=create_deployment, join_cluster_deployment=join_cluster_deployment
         )
         cls._prepare_join_cluster_deployment(join_cluster_deployment=join_cluster_deployment)
 
@@ -114,9 +113,9 @@ class TestGrassOnPremises(unittest.TestCase):
                 "default_username": cls.default_username,
                 "default_public_key": test_config["cloud/default_public_key"],
                 "ssh": {"port": GlobalParams.DEFAULT_SSH_PORT},
-                "api_server": {"port": GrassParams.DEFAULT_API_SERVER_PORT}
+                "api_server": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
             },
-            export_path=cls.arm_parameters_file_export_path
+            export_path=cls.arm_parameters_file_export_path,
         )
         AzureController.set_subscription(subscription=test_config["cloud/subscription"])
         AzureController.create_resource_group(resource_group=cls.resource_group, location=cls.location)
@@ -124,48 +123,42 @@ class TestGrassOnPremises(unittest.TestCase):
             resource_group=cls.resource_group,
             deployment_name="cluster",
             template_file_path=cls.arm_template_file_path,
-            parameters_file_path=cls.arm_parameters_file_export_path
+            parameters_file_path=cls.arm_parameters_file_export_path,
         )
 
     @classmethod
     def _prepare_create_deployment(cls, create_deployment: dict, join_cluster_deployment: dict):
         # Get params.
-        ip_addresses = AzureController.list_ip_addresses(
-            resource_group=cls.resource_group,
-            vm_name="master-vm"
-        )
+        ip_addresses = AzureController.list_ip_addresses(resource_group=cls.resource_group, vm_name="master-vm")
 
         # Saved create deployment.
         create_deployment["name"] = cls.cluster_name
         create_deployment["master"]["hostname"] = "master-vm"
-        create_deployment["master"]["public_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
-        )
-        create_deployment["master"]["private_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
-        )
-        join_cluster_deployment["master"]["private_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
-        )
+        create_deployment["master"]["public_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "publicIpAddresses"
+        ][0]["ipAddress"]
+        create_deployment["master"]["private_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "privateIpAddresses"
+        ][0]
+        join_cluster_deployment["master"]["private_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "privateIpAddresses"
+        ][0]
         with open(file=cls.create_deployment_path, mode="w") as fw:
             yaml.safe_dump(data=create_deployment, stream=fw)
 
     @classmethod
     def _prepare_join_cluster_deployment(cls, join_cluster_deployment: dict):
         # Get params.
-        ip_addresses = AzureController.list_ip_addresses(
-            resource_group=cls.resource_group,
-            vm_name="node-vm"
-        )
+        ip_addresses = AzureController.list_ip_addresses(resource_group=cls.resource_group, vm_name="node-vm")
 
         # Saved join cluster deployment.
         join_cluster_deployment["node"]["hostname"] = "node-vm"
-        join_cluster_deployment["node"]["public_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
-        )
-        join_cluster_deployment["node"]["private_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
-        )
+        join_cluster_deployment["node"]["public_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "publicIpAddresses"
+        ][0]["ipAddress"]
+        join_cluster_deployment["node"]["private_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "privateIpAddresses"
+        ][0]
         with open(file=cls.join_cluster_deployment_path, mode="w") as fw:
             yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
@@ -174,12 +167,7 @@ class TestGrassOnPremises(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Print result.
-        print(
-            json.dumps(
-                cls.test_func_to_time,
-                indent=4, sort_keys=True
-            )
-        )
+        print(json.dumps(cls.test_func_to_time, indent=4, sort_keys=True))
 
         # Delete resource group.
         AzureController.delete_resource_group(resource_group=cls.resource_group)

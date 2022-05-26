@@ -8,8 +8,7 @@ from .exception import CommandExecutionError
 
 
 class Subprocess:
-    """Wrapper class of subprocess
-    """
+    """Wrapper class of subprocess"""
 
     @staticmethod
     def run(command: str, timeout: int = None) -> str:
@@ -30,7 +29,7 @@ class Subprocess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            timeout=timeout
+            timeout=timeout,
         )
         if completed_process.returncode != 0:
             raise CommandExecutionError(completed_process.stderr)

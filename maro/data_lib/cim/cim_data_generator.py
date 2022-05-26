@@ -16,8 +16,7 @@ CIM_GENERATOR_VERSION = 0x000001
 
 
 def _extend_route(
-    future_stop_number: int, max_tick: int,
-    vessels_setting, port_mapping, routes, route_mapping
+    future_stop_number: int, max_tick: int, vessels_setting, port_mapping, routes, route_mapping
 ) -> (List[List[Stop]], List[int]):
     """Extend route with specified tick range."""
 
@@ -64,13 +63,7 @@ def _extend_route(
             assert parking_duration > 0
 
             # a new stop
-            stop = Stop(
-                stop_index,
-                tick,
-                tick + parking_duration,
-                port_idx,
-                vessel_setting.index
-            )
+            stop = Stop(stop_index, tick, tick + parking_duration, port_idx, vessel_setting.index)
 
             # append to current vessels stops list
             vessel_stops[vessel_setting.index].append(stop)
@@ -89,14 +82,13 @@ def _extend_route(
             whole_duration_no_noise = duration + ceil(distance_to_next_port / speed)
 
             # only add period at 1st route circle
-            period_no_noise += (whole_duration_no_noise if len(
-                vessel_stops[vessel_setting.index]) <= route_length else 0)
+            period_no_noise += whole_duration_no_noise if len(vessel_stops[vessel_setting.index]) <= route_length else 0
 
             # next location index
             loc_idx_in_route = (loc_idx_in_route + 1) % route_length
 
             # counter to append extra stops which after max tick for future predict
-            extra_stop_counter += (1 if tick > max_tick else 0)
+            extra_stop_counter += 1 if tick > max_tick else 0
 
             stop_index += 1
 
@@ -106,9 +98,7 @@ def _extend_route(
 
 
 def gen_cim_data(
-    config_file: str, max_tick: int,
-    start_tick: int = 0,
-    topology_seed: int = None
+    config_file: str, max_tick: int, start_tick: int = 0, topology_seed: int = None
 ) -> CimSyntheticDataCollection:
     """Generate data with specified configurations.
 
@@ -143,12 +133,13 @@ def gen_cim_data(
     port_mapping, ports_setting = parse_ports(conf["ports"], total_containers)
     route_mapping, routes = parse_routes(conf["routes"])
     global_order_proportion = parse_global_order_proportion(
-        conf["container_usage_proportion"],
-        total_containers, start_tick=start_tick, max_tick=max_tick)
+        conf["container_usage_proportion"], total_containers, start_tick=start_tick, max_tick=max_tick
+    )
 
     # extend routes with specified tick range
     vessel_stops, vessel_period_without_noise = _extend_route(
-        future_stop_number, max_tick, vessels_setting, port_mapping, routes, route_mapping)
+        future_stop_number, max_tick, vessels_setting, port_mapping, routes, route_mapping
+    )
 
     return CimSyntheticDataCollection(
         # Port
@@ -181,5 +172,5 @@ def gen_cim_data(
         order_mode=OrderGenerateMode(conf["order_generate_mode"]),
         order_proportion=global_order_proportion,
         # Data Generator Version
-        version=str(CIM_GENERATOR_VERSION)
+        version=str(CIM_GENERATOR_VERSION),
     )

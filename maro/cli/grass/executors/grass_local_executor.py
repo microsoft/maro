@@ -27,8 +27,9 @@ logger = CliLogger(name=__name__)
 class GrassLocalExecutor(AbsVisibleExecutor):
     def __init__(self, cluster_name: str, cluster_details: dict = None):
         self.cluster_name = cluster_name
-        self.cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name) \
-            if not cluster_details else cluster_details
+        self.cluster_details = (
+            DetailsReader.load_cluster_details(cluster_name=cluster_name) if not cluster_details else cluster_details
+        )
 
         # Connection with Redis
         redis_port = self.cluster_details["master"]["redis"]["port"]
@@ -36,9 +37,7 @@ class GrassLocalExecutor(AbsVisibleExecutor):
         try:
             self._redis_connection.ping()
         except Exception:
-            redis_process = subprocess.Popen(
-                ["redis-server", "--port", str(redis_port), "--daemonize yes"]
-            )
+            redis_process = subprocess.Popen(["redis-server", "--port", str(redis_port), "--daemonize yes"])
             redis_process.wait(timeout=2)
 
         # Connection with Resource Redis
@@ -50,11 +49,7 @@ class GrassLocalExecutor(AbsVisibleExecutor):
             total_cpu += int(component_dict["num"]) * int(component_dict["resources"]["cpu"])
             total_memory += int(component_dict["num"]) * int(component_dict["resources"]["memory"][:-1])
             total_gpu += int(component_dict["num"]) * int(component_dict["resources"]["gpu"])
-        deployment["total_request_resource"] = {
-            "cpu": total_cpu,
-            "memory": total_memory,
-            "gpu": total_gpu
-        }
+        deployment["total_request_resource"] = {"cpu": total_cpu, "memory": total_memory, "gpu": total_gpu}
 
         deployment["status"] = JobStatus.PENDING
 
@@ -75,9 +70,7 @@ class GrassLocalExecutor(AbsVisibleExecutor):
         available_resource = self._resource_redis.get_available_resource()
 
         # Update resource
-        is_satisfied, updated_resource = resource_op(
-            available_resource, cluster_resource, ResourceOperation.ALLOCATION
-        )
+        is_satisfied, updated_resource = resource_op(available_resource, cluster_resource, ResourceOperation.ALLOCATION)
         if not is_satisfied:
             self._resource_redis.sub_cluster()
             raise BadRequestError("No enough resource for this cluster.")
@@ -89,16 +82,11 @@ class GrassLocalExecutor(AbsVisibleExecutor):
 
         # Set available resource for cluster
         self._redis_connection.hset(
-            f"{self.cluster_name}:runtime_detail",
-            "available_resource",
-            json.dumps(cluster_resource)
+            f"{self.cluster_name}:runtime_detail", "available_resource", json.dumps(cluster_resource)
         )
 
         # Save cluster config locally.
-        DetailsWriter.save_cluster_details(
-            cluster_name=self.cluster_name,
-            cluster_details=self.cluster_details
-        )
+        DetailsWriter.save_cluster_details(cluster_name=self.cluster_name, cluster_details=self.cluster_details)
 
         logger.info(f"{self.cluster_name} is created.")
 
@@ -116,9 +104,7 @@ class GrassLocalExecutor(AbsVisibleExecutor):
 
         # Update resource
         cluster_resource = self.cluster_details["master"]["resource"]
-        _, updated_resource = resource_op(
-            available_resource, cluster_resource, ResourceOperation.RELEASE
-        )
+        _, updated_resource = resource_op(available_resource, cluster_resource, ResourceOperation.RELEASE)
         self._resource_redis.set_available_resource(updated_resource)
 
         # Rm connection from resource redis.
@@ -156,7 +142,7 @@ class GrassLocalExecutor(AbsVisibleExecutor):
         is_satisfied, _ = resource_op(
             self.cluster_details["master"]["resource"],
             start_job_deployment["total_request_resource"],
-            ResourceOperation.ALLOCATION
+            ResourceOperation.ALLOCATION,
         )
         if not is_satisfied:
             raise BadRequestError(f"No enough resource to start job {start_job_deployment['name']}.")
@@ -168,17 +154,10 @@ class GrassLocalExecutor(AbsVisibleExecutor):
         job_name = job_details["name"]
 
         # Push job details to redis
-        self._redis_connection.hset(
-            f"{self.cluster_name}:job_details",
-            job_name,
-            json.dumps(job_details)
-        )
+        self._redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_details))
 
         # Push job name to pending_job_tickets
-        self._redis_connection.lpush(
-            f"{self.cluster_name}:pending_job_tickets",
-            job_name
-        )
+        self._redis_connection.lpush(f"{self.cluster_name}:pending_job_tickets", job_name)
         logger.info(f"Sending {job_name} into pending job tickets.")
 
     def stop_job(self, job_name: str):
@@ -187,10 +166,7 @@ class GrassLocalExecutor(AbsVisibleExecutor):
             return
 
         # push job_name into killed_job_tickets
-        self._redis_connection.lpush(
-            f"{self.cluster_name}:killed_job_tickets",
-            job_name
-        )
+        self._redis_connection.lpush(f"{self.cluster_name}:killed_job_tickets", job_name)
         logger.info(f"Sending {job_name} into killed job tickets.")
 
     def get_job_logs(self, job_name: str):
@@ -231,16 +207,14 @@ class GrassLocalExecutor(AbsVisibleExecutor):
         is_satisfied, _ = resource_op(
             self.cluster_details["master"]["resource"],
             start_schedule_deployment["total_request_resource"],
-            ResourceOperation.ALLOCATION
+            ResourceOperation.ALLOCATION,
         )
         if not is_satisfied:
             raise BadRequestError(f"No enough resource to start schedule {schedule_name} in {self.cluster_name}.")
 
         # push schedule details to Redis
         self._redis_connection.hset(
-            f"{self.cluster_name}:job_details",
-            schedule_name,
-            json.dumps(start_schedule_deployment)
+            f"{self.cluster_name}:job_details", schedule_name, json.dumps(start_schedule_deployment)
         )
 
         job_list = start_schedule_deployment["job_names"]
@@ -279,25 +253,13 @@ class GrassLocalExecutor(AbsVisibleExecutor):
         return list(jobs.values())
 
     def get_job_queue(self):
-        pending_job_queue = self._redis_connection.lrange(
-            f"{self.cluster_name}:pending_job_tickets",
-            0, -1
-        )
-        killed_job_queue = self._redis_connection.lrange(
-            f"{self.cluster_name}:killed_job_tickets",
-            0, -1
-        )
-        return {
-            "pending_jobs": pending_job_queue,
-            "killed_jobs": killed_job_queue
-        }
+        pending_job_queue = self._redis_connection.lrange(f"{self.cluster_name}:pending_job_tickets", 0, -1)
+        killed_job_queue = self._redis_connection.lrange(f"{self.cluster_name}:killed_job_tickets", 0, -1)
+        return {"pending_jobs": pending_job_queue, "killed_jobs": killed_job_queue}
 
     def get_resource(self):
         return self.cluster_details["master"]["resource"]
 
     def get_resource_usage(self, previous_length: int = 0):
-        available_resource = self._redis_connection.hget(
-            f"{self.cluster_name}:runtime_detail",
-            "available_resource"
-        )
+        available_resource = self._redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource")
         return json.loads(available_resource)

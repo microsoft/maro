@@ -14,7 +14,7 @@ from maro.utils import convert_dottable, Logger, LogFormat
 
 from ilp_agent import IlpAgent
 
-os.environ['LOG_LEVEL'] = 'CRITICAL'
+os.environ["LOG_LEVEL"] = "CRITICAL"
 FILE_PATH = os.path.split(os.path.realpath(__file__))[0]
 CONFIG_PATH = os.path.join(FILE_PATH, "config.yml")
 with io.open(CONFIG_PATH, "r") as in_file:
@@ -32,12 +32,9 @@ if __name__ == "__main__":
         topology=config.env.topology,
         start_tick=config.env.start_tick,
         durations=config.env.durations,
-        snapshot_resolution=config.env.resolution
+        snapshot_resolution=config.env.resolution,
     )
-    shutil.copy(
-        os.path.join(env._business_engine._config_path, "config.yml"),
-        os.path.join(LOG_PATH, "BEconfig.yml")
-    )
+    shutil.copy(os.path.join(env._business_engine._config_path, "config.yml"), os.path.join(LOG_PATH, "BEconfig.yml"))
     shutil.copy(CONFIG_PATH, os.path.join(LOG_PATH, "config.yml"))
 
     if config.env.seed is not None:
@@ -51,9 +48,7 @@ if __name__ == "__main__":
     metrics, decision_event, is_done = env.step(None)
 
     # Get the core & memory capacity of all PMs in this environment.
-    pm_capacity = env.snapshot_list["pms"][
-        env.frame_index::["cpu_cores_capacity", "memory_capacity"]
-    ].reshape(-1, 2)
+    pm_capacity = env.snapshot_list["pms"][env.frame_index :: ["cpu_cores_capacity", "memory_capacity"]].reshape(-1, 2)
     pm_num = pm_capacity.shape[0]
 
     # ILP agent.
@@ -65,7 +60,7 @@ if __name__ == "__main__":
         env_duration=config.env.durations,
         simulation_logger=simulation_logger,
         ilp_logger=ilp_logger,
-        log_path=LOG_PATH
+        log_path=LOG_PATH,
     )
 
     while not is_done:

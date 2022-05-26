@@ -225,8 +225,7 @@ class SoftActorCriticTrainer(SingleAgentTrainer):
         return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
 
     def _try_soft_update_target(self) -> None:
-        """Soft update the target policy and target critic.
-        """
+        """Soft update the target policy and target critic."""
         self._qnet_version += 1
         if self._qnet_version - self._target_qnet_version == self._params.update_target_every:
             self._ops.soft_update_target()

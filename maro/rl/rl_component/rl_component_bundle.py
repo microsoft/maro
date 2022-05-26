@@ -27,6 +27,7 @@ class RLComponentBundle(object):
 
     Please refer to the doc string of each method for detailed explanations.
     """
+
     def __init__(self) -> None:
         super(RLComponentBundle, self).__init__()
 
@@ -100,8 +101,7 @@ class RLComponentBundle(object):
 
     @abstractmethod
     def get_trainer_creator(self) -> Dict[str, Callable[[], AbsTrainer]]:
-        """Return trainer creator. Trainer creator is similar to policy creator, but is used to creator trainers.
-        """
+        """Return trainer creator. Trainer creator is similar to policy creator, but is used to creator trainers."""
         raise NotImplementedError
 
     ########################################################################################
@@ -123,9 +123,7 @@ class RLComponentBundle(object):
         Only policies that provided in policy-trainer mapping are considered as trainable polices. Policies that
         not provided in policy-trainer mapping will not be trained since we do not assign a trainer to it.
         """
-        return {
-            policy_name: policy_name.split(".")[0] for policy_name in self.policy_creator
-        }
+        return {policy_name: policy_name.split(".")[0] for policy_name in self.policy_creator}
 
     ########################################################################################
     # Methods invisible to users                                                           #
@@ -138,8 +136,7 @@ class RLComponentBundle(object):
         return self._env_sampler
 
     def _complete_resources(self) -> None:
-        """Generate all attributes by calling user-defined logics. Do necessary checking and transformations.
-        """
+        """Generate all attributes by calling user-defined logics. Do necessary checking and transformations."""
         env_config = self.get_env_config()
         test_env_config = self.get_test_env_config()
         self.env = Env(**env_config)
@@ -156,9 +153,7 @@ class RLComponentBundle(object):
         required_policies = set(self.agent2policy.values())
         self.policy_creator = {name: self.policy_creator[name] for name in required_policies}
         self.policy_trainer_mapping = {
-            name: self.policy_trainer_mapping[name]
-            for name in required_policies
-            if name in self.policy_trainer_mapping
+            name: self.policy_trainer_mapping[name] for name in required_policies if name in self.policy_trainer_mapping
         }
         self.policy_names = list(required_policies)
         assert len(required_policies) == len(self.policy_creator)  # Should have same size after filter
@@ -169,8 +164,7 @@ class RLComponentBundle(object):
 
         self.trainable_policy_names = list(self.policy_trainer_mapping.keys())
         self.trainable_policy_creator = {
-            policy_name: self.policy_creator[policy_name]
-            for policy_name in self.trainable_policy_names
+            policy_name: self.policy_creator[policy_name] for policy_name in self.trainable_policy_names
         }
         self.trainable_agent2policy = {
             agent_name: policy_name
@@ -192,11 +186,9 @@ class RLComponentBundle(object):
             return self._policy_cache[policy_name]
 
         self.policy_creator = {
-            policy_name: partial(_get_policy_instance, policy_name)
-            for policy_name in self.policy_names
+            policy_name: partial(_get_policy_instance, policy_name) for policy_name in self.policy_names
         }
 
         self.trainable_policy_creator = {
-            policy_name: self.policy_creator[policy_name]
-            for policy_name in self.trainable_policy_names
+            policy_name: self.policy_creator[policy_name] for policy_name in self.trainable_policy_names
         }

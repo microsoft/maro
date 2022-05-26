@@ -13,9 +13,9 @@ class BinPacking(RuleBasedAlgorithm):
     def __init__(self, **kwargs):
         super().__init__()
         self._max_cpu_oversubscription_rate: float = kwargs["env"].configs.MAX_CPU_OVERSUBSCRIPTION_RATE
-        total_pm_cpu_info = kwargs["env"].snapshot_list["pms"][
-            kwargs["env"].frame_index::["cpu_cores_capacity"]
-        ].reshape(-1)
+        total_pm_cpu_info = (
+            kwargs["env"].snapshot_list["pms"][kwargs["env"].frame_index :: ["cpu_cores_capacity"]].reshape(-1)
+        )
         self._pm_num: int = total_pm_cpu_info.shape[0]
         self._pm_cpu_core_num: int = int(np.max(total_pm_cpu_info) * self._max_cpu_oversubscription_rate)
 
@@ -29,7 +29,7 @@ class BinPacking(RuleBasedAlgorithm):
 
         # Get the number of PM, maximum CPU core and max cpu oversubscription rate.
         total_pm_info = env.snapshot_list["pms"][
-            env.frame_index::["cpu_cores_capacity", "cpu_cores_allocated"]
+            env.frame_index :: ["cpu_cores_capacity", "cpu_cores_allocated"]
         ].reshape(-1, 2)
 
         cpu_cores_remaining = total_pm_info[:, 0] * self._max_cpu_oversubscription_rate - total_pm_info[:, 1]
@@ -55,9 +55,6 @@ class BinPacking(RuleBasedAlgorithm):
                 self._bin_size[remaining_cores - cores_need] -= 1
 
         # Take action to allocate on the chosen pm.
-        action: AllocateAction = AllocateAction(
-            vm_id=decision_event.vm_id,
-            pm_id=chosen_idx
-        )
+        action: AllocateAction = AllocateAction(vm_id=decision_event.vm_id, pm_id=chosen_idx)
 
         return action

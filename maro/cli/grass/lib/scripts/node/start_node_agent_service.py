@@ -21,10 +21,7 @@ loginctl enable-linger {node_username}  # Make sure the user is not logged out
 
 if __name__ == "__main__":
     # Rewrite data in .service and write it to systemd folder
-    with open(
-        file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service",
-        mode="r"
-    ) as fr:
+    with open(file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service", mode="r") as fr:
         service_file = fr.read()
     service_file = service_file.format(maro_shared_path=Paths.ABS_MARO_SHARED)
     os.makedirs(name=os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)

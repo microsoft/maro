@@ -19,9 +19,7 @@ def start_schedule(cluster_name: str, deployment_path: str, **kwargs):
 
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.start_schedule(
-            deployment_path=deployment_path
-        )
+        executor.start_schedule(deployment_path=deployment_path)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
@@ -39,8 +37,6 @@ def stop_schedule(cluster_name: str, schedule_name: str, **kwargs):
 
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.stop_schedule(
-            schedule_name=schedule_name
-        )
+        executor.stop_schedule(schedule_name=schedule_name)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")

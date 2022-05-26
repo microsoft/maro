@@ -39,7 +39,7 @@ class MyActorNet(DiscreteACBasedNet):
         self._optim = Adam(self._actor.parameters(), lr=actor_learning_rate)
 
     def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
-        features, masks = states[:, :self._num_features], states[:, self._num_features:]
+        features, masks = states[:, : self._num_features], states[:, self._num_features :]
         masks += 1e-8  # this is to prevent zero probability and infinite logP.
         return self._actor(features) * masks
 
@@ -52,7 +52,7 @@ class MyCriticNet(VNet):
         self._optim = SGD(self._critic.parameters(), lr=critic_learning_rate)
 
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
-        features, masks = states[:, :self._num_features], states[:, self._num_features:]
+        features, masks = states[:, : self._num_features], states[:, self._num_features :]
         masks += 1e-8  # this is to prevent zero probability and infinite logP.
         return self._critic(features).squeeze(-1)
 
@@ -70,6 +70,6 @@ def get_ac(state_dim: int, num_features: int, name: str) -> ActorCriticTrainer:
             grad_iters=100,
             critic_loss_cls=torch.nn.MSELoss,
             min_logp=-20,
-            lam=.0,
+            lam=0.0,
         ),
     )

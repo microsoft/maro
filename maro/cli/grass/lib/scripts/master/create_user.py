@@ -30,32 +30,23 @@ class UserCreator:
     def __init__(self, local_cluster_details: dict):
         self._local_cluster_details = local_cluster_details
         self._redis_controller = RedisController(
-            host="localhost",
-            port=self._local_cluster_details["master"]["redis"]["port"]
+            host="localhost", port=self._local_cluster_details["master"]["redis"]["port"]
         )
 
     @staticmethod
     def _generate_rsa_key_pair() -> dict:
-        rsa_key = rsa.generate_private_key(
-            backend=default_backend(),
-            public_exponent=65537,
-            key_size=2048
-        )
+        rsa_key = rsa.generate_private_key(backend=default_backend(), public_exponent=65537, key_size=2048)
 
         # Format and encoding are diff from OpenSSH
         private_key = rsa_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
         public_key = rsa_key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        return {
-            "public_key": public_key.decode("utf-8"),
-            "private_key": private_key.decode("utf-8")
-        }
+        return {"public_key": public_key.decode("utf-8"), "private_key": private_key.decode("utf-8")}
 
     def create_user(self, user_id: str, user_role: str) -> None:
         dev_to_master_encryption_key_pair = self._generate_rsa_key_pair()
@@ -72,8 +63,8 @@ class UserCreator:
                 "master_to_dev_encryption_public_key": master_to_dev_encryption_key_pair["public_key"],
                 "dev_to_master_encryption_private_key": dev_to_master_encryption_key_pair["private_key"],
                 "dev_to_master_signing_public_key": dev_to_master_signing_key_pair["public_key"],
-                "master_to_dev_signing_private_key": master_to_dev_signing_key_pair["private_key"]
-            }
+                "master_to_dev_signing_private_key": master_to_dev_signing_key_pair["private_key"],
+            },
         )
 
         # Write private key to console.
@@ -85,7 +76,7 @@ class UserCreator:
                     "master_to_dev_encryption_private_key": master_to_dev_encryption_key_pair["private_key"],
                     "dev_to_master_encryption_public_key": dev_to_master_encryption_key_pair["public_key"],
                     "dev_to_master_signing_private_key": dev_to_master_signing_key_pair["private_key"],
-                    "master_to_dev_signing_public_key": master_to_dev_signing_key_pair["public_key"]
+                    "master_to_dev_signing_public_key": master_to_dev_signing_key_pair["public_key"],
                 }
             )
         )

@@ -35,10 +35,7 @@ class EventPool:
     def cascade_event_count(self) -> int:
         return len(self._cascade_events)
 
-    def gen(
-        self, tick: int, event_type: object, payload: object,
-        is_cascade: bool = False
-    ) -> ActualEvent:
+    def gen(self, tick: int, event_type: object, payload: object, is_cascade: bool = False) -> ActualEvent:
         """Generate an event.
 
         Args:
@@ -52,8 +49,7 @@ class EventPool:
         """
         event = _pop(self._cascade_events, CascadeEvent) if is_cascade else _pop(self._atom_events, AtomEvent)
         event.reset_value(
-            id=next(self._event_count), tick=tick, event_type=event_type,
-            payload=payload, state=EventState.PENDING
+            id=next(self._event_count), tick=tick, event_type=event_type, payload=payload, state=EventState.PENDING
         )
         return event
 

@@ -13,7 +13,7 @@ from agent import VMSchedulingAgent
 
 
 def import_class(name):
-    components = name.rsplit('.', 1)
+    components = name.rsplit(".", 1)
     mod = importlib.import_module(components[0])
     mod = getattr(mod, components[1])
     return mod
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         topology=config.env.topology,
         start_tick=config.env.start_tick,
         durations=config.env.durations,
-        snapshot_resolution=config.env.resolution
+        snapshot_resolution=config.env.resolution,
     )
 
     if config.env.seed is not None:

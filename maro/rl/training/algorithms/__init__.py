@@ -9,10 +9,17 @@ from .ppo import PPOParams, PPOTrainer, DiscretePPOWithEntropyTrainer
 from .sac import SoftActorCriticParams, SoftActorCriticTrainer
 
 __all__ = [
-    "ActorCriticTrainer", "ActorCriticParams",
-    "DDPGTrainer", "DDPGParams",
-    "DQNTrainer", "DQNParams",
-    "DiscreteMADDPGTrainer", "DiscreteMADDPGParams",
-    "PPOParams", "PPOTrainer", "DiscretePPOWithEntropyTrainer",
-    "SoftActorCriticParams", "SoftActorCriticTrainer",
+    "ActorCriticTrainer",
+    "ActorCriticParams",
+    "DDPGTrainer",
+    "DDPGParams",
+    "DQNTrainer",
+    "DQNParams",
+    "DiscreteMADDPGTrainer",
+    "DiscreteMADDPGParams",
+    "PPOParams",
+    "PPOTrainer",
+    "DiscretePPOWithEntropyTrainer",
+    "SoftActorCriticParams",
+    "SoftActorCriticTrainer",
 ]

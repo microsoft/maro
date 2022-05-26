@@ -45,10 +45,7 @@ class RedisController:
     """Node Details Related."""
 
     def delete_node_details(self, node_name: str) -> None:
-        self._redis.hdel(
-            "name_to_node_details",
-            node_name
-        )
+        self._redis.hdel("name_to_node_details", node_name)
 
 
 class Subprocess:
@@ -71,14 +68,14 @@ class Subprocess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            timeout=timeout
+            timeout=timeout,
         )
         if completed_process.returncode != 0:
             raise Exception(completed_process.stderr)
         sys.stderr.write(completed_process.stderr)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     local_cluster_details = DetailsReader.load_local_cluster_details()
     local_node_details = DetailsReader.load_local_node_details()
 
@@ -87,6 +84,6 @@ if __name__ == '__main__':
 
     redis_controller = RedisController(
         host=local_cluster_details["master"]["private_ip_address"],
-        port=local_cluster_details["master"]["redis"]["port"]
+        port=local_cluster_details["master"]["redis"]["port"],
     )
     redis_controller.delete_node_details(node_name=local_node_details["name"])

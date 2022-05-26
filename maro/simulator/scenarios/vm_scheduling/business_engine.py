@@ -56,12 +56,17 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         max_tick: int,
         snapshot_resolution: int,
         max_snapshots: Optional[int],
-        additional_options: dict = {}
+        additional_options: dict = {},
     ):
         super().__init__(
-            scenario_name="vm_scheduling", event_buffer=event_buffer, topology=topology, start_tick=start_tick,
-            max_tick=max_tick, snapshot_resolution=snapshot_resolution, max_snapshots=max_snapshots,
-            additional_options=additional_options
+            scenario_name="vm_scheduling",
+            event_buffer=event_buffer,
+            topology=topology,
+            start_tick=start_tick,
+            max_tick=max_tick,
+            snapshot_resolution=snapshot_resolution,
+            max_snapshots=max_snapshots,
+            additional_options=additional_options,
         )
 
         # Initialize environment metrics.
@@ -145,8 +150,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         cluster_amount_dict = {}
         for cluster_list in self._find_item(key="cluster", dictionary=self._config.architecture):
             for cluster in cluster_list:
-                cluster_amount_dict[cluster['type']] = (
-                    cluster_amount_dict.get(cluster['type'], 0) + cluster['cluster_amount']
+                cluster_amount_dict[cluster["type"]] = (
+                    cluster_amount_dict.get(cluster["type"], 0) + cluster["cluster_amount"]
                 )
         # Summation of cluster amount.
         self._cluster_amount: int = sum(value for value in cluster_amount_dict.values())
@@ -155,10 +160,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         rack_amount_dict = {}
         for cluster_list in self._find_item(key="cluster", dictionary=self._config.components):
             for cluster in cluster_list:
-                for rack in cluster['rack']:
-                    rack_amount_dict[rack['rack_type']] = (
-                        rack_amount_dict.get(rack['rack_type'], 0)
-                        + cluster_amount_dict[cluster['type']] * rack['rack_amount']
+                for rack in cluster["rack"]:
+                    rack_amount_dict[rack["rack_type"]] = (
+                        rack_amount_dict.get(rack["rack_type"], 0)
+                        + cluster_amount_dict[cluster["type"]] * rack["rack_amount"]
                     )
         # Summation of rack amount.
         self._rack_amount: int = sum(value for value in rack_amount_dict.values())
@@ -166,10 +171,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # PM amount dict.
         pm_amount_dict = {}
         for rack in self._config.components.rack:
-            for pm in rack['pm']:
-                pm_amount_dict[pm['pm_type']] = (
-                    pm_amount_dict.get(pm['pm_type'], 0)
-                    + rack_amount_dict[rack['type']] * pm['pm_amount']
+            for pm in rack["pm"]:
+                pm_amount_dict[pm["pm_type"]] = (
+                    pm_amount_dict.get(pm["pm_type"], 0) + rack_amount_dict[rack["type"]] * pm["pm_amount"]
                 )
         # Summation of pm amount.
         self._pm_amount: int = sum(value for value in pm_amount_dict.values())
@@ -233,20 +237,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._machines = self._frame.pms
         # PM type dictionary.
         self._cluster_config_dict = {
-            cluster['type']: {
-                rack['rack_type']: rack['rack_amount'] for rack in cluster['rack']
-            }
+            cluster["type"]: {rack["rack_type"]: rack["rack_amount"] for rack in cluster["rack"]}
             for cluster in self._config.components.cluster
         }
         self._rack_config_dict = {
-            rack['type']: {
-                pm['pm_type']: pm['pm_amount'] for pm in rack['pm']
-            }
-            for rack in self._config.components.rack
+            rack["type"]: {pm["pm_type"]: pm["pm_amount"] for pm in rack["pm"]} for rack in self._config.components.rack
         }
-        self._pm_config_dict: dict = {
-            pm_type: pm_dict for pm_type, pm_dict in enumerate(self._config.components.pm)
-        }
+        self._pm_config_dict: dict = {pm_type: pm_dict for pm_type, pm_dict in enumerate(self._config.components.pm)}
         # Ids.
         self._region_id = 0
         self._zone_id = 0
@@ -262,19 +259,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         for region_list in self._find_item("region", self._config.architecture):
             for region_dict in region_list:
                 # Initialize zones.
-                start_zone_id = self._init_zones(
-                    zone_list=region_dict["zone"]
-                )
+                start_zone_id = self._init_zones(zone_list=region_dict["zone"])
                 region = self._regions[self._region_id]
                 region.name = region_dict["name"]
                 region.zone_list = [id for id in range(start_zone_id, self._zone_id)]
-                total_machine_num = sum(
-                    self._zones[id].total_machine_num for id in region.zone_list
-                )
-                region.set_init_state(
-                    id=self._region_id,
-                    total_machine_num=total_machine_num
-                )
+                total_machine_num = sum(self._zones[id].total_machine_num for id in region.zone_list)
+                region.set_init_state(id=self._region_id, total_machine_num=total_machine_num)
                 self._region_id += 1
 
     def _init_zones(self, zone_list: list):
@@ -282,20 +272,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         start_zone_id = self._zone_id
         for zone_dict in zone_list:
             # Initialize data centers.
-            start_data_center_id = self._init_data_centers(
-                data_center_list=zone_dict["data_center"]
-            )
+            start_data_center_id = self._init_data_centers(data_center_list=zone_dict["data_center"])
             zone = self._zones[self._zone_id]
             zone.name = zone_dict["name"]
             zone.data_center_list = [id for id in range(start_data_center_id, self._data_center_id)]
-            total_machine_num = sum(
-                self._data_centers[id].total_machine_num for id in zone.data_center_list
-            )
-            zone.set_init_state(
-                id=self._zone_id,
-                region_id=self._region_id,
-                total_machine_num=total_machine_num
-            )
+            total_machine_num = sum(self._data_centers[id].total_machine_num for id in zone.data_center_list)
+            zone.set_init_state(id=self._zone_id, region_id=self._region_id, total_machine_num=total_machine_num)
 
             self._zone_id += 1
 
@@ -306,20 +288,16 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         start_data_center_id = self._data_center_id
         for data_center_dict in data_center_list:
             # Initialize clusters.
-            start_cluster_id = self._init_clusters(
-                cluster_list=data_center_dict["cluster"]
-            )
+            start_cluster_id = self._init_clusters(cluster_list=data_center_dict["cluster"])
             data_center = self._data_centers[self._data_center_id]
             data_center.name = data_center_dict["name"]
             data_center.cluster_list = [id for id in range(start_cluster_id, self._cluster_id)]
-            total_machine_num = sum(
-                self._clusters[id].total_machine_num for id in data_center.cluster_list
-            )
+            total_machine_num = sum(self._clusters[id].total_machine_num for id in data_center.cluster_list)
             data_center.set_init_state(
                 id=self._data_center_id,
                 region_id=self._region_id,
                 zone_id=self._zone_id,
-                total_machine_num=total_machine_num
+                total_machine_num=total_machine_num,
             )
             self._data_center_id += 1
 
@@ -329,25 +307,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """Initialize the clusters based on the config setting. The cluster id starts from 0."""
         start_cluster_id = self._cluster_id
         for cluster in cluster_list:
-            cluster_type = cluster['type']
-            cluster_amount = cluster['cluster_amount']
+            cluster_type = cluster["type"]
+            cluster_amount = cluster["cluster_amount"]
             while cluster_amount > 0:
                 # Init racks.
-                start_rack_id = self._init_racks(
-                    rack_amount_dict=self._cluster_config_dict[cluster_type]
-                )
+                start_rack_id = self._init_racks(rack_amount_dict=self._cluster_config_dict[cluster_type])
                 cluster = self._clusters[self._cluster_id]
                 cluster.cluster_type = cluster_type
                 cluster.rack_list = [id for id in range(start_rack_id, self._rack_id)]
-                total_machine_num = sum(
-                    self._racks[id].total_machine_num for id in cluster.rack_list
-                )
+                total_machine_num = sum(self._racks[id].total_machine_num for id in cluster.rack_list)
                 cluster.set_init_state(
                     id=self._cluster_id,
                     region_id=self._region_id,
                     zone_id=self._zone_id,
                     data_center_id=self._data_center_id,
-                    total_machine_num=total_machine_num
+                    total_machine_num=total_machine_num,
                 )
 
                 cluster_amount -= 1
@@ -361,9 +335,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         for rack_type, rack_amount in rack_amount_dict.items():
             while rack_amount > 0:
                 # Initialize pms.
-                start_pm_id = self._init_pms(
-                    pm_dict=self._rack_config_dict[rack_type]
-                )
+                start_pm_id = self._init_pms(pm_dict=self._rack_config_dict[rack_type])
                 rack = self._racks[self._rack_id]
                 rack.type = rack_type
                 rack.pm_list = [id for id in range(start_pm_id, self._pm_id)]
@@ -374,7 +346,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     zone_id=self._zone_id,
                     data_center_id=self._data_center_id,
                     cluster_id=self._cluster_id,
-                    total_machine_num=total_machine_num
+                    total_machine_num=total_machine_num,
                 )
                 rack_amount -= 1
                 self._rack_id += 1
@@ -399,9 +371,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     rack_id=self._rack_id,
                     oversubscribable=PmState.EMPTY,
                     idle_energy_consumption=self._cpu_utilization_to_energy_consumption(
-                        pm_type=self._pm_config_dict[pm_type],
-                        cpu_utilization=0
-                    )
+                        pm_type=self._pm_config_dict[pm_type], cpu_utilization=0
+                    ),
                 )
 
                 pm_amount -= 1
@@ -453,7 +424,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             data_center_amount=self._data_center_amount,
             cluster_amount=self._cluster_amount,
             rack_amount=self._rack_amount,
-            pm_amount=self._pm_amount
+            pm_amount=self._pm_amount,
         )
         self._snapshots = self._frame.snapshots
 
@@ -487,7 +458,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 sub_id=vm.sub_id,
                 deployment_id=vm.deploy_id,
                 category=VmCategory(vm.vm_category),
-                unit_price=unit_price
+                unit_price=unit_price,
             )
 
             if vm.vm_id not in cur_tick_cpu_utilization:
@@ -495,13 +466,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
             vm_info.add_utilization(cpu_utilization=cur_tick_cpu_utilization[vm.vm_id])
             vm_req_payload: VmRequestPayload = VmRequestPayload(
-                vm_info=vm_info,
-                remaining_buffer_time=self._buffer_time_budget
+                vm_info=vm_info, remaining_buffer_time=self._buffer_time_budget
             )
             vm_request_event = self._event_buffer.gen_cascade_event(
-                tick=tick,
-                event_type=Events.REQUEST,
-                payload=vm_req_payload
+                tick=tick, event_type=Events.REQUEST, payload=vm_req_payload
             )
             self._event_buffer.insert_event(event=vm_request_event)
             self._total_vm_requests += 1
@@ -515,11 +483,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._total_oversubscriptions += 1
             total_energy += pm.energy_consumption
             # Update the energy consumption cost.
-            pm_cost = (
-                pm.energy_consumption
-                * self._unit_energy_price_per_kwh
-                * self._power_usage_efficiency
-            )
+            pm_cost = pm.energy_consumption * self._unit_energy_price_per_kwh * self._power_usage_efficiency
             total_energy_cost += pm_cost
             # Overload PMs.
             if pm.cpu_utilization > 100:
@@ -543,7 +507,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """dict: Event payload details of current scenario."""
         return {
             Events.REQUEST.name: VmRequestPayload.summary_key,
-            MaroEvents.PENDING_DECISION.name: DecisionPayload.summary_key
+            MaroEvents.PENDING_DECISION.name: DecisionPayload.summary_key,
         }
 
     def get_agent_idx_list(self) -> List[int]:
@@ -573,20 +537,20 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         return DocableDict(
             metrics_desc,
             {
-                'total_vm_requests': self._total_vm_requests,
-                'total_incomes': self._total_incomes,
-                'energy_consumption_cost': self._energy_consumption_cost,
-                'total_profit': self._total_profit,
-                'total_energy_consumption': self._total_energy_consumption,
-                'successful_allocation': self._successful_allocation,
-                'successful_completion': self._successful_completion,
-                'failed_allocation': self._failed_allocation,
-                'failed_completion': self._failed_completion,
-                'total_latency': self._total_latency,
-                'total_oversubscriptions': self._total_oversubscriptions,
-                'total_overload_pms': self._total_overload_pms,
-                'total_overload_vms': self._total_overload_vms
-            }
+                "total_vm_requests": self._total_vm_requests,
+                "total_incomes": self._total_incomes,
+                "energy_consumption_cost": self._energy_consumption_cost,
+                "total_profit": self._total_profit,
+                "total_energy_consumption": self._total_energy_consumption,
+                "successful_allocation": self._successful_allocation,
+                "successful_completion": self._successful_completion,
+                "failed_allocation": self._failed_allocation,
+                "failed_completion": self._failed_completion,
+                "total_latency": self._total_latency,
+                "total_oversubscriptions": self._total_oversubscriptions,
+                "total_overload_pms": self._total_overload_pms,
+                "total_overload_vms": self._total_overload_vms,
+            },
         )
 
     def _register_events(self):
@@ -625,9 +589,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _update_region_metrics(self):
         for region in self._regions:
-            region.empty_machine_num = sum(
-                self._zones[zone_id].empty_machine_num for zone_id in region.zone_list
-            )
+            region.empty_machine_num = sum(self._zones[zone_id].empty_machine_num for zone_id in region.zone_list)
 
     def _update_zone_metrics(self):
         for zone in self._zones:
@@ -643,9 +605,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _update_cluster_metrics(self):
         for cluster in self._clusters:
-            cluster.empty_machine_num = sum(
-                self._racks[rack_id].empty_machine_num for rack_id in cluster.rack_list
-            )
+            cluster.empty_machine_num = sum(self._racks[rack_id].empty_machine_num for rack_id in cluster.rack_list)
 
     def _update_rack_metrics(self):
         for rack in self._racks:
@@ -665,8 +625,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
             pm.update_cpu_utilization(vm=None, cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
             pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                pm_type=self._pm_config_dict[pm.pm_type],
-                cpu_utilization=pm.cpu_utilization
+                pm_type=self._pm_config_dict[pm.pm_type], cpu_utilization=pm.cpu_utilization
             )
 
     def _overload(self, pm_id: int, tick: int):
@@ -701,8 +660,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         cpu_utilization /= 100
         cpu_utilization = min(1, cpu_utilization)
-        energy_consumption_per_hour = (
-            idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))
+        energy_consumption_per_hour = idle_power + (busy_power - idle_power) * (
+            2 * cpu_utilization - pow(cpu_utilization, power)
         )
 
         return (energy_consumption_per_hour / self._ticks_per_hour) / 1000
@@ -718,9 +677,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             postpone_payload = self._pending_vm_request_payload[vm_id]
             postpone_payload.remaining_buffer_time -= self._delay_duration
             postpone_event = self._event_buffer.gen_cascade_event(
-                tick=self._tick + self._delay_duration,
-                event_type=Events.REQUEST,
-                payload=postpone_payload
+                tick=self._tick + self._delay_duration, event_type=Events.REQUEST, payload=postpone_payload
             )
             self._event_buffer.insert_event(event=postpone_event)
         else:
@@ -746,13 +703,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
         if vm_category == VmCategory.INTERACTIVE or vm_category == VmCategory.UNKNOWN:
             valid_pm_list = self._get_valid_non_oversubscribable_pms(
-                vm_cpu_cores_requirement=vm_cpu_cores_requirement,
-                vm_memory_requirement=vm_memory_requirement
+                vm_cpu_cores_requirement=vm_cpu_cores_requirement, vm_memory_requirement=vm_memory_requirement
             )
         else:
             valid_pm_list = self._get_valid_oversubscribable_pms(
-                vm_cpu_cores_requirement=vm_cpu_cores_requirement,
-                vm_memory_requirement=vm_memory_requirement
+                vm_cpu_cores_requirement=vm_cpu_cores_requirement, vm_memory_requirement=vm_memory_requirement
             )
 
         return valid_pm_list
@@ -763,8 +718,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             if pm.oversubscribable == PmState.EMPTY or pm.oversubscribable == PmState.NON_OVERSUBSCRIBABLE:
                 # In the condition of non-oversubscription, the valid PMs mean:
                 # PM allocated resource + VM allocated resource <= PM capacity.
-                if (pm.cpu_cores_allocated + vm_cpu_cores_requirement <= pm.cpu_cores_capacity
-                        and pm.memory_allocated + vm_memory_requirement <= pm.memory_capacity):
+                if (
+                    pm.cpu_cores_allocated + vm_cpu_cores_requirement <= pm.cpu_cores_capacity
+                    and pm.memory_allocated + vm_memory_requirement <= pm.memory_capacity
+                ):
                     valid_pm_list.append(pm.id)
 
         return valid_pm_list
@@ -780,10 +737,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     (
                         pm.cpu_cores_allocated + vm_cpu_cores_requirement
                         <= self._max_cpu_oversubscription_rate * pm.cpu_cores_capacity
-                    ) and (
+                    )
+                    and (
                         pm.memory_allocated + vm_memory_requirement
                         <= self._max_memory_oversubscription_rate * pm.memory_capacity
-                    ) and (
+                    )
+                    and (
                         pm.cpu_utilization / 100 * pm.cpu_cores_capacity + vm_cpu_cores_requirement
                         <= self._max_utilization_rate * pm.cpu_cores_capacity
                     )
@@ -828,7 +787,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         valid_pm_list = self._get_valid_pms(
             vm_cpu_cores_requirement=vm_info.cpu_cores_requirement,
             vm_memory_requirement=vm_info.memory_requirement,
-            vm_category=vm_info.category
+            vm_category=vm_info.category,
         )
 
         if len(valid_pm_list) > 0:
@@ -841,18 +800,17 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm_memory_requirement=vm_info.memory_requirement,
                 vm_sub_id=vm_info.sub_id,
                 vm_category=vm_info.category,
-                remaining_buffer_time=remaining_buffer_time
+                remaining_buffer_time=remaining_buffer_time,
             )
             self._pending_action_vm_id = vm_info.id
             pending_decision_event = self._event_buffer.gen_decision_event(
-                tick=vm_request_event.tick, payload=decision_payload)
+                tick=vm_request_event.tick, payload=decision_payload
+            )
             vm_request_event.add_immediate_event(event=pending_decision_event)
         else:
             # Either postpone the requirement event or failed.
             self._postpone_vm_request(
-                postpone_type=PostponeType.Resource,
-                vm_id=vm_info.id,
-                remaining_buffer_time=remaining_buffer_time
+                postpone_type=PostponeType.Resource, vm_id=vm_info.id, remaining_buffer_time=remaining_buffer_time
             )
 
     def _on_action_received(self, event: CascadeEvent):
@@ -900,13 +858,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 pm.allocate_vms(vm_ids=[vm.id])
                 pm.cpu_cores_allocated += vm.cpu_cores_requirement
                 pm.memory_allocated += vm.memory_requirement
-                pm.update_cpu_utilization(
-                    vm=vm,
-                    cpu_utilization=None
-                )
+                pm.update_cpu_utilization(vm=vm, cpu_utilization=None)
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                    pm_type=self._pm_config_dict[pm.pm_type],
-                    cpu_utilization=pm.cpu_utilization
+                    pm_type=self._pm_config_dict[pm.pm_type], cpu_utilization=pm.cpu_utilization
                 )
                 self._successful_allocation += 1
 
@@ -917,7 +871,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._postpone_vm_request(
                     postpone_type=PostponeType.Agent,
                     vm_id=vm_id,
-                    remaining_buffer_time=remaining_buffer_time - postpone_step * self._delay_duration
+                    remaining_buffer_time=remaining_buffer_time - postpone_step * self._delay_duration,
                 )
 
     def _update_incomes(self):
@@ -929,8 +883,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _get_unit_price(self, cpu_cores, memory):
         return (
-            self._price_per_cpu_cores_per_hour * cpu_cores
-            + self._price_per_memory_per_hour * memory
+            self._price_per_cpu_cores_per_hour * cpu_cores + self._price_per_memory_per_hour * memory
         ) / self._ticks_per_hour
 
     def _download_processed_data(self):
@@ -939,7 +892,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         build_folder = os.path.join(data_root, self._scenario_name, ".build", self._topology)
 
         source = self._config.PROCESSED_DATA_URL
-        download_file_name = source.split('/')[-1]
+        download_file_name = source.split("/")[-1]
         download_file_path = os.path.join(build_folder, download_file_name)
 
         # Download file from the Azure blob storage.

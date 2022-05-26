@@ -15,10 +15,10 @@ from distutils.extension import Extension
 
 from maro import __version__
 
-compile_flag = '-std=c++11'
+compile_flag = "-std=c++11"
 
 if sys.platform == "win32":
-    compile_flag = '/std:c++14'
+    compile_flag = "/std:c++14"
 
 # Set environment variable to skip deployment process of MARO
 os.environ["SKIP_DEPLOYMENT"] = "TRUE"
@@ -43,9 +43,8 @@ include_dirs = []
 # backend base extensions
 extensions.append(
     Extension(
-        f"{BASE_MODULE_NAME}.backend",
-        sources=[f"{BASE_SRC_PATH}/backend.cpp"],
-        extra_compile_args=[compile_flag])
+        f"{BASE_MODULE_NAME}.backend", sources=[f"{BASE_SRC_PATH}/backend.cpp"], extra_compile_args=[compile_flag]
+    )
 )
 
 
@@ -56,7 +55,8 @@ extensions.append(
         f"{BASE_MODULE_NAME}.np_backend",
         sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=[compile_flag],
+    )
 )
 
 # raw implementation
@@ -66,7 +66,8 @@ extensions.append(
         f"{BASE_MODULE_NAME}.raw_backend",
         sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=[compile_flag],
+    )
 )
 
 # frame
@@ -75,7 +76,8 @@ extensions.append(
         f"{BASE_MODULE_NAME}.frame",
         sources=[f"{BASE_SRC_PATH}/frame.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=[compile_flag],
+    )
 )
 
 specific_requires = []
@@ -96,7 +98,7 @@ setup(
     project_urls={
         "Code": "https://github.com/microsoft/maro",
         "Issues": "https://github.com/microsoft/maro/issues",
-        "Documents": "https://maro.readthedocs.io/en/latest"
+        "Documents": "https://maro.readthedocs.io/en/latest",
     },
     license="MIT License",
     platforms=["Windows", "Linux", "macOS"],
@@ -106,22 +108,24 @@ setup(
         "operations-research",
         "reinforcement-learning",
         "resource-optimization",
-        "simulator"],
+        "simulator",
+    ],
     classifiers=[
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence"],
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    ],
     python_requires=">=3.6",
     setup_requires=[
         "numpy<1.20.0",
@@ -147,7 +151,8 @@ setup(
         "kubernetes>=12.0.1",
         "prompt_toolkit<3.1.0",
         "stringcase>=1.2.0",
-    ] + specific_requires,
+    ]
+    + specific_requires,
     entry_points={
         "console_scripts": [
             "maro=maro.cli.maro:main",

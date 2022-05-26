@@ -15,31 +15,24 @@ logger = CliLogger(name=__name__)
 
 ALLOW_PATTERNS = {
     # No locks at create
-
     # clean related
     "clean": {r"^.*$"},
-
     # data related
     "push_data": {r"^.*data$", r"^.*image$"},
     "pull_data": {r"^.*data$", r"^.*image$"},
     "remove_data": {r"^.*data$", r"^.*image$"},
-
     # delete related
     "delete": {r"$^"},
-
     # image related
     "push_image": {r"^.*data$", r"^list.*$", r"^.*node$"},
-
     # job related
     "start_job": {r"^list.*$"},
     "stop_job": {r"^list.*$"},
-
     # node related
     "scale_node": {r"^list.*$", r"^.*data$"},
     "start_node": {r"^list.*$", r"^.*data$"},
     "stop_node": {r"^list.*$", r"^.*data$"},
     "list_node": {r"^.*$"},
-
     # schedule related
     "start_schedule": {r"^list.*$"},
     "stop_schedule": {r"^list.*$"},
@@ -48,15 +41,11 @@ ALLOW_PATTERNS = {
 
 def operation_lock(func):
     def with_lock(*args, **kwargs):
-        _acquire_lock(
-            cluster_name=kwargs["cluster_name"], operation=func.__name__
-        )
+        _acquire_lock(cluster_name=kwargs["cluster_name"], operation=func.__name__)
         try:
             func(*args, **kwargs)
         finally:
-            _release_lock(
-                cluster_name=kwargs["cluster_name"], operation=func.__name__
-            )
+            _release_lock(cluster_name=kwargs["cluster_name"], operation=func.__name__)
 
     return with_lock
 

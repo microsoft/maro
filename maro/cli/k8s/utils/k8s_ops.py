@@ -32,8 +32,7 @@ def create_job(conf: dict, namespace: str):
 
 def create_secret(name: str, data: dict, namespace: str):
     client.CoreV1Api().create_namespaced_secret(
-        body=client.V1Secret(metadata=client.V1ObjectMeta(name=name), data=data),
-        namespace=namespace
+        body=client.V1Secret(metadata=client.V1ObjectMeta(name=name), data=data), namespace=namespace
     )
 
 

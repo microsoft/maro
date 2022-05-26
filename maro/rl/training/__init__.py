@@ -10,9 +10,17 @@ from .worker import TrainOpsWorker
 
 __all__ = [
     "TrainingProxy",
-    "FIFOMultiReplayMemory", "FIFOReplayMemory", "RandomMultiReplayMemory", "RandomReplayMemory",
-    "AbsTrainOps", "RemoteOps", "remote",
-    "AbsTrainer", "MultiAgentTrainer", "SingleAgentTrainer", "TrainerParams",
+    "FIFOMultiReplayMemory",
+    "FIFOReplayMemory",
+    "RandomMultiReplayMemory",
+    "RandomReplayMemory",
+    "AbsTrainOps",
+    "RemoteOps",
+    "remote",
+    "AbsTrainer",
+    "MultiAgentTrainer",
+    "SingleAgentTrainer",
+    "TrainerParams",
     "TrainingManager",
     "TrainOpsWorker",
 ]

@@ -76,8 +76,7 @@ class RequirementsFilter:
         """
         output_num = min(self._output_num, len(source))
 
-        neighbor_scope = sorted(source.items(),
-                                key=lambda kv: (kv[1], kv[0]), reverse=True)
+        neighbor_scope = sorted(source.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
 
         return {neighbor_scope[i][0]: neighbor_scope[i][1] for i in range(output_num)}
 
@@ -153,7 +152,7 @@ class TripsWindowFilter:
 
         result = {}
 
-        for neighbor_idx, _ in sorted_neighbors[0: output_num]:
+        for neighbor_idx, _ in sorted_neighbors[0:output_num]:
             result[neighbor_idx] = source[neighbor_idx]
 
         return result
@@ -174,17 +173,9 @@ class BikeDecisionStrategy:
 
     def __init__(self, stations: list, distance_adj: MatrixAttributeAccessor, snapshots, options: dict):
         self._filter_cls_mapping = {
-            "distance": {
-                "cls": DistanceFilter,
-                "options": [self]
-            },
-            "requirements": {
-                "cls": RequirementsFilter
-            },
-            "trip_window": {
-                "cls": TripsWindowFilter,
-                "options": [snapshots]
-            }
+            "distance": {"cls": DistanceFilter, "options": [self]},
+            "requirements": {"cls": RequirementsFilter},
+            "trip_window": {"cls": TripsWindowFilter, "options": [snapshots]},
         }
 
         self._filters = []
@@ -324,8 +315,7 @@ class BikeDecisionStrategy:
             accept_number = min(accept_number, bike_number)
             neighbor.bikes = neighbor_bikes + accept_number
 
-            cost = self._calculate_extra_cost(
-                accept_number, distance, order_index)
+            cost = self._calculate_extra_cost(accept_number, distance, order_index)
 
             total_cost += cost
 

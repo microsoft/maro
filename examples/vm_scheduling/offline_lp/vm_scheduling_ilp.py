@@ -17,7 +17,8 @@ from common import IlpPmCapacity, IlpVmInfo
 # To indicate the decision of not allocate or cannot allocate any PM for current VM request.
 NOT_ALLOCATE_NOW = -1
 
-class VmSchedulingILP():
+
+class VmSchedulingILP:
     def __init__(self, config: DottableDict, pm_capacity: List[IlpPmCapacity], logger: Logger, log_path: str):
         self._logger = logger
         self._log_path = log_path
@@ -76,7 +77,7 @@ class VmSchedulingILP():
                     name=f"Place_VM{vm_idx}_{self._future_vm_req[vm_idx].id}_on_PM{pm_idx}",
                     lowBound=0,
                     upBound=1,
-                    cat=LpInteger
+                    cat=LpInteger,
                 )
 
     def _add_constraints(self, problem: LpProblem):
@@ -84,7 +85,7 @@ class VmSchedulingILP():
         for vm_idx in range(self._vm_num):
             problem += (
                 lpSum(self._mapping[pm_idx][vm_idx] for pm_idx in range(self._pm_num)) <= 1,
-                f"Mapping_VM{vm_idx}_to_max_1_PM"
+                f"Mapping_VM{vm_idx}_to_max_1_PM",
             )
 
         # PM capacity limitation: core + mem.
@@ -95,16 +96,20 @@ class VmSchedulingILP():
                         vm.core * self._mapping[pm_idx][vm_idx]
                         for vm_idx, vm in enumerate(self._future_vm_req)
                         if (vm.arrival_env_tick - self._env_tick <= t and vm.remaining_lifetime(self._env_tick) >= t)
-                    ) + self._pm_allocated_core[t][pm_idx] <= self._pm_capacity[pm_idx].core * self.core_upper_ratio,
-                    f"T{t}_PM{pm_idx}_core_capacity_limit"
+                    )
+                    + self._pm_allocated_core[t][pm_idx]
+                    <= self._pm_capacity[pm_idx].core * self.core_upper_ratio,
+                    f"T{t}_PM{pm_idx}_core_capacity_limit",
                 )
                 problem += (
                     lpSum(
                         vm.mem * self._mapping[pm_idx][vm_idx]
                         for vm_idx, vm in enumerate(self._future_vm_req)
                         if (vm.arrival_env_tick - self._env_tick <= t and vm.remaining_lifetime(self._env_tick) >= t)
-                    ) + self._pm_allocated_mem[t][pm_idx] <= self._pm_capacity[pm_idx].mem * self.mem_upper_ratio,
-                    f"T{t}_PM{pm_idx}_mem_capacity_limit"
+                    )
+                    + self._pm_allocated_mem[t][pm_idx]
+                    <= self._pm_capacity[pm_idx].mem * self.mem_upper_ratio,
+                    f"T{t}_PM{pm_idx}_mem_capacity_limit",
                 )
 
     def _set_objective(self, problem: LpProblem):
@@ -127,10 +132,7 @@ class VmSchedulingILP():
     def _formulate_and_solve(self):
         start_time = timeit.default_timer()
 
-        problem = LpProblem(
-            name=f"VM_Scheduling_from_tick_{self._env_tick}",
-            sense=LpMaximize
-        )
+        problem = LpProblem(name=f"VM_Scheduling_from_tick_{self._env_tick}", sense=LpMaximize)
         self._init_variables()
         self._add_constraints(problem=problem)
         self._set_objective(problem=problem)
@@ -148,8 +150,9 @@ class VmSchedulingILP():
                 if self._mapping[pm_idx][vm_idx].varValue:
                     chosen_pm_idx = pm_idx
                     break
-            self._logger.info(f"Solution tick: {self._env_tick}, vm: {self._future_vm_req[vm_idx].id} -> pm: {chosen_pm_idx}")
-
+            self._logger.info(
+                f"Solution tick: {self._env_tick}, vm: {self._future_vm_req[vm_idx].id} -> pm: {chosen_pm_idx}"
+            )
 
     def choose_pm(
         self,

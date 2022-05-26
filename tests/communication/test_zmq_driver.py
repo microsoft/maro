@@ -14,7 +14,6 @@ def message_receive(driver):
 
 @unittest.skipUnless(os.environ.get("test_with_zmq", False), "require zmq")
 class TestDriver(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         print(f"The ZMQ driver unit test start!")
@@ -40,12 +39,7 @@ class TestDriver(unittest.TestCase):
 
     def test_send(self):
         for peer in TestDriver.peer_list:
-            message = SessionMessage(
-                tag="unit_test",
-                source="sender",
-                destination=peer,
-                body="hello_world"
-            )
+            message = SessionMessage(tag="unit_test", source="sender", destination=peer, body="hello_world")
             TestDriver.sender.send(message)
 
             recv_message = TestDriver.receivers[peer].receive_once()
@@ -55,12 +49,7 @@ class TestDriver(unittest.TestCase):
         executor = ThreadPoolExecutor(max_workers=len(TestDriver.peer_list))
         all_task = [executor.submit(message_receive, (TestDriver.receivers[peer])) for peer in TestDriver.peer_list]
 
-        message = SessionMessage(
-            tag="unit_test",
-            source="sender",
-            destination="*",
-            body="hello_world"
-        )
+        message = SessionMessage(tag="unit_test", source="sender", destination="*", body="hello_world")
         TestDriver.sender.broadcast(topic="receiver", message=message)
 
         for task in as_completed(all_task):

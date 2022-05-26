@@ -29,7 +29,7 @@ class CIMBundle(RLComponentBundle):
         return CIMEnvSampler(self.env, self.test_env, reward_eval_delay=reward_shaping_conf["time_window"])
 
     def get_agent2policy(self) -> Dict[Any, str]:
-        return {agent: f"{algorithm}_{agent}.policy"for agent in self.env.agent_idx_list}
+        return {agent: f"{algorithm}_{agent}.policy" for agent in self.env.agent_idx_list}
 
     def get_policy_creator(self) -> Dict[str, Callable[[], AbsPolicy]]:
         if algorithm == "ac":
@@ -60,23 +60,17 @@ class CIMBundle(RLComponentBundle):
     def get_trainer_creator(self) -> Dict[str, Callable[[], AbsTrainer]]:
         if algorithm == "ac":
             trainer_creator = {
-                f"{algorithm}_{i}": partial(get_ac, state_dim, f"{algorithm}_{i}")
-                for i in range(num_agents)
+                f"{algorithm}_{i}": partial(get_ac, state_dim, f"{algorithm}_{i}") for i in range(num_agents)
             }
         elif algorithm == "ppo":
             trainer_creator = {
-                f"{algorithm}_{i}": partial(get_ppo, state_dim, f"{algorithm}_{i}")
-                for i in range(num_agents)
+                f"{algorithm}_{i}": partial(get_ppo, state_dim, f"{algorithm}_{i}") for i in range(num_agents)
             }
         elif algorithm == "dqn":
-            trainer_creator = {
-                f"{algorithm}_{i}": partial(get_dqn, f"{algorithm}_{i}")
-                for i in range(num_agents)
-            }
+            trainer_creator = {f"{algorithm}_{i}": partial(get_dqn, f"{algorithm}_{i}") for i in range(num_agents)}
         elif algorithm == "discrete_maddpg":
             trainer_creator = {
-                f"{algorithm}_{i}": partial(get_maddpg, state_dim, [1], f"{algorithm}_{i}")
-                for i in range(num_agents)
+                f"{algorithm}_{i}": partial(get_maddpg, state_dim, [1], f"{algorithm}_{i}") for i in range(num_agents)
             }
         else:
             raise ValueError(f"Unsupported algorithm: {algorithm}")

@@ -4,8 +4,10 @@
 
 # First Layer.
 
+
 class AgentError(Exception):
-    """ Base error class for all MARO Grass Agents."""
+    """Base error class for all MARO Grass Agents."""
+
     pass
 
 
@@ -13,32 +15,39 @@ class AgentError(Exception):
 
 
 class UserFault(AgentError):
-    """ Users should be responsible for the errors."""
+    """Users should be responsible for the errors."""
+
     pass
 
 
 class ServiceError(AgentError):
-    """ MARO Services should be responsible for the errors."""
+    """MARO Services should be responsible for the errors."""
+
     pass
 
 
 # Third Layer.
 
+
 class ResourceAllocationFailed(UserFault):
-    """ Resources are insufficient, unable to allocate."""
+    """Resources are insufficient, unable to allocate."""
+
     pass
 
 
 class StartContainerError(ServiceError):
-    """ Error when starting containers."""
+    """Error when starting containers."""
+
     pass
 
 
 class CommandExecutionError(ServiceError):
-    """ Failed to execute shell commands."""
+    """Failed to execute shell commands."""
+
     pass
 
 
 class ConnectionFailed(ServiceError):
-    """ Failed to connect to other nodes."""
+    """Failed to connect to other nodes."""
+
     pass

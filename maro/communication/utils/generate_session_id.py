@@ -17,6 +17,6 @@ def session_id_generator(source: str, destination: str) -> str:
             i.e. "uuid.source.destination"
     """
     unique_id = str(uuid.uuid4())
-    session_id = '.'.join([unique_id, source, destination])
+    session_id = ".".join([unique_id, source, destination])
 
     return session_id

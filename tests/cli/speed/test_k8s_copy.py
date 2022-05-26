@@ -22,9 +22,9 @@ TEST_TO_TIME = {}
 
 def record_speed(func):
     def with_record_speed(*args, **kwargs):
-        start_time = time.time_ns() / (10 ** 9)
+        start_time = time.time_ns() / (10**9)
         func(*args, **kwargs)
-        end_time = time.time_ns() / (10 ** 9)
+        end_time = time.time_ns() / (10**9)
         print(f"{func.__name__}: {end_time - start_time} s")
         TEST_TO_TIME[func.__name__] = end_time - start_time
 
@@ -41,6 +41,7 @@ class TestK8sCopy(unittest.TestCase):
     Therefore, we use test_X (X is a digit) as prefix to specify the order of the tests.
     Ref: https://docs.python.org/3.7/library/unittest.html#organizing-test-code
     """
+
     cluster_name = None
     test_id = None
 
@@ -54,7 +55,8 @@ class TestK8sCopy(unittest.TestCase):
         cls.file_path = os.path.abspath(__file__)
         cls.dir_path = os.path.dirname(cls.file_path)
         cls.deployment_template_path = os.path.normpath(
-            os.path.join(cls.dir_path, "../templates/test_k8s_azure_create.yml"))
+            os.path.join(cls.dir_path, "../templates/test_k8s_azure_create.yml")
+        )
         cls.deployment_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_k8s_azure_create.yml")
         cls.config_path = os.path.normpath(os.path.join(cls.dir_path, "../config.yml"))
 
@@ -98,12 +100,7 @@ class TestK8sCopy(unittest.TestCase):
         Subprocess.interactive_run(command=command)
 
         # Print result
-        print(
-            json.dumps(
-                TEST_TO_TIME,
-                indent=4, sort_keys=True
-            )
-        )
+        print(json.dumps(TEST_TO_TIME, indent=4, sort_keys=True))
 
         # Delete tmp test folder
         shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}"))
@@ -127,21 +124,25 @@ class TestK8sCopy(unittest.TestCase):
     @record_speed
     def test_1_azcopy_big_file_to_remote(self) -> None:
         sas = self.executor._check_and_get_account_sas()
-        command = (f"azcopy copy "
-                   f"'{self.local_big_file_path}' "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
-                   f"/{self.test_id}/test_1_azcopy_big_file_to_remote/?{sas}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'{self.local_big_file_path}' "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
+            f"/{self.test_id}/test_1_azcopy_big_file_to_remote/?{sas}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
     def test_1_azcopy_small_files_to_remote(self) -> None:
         sas = self.executor._check_and_get_account_sas()
-        command = (f"azcopy copy "
-                   f"'{self.local_small_files_path}' "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
-                   f"/{self.test_id}/test_1_azcopy_small_files_to_remote/?{sas}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'{self.local_small_files_path}' "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
+            f"/{self.test_id}/test_1_azcopy_small_files_to_remote/?{sas}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
@@ -151,15 +152,22 @@ class TestK8sCopy(unittest.TestCase):
         _ = Subprocess.run(command=command)
 
         local_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/test_2_azcopy_big_file_to_local")
-        command = (f"azcopy copy "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
-                   f"/{self.test_id}/test_1_azcopy_big_file_to_remote?{sas}' "
-                   f"'{local_path}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
+            f"/{self.test_id}/test_1_azcopy_big_file_to_remote?{sas}' "
+            f"'{local_path}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_azcopy_big_file_to_local/test_1_azcopy_big_file_to_remote/big_file")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_azcopy_big_file_to_local/test_1_azcopy_big_file_to_remote/big_file"
+                )
+            )
+        )
 
     @record_speed
     def test_2_azcopy_small_files_to_local(self) -> None:
@@ -168,40 +176,55 @@ class TestK8sCopy(unittest.TestCase):
         _ = Subprocess.run(command=command)
 
         local_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/test_2_azcopy_small_files_to_local")
-        command = (f"azcopy copy "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
-                   f"/{self.test_id}/test_1_azcopy_small_files_to_remote?{sas}' "
-                   f"'{local_path}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
+            f"/{self.test_id}/test_1_azcopy_small_files_to_remote?{sas}' "
+            f"'{local_path}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_azcopy_small_files_to_local/test_1_azcopy_small_files_to_remote/small_files")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_azcopy_small_files_to_local/test_1_azcopy_small_files_to_remote/small_files"
+                )
+            )
+        )
 
     @record_speed
     def test_1_kubectl_exec_big_file_to_remote(self) -> None:
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"mkdir -p /mnt/maro/{self.test_id}/test_1_kubectl_exec_big_file_to_remote")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- "
+            f"mkdir -p /mnt/maro/{self.test_id}/test_1_kubectl_exec_big_file_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
         basename = os.path.basename(self.local_big_file_path)
         dirname = os.path.dirname(self.local_big_file_path)
-        command = (f"tar cf - -C {dirname} {basename} | "
-                   f"kubectl exec -i {self.pod_name} -- "
-                   f"tar xf - -C /mnt/maro/{self.test_id}/test_1_kubectl_exec_big_file_to_remote")
+        command = (
+            f"tar cf - -C {dirname} {basename} | "
+            f"kubectl exec -i {self.pod_name} -- "
+            f"tar xf - -C /mnt/maro/{self.test_id}/test_1_kubectl_exec_big_file_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
     def test_1_kubectl_exec_small_files_to_remote(self) -> None:
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"mkdir -p /mnt/maro/{self.test_id}/test_1_kubectl_exec_small_files_to_remote")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- "
+            f"mkdir -p /mnt/maro/{self.test_id}/test_1_kubectl_exec_small_files_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
         basename = os.path.basename(self.local_small_files_path)
         dirname = os.path.dirname(self.local_small_files_path)
-        command = (f"tar cf - -C {dirname} {basename} | "
-                   f"kubectl exec -i {self.pod_name} -- "
-                   f"tar xf - -C /mnt/maro/{self.test_id}/test_1_kubectl_exec_small_files_to_remote")
+        command = (
+            f"tar cf - -C {dirname} {basename} | "
+            f"kubectl exec -i {self.pod_name} -- "
+            f"tar xf - -C /mnt/maro/{self.test_id}/test_1_kubectl_exec_small_files_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
@@ -211,12 +234,19 @@ class TestK8sCopy(unittest.TestCase):
 
         basename = os.path.basename(f"/mnt/maro/{self.test_id}/test_1_kubectl_exec_big_file_to_remote")
         dirname = os.path.dirname(f"/mnt/maro/{self.test_id}/test_1_kubectl_exec_big_file_to_remote")
-        command = (f"kubectl exec -i {self.pod_name} -- tar cf - -C {dirname} {basename}  | "
-                   f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_kubectl_exec_big_file_to_local")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- tar cf - -C {dirname} {basename}  | "
+            f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_kubectl_exec_big_file_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_kubectl_exec_big_file_to_local/test_1_kubectl_exec_big_file_to_remote/big_file")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_kubectl_exec_big_file_to_local/test_1_kubectl_exec_big_file_to_remote/big_file"
+                )
+            )
+        )
 
     @record_speed
     def test_2_kubectl_exec_small_files_to_local(self) -> None:
@@ -225,18 +255,27 @@ class TestK8sCopy(unittest.TestCase):
 
         basename = os.path.basename(f"/mnt/maro/{self.test_id}/test_1_kubectl_exec_small_files_to_remote")
         dirname = os.path.dirname(f"/mnt/maro/{self.test_id}/test_1_kubectl_exec_small_files_to_remote")
-        command = (f"kubectl exec -i {self.pod_name} -- tar cf - -C {dirname} {basename}  | "
-                   f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_kubectl_exec_small_files_to_local")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- tar cf - -C {dirname} {basename}  | "
+            f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_kubectl_exec_small_files_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_kubectl_exec_small_files_to_local/test_1_kubectl_exec_small_files_to_remote/small_files")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_kubectl_exec_small_files_to_local/test_1_kubectl_exec_small_files_to_remote/small_files"
+                )
+            )
+        )
 
     @record_speed
     def test_1_azcopy_tar_big_file_to_remote(self) -> None:
         # create remote folder
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"mkdir -p /mnt/maro/{self.test_id}/test_1_azcopy_tar_big_file_to_remote")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- "
+            f"mkdir -p /mnt/maro/{self.test_id}/test_1_azcopy_tar_big_file_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
         # local tar zip
@@ -249,24 +288,30 @@ class TestK8sCopy(unittest.TestCase):
         # azcopy
         sas = self.executor._check_and_get_account_sas()
         local_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name}")
-        command = (f"azcopy copy "
-                   f"'{local_path}' "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
-                   f"/tar/{tar_file_name}?{sas}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'{local_path}' "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
+            f"/tar/{tar_file_name}?{sas}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
 
         # remote tar unzip
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"tar xf /mnt/maro/tar/{tar_file_name} "
-                   f"-C /mnt/maro/{self.test_id}/test_1_azcopy_tar_big_file_to_remote")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- "
+            f"tar xf /mnt/maro/tar/{tar_file_name} "
+            f"-C /mnt/maro/{self.test_id}/test_1_azcopy_tar_big_file_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
     def test_1_azcopy_tar_small_files_to_remote(self) -> None:
         # create remote folder
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"mkdir -p /mnt/maro/{self.test_id}/test_1_azcopy_tar_small_files_to_remote")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- "
+            f"mkdir -p /mnt/maro/{self.test_id}/test_1_azcopy_tar_small_files_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
         # local tar zip
@@ -279,17 +324,21 @@ class TestK8sCopy(unittest.TestCase):
         # azcopy
         sas = self.executor._check_and_get_account_sas()
         local_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name}")
-        command = (f"azcopy copy "
-                   f"'{local_path}' "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
-                   f"/tar/{tar_file_name}?{sas}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'{local_path}' "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
+            f"/tar/{tar_file_name}?{sas}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
 
         # remote tar unzip
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"tar xf /mnt/maro/tar/{tar_file_name} "
-                   f"-C /mnt/maro/{self.test_id}/test_1_azcopy_tar_small_files_to_remote")
+        command = (
+            f"kubectl exec -i {self.pod_name} -- "
+            f"tar xf /mnt/maro/tar/{tar_file_name} "
+            f"-C /mnt/maro/{self.test_id}/test_1_azcopy_tar_small_files_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
@@ -302,27 +351,35 @@ class TestK8sCopy(unittest.TestCase):
         basename = os.path.basename(f"/mnt/maro/{self.test_id}/test_1_azcopy_tar_big_file_to_remote")
         dirname = os.path.dirname(f"/mnt/maro/{self.test_id}/test_1_azcopy_tar_big_file_to_remote")
         tar_file_name = uuid.uuid4().hex[:8]
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"tar cf /mnt/maro/tar/{tar_file_name} -C {dirname} {basename}")
+        command = f"kubectl exec -i {self.pod_name} -- " f"tar cf /mnt/maro/tar/{tar_file_name} -C {dirname} {basename}"
         Subprocess.interactive_run(command=command)
 
         # azcopy
         sas = self.executor._check_and_get_account_sas()
         local_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name}")
-        command = (f"azcopy copy "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
-                   f"/tar/{tar_file_name}?{sas}' "
-                   f"'{local_path}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs"
+            f"/tar/{tar_file_name}?{sas}' "
+            f"'{local_path}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
 
         # local tar unzip
-        command = (f"tar xf {GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name} "
-                   f"-C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_azcopy_tar_big_file_to_local")
+        command = (
+            f"tar xf {GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name} "
+            f"-C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_azcopy_tar_big_file_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_azcopy_tar_big_file_to_local/test_1_azcopy_tar_big_file_to_remote/big_file")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_azcopy_tar_big_file_to_local/test_1_azcopy_tar_big_file_to_remote/big_file"
+                )
+            )
+        )
 
     @record_speed
     def test_2_azcopy_tar_small_files_to_local(self) -> None:
@@ -334,26 +391,34 @@ class TestK8sCopy(unittest.TestCase):
         basename = os.path.basename(f"/mnt/maro/{self.test_id}/test_1_azcopy_tar_small_files_to_remote")
         dirname = os.path.dirname(f"/mnt/maro/{self.test_id}/test_1_azcopy_tar_small_files_to_remote")
         tar_file_name = uuid.uuid4().hex[:8]
-        command = (f"kubectl exec -i {self.pod_name} -- "
-                   f"tar cf /mnt/maro/tar/{tar_file_name} -C {dirname} {basename}")
+        command = f"kubectl exec -i {self.pod_name} -- " f"tar cf /mnt/maro/tar/{tar_file_name} -C {dirname} {basename}"
         Subprocess.interactive_run(command=command)
 
         # azcopy
         sas = self.executor._check_and_get_account_sas()
         local_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name}")
-        command = (f"azcopy copy "
-                   f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs/tar/{tar_file_name}?{sas}' "
-                   f"'{local_path}' "
-                   f"--recursive=True")
+        command = (
+            f"azcopy copy "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs/tar/{tar_file_name}?{sas}' "
+            f"'{local_path}' "
+            f"--recursive=True"
+        )
         Subprocess.interactive_run(command=command)
 
         # local tar unzip
-        command = (f"tar xf {GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name} "
-                   f"-C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_azcopy_tar_small_files_to_local")
+        command = (
+            f"tar xf {GlobalPaths.MARO_TEST}/{self.test_id}/tar/{tar_file_name} "
+            f"-C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_azcopy_tar_small_files_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_azcopy_tar_small_files_to_local/test_1_azcopy_tar_small_files_to_remote/small_files")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_azcopy_tar_small_files_to_local/test_1_azcopy_tar_small_files_to_remote/small_files"
+                )
+            )
+        )
 
 
 if __name__ == "__main__":

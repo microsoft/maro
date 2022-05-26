@@ -20,6 +20,7 @@ from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError
 from tests.cli.utils import record_running_time
 
+
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require cli prerequisites.")
 class TestK8s(unittest.TestCase):
     """Tests for K8s/Aks Mode.
@@ -89,12 +90,7 @@ class TestK8s(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Print result.
-        print(
-            json.dumps(
-                cls.test_func_to_time,
-                indent=4, sort_keys=True
-            )
-        )
+        print(json.dumps(cls.test_func_to_time, indent=4, sort_keys=True))
 
         # Delete resource group.
         AzureController.delete_resource_group(resource_group=cls.resource_group)
@@ -276,7 +272,7 @@ class TestK8s(unittest.TestCase):
 
         # Get cluster details and rebuild config
         cluster_details = self._get_cluster_details()
-        with open(f"{dqn_target_dir}/config.yml", 'r') as fr:
+        with open(f"{dqn_target_dir}/config.yml", "r") as fr:
             config = yaml.safe_load(fr)
         with open(f"{dqn_target_dir}/distributed_config.yml", "r") as fr:
             distributed_config = yaml.safe_load(fr)
@@ -284,7 +280,7 @@ class TestK8s(unittest.TestCase):
             config["main_loop"]["max_episode"] = 25
             config["main_loop"]["exploration"]["split_ep"] = 20
             yaml.safe_dump(config, fw)
-        with open(f"{dqn_target_dir}/distributed_config.yml", 'w') as fw:
+        with open(f"{dqn_target_dir}/distributed_config.yml", "w") as fw:
             distributed_config["redis"]["hostname"] = cluster_details["redis"]["private_ip_address"]
             yaml.safe_dump(distributed_config, fw)
 

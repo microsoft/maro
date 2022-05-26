@@ -68,8 +68,7 @@ class K8sAksExecutor(K8sExecutor):
             K8sAksExecutor._create_resource_group(cluster_details=cluster_details)
             K8sAksExecutor._create_k8s_cluster(cluster_details=cluster_details)
             K8sAksExecutor._load_k8s_context(
-                cluster_id=cluster_details["id"],
-                resource_group=cluster_details["cloud"]["resource_group"]
+                cluster_id=cluster_details["id"], resource_group=cluster_details["cloud"]["resource_group"]
             )
             K8sAksExecutor._init_redis()
             K8sAksExecutor._init_nvidia_plugin()
@@ -96,17 +95,15 @@ class K8sAksExecutor(K8sExecutor):
             dict: standardized cluster_details.
         """
         optional_key_to_value = {
-            "root['master']['redis']": {
-                "port": GlobalParams.DEFAULT_REDIS_PORT
-            },
-            "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT
+            "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
+            "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT,
         }
         with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=create_deployment_template,
             actual_dict=create_deployment,
-            optional_key_to_value=optional_key_to_value
+            optional_key_to_value=optional_key_to_value,
         )
 
         # Init runtime fields
@@ -143,8 +140,7 @@ class K8sAksExecutor(K8sExecutor):
             logger.warning_yellow(f"Azure resource group '{resource_group}' already exists")
         else:
             AzureController.create_resource_group(
-                resource_group=resource_group,
-                location=cluster_details["cloud"]["location"]
+                resource_group=resource_group, location=cluster_details["cloud"]["location"]
             )
             logger.info_green(f"Resource group '{resource_group}' is created")
 
@@ -166,21 +162,20 @@ class K8sAksExecutor(K8sExecutor):
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/parameters/create_aks_cluster.json"
         )
         ArmTemplateParameterBuilder.create_aks_cluster(
-            cluster_details=cluster_details,
-            export_path=parameters_file_path
+            cluster_details=cluster_details, export_path=parameters_file_path
         )
         AzureController.start_deployment(
             resource_group=cluster_details["cloud"]["resource_group"],
             deployment_name="aks_cluster",
             template_file_path=template_file_path,
-            parameters_file_path=parameters_file_path
+            parameters_file_path=parameters_file_path,
         )
 
         # Attach ACR
         AzureController.attach_acr(
             resource_group=cluster_details["cloud"]["resource_group"],
             aks_name=f"{cluster_details['id']}-aks",
-            acr_name=f"{cluster_details['id']}acr"
+            acr_name=f"{cluster_details['id']}acr",
         )
 
         logger.info_green("K8s cluster is created")
@@ -194,9 +189,7 @@ class K8sAksExecutor(K8sExecutor):
         """
         client.CoreV1Api().create_namespace(body=client.V1Namespace(metadata=client.V1ObjectMeta(name="gpu-resources")))
 
-        with open(
-            f"{K8sPaths.ABS_MARO_K8S_LIB}/modes/aks/create_nvidia_plugin/nvidia-device-plugin.yml", "r"
-        ) as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/modes/aks/create_nvidia_plugin/nvidia-device-plugin.yml", "r") as fr:
             redis_deployment = yaml.safe_load(fr)
         client.AppsV1Api().create_namespaced_daemon_set(body=redis_deployment, namespace="gpu-resources")
 
@@ -214,8 +207,7 @@ class K8sAksExecutor(K8sExecutor):
 
         # Get storage account key
         storage_account_keys = AzureController.get_storage_account_keys(
-            resource_group=cluster_details["cloud"]["resource_group"],
-            storage_account_name=storage_account_name
+            resource_group=cluster_details["cloud"]["resource_group"], storage_account_name=storage_account_name
         )
         storage_key = storage_account_keys[0]["value"]
 
@@ -225,10 +217,10 @@ class K8sAksExecutor(K8sExecutor):
                 metadata=client.V1ObjectMeta(name="azure-storage-account-secret"),
                 data={
                     "azurestorageaccountname": base64.b64encode(storage_account_name.encode()).decode(),
-                    "azurestorageaccountkey": base64.b64encode(bytes(storage_key.encode())).decode()
-                }
+                    "azurestorageaccountkey": base64.b64encode(bytes(storage_key.encode())).decode(),
+                },
             ),
-            namespace="default"
+            namespace="default",
         )
 
     # maro k8s delete
@@ -282,16 +274,9 @@ class K8sAksExecutor(K8sExecutor):
 
         # Scale node
         if node_size not in node_size_to_info:
-            self._build_node_pool(
-                replicas=replicas,
-                node_size=node_size
-            )
+            self._build_node_pool(replicas=replicas, node_size=node_size)
         elif node_size_to_info[node_size]["count"] != replicas:
-            self._scale_node_pool(
-                replicas=replicas,
-                node_size=node_size,
-                node_size_to_info=node_size_to_info
-            )
+            self._scale_node_pool(replicas=replicas, node_size=node_size, node_size_to_info=node_size_to_info)
         else:
             logger.warning_yellow("Replica is match, no create or delete")
 
@@ -302,10 +287,7 @@ class K8sAksExecutor(K8sExecutor):
             dict: node_size to info mapping.
         """
         # List nodepool
-        nodepools = AzureController.list_nodepool(
-            resource_group=self.resource_group,
-            aks_name=f"{self.cluster_id}-aks"
-        )
+        nodepools = AzureController.list_nodepool(resource_group=self.resource_group, aks_name=f"{self.cluster_id}-aks")
 
         # Build node_size_to_count
         node_size_to_count = {}
@@ -349,7 +331,7 @@ class K8sAksExecutor(K8sExecutor):
             aks_name=f"{self.cluster_id}-aks",
             nodepool_name=K8sAksExecutor._generate_nodepool_name(node_size=node_size),
             node_count=replicas,
-            node_size=node_size
+            node_size=node_size,
         )
 
         logger.info_green(f"'{node_size}' nodepool is built")
@@ -373,7 +355,7 @@ class K8sAksExecutor(K8sExecutor):
             resource_group=self.resource_group,
             aks_name=f"{self.cluster_id}-aks",
             nodepool_name=node_size_to_info[node_size]["name"],
-            node_count=replicas
+            node_count=replicas,
         )
 
         logger.info_green(f"'{node_size}' nodepool is scaled")
@@ -397,22 +379,14 @@ class K8sAksExecutor(K8sExecutor):
             None.
         """
         # Get aks details
-        aks_details = AzureController.get_aks(
-            resource_group=self.resource_group,
-            aks_name=f"{self.cluster_id}-aks"
-        )
+        aks_details = AzureController.get_aks(resource_group=self.resource_group, aks_name=f"{self.cluster_id}-aks")
         agent_pools_details = aks_details["agentPoolProfiles"]
 
         # Filter and print
         node_details = {}
         for agent_pool_details in agent_pools_details:
             node_details[agent_pool_details["vmSize"]] = agent_pool_details["count"]
-        logger.info(
-            json.dumps(
-                node_details,
-                indent=4, sort_keys=True
-            )
-        )
+        logger.info(json.dumps(node_details, indent=4, sort_keys=True))
 
     # maro k8s image
 
@@ -543,10 +517,7 @@ class K8sAksExecutor(K8sExecutor):
         if "account_sas" not in cloud_details:
             account_sas = AzureController.get_storage_account_sas(account_name=f"{self.cluster_id}st")
             cloud_details["account_sas"] = account_sas
-            DetailsWriter.save_cluster_details(
-                cluster_name=self.cluster_name,
-                cluster_details=self.cluster_details
-            )
+            DetailsWriter.save_cluster_details(cluster_name=self.cluster_name, cluster_details=self.cluster_details)
 
         return cloud_details["account_sas"]
 
@@ -581,15 +552,14 @@ class K8sAksExecutor(K8sExecutor):
                     job_details=job_details,
                     k8s_container_config_template=k8s_container_config,
                     component_type=component_type,
-                    component_index=component_index
+                    component_index=component_index,
                 )
                 k8s_job_config["spec"]["template"]["spec"]["containers"].append(container_config)
 
         return k8s_job_config
 
     def _create_k8s_container_config(
-        self, job_details: dict, k8s_container_config_template: dict,
-        component_type: str, component_index: int
+        self, job_details: dict, k8s_container_config_template: dict, component_type: str, component_index: int
     ) -> dict:
         """Create the container config in the k8s job object.
 
@@ -617,46 +587,22 @@ class K8sAksExecutor(K8sExecutor):
         k8s_container_config["resources"]["requests"] = {
             "cpu": component_details["resources"]["cpu"],
             "memory": component_details["resources"]["memory"],
-            "nvidia.com/gpu": component_details["resources"]["gpu"]
+            "nvidia.com/gpu": component_details["resources"]["gpu"],
         }
         k8s_container_config["resources"]["limits"] = {
             "cpu": component_details["resources"]["cpu"],
             "memory": component_details["resources"]["memory"],
-            "nvidia.com/gpu": component_details["resources"]["gpu"]
+            "nvidia.com/gpu": component_details["resources"]["gpu"],
         }
         k8s_container_config["env"] = [
-            {
-                "name": "CLUSTER_ID",
-                "value": f"{self.cluster_id}"
-            },
-            {
-                "name": "CLUSTER_NAME",
-                "value": f"{self.cluster_name}"
-            },
-            {
-                "name": "JOB_ID",
-                "value": job_id
-            },
-            {
-                "name": "JOB_NAME",
-                "value": job_details["name"]
-            },
-            {
-                "name": "COMPONENT_ID",
-                "value": component_id
-            },
-            {
-                "name": "COMPONENT_TYPE",
-                "value": f"{component_type}"
-            },
-            {
-                "name": "COMPONENT_INDEX",
-                "value": f"{component_index}"
-            },
-            {
-                "name": "PYTHONUNBUFFERED",
-                "value": "0"
-            }
+            {"name": "CLUSTER_ID", "value": f"{self.cluster_id}"},
+            {"name": "CLUSTER_NAME", "value": f"{self.cluster_name}"},
+            {"name": "JOB_ID", "value": job_id},
+            {"name": "JOB_NAME", "value": job_details["name"]},
+            {"name": "COMPONENT_ID", "value": component_id},
+            {"name": "COMPONENT_TYPE", "value": f"{component_type}"},
+            {"name": "COMPONENT_INDEX", "value": f"{component_index}"},
+            {"name": "PYTHONUNBUFFERED", "value": "0"},
         ]
         k8s_container_config["command"] = component_details["command"]
         k8s_container_config["volumeMounts"][0]["mountPath"] = component_details["mount"]["target"]
@@ -713,18 +659,11 @@ class K8sAksExecutor(K8sExecutor):
 
         for pod in pod_list:
             if "app" in pod["metadata"]["labels"] and pod["metadata"]["labels"]["app"] == "maro-redis":
-                return_status["redis"] = {
-                    "private_ip_address": pod["status"]["pod_ip"]
-                }
+                return_status["redis"] = {"private_ip_address": pod["status"]["pod_ip"]}
                 break
 
         # Print status
-        logger.info(
-            json.dumps(
-                return_status,
-                indent=4, sort_keys=True
-            )
-        )
+        logger.info(json.dumps(return_status, indent=4, sort_keys=True))
 
     # Utils
 
@@ -734,10 +673,7 @@ class K8sAksExecutor(K8sExecutor):
         Returns:
             None.
         """
-        self._load_k8s_context(
-            cluster_id=self.cluster_id,
-            resource_group=self.resource_group
-        )
+        self._load_k8s_context(cluster_id=self.cluster_id, resource_group=self.resource_group)
 
     @staticmethod
     def _load_k8s_context(cluster_id: int, resource_group: str) -> None:
@@ -752,10 +688,7 @@ class K8sAksExecutor(K8sExecutor):
         Returns:
             None.
         """
-        AzureController.load_aks_context(
-            resource_group=resource_group,
-            aks_name=f"{cluster_id}-aks"
-        )
+        AzureController.load_aks_context(resource_group=resource_group, aks_name=f"{cluster_id}-aks")
         config.load_kube_config(context=f"{cluster_id}-aks")
 
 
@@ -773,7 +706,7 @@ class ArmTemplateParameterBuilder:
         """
 
         # Get params
-        cluster_id = cluster_details['id']
+        cluster_id = cluster_details["id"]
 
         with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/modes/aks/create_aks_cluster/parameters.json", "r") as f:
             base_parameters = json.load(f)

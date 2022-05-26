@@ -59,6 +59,7 @@ class VmRequestPayload:
         vm_info (VirtualMachine): The VM information.
         remaining_buffer_time (int): The remaining buffer time.
     """
+
     summary_key = ["vm_info", "remaining_buffer_time"]
 
     def __init__(self, vm_info: VirtualMachine, remaining_buffer_time: int):
@@ -66,8 +67,11 @@ class VmRequestPayload:
         self.remaining_buffer_time = remaining_buffer_time
 
     def __repr__(self):
-        return "%s {vm_info: %r, remaining_buffer_time: %r}" % \
-            (self.__class__.__name__, self.vm_info, self.remaining_buffer_time)
+        return "%s {vm_info: %r, remaining_buffer_time: %r}" % (
+            self.__class__.__name__,
+            self.vm_info,
+            self.remaining_buffer_time,
+        )
 
 
 class DecisionPayload:
@@ -81,9 +85,14 @@ class DecisionPayload:
         vm_memory_requirement (int): The memory requested by VM.
         remaining_buffer_time (int): The remaining buffer time.
     """
+
     summary_key = [
-        "frame_index", "valid_pms", "vm_id", "vm_cpu_cores_requirement", "vm_memory_requirement",
-        "remaining_buffer_time"
+        "frame_index",
+        "valid_pms",
+        "vm_id",
+        "vm_cpu_cores_requirement",
+        "vm_memory_requirement",
+        "remaining_buffer_time",
     ]
 
     def __init__(
@@ -95,7 +104,7 @@ class DecisionPayload:
         vm_memory_requirement: int,
         vm_sub_id: int,
         vm_category: int,
-        remaining_buffer_time: int
+        remaining_buffer_time: int,
     ):
         self.frame_index = frame_index
         self.valid_pms = valid_pms
@@ -107,9 +116,10 @@ class DecisionPayload:
         self.remaining_buffer_time = remaining_buffer_time
 
     def __repr__(self):
-        return "%s {frame_index: %r, valid_pms: %r, vm_id: %r, vm_cpu_cores_requirement: %r, \
-            vm_memory_requirement: %r, vm_sub_id: %r, vm_category: %r, remaining_buffer_time: %r}" % \
-            (
+        return (
+            "%s {frame_index: %r, valid_pms: %r, vm_id: %r, vm_cpu_cores_requirement: %r, \
+            vm_memory_requirement: %r, vm_sub_id: %r, vm_category: %r, remaining_buffer_time: %r}"
+            % (
                 self.__class__.__name__,
                 self.frame_index,
                 self.valid_pms,
@@ -118,8 +128,9 @@ class DecisionPayload:
                 self.vm_memory_requirement,
                 self.vm_sub_id,
                 self.vm_category,
-                self.remaining_buffer_time
+                self.remaining_buffer_time,
             )
+        )
 
 
 class Latency:
@@ -135,5 +146,8 @@ class Latency:
         self.due_to_resource: int = 0
 
     def __repr__(self):
-        return "%s {due_to_agent: %r, due_to_resource: %r}" % \
-            (self.__class__.__name__, self.due_to_agent, self.due_to_resource)
+        return "%s {due_to_agent: %r, due_to_resource: %r}" % (
+            self.__class__.__name__,
+            self.due_to_agent,
+            self.due_to_resource,
+        )

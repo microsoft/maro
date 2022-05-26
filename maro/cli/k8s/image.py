@@ -18,9 +18,7 @@ def push_image(cluster_name: str, image_name: str, **kwargs):
 
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.push_image(
-            image_name=image_name
-        )
+        executor.push_image(image_name=image_name)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 

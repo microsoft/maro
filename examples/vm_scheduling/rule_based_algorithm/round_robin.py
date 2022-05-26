@@ -8,7 +8,9 @@ class RoundRobin(RuleBasedAlgorithm):
     def __init__(self, **kwargs):
         super().__init__()
         self._prev_idx: int = 0
-        self._pm_num: int = kwargs["env"].snapshot_list["pms"][kwargs["env"].frame_index::["cpu_cores_capacity"]].shape[0]
+        self._pm_num: int = (
+            kwargs["env"].snapshot_list["pms"][kwargs["env"].frame_index :: ["cpu_cores_capacity"]].shape[0]
+        )
 
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
         # Choose the valid PM which index is next to the previous chose PM's index
@@ -19,9 +21,6 @@ class RoundRobin(RuleBasedAlgorithm):
         # Update the prev index
         self._prev_idx = chosen_idx
         # Take action to allocate on the chosen PM.
-        action: AllocateAction = AllocateAction(
-            vm_id=decision_event.vm_id,
-            pm_id=chosen_idx
-        )
+        action: AllocateAction = AllocateAction(vm_id=decision_event.vm_id, pm_id=chosen_idx)
 
         return action

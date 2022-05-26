@@ -43,7 +43,13 @@ class TestDecorator(unittest.TestCase):
         # Initialize the receiver.
         conditional_event = "sender:*:1"
         handler_dict = {conditional_event: handler_function}
-        decorator_task = threading.Thread(target=lunch_receiver, args=(handler_dict, redis_port,))
+        decorator_task = threading.Thread(
+            target=lunch_receiver,
+            args=(
+                handler_dict,
+                redis_port,
+            ),
+        )
         decorator_task.start()
 
         # Initialize the sender proxy.
@@ -62,7 +68,7 @@ class TestDecorator(unittest.TestCase):
             tag="unittest",
             source=TestDecorator.sender_proxy.name,
             destination=TestDecorator.sender_proxy.peers["receiver"][0],
-            body={"counter": 0}
+            body={"counter": 0},
         )
         replied_message = TestDecorator.sender_proxy.send(message)
 

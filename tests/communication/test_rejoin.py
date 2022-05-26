@@ -18,16 +18,13 @@ PROXY_PARAMETER = {
     "peers_catch_lifetime": 1,
     "minimal_peers": {"actor": 1, "master": 1},
     "enable_message_cache_for_rejoin": True,
-    "timeout_for_minimal_peer_number": 300
+    "timeout_for_minimal_peer_number": 300,
 }
 
 
 def actor_init(queue, redis_port):
     proxy = Proxy(
-        component_type="actor",
-        expected_peers={"master": 1},
-        redis_address=("localhost", redis_port),
-        **PROXY_PARAMETER
+        component_type="actor", expected_peers={"master": 1}, redis_address=("localhost", redis_port), **PROXY_PARAMETER
     )
 
     # Continuously receive messages from proxy.
@@ -82,7 +79,7 @@ class TestRejoin(unittest.TestCase):
             component_type="master",
             expected_peers={"actor": 3},
             redis_address=("localhost", redis_port),
-            **PROXY_PARAMETER
+            **PROXY_PARAMETER,
         )
 
         cls.peers = cls.master_proxy.peers["actor"]
@@ -102,9 +99,7 @@ class TestRejoin(unittest.TestCase):
 
         # Connection check.
         replied = TestRejoin.master_proxy.scatter(
-            tag="cont",
-            session_type=SessionType.NOTIFICATION,
-            destination_payload_list=destination_payload_list
+            tag="cont", session_type=SessionType.NOTIFICATION, destination_payload_list=destination_payload_list
         )
         self.assertEqual(len(replied), TestRejoin.peers_number)
 
@@ -114,26 +109,24 @@ class TestRejoin(unittest.TestCase):
             source=TestRejoin.master_proxy.name,
             destination=TestRejoin.peers[1],
             body=None,
-            session_type=SessionType.TASK
+            session_type=SessionType.TASK,
         )
         TestRejoin.master_proxy.isend(disconnect_message)
 
         # Now, 1 peer exited, only have 2 peers.
         time.sleep(2)
         replied = TestRejoin.master_proxy.scatter(
-            tag="cont", session_type=SessionType.NOTIFICATION,
-            destination_payload_list=destination_payload_list
+            tag="cont", session_type=SessionType.NOTIFICATION, destination_payload_list=destination_payload_list
         )
-        self.assertEqual(len(replied), TestRejoin.peers_number-1)
+        self.assertEqual(len(replied), TestRejoin.peers_number - 1)
 
         # Wait for rejoin.
         time.sleep(5)
         # Now, all peers rejoin.
         replied = TestRejoin.master_proxy.scatter(
-            tag="cont", session_type=SessionType.NOTIFICATION,
-            destination_payload_list=destination_payload_list
+            tag="cont", session_type=SessionType.NOTIFICATION, destination_payload_list=destination_payload_list
         )
-        self.assertEqual(len(replied), TestRejoin.peers_number+1)
+        self.assertEqual(len(replied), TestRejoin.peers_number + 1)
 
 
 if __name__ == "__main__":

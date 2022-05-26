@@ -28,6 +28,7 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
         If it is None, it means no lower bound.
     is_discrete_action (bool, default=True): Indicator of continuous or discrete action policy.
     """
+
     get_v_critic_net_func: Callable[[], VNet] = None
     grad_iters: int = 1
     critic_loss_cls: Callable = None
@@ -37,8 +38,7 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
 
 
 class ACBasedOps(AbsTrainOps):
-    """Base class of Actor-Critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr
-    """
+    """Base class of Actor-Critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr"""
 
     def __init__(
         self,
@@ -140,7 +140,7 @@ class ACBasedOps(AbsTrainOps):
         if self._clip_ratio is not None:
             ratio = torch.exp(logps - logps_old)
             kl = (logps_old - logps).mean().item()
-            early_stop = (kl >= 0.01 * 1.5)  # TODO
+            early_stop = kl >= 0.01 * 1.5  # TODO
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
             actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
         else:

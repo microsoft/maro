@@ -22,10 +22,7 @@ URL_PREFIX = "/v1/jobs"
 def get_job_queue():
     pending_job_queue = redis_controller.get_pending_job_ticket()
     killed_job_queue = redis_controller.get_killed_job_ticket()
-    return {
-        "pending_jobs": pending_job_queue,
-        "killed_jobs": killed_job_queue
-    }
+    return {"pending_jobs": pending_job_queue, "killed_jobs": killed_job_queue}
 
 
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
@@ -64,13 +61,8 @@ def create_job(**kwargs):
     """
 
     job_details = kwargs["json_dict"]
-    redis_controller.set_job_details(
-        job_name=job_details["name"],
-        job_details=job_details
-    )
-    redis_controller.push_pending_job_ticket(
-        job_name=job_details["name"]
-    )
+    redis_controller.set_job_details(job_name=job_details["name"], job_details=job_details)
+    redis_controller.push_pending_job_ticket(job_name=job_details["name"])
     return {}
 
 

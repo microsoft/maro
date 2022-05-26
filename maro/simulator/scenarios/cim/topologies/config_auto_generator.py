@@ -1,5 +1,3 @@
-
-
 import math
 import os
 import random
@@ -40,28 +38,31 @@ def save_new_topology(src: str):
 
     def change_vessel_capacity(level):
         for vessel in src_dict["vessels"].values():
-            route_proportion = route_proportions[vessel['route']['route_name']]
+            route_proportion = route_proportions[vessel["route"]["route_name"]]
             vessel["capacity"] = int(
-                AVG_ORDER_RATIO * route_proportion * SAILING_TIME * total_containers
+                AVG_ORDER_RATIO
+                * route_proportion
+                * SAILING_TIME
+                * total_containers
                 * VESSEL_CAPACITY_REDUNDANCY_RATIOS[level]
             )
 
-    src_dict['container_usage_proportion']['period'] = PERIOD
-    src_dict['container_usage_proportion']['sample_nodes'] = [[0, AVG_ORDER_RATIO], [PERIOD - 1, AVG_ORDER_RATIO]]
+    src_dict["container_usage_proportion"]["period"] = PERIOD
+    src_dict["container_usage_proportion"]["sample_nodes"] = [[0, AVG_ORDER_RATIO], [PERIOD - 1, AVG_ORDER_RATIO]]
 
-    total_containers = src_dict['total_containers']
+    total_containers = src_dict["total_containers"]
     route_proportions = {route_name: 0 for route_name in src_dict["routes"].keys()}
     ports_in_routes = {
-        route_name: [stop['port_name'] for stop in src_dict['routes'][route_name]]
+        route_name: [stop["port_name"] for stop in src_dict["routes"][route_name]]
         for route_name in src_dict["routes"].keys()
     }
     for source_port_name, port in src_dict["ports"].items():
-        if 'targets' in port['order_distribution'].keys():
-            source_proportion = port['order_distribution']['source']['proportion']
-            for target_port_name, target_proportion in port['order_distribution']['targets'].items():
+        if "targets" in port["order_distribution"].keys():
+            source_proportion = port["order_distribution"]["source"]["proportion"]
+            for target_port_name, target_proportion in port["order_distribution"]["targets"].items():
                 for route_name, port_list in ports_in_routes.items():
                     if source_port_name in port_list and target_port_name in port_list:
-                        route_proportions[route_name] += source_proportion * target_proportion['proportion']
+                        route_proportions[route_name] += source_proportion * target_proportion["proportion"]
                         break
 
     save_new_level(0, src_dict)
@@ -75,10 +76,10 @@ def save_new_topology(src: str):
     sine_distribution = [
         [i, AVG_ORDER_RATIO - ORDER_RATIO_DELTA * math.cos(i / (PERIOD // 2) * math.pi)] for i in range(PERIOD)
     ]
-    src_dict['container_usage_proportion']['sample_nodes'] = sine_distribution
+    src_dict["container_usage_proportion"]["sample_nodes"] = sine_distribution
     save_new_level(3, src_dict)
 
-    src_dict['container_usage_proportion']["sample_noise"] = ORDER_NOISE
+    src_dict["container_usage_proportion"]["sample_noise"] = ORDER_NOISE
     for port in src_dict["ports"].values():
         order_distribution = port["order_distribution"]
         source_proportion = order_distribution["source"]["proportion"]
@@ -114,7 +115,7 @@ def save_new_topology(src: str):
     multi_sine_distribution = [
         [i, sine_fluc[i % (PERIOD // 4)][1] * (sine_dist[i][1] - valley) * math.pi / 2 + valley] for i in range(PERIOD)
     ]
-    src_dict['container_usage_proportion']['sample_nodes'] = multi_sine_distribution
+    src_dict["container_usage_proportion"]["sample_nodes"] = multi_sine_distribution
     save_new_level(8, src_dict)
 
 

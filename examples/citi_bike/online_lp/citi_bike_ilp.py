@@ -7,11 +7,15 @@ from pulp import PULP_CBC_CMD, LpInteger, LpMaximize, LpProblem, LpVariable, lpS
 from maro.utils import DottableDict
 
 
-class CitiBikeILP():
+class CitiBikeILP:
     def __init__(
-        self, num_station: int, num_neighbor: int,
-        station_capacity: List[int], station_neighbor_list: List[List[int]],
-        decision_interval: int, config: DottableDict
+        self,
+        num_station: int,
+        num_neighbor: int,
+        station_capacity: List[int],
+        station_neighbor_list: List[List[int]],
+        decision_interval: int,
+        config: DottableDict,
     ):
         """A simple Linear Programming formulation for solving the bike repositioning problem.
 
@@ -68,37 +72,29 @@ class CitiBikeILP():
                     name=f"T{decision_point}_S{station}_Inv",
                     lowBound=0,
                     upBound=self._station_capacity[station],
-                    cat=LpInteger
+                    cat=LpInteger,
                 )
                 self._safety_inventory[decision_point][station] = LpVariable(
                     name=f"T{decision_point}_S{station}_SafetyInv",
                     lowBound=0,
                     upBound=round(self._safety_inventory_limit * self._station_capacity[station]),
-                    cat=LpInteger
+                    cat=LpInteger,
                 )
                 self._fulfillment[decision_point][station] = LpVariable(
-                    name=f"T{decision_point}_S{station}_Fulfillment",
-                    lowBound=0,
-                    cat=LpInteger
+                    name=f"T{decision_point}_S{station}_Fulfillment", lowBound=0, cat=LpInteger
                 )
 
                 # For intermediate variables.
                 self._transfer_from[decision_point][station] = LpVariable(
-                    name=f"T{decision_point}_TransferFrom{station}",
-                    lowBound=0,
-                    cat=LpInteger
+                    name=f"T{decision_point}_TransferFrom{station}", lowBound=0, cat=LpInteger
                 )
                 self._transfer_to[decision_point][station] = LpVariable(
-                    name=f"T{decision_point}_TransferTo{station}",
-                    lowBound=0,
-                    cat=LpInteger
+                    name=f"T{decision_point}_TransferTo{station}", lowBound=0, cat=LpInteger
                 )
 
                 for neighbor_idx in range(self._num_neighbor):
                     self._transfer[decision_point][station][neighbor_idx] = LpVariable(
-                        name=f"T{decision_point}_Transfer_from{station}_to{neighbor_idx}th",
-                        lowBound=0,
-                        cat=LpInteger
+                        name=f"T{decision_point}_Transfer_from{station}_to{neighbor_idx}th", lowBound=0, cat=LpInteger
                     )
 
         # Initialize inventory of the first decision point with the environment's current inventory.
@@ -113,23 +109,26 @@ class CitiBikeILP():
                 ), f"Fulfillment_Limit_T{decision_point}_S{station}"
                 # For intermediate variables.
                 problem += (
-                    self._transfer_from[decision_point][station] == lpSum(
+                    self._transfer_from[decision_point][station]
+                    == lpSum(
                         self._transfer[decision_point][station][neighbor_idx]
                         for neighbor_idx in range(self._num_neighbor)
                     )
                 ), f"TotalTransferFrom_T{decision_point}_S{station}"
                 problem += (
-                    self._transfer_to[decision_point][station] == lpSum(
+                    self._transfer_to[decision_point][station]
+                    == lpSum(
                         self._transfer[decision_point][neighbor][self._station_neighbor_list[neighbor].index(station)]
                         for neighbor in range(self._num_station)
-                        if station in self._station_neighbor_list[neighbor][:self._num_neighbor]
+                        if station in self._station_neighbor_list[neighbor][: self._num_neighbor]
                     )
                 ), f"TotalTransferTo_T{decision_point}_S{station}"
 
         for decision_point in range(1, self._num_decision_point):
             for station in range(self._num_station):
                 problem += (
-                    self._inventory[decision_point][station] == (
+                    self._inventory[decision_point][station]
+                    == (
                         self._inventory[decision_point - 1][station]
                         + supply[decision_point - 1, station]
                         - self._fulfillment[decision_point - 1][station]
@@ -138,7 +137,8 @@ class CitiBikeILP():
                     )
                 ), f"Inventory_T{decision_point}_S{station}"
                 problem += (
-                    self._safety_inventory[decision_point][station] <= (
+                    self._safety_inventory[decision_point][station]
+                    <= (
                         self._inventory[decision_point - 1][station]
                         + supply[decision_point - 1, station]
                         - self._fulfillment[decision_point - 1][station]
@@ -148,27 +148,26 @@ class CitiBikeILP():
 
     def _set_objective(self, problem: LpProblem):
         fulfillment_gain = lpSum(
-            math.pow(self._fulfillment_time_decay_factor, decision_point) * lpSum(
-                self._fulfillment[decision_point][station] for station in range(self._num_station)
-            ) for decision_point in range(self._num_decision_point)
-        )
-
-        safety_inventory_reward = self._safety_inventory_reward_factor * lpSum(
-            math.pow(self._safety_inventory_reward_time_decay_factor, decision_point) * lpSum(
-                self._safety_inventory[decision_point][station] for station in range(self._num_station)
-            ) for decision_point in range(self._num_decision_point)
-        )
-
-        transfer_cost = self._transfer_cost_factor * lpSum(
-            self._transfer_to[decision_point][station] for station in range(self._num_station)
+            math.pow(self._fulfillment_time_decay_factor, decision_point)
+            * lpSum(self._fulfillment[decision_point][station] for station in range(self._num_station))
             for decision_point in range(self._num_decision_point)
         )
 
-        problem += (fulfillment_gain + safety_inventory_reward - transfer_cost)
+        safety_inventory_reward = self._safety_inventory_reward_factor * lpSum(
+            math.pow(self._safety_inventory_reward_time_decay_factor, decision_point)
+            * lpSum(self._safety_inventory[decision_point][station] for station in range(self._num_station))
+            for decision_point in range(self._num_decision_point)
+        )
 
-    def _formulate_and_solve(
-        self, env_tick: int, init_inventory: np.ndarray, demand: np.ndarray, supply: np.ndarray
-    ):
+        transfer_cost = self._transfer_cost_factor * lpSum(
+            self._transfer_to[decision_point][station]
+            for station in range(self._num_station)
+            for decision_point in range(self._num_decision_point)
+        )
+
+        problem += fulfillment_gain + safety_inventory_reward - transfer_cost
+
+    def _formulate_and_solve(self, env_tick: int, init_inventory: np.ndarray, demand: np.ndarray, supply: np.ndarray):
         problem = LpProblem(
             name=f"Citi_Bike_Repositioning_from_tick_{env_tick}",
             sense=LpMaximize,
@@ -200,9 +199,7 @@ class CitiBikeILP():
         """
         if env_tick >= self._last_start_tick + self._apply_buffer_size:
             self._last_start_tick = env_tick
-            self._formulate_and_solve(
-                env_tick=env_tick, init_inventory=init_inventory, demand=demand, supply=supply
-            )
+            self._formulate_and_solve(env_tick=env_tick, init_inventory=init_inventory, demand=demand, supply=supply)
 
         decision_point = (env_tick - self._last_start_tick) // self._decision_interval
         transfer_list = []

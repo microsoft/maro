@@ -17,12 +17,7 @@ def build_image(context: str, docker_file_path: str, image_name: str):
     client = docker.from_env()
     with open(docker_file_path, "r"):
         client.images.build(
-            path=context,
-            tag=image_name,
-            quiet=False,
-            rm=True,
-            custom_context=False,
-            dockerfile=docker_file_path
+            path=context, tag=image_name, quiet=False, rm=True, custom_context=False, dockerfile=docker_file_path
         )
 
 

@@ -111,6 +111,7 @@ echo "{public_key}" >> ~/.ssh/authorized_keys
 
 # Node Joiner.
 
+
 class NodeJoiner:
     def __init__(self, join_cluster_deployment: dict):
         self.join_cluster_deployment = join_cluster_deployment
@@ -118,7 +119,7 @@ class NodeJoiner:
 
         redis_controller = RedisController(
             host=join_cluster_deployment["master"]["private_ip_address"],
-            port=join_cluster_deployment["master"]["redis"]["port"]
+            port=join_cluster_deployment["master"]["redis"]["port"],
         )
         self.cluster_details = redis_controller.get_cluster_details()
 
@@ -137,9 +138,7 @@ class NodeJoiner:
             node_details["id"] = node_name
         node_details["image_files"] = {}
         node_details["containers"] = {}
-        node_details["state"] = {
-            "status": NodeStatus.PENDING
-        }
+        node_details["state"] = {"status": NodeStatus.PENDING}
 
         return node_details
 
@@ -163,15 +162,14 @@ class NodeJoiner:
             master_username=self.master_details["username"],
             master_hostname=self.master_details["private_ip_address"],
             master_samba_password=self.master_details["samba"]["password"],
-            maro_shared_path=Paths.ABS_MARO_SHARED
+            maro_shared_path=Paths.ABS_MARO_SHARED,
         )
         Subprocess.run(command=command)
 
     def start_node_agent_service(self):
         # Rewrite data in .service and write it to systemd folder.
         with open(
-            file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service",
-            mode="r"
+            file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service", mode="r"
         ) as fr:
             service_file = fr.read()
         service_file = service_file.format(maro_shared_path=Paths.ABS_MARO_SHARED)
@@ -185,14 +183,13 @@ class NodeJoiner:
     def start_node_api_server_service(self):
         # Rewrite data in .service and write it to systemd folder.
         with open(
-            file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_api_server/maro-node-api-server.service",
-            mode="r"
+            file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_api_server/maro-node-api-server.service", mode="r"
         ) as fr:
             service_file = fr.read()
         service_file = service_file.format(
             home_path=str(pathlib.Path.home()),
             maro_shared_path=Paths.ABS_MARO_SHARED,
-            node_api_server_port=self.node_details["api_server"]["port"]
+            node_api_server_port=self.node_details["api_server"]["port"],
         )
         os.makedirs(os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)
         with open(file=os.path.expanduser("~/.config/systemd/user/maro-node-api-server.service"), mode="w") as fw:
@@ -205,14 +202,11 @@ class NodeJoiner:
     def copy_leave_script():
         src_files = [
             f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/leave_cluster.py",
-            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/activate_leave_cluster.py"
+            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/activate_leave_cluster.py",
         ]
         os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/scripts", exist_ok=True)
         for src_file in src_files:
-            shutil.copy2(
-                src=src_file,
-                dst=f"{Paths.ABS_MARO_LOCAL}/scripts"
-            )
+            shutil.copy2(src=src_file, dst=f"{Paths.ABS_MARO_LOCAL}/scripts")
 
     def load_master_public_key(self):
         command = APPEND_AUTHORIZED_KEY.format(public_key=self.master_details["ssh"]["public_key"])
@@ -224,36 +218,17 @@ class NodeJoiner:
     def standardize_join_cluster_deployment(join_cluster_deployment: dict) -> dict:
         join_cluster_deployment_template = {
             "mode": "",
-            "master": {
-                "private_ip_address": "",
-                "api_server": {
-                    "port": ""
-                },
-                "redis": {
-                    "port": ""
-                }
-            },
+            "master": {"private_ip_address": "", "api_server": {"port": ""}, "redis": {"port": ""}},
             "node": {
                 "hostname": "",
                 "username": "",
                 "public_ip_address": "",
                 "private_ip_address": "",
-                "resources": {
-                    "cpu": "",
-                    "memory": "",
-                    "gpu": ""
-                },
-                "ssh": {
-                    "port": ""
-                },
-                "api_server": {
-                    "port": ""
-                }
+                "resources": {"cpu": "", "memory": "", "gpu": ""},
+                "ssh": {"port": ""},
+                "api_server": {"port": ""},
             },
-            "configs": {
-                "install_node_runtime": "",
-                "install_node_gpu_support": ""
-            }
+            "configs": {"install_node_runtime": "", "install_node_gpu_support": ""},
         }
         DeploymentValidator.validate_and_fill_dict(
             template_dict=join_cluster_deployment_template,
@@ -263,11 +238,7 @@ class NodeJoiner:
                 "root['master']['redis']['port']": Params.DEFAULT_REDIS_PORT,
                 "root['master']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
                 "root['master']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
-                "root['node']['resources']": {
-                    "cpu": "all",
-                    "memory": "all",
-                    "gpu": "all"
-                },
+                "root['node']['resources']": {"cpu": "all", "memory": "all", "gpu": "all"},
                 "root['node']['resources']['cpu']": "all",
                 "root['node']['resources']['memory']": "all",
                 "root['node']['resources']['gpu']": "all",
@@ -275,19 +246,17 @@ class NodeJoiner:
                 "root['node']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
                 "root['node']['ssh']": {"port": Params.DEFAULT_SSH_PORT},
                 "root['node']['ssh']['port']": Params.DEFAULT_SSH_PORT,
-                "root['configs']": {
-                    "install_node_runtime": False,
-                    "install_node_gpu_support": False
-                },
+                "root['configs']": {"install_node_runtime": False, "install_node_gpu_support": False},
                 "root['configs']['install_node_runtime']": False,
-                "root['configs']['install_node_gpu_support']": False
-            }
+                "root['configs']['install_node_gpu_support']": False,
+            },
         )
 
         return join_cluster_deployment
 
 
 # Utils Classes.
+
 
 class Params:
     DEFAULT_SSH_PORT = 22
@@ -337,16 +306,12 @@ class RedisController:
     """Node Details Related."""
 
     def set_node_details(self, node_details: dict) -> None:
-        self._redis.hset(
-            "name_to_node_details",
-            node_details["name"],
-            json.dumps(node_details)
-        )
+        self._redis.hset("name_to_node_details", node_details["name"], json.dumps(node_details))
 
     """Utils."""
 
     def lock(self, name: str) -> Lock:
-        """ Get a new lock with redis.
+        """Get a new lock with redis.
 
         Use 'with lock(name):' paradigm to do the locking.
 
@@ -386,7 +351,7 @@ class DeploymentValidator:
                 DeploymentValidator._set_value(
                     original_dict=actual_dict,
                     key_list=DeploymentValidator._get_parent_to_child_key_list(deep_diff_str=missing_key_str),
-                    value=optional_key_to_value[missing_key_str]
+                    value=optional_key_to_value[missing_key_str],
                 )
 
     @staticmethod
@@ -454,7 +419,7 @@ class Subprocess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            timeout=timeout
+            timeout=timeout,
         )
         if completed_process.returncode != 0:
             raise Exception(completed_process.stderr)
@@ -477,7 +442,7 @@ class Subprocess:
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
         )
         while True:
             next_line = process.stdout.readline()

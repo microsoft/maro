@@ -40,22 +40,36 @@ class Env(AbsEnv):
     """
 
     def __init__(
-        self, scenario: str = None, topology: str = None,
-        start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
+        self,
+        scenario: str = None,
+        topology: str = None,
+        start_tick: int = 0,
+        durations: int = 100,
+        snapshot_resolution: int = 1,
+        max_snapshots: int = None,
         decision_mode: DecisionMode = DecisionMode.Sequential,
-        business_engine_cls: type = None, disable_finished_events: bool = False,
+        business_engine_cls: type = None,
+        disable_finished_events: bool = False,
         record_finished_events: bool = False,
         record_file_path: str = None,
-        options: Optional[dict] = None
+        options: Optional[dict] = None,
     ) -> None:
         super().__init__(
-            scenario, topology, start_tick, durations,
-            snapshot_resolution, max_snapshots, decision_mode, business_engine_cls,
-            disable_finished_events, options if options is not None else {}
+            scenario,
+            topology,
+            start_tick,
+            durations,
+            snapshot_resolution,
+            max_snapshots,
+            decision_mode,
+            business_engine_cls,
+            disable_finished_events,
+            options if options is not None else {},
         )
 
-        self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
-            else business_engine_cls.__name__
+        self._name = (
+            f"{self._scenario}:{self._topology}" if business_engine_cls is None else business_engine_cls.__name__
+        )
 
         self._event_buffer = EventBuffer(disable_finished_events, record_finished_events, record_file_path)
 
@@ -135,7 +149,7 @@ class Env(AbsEnv):
         return {
             "node_mapping": self._business_engine.get_node_mapping(),
             "node_detail": self.current_frame.get_node_info(),
-            "event_payload": self._business_engine.get_event_payload_detail()
+            "event_payload": self._business_engine.get_event_payload_detail(),
         }
 
     @property
@@ -226,7 +240,7 @@ class Env(AbsEnv):
             business_class = self._business_engine_cls
         else:
             # Combine the business engine import path.
-            business_class_path = f'maro.simulator.scenarios.{self._scenario}.business_engine'
+            business_class_path = f"maro.simulator.scenarios.{self._scenario}.business_engine"
 
             # Load the module to find business engine for that scenario.
             business_module = import_module(business_class_path)
@@ -250,7 +264,7 @@ class Env(AbsEnv):
             max_tick=max_tick,
             snapshot_resolution=self._snapshot_resolution,
             max_snapshots=self._max_snapshots,
-            additional_options=self._additional_options
+            additional_options=self._additional_options,
         )
 
     def _simulate(self) -> Generator[Tuple[dict, List[object], bool], object, None]:
@@ -280,8 +294,9 @@ class Env(AbsEnv):
                 # Append source event id to decision events, to support sequential action in joint mode.
                 decision_events = [event.payload for event in pending_events]
 
-                decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential \
-                    else decision_events
+                decision_events = (
+                    decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
+                )
 
                 # Yield current state first, and waiting for action.
                 actions = yield self._business_engine.get_metrics(), decision_events, False

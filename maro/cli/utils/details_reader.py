@@ -20,9 +20,6 @@ class DetailsReader:
         with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/users/default_user", mode="r") as fr:
             user_id = fr.read()
 
-        with open(
-            file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/users/{user_id}/user_details",
-            mode="r"
-        ) as fr:
+        with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/users/{user_id}/user_details", mode="r") as fr:
             user_details = yaml.safe_load(stream=fr)
             return user_details

@@ -19,12 +19,7 @@ def check_details_validity(func):
             cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
             # Check details validity
-            if cluster_details["mode"] not in {
-                "grass/azure",
-                "k8s/aks",
-                "grass/on-premises",
-                "grass/local"
-            }:
+            if cluster_details["mode"] not in {"grass/azure", "k8s/aks", "grass/on-premises", "grass/local"}:
                 raise ClusterInternalError(f"Cluster details are broken: Invalid mode '{cluster_details['mode']}'.")
         except FileNotFoundError:
             raise BadRequestError(f"Cluster '{cluster_name}' is not found.")

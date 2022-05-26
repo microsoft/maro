@@ -28,14 +28,14 @@ class DummyEngine(AbsBusinessEngine):
 
     @property
     def configs(self) -> dict:
-        return {"name":"dummy"}
+        return {"name": "dummy"}
 
     def step(self, tick: int):
         for dummy_node in self._dummy_list:
             dummy_node.val = tick
 
-    def post_step(self, tick:int):
-        if (tick+1) % self._snapshot_resolution == 0:
+    def post_step(self, tick: int):
+        if (tick + 1) % self._snapshot_resolution == 0:
             self._frame.take_snapshot(self.frame_index(tick))
 
         # check if we should early stop in step function
@@ -43,7 +43,7 @@ class DummyEngine(AbsBusinessEngine):
             if tick == self._additional_options["post_step_early_stop"]:
                 return True
 
-        return tick+1 == self._max_tick
+        return tick + 1 == self._max_tick
 
     def reset(self, keep_seed: bool = False):
         self._frame.reset()

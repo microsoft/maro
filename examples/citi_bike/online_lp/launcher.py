@@ -22,7 +22,7 @@ ENV: Env = None
 TRIP_PICKER: ItemTickPicker = None
 
 
-class MaIlpAgent():
+class MaIlpAgent:
     def __init__(
         self, ilp: CitiBikeILP, num_station: int, num_time_interval: int, ticks_per_interval: int, ma_window_size: int
     ):
@@ -100,15 +100,17 @@ class MaIlpAgent():
                 The second item indicates the forecasting supply for each station in each time interval,
                 with shape: (num_time_interval, num_station).
         """
-        demand = np.array(
-            [round(self._demand_forecaster[i].forecast()) for i in range(self._num_station)],
-            dtype=np.int16
-        ).reshape((1, -1)).repeat(self._num_time_interval, axis=0)
+        demand = (
+            np.array([round(self._demand_forecaster[i].forecast()) for i in range(self._num_station)], dtype=np.int16)
+            .reshape((1, -1))
+            .repeat(self._num_time_interval, axis=0)
+        )
 
-        supply = np.array(
-            [round(self._supply_forecaster[i].forecast()) for i in range(self._num_station)],
-            dtype=np.int16
-        ).reshape((1, -1)).repeat(self._num_time_interval, axis=0)
+        supply = (
+            np.array([round(self._supply_forecaster[i].forecast()) for i in range(self._num_station)], dtype=np.int16)
+            .reshape((1, -1))
+            .repeat(self._num_time_interval, axis=0)
+        )
 
         return demand, supply
 
@@ -144,10 +146,7 @@ class MaIlpAgent():
             demand, supply = self._forecast_demand_and_supply()
 
         transfer_list = self._ilp.get_transfer_list(
-            env_tick=env_tick,
-            init_inventory=init_inventory,
-            demand=demand,
-            supply=supply
+            env_tick=env_tick, init_inventory=init_inventory, demand=demand, supply=supply
         )
 
         action_list = [
@@ -160,20 +159,28 @@ class MaIlpAgent():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--peep", action='store_true',
-        help="If set, peep the future demand and supply of bikes for each station directly from the log data."
+        "--peep",
+        action="store_true",
+        help="If set, peep the future demand and supply of bikes for each station directly from the log data.",
     )
     parser.add_argument(
-        "-c", "--config", type=str, default="examples/citi_bike/online_lp/config.yml",
-        help="The path of the config file."
+        "-c",
+        "--config",
+        type=str,
+        default="examples/citi_bike/online_lp/config.yml",
+        help="The path of the config file.",
     )
     parser.add_argument(
-        "-t", "--topology", type=str,
-        help="Which topology to use. If set, it will over-write the topology set in the config file."
+        "-t",
+        "--topology",
+        type=str,
+        help="Which topology to use. If set, it will over-write the topology set in the config file.",
     )
     parser.add_argument(
-        "-r", "--seed", type=int,
-        help="The random seed for the environment. If set, it will over-write the seed set in the config file."
+        "-r",
+        "--seed",
+        type=int,
+        help="The random seed for the environment. If set, it will over-write the seed set in the config file.",
     )
     args = parser.parse_args()
 
@@ -205,7 +212,7 @@ if __name__ == "__main__":
         TRIP_PICKER = BinaryReader(env.configs["trip_data"]).items_tick_picker(
             start_time_offset=config.env.start_tick,
             end_time_offset=(config.env.start_tick + config.env.durations),
-            time_unit="m"
+            time_unit="m",
         )
 
     if config.env.seed is not None:
@@ -219,30 +226,27 @@ if __name__ == "__main__":
 
     # TODO: Update the Env interface.
     num_station = len(env.agent_idx_list)
-    station_distance_adj = np.array(
-        load_adj_from_csv(env.configs["distance_adj_data"], skiprows=1)
-    ).reshape(num_station, num_station)
-    station_neighbor_list = [
-        neighbor_list[1:]
-        for neighbor_list in np.argsort(station_distance_adj, axis=1).tolist()
-    ]
+    station_distance_adj = np.array(load_adj_from_csv(env.configs["distance_adj_data"], skiprows=1)).reshape(
+        num_station, num_station
+    )
+    station_neighbor_list = [neighbor_list[1:] for neighbor_list in np.argsort(station_distance_adj, axis=1).tolist()]
 
     # Init a Moving-Average based ILP agent.
     decision_interval = env.configs["decision"]["resolution"]
     ilp = CitiBikeILP(
         num_station=num_station,
         num_neighbor=min(config.ilp.num_neighbor, num_station - 1),
-        station_capacity=env.snapshot_list["stations"][env.frame_index:env.agent_idx_list:"capacity"],
+        station_capacity=env.snapshot_list["stations"][env.frame_index : env.agent_idx_list : "capacity"],
         station_neighbor_list=station_neighbor_list,
         decision_interval=decision_interval,
-        config=config.ilp
+        config=config.ilp,
     )
     agent = MaIlpAgent(
         ilp=ilp,
         num_station=num_station,
         num_time_interval=math.ceil(config.ilp.plan_window_size / decision_interval),
         ticks_per_interval=decision_interval,
-        ma_window_size=config.forecasting.ma_window_size
+        ma_window_size=config.forecasting.ma_window_size,
     )
 
     pre_decision_tick: int = -1
@@ -252,10 +256,10 @@ if __name__ == "__main__":
         else:
             action = agent.get_action_list(
                 env_tick=env.tick,
-                init_inventory=env.snapshot_list["stations"][
-                    env.frame_index:env.agent_idx_list:"bikes"
-                ].astype(np.int16),
-                finished_events=env.get_finished_events()
+                init_inventory=env.snapshot_list["stations"][env.frame_index : env.agent_idx_list : "bikes"].astype(
+                    np.int16
+                ),
+                finished_events=env.get_finished_events(),
             )
             pre_decision_tick = decision_event.tick
         _, decision_event, is_done = env.step(action=action)
