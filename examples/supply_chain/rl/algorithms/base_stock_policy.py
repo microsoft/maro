@@ -1,4 +1,5 @@
-from typing import Dict, List
+from typing import DefaultDict, Dict, List
+from collections import defaultdict
 
 import cvxpy as cp
 import numpy as np
@@ -22,14 +23,15 @@ class BaseStockPolicy(RuleBasedPolicy):
         self.history_len = policy_para["history_len"]
         self.future_len = policy_para["future_len"]
 
-        self.product_level_snapshot: Dict[int, int] = {}
-        self.in_transit_snapshot: Dict[int, int] = {}
+        self.product_level_snapshot: Dict[int, Dict[int, int]] = defaultdict(dict)
+        self.in_transit_snapshot: Dict[int, Dict[int, int]] = defaultdict(dict)
 
-        self.stock_quantity = {}
+        self.stock_quantity: Dict[int, Dict[int, int]] = defaultdict(dict)
 
     def calculate_stock_quantity(
         self, input_df: pd.DataFrame, product_level: int, in_transition_quantity: int, vlt: int
     ) -> np.ndarray:
+        # time_hrz_len = history_len + 1 + future_len
         time_hrz_len = len(input_df)
         price = np.round(input_df["price"], 1)
         storage_cost = np.round(input_df["storage_cost"], 1)
@@ -52,8 +54,7 @@ class BaseStockPolicy(RuleBasedPolicy):
         buy_in.value = np.ones(time_hrz_len, dtype=np.int)
 
         # add constraints
-        constrs = []
-        constrs.extend([
+        constrs = [
             stocks >= 0, transits >= 0, sales >= 0, buy_in >= 0, buy_arv >= 0, buy >= 0, buy[:time_hrz_len] == 0,
             stocks[0] == product_level,
             transits[0] == in_transition_quantity,
@@ -70,7 +71,7 @@ class BaseStockPolicy(RuleBasedPolicy):
                 - cp.multiply(order_cost, buy_in)
                 - cp.multiply(storage_cost, stocks[1:])
             ),
-        ])
+        ]
 
         obj = cp.Maximize(profit)
         prob = cp.Problem(obj, constrs)
@@ -80,28 +81,25 @@ class BaseStockPolicy(RuleBasedPolicy):
     def _get_action_quantity(self, state: dict) -> int:
         entity_id = state["entity_id"]
         current_tick = state["tick"]
-        self.product_level_snapshot[current_tick] = state["product_level"]
-        self.in_transit_snapshot[current_tick] = state["in_transition_quantity"]
+        self.product_level_snapshot[entity_id][current_tick] = state["product_level"]
+        self.in_transit_snapshot[entity_id][current_tick] = state["in_transition_quantity"]
 
         if current_tick % self.update_frequency == 0:
-            history_start = max(current_tick - self.history_len, 0)
+            self.history_start = max(current_tick - self.history_len, 0)
             target_df = self.data_loader.load(state)
             self.stock_quantity[entity_id] = self.calculate_stock_quantity(
                 target_df,
-                self.product_level_snapshot[history_start],
-                self.in_transit_snapshot[history_start],
+                self.product_level_snapshot[entity_id][self.history_start],
+                self.in_transit_snapshot[entity_id][self.history_start],
                 state["cur_vlt"]
             )
 
         if self.share_same_stock_level:
-            stock_quantity = self.stock_quantity[entity_id][0]
+            current_index = 0
         else:
-            if current_tick < self.history_len:
-                current_index = current_tick
-            else:
-                current_index = self.history_len + state["tick"] % self.update_frequency
-            stock_quantity = self.stock_quantity[entity_id][current_index]
+            current_index = current_tick - self.history_start
 
+        stock_quantity = self.stock_quantity[entity_id][current_index]
         booked_quantity = state["product_level"] + state["in_transition_quantity"]
         quantity = stock_quantity - booked_quantity
         quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
