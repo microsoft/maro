@@ -479,7 +479,11 @@ class SCEnvSampler(AbsEnvSampler):
                     self._storage_product_quantity[facility_id][self._global_sku_id2idx[pid]] = product_quantity
                     self._facility_product_utilization[facility_id] += product_quantity
 
-            for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
+            for sku_id, product_info in facility_info.products_info.items():
+                if product_info.consumer_info is None:
+                    continue
+                consumer_index = product_info.consumer_info.node_index
+                quantity = self._env.snapshot_list["consumer"][tick:consumer_index:"in_transit_quantity"].flatten()[0]
                 self._facility_in_transit_quantity[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
             for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["pending_order"].items():
