@@ -1,11 +1,12 @@
-from typing import List
+from typing import Dict, List
 
 import cvxpy as cp
 import numpy as np
 import pandas as pd
 
-from .base_policy_data_loader import DataLoaderFromFile, DataLoaderFromHistory
 from maro.rl.policy import RuleBasedPolicy
+
+from .base_policy_data_loader import DataLoaderFromFile, DataLoaderFromHistory
 
 
 class BaseStockPolicy(RuleBasedPolicy):
@@ -15,14 +16,16 @@ class BaseStockPolicy(RuleBasedPolicy):
         data_loader_class = eval(policy_para["data_loader"])
         assert issubclass(data_loader_class, (DataLoaderFromFile, DataLoaderFromHistory))
         self.data_loader = data_loader_class(policy_para)
+
         self.share_same_stock_level = policy_para.get("share_same_stock_level", True)
         self.update_frequency = policy_para["update_frequency"]
         self.history_len = policy_para["history_len"]
         self.future_len = policy_para["future_len"]
 
+        self.product_level_snapshot: Dict[int, int] = {}
+        self.in_transit_snapshot: Dict[int, int] = {}
+
         self.stock_quantity = {}
-        self.product_level_snapshot = {}
-        self.in_transit_snapshot = {}
 
     def calculate_stock_quantity(
         self, input_df: pd.DataFrame, product_level: int, in_transition_quantity: int, vlt: int
@@ -76,16 +79,12 @@ class BaseStockPolicy(RuleBasedPolicy):
 
     def _get_action_quantity(self, state: dict) -> int:
         entity_id = state["entity_id"]
-
         current_tick = state["tick"]
-        history_start = max(current_tick - self.history_len, 0)
         self.product_level_snapshot[current_tick] = state["product_level"]
         self.in_transit_snapshot[current_tick] = state["in_transition_quantity"]
-        if current_tick < self.history_len:
-            current_index = current_tick
-        else:
-            current_index = self.history_len + state["tick"] % self.update_frequency
+
         if current_tick % self.update_frequency == 0:
+            history_start = max(current_tick - self.history_len, 0)
             target_df = self.data_loader.load(state)
             self.stock_quantity[entity_id] = self.calculate_stock_quantity(
                 target_df,
@@ -93,11 +92,17 @@ class BaseStockPolicy(RuleBasedPolicy):
                 self.in_transit_snapshot[history_start],
                 state["cur_vlt"]
             )
-        booked_quantity = state["product_level"] + state["in_transition_quantity"]
+
         if self.share_same_stock_level:
             stock_quantity = self.stock_quantity[entity_id][0]
         else:
+            if current_tick < self.history_len:
+                current_index = current_tick
+            else:
+                current_index = self.history_len + state["tick"] % self.update_frequency
             stock_quantity = self.stock_quantity[entity_id][current_index]
+
+        booked_quantity = state["product_level"] + state["in_transition_quantity"]
         quantity = stock_quantity - booked_quantity
         quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
         return int(quantity)
