@@ -56,3 +56,12 @@ jobs:
           FILTER_REGEX_EXCLUDE: tests/.*
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.LINT_TOKEN }}
+
+      #########
+      # Black #
+      #########
+      - name: Black
+        run: |
+          pip install --upgrade pip
+          pip install black wheel
+          black maro -l 120 --check --diff
