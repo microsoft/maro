@@ -1,5 +1,8 @@
-from typing import DefaultDict, Dict, List
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from collections import defaultdict
+from typing import Dict, List
 
 import cvxpy as cp
 import numpy as np
@@ -11,17 +14,17 @@ from .base_policy_data_loader import DataLoaderFromFile, DataLoaderFromHistory
 
 
 class BaseStockPolicy(RuleBasedPolicy):
-    def __init__(self, name: str, policy_para: dict) -> None:
+    def __init__(self, name: str, policy_parameters: dict) -> None:
         super().__init__(name)
 
-        data_loader_class = eval(policy_para["data_loader"])
+        data_loader_class = eval(policy_parameters["data_loader"])
         assert issubclass(data_loader_class, (DataLoaderFromFile, DataLoaderFromHistory))
-        self.data_loader = data_loader_class(policy_para)
+        self.data_loader = data_loader_class(policy_parameters)
 
-        self.share_same_stock_level = policy_para.get("share_same_stock_level", True)
-        self.update_frequency = policy_para["update_frequency"]
-        self.history_len = policy_para["history_len"]
-        self.future_len = policy_para["future_len"]
+        self.share_same_stock_level = policy_parameters.get("share_same_stock_level", True)
+        self.update_frequency = policy_parameters["update_frequency"]
+        self.history_len = policy_parameters["history_len"]
+        self.future_len = policy_parameters["future_len"]
 
         self.product_level_snapshot: Dict[int, Dict[int, int]] = defaultdict(dict)
         self.in_transit_snapshot: Dict[int, Dict[int, int]] = defaultdict(dict)
@@ -38,11 +41,15 @@ class BaseStockPolicy(RuleBasedPolicy):
         order_cost = np.round(input_df["order_cost"], 1)
         demand = np.round(input_df["demand"], 1)
 
+        # Inventory on hand.
         stocks = cp.Variable(time_hrz_len + 1, integer=True)
+        # Inventory on the pipeline.
         transits = cp.Variable(time_hrz_len + 1, integer=True)
         sales = cp.Variable(time_hrz_len, integer=True)
-        buy = cp.Variable(time_hrz_len * 2, integer=True)
+        buy = cp.Variable(time_hrz_len * 2, integer=True)  # TODO: Can we use just 1 variable to present buy, buy_in, buy_arv?
+        # Requested product quantity from upstream.
         buy_in = cp.Variable(time_hrz_len, integer=True)
+        # Expected accepted product quantity.
         buy_arv = cp.Variable(time_hrz_len, integer=True)
         inv_pos = cp.Variable(time_hrz_len, integer=True)
         if self.share_same_stock_level:
@@ -53,11 +60,20 @@ class BaseStockPolicy(RuleBasedPolicy):
         profit = cp.Variable(1)
         buy_in.value = np.ones(time_hrz_len, dtype=np.int)
 
-        # add constraints
-        constrs = [
-            stocks >= 0, transits >= 0, sales >= 0, buy_in >= 0, buy_arv >= 0, buy >= 0, buy[:time_hrz_len] == 0,
+        # Add constraints.
+        constraints = [
+            # Variable lower bound.
+            stocks >= 0,
+            transits >= 0,
+            sales >= 0,
+            buy_in >= 0,
+            buy_arv >= 0,
+            buy >= 0,
+            # Initial values.
+            buy[:time_hrz_len] == 0,  # TODO: Should get from consumer.datamodel.purchased
             stocks[0] == product_level,
             transits[0] == in_transition_quantity,
+            # Recursion formulas.
             stocks[1:time_hrz_len + 1] == stocks[0:time_hrz_len] + buy_arv - sales,
             transits[1:time_hrz_len + 1] == transits[0:time_hrz_len] - buy_arv + buy_in,
             sales <= stocks[0:time_hrz_len],
@@ -65,7 +81,8 @@ class BaseStockPolicy(RuleBasedPolicy):
             buy_in == buy[time_hrz_len:],
             inv_pos == stocks[0:time_hrz_len] + transits[0:time_hrz_len],
             buy_arv == buy[time_hrz_len - vlt:2 * time_hrz_len - vlt],
-            target_stock == inv_pos + buy_in,
+            target_stock == inv_pos + buy_in,  # TODO: why not target_stock == stocks[0:time_hrz_len] + transits[0:time_hrz_len] + buy_in directly?
+            # Objective function.
             profit == cp.sum(
                 cp.multiply(price, sales)
                 - cp.multiply(order_cost, buy_in)
@@ -74,7 +91,7 @@ class BaseStockPolicy(RuleBasedPolicy):
         ]
 
         obj = cp.Maximize(profit)
-        prob = cp.Problem(obj, constrs)
+        prob = cp.Problem(obj, constraints)
         prob.solve(solver=cp.GLPK_MI, verbose=True)
         return target_stock.value
 
