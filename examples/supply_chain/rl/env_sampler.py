@@ -37,7 +37,8 @@ from examples.supply_chain.common.balance_calculator import BalanceSheetCalculat
 from examples.supply_chain.common.render_tools.plot_render import SimulationTracker
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
-from .config import IDX_SELLER_DEMAND, IDX_PRODUCT_PRICE, consumer_features, distribution_features, seller_features, product_features
+from .config import consumer_features, distribution_features, seller_features, product_features
+from .config import IDX_SELLER_DEMAND, IDX_PRODUCT_PRICE, IDX_CONSUMER_PURCHASED
 from .config import env_conf, test_env_conf, workflow_settings
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
 from .or_agent_state import ScOrAgentStates
@@ -373,6 +374,7 @@ class SCEnvSampler(AbsEnvSampler):
             to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
             history_demand=self.history_demand,
             history_price=self.history_price,
+            history_purchased=self.history_purchased,
             chosen_vlt_info=self._get_vlt_info(entity.id),
             fixed_vlt=self._fixed_vlt,
         )
@@ -465,13 +467,17 @@ class SCEnvSampler(AbsEnvSampler):
         
         history_feature_shape = (len(self._env.snapshot_list), -1)
         # Get all history demand from snapshot list.
-        self.history_demand=self._env.snapshot_list["seller"][
+        self.history_demand = self._env.snapshot_list["seller"][
             ::seller_features[IDX_SELLER_DEMAND]
         ].reshape(history_feature_shape)
 
         # Get all history selling price from snapshot list.
-        self.history_price=self._env.snapshot_list["product"][
+        self.history_price = self._env.snapshot_list["product"][
             ::product_features[IDX_PRODUCT_PRICE]
+        ].reshape(history_feature_shape)
+
+        self.history_purchased = self._env.snapshot_list["consumer"][
+            ::consumer_features[IDX_CONSUMER_PURCHASED]
         ].reshape(history_feature_shape)
 
         # 1. Update storage product quantity info.

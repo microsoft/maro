@@ -23,8 +23,8 @@ IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER
 seller_features = ("total_demand", "sold", "demand")
 IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND = 0, 1, 2
 
-consumer_features = ("order_base_cost", "latest_consumptions")
-IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
+consumer_features = ("order_base_cost", "latest_consumptions", "purchased")
+IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS, IDX_CONSUMER_PURCHASED = 0, 1, 2
 
 product_features = ("price", )
 IDX_PRODUCT_PRICE = 0

@@ -71,6 +71,7 @@ class ScOrAgentStates:
         to_distribute_quantity: List[int],
         history_demand: np.ndarray,
         history_price: np.ndarray,
+        history_purchased: np.ndarray,
         chosen_vlt_info: Optional[VendorLeadingTimeInfo],
         fixed_vlt: bool,
     ) -> dict:
@@ -105,6 +106,8 @@ class ScOrAgentStates:
         if product_info.seller_info is not None:
             seller_index = product_info.seller_info.node_index
             product_index = product_info.node_index
+            consumer_index = product_info.consumer_info.node_index
             state["history_demand"] = history_demand[:, seller_index]
             state["history_price"] = history_price[:, product_index]
+            state["history_purchased"] = history_purchased[:, consumer_index]
         return state
