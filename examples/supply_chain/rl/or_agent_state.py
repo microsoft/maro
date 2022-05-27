@@ -4,6 +4,7 @@
 
 from typing import Dict, List, Optional
 
+import numpy as np
 import scipy.stats as st
 
 from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
@@ -62,11 +63,15 @@ class ScOrAgentStates:
     def update_entity_state(
         self,
         entity_id: int,
+        tick: int,
         storage_capacity_dict: Optional[Dict[int, Dict[int, int]]],
         product_metrics: Optional[dict],
         product_levels: List[int],
         in_transit_quantity: List[int],
         to_distribute_quantity: List[int],
+        history_demand: np.ndarray,
+        history_price: np.ndarray,
+        history_purchased: np.ndarray,
         chosen_vlt_info: Optional[VendorLeadingTimeInfo],
         fixed_vlt: bool,
     ) -> dict:
@@ -94,4 +99,15 @@ class ScOrAgentStates:
         state["to_distribute_quantity"] = to_distribute_quantity[self._global_sku_id2idx[entity.skus.id]]
 
         state["cur_vlt"] = chosen_vlt_info.vlt + 1 if chosen_vlt_info else 0
+        state["entity_id"] = entity_id
+        state["tick"] = tick
+
+        product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+        if product_info.seller_info is not None:
+            seller_index = product_info.seller_info.node_index
+            product_index = product_info.node_index
+            consumer_index = product_info.consumer_info.node_index
+            state["history_demand"] = history_demand[:, seller_index]
+            state["history_price"] = history_price[:, product_index]
+            state["history_purchased"] = history_purchased[:, consumer_index]
         return state

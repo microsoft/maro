@@ -3,6 +3,8 @@
 
 from enum import Enum
 
+import numpy as np
+
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, ManufactureUnit
@@ -21,11 +23,16 @@ IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER
 seller_features = ("total_demand", "sold", "demand")
 IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND = 0, 1, 2
 
-consumer_features = ("order_base_cost", "latest_consumptions")
-IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS = 0, 1
+consumer_features = ("order_base_cost", "latest_consumptions", "purchased")
+IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS, IDX_CONSUMER_PURCHASED = 0, 1, 2
+
+product_features = ("price", )
+IDX_PRODUCT_PRICE = 0
 
 
 m_vlt, s_vlt, ns_vlt = 2, 2, 2
+
+
 def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo) -> float:
     if issubclass(entity.class_type, ManufactureUnit):
         return m_vlt
@@ -38,8 +45,8 @@ def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo
         raise(f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
 
 
-ALGO="EOQ"
-assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
+ALGO = "BSP"
+assert ALGO in ["DQN", "EOQ", "PPO", "BSP"], "wrong ALGO"
 
 TEAM_REWARD = False
 SHARED_MODEL = False
@@ -67,13 +74,25 @@ PLOT_RENDER = False
 env_conf = {
     "scenario": "supply_chain",
     "topology": TOPOLOGY,
-    "durations": TRAIN_STEPS,  # number of ticks per episode
+    "durations": TRAIN_STEPS,  # Number of ticks per episode
 }
 
 test_env_conf = {
     "scenario": "supply_chain",
     "topology": TOPOLOGY,
-    "durations": TRAIN_STEPS + EVAL_STEPS,  # number of ticks per episode
+    "durations": TRAIN_STEPS + EVAL_STEPS,  # Number of ticks per episode
+}
+
+base_policy_conf = {
+    "data_loader": "DataLoaderFromFile",
+    "oracle_file": "oracle_samples.csv",  # Only need in DataLoaderFromFile loader
+    "history_len": 28,  # E.g., mapping to np.inf in instance creation if it is static
+    "future_len": 7,
+    "update_frequency": 7,  # E.g., mapping to np.inf in instance creation if no update
+
+    # If true, until next update, all steps will share the same stock level
+    # otherwise, each steps will calculate own stock level.
+    "share_same_stock_level": False
 }
 
 workflow_settings: dict = {
