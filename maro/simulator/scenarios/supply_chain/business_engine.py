@@ -199,8 +199,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "sale_std": product.get_sale_std(),
                         "demand_mean": product.get_demand_mean(),
                         "selling_price": product.get_max_sale_price(),
-                        "pending_order_daily":
-                            None if product.consumer is None else product.consumer.pending_order_daily,
                     } for product in self._product_units
                 },
                 "facilities": {

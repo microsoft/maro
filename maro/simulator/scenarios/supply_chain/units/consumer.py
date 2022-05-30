@@ -49,7 +49,6 @@ class ConsumerUnit(ExtendUnitBase):
         self._order_base_cost: float = 0  # order.quantity * unit_order_cost
 
         self.source_facility_id_list: List[int] = []
-        # self.pending_order_daily: Optional[List[int]] = None
 
         self._unit_order_cost: float = 0
 
@@ -91,7 +90,6 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._unit_order_cost = self.facility.skus[self.sku_id].unit_order_cost
 
-        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
         assert isinstance(self.data_model, ConsumerDataModel)
 
@@ -160,7 +158,7 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.latest_consumptions = 0
 
     def step(self, tick: int) -> None:
-        self._update_pending_order()
+        pass
 
     def flush_states(self) -> None:
         if self._received > 0:
@@ -186,10 +184,6 @@ class ConsumerUnit(ExtendUnitBase):
         self._purchased = 0
         self._order_product_cost = 0
         self._order_base_cost = 0
-        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
-
-    def _update_pending_order(self) -> None:
-        self.pending_order_daily = shift(self.pending_order_daily, -1, cval=0)
 
     def get_unit_info(self) -> ConsumerUnitInfo:
         return ConsumerUnitInfo(

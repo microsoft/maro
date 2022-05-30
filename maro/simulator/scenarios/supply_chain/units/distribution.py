@@ -8,6 +8,7 @@ import typing
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
+from scipy.ndimage.interpolation import shift
 
 from maro.simulator.scenarios.supply_chain.order import Order
 
@@ -51,7 +52,6 @@ class DistributionUnit(UnitBase):
 
         # TODO：replace this with BE's event buffer
         self._payload_on_the_way: Dict[int, List[DistributionPayload]] = defaultdict(list)
-        self._order_quantity_on_the_way: Dict[int, List[Payload]] = defaultdict(list)
 
         # A dict of pending order queue. Key: vehicle type; Value: pending order queue.
         self._order_queues: Dict[str, deque] = defaultdict(deque)
@@ -182,12 +182,6 @@ class DistributionUnit(UnitBase):
             payload=order.quantity,
         ))
 
-        dest_consumer = order.destination.products[order.sku_id].consumer
-        if vlt_info.vlt < len(dest_consumer.pending_order_daily):  # Check use (arrival tick - tick) or vlt
-            dest_consumer.pending_order_daily[vlt_info.vlt] += order.quantity
-
-        else:
-            self._order_quantity_on_the_way[arrival_tick] += order.quantity
         return vlt_info.unit_transportation_cost * order.quantity
 
     def pre_step(self, tick: int) -> None:
@@ -268,15 +262,16 @@ class DistributionUnit(UnitBase):
                     vlt_info = self.facility.downstream_vlt_infos[order.sku_id][order.destination.id][order.vehicle_type]
                     sku_id = order.sku_id
                     lens = self.world.configs.settings["pending_order_len"]
+
                     if len(pending_order_daily) == 0:
                         pending_order_daily[sku_id] = [0] * self.world.configs.settings["pending_order_len"]
-
-                    if vlt_info.vlt < self.world.configs.settings['pending_order_len']:  # Check use (arrival tick - tick) or vlt
-                        pending_order_daily[order.sku_id][(arrival_tick - tick) % vlt_info.vlt] = order.quantity
+                    if vlt_info.vlt < self.world.configs.settings['pending_order_len']:
+                        pending_order_daily[order.sku_id][(arrival_tick - tick) % lens] = order.quantity
                     else:
                         if (tick + lens) >= payload.arrival_tick:
-                            pending_order_daily[order.sku_id][lens - (tick % lens) -1] += self._order_quantity_on_the_way[tick + self.lens]
-                            # del self._order_quantity_on_the_way[tick + self.world.configs.settings['pending_order_len'] - 1]
+                            if tick == payload.arrival_tick:
+                                pending_order_daily[order.sku_id] = shift(pending_order_daily[order.sku_id], -1, cval=0)
+                            else:pending_order_daily[order.sku_id][(arrival_tick - tick) % lens -1] = order.quantity
         return pending_order_daily
 
     def reset(self) -> None:
@@ -296,7 +291,6 @@ class DistributionUnit(UnitBase):
         for vehicle_type in self._vehicle_num.keys():
             self._busy_vehicle_num[vehicle_type] = 0
         self._payload_on_the_way.clear()
-        self._order_quantity_on_the_way.clear()
 
     def get_unit_info(self) -> DistributionUnitInfo:
         return DistributionUnitInfo(

@@ -164,8 +164,6 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(10, quantity)
 
             # Check the payload in the distribution
-            self.assertEqual(1, len(distribution_unit._order_quantity_on_the_way[expected_tick]))
-            self.assertEqual(80, distribution_unit._order_quantity_on_the_way[expected_tick][0].quantity)
 
             env.step(None)
 
@@ -183,9 +181,6 @@ class MyTestCase(unittest.TestCase):
 
             # Check the payload in the distribution
             expected_tick = env.tick
-            self.assertEqual(1, len(distribution_unit._order_quantity_on_the_way[expected_tick]))
-            self.assertEqual(80 - 70, distribution_unit._order_quantity_on_the_way[expected_tick][0].quantity)
-
             _, _, is_done = env.step(None)
 
 
