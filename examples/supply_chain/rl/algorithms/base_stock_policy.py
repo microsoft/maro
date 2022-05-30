@@ -93,7 +93,7 @@ class BaseStockPolicy(RuleBasedPolicy):
         return target_stock.value
 
     def _get_action_quantity(self, state: dict) -> int:
-        SKU_id = state["SKU_id"]
+        SKU_id = state["SKU"]
         current_tick = state["tick"]
         self.product_level_snapshot[SKU_id][current_tick] = state["product_level"]
         self.in_transit_snapshot[SKU_id][current_tick] = state["in_transition_quantity"]

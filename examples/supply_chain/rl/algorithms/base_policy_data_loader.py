@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import pandas as pd
+import datetime
 
 
 class BaseDataLoader(object):
@@ -19,24 +20,30 @@ class DataLoaderFromFile(BaseDataLoader):
 
         oracle_file = self.data_loader_conf["oracle_file"]
         if oracle_file.endswith(".csv"):
-            self.df_raws = pd.read_csv(oracle_file)
+            self.df_raws = pd.read_csv(oracle_file, parse_dates=["Date"])
         elif oracle_file.endswith(".tsv"):
-            self.df_raws = pd.read_csv(oracle_file, sep="\t")
+            self.df_raws = pd.read_csv(oracle_file, parse_dates=["Date"], sep="\t")
         elif oracle_file.endswith(".xlsx"):
-            self.df_raws = pd.read_excel(oracle_file)
+            self.df_raws = pd.read_excel(oracle_file, parse_dates=["Date"])
         else:
             raise NotImplementedError
+        self.df_raws.sort_values(by="Date", ascending=True)
+        self.start_date = min(self.df_raws["Date"])
+        self.end_date = max(self.df_raws["Date"])
+        self.date_len = len(pd.date_range(self.start_date, self.end_date))
 
     def load(self, state: dict) -> pd.DataFrame:
-        SKU_id = state["SKU_id"]
-        history_start = max(state["tick"] - self.data_loader_conf["history_len"], 0)
-        future_end = state["tick"] + self.data_loader_conf["future_len"]
+        SKU_id = state["SKU"]
+        history_offset = max(state["tick"] - self.data_loader_conf["history_len"], 0)
+        history_start_date = self.start_date + datetime.timedelta(history_offset)
+        future_offset = min(state["tick"] + self.data_loader_conf["future_len"], self.date_len)
+        future_end_date = self.start_date + datetime.timedelta(future_offset)
         target_df = self.df_raws[
-            (self.df_raws["SKU_id"] == SKU_id)
-            & (self.df_raws["Step"] >= history_start)
-            & (self.df_raws["Step"] <= future_end)
+            (self.df_raws["SKU"] == SKU_id)
+            & (self.df_raws["Date"] >= history_start_date)
+            & (self.df_raws["Date"] <= future_end_date)
         ]
-        return target_df.sort_values(by=["Step"])
+        return target_df.sort_values(by=["Date"])
 
 
 class DataLoaderFromHistory(BaseDataLoader):
@@ -53,14 +60,13 @@ class DataLoaderFromHistory(BaseDataLoader):
             }), ignore_index=True)
 
         # Use history mean represents the future
-        his_mean_price = target_df["price"].mean().item()
-        his_demand_price = target_df["demand"].mean().item()
+        his_mean_price = target_df["Price"].mean().item()
+        his_demand_price = target_df["Demand"].mean().item()
         future_len = self.data_loader_conf["future_len"]
         for index in range(0, future_len):
             target_df = target_df.append(pd.Series({
-                'price': his_mean_price,
-                'storage_cost': state["unit_storage_cost"],
-                'order_cost': state["unit_order_cost"],
-                'demand': his_demand_price
+                "Price": his_mean_price,
+                "Cost": state["unit_order_cost"],
+                "Demand": his_demand_price
             }), ignore_index=True)
         return target_df
