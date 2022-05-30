@@ -28,29 +28,28 @@ class DataLoaderFromFile(BaseDataLoader):
             raise NotImplementedError
 
     def load(self, state: dict) -> pd.DataFrame:
-        entity_id = state["entity_id"]
+        SKU_id = state["SKU_id"]
         history_start = max(state["tick"] - self.data_loader_conf["history_len"], 0)
         future_end = state["tick"] + self.data_loader_conf["future_len"]
         target_df = self.df_raws[
-            (self.df_raws["entity_id"] == entity_id)
-             & (self.df_raws["step"] >= history_start)
-             & (self.df_raws["step"] <= future_end)
+            (self.df_raws["SKU_id"] == SKU_id)
+            & (self.df_raws["Step"] >= history_start)
+            & (self.df_raws["Step"] <= future_end)
         ]
-        return target_df.sort_values(by=["step"])
+        return target_df.sort_values(by=["Step"])
 
 
 class DataLoaderFromHistory(BaseDataLoader):
     def load(self, state: dict) -> pd.DataFrame:
-        target_df = pd.DataFrame(columns=["price", "storage_cost", "order_cost", "demand"])
+        target_df = pd.DataFrame(columns=["Price", "Cost", "Demand"])
 
         # Including history and today
         history_start = max(state["tick"] - self.data_loader_conf["history_len"], 0)
         for index in range(history_start, state["tick"] + 1):
             target_df = target_df.append(pd.Series({
-                'price': state["history_price"][index],
-                'storage_cost': state["unit_storage_cost"],
-                'order_cost': state["unit_order_cost"],
-                'demand': state["history_demand"][index]
+                "Price": state["history_price"][index],
+                "Cost": state["unit_order_cost"],
+                "Demand": state["history_demand"][index]
             }), ignore_index=True)
 
         # Use history mean represents the future
