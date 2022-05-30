@@ -274,20 +274,20 @@ class BalanceSheetCalculator:
         for product in self.product_infos:
             i = product.node_index
 
-            if product.consumer_index:
+            if product.consumer_index is not None:
                 product_step_cost[i] += consumer_step_cost[product.consumer_index]
 
-            if product.seller_index:
+            if product.seller_index is not None:
                 product_step_profit[i] += seller_step_profit[product.seller_index]
                 product_step_cost[i] += seller_step_cost[product.seller_index]
 
-            if product.manufacture_index:
+            if product.manufacture_index is not None:
                 product_step_cost[i] += manufacture_step_cost[product.manufacture_index]
 
-            if product.storage_index:
+            if product.storage_index is not None:
                 product_step_cost[i] += storage_product_step_cost[product.storage_index][product.sku_id]
 
-            if product.distribution_index:
+            if product.distribution_index is not None:
                 product_step_profit[i] += product_distribution_step_profit[i]
                 product_step_cost[i] += product_distribution_step_cost[i]
 
