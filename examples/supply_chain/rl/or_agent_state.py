@@ -99,7 +99,7 @@ class ScOrAgentStates:
         state["to_distribute_quantity"] = to_distribute_quantity[self._global_sku_id2idx[entity.skus.id]]
 
         state["cur_vlt"] = chosen_vlt_info.vlt + 1 if chosen_vlt_info else 0
-        state["SKU"] = entity.skus.id
+        state["entity_id"] = entity_id
         state["tick"] = tick
 
         product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
