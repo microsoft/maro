@@ -78,10 +78,6 @@ extensions.append(
         extra_compile_args=[compile_flag])
 )
 
-specific_requires = []
-if sys.version.startswith("3.6"):
-    specific_requires.append("dataclasses>=0.5")
-
 readme = io.open("./maro/README.rst", encoding="utf-8").read()
 
 setup(
@@ -117,12 +113,11 @@ setup(
         'Operating System :: Unix',
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering :: Artificial Intelligence"],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     setup_requires=[
         "numpy<1.20.0",
     ],
@@ -146,7 +141,7 @@ setup(
         "kubernetes>=12.0.1",
         "prompt_toolkit<3.1.0",
         "stringcase>=1.2.0",
-    ] + specific_requires,
+    ],
     entry_points={
         "console_scripts": [
             "maro=maro.cli.maro:main",
