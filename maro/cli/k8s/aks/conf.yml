@@ -1,0 +1,12 @@
+mode: ""
+azure_subscription: your_azure_subscription_id
+name: your_deployment_name
+location: your_azure_service_location
+container_registry_service_tier: Standard   # "Basic", "Standard", "Premium", see https://docs.microsoft.com/en-us/azure/container-registry/container-registry-skus for details
+resources:
+  k8s:
+    vm_size: Standard_DS2_v2  # https://docs.microsoft.com/en-us/azure/virtual-machines/sizes, https://docs.microsoft.com/en-us/azure/aks/quotas-skus-regions
+    vm_count: 1  # must be at least 2 for k8s to function properly.
+  app:
+    vm_size: Standard_DS2_v2  # https://docs.microsoft.com/en-us/azure/virtual-machines/sizes, https://docs.microsoft.com/en-us/azure/aks/quotas-skus-regions
+    vm_count: 1

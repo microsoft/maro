@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import Iterable
+from collections.abc import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
 from typing import Generator, List, Optional, Tuple
@@ -14,7 +14,6 @@ from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
-from .utils import random
 from .utils.common import tick_to_frame_index
 
 
@@ -181,9 +180,8 @@ class Env(AbsEnv):
         Args:
             seed (int): Seed to set.
         """
-
-        if seed is not None:
-            random.seed(seed)
+        assert seed is not None and isinstance(seed, int)
+        self._business_engine.set_seed(seed)
 
     @property
     def metrics(self) -> dict:
@@ -206,6 +204,14 @@ class Env(AbsEnv):
             tick (int): Specified tick to query.
         """
         return self._event_buffer.get_pending_events(tick)
+
+    def get_ticks_frame_index_mapping(self) -> dict:
+        """Helper method to get current available ticks to related frame index mapping.
+
+        Returns:
+            dict: Dictionary of avaliable tick to frame index, it would be 1 to N mapping if the resolution is not 1.
+        """
+        return self._business_engine.get_ticks_frame_index_mapping()
 
     def _init_business_engine(self) -> None:
         """Initialize business engine object.

@@ -47,7 +47,5 @@ ERROR_CODE = {
     3003: "Deployment Error",
 
     # 4000-4999: Error codes for RL toolkit
-    4000: "Store Misalignment",
-    4001: "Missing Optimizer",
-    4002: "Unrecognized Task",
+    4000: "Missing Trainer",
 }

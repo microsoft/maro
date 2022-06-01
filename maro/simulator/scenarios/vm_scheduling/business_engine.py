@@ -106,6 +106,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Current snapshot list."""
         return self._snapshots
 
+    @property
+    def pm_amount(self) -> int:
+        return self._pm_amount
+
     def _load_configs(self):
         """Load configurations."""
         # Update self._config_path with current file path.
@@ -437,6 +441,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
         self._cpu_reader.reset()
+
+    def set_seed(self, seed: int) -> None:
+        pass
 
     def _init_frame(self):
         self._frame = build_frame(

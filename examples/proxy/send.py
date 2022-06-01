@@ -21,12 +21,12 @@ def worker(group_name):
                   expected_peers={"master": 1})
 
     # Nonrecurring receive the message from the proxy.
-    for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
+    msg = proxy.receive_once()
+    print(f"{proxy.name} received message from {msg.source}. the payload is {msg.body}.")
 
-        if msg.tag == "sum":
-            replied_payload = sum(msg.payload)
-            proxy.reply(message=msg, tag="sum", payload=replied_payload)
+    if msg.tag == "sum":
+        replied_payload = sum(msg.body)
+        proxy.reply(message=msg, tag="sum", body=replied_payload)
 
 
 def master(group_name: str, is_immediate: bool = False):
@@ -47,11 +47,11 @@ def master(group_name: str, is_immediate: bool = False):
     random_integer_list = np.random.randint(0, 100, 5)
     print(f"generate random integer list: {random_integer_list}.")
 
-    for peer in proxy.peers_name["worker"]:
+    for peer in proxy.peers["worker"]:
         message = SessionMessage(tag="sum",
                                  source=proxy.name,
                                  destination=peer,
-                                 payload=random_integer_list,
+                                 body=random_integer_list,
                                  session_type=SessionType.TASK)
         if is_immediate:
             session_id = proxy.isend(message)
@@ -61,7 +61,7 @@ def master(group_name: str, is_immediate: bool = False):
             replied_msgs = proxy.send(message, timeout=-1)
 
         for msg in replied_msgs:
-            print(f"{proxy.name} receive {msg.source}, replied payload is {msg.payload}.")
+            print(f"{proxy.name} receive {msg.source}, replied payload is {msg.body}.")
 
 
 if __name__ == "__main__":

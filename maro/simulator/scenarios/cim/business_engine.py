@@ -215,6 +215,9 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         self._total_operate_num = 0
 
+    def set_seed(self, seed: int) -> None:
+        self._data_cntr.set_seed(seed)
+
     def action_scope(self, port_idx: int, vessel_idx: int) -> ActionScope:
         """Get the action scope of specified agent.
 

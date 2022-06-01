@@ -1,0 +1,157 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.1.0.0",
+  "parameters": {
+    "acrName": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 50,
+      "metadata": {
+        "description": "Name of your Azure Container Registry"
+      }
+    },
+    "acrSku": {
+      "type": "string",
+      "metadata": {
+        "description": "Tier of your Azure Container Registry."
+      },
+      "defaultValue": "Standard",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ]
+    },
+    "systemPoolVMCount": {
+      "type": "int",
+      "metadata": {
+        "description": "The number of VMs allocated for running the k8s system components."
+      },
+      "minValue": 1,
+      "maxValue": 50
+    },
+    "systemPoolVMSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Machine size for running the k8s system components."
+      }
+    },
+    "userPoolName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the user node pool."
+      }
+    },
+    "userPoolVMCount": {
+      "type": "int",
+      "metadata": {
+        "description": "The number of VMs allocated for running the user appplication."
+      },
+      "minValue": 1,
+      "maxValue": 50
+    },
+    "userPoolVMSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Machine size for running the user application."
+      }
+    },
+    "aksName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Managed Cluster resource."
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location of the Managed Cluster resource."
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure storage account name."
+      }
+    },
+    "fileShareName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure file share name."
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[parameters('acrName')]",
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2021-09-01",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('acrSku')]"
+      },
+      "properties": {
+      }
+    },
+    {
+      "name": "[parameters('aksName')]",
+      "type": "Microsoft.ContainerService/managedClusters",
+      "apiVersion": "2021-10-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "dnsPrefix": "maro",
+        "agentPoolProfiles": [
+          {
+            "name": "system",
+            "osDiskSizeGB": 0,
+            "count": "[parameters('systemPoolVMCount')]",
+            "vmSize": "[parameters('systemPoolVMSize')]",
+            "osType": "Linux",
+            "storageProfile": "ManagedDisks",
+            "mode": "System",
+            "type": "VirtualMachineScaleSets"
+          },
+          {
+            "name": "[parameters('userPoolName')]",
+            "osDiskSizeGB": 0,
+            "count": "[parameters('userPoolVMCount')]",
+            "vmSize": "[parameters('userPoolVMSize')]",
+            "osType": "Linux",
+            "storageProfile": "ManagedDisks",
+            "mode": "User",
+            "type": "VirtualMachineScaleSets"
+          }
+        ],
+        "networkProfile": {
+          "networkPlugin": "azure",
+          "loadBalancerSku": "standard"
+        }
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-08-01",
+      "name": "[parameters('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "properties": {
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(parameters('storageAccountName'), '/default/', parameters('fileShareName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    }
+  ]
+}

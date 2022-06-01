@@ -129,6 +129,7 @@ setup(
     install_requires=[
         # TODO: use a helper function to collect these
         "numpy<1.20.0",
+        "scipy<=1.7.0",
         "torch<1.8.0",
         "holidays>=0.10.3",
         "pyaml>=20.4.0",
@@ -138,7 +139,7 @@ setup(
         "psutil<5.9.0",
         "deepdiff>=5.2.2",
         "azure-storage-blob<12.9.0",
-        "azure-storage-common>=2.1.0",
+        "azure-storage-common",
         "geopy>=2.0.0",
         "pandas<1.2",
         "PyYAML<5.5.0",

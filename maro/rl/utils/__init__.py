@@ -1,12 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .experience_collection import ExperienceCollectionUtils
-from .trajectory_utils import get_k_step_returns, get_lambda_returns, get_truncated_cumulative_reward
-from .value_utils import get_log_prob, get_max, get_td_errors, select_by_actions
+from typing import Union
+
+from .objects import SHAPE_CHECK_FLAG
+from .torch_utils import average_grads, get_torch_device, match_shape, ndarray_to_tensor
+from .trajectory_computation import discount_cumsum
+from .transition_batch import merge_transition_batches, MultiTransitionBatch, TransitionBatch
+
+AbsTransitionBatch = Union[TransitionBatch, MultiTransitionBatch]
 
 __all__ = [
-    "ExperienceCollectionUtils",
-    "get_k_step_returns", "get_lambda_returns", "get_truncated_cumulative_reward",
-    "get_log_prob", "get_max", "get_td_errors", "select_by_actions",
+    "SHAPE_CHECK_FLAG",
+    "average_grads", "get_torch_device", "match_shape", "ndarray_to_tensor",
+    "discount_cumsum",
+    "AbsTransitionBatch", "MultiTransitionBatch", "TransitionBatch", "merge_transition_batches",
 ]

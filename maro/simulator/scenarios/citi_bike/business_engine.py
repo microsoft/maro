@@ -170,6 +170,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._last_date = None
 
+    def set_seed(self, seed: int) -> None:
+        pass
+
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index.
 
