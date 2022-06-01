@@ -104,8 +104,8 @@ class DistributionUnit(UnitBase):
         # TODO: to indicate whether it is a valid order or not in Return value?
         if all([
             order.sku_id in self.facility.downstream_vlt_infos,
-            order.destination.id in self.facility.downstream_vlt_infos[order.sku_id],
-            order.vehicle_type in self.facility.downstream_vlt_infos[order.sku_id][order.destination.id],
+            order.dest_facility.id in self.facility.downstream_vlt_infos[order.sku_id],
+            order.vehicle_type in self.facility.downstream_vlt_infos[order.sku_id][order.dest_facility.id],
             order.quantity > 0
         ]):
             self._order_queues[order.vehicle_type].append(order)
@@ -138,9 +138,9 @@ class DistributionUnit(UnitBase):
         """
         return self.facility.storage.try_take_products({sku_id: quantity})
 
-    def _try_unload(self, payload: DistributionPayload) -> bool:
-        """Try to unload products into destination's storage."""
-        unloaded = payload.order.destination.storage.try_add_products(
+    def _try_unload(self, payload: DistributionPayload, tick: int) -> bool:
+        """Try unload products into destination's storage."""
+        unloaded = payload.order.dest_facility.storage.try_add_products(
             {payload.order.sku_id: payload.payload},
             add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
         )
@@ -150,11 +150,10 @@ class DistributionUnit(UnitBase):
             assert len(unloaded) == 1
             unloaded_quantity = unloaded[payload.order.sku_id]
 
-            payload.order.destination.products[payload.order.sku_id].consumer.on_order_reception(
-                source_id=self.facility.id,
-                sku_id=payload.order.sku_id,
+            payload.order.dest_facility.products[payload.order.sku_id].consumer.on_order_reception(
+                order=payload.order,
                 received_quantity=unloaded_quantity,
-                required_quantity=payload.order.quantity,
+                tick=tick,
             )
 
             payload.payload -= unloaded_quantity
@@ -171,7 +170,7 @@ class DistributionUnit(UnitBase):
         Returns:
             float: the daily transportation cost for this order. Equals to unit_transportation_cost * payload.
         """
-        vlt_info = self.facility.downstream_vlt_infos[order.sku_id][order.destination.id][order.vehicle_type]
+        vlt_info = self.facility.downstream_vlt_infos[order.sku_id][order.dest_facility.id][order.vehicle_type]
 
         arrival_tick = tick + vlt_info.vlt  # TODO: add random factor if needed
 
@@ -239,7 +238,7 @@ class DistributionUnit(UnitBase):
     def handle_arrival_payloads(self, tick: int) -> None:
         # Handle arrival payloads.
         for payload in self._payload_on_the_way[tick]:
-            if self._try_unload(payload):
+            if self._try_unload(payload, tick):
                 self._busy_vehicle_num[payload.order.vehicle_type] -= 1
             else:
                 self._payload_on_the_way[tick + 1].append(payload)
