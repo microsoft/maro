@@ -25,7 +25,7 @@ Install MARO from Source (\ `Editable Mode <https://pip.pypa.io/en/stable/refere
 
 * Prerequisites
 
-  * `Python >= 3.6, < 3.8 <https://www.python.org/downloads/>`_
+  * `Python >= 3.7 <https://www.python.org/downloads/>`_
   * C++ Compiler
 
     * Linux or Mac OS X: ``gcc``

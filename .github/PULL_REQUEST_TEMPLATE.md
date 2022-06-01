@@ -31,8 +31,9 @@ Please also add other related information/contexts/dependencies here.
   - [ ] Mac OS
   - [ ] Linux
 - Python version:
-  - [ ] 3.6
   - [ ] 3.7
+  - [ ] 3.8
+  - [ ] 3.9
 - Key information snapshot(s):
 
 ## Needs Follow Up Actions

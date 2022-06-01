@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# this script used build maro packages for linux 
+# this script used build maro packages for linux
 
 cd "$(dirname $(readlink -f $0))/.."
 
