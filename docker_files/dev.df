@@ -1,0 +1,36 @@
+FROM python:3.7-buster
+WORKDIR /maro
+
+# Install Apt packages
+RUN apt-get update --fix-missing
+RUN apt-get install -y apt-utils
+RUN apt-get install -y sudo
+RUN apt-get install -y gcc
+RUN apt-get install -y libcurl4 libcurl4-openssl-dev libssl-dev curl
+RUN apt-get install -y libzmq3-dev
+RUN apt-get install -y python3-pip
+RUN apt-get install -y python3-dev libpython3.7-dev python-numpy
+RUN rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir Cython==0.29.14
+RUN pip install --no-cache-dir pyaml==20.4.0
+RUN pip install --no-cache-dir pyzmq==19.0.2
+RUN pip install --no-cache-dir numpy==1.19.1
+RUN pip install --no-cache-dir matplotlib
+RUN pip install --no-cache-dir torch==1.6.0
+RUN pip install --no-cache-dir scipy
+RUN pip install --no-cache-dir matplotlib
+RUN pip install --no-cache-dir redis
+RUN pip install --no-cache-dir networkx
+
+COPY maro /maro/maro
+COPY scripts /maro/scripts/
+COPY setup.py /maro/
+RUN bash /maro/scripts/install_maro.sh
+RUN pip cache purge
+
+ENV PYTHONPATH=/maro
+
+CMD ["/bin/bash"]

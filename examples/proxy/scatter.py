@@ -21,12 +21,12 @@ def summation_worker(group_name):
                   expected_peers={"master": 1})
 
     # Nonrecurring receive the message from the proxy.
-    for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
+    msg = proxy.receive_once()
+    print(f"{proxy.name} received message from {msg.source}. the payload is {msg.body}.")
 
-        if msg.tag == "job":
-            replied_payload = sum(msg.payload)
-            proxy.reply(message=msg, tag="sum", payload=replied_payload)
+    if msg.tag == "job":
+        replied_payload = sum(msg.body)
+        proxy.reply(message=msg, tag="sum", body=replied_payload)
 
 
 def multiplication_worker(group_name):
@@ -41,12 +41,12 @@ def multiplication_worker(group_name):
                   expected_peers={"master": 1})
 
     # Nonrecurring receive the message from the proxy.
-    for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
+    msg = proxy.receive_once()
+    print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.body}.")
 
-        if msg.tag == "job":
-            replied_payload = np.prod(msg.payload)
-            proxy.reply(message=msg, tag="multiply", payload=replied_payload)
+    if msg.tag == "job":
+        replied_payload = np.prod(msg.body)
+        proxy.reply(message=msg, tag="multiply", body=replied_payload)
 
 
 def master(group_name: str, sum_worker_number: int, multiply_worker_number: int, is_immediate: bool = False):
@@ -73,13 +73,13 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
 
     # Assign sum tasks for summation workers.
     destination_payload_list = []
-    for idx, peer in enumerate(proxy.peers_name["sum_worker"]):
-        data_length_per_peer = int(len(sum_list) / len(proxy.peers_name["sum_worker"]))
+    for idx, peer in enumerate(proxy.peers["sum_worker"]):
+        data_length_per_peer = int(len(sum_list) / len(proxy.peers["sum_worker"]))
         destination_payload_list.append((peer, sum_list[idx * data_length_per_peer:(idx + 1) * data_length_per_peer]))
 
     # Assign multiply tasks for multiplication workers.
-    for idx, peer in enumerate(proxy.peers_name["multiply_worker"]):
-        data_length_per_peer = int(len(multiple_list) / len(proxy.peers_name["multiply_worker"]))
+    for idx, peer in enumerate(proxy.peers["multiply_worker"]):
+        data_length_per_peer = int(len(multiple_list) / len(proxy.peers["multiply_worker"]))
         destination_payload_list.append(
             (peer, multiple_list[idx * data_length_per_peer:(idx + 1) * data_length_per_peer]))
 
@@ -98,11 +98,11 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
     sum_result, multiply_result = 0, 1
     for msg in replied_msgs:
         if msg.tag == "sum":
-            print(f"{proxy.name} receive message from {msg.source} with the sum result {msg.payload}.")
-            sum_result += msg.payload
+            print(f"{proxy.name} receive message from {msg.source} with the sum result {msg.body}.")
+            sum_result += msg.body
         elif msg.tag == "multiply":
-            print(f"{proxy.name} receive message from {msg.source} with the multiply result {msg.payload}.")
-            multiply_result *= msg.payload
+            print(f"{proxy.name} receive message from {msg.source} with the multiply result {msg.body}.")
+            multiply_result *= msg.body
 
     # Check task result correction.
     assert(sum(sum_list) == sum_result)

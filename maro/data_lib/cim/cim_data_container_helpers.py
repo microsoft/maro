@@ -30,6 +30,9 @@ class CimDataContainerWrapper:
 
         self._init_data_container()
 
+        self._random_seed: Optional[int] = None
+        self._re_init_data_cntr_flag: bool = False
+
     def _init_data_container(self, topology_seed: int = None):
         if not os.path.exists(self._config_path):
             raise FileNotFoundError
@@ -46,12 +49,22 @@ class CimDataContainerWrapper:
             # Real Data Mode: read data from input data files, no need for any config.yml.
             self._data_cntr = data_from_files(data_folder=self._config_path)
 
-    def reset(self, keep_seed: bool):
-        """Reset data container internal state"""
+    def reset(self, keep_seed: bool) -> None:
+        """Reset data container internal state
+        """
         if not keep_seed:
-            self._init_data_container(random[ROUTE_INIT_RAND_KEY].randint(0, DATA_CONTAINER_INIT_SEED_LIMIT - 1))
+            self._random_seed = random[ROUTE_INIT_RAND_KEY].randint(0, DATA_CONTAINER_INIT_SEED_LIMIT - 1)
+            self._re_init_data_cntr_flag = True
+
+        if self._re_init_data_cntr_flag:
+            self._init_data_container(self._random_seed)
+            self._re_init_data_cntr_flag = False
         else:
-            self._data_cntr.reset()
+            self._data_cntr.reset()  # Reset the data container with reproduce-ability
+
+    def set_seed(self, random_seed: int) -> None:
+        self._random_seed = random_seed
+        self._re_init_data_cntr_flag = True
 
     def __getattr__(self, name):
         return getattr(self._data_cntr, name)

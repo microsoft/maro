@@ -41,13 +41,13 @@
 
 
 .. image:: https://github.com/microsoft/maro/workflows/test/badge.svg
-   :target: https://github.com/microsoft/maro/actions?query=workflow%3Atest
-   :alt: test
+  :target: https://github.com/microsoft/maro/actions?query=workflow%3Atest
+  :alt: test
 
 
 .. image:: https://github.com/microsoft/maro/workflows/build/badge.svg
-   :target: https://github.com/microsoft/maro/actions?query=workflow%3Abuild
-   :alt: build
+  :target: https://github.com/microsoft/maro/actions?query=workflow%3Abuild
+  :alt: build
 
 
 .. image:: https://github.com/microsoft/maro/workflows/docker/badge.svg
@@ -56,8 +56,8 @@
 
 
 .. image:: https://readthedocs.org/projects/maro/badge/?version=latest
-   :target: https://maro.readthedocs.io/
-   :alt: docs
+  :target: https://maro.readthedocs.io/
+  :alt: docs
 
 
 .. image:: https://img.shields.io/pypi/v/pymaro
@@ -142,6 +142,69 @@
 
 ================================================================================================================
 
+
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/vm_scheduling.svg
+  :target: https://maro.readthedocs.io/en/latest/scenarios/vm_scheduling.html
+  :alt: VM Scheduling
+
+
+.. image:: https://img.shields.io/gitter/room/microsoft/maro
+  :target: https://gitter.im/Microsoft/MARO#
+  :alt: Gitter
+
+
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/stack_overflow.svg
+  :target: https://stackoverflow.com/questions/ask?tags=maro
+  :alt: Stack Overflow
+
+
+.. image:: https://img.shields.io/github/release-date-pre/microsoft/maro
+  :target: https://github.com/microsoft/maro/releases
+  :alt: Releases
+
+
+.. image:: https://img.shields.io/github/commits-since/microsoft/maro/latest/master
+  :target: https://github.com/microsoft/maro/commits/master
+  :alt: Commits
+
+
+.. image:: https://github.com/microsoft/maro/workflows/vulnerability%20scan/badge.svg
+  :target: https://github.com/microsoft/maro/actions?query=workflow%3A%22vulnerability+scan%22
+  :alt: Vulnerability Scan
+
+
+.. image:: https://github.com/microsoft/maro/workflows/lint/badge.svg
+  :target: https://github.com/microsoft/maro/actions?query=workflow%3Alint
+  :alt: Lint
+
+
+.. image:: https://img.shields.io/codecov/c/github/microsoft/maro
+  :target: https://codecov.io/gh/microsoft/maro
+  :alt: Coverage
+
+
+.. image:: https://img.shields.io/pypi/dm/pymaro
+  :target: https://pypi.org/project/pymaro/#files
+  :alt: Downloads
+
+
+.. image:: https://img.shields.io/docker/pulls/maro2020/maro
+  :target: https://hub.docker.com/repository/docker/maro2020/maro
+  :alt: Docker Pulls
+
+
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/play_with_maro.svg
+  :target: https://hub.docker.com/r/maro2020/maro
+  :alt: Play with MARO
+
+
+
+.. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/logo.svg
+  :target: https://maro.readthedocs.io/en/latest/
+  :alt: MARO LOGO
+
+================================================================================================================
+
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
 learning as a Service (RaaS) for real-world resource optimization. It can be
 applied to many important industrial domains, such as `container inventory
@@ -172,18 +235,18 @@ Contents
 --------
 
 .. list-table::
-   :header-rows: 1
+  :header-rows: 1
 
-   * - File/folder
-     - Description
-   * - ``maro``
-     - MARO source code.
-   * - ``docs``
-     - MARO docs, it is host on `readthedocs <https://maro.readthedocs.io/en/latest/>`_.
-   * - ``examples``
-     - Showcase of MARO.
-   * - ``notebooks``
-     - MARO quick-start notebooks.
+  * - File/folder
+    - Description
+  * - ``maro``
+    - MARO source code.
+  * - ``docs``
+    - MARO docs, it is host on `readthedocs <https://maro.readthedocs.io/en/latest/>`_.
+  * - ``examples``
+    - Showcase of MARO.
+  * - ``notebooks``
+    - MARO quick-start notebooks.
 
 
 *Try `MARO playground <#run-playground>`_ to have a quick experience.*
@@ -199,17 +262,17 @@ Install MARO from `PyPI <https://pypi.org/project/pymaro/#files>`_
 
   .. code-block:: sh
 
-     pip install pymaro
+    pip install pymaro
 
 *
   Windows
 
   .. code-block:: powershell
 
-     # Install torch first, if you don't have one.
-     pip install torch===1.6.0 torchvision===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+    # Install torch first, if you don't have one.
+    pip install torch===1.6.0 torchvision===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
 
-     pip install pymaro
+    pip install pymaro
 
 Install MARO from Source
 ------------------------
@@ -235,9 +298,9 @@ Install MARO from Source
 
     .. code-block:: sh
 
-       # If your environment is not clean, create a virtual environment firstly.
-       python -m venv maro_venv
-       source ./maro_venv/bin/activate
+      # If your environment is not clean, create a virtual environment firstly.
+      python -m venv maro_venv
+      source ./maro_venv/bin/activate
 
   *
     Windows
@@ -267,16 +330,16 @@ Install MARO from Source
 
     .. code-block:: sh
 
-       # Install MARO from source.
-       bash scripts/install_maro.sh
+      # Install MARO from source.
+      bash scripts/install_maro.sh
 
   *
     Windows
 
     .. code-block:: powershell
 
-       # Install MARO from source.
-       .\scripts\install_maro.bat
+      # Install MARO from source.
+      .\scripts\install_maro.bat
 
 *
   *Notes: If your package is not found, remember to set your PYTHONPATH*
@@ -300,16 +363,16 @@ Quick Example
 
 .. code-block:: python
 
-   from maro.simulator import Env
+  from maro.simulator import Env
 
-   env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+  env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
-   metrics, decision_event, is_done = env.step(None)
+  metrics, decision_event, is_done = env.step(None)
 
-   while not is_done:
-       metrics, decision_event, is_done = env.step(None)
+  while not is_done:
+      metrics, decision_event, is_done = env.step(None)
 
-   print(f"environment metrics: {env.metrics}")
+  print(f"environment metrics: {env.metrics}")
 
 `Environment Visualization <https://maro.readthedocs.io/en/latest/>`_
 -------------------------------------------------------------------------
@@ -382,8 +445,8 @@ Run Playground
 
     .. code-block:: sh
 
-       # Build playground image.
-       bash ./scripts/build_playground.sh
+      # Build playground image.
+      bash ./scripts/build_playground.sh
 
        # Run playground container.
        # Redis commander (GUI for redis) -> http://127.0.0.1:40009
@@ -395,8 +458,8 @@ Run Playground
 
     .. code-block:: powershell
 
-       # Build playground image.
-       .\scripts\build_playground.bat
+      # Build playground image.
+      .\scripts\build_playground.bat
 
        # Run playground container.
        # Redis commander (GUI for redis) -> http://127.0.0.1:40009

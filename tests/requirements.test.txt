@@ -11,7 +11,7 @@ requests<=2.26.0
 psutil<5.9.0
 deepdiff>=5.2.2
 azure-storage-blob<12.9.0
-azure-storage-common>=2.1.0
+azure-storage-common
 torch<1.8.0
 pytest
 coverage
@@ -21,4 +21,3 @@ pytz==2019.3
 aria2p==0.9.1
 kubernetes>=12.0.1
 PyYAML<5.5.0
-

@@ -78,7 +78,8 @@ def set_seeds(seed):
 
 version_file_path = os.path.join(os.path.expanduser("~/.maro"), "version.ini")
 
-project_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+LOCAL_MARO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+project_root = os.path.join(LOCAL_MARO_ROOT, "maro")
 
 target_source_pairs = [
     (
