@@ -168,7 +168,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Allocate consumer & manufacture actions
         for unit_id, consumer_actions in consumer_actions_by_unit.items():
             consumer_unit = self._consumer_dict[unit_id]
-            consumer_unit.process_actions(consumer_actions)
+            consumer_unit.process_actions(consumer_actions, tick)
         for unit_id, manufacture_actions in manufacture_actions_by_unit.items():
             assert len(manufacture_actions) == 1  # Manufacture unit should have at most one action
             manufacture_unit = self._manufacture_dict[unit_id]
