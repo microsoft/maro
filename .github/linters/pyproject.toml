@@ -5,4 +5,3 @@ line-length = 120
 profile = "black"
 line_length = 120
 known_first_party = "maro"
-skip_glob = "maro/__init__.py, setup.py"
