@@ -19,7 +19,7 @@ class RolloutWorker(AbsWorker):
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the parallel roll-out controller can keep track of its connection status.
-        rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
+        rl_component_bundle (RLComponentBundle): Resources to launch the RL workflow.
         producer_host (str): IP address of the parallel task controller host to connect to.
         producer_port (int, default=20000): Port of the parallel task controller host to connect to.
         logger (LoggerV2, default=None): The logger of the workflow.
@@ -53,13 +53,19 @@ class RolloutWorker(AbsWorker):
         else:
             req = bytes_to_pyobj(msg[-1])
             assert isinstance(req, dict)
-            assert req["type"] in {"sample", "eval", "set_policy_state"}
+            assert req["type"] in {"sample", "eval", "set_policy_state", "post_collect", "post_evaluate"}
             if req["type"] == "sample":
                 result = self._env_sampler.sample(policy_state=req["policy_state"], num_steps=req["num_steps"])
             elif req["type"] == "eval":
                 result = self._env_sampler.eval(policy_state=req["policy_state"])
-            else:
+            elif req["type"] == "set_policy_state":
                 self._env_sampler.set_policy_state(policy_state_dict=req["policy_state"])
+                result = True
+            elif req["type"] == "post_collect":
+                self._env_sampler.post_collect(info_list=req["info_list"], ep=req["index"])
+                result = True
+            else:
+                self._env_sampler.post_evaluate(info_list=req["info_list"], ep=req["index"])
                 result = True
 
             self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))

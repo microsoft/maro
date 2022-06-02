@@ -26,8 +26,8 @@ class TrainingManager(object):
     Training manager. Manage and schedule all trainers to train policies.
 
     Args:
-        rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
-        explicit_assign_device (bool): Whether to assign policy to its device in the training manager.
+        rl_component_bundle (RLComponentBundle): Resources to launch the RL workflow.
+        explicit_assign_device (bool, default=False): Whether to assign policy to its device in the training manager.
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
             it is registered to all trainers, which in turn create `RemoteOps` for distributed training.
         logger (LoggerV2, default=None): A logger for logging key events.
@@ -36,36 +36,33 @@ class TrainingManager(object):
     def __init__(
         self,
         rl_component_bundle: RLComponentBundle,
-        explicit_assign_device: bool,
+        explicit_assign_device: bool = False,
         proxy_address: Tuple[str, int] = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(TrainingManager, self).__init__()
 
-        self._trainer_dict: Dict[str, AbsTrainer] = {}
         self._proxy_address = proxy_address
-        for trainer_name, func in rl_component_bundle.trainer_creator.items():
-            trainer = func()
+
+        self._trainer_dict: Dict[str, AbsTrainer] = {}
+        for trainer in rl_component_bundle.trainers:
             if self._proxy_address:
                 trainer.set_proxy_address(self._proxy_address)
             trainer.register_agent2policy(
-                rl_component_bundle.trainable_agent2policy,
-                rl_component_bundle.policy_trainer_mapping,
+                agent2policy=rl_component_bundle.trainable_agent2policy,
+                policy_trainer_mapping=rl_component_bundle.policy_trainer_mapping,
             )
-            trainer.register_policy_creator(
-                rl_component_bundle.trainable_policy_creator,
-                rl_component_bundle.policy_trainer_mapping,
+            trainer.register_policies(
+                policies=rl_component_bundle.policies,
+                policy_trainer_mapping=rl_component_bundle.policy_trainer_mapping,
             )
             trainer.register_logger(logger)
-            trainer.build()  # `build()` must be called after `register_policy_creator()`
-            self._trainer_dict[trainer_name] = trainer
+            trainer.build()  # `build()` must be called after `register_policies()`
+            self._trainer_dict[trainer.name] = trainer
 
         # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
         if explicit_assign_device:
             for policy_name, device_name in rl_component_bundle.device_mapping.items():
-                if policy_name not in rl_component_bundle.policy_trainer_mapping:  # No need to assign device
-                    continue
-
                 trainer = self._trainer_dict[rl_component_bundle.policy_trainer_mapping[policy_name]]
 
                 if isinstance(trainer, SingleAgentTrainer):

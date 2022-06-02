@@ -41,7 +41,7 @@ class SoftActorCriticOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
+        policy: RLPolicy,
         get_q_critic_net_func: Callable[[], QNet],
         parallelism: int = 1,
         *,
@@ -52,7 +52,7 @@ class SoftActorCriticOps(AbsTrainOps):
     ) -> None:
         super(SoftActorCriticOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             parallelism=parallelism,
         )
 
@@ -218,8 +218,8 @@ class SoftActorCriticTrainer(SingleAgentTrainer):
 
     def get_local_ops(self) -> SoftActorCriticOps:
         return SoftActorCriticOps(
-            name=self._policy_name,
-            policy_creator=self._policy_creator,
+            name=self._policy.name,
+            policy=self._policy,
             parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )

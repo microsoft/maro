@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import collections
 import os
-import typing
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
@@ -17,9 +16,6 @@ import torch
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.simulator import Env
-
-if typing.TYPE_CHECKING:
-    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 class AbsAgentWrapper(object, metaclass=ABCMeta):
@@ -89,7 +85,6 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     @abstractmethod
     def switch_to_eval_mode(self) -> None:
         """Switch the environment sampler to evaluation mode."""
-        raise NotImplementedError
 
 
 class SimpleAgentWrapper(AbsAgentWrapper):
@@ -238,6 +233,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     Args:
         learn_env (Env): Environment used for training.
         test_env (Env): Environment used for testing.
+        policies (List[AbsPolicy]): List of policies.
+        agent2policy (Dict[Any, str]): Agent name to policy name mapping of the RL job.
+        trainable_policies (List[str]): Name of trainable policies.
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int, default=None): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. If it is None, calculate reward immediately after `step()`.
@@ -247,6 +245,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self,
         learn_env: Env,
         test_env: Env,
+        policies: List[AbsPolicy],
+        agent2policy: Dict[Any, str],
+        trainable_policies: List[str] = None,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = None,
     ) -> None:
@@ -268,27 +269,19 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         assert self._reward_eval_delay is None or self._reward_eval_delay >= 0
 
-    def build(
-        self,
-        rl_component_bundle: RLComponentBundle,
-    ) -> None:
-        """
-        Args:
-            rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
-        """
+        #
         self._env: Optional[Env] = None
-
-        self._policy_dict = {
-            policy_name: rl_component_bundle.policy_creator[policy_name]()
-            for policy_name in rl_component_bundle.policy_names
-        }
-
+        self._policy_dict: Dict[str, AbsPolicy] = {policy.name: policy for policy in policies}
         self._rl_policy_dict: Dict[str, RLPolicy] = {
-            name: policy for name, policy in self._policy_dict.items() if isinstance(policy, RLPolicy)
+            policy.name: policy for policy in policies if isinstance(policy, RLPolicy)
         }
-        self._agent2policy = rl_component_bundle.agent2policy
+        self._agent2policy = agent2policy
         self._agent_wrapper = self._agent_wrapper_cls(self._policy_dict, self._agent2policy)
-        self._trainable_policies = set(rl_component_bundle.trainable_policy_names)
+
+        if trainable_policies is not None:
+            self._trainable_policies = trainable_policies
+        else:
+            self._trainable_policies = list(self._policy_dict.keys())  # Default: all policies are trainable
         self._trainable_agents = {
             agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
         }

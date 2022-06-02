@@ -56,7 +56,7 @@ class DDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
+        policy: RLPolicy,
         get_q_critic_net_func: Callable[[], QNet],
         reward_discount: float,
         parallelism: int = 1,
@@ -65,7 +65,7 @@ class DDPGOps(AbsTrainOps):
     ) -> None:
         super(DDPGOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             parallelism=parallelism,
         )
 
@@ -243,8 +243,8 @@ class DDPGTrainer(SingleAgentTrainer):
 
     def get_local_ops(self) -> AbsTrainOps:
         return DDPGOps(
-            name=self._policy_name,
-            policy_creator=self._policy_creator,
+            name=self._policy.name,
+            policy=self._policy,
             parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )

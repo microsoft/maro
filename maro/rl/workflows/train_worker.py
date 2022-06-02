@@ -4,7 +4,6 @@
 import importlib
 import os
 import sys
-from typing import Type
 
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training import TrainOpsWorker
@@ -17,8 +16,7 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(scenario_path))
     module = importlib.import_module(os.path.basename(scenario_path))
 
-    rl_component_bundle_cls: Type[RLComponentBundle] = getattr(module, "rl_component_bundle_cls")
-    rl_component_bundle = rl_component_bundle_cls()
+    rl_component_bundle: RLComponentBundle = getattr(module, "rl_component_bundle")
 
     worker_idx = int_or_none(get_env("ID"))
     logger = LoggerV2(

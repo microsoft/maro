@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
 import os
 import time
 from itertools import chain
@@ -209,3 +208,11 @@ class BatchEnvSampler:
 
     def exit(self) -> None:
         self._controller.exit()
+
+    def post_collect(self, info_list: list, ep: int) -> None:
+        req = {"type": "post_collect", "info_list": info_list, "index": ep}
+        self._controller.collect(req, 1)
+
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        req = {"type": "post_evaluate", "info_list": info_list, "index": ep}
+        self._controller.collect(req, 1)
