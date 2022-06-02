@@ -36,9 +36,15 @@ class AbsBusinessEngine(ABC):
     """
 
     def __init__(
-        self, scenario_name: str, event_buffer: EventBuffer, topology: Optional[str],
-        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: Optional[int],
-        additional_options: dict = None
+        self,
+        scenario_name: str,
+        event_buffer: EventBuffer,
+        topology: Optional[str],
+        start_tick: int,
+        max_tick: int,
+        snapshot_resolution: int,
+        max_snapshots: Optional[int],
+        additional_options: dict = None,
     ):
         self._scenario_name: str = scenario_name
         self._topology: str = topology
@@ -116,8 +122,11 @@ class AbsBusinessEngine(ABC):
         Returns:
             int: Max snapshot number for current configuration.
         """
-        return self._max_snapshots if self._max_snapshots is not None \
+        return (
+            self._max_snapshots
+            if self._max_snapshots is not None
             else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
+        )
 
     def update_config_root_path(self, business_engine_file_path: str) -> None:
         """Helper method used to update the config path with business engine path if you

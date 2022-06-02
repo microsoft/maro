@@ -42,11 +42,11 @@ def check_jwt_validity(func):
         user_details = redis_controller.get_user_details(user_id=payload["user_id"])
 
         # Get decrypted_bytes
-        if request.data != b'':
+        if request.data != b"":
             decrypted_bytes = _get_decrypted_bytes(
                 payload=payload,
                 encrypted_bytes=request.data,
-                user_details=user_details
+                user_details=user_details,
             )
             kwargs["json_dict"] = json.loads(decrypted_bytes.decode("utf-8"))
 
@@ -69,7 +69,7 @@ def check_jwt_validity(func):
 def _get_encrypted_bytes(json_dict: dict, aes_key: bytes, aes_ctr_nonce: bytes) -> bytes:
     cipher = Cipher(
         algorithm=algorithms.AES(key=aes_key),
-        mode=modes.CTR(nonce=aes_ctr_nonce)
+        mode=modes.CTR(nonce=aes_ctr_nonce),
     )
     encryptor = cipher.encryptor()
     return_bytes = encryptor.update(json.dumps(json_dict).encode("utf-8")) + encryptor.finalize()
@@ -80,21 +80,21 @@ def _get_decrypted_bytes(payload: dict, encrypted_bytes: bytes, user_details: di
     # Decrypted aes_key and aes_ctr_nonce
     dev_to_master_encryption_private_key_obj = serialization.load_pem_private_key(
         data=user_details["dev_to_master_encryption_private_key"].encode("utf-8"),
-        password=None
+        password=None,
     )
     aes_key = dev_to_master_encryption_private_key_obj.decrypt(
         ciphertext=base64.b64decode(payload["aes_key"].encode("ascii")),
-        padding=_get_asymmetric_padding()
+        padding=_get_asymmetric_padding(),
     )
     aes_ctr_nonce = dev_to_master_encryption_private_key_obj.decrypt(
         ciphertext=base64.b64decode(payload["aes_ctr_nonce"].encode("ascii")),
-        padding=_get_asymmetric_padding()
+        padding=_get_asymmetric_padding(),
     )
 
     # Return decrypted_bytes
     cipher = Cipher(
         algorithm=algorithms.AES(key=aes_key),
-        mode=modes.CTR(nonce=aes_ctr_nonce)
+        mode=modes.CTR(nonce=aes_ctr_nonce),
     )
     decryptor = cipher.decryptor()
     return decryptor.update(encrypted_bytes) + decryptor.finalize()
@@ -109,12 +109,12 @@ def build_response(return_json: dict, user_details: dict) -> Response:
     encrypted_bytes = _get_encrypted_bytes(
         json_dict=return_json,
         aes_key=aes_key,
-        aes_ctr_nonce=aes_ctr_nonce
+        aes_ctr_nonce=aes_ctr_nonce,
     )
 
     # Encrypt aes_key and aes_ctr_nonce with rsa_key_pair
     master_to_dev_encryption_public_key_obj = serialization.load_pem_public_key(
-        data=user_details["master_to_dev_encryption_public_key"].encode("utf-8")
+        data=user_details["master_to_dev_encryption_public_key"].encode("utf-8"),
     )
 
     # Build jwt_token
@@ -123,18 +123,18 @@ def build_response(return_json: dict, user_details: dict) -> Response:
             "aes_key": base64.b64encode(
                 master_to_dev_encryption_public_key_obj.encrypt(
                     plaintext=aes_key,
-                    padding=_get_asymmetric_padding()
-                )
+                    padding=_get_asymmetric_padding(),
+                ),
             ).decode("ascii"),
             "aes_ctr_nonce": base64.b64encode(
                 master_to_dev_encryption_public_key_obj.encrypt(
                     plaintext=aes_ctr_nonce,
-                    padding=_get_asymmetric_padding()
-                )
-            ).decode("ascii")
+                    padding=_get_asymmetric_padding(),
+                ),
+            ).decode("ascii"),
         },
         key=user_details["master_to_dev_signing_private_key"],
-        algorithm="RS512"
+        algorithm="RS512",
     )
 
     # Build response
@@ -147,5 +147,5 @@ def _get_asymmetric_padding():
     return padding.OAEP(
         mgf=padding.MGF1(algorithm=hashes.SHA256()),
         algorithm=hashes.SHA256(),
-        label=None
+        label=None,
     )

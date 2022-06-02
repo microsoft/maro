@@ -15,11 +15,11 @@ if os.environ.get("REMOTE_DEBUG") == "on":
     else:
         import ptvsd
 
-        public_ip = get('https://api.ipify.org').text
+        public_ip = get("https://api.ipify.org").text
         print("*******  Waiting for remote attach  ******")
-        print(tabulate([['remote', public_ip, port], ['local', '127.0.0.1', port]], headers=['Host', 'IP', 'Port']))
+        print(tabulate([["remote", public_ip, port], ["local", "127.0.0.1", port]], headers=["Host", "IP", "Port"]))
 
-        address = ('0.0.0.0', port)
+        address = ("0.0.0.0", port)
         ptvsd.enable_attach(address)
         ptvsd.wait_for_attach()
 

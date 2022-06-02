@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
 import os
 from multiprocessing import Pipe
 from multiprocessing.connection import Connection
@@ -29,6 +31,7 @@ class VectorEnv:
             env (VectorEnv): VectorEnv instance to send query command.
             node_name (str): Name of node bind to this wrapper, used for further querying.
         """
+
         def __init__(self, env, node_name: str):
             self.node_name = node_name
             self._env = env
@@ -61,7 +64,7 @@ class VectorEnv:
         decision_mode: DecisionMode = DecisionMode.Sequential,
         business_engine_cls: type = None,
         disable_finished_events: bool = False,
-        options: dict = {}
+        options: dict = {},
     ):
         self._is_env_started = False
 
@@ -86,7 +89,7 @@ class VectorEnv:
             decision_mode,
             business_engine_cls,
             disable_finished_events,
-            options
+            options,
         )
 
     @property
@@ -95,7 +98,7 @@ class VectorEnv:
         return self._batch_num
 
     @property
-    def snapshot_list(self) -> SnapshotListWrapper:
+    def snapshot_list(self) -> VectorEnv.SnapshotListWrapper:
         """SnapshotListWrapper: Snapshot list of environments, used to query states.
         The query result will be a list of numpy array."""
         return self._snapshot_wrapper
@@ -155,7 +158,7 @@ class VectorEnv:
             for proc in self._sub_process_list:
                 proc.join()
 
-            for pipe in (self._env_pipes + self._pipes):
+            for pipe in self._env_pipes + self._pipes:
                 if not pipe.closed:
                     pipe.close()
 

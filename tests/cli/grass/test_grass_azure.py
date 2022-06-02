@@ -12,13 +12,13 @@ import unittest
 import uuid
 
 import yaml
+from tests.cli.utils import record_running_time
 
 from maro.cli.grass.utils.params import NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError
-from tests.cli.utils import record_running_time
 
 
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require CLI prerequisites.")
@@ -43,7 +43,7 @@ class TestGrassAzure(unittest.TestCase):
     maro_pkg_path = os.path.normpath(os.path.join(test_file_path, "../../../../"))
     test_config_path = os.path.normpath(os.path.join(test_dir_path, "../config.yml"))
     create_deployment_template_path = os.path.normpath(
-        path=os.path.join(test_dir_path, "./modes/azure/grass_azure_create.yml")
+        path=os.path.join(test_dir_path, "./modes/azure/grass_azure_create.yml"),
     )
     create_deployment_path = f"{GlobalPaths.ABS_MARO_TEST}/{test_id}/grass_azure_create.yml"
 
@@ -92,8 +92,9 @@ class TestGrassAzure(unittest.TestCase):
         print(
             json.dumps(
                 cls.test_func_to_time,
-                indent=4, sort_keys=True
-            )
+                indent=4,
+                sort_keys=True,
+            ),
         )
 
         # Delete resource group.
@@ -484,7 +485,7 @@ class TestGrassAzure(unittest.TestCase):
 
         # Run command.
         start_job_dqn_template_path = os.path.normpath(
-            os.path.join(self.test_dir_path, "./modes/azure/grass_azure_start_job_dqn.yml")
+            os.path.join(self.test_dir_path, "./modes/azure/grass_azure_start_job_dqn.yml"),
         )
         command = f"maro grass job start {self.cluster_name} {start_job_dqn_template_path}"
         Subprocess.run(command=command)

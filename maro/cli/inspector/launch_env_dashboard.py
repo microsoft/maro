@@ -18,5 +18,5 @@ def launch_dashboard(source_path: str, scenario: GlobalScenarios, epoch_num: int
     vis_path = os.path.expanduser("~/.maro/vis/templates/visualization.py")
     os.system(
         f"streamlit run {vis_path} "
-        f"-- --source_path {source_path} --scenario {scenario.value} --epoch_num {epoch_num} --prefix {prefix}"
+        f"-- --source_path {source_path} --scenario {scenario.value} --epoch_num {epoch_num} --prefix {prefix}",
     )

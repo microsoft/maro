@@ -21,6 +21,7 @@ class VirtualMachine:
         memory_requirement (int): The memory requested by VM. The unit is (GBs).
         lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick.
     """
+
     def __init__(
         self,
         id: int,
@@ -30,7 +31,7 @@ class VirtualMachine:
         sub_id: int,
         deployment_id: int,
         category: VmCategory,
-        unit_price: float
+        unit_price: float,
     ):
         # VM Requirement parameters.
         self.id: int = id
@@ -56,7 +57,7 @@ class VirtualMachine:
         self.deletion_tick: int = -1
 
     def get_income_till_now(self, cur_tick: int):
-        """Get the VM's income which contains income from [creation_tick, current_tick). """
+        """Get the VM's income which contains income from [creation_tick, current_tick)."""
         return self.unit_price * (cur_tick - self.creation_tick)
 
     @property
@@ -89,5 +90,5 @@ class VirtualMachine:
             self._utilization_series.append(cpu_utilization)
 
     def get_historical_utilization_series(self, cur_tick: int) -> List[float]:
-        """"Only expose the CPU utilization series before the current tick."""
-        return self._utilization_series[:cur_tick - self.creation_tick + 1]
+        """ "Only expose the CPU utilization series before the current tick."""
+        return self._utilization_series[: cur_tick - self.creation_tick + 1]

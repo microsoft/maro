@@ -19,7 +19,7 @@ logger = CliLogger(name=__name__)
 class ResourceInfo:
     @staticmethod
     def get_static_info() -> dict:
-        """ Get static resource information about local environment.
+        """Get static resource information about local environment.
 
         Returns:
             Tuple[int, list]: (total cpu number, [cpu usage per core])
@@ -28,8 +28,8 @@ class ResourceInfo:
         static_info["cpu"] = psutil.cpu_count()
 
         memory = psutil.virtual_memory()
-        static_info["total_memory"] = round(float(memory.total) / (1024 ** 2), 2)
-        static_info["memory"] = round(float(memory.free) / (1024 ** 2), 2)
+        static_info["total_memory"] = round(float(memory.total) / (1024**2), 2)
+        static_info["memory"] = round(float(memory.free) / (1024**2), 2)
 
         gpu_static_command = "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits"
         try:
@@ -49,7 +49,7 @@ class ResourceInfo:
 
     @staticmethod
     def get_dynamic_info(interval: int = None) -> dict:
-        """ Get dynamic resource information about local environment.
+        """Get dynamic resource information about local environment.
 
         Returns:
             Tuple[float]: (total memory, free memory, used memory, memory usage)
@@ -90,7 +90,7 @@ class LocalResourceExecutor:
         if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "connections"):
             current_connection = self._redis_connection.hget(
                 LocalParams.RESOURCE_INFO,
-                "connections"
+                "connections",
             )
         else:
             current_connection = 0
@@ -100,7 +100,7 @@ class LocalResourceExecutor:
     def sub_cluster(self):
         current_connection = self._redis_connection.hget(
             LocalParams.RESOURCE_INFO,
-            "connections"
+            "connections",
         )
 
         self._redis_connection.hset(LocalParams.RESOURCE_INFO, "connections", json.dumps(int(current_connection) - 1))
@@ -112,7 +112,7 @@ class LocalResourceExecutor:
         # Stop resource agents.
         agent_pid = self._redis_connection.hget(
             LocalParams.RESOURCE_INFO,
-            "agent_pid"
+            "agent_pid",
         )
         close_by_pid(pid=int(agent_pid), recursive=True)
         logger.info("Resource agents exited!")
@@ -125,7 +125,7 @@ class LocalResourceExecutor:
     def get_available_resource(self):
         if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "available_resource"):
             available_resource = json.loads(
-                self._redis_connection.hget(LocalParams.RESOURCE_INFO, "available_resource")
+                self._redis_connection.hget(LocalParams.RESOURCE_INFO, "available_resource"),
             )
         else:
             available_resource = self.get_local_resource()
@@ -136,13 +136,13 @@ class LocalResourceExecutor:
         self._redis_connection.hset(
             LocalParams.RESOURCE_INFO,
             "available_resource",
-            json.dumps(available_resource)
+            json.dumps(available_resource),
         )
 
     def get_local_resource(self):
         if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "resource"):
             static_resource = json.loads(
-                self._redis_connection.hget(LocalParams.RESOURCE_INFO, "resource")
+                self._redis_connection.hget(LocalParams.RESOURCE_INFO, "resource"),
             )
         else:
             static_resource = ResourceInfo.get_static_info()
@@ -153,15 +153,18 @@ class LocalResourceExecutor:
         usage_dict = {}
         usage_dict["cpu"] = self._redis_connection.lrange(
             LocalParams.CPU_USAGE,
-            previous_length, -1
+            previous_length,
+            -1,
         )
         usage_dict["memory"] = self._redis_connection.lrange(
             LocalParams.MEMORY_USAGE,
-            previous_length, -1
+            previous_length,
+            -1,
         )
         usage_dict["gpu"] = self._redis_connection.lrange(
             LocalParams.GPU_USAGE,
-            previous_length, -1
+            previous_length,
+            -1,
         )
 
         return usage_dict

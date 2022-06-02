@@ -7,7 +7,7 @@ from maro.cli.inspector.cim_dashboard import start_cim_dashboard
 from maro.cli.inspector.citi_bike_dashboard import start_citi_bike_dashboard
 from maro.cli.inspector.params import GlobalScenarios
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--source_path", type=str)
     parser.add_argument("--scenario", type=str)

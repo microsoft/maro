@@ -16,7 +16,7 @@ app_backend = Flask(__name__)
 CORS(app_backend, supports_credentials=True)
 
 
-@app_backend.route('/get_latest_epoch', methods=['GET', 'POST'])
+@app_backend.route("/get_latest_epoch", methods=["GET", "POST"])
 def get_new_epoch() -> str:
     """Get the latest epoch number.
 
@@ -29,7 +29,7 @@ def get_new_epoch() -> str:
     return get_new_port_number(cur_experiment_name)
 
 
-@app_backend.route('/experiments', methods=['GET', 'POST'])
+@app_backend.route("/experiments", methods=["GET", "POST"])
 def get_existing_experiments() -> str:
     """Get a list of existing experiments.
 
@@ -40,7 +40,7 @@ def get_existing_experiments() -> str:
     return get_experiments()
 
 
-@app_backend.route('/pending_experiment', methods=['GET', 'POST'])
+@app_backend.route("/pending_experiment", methods=["GET", "POST"])
 def add_experiment() -> str:
     """Add a pending experiment.
 
@@ -53,7 +53,7 @@ def add_experiment() -> str:
     return add_pending_experiment(cur_experiment_name)
 
 
-@app_backend.route('/experiment_info', methods=['GET', 'POST'])
+@app_backend.route("/experiment_info", methods=["GET", "POST"])
 def get_basic_experiment_info() -> str:
     """Get basic experiment information.
 
@@ -64,7 +64,7 @@ def get_basic_experiment_info() -> str:
     return get_experiment_info()
 
 
-@app_backend.route('/get_snapshot_vessel', methods=['GET', 'POST'])
+@app_backend.route("/get_snapshot_vessel", methods=["GET", "POST"])
 def get_basic_vessel_info() -> str:
     """Get vessel information within one tick.
 
@@ -77,12 +77,14 @@ def get_basic_vessel_info() -> str:
     cur_snapshot_number = data["snapshot_number"]
     cur_epoch_number = data["epoch_number"]
     vessel_data = get_vessel_data(
-        cur_experiment_name, cur_epoch_number, cur_snapshot_number
+        cur_experiment_name,
+        cur_epoch_number,
+        cur_snapshot_number,
     )
     return vessel_data
 
 
-@app_backend.route('/get_acc_snapshot_vessel', methods=['GET', 'POST'])
+@app_backend.route("/get_acc_snapshot_vessel", methods=["GET", "POST"])
 def get_acc_vessel_info() -> str:
     """Get vessel information within a range.
 
@@ -96,12 +98,15 @@ def get_acc_vessel_info() -> str:
     snapshot_end_number = data["snapshot_end_number"]
     cur_epoch_number = data["epoch_number"]
     vessel_data = get_acc_vessel_data(
-        cur_experiment_name, cur_epoch_number, snapshot_start_number, snapshot_end_number
+        cur_experiment_name,
+        cur_epoch_number,
+        snapshot_start_number,
+        snapshot_end_number,
     )
     return vessel_data
 
 
-@app_backend.route('/get_snapshot_port', methods=['GET', 'POST'])
+@app_backend.route("/get_snapshot_port", methods=["GET", "POST"])
 def get_basic_port_info() -> str:
     """Get port information within one tick.
 
@@ -117,7 +122,7 @@ def get_basic_port_info() -> str:
     return port_data
 
 
-@app_backend.route('/get_acc_snapshot_port', methods=['GET', 'POST'])
+@app_backend.route("/get_acc_snapshot_port", methods=["GET", "POST"])
 def get_acc_port_info() -> str:
     """Get vessel information within a range.
 
@@ -131,12 +136,15 @@ def get_acc_port_info() -> str:
     snapshot_end_number = data["snapshot_end_number"]
     cur_epoch_number = data["epoch_number"]
     port_data = get_acc_port_data(
-        cur_experiment_name, cur_epoch_number, snapshot_start_number, snapshot_end_number
+        cur_experiment_name,
+        cur_epoch_number,
+        snapshot_start_number,
+        snapshot_end_number,
     )
     return port_data
 
 
-@app_backend.route('/get_snapshot_order', methods=['GET', 'POST'])
+@app_backend.route("/get_snapshot_order", methods=["GET", "POST"])
 def get_basic_order_info() -> str:
     """Get order information within one tick.
 
@@ -152,7 +160,7 @@ def get_basic_order_info() -> str:
     return order_data
 
 
-@app_backend.route('/get_acc_snapshot_order', methods=['GET', 'POST'])
+@app_backend.route("/get_acc_snapshot_order", methods=["GET", "POST"])
 def get_acc_order_info() -> str:
     """Get order information within a range.
 
@@ -169,7 +177,7 @@ def get_acc_order_info() -> str:
     return jsonify(order_data)
 
 
-@app_backend.route('/get_snapshot_attention', methods=['GET', 'POST'])
+@app_backend.route("/get_snapshot_attention", methods=["GET", "POST"])
 def get_basic_attention_info() -> str:
     """Get attention information within one tick.
 
@@ -185,7 +193,7 @@ def get_basic_attention_info() -> str:
     return attention_data
 
 
-@app_backend.route('/get_snapshot_decision', methods=['GET', 'POST'])
+@app_backend.route("/get_snapshot_decision", methods=["GET", "POST"])
 def get_basic_decision_info() -> str:
     """Get decision information within one tick.
 
@@ -201,7 +209,7 @@ def get_basic_decision_info() -> str:
     return decision_data
 
 
-@app_backend.route('/get_acc_snapshot_decision', methods=['GET', 'POST'])
+@app_backend.route("/get_acc_snapshot_decision", methods=["GET", "POST"])
 def get_acc_decision_info() -> str:
     """Get vessel information within a range.
 
@@ -215,12 +223,15 @@ def get_acc_decision_info() -> str:
     snapshot_end_number = data["snapshot_end_number"]
     cur_epoch_number = data["epoch_number"]
     decision_data = get_acc_decision_data(
-        cur_experiment_name, cur_epoch_number, snapshot_start_number, snapshot_end_number
+        cur_experiment_name,
+        cur_epoch_number,
+        snapshot_start_number,
+        snapshot_end_number,
     )
     return jsonify(decision_data)
 
 
-@app_backend.route('/get_acc_attrs', methods=['GET', 'POST'])
+@app_backend.route("/get_acc_attrs", methods=["GET", "POST"])
 def get_acc_attrs():
     """Get decision and order information within a range.
 
@@ -234,7 +245,10 @@ def get_acc_attrs():
     snapshot_end_number = data["snapshot_end_number"]
     cur_epoch_number = data["epoch_number"]
     decision_data = get_acc_decision_data(
-        cur_experiment_name, cur_epoch_number, snapshot_start_number, snapshot_end_number
+        cur_experiment_name,
+        cur_epoch_number,
+        snapshot_start_number,
+        snapshot_end_number,
     )
     order_data = get_acc_order_data(cur_experiment_name, cur_epoch_number, snapshot_start_number, snapshot_end_number)
     output = {"decision": decision_data, "order": order_data}
@@ -243,6 +257,6 @@ def get_acc_attrs():
 
 # Use Only For Local Debug
 # ************************************
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_backend.run(debug=False, port=5000, host="0.0.0.0")
 # ************************************

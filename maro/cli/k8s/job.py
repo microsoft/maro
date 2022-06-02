@@ -20,7 +20,7 @@ def start_job(cluster_name: str, deployment_path: str, **kwargs):
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
         executor.start_job(
-            deployment_path=deployment_path
+            deployment_path=deployment_path,
         )
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
@@ -40,7 +40,7 @@ def stop_job(cluster_name: str, job_name: str, **kwargs):
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
         executor.stop_job(
-            job_name=job_name
+            job_name=job_name,
         )
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")

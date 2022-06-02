@@ -50,7 +50,8 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
                 policy.set_state(policy_state)
 
     def choose_actions(
-        self, state_by_agent: Dict[Any, Union[np.ndarray, List[object]]]
+        self,
+        state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
     ) -> Dict[Any, Union[np.ndarray, List[object]]]:
         """Choose action according to the given (observable) states of all agents.
 
@@ -69,28 +70,25 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _choose_actions_impl(
-        self, state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
+        self,
+        state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
     ) -> Dict[Any, Union[np.ndarray, List[object]]]:
-        """Implementation of `choose_actions`.
-        """
+        """Implementation of `choose_actions`."""
         raise NotImplementedError
 
     @abstractmethod
     def explore(self) -> None:
-        """Switch all policies to exploration mode.
-        """
+        """Switch all policies to exploration mode."""
         raise NotImplementedError
 
     @abstractmethod
     def exploit(self) -> None:
-        """Switch all policies to exploitation mode.
-        """
+        """Switch all policies to exploitation mode."""
         raise NotImplementedError
 
     @abstractmethod
     def switch_to_eval_mode(self) -> None:
-        """Switch the environment sampler to evaluation mode.
-        """
+        """Switch the environment sampler to evaluation mode."""
         pass
 
 
@@ -103,7 +101,8 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
 
     def _choose_actions_impl(
-        self, state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
+        self,
+        state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
     ) -> Dict[Any, Union[np.ndarray, List[object]]]:
         # Aggregate states by policy
         states_by_policy = collections.defaultdict(list)  # {str: list of np.ndarray}
@@ -141,8 +140,8 @@ class SimpleAgentWrapper(AbsAgentWrapper):
 
 @dataclass
 class ExpElement:
-    """Stores the complete information for a tick.
-    """
+    """Stores the complete information for a tick."""
+
     tick: int
     state: np.ndarray
     agent_state_dict: Dict[Any, np.ndarray]
@@ -172,8 +171,10 @@ class ExpElement:
                 terminal_dict={agent_name: self.terminal_dict[agent_name]},
                 next_state=self.next_state,
                 next_agent_state_dict={
-                    agent_name: self.next_agent_state_dict[agent_name]
-                } if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict else {},
+                    agent_name: self.next_agent_state_dict[agent_name],
+                }
+                if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict
+                else {},
             )
         return ret
 
@@ -187,16 +188,18 @@ class ExpElement:
             Contents (Dict[str, ExpElement]): A dict that contains the ExpElements of all trainers. The key of this
                 dict is the trainer name.
         """
-        ret = collections.defaultdict(lambda: ExpElement(
-            tick=self.tick,
-            state=self.state,
-            agent_state_dict={},
-            action_dict={},
-            reward_dict={},
-            terminal_dict={},
-            next_state=self.next_state,
-            next_agent_state_dict=None if self.next_agent_state_dict is None else {},
-        ))
+        ret = collections.defaultdict(
+            lambda: ExpElement(
+                tick=self.tick,
+                state=self.state,
+                agent_state_dict={},
+                action_dict={},
+                reward_dict={},
+                terminal_dict={},
+                next_state=self.next_state,
+                next_agent_state_dict=None if self.next_agent_state_dict is None else {},
+            ),
+        )
         for agent_name, trainer_name in agent2trainer.items():
             if agent_name in self.agent_state_dict:
                 ret[trainer_name].agent_state_dict[agent_name] = self.agent_state_dict[agent_name]
@@ -290,14 +293,17 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             agent_id for agent_id, policy_name in self._agent2policy.items() if policy_name in self._trainable_policies
         }
 
-        assert all([policy_name in self._rl_policy_dict for policy_name in self._trainable_policies]), \
-            "All trainable policies must be RL policies!"
+        assert all(
+            [policy_name in self._rl_policy_dict for policy_name in self._trainable_policies],
+        ), "All trainable policies must be RL policies!"
 
     def assign_policy_to_device(self, policy_name: str, device: torch.device) -> None:
         self._rl_policy_dict[policy_name].to_device(device)
 
     def _get_global_and_agent_state(
-        self, event: object, tick: int = None,
+        self,
+        event: object,
+        tick: int = None,
     ) -> Tuple[Optional[object], Dict[Any, Union[np.ndarray, List[object]]]]:
         """Get the global and individual agents' states.
 
@@ -320,13 +326,17 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_global_and_agent_state_impl(
-        self, event: object, tick: int = None,
+        self,
+        event: object,
+        tick: int = None,
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         raise NotImplementedError
 
     @abstractmethod
     def _translate_to_env_action(
-        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: object,
+        self,
+        action_dict: Dict[Any, Union[np.ndarray, List[object]]],
+        event: object,
     ) -> Dict[Any, object]:
         """Translate model-generated actions into an object that can be executed by the env.
 
@@ -356,12 +366,15 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     def _step(self, actions: Optional[list]) -> None:
         _, self._event, self._end_of_episode = self._env.step(actions)
-        self._state, self._agent_state_dict = (None, {}) \
-            if self._end_of_episode else self._get_global_and_agent_state(self._event)
+        self._state, self._agent_state_dict = (
+            (None, {}) if self._end_of_episode else self._get_global_and_agent_state(self._event)
+        )
 
     def _calc_reward(self, cache_element: CacheElement) -> None:
         cache_element.reward_dict = self._get_reward(
-            cache_element.env_action_dict, cache_element.event, cache_element.tick,
+            cache_element.env_action_dict,
+            cache_element.event,
+            cache_element.tick,
         )
 
     def _append_cache_element(self, cache_element: Optional[CacheElement]) -> None:
@@ -396,11 +409,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._step(None)
 
     def _select_trainable_agents(self, original_dict: dict) -> dict:
-        return {
-            k: v
-            for k, v in original_dict.items()
-            if k in self._trainable_agents
-        }
+        return {k: v for k, v in original_dict.items() if k in self._trainable_agents}
 
     def sample(self, policy_state: Optional[Dict[str, dict]] = None, num_steps: Optional[int] = None) -> dict:
         """Sample experiences.
@@ -467,9 +476,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             experiences.append(cache_element.make_exp_element())
 
         self._agent_last_index = {
-            k: v - len(experiences)
-            for k, v in self._agent_last_index.items()
-            if v >= len(experiences)
+            k: v - len(experiences) for k, v in self._agent_last_index.items() if v >= len(experiences)
         }
 
         return {

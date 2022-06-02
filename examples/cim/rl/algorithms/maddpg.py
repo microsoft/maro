@@ -2,22 +2,21 @@
 # Licensed under the MIT license.
 
 from functools import partial
-from typing import Dict, List
+from typing import List
 
 import torch
 from torch.optim import Adam, RMSprop
 
 from maro.rl.model import DiscreteACBasedNet, FullyConnected, MultiQNet
 from maro.rl.policy import DiscretePolicyGradient
-from maro.rl.training.algorithms import DiscreteMADDPGTrainer, DiscreteMADDPGParams
-
+from maro.rl.training.algorithms import DiscreteMADDPGParams, DiscreteMADDPGTrainer
 
 actor_net_conf = {
     "hidden_dims": [256, 128, 64],
     "activation": torch.nn.Tanh,
     "softmax": True,
     "batch_norm": False,
-    "head": True
+    "head": True,
 }
 critic_net_conf = {
     "hidden_dims": [256, 128, 64],
@@ -25,7 +24,7 @@ critic_net_conf = {
     "activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": True,
-    "head": True
+    "head": True,
 }
 actor_learning_rate = 0.001
 critic_learning_rate = 0.001
@@ -64,9 +63,9 @@ def get_maddpg(state_dim: int, action_dims: List[int], name: str) -> DiscreteMAD
     return DiscreteMADDPGTrainer(
         name=name,
         params=DiscreteMADDPGParams(
-            reward_discount=.0,
+            reward_discount=0.0,
             num_epoch=10,
             get_q_critic_net_func=partial(get_multi_critic_net, state_dim, action_dims),
-            shared_critic=False
-        )
+            shared_critic=False,
+        ),
     )

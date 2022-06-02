@@ -20,7 +20,8 @@ attr_type_list = [
 
 # Load template for attribute accessors.
 attr_acc_template = open(
-    f"{raw_backend_path}/_raw_backend_attr_acc_.pyx.tml").read()
+    f"{raw_backend_path}/_raw_backend_attr_acc_.pyx.tml",
+).read()
 
 # Base code of raw backend.
 raw_backend_code = open(f"{raw_backend_path}/_raw_backend_.pyx").read()

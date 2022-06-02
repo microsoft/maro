@@ -22,7 +22,7 @@ class DetailsReader:
 
         with open(
             file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/users/{user_id}/user_details",
-            mode="r"
+            mode="r",
         ) as fr:
             user_details = yaml.safe_load(stream=fr)
             return user_details

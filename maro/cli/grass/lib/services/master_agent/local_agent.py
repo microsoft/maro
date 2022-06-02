@@ -67,12 +67,12 @@ class PendingJobAgent(mp.Process):
 
             # Allocation
             cluster_resource = json.loads(
-                self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource")
+                self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource"),
             )
             is_satisfied, updated_resource = resource_op(
                 cluster_resource,
                 job_detail["total_request_resource"],
-                ResourceOperation.ALLOCATION
+                ResourceOperation.ALLOCATION,
             )
             if not is_satisfied:
                 continue
@@ -82,17 +82,17 @@ class PendingJobAgent(mp.Process):
             self.redis_connection.lrem(f"{self.cluster_name}:pending_job_tickets", 0, job_name)
             # Update resource
             cluster_resource = json.loads(
-                self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource")
+                self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource"),
             )
             is_satisfied, updated_resource = resource_op(
                 cluster_resource,
                 job_detail["total_request_resource"],
-                ResourceOperation.ALLOCATION
+                ResourceOperation.ALLOCATION,
             )
             self.redis_connection.hset(
                 f"{self.cluster_name}:runtime_detail",
                 "available_resource",
-                json.dumps(updated_resource)
+                json.dumps(updated_resource),
             )
 
     def _start_job(self, job_detail: dict):
@@ -100,14 +100,8 @@ class PendingJobAgent(mp.Process):
         for component_type, command_info in job_detail["components"].items():
             for number in range(command_info["num"]):
                 container_name = NameCreator.create_name_with_uuid(prefix=component_type)
-                environment_parameters = (
-                    f"-e CONTAINER_NAME={container_name} "
-                    f"-e JOB_NAME={job_detail['name']} "
-                )
-                labels = (
-                    f"-l CONTAINER_NAME={container_name} "
-                    f"-l JOB_NAME={job_detail['name']} "
-                )
+                environment_parameters = f"-e CONTAINER_NAME={container_name} " f"-e JOB_NAME={job_detail['name']} "
+                labels = f"-l CONTAINER_NAME={container_name} " f"-l JOB_NAME={job_detail['name']} "
                 if int(command_info["resources"]["gpu"]) == 0:
                     component_command = START_CONTAINER_COMMAND.format(
                         cpu=command_info["resources"]["cpu"],
@@ -117,7 +111,7 @@ class PendingJobAgent(mp.Process):
                         environment_parameters=environment_parameters,
                         labels=labels,
                         image_name=command_info["image"],
-                        command=command_info["command"]
+                        command=command_info["command"],
                     )
                 else:
                     component_command = START_CONTAINER_WITH_GPU_COMMAND.format(
@@ -129,12 +123,15 @@ class PendingJobAgent(mp.Process):
                         environment_parameters=environment_parameters,
                         labels=labels,
                         image_name=command_info["image"],
-                        command=command_info["command"]
+                        command=command_info["command"],
                     )
 
                 completed_process = subprocess.run(
                     component_command,
-                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    encoding="utf8",
                 )
                 if completed_process.returncode != 0:
                     raise ResourceAllocationFailed(completed_process.stderr)
@@ -145,7 +142,7 @@ class PendingJobAgent(mp.Process):
         self.redis_connection.hset(
             f"{self.cluster_name}:job_details",
             job_detail["name"],
-            json.dumps(job_detail)
+            json.dumps(job_detail),
         )
 
 
@@ -163,7 +160,7 @@ class ContainerTrackingAgent(mp.Process):
 
     def _check_container_status(self):
         running_jobs = ContainerTrackingAgent.get_running_jobs(
-            self.redis_connection.hgetall(f"{self.cluster_name}:job_details")
+            self.redis_connection.hgetall(f"{self.cluster_name}:job_details"),
         )
 
         for job_name, job_detail in running_jobs.items():
@@ -174,7 +171,10 @@ class ContainerTrackingAgent(mp.Process):
                 command = f"docker inspect {container_name}"
                 completed_process = subprocess.run(
                     command,
-                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    encoding="utf8",
                 )
                 return_str = completed_process.stdout
                 inspect_details_list = json.loads(return_str)
@@ -229,7 +229,7 @@ class JobTrackingAgent(mp.Process):
 
     def _check_job_state(self):
         finished_jobs = self._get_finished_jobs(
-            self.redis_connection.hgetall(f"{self.cluster_name}:job_details")
+            self.redis_connection.hgetall(f"{self.cluster_name}:job_details"),
         )
 
         for job_name, job_detail in finished_jobs.items():
@@ -254,25 +254,31 @@ class JobTrackingAgent(mp.Process):
         for container_name in container_list:
             command = f"docker stop {container_name}"
             completed_process = subprocess.run(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf8",
             )
             if completed_process.returncode != 0:
                 raise ResourceAllocationFailed(completed_process.stderr)
 
     def _job_clear(self, job_name: str, release_resource: dict):
         cluster_resource = json.loads(
-            self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource")
+            self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource"),
         )
 
         # resource release
         _, updated_resource = resource_op(
-            cluster_resource, release_resource, ResourceOperation.RELEASE
+            cluster_resource,
+            release_resource,
+            ResourceOperation.RELEASE,
         )
 
         self.redis_connection.hset(
             f"{self.cluster_name}:runtime_detail",
             "available_resource",
-            json.dumps(updated_resource)
+            json.dumps(updated_resource),
         )
 
 
@@ -312,7 +318,7 @@ class MasterAgent:
         self.check_interval = self.cluster_detail["master"]["agents"]["check_interval"]
         self.redis_connection = redis.Redis(
             host="localhost",
-            port=self.cluster_detail["master"]["redis"]["port"]
+            port=self.cluster_detail["master"]["redis"]["port"],
         )
         self.redis_connection.hset(f"{self.cluster_name}:runtime_detail", "agent_id", os.getpid())
 
@@ -321,28 +327,28 @@ class MasterAgent:
         pending_job_agent = PendingJobAgent(
             cluster_name=self.cluster_name,
             redis_connection=self.redis_connection,
-            check_interval=self.check_interval
+            check_interval=self.check_interval,
         )
         pending_job_agent.start()
 
         killed_job_agent = KilledJobAgent(
             cluster_name=self.cluster_name,
             redis_connection=self.redis_connection,
-            check_interval=self.check_interval
+            check_interval=self.check_interval,
         )
         killed_job_agent.start()
 
         job_tracking_agent = JobTrackingAgent(
             cluster_name=self.cluster_name,
             redis_connection=self.redis_connection,
-            check_interval=self.check_interval
+            check_interval=self.check_interval,
         )
         job_tracking_agent.start()
 
         container_tracking_agent = ContainerTrackingAgent(
             cluster_name=self.cluster_name,
             redis_connection=self.redis_connection,
-            check_interval=self.check_interval
+            check_interval=self.check_interval,
         )
         container_tracking_agent.start()
 

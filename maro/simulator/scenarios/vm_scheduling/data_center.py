@@ -9,6 +9,7 @@ from maro.backends.frame import NodeAttribute, NodeBase, node
 @node("data_centers")
 class DataCenter(NodeBase):
     """Cluster node definition in frame."""
+
     id = NodeAttribute("i2")
     region_id = NodeAttribute("i2")
     zone_id = NodeAttribute("i2")

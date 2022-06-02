@@ -12,13 +12,13 @@ import unittest
 import uuid
 
 import yaml
+from tests.cli.utils import record_running_time
 
 from maro.cli.grass.utils.params import GrassParams, NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError
-from tests.cli.utils import record_running_time
 
 
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require CLI prerequisites.")
@@ -43,16 +43,16 @@ class TestGrassOnPremises(unittest.TestCase):
     maro_pkg_path = os.path.normpath(os.path.join(test_file_path, "../../../../"))
     test_config_path = os.path.normpath(os.path.join(test_dir_path, "../config.yml"))
     create_deployment_template_path = os.path.normpath(
-        path=os.path.join(test_dir_path, "./modes/on_premises/grass_on_premises_create.yml")
+        path=os.path.join(test_dir_path, "./modes/on_premises/grass_on_premises_create.yml"),
     )
     create_deployment_path = f"{GlobalPaths.ABS_MARO_TEST}/{test_id}/grass_on_premises_create.yml"
     join_cluster_deployment_template_path = os.path.normpath(
-        path=os.path.join(test_dir_path, "./modes/on_premises/grass_on_premises_join_cluster.yml")
+        path=os.path.join(test_dir_path, "./modes/on_premises/grass_on_premises_join_cluster.yml"),
     )
     join_cluster_deployment_path = f"{GlobalPaths.ABS_MARO_TEST}/{test_id}/grass_on_premises_join_cluster.yml"
     arm_template_file_path = os.path.normpath(path=os.path.join(test_dir_path, "./modes/on_premises/arm_template.json"))
     arm_parameters_file_path = os.path.normpath(
-        path=os.path.join(test_dir_path, "./modes/on_premises/arm_parameters.json")
+        path=os.path.join(test_dir_path, "./modes/on_premises/arm_parameters.json"),
     )
     arm_parameters_file_export_path = f"{GlobalPaths.ABS_MARO_TEST}/{test_id}/arm_parameters.yml"
 
@@ -95,7 +95,7 @@ class TestGrassOnPremises(unittest.TestCase):
             join_cluster_deployment = yaml.safe_load(stream=fr)
         cls._prepare_create_deployment(
             create_deployment=create_deployment,
-            join_cluster_deployment=join_cluster_deployment
+            join_cluster_deployment=join_cluster_deployment,
         )
         cls._prepare_join_cluster_deployment(join_cluster_deployment=join_cluster_deployment)
 
@@ -114,9 +114,9 @@ class TestGrassOnPremises(unittest.TestCase):
                 "default_username": cls.default_username,
                 "default_public_key": test_config["cloud/default_public_key"],
                 "ssh": {"port": GlobalParams.DEFAULT_SSH_PORT},
-                "api_server": {"port": GrassParams.DEFAULT_API_SERVER_PORT}
+                "api_server": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
             },
-            export_path=cls.arm_parameters_file_export_path
+            export_path=cls.arm_parameters_file_export_path,
         )
         AzureController.set_subscription(subscription=test_config["cloud/subscription"])
         AzureController.create_resource_group(resource_group=cls.resource_group, location=cls.location)
@@ -124,7 +124,7 @@ class TestGrassOnPremises(unittest.TestCase):
             resource_group=cls.resource_group,
             deployment_name="cluster",
             template_file_path=cls.arm_template_file_path,
-            parameters_file_path=cls.arm_parameters_file_export_path
+            parameters_file_path=cls.arm_parameters_file_export_path,
         )
 
     @classmethod
@@ -132,21 +132,21 @@ class TestGrassOnPremises(unittest.TestCase):
         # Get params.
         ip_addresses = AzureController.list_ip_addresses(
             resource_group=cls.resource_group,
-            vm_name="master-vm"
+            vm_name="master-vm",
         )
 
         # Saved create deployment.
         create_deployment["name"] = cls.cluster_name
         create_deployment["master"]["hostname"] = "master-vm"
-        create_deployment["master"]["public_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
-        )
-        create_deployment["master"]["private_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
-        )
-        join_cluster_deployment["master"]["private_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
-        )
+        create_deployment["master"]["public_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "publicIpAddresses"
+        ][0]["ipAddress"]
+        create_deployment["master"]["private_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "privateIpAddresses"
+        ][0]
+        join_cluster_deployment["master"]["private_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "privateIpAddresses"
+        ][0]
         with open(file=cls.create_deployment_path, mode="w") as fw:
             yaml.safe_dump(data=create_deployment, stream=fw)
 
@@ -155,17 +155,17 @@ class TestGrassOnPremises(unittest.TestCase):
         # Get params.
         ip_addresses = AzureController.list_ip_addresses(
             resource_group=cls.resource_group,
-            vm_name="node-vm"
+            vm_name="node-vm",
         )
 
         # Saved join cluster deployment.
         join_cluster_deployment["node"]["hostname"] = "node-vm"
-        join_cluster_deployment["node"]["public_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
-        )
-        join_cluster_deployment["node"]["private_ip_address"] = (
-            ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
-        )
+        join_cluster_deployment["node"]["public_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "publicIpAddresses"
+        ][0]["ipAddress"]
+        join_cluster_deployment["node"]["private_ip_address"] = ip_addresses[0]["virtualMachine"]["network"][
+            "privateIpAddresses"
+        ][0]
         with open(file=cls.join_cluster_deployment_path, mode="w") as fw:
             yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
@@ -177,8 +177,9 @@ class TestGrassOnPremises(unittest.TestCase):
         print(
             json.dumps(
                 cls.test_func_to_time,
-                indent=4, sort_keys=True
-            )
+                indent=4,
+                sort_keys=True,
+            ),
         )
 
         # Delete resource group.
@@ -473,7 +474,7 @@ class TestGrassOnPremises(unittest.TestCase):
 
         # Run command.
         start_job_dqn_template_path = os.path.normpath(
-            path=os.path.join(self.test_dir_path, "./modes/on_premises/grass_on_premises_start_job_dqn.yml")
+            path=os.path.join(self.test_dir_path, "./modes/on_premises/grass_on_premises_start_job_dqn.yml"),
         )
         command = f"maro grass job start {self.cluster_name} {start_job_dqn_template_path}"
         Subprocess.run(command=command)

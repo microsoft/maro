@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import unittest
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from maro.communication import SessionMessage, ZmqDriver
 
@@ -14,7 +14,6 @@ def message_receive(driver):
 
 @unittest.skipUnless(os.environ.get("test_with_zmq", False), "require zmq")
 class TestDriver(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         print(f"The ZMQ driver unit test start!")
@@ -44,7 +43,7 @@ class TestDriver(unittest.TestCase):
                 tag="unit_test",
                 source="sender",
                 destination=peer,
-                body="hello_world"
+                body="hello_world",
             )
             TestDriver.sender.send(message)
 
@@ -59,7 +58,7 @@ class TestDriver(unittest.TestCase):
             tag="unit_test",
             source="sender",
             destination="*",
-            body="hello_world"
+            body="hello_world",
         )
         TestDriver.sender.broadcast(topic="receiver", message=message)
 

@@ -9,6 +9,7 @@ from maro.backends.frame import NodeAttribute, NodeBase, node
 @node("zones")
 class Zone(NodeBase):
     """Zone node definition in frame."""
+
     id = NodeAttribute("i2")
     region_id = NodeAttribute("i2")
 

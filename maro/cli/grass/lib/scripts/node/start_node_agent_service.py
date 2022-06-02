@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # Rewrite data in .service and write it to systemd folder
     with open(
         file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service",
-        mode="r"
+        mode="r",
     ) as fr:
         service_file = fr.read()
     service_file = service_file.format(maro_shared_path=Paths.ABS_MARO_SHARED)

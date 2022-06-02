@@ -28,6 +28,7 @@ REMOVE_CONTAINERS = """sudo docker rm -f maro-fluentd-{cluster_id} maro-redis-{c
 
 # Master Deleter.
 
+
 class MasterDeleter:
     def __init__(self, local_cluster_details: dict):
         self._local_cluster_details = local_cluster_details
@@ -83,7 +84,7 @@ class Subprocess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            timeout=timeout
+            timeout=timeout,
         )
         if completed_process.returncode != 0:
             raise Exception(completed_process.stderr)

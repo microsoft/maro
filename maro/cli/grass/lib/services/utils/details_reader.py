@@ -8,8 +8,7 @@ from .params import Paths
 
 
 class DetailsReader:
-    """Reader class for details.
-    """
+    """Reader class for details."""
 
     @staticmethod
     def load_cluster_details(cluster_name: str) -> dict:

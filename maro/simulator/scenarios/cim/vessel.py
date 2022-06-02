@@ -54,14 +54,12 @@ def gen_vessel_definition(stop_nums: tuple):
 
         @property
         def name(self) -> str:
-            """str: Name of vessel (from config).
-            """
+            """str: Name of vessel (from config)."""
             return self._name
 
         @property
         def idx(self) -> int:
-            """int: Index of vessel.
-            """
+            """int: Index of vessel."""
             return self.index
 
         def set_init_state(self, name: str, container_volume: float, capacity: int, route_idx: int, empty: int):

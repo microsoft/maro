@@ -1,5 +1,3 @@
-
-
 """
 This script is used to launch data and vis services, and the start the experiment script.
 

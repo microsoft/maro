@@ -8,6 +8,7 @@ from maro.data_lib.binary_reader import BinaryReader
 
 class CpuReader:
     """A wrapper class for the BinaryReader."""
+
     def __init__(self, data_path: str, start_tick: int):
         # Use for re-initialization.
         self._data_path = data_path
@@ -15,7 +16,7 @@ class CpuReader:
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
             start_time_offset=self._cpu_reader.header.starttime,
             end_time_offset=self._cpu_reader.header.endtime,
-            time_unit="s"
+            time_unit="s",
         )
         while start_tick > self._cpu_reader.header.endtime:
             self._switch()
@@ -37,7 +38,7 @@ class CpuReader:
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
             start_time_offset=0,
             end_time_offset=self._cpu_reader.header.endtime - self._cpu_reader.header.starttime,
-            time_unit="s"
+            time_unit="s",
         )
 
     def _pick_up_items(self, cur_items: dict, tick: int):
@@ -72,5 +73,5 @@ class CpuReader:
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
             start_time_offset=self._cpu_reader.header.starttime,
             end_time_offset=self._cpu_reader.header.endtime,
-            time_unit="s"
+            time_unit="s",
         )

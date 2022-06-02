@@ -13,6 +13,7 @@ from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
 class DecisionMode(IntEnum):
     """Decision mode that interactive with agent."""
+
     # Ask agent to take action one by one.
     Sequential = 0
     # Ask agent to take action at same time, not supported yet.
@@ -24,27 +25,32 @@ class DecisionMode(IntEnum):
 class AbsEnv(ABC):
     """The main MARO simulator abstract class, which provides interfaces to agents.
 
-        Args:
-            scenario (str): Scenario name under maro/simulator/scenarios folder.
-            topology (str): Topology name under specified scenario folder.
-            start_tick (int): Start tick of the scenario, usually used for pre-processed data streaming.
-            durations (int): Duration ticks of this environment from start_tick.
-            snapshot_resolution (int): How many ticks will take a snapshot.
-            max_snapshots (int): Max in-memory snapshot number, less snapshots lower memory cost.
-            business_engine_cls(type): Class of business engine, if specified, then use it to construct be instance,
-                or will search internal by scenario.
-            disable_finished_events (bool): Disable finished events list, with this set to True, EventBuffer will
-                re-use finished event object, this reduce event object number.
-            options (dict): Additional parameters passed to business engine.
+    Args:
+        scenario (str): Scenario name under maro/simulator/scenarios folder.
+        topology (str): Topology name under specified scenario folder.
+        start_tick (int): Start tick of the scenario, usually used for pre-processed data streaming.
+        durations (int): Duration ticks of this environment from start_tick.
+        snapshot_resolution (int): How many ticks will take a snapshot.
+        max_snapshots (int): Max in-memory snapshot number, less snapshots lower memory cost.
+        business_engine_cls(type): Class of business engine, if specified, then use it to construct be instance,
+            or will search internal by scenario.
+        disable_finished_events (bool): Disable finished events list, with this set to True, EventBuffer will
+            re-use finished event object, this reduce event object number.
+        options (dict): Additional parameters passed to business engine.
     """
 
     def __init__(
-        self, scenario: str, topology: str,
-        start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
+        self,
+        scenario: str,
+        topology: str,
+        start_tick: int,
+        durations: int,
+        snapshot_resolution: int,
+        max_snapshots: int,
         decision_mode: DecisionMode,
         business_engine_cls: type,
         disable_finished_events: bool,
-        options: dict
+        options: dict,
     ):
         self._tick: int = start_tick
         self._scenario: str = scenario

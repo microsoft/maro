@@ -9,13 +9,15 @@ from maro.backends.frame import SnapshotList
 
 class VesselState(IntEnum):
     """State of vessel."""
+
     PARKING = 0
     SAILING = 1
 
 
 class ActionType(Enum):
     """Type of CIM action."""
-    LOAD = "load",
+
+    LOAD = ("load",)
     DISCHARGE = "discharge"
 
 
@@ -41,8 +43,13 @@ class Action:
         self.action_type: ActionType = action_type
 
     def __repr__(self):
-        return "%s {action_type: %r, port_idx: %r, vessel_idx: %r, quantity: %r}" % \
-            (self.__class__.__name__, str(self.action_type), self.port_idx, self.vessel_idx, self.quantity)
+        return "%s {action_type: %r, port_idx: %r, vessel_idx: %r, quantity: %r}" % (
+            self.__class__.__name__,
+            str(self.action_type),
+            self.port_idx,
+            self.vessel_idx,
+            self.quantity,
+        )
 
 
 class ActionScope:
@@ -58,8 +65,7 @@ class ActionScope:
         self.discharge = discharge
 
     def __repr__(self):
-        return "%s {load: %r, discharge: %r}" % \
-            (self.__class__.__name__, self.load, self.discharge)
+        return "%s {load: %r, discharge: %r}" % (self.__class__.__name__, self.load, self.discharge)
 
 
 class DecisionEvent:
@@ -75,11 +81,17 @@ class DecisionEvent:
         early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
             use function here to make it getting the value as late as possible.
     """
+
     summary_key = ["tick", "port_idx", "vessel_idx", "snapshot_list", "action_scope", "early_discharge"]
 
     def __init__(
-        self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
-        action_scope_func, early_discharge_func
+        self,
+        tick: int,
+        port_idx: int,
+        vessel_idx: int,
+        snapshot_list: SnapshotList,
+        action_scope_func,
+        early_discharge_func,
     ):
         self.tick = tick
         self.port_idx = port_idx
@@ -94,8 +106,7 @@ class DecisionEvent:
 
     @property
     def action_scope(self) -> ActionScope:
-        """ActionScope: Load and discharge scope for agent to generate decision.
-        """
+        """ActionScope: Load and discharge scope for agent to generate decision."""
         if self._action_scope is None:
             self._action_scope = self._action_scope_func(self.port_idx, self.vessel_idx)
 
@@ -103,8 +114,7 @@ class DecisionEvent:
 
     @property
     def early_discharge(self) -> int:
-        """int: Early discharge number of corresponding vessel.
-        """
+        """int: Early discharge number of corresponding vessel."""
         if self._early_discharge is None:
             self._early_discharge = self._early_discharge_func(self.vessel_idx)
 
@@ -119,7 +129,7 @@ class DecisionEvent:
             "port_idx": self.port_idx,
             "vessel_idx": self.vessel_idx,
             "action_scope": self.action_scope,
-            "early_discharge": self.early_discharge
+            "early_discharge": self.early_discharge,
         }
 
     def __setstate__(self, state):
@@ -130,5 +140,10 @@ class DecisionEvent:
         self._early_discharge = state["early_discharge"]
 
     def __repr__(self):
-        return "%s {port_idx: %r, vessel_idx: %r, action_scope: %r, early_discharge: %r}" % \
-            (self.__class__.__name__, self.port_idx, self.vessel_idx, self.action_scope, self.early_discharge)
+        return "%s {port_idx: %r, vessel_idx: %r, action_scope: %r, early_discharge: %r}" % (
+            self.__class__.__name__,
+            self.port_idx,
+            self.vessel_idx,
+            self.action_scope,
+            self.early_discharge,
+        )

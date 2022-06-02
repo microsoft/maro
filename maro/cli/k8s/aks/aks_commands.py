@@ -90,7 +90,7 @@ def get_storage_account_secret(resource_group_name: str, storage_account_name: s
     storage_key = storage_account_keys[0]["value"]
     secret_data = {
         "azurestorageaccountname": base64.b64encode(storage_account_name.encode()).decode(),
-        "azurestorageaccountkey": base64.b64encode(bytes(storage_key.encode())).decode()
+        "azurestorageaccountkey": base64.b64encode(bytes(storage_key.encode())).decode(),
     }
     k8s_ops.create_secret(K8S_SECRET_NAME, secret_data, namespace)
 
@@ -118,7 +118,7 @@ def get_resource_params(deployment_conf: dict) -> dict:
         "aksName": get_aks_name(name),
         "location": deployment_conf["location"],
         "storageAccountName": get_storage_account_name(name),
-        "fileShareName": get_fileshare_name(name)
+        "fileShareName": get_fileshare_name(name),
         # "virtualNetworkName": get_virtual_network_name(deployment_conf["location"], name)
     }
 
@@ -171,7 +171,7 @@ def init(deployment_conf_path: str, **kwargs):
         # Create ARM parameters and start deployment
         logger.info("Creating Azure resources...")
         resource_params = get_resource_params(deployment_conf)
-        with open(TEMPLATE_PATH, 'r') as fp:
+        with open(TEMPLATE_PATH, "r") as fp:
             template = json.load(fp)
 
         create_deployment(subscription, resource_group_name, name, template, resource_params)
@@ -191,12 +191,15 @@ def init(deployment_conf_path: str, **kwargs):
 
         # Dump the deployment configuration
         with open(DEPLOYMENT_CONF_PATH, "w") as fp:
-            json.dump({
-                "name": name,
-                "subscription": subscription,
-                "resource_group": resource_group_name,
-                "resources": resource_params
-            }, fp)
+            json.dump(
+                {
+                    "name": name,
+                    "subscription": subscription,
+                    "resource_group": resource_group_name,
+                    "resources": resource_params,
+                },
+                fp,
+            )
         logger.info_green(f"Cluster '{name}' is created")
     except Exception as e:
         # If failed, remove details folder, then raise
@@ -247,7 +250,10 @@ def add_job(conf_path: dict, **kwargs):
         azure_storage_utils.upload_to_fileshare(job_dir, load_path, name="loadpoint")
         volumes.append(
             k8s_manifest_generator.get_azurefile_volume_spec(
-                "loadpoint", f"{job_path_in_share}/loadpoint", K8S_SECRET_NAME)
+                "loadpoint",
+                f"{job_path_in_share}/loadpoint",
+                K8S_SECRET_NAME,
+            ),
         )
 
     # Start k8s jobs
@@ -256,8 +262,12 @@ def add_job(conf_path: dict, **kwargs):
     get_storage_account_secret(resource_group_name, resource_name["storageAccountName"], job_name)
     k8s_ops.create_service(
         k8s_manifest_generator.get_cross_namespace_service_access_manifest(
-            ADDRESS_REGISTRY_NAME, REDIS_HOST, deployment_conf["name"], ADDRESS_REGISTRY_PORT
-        ), job_name
+            ADDRESS_REGISTRY_NAME,
+            REDIS_HOST,
+            deployment_conf["name"],
+            ADDRESS_REGISTRY_PORT,
+        ),
+        job_name,
     )
     for component_name, (script, env) in parser.get_job_spec(containerize=True).items():
         container_spec = k8s_manifest_generator.get_container_spec(
@@ -265,13 +275,13 @@ def add_job(conf_path: dict, **kwargs):
             component_name,
             script,
             env,
-            volumes
+            volumes,
         )
         manifest = k8s_manifest_generator.get_job_manifest(
             resource_name["userPoolName"],
             component_name,
             container_spec,
-            volumes
+            volumes,
         )
         k8s_ops.create_job(manifest, job_name)
 

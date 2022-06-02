@@ -15,7 +15,13 @@ from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
 from .config import (
-    num_features, pm_attributes, pm_window_size, reward_shaping_conf, seed, test_reward_shaping_conf, test_seed,
+    num_features,
+    pm_attributes,
+    pm_window_size,
+    reward_shaping_conf,
+    seed,
+    test_reward_shaping_conf,
+    test_seed,
 )
 
 timestamp = str(time.time())
@@ -31,13 +37,15 @@ class VMEnvSampler(AbsEnvSampler):
         self._test_env.set_seed(test_seed)
 
         # adjust the ratio of the success allocation and the total income when computing the reward
-        self.num_pms = self._learn_env.business_engine._pm_amount # the number of pms
+        self.num_pms = self._learn_env.business_engine._pm_amount  # the number of pms
         self._durations = self._learn_env.business_engine._max_tick
         self._pm_state_history = np.zeros((pm_window_size - 1, self.num_pms, 2))
         self._legal_pm_mask = None
 
     def _get_global_and_agent_state_impl(
-        self, event: DecisionPayload, tick: int = None,
+        self,
+        event: DecisionPayload,
+        tick: int = None,
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         pm_state, vm_state = self._get_pm_state(), self._get_vm_state(event)
         # get the legal number of PM.
@@ -61,7 +69,9 @@ class VMEnvSampler(AbsEnvSampler):
         return None, {"AGENT": state}
 
     def _translate_to_env_action(
-        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: DecisionPayload,
+        self,
+        action_dict: Dict[Any, Union[np.ndarray, List[object]]],
+        event: DecisionPayload,
     ) -> Dict[Any, object]:
         if action_dict["AGENT"] == self.num_pms:
             return {"AGENT": PostponeAction(vm_id=event.vm_id, postpone_step=1)}
@@ -71,17 +81,17 @@ class VMEnvSampler(AbsEnvSampler):
     def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionPayload, tick: int) -> Dict[Any, float]:
         action = env_action_dict["AGENT"]
         conf = reward_shaping_conf if self._env == self._learn_env else test_reward_shaping_conf
-        if isinstance(action, PostponeAction):   # postponement
+        if isinstance(action, PostponeAction):  # postponement
             if np.sum(self._legal_pm_mask) != 1:
                 reward = -0.1 * conf["alpha"] + 0.0 * conf["beta"]
             else:
                 reward = 0.0 * conf["alpha"] + 0.0 * conf["beta"]
         else:
-            reward = self._get_allocation_reward(event, conf["alpha"], conf["beta"]) if event else .0
+            reward = self._get_allocation_reward(event, conf["alpha"], conf["beta"]) if event else 0.0
         return {"AGENT": np.float32(reward)}
 
     def _get_pm_state(self):
-        total_pm_info = self._env.snapshot_list["pms"][self._env.frame_index::pm_attributes]
+        total_pm_info = self._env.snapshot_list["pms"][self._env.frame_index :: pm_attributes]
         total_pm_info = total_pm_info.reshape(self.num_pms, len(pm_attributes))
 
         # normalize the attributes of pms' cpu and memory
@@ -99,21 +109,24 @@ class VMEnvSampler(AbsEnvSampler):
 
         # get the sequence pms' information
         self._pm_state_history = np.concatenate((self._pm_state_history, total_pm_info), axis=0)
-        return self._pm_state_history[-pm_window_size:, :, :] # (win_size, num_pms, 2)
+        return self._pm_state_history[-pm_window_size:, :, :]  # (win_size, num_pms, 2)
 
     def _get_vm_state(self, event):
-        return np.array([
-            event.vm_cpu_cores_requirement / self._max_cpu_capacity,
-            event.vm_memory_requirement / self._max_memory_capacity,
-            (self._durations - self._env.tick) * 1.0 / 200,   # TODO: CHANGE 200 TO SOMETHING CONFIGURABLE
-            self._env.business_engine._get_unit_price(event.vm_cpu_cores_requirement, event.vm_memory_requirement)
-        ])
+        return np.array(
+            [
+                event.vm_cpu_cores_requirement / self._max_cpu_capacity,
+                event.vm_memory_requirement / self._max_memory_capacity,
+                (self._durations - self._env.tick) * 1.0 / 200,  # TODO: CHANGE 200 TO SOMETHING CONFIGURABLE
+                self._env.business_engine._get_unit_price(event.vm_cpu_cores_requirement, event.vm_memory_requirement),
+            ],
+        )
 
     def _get_allocation_reward(self, event: DecisionPayload, alpha: float, beta: float):
         vm_unit_price = self._env.business_engine._get_unit_price(
-            event.vm_cpu_cores_requirement, event.vm_memory_requirement
+            event.vm_cpu_cores_requirement,
+            event.vm_memory_requirement,
         )
-        return (alpha + beta * vm_unit_price * min(self._durations - event.frame_index, event.remaining_buffer_time))
+        return alpha + beta * vm_unit_price * min(self._durations - event.frame_index, event.remaining_buffer_time)
 
     def _post_step(self, cache_element: CacheElement) -> None:
         self._info["env_metric"] = {k: v for k, v in self._env.metrics.items() if k != "total_latency"}
@@ -127,7 +140,9 @@ class VMEnvSampler(AbsEnvSampler):
         action = cache_element.action_dict["AGENT"]
         if cache_element.state:
             mask = cache_element.state[num_features:]
-            self._info["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append([action, mask])
+            self._info["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append(
+                [action, mask],
+            )
         self._info["action_sequence"].append(action)
 
     def _post_eval_step(self, cache_element: CacheElement) -> None:
