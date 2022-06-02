@@ -538,7 +538,6 @@ class CitiBikeToyPipeline(DataPipeline):
 
     def download(self, is_force: bool):
         """Toy datapipeline not need download process."""
-        pass
 
     def _station_dict_to_pd(self, station_dict):
         """Convert dictionary of station information to pd series."""
@@ -673,7 +672,6 @@ class WeatherToyPipeline(WeatherPipeline):
 
     def download(self, is_force: bool):
         """Toy datapipeline not need download process."""
-        pass
 
     def clean(self):
         """Clean the original data file."""

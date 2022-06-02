@@ -533,7 +533,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index."""
-        pass
 
     def get_node_mapping(self) -> dict:
         """dict: Node mapping."""

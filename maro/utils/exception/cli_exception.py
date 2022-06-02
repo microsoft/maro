@@ -29,21 +29,15 @@ class UserFault(CliError):
     """Users should be responsible for the errors.
     ErrorCode with 30XX."""
 
-    pass
-
 
 class ClientError(CliError):
     """MARO CLI should be responsible for the errors.
     ErrorCode with 31XX."""
 
-    pass
-
 
 class ServiceError(CliError):
     """MARO Services should be responsible for the errors.
     ErrorCode with 32XX."""
-
-    pass
 
 
 # Third Layer.

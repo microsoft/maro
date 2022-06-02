@@ -6,11 +6,11 @@ import subprocess
 import sys
 import threading
 import unittest
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 from tests.communication.utils import get_random_port, proxy_generator
 
-from maro.communication import Proxy, SessionMessage, dist
+from maro.communication import SessionMessage, dist
 
 
 def handler_function(that, proxy, message):

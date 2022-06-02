@@ -64,13 +64,13 @@ class AbsBusinessEngine(ABC):
     @abstractmethod
     def frame(self) -> FrameBase:
         """FrameBase: Frame instance of current business engine."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def snapshots(self) -> SnapshotList:
         """SnapshotList: Snapshot list of current frame, this is used to expose querying interface for outside."""
-        pass
+        raise NotImplementedError
 
     @property
     def scenario_name(self) -> str:
@@ -79,7 +79,7 @@ class AbsBusinessEngine(ABC):
     @abstractmethod
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index."""
-        pass
+        raise NotImplementedError
 
     def frame_index(self, tick: int) -> int:
         """Helper method for child class, used to get index of frame in snapshot list for specified tick.
@@ -170,18 +170,18 @@ class AbsBusinessEngine(ABC):
         Args:
             tick (int): Current tick from simulator.
         """
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def configs(self) -> dict:
         """dict: Configurations of this business engine."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def reset(self, keep_seed: bool = False) -> None:
         """Reset states business engine."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def set_seed(self, seed: int) -> None:
@@ -233,4 +233,3 @@ class AbsBusinessEngine(ABC):
         Args:
             folder (str): Folder to place dumped files.
         """
-        pass

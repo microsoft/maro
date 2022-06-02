@@ -81,59 +81,59 @@ class AbsEnv(ABC):
         Returns:
             tuple: a tuple of (metrics, decision event, is_done).
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def dump(self) -> None:
         """Dump environment for restore."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def reset(self) -> None:
         """Reset environment."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def configs(self) -> dict:
         """object: Configurations of current environment, this field would be different for different scenario."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def agent_idx_list(self) -> List[int]:
         """List[int]: Agent index list that related to this environment."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def name(self) -> str:
         """str: Name of current environment."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def tick(self) -> int:
         """int: Current tick of environment."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def frame_index(self) -> int:
         """int: Frame index in snapshot list for current tick, USE this for snapshot querying."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def summary(self) -> dict:
         """dict: Summary about current simulator, may include node details, and mappings."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def snapshot_list(self) -> SnapshotList:
         """SnapshotList: Current snapshot list, a snapshot list contains all the snapshots of frame at each tick."""
-        pass
+        raise NotImplementedError
 
     def set_seed(self, seed: int) -> None:
         """Set random seed used by simulator.
@@ -144,7 +144,6 @@ class AbsEnv(ABC):
         Args:
             seed (int): Seed to set.
         """
-        pass
 
     @property
     def metrics(self) -> dict:
@@ -158,7 +157,7 @@ class AbsEnv(ABC):
     @abstractmethod
     def get_finished_events(self) -> list:
         """list: All events finished so far."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_pending_events(self, tick: int) -> list:
@@ -167,7 +166,7 @@ class AbsEnv(ABC):
         Args:
             tick (int): Specified tick.
         """
-        pass
+        raise NotImplementedError
 
     def get_ticks_frame_index_mapping(self) -> dict:
         """Helper method to get current available ticks to related frame index mapping.
@@ -175,4 +174,3 @@ class AbsEnv(ABC):
         Returns:
             dict: Dictionary of avaliable tick to frame index, it would be 1 to N mapping if the resolution is not 1.
         """
-        pass

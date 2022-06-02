@@ -50,7 +50,6 @@ class DistanceFilter:
 
     def reset(self):
         """Reset internal states."""
-        pass
 
 
 class RequirementsFilter:
@@ -86,7 +85,6 @@ class RequirementsFilter:
 
     def reset(self):
         """Reset internal states."""
-        pass
 
 
 class TripsWindowFilter:

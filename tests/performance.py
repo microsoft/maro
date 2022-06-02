@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 from time import time
 
 from termgraph import termgraph as tg
@@ -57,7 +56,7 @@ def attribute_access(frame, times: int):
     n1 = frame.node1[0]
 
     for _ in range(times):
-        a = n1.a
+        n1.a
         n1.a = 12
 
     return time() - start_time

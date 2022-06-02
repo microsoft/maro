@@ -1,10 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import math
 import os
 import unittest
-from math import isnan
 
 import numpy as np
 import pandas as pd
@@ -161,7 +159,7 @@ class TestFrame(unittest.TestCase):
 
             # get attribute value with not supported parameter
             with self.assertRaises(BackendsGetItemInvalidException) as ctx:
-                a = static_node.a1["a"]
+                static_node.a1["a"]
 
             with self.assertRaises(BackendsSetItemInvalidException) as ctx:
                 static_node.a1["a"] = 1
@@ -380,7 +378,7 @@ class TestFrame(unittest.TestCase):
 
         # attribute getter failed too
         with self.assertRaises(Exception) as ctx:
-            a = second_static_node.a3
+            second_static_node.a3
 
         static_snapshots = frame.snapshots["static"]
 
@@ -451,7 +449,7 @@ class TestFrame(unittest.TestCase):
                 super().__init__(enable_snapshot=True, total_snapshot=10, backend_name="dynamic")
 
         with self.assertRaises(RuntimeError) as ctx:
-            frame = TestFrame()
+            TestFrame()
 
     def test_query_const_attribute_without_taking_snapshot(self):
         @node("test")
@@ -647,7 +645,7 @@ class TestFrame(unittest.TestCase):
 
         # default list attribute's size is 0, so index accessing will out of range
         with self.assertRaises(RuntimeError) as ctx:
-            a = n1a1[0]
+            n1a1[0]
 
         with self.assertRaises(RuntimeError) as ctx:
             n1a1.remove(0)

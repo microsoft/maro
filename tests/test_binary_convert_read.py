@@ -158,11 +158,11 @@ class TestBinaryConverter(unittest.TestCase):
         out_bin = os.path.join(out_dir, "trips.bin")
 
         meta_file = os.path.join("tests", "data", "data_lib", "case_3", "meta.yml")
-        csv_file = os.path.join("tests", "data", "data_lib", "trips.csv")
+        os.path.join("tests", "data", "data_lib", "trips.csv")
 
         # 12/31/2018 @ 11:59pm (UTC)
         with self.assertRaises(Exception) as ctx:
-            bct = BinaryConverter(out_bin, meta_file)
+            BinaryConverter(out_bin, meta_file)
 
 
 if __name__ == "__main__":

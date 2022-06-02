@@ -3,12 +3,10 @@
 
 import os
 import unittest
-from math import floor
 
-import numpy as np
 from tests.utils import backends_to_test
 
-from maro.simulator.core import BusinessEngineNotFoundError, Env
+from maro.simulator.core import Env
 from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
 from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index
 
@@ -373,11 +371,11 @@ class TestEnv(unittest.TestCase):
 
         # not exist scenario
         with self.assertRaises(ModuleNotFoundError) as ctx:
-            env = Env("None", "toy.5p_ssddd_l0.0", 100)
+            Env("None", "toy.5p_ssddd_l0.0", 100)
 
         # not exist topology
         with self.assertRaises(FileNotFoundError) as ctx:
-            env = Env("cim", "None", 100)
+            Env("cim", "None", 100)
 
     def test_get_avaiable_envs(self):
         scenario_names = get_scenarios()

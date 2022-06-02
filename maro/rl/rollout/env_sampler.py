@@ -89,7 +89,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     @abstractmethod
     def switch_to_eval_mode(self) -> None:
         """Switch the environment sampler to evaluation mode."""
-        pass
+        raise NotImplementedError
 
 
 class SimpleAgentWrapper(AbsAgentWrapper):
@@ -562,8 +562,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     def post_collect(self, info_list: list, ep: int) -> None:
         """Routines to be invoked at the end of training episodes"""
-        pass
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
         """Routines to be invoked at the end of evaluation episodes"""
-        pass

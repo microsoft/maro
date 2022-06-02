@@ -1,17 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import io
 import unittest
-
-import yaml
 
 from maro.data_lib import BinaryConverter
 from maro.event_buffer import EventBuffer
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, CpuReader, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, CpuReader
 from maro.simulator.scenarios.vm_scheduling.business_engine import VmSchedulingBusinessEngine
-from maro.utils import convert_dottable
 
 
 class TestCpuReader(unittest.TestCase):

@@ -2,11 +2,21 @@
 # Licensed under the MIT license.
 
 repos:
+- repo: https://github.com/myint/autoflake
+  rev: v1.4
+  hooks:
+    - id: autoflake
+      args:
+        - --in-place
+        - --remove-unused-variables
+        - --remove-all-unused-imports
+      exclude: .*/__init__\.py|setup\.py
 - repo: https://github.com/pycqa/isort
   rev: 5.10.1
   hooks:
     - id: isort
-      args: [--settings-path=.github/linters/pyproject.toml]
+      args:
+        - --settings-path=.github/linters/pyproject.toml
 - repo: https://github.com/asottile/add-trailing-comma
   rev: v2.2.3
   hooks:
@@ -17,7 +27,8 @@ repos:
   hooks:
     - id: black
       name: black (1st round)
-      args: [--config=.github/linters/pyproject.toml]
+      args:
+        - --config=.github/linters/pyproject.toml
 - repo: https://github.com/asottile/add-trailing-comma
   rev: v2.2.3
   hooks:
@@ -28,10 +39,12 @@ repos:
   hooks:
     - id: black
       name: black (2nd round)
-      args: [--config=.github/linters/pyproject.toml]
+      args:
+        - --config=.github/linters/pyproject.toml
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.7.9
   hooks:
     - id: flake8
-      args: [--config=.github/linters/tox.ini]
+      args:
+        - --config=.github/linters/tox.ini
       exclude: \.git|__pycache__|docs|build|dist|.*\.egg-info|docker_files|\.vscode|\.github|scripts|tests|maro\/backends\/.*.cp|setup.py

@@ -22,8 +22,6 @@ class DiscreteACBasedNet(DiscretePolicyNet, metaclass=ABCMeta):
     - set_state(self, net_state: dict) -> None:
     """
 
-    pass
-
 
 class ContinuousACBasedNet(ContinuousPolicyNet, metaclass=ABCMeta):
     """Policy net for policies that are trained by Actor-Critic or PPO algorithm and with continuous actions.

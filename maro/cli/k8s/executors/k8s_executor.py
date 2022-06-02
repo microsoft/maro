@@ -55,7 +55,7 @@ class K8sExecutor(abc.ABC):
         Returns:
             None.
         """
-        pass
+        raise NotImplementedError
 
     # maro k8s node
 
@@ -525,4 +525,4 @@ class K8sExecutor(abc.ABC):
         Returns:
             None.
         """
-        pass
+        raise NotImplementedError

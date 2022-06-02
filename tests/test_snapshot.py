@@ -1,10 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
 import unittest
 
-import numpy as np
 from tests.utils import backends_to_test
 
 from .test_frame import DYNAMIC_NODE_NUM, STATIC_NODE_NUM, build_frame

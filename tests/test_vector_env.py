@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import os
-import sys
 import unittest
 
 from maro.vector_env import VectorEnv

@@ -382,4 +382,4 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     @abstractmethod
     def _to_device_impl(self, device: torch.device) -> None:
         """Implementation of `to_device`."""
-        pass
+        raise NotImplementedError
