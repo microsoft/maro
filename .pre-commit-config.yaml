@@ -18,7 +18,6 @@ repos:
       args:
         - --settings-path=.github/linters/pyproject.toml
         - --check
-      exclude: maro/__init__\.py|setup\.py
 - repo: https://github.com/asottile/add-trailing-comma
   rev: v2.2.3
   hooks:
