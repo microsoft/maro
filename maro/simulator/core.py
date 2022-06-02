@@ -191,7 +191,7 @@ class Env(AbsEnv):
             dict: Dictionary of metrics, content and format is determined by business engine.
         """
 
-        return self._business_engine.get_metrics()
+        return self._business_engine.get_metrics
 
     def get_finished_events(self) -> List[ActualEvent]:
         """List[Event]: All events finished so far."""
@@ -276,7 +276,7 @@ class Env(AbsEnv):
                     else decision_events
 
                 # Yield current state first, and waiting for action.
-                actions = yield self._business_engine.get_metrics(), decision_events, False
+                actions = yield self._business_engine.get_metrics, decision_events, False
                 # archive decision events.
                 self._decision_events.append(decision_events)
 

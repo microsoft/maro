@@ -250,28 +250,20 @@ class DistributionUnit(UnitBase):
             self.data_model.pending_product_quantity = self._total_pending_quantity
             self._is_order_changed = False
 
-    def pending_order_daily(self, tick) -> list:
-
-        pending_order_daily : Dict[int, List[int]]=defaultdict(list)
-
+    def pending_order_daily(self, tick) -> Dict[int, List[int]]:
+        pending_order_daily_len = self.world.configs.settings["pending_order_len"]
+        pending_order_daily: Dict[int, List[int]] = defaultdict(lambda: [0] * pending_order_daily_len)
 
         for payload_list in self._payload_on_the_way.values():
             for payload in payload_list:
-                    arrival_tick = payload.arrival_tick
-                    order = payload.order
-                    vlt_info = self.facility.downstream_vlt_infos[order.sku_id][order.destination.id][order.vehicle_type]
-                    sku_id = order.sku_id
-                    lens = self.world.configs.settings["pending_order_len"]
+                arrival_tick = payload.arrival_tick
+                order = payload.order
+                sku_id = order.sku_id
+                dest_facility = order.destination
+                product = dest_facility.products[sku_id]
+                if arrival_tick - tick < pending_order_daily_len:
+                    pending_order_daily[product.id][arrival_tick - tick] = order.quantity
 
-                    if len(pending_order_daily) == 0:
-                        pending_order_daily[sku_id] = [0] * self.world.configs.settings["pending_order_len"]
-                    if vlt_info.vlt < self.world.configs.settings['pending_order_len']:
-                        pending_order_daily[order.sku_id][(arrival_tick - tick) % lens] = order.quantity
-                    else:
-                        if (tick + lens) >= payload.arrival_tick:
-                            if tick == payload.arrival_tick:
-                                pending_order_daily[order.sku_id] = shift(pending_order_daily[order.sku_id], -1, cval=0)
-                            else:pending_order_daily[order.sku_id][(arrival_tick - tick) % lens -1] = order.quantity
         return pending_order_daily
 
     def reset(self) -> None:

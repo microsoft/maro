@@ -190,7 +190,15 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for manufacture_unit in self._manufacture_dict.values():
             manufacture_unit.execute_manufacture(tick)
 
+    @property
     def get_metrics(self) -> dict:
+        pending_order_daily: Dict[int, list[int]] = defaultdict(lambda: [0] * self.world.configs.settings['pending_order_len'])
+        for facility in self.world.facilities.values():
+            if facility.distribution is None:
+                pending_order_daily[facility.id] = None
+            else:
+                pending_order_daily.update(facility.distribution.pending_order_daily(self._tick))
+
         if self._metrics_cache is None:
             self._metrics_cache = {
                 "products": {
@@ -198,18 +206,19 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "sale_mean": product.get_sale_mean(),
                         "sale_std": product.get_sale_std(),
                         "demand_mean": product.get_demand_mean(),
+                        "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
+                        "pending_order_daily":
+                            None if pending_order_daily[product.id] is None
+                            else pending_order_daily[product.id],
                     } for product in self._product_units
                 },
                 "facilities": {
                     facility.id: {
                         "in_transit_orders": facility.get_in_transit_orders(),
                         "pending_order":
-                            facility.distribution.pending_product_quantity if facility.distribution is not None
-                            else None,
-                        "pending_order_daily":
-                            None if facility.distribution is None
-                            else facility.distribution.pending_order_daily(self._tick),
+                            defaultdict(int) if facility.distribution is None
+                            else facility.distribution.pending_product_quantity,
                     } for facility in self.world.facilities.values()
                 }
             }

@@ -185,6 +185,10 @@ class ProductUnit(ExtendUnitBase):
         sale_means = self._get_sale_means()
         return 0.0 if len(sale_means) == 0 else float(np.std(sale_means))
 
+    def get_demand_std(self) -> float:
+        demand_means = self._get_demand_means()
+        return 0.0 if len(demand_means) == 0 else float(np.std(demand_means))
+
     def get_max_sale_price(self) -> float:
         price = 0.0
 
