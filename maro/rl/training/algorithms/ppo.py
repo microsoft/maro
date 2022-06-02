@@ -12,6 +12,7 @@ from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl.training.algorithms.base import ACBasedOps, ACBasedParams, ACBasedTrainer
 from maro.rl.utils import TransitionBatch, discount_cumsum, ndarray_to_tensor
+from maro.utils import clone
 
 
 @dataclass
@@ -45,7 +46,7 @@ class DiscretePPOWithEntropyOps(ACBasedOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
+        policy: RLPolicy,
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         reward_discount: float = 0.9,
@@ -57,7 +58,7 @@ class DiscretePPOWithEntropyOps(ACBasedOps):
     ) -> None:
         super(DiscretePPOWithEntropyOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             get_v_critic_net_func=get_v_critic_net_func,
             parallelism=parallelism,
             reward_discount=reward_discount,
@@ -69,7 +70,7 @@ class DiscretePPOWithEntropyOps(ACBasedOps):
         )
         assert is_discrete_action
         assert isinstance(self._policy, DiscretePolicyGradient)
-        self._policy_old = self._policy_creator()
+        self._policy_old = clone(policy)
         self.update_policy_old()
 
     def update_policy_old(self) -> None:
@@ -182,8 +183,8 @@ class DiscretePPOWithEntropyTrainer(ACBasedTrainer):
 
     def get_local_ops(self) -> DiscretePPOWithEntropyOps:
         return DiscretePPOWithEntropyOps(
-            name=self._policy_name,
-            policy_creator=self._policy_creator,
+            name=self._policy.name,
+            policy=self._policy,
             parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )

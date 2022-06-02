@@ -19,24 +19,23 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 
     Args:
         name (str): Name of the ops. This is usually a policy name.
-        policy_creator (Callable[[], RLPolicy]): Function to create a policy instance.
+        policy (RLPolicy): Policy instance.
         parallelism (int, default=1): Desired degree of data parallelism.
     """
 
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
+        policy: RLPolicy,
         parallelism: int = 1,
     ) -> None:
         super(AbsTrainOps, self).__init__()
         self._name = name
-        self._policy_creator = policy_creator
-        # Create the policy.
-        if self._policy_creator:
-            self._policy = self._policy_creator()
+        self._policy = policy
 
         self._parallelism = parallelism
+
+        self._device = None
 
     @property
     def name(self) -> str:
@@ -44,11 +43,11 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 
     @property
     def policy_state_dim(self) -> int:
-        return self._policy.state_dim if self._policy_creator else None
+        return self._policy.state_dim if self._policy else None
 
     @property
     def policy_action_dim(self) -> int:
-        return self._policy.action_dim if self._policy_creator else None
+        return self._policy.action_dim if self._policy else None
 
     @property
     def parallelism(self) -> int:
@@ -84,11 +83,11 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         """
         return self._policy.name, self._policy.get_state()
 
-    def set_policy_state(self, policy_state: object) -> None:
+    def set_policy_state(self, policy_state: dict) -> None:
         """Update the policy's state.
 
         Args:
-            policy_state (object): The policy state.
+            policy_state (dict): The policy state.
         """
         self._policy.set_state(policy_state)
 

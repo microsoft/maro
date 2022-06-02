@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from dataclasses import dataclass
-from typing import Callable, Dict
+from typing import Dict
 
 import torch
 
@@ -44,7 +45,7 @@ class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
+        policy: RLPolicy,
         parallelism: int = 1,
         reward_discount: float = 0.9,
         soft_update_coef: float = 0.1,
@@ -52,7 +53,7 @@ class DQNOps(AbsTrainOps):
     ) -> None:
         super(DQNOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             parallelism=parallelism,
         )
 
@@ -67,7 +68,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
 
-    def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+    def _get_batch_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the loss of the batch.
 
         Args:
@@ -77,6 +78,8 @@ class DQNOps(AbsTrainOps):
             loss (torch.Tensor): The loss of the batch.
         """
         assert isinstance(batch, TransitionBatch)
+        assert isinstance(self._policy, ValueBasedPolicy)
+
         self._policy.train()
         states = ndarray_to_tensor(batch.states, device=self._device)
         next_states = ndarray_to_tensor(batch.next_states, device=self._device)
@@ -99,7 +102,7 @@ class DQNOps(AbsTrainOps):
         return self._loss_func(q_values, target_q_values)
 
     @remote
-    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         """Compute the network's gradients of a batch.
 
         Args:
@@ -171,8 +174,8 @@ class DQNTrainer(SingleAgentTrainer):
 
     def get_local_ops(self) -> AbsTrainOps:
         return DQNOps(
-            name=self._policy_name,
-            policy_creator=self._policy_creator,
+            name=self._policy.name,
+            policy=self._policy,
             parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )

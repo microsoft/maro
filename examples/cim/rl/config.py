@@ -7,11 +7,6 @@ env_conf = {
     "durations": 560,
 }
 
-if env_conf["topology"].startswith("toy"):
-    num_agents = int(env_conf["topology"].split(".")[1][0])
-else:
-    num_agents = int(env_conf["topology"].split(".")[1][:2])
-
 port_attributes = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
 vessel_attributes = ["empty", "full", "remaining_space"]
 

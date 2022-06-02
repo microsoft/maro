@@ -55,7 +55,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
+        policy: RLPolicy,
         get_q_critic_net_func: Callable[[], MultiQNet],
         policy_idx: int,
         parallelism: int = 1,
@@ -67,7 +67,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
     ) -> None:
         super(DiscreteMADDPGOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             parallelism=parallelism,
         )
 
@@ -75,7 +75,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._shared_critic = shared_critic
 
         # Actor
-        if self._policy_creator:
+        if self._policy:
             assert isinstance(self._policy, DiscretePolicyGradient)
             self._target_policy: DiscretePolicyGradient = clone(self._policy)
             self._target_policy.set_name(f"target_{self._policy.name}")
@@ -90,8 +90,6 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_value_loss_func = q_value_loss_func
         self._update_target_every = update_target_every
         self._soft_update_coef = soft_update_coef
-
-        self._device = None
 
     def get_target_action(self, batch: MultiTransitionBatch) -> torch.Tensor:
         """Get the target policies' actions according to the batch.
@@ -248,7 +246,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
     def soft_update_target(self) -> None:
         """Soft update the target policies and target critics."""
-        if self._policy_creator:
+        if self._policy:
             self._target_policy.soft_update(self._policy, self._soft_update_coef)
         if not self._shared_critic:
             self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
@@ -264,13 +262,13 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._target_q_critic_net.set_state(ops_state_dict["target_critic"])
 
     def get_actor_state(self) -> dict:
-        if self._policy_creator:
+        if self._policy:
             return {"policy": self._policy.get_state(), "target_policy": self._target_policy.get_state()}
         else:
             return {}
 
     def set_actor_state(self, ops_state_dict: dict) -> None:
-        if self._policy_creator:
+        if self._policy:
             self._policy.set_state(ops_state_dict["policy"])
             self._target_policy.set_state(ops_state_dict["target_policy"])
 
@@ -282,7 +280,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
     def to_device(self, device: str) -> None:
         self._device = get_torch_device(device)
-        if self._policy_creator:
+        if self._policy:
             self._policy.to_device(self._device)
             self._target_policy.to_device(self._device)
 
@@ -310,8 +308,8 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         self._policy2agent = {}
 
     def build(self) -> None:
-        for policy_name in self._policy_creator:
-            self._ops_dict[policy_name] = self.get_ops(policy_name)
+        for policy in self._policy_dict.values():
+            self._ops_dict[policy.name] = self.get_ops(policy.name)
 
         self._actor_ops_list = list(self._ops_dict.values())
 
@@ -342,7 +340,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
         rewards: List[np.ndarray] = []
         agent_states: List[np.ndarray] = []
         next_agent_states: List[np.ndarray] = []
-        for policy_name in self._policy_names:
+        for policy_name in self._policy_dict:
             agent_name = self._policy2agent[policy_name]
             actions.append(np.vstack([exp_element.action_dict[agent_name] for exp_element in exp_elements]))
             rewards.append(np.array([exp_element.reward_dict[agent_name] for exp_element in exp_elements]))
@@ -386,7 +384,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             ops_params = dict(self._ops_params)
             ops_params.update(
                 {
-                    "policy_creator": self._policy_creator[name],
+                    "policy": self._policy_dict[name],
                     "policy_idx": self._policy_names.index(name),
                 },
             )

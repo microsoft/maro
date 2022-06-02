@@ -43,7 +43,7 @@ class ACBasedOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
+        policy: RLPolicy,
         get_v_critic_net_func: Callable[[], VNet],
         parallelism: int = 1,
         reward_discount: float = 0.9,
@@ -55,7 +55,7 @@ class ACBasedOps(AbsTrainOps):
     ) -> None:
         super(ACBasedOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             parallelism=parallelism,
         )
 
@@ -68,8 +68,6 @@ class ACBasedOps(AbsTrainOps):
         self._min_logp = min_logp
         self._v_critic_net = get_v_critic_net_func()
         self._is_discrete_action = is_discrete_action
-
-        self._device = None
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
@@ -266,8 +264,8 @@ class ACBasedTrainer(SingleAgentTrainer):
 
     def get_local_ops(self) -> AbsTrainOps:
         return ACBasedOps(
-            name=self._policy_name,
-            policy_creator=self._policy_creator,
+            name=self._policy.name,
+            policy=self._policy,
             parallelism=self._params.data_parallelism,
             **self._params.extract_ops_params(),
         )

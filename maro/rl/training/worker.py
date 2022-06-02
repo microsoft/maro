@@ -24,7 +24,7 @@ class TrainOpsWorker(AbsWorker):
     Args:
         idx (int): Integer identifier for the worker. It is used to generate an internal ID, "worker.{idx}",
             so that the proxy can keep track of its connection status.
-        rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
+        rl_component_bundle (RLComponentBundle): Resources to launch the RL workflow.
         producer_host (str): IP address of the proxy host to connect to.
         producer_port (int, default=10001): Port of the proxy host to connect to.
     """
@@ -62,13 +62,17 @@ class TrainOpsWorker(AbsWorker):
             ops_name, req = bytes_to_string(msg[0]), bytes_to_pyobj(msg[-1])
             assert isinstance(req, dict)
 
+            trainer_dict: Dict[str, AbsTrainer] = {
+                trainer.name: trainer for trainer in self._rl_component_bundle.trainers
+            }
+
             if ops_name not in self._ops_dict:
-                trainer_name = ops_name.split(".")[0]
+                trainer_name = self._rl_component_bundle.policy_trainer_mapping[ops_name]
                 if trainer_name not in self._trainer_dict:
-                    trainer = self._rl_component_bundle.trainer_creator[trainer_name]()
-                    trainer.register_policy_creator(
-                        self._rl_component_bundle.trainable_policy_creator,
-                        self._rl_component_bundle.policy_trainer_mapping,
+                    trainer = trainer_dict[trainer_name]
+                    trainer.register_policies(
+                        policies=self._rl_component_bundle.policies,
+                        policy_trainer_mapping=self._rl_component_bundle.policy_trainer_mapping,
                     )
                     self._trainer_dict[trainer_name] = trainer
 
