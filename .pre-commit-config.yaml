@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 repos:
+<<<<<<< HEAD
 - repo: https://github.com/myint/autoflake
   rev: v1.4
   hooks:
@@ -11,13 +12,19 @@ repos:
         - --remove-unused-variables
         - --remove-all-unused-imports
       exclude: .*/__init__\.py|setup\.py
+=======
+>>>>>>> c96ae153 (Config files)
 - repo: https://github.com/pycqa/isort
   rev: 5.10.1
   hooks:
     - id: isort
+<<<<<<< HEAD
       args:
         - --settings-path=.github/linters/pyproject.toml
         - --check
+=======
+      args: [--settings-path=.github/linters/.pyproject.toml]
+>>>>>>> c96ae153 (Config files)
 - repo: https://github.com/asottile/add-trailing-comma
   rev: v2.2.3
   hooks:
@@ -28,8 +35,12 @@ repos:
   hooks:
     - id: black
       name: black (1st round)
+<<<<<<< HEAD
       args:
         - --config=.github/linters/pyproject.toml
+=======
+      args: [--config=.github/linters/.pyproject.toml]
+>>>>>>> c96ae153 (Config files)
 - repo: https://github.com/asottile/add-trailing-comma
   rev: v2.2.3
   hooks:
@@ -40,12 +51,20 @@ repos:
   hooks:
     - id: black
       name: black (2nd round)
+<<<<<<< HEAD
       args:
         - --config=.github/linters/pyproject.toml
+=======
+      args: [--config=.github/linters/.pyproject.toml]
+>>>>>>> c96ae153 (Config files)
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.7.9
   hooks:
     - id: flake8
+<<<<<<< HEAD
       args:
         - --config=.github/linters/tox.ini
+=======
+      args: [--config=.github/linters/tox.ini]
+>>>>>>> c96ae153 (Config files)
       exclude: \.git|__pycache__|docs|build|dist|.*\.egg-info|docker_files|\.vscode|\.github|scripts|tests|maro\/backends\/.*.cp|setup.py
