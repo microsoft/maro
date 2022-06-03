@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import csv
-import json
 import os
 from typing import List
 
