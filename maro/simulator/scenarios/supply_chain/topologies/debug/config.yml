@@ -1,0 +1,670 @@
+facility_definitions:
+  # Key: would be used as definition_ref in world.facilities
+  PlantFacility:
+    children:
+      distribution:
+        class: DistributionUnit
+      storage:
+        class: StorageUnit
+    class: SupplierFacility
+    datamodel: FacilityDataModel
+    products:
+      class: ProductUnit
+      config:
+        consumer:
+          class: ConsumerUnit
+        manufacture:
+          class: ManufactureUnit
+
+  WarehouseFacility:
+    class: WarehouseFacility
+    children:
+      storage:
+        class: StorageUnit
+      distribution:
+        class: DistributionUnit
+    products:
+      class: ProductUnit
+      config:
+        consumer:
+          class: ConsumerUnit
+
+  StoreFacility:
+    class: OuterRetailerFacility
+    datamodel: FacilityDataModel
+    children:
+      storage:
+        class: StorageUnit
+    products:
+      class: StoreProductUnit
+      config:
+        consumer:
+          class: ConsumerUnit
+        seller:
+          class: OuterSellerUnit
+          config:
+            sale_hist_len: 14
+    config:
+      datetime_column: Date
+      demand_column: Demand
+      dynamics_sampler_type: processed_price_demand
+      file_path: /path/to/data.csv
+      price_column: Price
+      sku_column: SkuName
+
+
+single_storage: &single_storage
+  config:
+    capacity: 1000000
+    unit_storage_cost: 0.1
+
+
+simple_distribution: &simple_distribution
+  config:
+    train:
+      number: 1000
+
+
+world:
+  skus:
+    - id: 33554441
+      name: sku_0
+
+    - id: 1
+      name: sku_1
+
+    - id: 2
+      name: sku_2
+
+    - id: 3
+      name: sku_3
+
+    - id: 4
+      name: sku_4
+
+    - id: 5
+      name: sku_5
+
+    - id: 6
+      name: sku_6
+
+    - id: 7
+      name: sku_7
+
+    - id: 8
+      name: sku_8
+
+    - id: 9
+      name: sku_9
+
+  facilities:
+    - name: Plant
+      definition_ref: PlantFacility
+      skus:
+        sku_0:
+          price: 7.81
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 3
+        sku_1:
+          price: 7.78
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 3
+        sku_2:
+          price: 5.22
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 2
+        sku_3:
+          price: 26.22
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 13
+        sku_4:
+          price: 5.67
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 2
+        sku_5:
+          price: 5.17
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 2
+        sku_6:
+          price: 6.9
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 3
+        sku_7:
+          price: 12.67
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 6
+        sku_8:
+          price: 17.31
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 8
+        sku_9:
+          price: 19.37
+          init_stock: 1000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 9
+      children:
+        storage: *single_storage
+        distribution: *simple_distribution
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 1
+
+    - name: Store_4803
+      definition_ref: StoreFacility
+      skus:
+        sku_0:
+          price: 17.29
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_1:
+          price: 17.01
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_2:
+          price: 11.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_3:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_4:
+          price: 12.57
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_5:
+          price: 11.46
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_6:
+          price: 15.38
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_7:
+          price: 28.17
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_8:
+          price: 38.96
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_9:
+          price: 42.95
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/debug/debug_data/Store_4803.csv"
+
+    - name: Store_4830
+      definition_ref: StoreFacility
+      skus:
+        sku_0:
+          price: 17.29
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_1:
+          price: 17.01
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_2:
+          price: 11.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_3:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_4:
+          price: 12.57
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_5:
+          price: 11.46
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_6:
+          price: 15.38
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_7:
+          price: 28.17
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_8:
+          price: 38.96
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_9:
+          price: 42.95
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/debug/debug_data/Store_4830.csv"
+
+    - name: Store_6505
+      definition_ref: StoreFacility
+      skus:
+        sku_0:
+          price: 17.29
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_1:
+          price: 17.01
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_2:
+          price: 11.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_3:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_4:
+          price: 12.57
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_5:
+          price: 11.46
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_6:
+          price: 15.38
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_7:
+          price: 28.17
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_8:
+          price: 38.96
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+        sku_9:
+          price: 42.95
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 2.0
+          backlog_ratio: 0.1
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/debug/debug_data/Store_6505.csv"
+
+  topology:
+    Store_4803:
+      sku_0:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_1:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_2:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_3:
+        Plant:
+          train:
+            cost: 1
+            vlt: 5
+      sku_4:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_5:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_6:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_7:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      sku_8:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      sku_9:
+        Plant:
+          train:
+            cost: 1
+            vlt: 3
+
+    Store_4830:
+      sku_0:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_1:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_2:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_3:
+        Plant:
+          train:
+            cost: 1
+            vlt: 5
+      sku_4:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_5:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_6:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_7:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      sku_8:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      sku_9:
+        Plant:
+          train:
+            cost: 1
+            vlt: 3
+
+    Store_6505:
+      sku_0:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_1:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_2:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_3:
+        Plant:
+          train:
+            cost: 1
+            vlt: 5
+      sku_4:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_5:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_6:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      sku_7:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      sku_8:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      sku_9:
+        Plant:
+          train:
+            cost: 1
+            vlt: 3
+
+
+settings:
+  pending_order_len: 4
+  start_date_time: "2021-07-01"
+
+
+policy_parameter:
+  facilities:
+    Plant:
+      max_price: 100
+    Store_4803:
+      max_price: 100
+    Store_4830:
+      max_price: 100
+    Store_6505:
+      max_price: 100

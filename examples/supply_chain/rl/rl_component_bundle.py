@@ -19,6 +19,7 @@ from .algorithms.dqn import get_dqn, get_dqn_policy
 from .algorithms.ppo import get_ppo, get_ppo_policy
 from .algorithms.rule_based import ManufacturerSSPolicy, ConsumerMinMaxPolicy
 from .algorithms.base_stock_policy import BaseStockPolicy
+from .algorithms.debug_policy import DebugPolicy
 from .config import ALGO, NUM_CONSUMER_ACTIONS, SHARED_MODEL, env_conf, test_env_conf, base_policy_conf
 from .env_sampler import SCEnvSampler
 from .rl_agent_state import STATE_DIM
@@ -45,6 +46,8 @@ def entity2policy(entity: SupplyChainEntity, facility_info_dict: Dict[int, Facil
 
         else:
             product_info = facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+            if ALGO == "Debug" and product_info.seller_info:
+                return "debug_policy"
             if ALGO == "BSP" and product_info.seller_info:
                 return "base_stock_policy"
             else:
@@ -84,6 +87,7 @@ class SupplyChainBundle(RLComponentBundle):
     def get_policy_creator(self) -> Dict[str, Callable[[], AbsPolicy]]:
         get_policy = (get_dqn_policy if ALGO == "DQN" else get_ppo_policy)
         policy_creator = {
+            "debug_policy": lambda: DebugPolicy("debug_policy"),
             "consumer_baseline_policy": lambda: ConsumerMinMaxPolicy("consumer_baseline_policy"),
             "base_stock_policy": lambda: BaseStockPolicy("base_stock_policy", base_policy_conf),
             "manufacturer_policy": lambda: ManufacturerSSPolicy("manufacture_policy"),

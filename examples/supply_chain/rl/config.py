@@ -45,8 +45,8 @@ def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo
         raise(f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
 
 
-ALGO = "BSP"
-assert ALGO in ["DQN", "EOQ", "PPO", "BSP"], "wrong ALGO"
+ALGO = "Debug"
+assert ALGO in ["DQN", "EOQ", "PPO", "BSP", "Debug"], "wrong ALGO"
 
 TEAM_REWARD = False
 SHARED_MODEL = False
@@ -64,11 +64,11 @@ storage_enlarged = False
 #     f"_{selection.value}"
 #     f"{'_storage_enlarged' if storage_enlarged else ''}"
 # )
-TOPOLOGY = "super_vendor"
+# TOPOLOGY = "super_vendor"
+TOPOLOGY = "debug"
 
-TRAIN_STEPS = 180
-EVAL_STEPS = 60
-
+TRAIN_STEPS = 1
+EVAL_STEPS = 91
 PLOT_RENDER = False
 
 env_conf = {
