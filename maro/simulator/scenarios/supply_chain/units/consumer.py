@@ -8,8 +8,6 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
-from scipy.ndimage.interpolation import shift
-
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction
 from maro.simulator.scenarios.supply_chain.datamodels import ConsumerDataModel
 from maro.simulator.scenarios.supply_chain.order import Order
@@ -37,7 +35,7 @@ class ConsumerUnit(ExtendUnitBase):
         super(ConsumerUnit, self).__init__(
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
-
+        self.pending_order_daily: Optional[list[int]] = None
         self._open_orders = Counter()
         self._in_transit_quantity: int = 0
 
@@ -89,7 +87,6 @@ class ConsumerUnit(ExtendUnitBase):
         super(ConsumerUnit, self).initialize()
 
         self._unit_order_cost = self.facility.skus[self.sku_id].unit_order_cost
-
 
         assert isinstance(self.data_model, ConsumerDataModel)
 
@@ -190,3 +187,7 @@ class ConsumerUnit(ExtendUnitBase):
             **super(ConsumerUnit, self).get_unit_info().__dict__,
             source_facility_id_list=self.source_facility_id_list,
         )
+
+    def clear_pending_order_daily(self):
+        self.pending_order_daily = [0] * self.world.configs.settings['pending_order_len']
+

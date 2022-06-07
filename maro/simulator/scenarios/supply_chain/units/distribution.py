@@ -3,12 +3,10 @@
 
 from __future__ import annotations
 
-import collections
 import typing
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
-from scipy.ndimage.interpolation import shift
 
 from maro.simulator.scenarios.supply_chain.order import Order
 
@@ -138,8 +136,8 @@ class DistributionUnit(UnitBase):
         """
         return self.facility.storage.try_take_products({sku_id: quantity})
 
-    def _try_unload(self, payload: DistributionPayload ) -> bool:
-        """Try unload products into destination's storage."""
+    def _try_unload(self, payload: DistributionPayload) -> bool:
+        """Try to unload products into destination's storage."""
         unloaded = payload.order.destination.storage.try_add_products(
             {payload.order.sku_id: payload.payload},
             add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
@@ -250,21 +248,14 @@ class DistributionUnit(UnitBase):
             self.data_model.pending_product_quantity = self._total_pending_quantity
             self._is_order_changed = False
 
-    def pending_order_daily(self, tick) -> Dict[int, List[int]]:
-        pending_order_daily_len = self.world.configs.settings["pending_order_len"]
-        pending_order_daily: Dict[int, List[int]] = defaultdict(lambda: [0] * pending_order_daily_len)
+    def calc_pending_order_daily(self, tick) -> None:
 
-        for payload_list in self._payload_on_the_way.values():
+        for arrival_tick, payload_list in self._payload_on_the_way.items():
             for payload in payload_list:
-                arrival_tick = payload.arrival_tick
-                order = payload.order
-                sku_id = order.sku_id
-                dest_facility = order.destination
-                product = dest_facility.products[sku_id]
-                if arrival_tick - tick < pending_order_daily_len:
-                    pending_order_daily[product.id][arrival_tick - tick] = order.quantity
-
-        return pending_order_daily
+                if 0 <= arrival_tick - tick < self.world.configs.settings["pending_order_len"]:
+                    order = payload.order
+                    consumer = order.destination.products[order.sku_id].consumer
+                    consumer.pending_order_daily[arrival_tick - tick] = order.quantity
 
     def reset(self) -> None:
         super(DistributionUnit, self).reset()
