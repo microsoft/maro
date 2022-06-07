@@ -3,7 +3,7 @@
 
 from abc import abstractmethod
 from functools import partial
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler
@@ -155,7 +155,11 @@ class RLComponentBundle(object):
 
         required_policies = set(self.agent2policy.values())
         self.policy_creator = {name: self.policy_creator[name] for name in required_policies}
-        self.policy_trainer_mapping = {name: self.policy_trainer_mapping[name] for name in required_policies}
+        self.policy_trainer_mapping = {
+            name: self.policy_trainer_mapping[name]
+            for name in required_policies
+            if name in self.policy_trainer_mapping
+        }
         self.policy_names = list(required_policies)
         assert len(required_policies) == len(self.policy_creator)  # Should have same size after filter
 

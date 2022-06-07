@@ -43,7 +43,7 @@ class ParallelTaskController(object):
         while len(self._workers) < k:
             self._workers.add(self._task_endpoint.recv_multipart()[0])
 
-    def _recv_result_for_target_index(self, index: Tuple[int, int]) -> object:
+    def _recv_result_for_target_index(self, index: int) -> object:
         rep = bytes_to_pyobj(self._task_endpoint.recv_multipart()[-1])
         assert isinstance(rep, dict)
         return rep["result"] if rep["index"] == index else None
@@ -141,7 +141,6 @@ class BatchEnvSampler:
         self._eval_parallelism = 1 if eval_parallelism is None else eval_parallelism
 
         self._ep = 0
-        self._segment = 0
         self._end_of_episode = True
 
     def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
@@ -157,19 +156,16 @@ class BatchEnvSampler:
         Returns:
             A dict that contains the collected experiences and additional information.
         """
-        # increment episode or segment depending on whether the last episode has concluded
+        # increment episode depending on whether the last episode has concluded
         if self._end_of_episode:
             self._ep += 1
-            self._segment = 1
-        else:
-            self._segment += 1
 
-        self._logger.info(f"Collecting roll-out data for episode {self._ep}, segment {self._segment}")
+        self._logger.info(f"Collecting roll-out data for episode {self._ep}")
         req = {
             "type": "sample",
             "policy_state": policy_state,
             "num_steps": num_steps,
-            "index": (self._ep, self._segment),
+            "index": self._ep,
         }
         results = self._controller.collect(
             req, self._sampling_parallelism,
@@ -185,7 +181,7 @@ class BatchEnvSampler:
         }
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
-        req = {"type": "eval", "policy_state": policy_state, "index": (self._ep, -1)}  # -1 signals test
+        req = {"type": "eval", "policy_state": policy_state, "index": self._ep}  # -1 signals test
         results = self._controller.collect(req, self._eval_parallelism)
         return {
             "info": [res["info"][0] for res in results],
@@ -205,7 +201,7 @@ class BatchEnvSampler:
         req = {
             "type": "set_policy_state",
             "policy_state": policy_state_dict,
-            "index": (self._ep, -1),
+            "index": self._ep,
         }
         self._controller.collect(req, self._sampling_parallelism)
         return loaded

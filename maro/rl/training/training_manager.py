@@ -112,7 +112,7 @@ class TrainingManager(object):
         for env_idx, env_experience in enumerate(experiences):
             trainer_exp_pool = collections.defaultdict(list)
             for exp_element in env_experience:  # Dispatch experiences to trainers tick by tick.
-                exp_dict = exp_element.split_contents(self._agent2trainer)
+                exp_dict = exp_element.split_contents_by_trainer(self._agent2trainer)
                 for trainer_name, exp_elem in exp_dict.items():
                     trainer_exp_pool[trainer_name].append(exp_elem)
 

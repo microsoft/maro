@@ -18,7 +18,6 @@ class SoftActorCriticParams(TrainerParams):
     entropy_coef: float = 0.1
     num_epochs: int = 1
     n_start_train: int = 0
-    reward_discount: float = 0.9
     q_value_loss_cls: Callable = None
     soft_update_coef: float = 1.0
 
