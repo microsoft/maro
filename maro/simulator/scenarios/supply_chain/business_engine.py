@@ -30,7 +30,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._collect_units()
 
         self._product_units: List[ProductUnit] = []
-        self._tick : int = 0
+        self._tick: int = 0
 
         # Prepare product unit for later using.
         for unit in self.world.units.values():
@@ -174,7 +174,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             consumer_unit = self._consumer_dict[unit_id]
             consumer_unit.process_actions(consumer_actions)
         for unit_id, manufacture_actions in manufacture_actions_by_unit.items():
-            assert len(manufacture_actions) == 1  # Manufacture unit should has at most one action
+            assert len(manufacture_actions) == 1  # Manufacture unit should have at most one action
             manufacture_unit = self._manufacture_dict[unit_id]
             manufacture_unit.process_action(tick, manufacture_actions[0])
 
@@ -192,12 +192,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
     @property
     def get_metrics(self) -> dict:
-        pending_order_daily: Dict[int, list[int]] = defaultdict(lambda: [0] * self.world.configs.settings['pending_order_len'])
-        for facility in self.world.facilities.values():
-            if facility.distribution is None:
-                pending_order_daily[facility.id] = None
-            else:
-                pending_order_daily.update(facility.distribution.pending_order_daily(self._tick))
+        for consumer in self._consumer_dict.values():
+            consumer.clear_pending_order_daily()
+        for distribution in self._distribution_dict.values():
+            distribution.calc_pending_order_daily(self._tick)
 
         if self._metrics_cache is None:
             self._metrics_cache = {
@@ -209,8 +207,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
-                            None if pending_order_daily[product.id] is None
-                            else pending_order_daily[product.id],
+                            None if product.consumer is None
+                            else product.consumer.pending_order_daily,
                     } for product in self._product_units
                 },
                 "facilities": {

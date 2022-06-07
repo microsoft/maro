@@ -327,4 +327,4 @@ class Env(AbsEnv):
             self._business_engine.frame.take_snapshot(self.frame_index)
 
         # The end.
-        yield self._business_engine.get_metrics(), None, True
+        yield self._business_engine.get_metrics, None, True

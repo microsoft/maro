@@ -3,11 +3,9 @@ import unittest
 import numpy as np
 
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction, StorageUnit
+from maro.simulator.scenarios.supply_chain import FacilityBase
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.order import Order
-from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import OneTimeSkuPriceDemandSampler, \
-    DataFileDemandSampler
 
 
 def build_env(case_name: str, durations: int):
@@ -67,8 +65,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(1, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
         self.assertEqual(0 * 1, distribution_unit.transportation_cost[SKU3_ID])
-
-        supplier_3_id = 1
 
         env.step(None)
         # Here the vlt of "train" is less than "pending_order_daily" length
@@ -138,7 +134,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(1, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
 
         self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
-        self.assertEqual(1 * 3 , distribution_unit.transportation_cost[SKU3_ID])
+        self.assertEqual(1 * 3, distribution_unit.transportation_cost[SKU3_ID])
 
         env.step(None)
 
@@ -155,7 +151,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(1 * 1 * 1, distribution_unit.transportation_cost[SKU3_ID])
 
     def test_distribution_state_only_bigger_vlt(self) -> None:
-        """Tests the "pending_order_daily" of the distribution unit when vlt is greater than the "pending_order_daily length. """
+        """Tests the "pending_order_daily" of the distribution unit when vlt is greater than the "pending_order_daily" length. """
 
         env = build_env("case_05", 100)
         be = env.business_engine
@@ -277,22 +273,28 @@ class MyTestCase(unittest.TestCase):
 
         env.step(None)
 
-        # The demand in the data file should be added after env.step, and now it is filled with 0 if it is not implemented.
+        # The demand in the data file should be added after env.step.
         self.assertEqual([1, 1, 1, 1, 1, 10], store_001.children[storeproductunit_sku1].seller._sale_hist)
         self.assertEqual([2, 2, 2, 2, 2, 100], store_001.children[storeproductunit_sku2].seller._sale_hist)
         self.assertEqual([3, 3, 3, 3, 3, 100], store_001.children[storeproductunit_sku3].seller._sale_hist)
 
-        self.assertEqual(1, env.metrics["products"][store_001.products[SKU1_ID].id]["sale_mean"])
-        self.assertEqual(1, env.metrics["products"][store_001.products[SKU1_ID].id]["demand_mean"])
+        self.assertEqual(5, env.metrics["products"][store_001.products[SKU1_ID].id]["sale_mean"])
+        self.assertEqual(5, env.metrics["products"][store_001.products[SKU1_ID].id]["demand_mean"])
         self.assertEqual(43.0, env.metrics["products"][store_001.products[SKU1_ID].id]["selling_price"])
 
-        self.assertEqual(3, env.metrics["products"][store_001.products[SKU3_ID].id]["sale_mean"])
-        self.assertEqual(3, env.metrics["products"][store_001.products[SKU3_ID].id]["demand_mean"])
+        self.assertEqual(5*2+3, env.metrics["products"][store_001.products[SKU3_ID].id]["sale_mean"])
+        self.assertEqual(5*2+3, env.metrics["products"][store_001.products[SKU3_ID].id]["demand_mean"])
         self.assertEqual(28.0, env.metrics["products"][store_001.products[SKU3_ID].id]["selling_price"])
 
-        self.assertEqual(2, env.metrics["products"][store_001.products[SKU2_ID].id]["sale_mean"])
-        self.assertEqual(2, env.metrics["products"][store_001.products[SKU2_ID].id]["demand_mean"])
+        self.assertEqual(0+2, env.metrics["products"][store_001.products[SKU2_ID].id]["sale_mean"])
+        self.assertEqual(0+2, env.metrics["products"][store_001.products[SKU2_ID].id]["demand_mean"])
         self.assertEqual(17.0, env.metrics["products"][store_001.products[SKU2_ID].id]["selling_price"])
+
+        env.step(None)
+
+        self.assertEqual([1, 1, 1, 1, 10, 20], store_001.children[storeproductunit_sku1].seller._sale_hist)
+        self.assertEqual([2, 2, 2, 2, 100, 200], store_001.children[storeproductunit_sku2].seller._sale_hist)
+        self.assertEqual([3, 3, 3, 3, 100, 200], store_001.children[storeproductunit_sku3].seller._sale_hist)
 
     def test_distribution_state_only(self) -> None:
         """Test the "pending_order" and "in_transit_orders" of the distribution unit."""
@@ -332,7 +334,6 @@ class MyTestCase(unittest.TestCase):
         order_1 = Order(warehouse_1, SKU3_ID, 30, "train")
         consumer_unit._update_open_orders(warehouse_1, SKU3_ID, 30)
         distribution_unit.place_order(order_1)
-
 
         self.assertEqual(2, len(distribution_unit._order_queues["train"]))
         self.assertEqual(55, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
