@@ -500,10 +500,10 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
                     # since we have a clear tick to index mapping, do not need additional checking here
                     if tick in self._tick2index_dict:
-                        retq.append(data_arr[attr.name][self._tick2index_dict[tick], node_index].astype("f").flatten())
+                        retq.append(data_arr[attr.name][self._tick2index_dict[tick], node_index].astype(np.double).flatten())
                     else:
                         # padding for tick which not exist
-                        retq.append(np.zeros(attr.slot_number, dtype='f'))
+                        retq.append(np.zeros(attr.slot_number, dtype=np.double))
 
         return np.concatenate(retq)
 
