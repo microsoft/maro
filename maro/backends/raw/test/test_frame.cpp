@@ -9,6 +9,7 @@
 
 using namespace maro::backends::raw;
 
+
 TEST(test, correct) {
   EXPECT_EQ(1, 1);
 }
