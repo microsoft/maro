@@ -502,7 +502,7 @@ cdef class AttributeFloatAccessor(AttributeAccessor):
         n_val = float(f"{value:e}")
         assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
         if n_val != value:
-            warnings.warn(f"[Precision lost] Value {value} would be convert to {n_val}")
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.set_value[ATTR_FLOAT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
@@ -512,14 +512,14 @@ cdef class AttributeFloatAccessor(AttributeAccessor):
         n_val = float(f"{value:e}")
         assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
         if n_val != value:
-            warnings.warn(f"[Precision lost] Value {value} would be convert to {n_val}")
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.append_to_list[ATTR_FLOAT](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         n_val = float(f"{value:e}")
         assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
         if n_val != value:
-            warnings.warn(f"[Precision lost] Value {value} would be convert to {n_val}")
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.insert_to_list[ATTR_FLOAT](node_index, self._attr_type, slot_index, value)
 
 
@@ -528,7 +528,7 @@ cdef class AttributeDoubleAccessor(AttributeAccessor):
         n_val = float(f"{value:.15e}")
         assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
         if n_val != value:
-            warnings.warn(f"[Precision lost] Value {value} would be convert to {n_val}")
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.set_value[ATTR_DOUBLE](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
@@ -538,12 +538,12 @@ cdef class AttributeDoubleAccessor(AttributeAccessor):
         n_val = float(f"{value:.15e}")
         assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
         if n_val != value:
-            warnings.warn(f"[Precision lost] Value {value} would be convert to {n_val}")
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.append_to_list[ATTR_DOUBLE](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         n_val = float(f"{value:.15e}")
         assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
         if n_val != value:
-            warnings.warn(f"[Precision lost] Value {value} would be convert to {n_val}")
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.insert_to_list[ATTR_DOUBLE](node_index, self._attr_type, slot_index, value)
