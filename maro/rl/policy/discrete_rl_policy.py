@@ -35,7 +35,7 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         assert action_num >= 1
 
         super(DiscreteRLPolicy, self).__init__(
-            name=name, state_dim=state_dim, action_dim=1, trainable=trainable,
+            name=name, state_dim=state_dim, action_dim=1, trainable=trainable, is_discrete_action=True,
         )
 
         self._action_num = action_num

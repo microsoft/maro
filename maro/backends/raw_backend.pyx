@@ -499,39 +499,51 @@ cdef class AttributeULongAccessor(AttributeAccessor):
 
 cdef class AttributeFloatAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
-        if abs(float(f"{value:e}") - value) > 0.001:
-            warnings.warn(f"[Precision lost] Value {value} out of AttributeType.Float precision: .9")
+        n_val = float(f"{value:e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
+        if n_val != value:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.set_value[ATTR_FLOAT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_FLOAT](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
-        if abs(float(f"{value:e}") - value) > 0.001:
-            warnings.warn(f"[Precision lost] Value {value} out of AttributeType.Float precision: .9")
+        n_val = float(f"{value:e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
+        if n_val != value:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.append_to_list[ATTR_FLOAT](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
-        if abs(float(f"{value:e}") - value) > 0.001:
-            warnings.warn(f"[Precision lost] Value {value} out of AttributeType.Float precision: .9")
+        n_val = float(f"{value:e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
+        if n_val != value:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.insert_to_list[ATTR_FLOAT](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeDoubleAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
-        if float(f"{value:.15e}") != value:
-            warnings.warn(f"[Precision lost] Value {value} out of AttributeType.Double precision: .15")
+        n_val = float(f"{value:.15e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
+        if n_val != value:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.set_value[ATTR_DOUBLE](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_DOUBLE](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
-        if float(f"{value:.15e}") != value:
-            warnings.warn(f"[Precision lost] Value {value} out of AttributeType.Double precision: .15")
+        n_val = float(f"{value:.15e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
+        if n_val != value:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.append_to_list[ATTR_DOUBLE](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
-        if float(f"{value:.15e}") != value:
-            warnings.warn(f"[Precision lost] Value {value} out of AttributeType.Double precision: .15")
+        n_val = float(f"{value:.15e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
+        if n_val != value:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.insert_to_list[ATTR_DOUBLE](node_index, self._attr_type, slot_index, value)

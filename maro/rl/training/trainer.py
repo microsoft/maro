@@ -34,11 +34,13 @@ class TrainerParams:
         availability of compute resources. For details on distributed deep learning and data parallelism, see
         https://web.stanford.edu/~rezab/classes/cme323/S16/projects_reports/hedge_usmani.pdf, as well as an abundance
         of resources available on the internet.
+    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
 
     """
     replay_memory_capacity: int = 10000
     batch_size: int = 128
     data_parallelism: int = 1
+    reward_discount: float = 0.9
 
     @abstractmethod
     def extract_ops_params(self) -> Dict[str, object]:

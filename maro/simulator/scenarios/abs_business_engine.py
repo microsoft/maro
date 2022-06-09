@@ -70,6 +70,7 @@ class AbsBusinessEngine(ABC):
     def scenario_name(self) -> str:
         return self._scenario_name
 
+    @abstractmethod
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index."""
         pass
@@ -173,9 +174,9 @@ class AbsBusinessEngine(ABC):
         """Reset states business engine."""
         pass
 
-    # @abstractmethod
-    # def set_seed(self, seed: int) -> None:
-    #     raise NotImplementedError
+    @abstractmethod
+    def set_seed(self, seed: int) -> None:
+        raise NotImplementedError
 
     def post_step(self, tick: int) -> bool:
         """This method will be called at the end of each tick, used to post-process for each tick,

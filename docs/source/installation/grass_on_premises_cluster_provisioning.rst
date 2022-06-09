@@ -10,7 +10,7 @@ in local private network and run your training job in On-Premises distributed en
 Prerequisites
 -------------
 
-* Linux with Python 3.6+
+* Linux with Python 3.7+
 * `Install Powershell <https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1>`_ if you are using Windows Server
 * For master node vm, need install flask, gunicorn, and redis.
 

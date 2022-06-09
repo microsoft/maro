@@ -17,7 +17,6 @@ from maro.utils import clone
 class DDPGParams(TrainerParams):
     """
     get_q_critic_net_func (Callable[[], QNet]): Function to get Q critic net.
-    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
     num_epochs (int, default=1): Number of training epochs per call to ``learn``.
     update_target_every (int, default=5): Number of training rounds between policy target model updates.
     q_value_loss_cls (str, default=None): A string indicating a loss class provided by torch.nn or a custom
@@ -31,7 +30,6 @@ class DDPGParams(TrainerParams):
     min_num_to_trigger_training (int, default=0): Minimum number required to start training.
     """
     get_q_critic_net_func: Callable[[], QNet] = None
-    reward_discount: float = 0.9
     num_epochs: int = 1
     update_target_every: int = 5
     q_value_loss_cls: Callable = None
