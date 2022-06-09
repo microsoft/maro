@@ -105,7 +105,7 @@ class MyTestCase(unittest.TestCase):
         distribution_unit.place_order(order_3)
         distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
-        self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        self.assertEqual(10, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
 
         while env.tick < expected_tick:
             env.step(None)
@@ -113,7 +113,7 @@ class MyTestCase(unittest.TestCase):
         # will arrive at the end of this tick, still on the way.
         assert env.tick == expected_tick
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
-        self.assertEqual(10, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        self.assertEqual(10, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
 
         self.assertEqual(10 * 1, distribution_unit.delay_order_penalty[SKU3_ID])
         self.assertEqual(1 * 10 * 2, distribution_unit.transportation_cost[SKU3_ID])
@@ -121,7 +121,7 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
-        self.assertEqual(0, sum([order.quantity for order in distribution_unit._order_queues["train"]]))
+        self.assertEqual(0, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
 
         self.assertEqual(0, distribution_unit.delay_order_penalty[SKU3_ID])
         self.assertEqual(1 * 10 * 1, distribution_unit.transportation_cost[SKU3_ID])
@@ -198,9 +198,9 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(10, quantity)
 
             # Check the payload in the distribution
-            self.assertEqual(1, len(distribution_unit._payload_on_the_way[expected_tick]))
-            self.assertEqual(warehouse_1, distribution_unit._payload_on_the_way[expected_tick][0].order.dest_facility)
-            self.assertEqual(80, distribution_unit._payload_on_the_way[expected_tick][0].payload)
+            self.assertEqual(1, len(distribution_unit._order_on_the_way[expected_tick]))
+            self.assertEqual(warehouse_1, distribution_unit._order_on_the_way[expected_tick][0].dest_facility)
+            self.assertEqual(80, distribution_unit._order_on_the_way[expected_tick][0].payload)
 
             env.step(None)
 
@@ -218,9 +218,9 @@ class MyTestCase(unittest.TestCase):
 
             # Check the payload in the distribution
             expected_tick = env.tick
-            self.assertEqual(1, len(distribution_unit._payload_on_the_way[expected_tick]))
-            self.assertEqual(warehouse_1, distribution_unit._payload_on_the_way[expected_tick][0].order.dest_facility)
-            self.assertEqual(80 - 70, distribution_unit._payload_on_the_way[expected_tick][0].payload)
+            self.assertEqual(1, len(distribution_unit._order_on_the_way[expected_tick]))
+            self.assertEqual(warehouse_1, distribution_unit._order_on_the_way[expected_tick][0].dest_facility)
+            self.assertEqual(80 - 70, distribution_unit._order_on_the_way[expected_tick][0].payload)
 
             _, _, is_done = env.step(None)
 
