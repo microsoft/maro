@@ -67,6 +67,11 @@ class SimulationTracker:
         self.reward_status: np.ndarray = None
         self.balance_status: np.ndarray = None
 
+        self.consumer_purchased: np.ndarray = None
+        self.consumer_received: np.ndarray = None
+        self.manufacture_started: np.ndarray = None
+        self.manufacture_finished: np.ndarray = None
+
     def add_balance_and_reward(
         self, episode: int, tick: int, global_balance: float, global_reward: float,
         step_balances: Dict[int, float], step_rewards: Dict[int, float]
@@ -105,6 +110,16 @@ class SimulationTracker:
             self.reward_status[episode, t, i] = rewards.get(entity_id, 0)
             self.balance_status[episode, t, i] = balances.get(entity_id, 0)
 
+    def add_action_status(
+        self, consumer_purchased: np.ndarray, consumer_received: np.ndarray,
+        manufacture_started: np.ndarray, manufacture_finished: np.ndarray,
+    ) -> None:
+        self.consumer_purchased = consumer_purchased
+        self.consumer_received = consumer_received
+
+        self.manufacture_started = manufacture_started
+        self.manufacture_finished = manufacture_finished
+
     def _init_sku_status(self) -> None:
         for i, entity_id in enumerate(self.tracking_entity_ids):
             self._entity_id2idx_in_status[entity_id] = i
@@ -119,8 +134,29 @@ class SimulationTracker:
         self.reward_status = np.zeros(sku_status_shape)
         self.balance_status = np.zeros(sku_status_shape)
 
-    def dump_sku_status(self) -> None:
+    def dump_sku_status(self, entity_types: Tuple[type, ...]) -> None:
         dump_data = {
+            "step_balance": self.step_balances,
+            "step_reward": self.step_rewards,
+            "facility_infos": [
+                (
+                    i,  # index in step_balance & step_reward
+                    facility_id,
+                    facility_info.name,
+                    facility_info.class_name
+                )
+                for i, (facility_id, facility_info) in enumerate(self._facility_info_dict.items())
+            ],
+            "entity_infos": [
+                (
+                    self._entity_id2idx_in_status[entity_id],  # index in status
+                    entity_id,  # entity id
+                    self._facility_info_dict[self._entity_dict[entity_id].facility_id].name,  # facility name
+                    self._sku_metas[self._entity_dict[entity_id].skus.id].name,  # sku name
+                    self._entity_dict[entity_id].class_type  # entity class type
+                ) for entity_id in self.tracking_entity_ids
+                if issubclass(self._entity_dict[entity_id].class_type, entity_types)
+            ],
             "tracking_entity_ids": self.tracking_entity_ids,
             "stock_status": self.stock_status,
             "stock_in_transit_status": self.stock_in_transit_status,
@@ -129,9 +165,13 @@ class SimulationTracker:
             "sold_status": self.sold_status,
             "reward_status": self.reward_status,
             "balance_status": self.balance_status,
+            "consumer_purchased": self.consumer_purchased,
+            "consumer_received": self.consumer_received,
+            "manufacture_started": self.manufacture_started,
+            "manufacture_finished": self.manufacture_finished,
         }
 
-        with open(os.path.join(self._log_path, "sku_status.pkl"), "w") as fout:
+        with open(os.path.join(self._log_path, "sku_status.pkl"), "wb") as fout:
             pickle.dump(dump_data, fout)
 
     def load_sku_status(self, file_path: str=None) -> None:
@@ -139,7 +179,7 @@ class SimulationTracker:
             file_path = os.path.join(self._log_path, "sku_status.pkl")
 
         dump_data = {}
-        with open(file_path, "r") as fin:
+        with open(file_path, "rb") as fin:
             dump_data = pickle.load(fin)
 
         self.tracking_entity_ids = dump_data.get("tracking_entity_ids", [])
@@ -202,10 +242,10 @@ class SimulationTracker:
 
         facility_info = self._facility_info_dict[entity.facility_id]
         file_name = (
-            f"{facility_info.class_name.__name__}_"
+            # f"{facility_info.class_name.__name__}_"
             f"{facility_info.name}_"
             f"{self._sku_metas[entity.skus.id].name}_"
-            f"{entity.id}"
+            # f"{entity.id}"
             ".png"
         )
 

@@ -18,7 +18,8 @@ from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from .algorithms.dqn import get_dqn, get_dqn_policy
 from .algorithms.ppo import get_ppo, get_ppo_policy
 from .algorithms.rule_based import ManufacturerSSPolicy, ConsumerMinMaxPolicy
-from .config import ALGO, NUM_CONSUMER_ACTIONS, SHARED_MODEL, env_conf, test_env_conf
+from .algorithms.base_stock_policy import BaseStockPolicy
+from .config import ALGO, NUM_CONSUMER_ACTIONS, SHARED_MODEL, env_conf, test_env_conf, base_policy_conf
 from .env_sampler import SCEnvSampler
 from .rl_agent_state import STATE_DIM
 
@@ -43,7 +44,11 @@ def entity2policy(entity: SupplyChainEntity, facility_info_dict: Dict[int, Facil
                 return f"consumer_{facility_name[:2]}.policy"
 
         else:
-            return "consumer_baseline_policy"
+            product_info = facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+            if ALGO == "BSP" and product_info.seller_info:
+                return "base_stock_policy"
+            else:
+                return "consumer_baseline_policy"
 
     return None
 
@@ -80,6 +85,7 @@ class SupplyChainBundle(RLComponentBundle):
         get_policy = (get_dqn_policy if ALGO == "DQN" else get_ppo_policy)
         policy_creator = {
             "consumer_baseline_policy": lambda: ConsumerMinMaxPolicy("consumer_baseline_policy"),
+            "base_stock_policy": lambda: BaseStockPolicy("base_stock_policy", base_policy_conf),
             "manufacturer_policy": lambda: ManufacturerSSPolicy("manufacture_policy"),
             "consumer.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS, "consumer.policy"),
             "consumer_CA.policy": partial(get_policy, STATE_DIM, NUM_CONSUMER_ACTIONS, "consumer_CA.policy"),

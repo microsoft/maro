@@ -3,15 +3,19 @@
 
 from __future__ import annotations
 
+import json
 import os
 import pickle
 import random
+import sys
 import typing
 from collections import defaultdict
+from pprint import pprint
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import pandas as pd
+import shutil
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 from maro.event_buffer import CascadeEvent
@@ -23,17 +27,18 @@ from maro.simulator.scenarios.supply_chain import (
 )
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
-from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
+from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo, OuterRetailerFacility
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
-from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, StorageUnitInfo
+from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, ProductUnit, StorageUnitInfo
 from maro.utils.logger import Logger, LogFormat
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 from examples.supply_chain.common.render_tools.plot_render import SimulationTracker
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
-from .config import consumer_features, distribution_features, seller_features, IDX_SELLER_DEMAND, IDX_SELLER_SOLD
+from .config import consumer_features, distribution_features, seller_features, product_features
+from .config import IDX_SELLER_DEMAND, IDX_PRODUCT_PRICE, IDX_CONSUMER_PURCHASED
 from .config import env_conf, test_env_conf, workflow_settings
 from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
 from .or_agent_state import ScOrAgentStates
@@ -88,8 +93,8 @@ class SCEnvSampler(AbsEnvSampler):
     ) -> None:
         super().__init__(learn_env, test_env, agent_wrapper_cls, reward_eval_delay)
 
-        self._env_settings: dict = workflow_settings
-        if workflow_settings["vehicle_selection_method"] == VehicleSelection.DEFAULT_ONE:
+        self._workflow_settings: dict = workflow_settings
+        if self._workflow_settings["vehicle_selection_method"] == VehicleSelection.DEFAULT_ONE:
             file_path = os.path.join(
                 os.path.dirname(self._learn_env.business_engine._config_path),
                 self._learn_env.business_engine._topology,
@@ -161,7 +166,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
 
         self._cached_vlt: Dict[int, VendorLeadingTimeInfo] = {}
-        self._fixed_vlt = self._env_settings["vehicle_selection_method"] != VehicleSelection.RANDOM
+        self._fixed_vlt = self._workflow_settings["vehicle_selection_method"] != VehicleSelection.RANDOM
 
         ########################################################################
         # State managers.
@@ -174,7 +179,7 @@ class SCEnvSampler(AbsEnvSampler):
             sku_number=self._sku_number,
             max_src_per_facility=self._summary["max_sources_per_facility"],
             max_price_dict=self._policy_parameter["max_price"],
-            settings=self._env_settings,
+            settings=self._workflow_settings,
         )
 
         self.baseline_policy = ConsumerBaselinePolicy('baseline_eoq')
@@ -194,8 +199,9 @@ class SCEnvSampler(AbsEnvSampler):
             episode_len=test_env_conf["durations"],
             n_episodes=1,
             env_sampler=self,
-            log_path=workflow_settings["log_path"],
+            log_path=self._workflow_settings["log_path"],
             eval_period=[env_conf["durations"], test_env_conf["durations"]],
+            # eval_period=[0, test_env_conf["durations"]],
         )
 
         # Status for evaluation results tracker.
@@ -217,7 +223,12 @@ class SCEnvSampler(AbsEnvSampler):
 
         self.product_metric_track: Dict[str, list] = defaultdict(list)
 
-        self._logger = Logger(tag="env_sampler", format_=LogFormat.time_only, dump_folder=workflow_settings["log_path"])
+        self._logger = Logger(tag="env_sampler", format_=LogFormat.time_only, dump_folder=self._workflow_settings["log_path"])
+
+        shutil.copy(
+            src=os.path.join(os.path.dirname(__file__), "config.py"),
+            dst=self._workflow_settings["log_path"],
+        )
 
     def build(self, rl_component_bundle: RLComponentBundle) -> None:
         super().build(rl_component_bundle)
@@ -269,7 +280,7 @@ class SCEnvSampler(AbsEnvSampler):
 
     def _get_reward_for_entity(self, entity: SupplyChainEntity, bwt: Tuple[float, float]) -> float:
         if issubclass(entity.class_type, ConsumerUnit):
-            return np.float32(bwt[1]) / np.float32(self._env_settings["reward_normalization"])
+            return np.float32(bwt[1]) / np.float32(self._workflow_settings["reward_normalization"])
         else:
             return .0
 
@@ -289,7 +300,7 @@ class SCEnvSampler(AbsEnvSampler):
             ]
 
             if len(vlt_info_candidates) > 0:
-                vehicle_selection = self._env_settings["vehicle_selection_method"]
+                vehicle_selection = self._workflow_settings["vehicle_selection_method"]
                 if vehicle_selection == VehicleSelection.RANDOM:
                     vlt_info = random.choice(vlt_info_candidates)
                 elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
@@ -317,17 +328,53 @@ class SCEnvSampler(AbsEnvSampler):
 
         return self._cached_vlt[entity_id]
 
+    def dump_vlt_info(self) -> None:
+        default_vendor = {}
+        for entity_id, vlt_info in self._cached_vlt.items():
+            entity = self._entity_dict[entity_id]
+            facility_info = self._facility_info_dict[entity.facility_id]
+            sku_id = entity.skus.id
+
+            facility_name = facility_info.name
+            sku_name = entity.skus.name
+
+            for src_fid, info_by_type in facility_info.upstream_vlt_infos[sku_id].items():
+                for v_type, info in info_by_type.items():
+                    if info == vlt_info:
+                        if facility_name not in default_vendor:
+                            default_vendor[facility_name] = {}
+                        default_vendor[facility_name][sku_name] = (self._facility_info_dict[src_fid].name, v_type)
+                        break
+
+        # assert isinstance(self._workflow_settings["vehicle_selection_method"], VehicleSelection)
+        # selection_method = self._workflow_settings["vehicle_selection_method"].value
+
+        file_path = os.path.join(self._workflow_settings["log_path"], f"vendor.py")
+        pprint_path = os.path.join(self._workflow_settings["log_path"], f"vendor_pprint.py")
+        with open(file_path, 'w') as f:
+            json.dump(default_vendor, f)
+
+        stdout_fh = sys.stdout
+        sys.stdout = open(pprint_path, 'w')
+        pprint(default_vendor)
+        sys.stdout.close()
+        sys.stdout = stdout_fh
+
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
         state = self._or_agent_states.update_entity_state(
             entity_id=entity.id,
+            tick=self._env.tick,
             storage_capacity_dict=self._storage_capacity_dict,
             product_metrics=self._cur_metrics["products"].get(self._unit2product_unit[entity.id], None),
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_quantity=self._facility_in_transit_quantity[entity.facility_id],
             to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
+            history_demand=self.history_demand,
+            history_price=self.history_price,
+            history_purchased=self.history_purchased,
             chosen_vlt_info=self._get_vlt_info(entity.id),
             fixed_vlt=self._fixed_vlt,
         )
@@ -386,14 +433,8 @@ class SCEnvSampler(AbsEnvSampler):
             self._stock_ordered_to_distribute_status[entity_id] = pending_order[entity.skus.id] if pending_order else 0
 
             product_unit_id = entity.parent_id
-            product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
-            if product_info.seller_info is not None:
-                seller_states = self._cur_seller_hist_states[:, product_info.seller_info.node_index, :]
-                self._demand_status[entity_id] = list(seller_states[:, IDX_SELLER_DEMAND].flatten())[-1]
-                self._sold_status[entity_id] = list(seller_states[:, IDX_SELLER_SOLD].flatten())[-1]
-            else:
-                self._demand_status[entity_id] = self._cur_metrics["products"][product_unit_id]["demand_mean"]
-                self._sold_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_mean"]
+            self._demand_status[entity_id] = self._cur_metrics["products"][product_unit_id]["demand_mean"]
+            self._sold_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_mean"]
 
     def _get_global_and_agent_state_impl(
         self, event: CascadeEvent, tick: int = None,
@@ -413,16 +454,31 @@ class SCEnvSampler(AbsEnvSampler):
         ].flatten().reshape(-1, len(distribution_features)).astype(np.int)
 
         # Get consumer features of specific ticks from snapshot list.
-        consumption_hist_ticks = [tick - i for i in range(self._env_settings['consumption_hist_len'] - 1, -1, -1)]
+        consumption_hist_ticks = [tick - i for i in range(self._workflow_settings['consumption_hist_len'] - 1, -1, -1)]
         self._cur_consumer_hist_states = self._env.snapshot_list["consumer"][
             consumption_hist_ticks::consumer_features
-        ].reshape(self._env_settings['consumption_hist_len'], -1, len(consumer_features))
+        ].reshape(self._workflow_settings['consumption_hist_len'], -1, len(consumer_features))
 
         # Get seller features of specific ticks from snapshot list.
-        sale_hist_ticks = [tick - i for i in range(self._env_settings['sale_hist_len'] - 1, -1, -1)]
+        sale_hist_ticks = [tick - i for i in range(self._workflow_settings['sale_hist_len'] - 1, -1, -1)]
         self._cur_seller_hist_states = self._env.snapshot_list["seller"][
             sale_hist_ticks::seller_features
-        ].reshape(self._env_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
+        ].reshape(self._workflow_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
+        
+        history_feature_shape = (len(self._env.snapshot_list), -1)
+        # Get all history demand from snapshot list.
+        self.history_demand = self._env.snapshot_list["seller"][
+            ::seller_features[IDX_SELLER_DEMAND]
+        ].reshape(history_feature_shape)
+
+        # Get all history selling price from snapshot list.
+        self.history_price = self._env.snapshot_list["product"][
+            ::product_features[IDX_PRODUCT_PRICE]
+        ].reshape(history_feature_shape)
+
+        self.history_purchased = self._env.snapshot_list["consumer"][
+            ::consumer_features[IDX_CONSUMER_PURCHASED]
+        ].reshape(history_feature_shape)
 
         # 1. Update storage product quantity info.
         # 2. Update facility product utilization info.
@@ -443,7 +499,11 @@ class SCEnvSampler(AbsEnvSampler):
                     self._storage_product_quantity[facility_id][self._global_sku_id2idx[pid]] = product_quantity
                     self._facility_product_utilization[facility_id] += product_quantity
 
-            for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["in_transit_orders"].items():
+            for sku_id, product_info in facility_info.products_info.items():
+                if product_info.consumer_info is None:
+                    continue
+                consumer_index = product_info.consumer_info.node_index
+                quantity = self._env.snapshot_list["consumer"][tick:consumer_index:"in_transit_quantity"].flatten()[0]
                 self._facility_in_transit_quantity[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
             for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["pending_order"].items():
@@ -513,7 +573,7 @@ class SCEnvSampler(AbsEnvSampler):
 
                 product_unit_id: int = self._unit2product_unit[entity_id]
                 action_quantity = int(
-                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["sale_mean"])
+                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"])
                 )
 
                 # Ignore 0 quantity to reduce action number
@@ -668,7 +728,7 @@ class SCEnvSampler(AbsEnvSampler):
                 if issubclass(entity.class_type, StoreProductUnit)
             ])
 
-        if workflow_settings["log_consumer_actions"]:
+        if self._workflow_settings["log_consumer_actions"]:
             consumer_action_dict = {}
             for entity_id in cache_element.agent_state_dict.keys():
                 entity = self._entity_dict[entity_id]
@@ -687,7 +747,7 @@ class SCEnvSampler(AbsEnvSampler):
                         consumer_action_dict[parent_entity.id] = (
                             action, or_action, round(cache_element.reward_dict[entity_id], 2)
                         )
-            self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
+            # self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
 
         self._tracker.add_balance_and_reward(
             episode=0,
@@ -712,41 +772,93 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._step_idx += 1
 
-        self._logger.info(f"tracker sample & sku status added")
+        # self._logger.info(f"tracker sample & sku status added")
 
-        if workflow_settings["dump_product_metrics"]:
+        if self._workflow_settings["dump_product_metrics"]:
             self._step_product_metric_track(cache_element.tick)
-            self._logger.info(f"dump step product metrics updated")
+            # self._logger.info(f"dump step product metrics updated")
 
         if not self._fixed_vlt:
             self._cached_vlt.clear()
 
+    def _get_action_status(self, ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        first_tick, last_tick = self._tracker.eval_period
+        len_period = last_tick - first_tick
+        status_shape = (1, len_period, len(self._tracker.tracking_entity_ids))
+        consumer_purchased = np.zeros(status_shape)
+        consumer_received = np.zeros(status_shape)
+        manufacture_started = np.zeros(status_shape)
+        manufacture_finished = np.zeros(status_shape)
+
+        ticks = list(range(first_tick, last_tick))
+        purchased = self._env.snapshot_list["consumer"][ticks::"purchased"].reshape(len_period, -1)
+        received = self._env.snapshot_list["consumer"][ticks::"received"].reshape(len_period, -1)
+        started = self._env.snapshot_list["manufacture"][ticks::"start_manufacture_quantity"].reshape(len_period, -1)
+        finished = self._env.snapshot_list["manufacture"][ticks::"finished_quantity"].reshape(len_period, -1)
+
+        for i, entity_id in enumerate(self._tracker.tracking_entity_ids):
+            entity = self._entity_dict[entity_id]
+
+            if issubclass(entity.class_type, FacilityBase):
+                continue
+
+            if issubclass(entity.class_type, (ConsumerUnit, ProductUnit)):
+                product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+                if product_info.consumer_info is not None:
+                    node_idx = product_info.consumer_info.node_index
+                    consumer_purchased[0, :, i] = purchased[:, node_idx]
+                    consumer_received[0, :, i] = received[:, node_idx]
+
+            if issubclass(entity.class_type, (ManufactureUnit, ProductUnit)):
+                product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
+                if product_info.manufacture_info is not None:
+                    node_idx = product_info.manufacture_info.node_index
+                    manufacture_started[0, :, i] = started[:, node_idx]
+                    manufacture_finished[0, :, i] = finished[:, node_idx]
+
+        return consumer_purchased, consumer_received, manufacture_started, manufacture_finished
+
     def post_evaluate(self, info_list: list, ep: int) -> None:
         self._eval_reward_list.append(self._eval_reward)
 
+        consumer_purchased, consumer_received, manufacture_started, manufacture_finished = self._get_action_status()
+        self._tracker.add_action_status(
+            consumer_purchased=consumer_purchased,
+            consumer_received=consumer_received,
+            manufacture_started=manufacture_started,
+            manufacture_finished=manufacture_finished,
+        )
+
         if self._eval_reward > self._max_eval_reward:
             self._max_eval_reward = self._eval_reward
-            self._logger.info(f"Update Max Eval Reward to: {self._max_eval_reward}")
+            self._logger.info(f"Update Max Eval Reward to: {self._max_eval_reward:,.2f}")
 
-            if workflow_settings["plot_render"]:
+            if self._workflow_settings["plot_render"]:
                 self._logger.info("Start render...")
                 self._tracker.render_facility_balance_and_reward(facility_types=(OuterRetailerFacility))
                 self._tracker.render_all_sku(entity_types=(ConsumerUnit, ManufactureUnit))
+            self._tracker.dump_sku_status(entity_types=(ConsumerUnit, ManufactureUnit))
 
-            if workflow_settings["dump_product_metrics"]:
+            if self._workflow_settings["dump_product_metrics"]:
                 self._logger.info(f"Start post update product metrics...")
                 self._post_update_product_metric_track()
 
                 self._logger.info("Start dump product metrics...")
                 df_product = pd.DataFrame(self.product_metric_track)
                 df_product = df_product.groupby(['tick', 'id']).first().reset_index()
-                df_product.to_csv(os.path.join(workflow_settings["log_path"], "output_product_metrics.csv"), index=False)
+                df_product.to_csv(
+                    os.path.join(self._workflow_settings["log_path"], "output_product_metrics.csv"),
+                    index=False
+                )
 
                 self._logger.info("product metrics dumped to csv")
 
-        self._logger.info(f"Max Eval Reward: {self._max_eval_reward}")
+        self._logger.info(f"Max Eval Reward: {self._max_eval_reward:,.2f}")
         self._logger.debug(f"Eval Reward List: {self._eval_reward_list}")
         self._mean_reward = {entity_id: val / self._step_idx for entity_id, val in self._mean_reward.items()}
+
+        if self._workflow_settings["dump_chosen_vlt_info"]:
+            self.dump_vlt_info()
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         self._is_eval = True

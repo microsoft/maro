@@ -5,10 +5,11 @@ import os
 import unittest
 
 import numpy as np
+from math import floor
 from .dummy.dummy_business_engine import DummyEngine
 
 from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
-from maro.simulator.utils.common import frame_index_to_ticks
+from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index
 from maro.simulator.core import BusinessEngineNotFoundError, Env
 from tests.utils import backends_to_test
 
@@ -292,6 +293,44 @@ class TestEnv(unittest.TestCase):
 
         self.assertListEqual([0, 1], ticks[0])
         self.assertListEqual([8, 9], ticks[4])
+
+    def test_get_avalible_frame_index_to_ticks_with_default_resolution(self):
+        for backend_name in backends_to_test:
+            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+
+            max_tick = 10
+
+            env = Env(scenario="cim", topology="tests/data/cim/customized_config",
+                      start_tick=0, durations=max_tick)
+
+            run_to_end(env)
+
+            t2f_mapping = env.get_ticks_frame_index_mapping()
+
+            # tick == frame index
+            self.assertListEqual([t for t in t2f_mapping.keys()], [t for t in range(max_tick)])
+            self.assertListEqual([f for f in t2f_mapping.values()], [f for f in range(max_tick)])
+
+    def test_get_avalible_frame_index_to_ticks_with_resolution2(self):
+        for backend_name in backends_to_test:
+            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+
+            max_tick = 10
+            start_tick = 0
+            resolution = 2
+
+            env = Env(scenario="cim", topology="tests/data/cim/customized_config",
+                    start_tick=start_tick, durations=max_tick, snapshot_resolution=resolution)
+
+            run_to_end(env)
+
+            t2f_mapping = env.get_ticks_frame_index_mapping()
+
+            self.assertListEqual([t for t in t2f_mapping.keys()], [t for t in range(max_tick)])
+
+            for t, v in t2f_mapping.items():
+                v2 = tick_to_frame_index(start_tick, t, resolution)
+                self.assertEqual(v, v2)
 
 
 if __name__ == "__main__":

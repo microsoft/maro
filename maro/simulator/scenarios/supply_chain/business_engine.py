@@ -15,10 +15,6 @@ from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ConsumerUnit, DistributionUnit, ManufactureUnit, ProductUnit
 from .world import World
 
-ACTIONS_PROCESS_DONE = "actions_process_done"
-TASK_CONSUMER_ACTION_TEMPLATE = "consumer_{}_process_actions"
-TASK_MANUFACTURE_ACTION_TEMPLATE = "manufacture_{}_process_action"
-
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):
     def __init__(self, **kwargs) -> None:

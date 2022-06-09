@@ -21,8 +21,8 @@ keys_in_state = [
     (None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 'consumption_hist']),
     ('storage_capacity', ['storage_utilization']),
     ('storage_capacity', [
-        'sale_mean',
-        'sale_std',
+        'demand_mean',
+        'demand_std',
         'sale_hist',
         'demand_hist',
         'pending_order',
@@ -93,12 +93,12 @@ class ScRlAgentStates:
     def _init_atom() -> Dict[str, Callable]:
         atom = {
             'stock_constraint': (
-                lambda f_state: 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean']
+                lambda f_state: 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['demand_mean']
             ),
             'is_replenish_constraint': lambda f_state: f_state['consumption_hist'][-1] > 0,
-            'low_profit': lambda f_state: (f_state['sku_price'] - f_state['sku_cost']) * f_state['sale_mean'] <= 1000,
+            'low_profit': lambda f_state: (f_state['sku_price'] - f_state['sku_cost']) * f_state['demand_mean'] <= 1000,
             'low_stock_constraint': (
-                lambda f_state: 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 3) * f_state['sale_mean']
+                lambda f_state: 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 3) * f_state['demand_mean']
             ),
             'out_of_stock': lambda f_state: 0 < f_state['inventory_in_stock'],
         }
@@ -251,8 +251,8 @@ class ScRlAgentStates:
         return
 
     def _init_sale_feature(self, state: dict, entity: SupplyChainEntity, facility_info: FacilityInfo) -> None:
-        state['sale_mean'] = 1.0
-        state['sale_std'] = 1.0
+        state['demand_mean'] = 1.0
+        state['demand_std'] = 1.0
         # state['sale_gamma'] = 1.0
         # state['total_backlog_demand'] = 0
         state['sale_hist'] = [0] * self._settings['sale_hist_len']
@@ -349,8 +349,8 @@ class ScRlAgentStates:
         # Get product unit id for current agent.
         product_unit_id = entity.id if issubclass(entity.class_type, ProductUnit) else entity.parent_id
 
-        state['sale_mean'] = cur_metrics["products"][product_unit_id]["sale_mean"]
-        state['sale_std'] = cur_metrics["products"][product_unit_id]["sale_std"]
+        state['demand_mean'] = cur_metrics["products"][product_unit_id]["demand_mean"]
+        state['demand_std'] = cur_metrics["products"][product_unit_id]["demand_std"]
 
         product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
 
@@ -365,7 +365,7 @@ class ScRlAgentStates:
             # print(state['sale_hist'], state['demand_hist'])
 
         else:
-            # state['sale_gamma'] = state['sale_mean']
+            # state['sale_gamma'] = state['demand_mean']
             pass
 
         if product_info.consumer_info is not None:
@@ -416,7 +416,7 @@ class ScRlAgentStates:
         ppf = self._service_index_ppf_cache[service_index]
 
         state['inventory_rop'] = (
-            state['max_vlt'] * state['sale_mean'] + np.sqrt(state['max_vlt']) * state['sale_std'] * ppf
+            state['max_vlt'] * state['demand_mean'] + np.sqrt(state['max_vlt']) * state['demand_std'] * ppf
         )
 
         state['is_below_rop'] = int(state['inventory_estimated'] < state['inventory_rop'])
