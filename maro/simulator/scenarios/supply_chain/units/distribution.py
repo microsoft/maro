@@ -57,7 +57,6 @@ class DistributionUnit(UnitBase):
         self._total_pending_quantity: int = 0
         self._pending_product_quantity: Dict[int, int] = defaultdict(int)
         self._is_order_changed: bool = False
-        # self.pending_order_daily: Optional[List[int]] = None
 
         # Below 3 attributes are used to track states for ProductUnit's data model
         # The transportation cost of each product of current tick. Would be set to 0 in ProductUnit.
@@ -250,8 +249,8 @@ class DistributionUnit(UnitBase):
 
     def calc_pending_order_daily(self, tick) -> None:
         for arrival_tick, payload_list in self._payload_on_the_way.items():
-            for payload in payload_list:
-                if 0 <= arrival_tick - tick < self.world.configs.settings["pending_order_len"]:
+            if 0 <= arrival_tick - tick < self.world.configs.settings["pending_order_len"]:
+                for payload in payload_list:
                     order = payload.order
                     consumer = order.destination.products[order.sku_id].consumer
                     consumer.pending_order_daily[arrival_tick - tick] = order.quantity

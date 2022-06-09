@@ -35,7 +35,7 @@ class ConsumerUnit(ExtendUnitBase):
         super(ConsumerUnit, self).__init__(
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
-        self.pending_order_daily: Optional[list[int]] = None
+        self.pending_order_daily: Optional[List[int]] = None
         self._open_orders = Counter()
         self._in_transit_quantity: int = 0
 
