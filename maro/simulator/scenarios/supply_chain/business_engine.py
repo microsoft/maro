@@ -208,3 +208,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             }
 
         return self._metrics_cache
+
+    def get_agent_idx_list(self) -> List[int]:
+        return []
+
+    def set_seed(self, seed: int) -> None:
+        pass
