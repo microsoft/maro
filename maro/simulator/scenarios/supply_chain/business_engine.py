@@ -186,7 +186,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for manufacture_unit in self._manufacture_dict.values():
             manufacture_unit.execute_manufacture(tick)
 
-    @property
     def get_metrics(self) -> dict:
         for consumer in self._consumer_dict.values():
             consumer.clear_pending_order_daily()
@@ -203,8 +202,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
-                            None if product.consumer is None
-                            else product.consumer.pending_order_daily,
+                            None if product.consumer is None else product.consumer.pending_order_daily,
                     } for product in self._product_units
                 },
                 "facilities": {

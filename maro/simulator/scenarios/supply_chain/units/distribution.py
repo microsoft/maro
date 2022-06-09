@@ -249,7 +249,6 @@ class DistributionUnit(UnitBase):
             self._is_order_changed = False
 
     def calc_pending_order_daily(self, tick) -> None:
-
         for arrival_tick, payload_list in self._payload_on_the_way.items():
             for payload in payload_list:
                 if 0 <= arrival_tick - tick < self.world.configs.settings["pending_order_len"]:
