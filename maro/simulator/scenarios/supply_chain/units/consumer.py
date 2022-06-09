@@ -63,21 +63,21 @@ class ConsumerUnit(ExtendUnitBase):
     def in_transit_quantity(self) -> int:
         return self._in_transit_quantity
 
-    def on_order_reception(
-        self, source_id: int, sku_id: int, received_quantity: int, required_quantity: int,
-    ) -> None:
+    def on_order_reception(self, order: Order, received_quantity: int, tick: int) -> None:
         """Called after order product is received.
 
         Args:
-            source_id (int): Where is the product from (facility id).
-            sku_id (int): What product we received.
+            order(Order): The order the products received belongs to.
             received_quantity (int): How many we received.
-            required_quantity (int): How many we ordered.
+            tick (int): The simulation tick.
         """
-        assert sku_id == self.sku_id
+        assert order.sku_id == self.sku_id
         self._received += received_quantity
 
-        self._update_open_orders(source_id, sku_id, -received_quantity)
+        order.receive(tick, received_quantity)
+        # TODO: add order related statistics
+
+        self._update_open_orders(order.src_facility.id, order.sku_id, -received_quantity)
 
     def _update_open_orders(self, source_id: int, sku_id: int, additional_quantity: int) -> None:
         """Update the order states.
@@ -113,12 +113,12 @@ class ConsumerUnit(ExtendUnitBase):
     at (t0 + vlt), these products can't be consumed to fulfill the demand from the downstreams/customer.
     """
 
-    def process_actions(self, actions: List[ConsumerAction]) -> None:
+    def process_actions(self, actions: List[ConsumerAction], tick: int) -> None:
         self._order_product_cost = self._order_base_cost = self._purchased = 0
         for action in actions:
-            self.process_action(action)
+            self._process_action(action, tick)
 
-    def process_action(self, action: ConsumerAction) -> None:
+    def _process_action(self, action: ConsumerAction, tick: int) -> None:
         # NOTE: id == 0 means invalid, as our id is 1-based.
         if any([
             action.source_id not in self.source_facility_id_list,
@@ -129,14 +129,19 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._update_open_orders(action.source_id, action.sku_id, action.quantity)
 
+        source_facility = self.world.get_facility_by_id(action.source_id)
+        expected_vlt = source_facility.downstream_vlt_infos[self.sku_id][self.facility.id][action.vehicle_type].vlt
+
         order = Order(
-            destination=self.facility,
+            src_facility=source_facility,
+            dest_facility=self.facility,
             sku_id=self.sku_id,
             quantity=action.quantity,
             vehicle_type=action.vehicle_type,
+            creation_tick=tick,
+            expected_finish_tick=tick + expected_vlt,
+            expiration_buffer=action.expiration_buffer,
         )
-
-        source_facility = self.world.get_facility_by_id(action.source_id)
 
         # Here the order cost is calculated by the upper distribution unit, with the sku price in that facility.
         self._order_product_cost += source_facility.distribution.place_order(order)

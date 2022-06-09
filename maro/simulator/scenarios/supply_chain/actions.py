@@ -2,6 +2,10 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
+from typing import Optional
+
+
+DEFAULT_EXPIRATION_BUFFER = 3
 
 
 @dataclass
@@ -15,6 +19,7 @@ class ConsumerAction(SupplyChainAction):
     source_id: int
     quantity: int
     vehicle_type: str
+    expiration_buffer: Optional[int] = DEFAULT_EXPIRATION_BUFFER
 
 
 @dataclass

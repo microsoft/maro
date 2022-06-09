@@ -8,7 +8,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
-from maro.simulator.scenarios.supply_chain.order import Order
+from maro.simulator.scenarios.supply_chain.order import Order, OrderStatus
 
 from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 from maro.simulator.scenarios.supply_chain.units.unitbase import BaseUnitInfo, UnitBase
@@ -104,14 +104,14 @@ class DistributionUnit(UnitBase):
         # TODO: to indicate whether it is a valid order or not in Return value?
         if all([
             order.sku_id in self.facility.downstream_vlt_infos,
-            order.destination.id in self.facility.downstream_vlt_infos[order.sku_id],
-            order.vehicle_type in self.facility.downstream_vlt_infos[order.sku_id][order.destination.id],
+            order.dest_facility.id in self.facility.downstream_vlt_infos[order.sku_id],
+            order.vehicle_type in self.facility.downstream_vlt_infos[order.sku_id][order.dest_facility.id],
             order.quantity > 0
         ]):
             self._order_queues[order.vehicle_type].append(order)
-            self._maintain_pending_order_info(order, departure=False)
+            self._maintain_pending_order_info(order, is_increase=True)
 
-            consumer = order.destination.products[order.sku_id].consumer
+            consumer = order.dest_facility.products[order.sku_id].consumer
             consumer.waiting_order_quantity += order.quantity
 
             self.check_in_quantity_in_order[order.sku_id] += order.quantity
@@ -138,9 +138,9 @@ class DistributionUnit(UnitBase):
         """
         return self.facility.storage.try_take_products({sku_id: quantity})
 
-    def _try_unload(self, payload: DistributionPayload) -> bool:
-        """Try to unload products into destination's storage."""
-        unloaded = payload.order.destination.storage.try_add_products(
+    def _try_unload(self, payload: DistributionPayload, tick: int) -> bool:
+        """Try unload products into destination's storage."""
+        unloaded = payload.order.dest_facility.storage.try_add_products(
             {payload.order.sku_id: payload.payload},
             add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
         )
@@ -150,11 +150,10 @@ class DistributionUnit(UnitBase):
             assert len(unloaded) == 1
             unloaded_quantity = unloaded[payload.order.sku_id]
 
-            payload.order.destination.products[payload.order.sku_id].consumer.on_order_reception(
-                source_id=self.facility.id,
-                sku_id=payload.order.sku_id,
+            payload.order.dest_facility.products[payload.order.sku_id].consumer.on_order_reception(
+                order=payload.order,
                 received_quantity=unloaded_quantity,
-                required_quantity=payload.order.quantity,
+                tick=tick,
             )
 
             payload.payload -= unloaded_quantity
@@ -171,7 +170,7 @@ class DistributionUnit(UnitBase):
         Returns:
             float: the daily transportation cost for this order. Equals to unit_transportation_cost * payload.
         """
-        vlt_info = self.facility.downstream_vlt_infos[order.sku_id][order.destination.id][order.vehicle_type]
+        vlt_info = self.facility.downstream_vlt_infos[order.sku_id][order.dest_facility.id][order.vehicle_type]
 
         arrival_tick = tick + vlt_info.vlt  # TODO: add random factor if needed
 
@@ -181,8 +180,9 @@ class DistributionUnit(UnitBase):
             unit_transportation_cost_per_day=vlt_info.unit_transportation_cost,
             payload=order.quantity,
         ))
+        order.order_status = OrderStatus.ON_THE_WAY
 
-        consumer = order.destination.products[order.sku_id].consumer
+        consumer = order.dest_facility.products[order.sku_id].consumer
         consumer.order_quantity_on_the_way[arrival_tick] += order.quantity
         consumer.waiting_order_quantity -= order.quantity
 
@@ -193,36 +193,38 @@ class DistributionUnit(UnitBase):
         self.transportation_cost.clear()
         self.delay_order_penalty.clear()
 
-    def _maintain_pending_order_info(self, order: Order, departure: bool) -> None:
-        indicator = 1 if departure else -1
-        self._pending_order_number -= 1 * indicator
-        self._total_pending_quantity -= order.quantity * indicator
-        self._pending_product_quantity[order.sku_id] -= order.quantity * indicator
+    def _maintain_pending_order_info(self, order: Order, is_increase: bool) -> None:
+        indicator = 1 if is_increase else -1
+        self._pending_order_number += 1 * indicator
+        self._total_pending_quantity += order.quantity * indicator
+        self._pending_product_quantity[order.sku_id] += order.quantity * indicator
         self._is_order_changed = True
 
     def try_schedule_orders(self, tick: int) -> None:
         for vehicle_type in self._vehicle_num.keys():
-            # Schedule if there are available vehicles
             order_load_failed: List[Order] = []
-            while all([
-                len(self._order_queues[vehicle_type]) > 0,
-                self._has_available_vehicle(vehicle_type),
-            ]):
-                order: Order = self._order_queues[vehicle_type].popleft()
-                if self._try_load(order.sku_id, order.quantity):
+
+            for order in self._order_queues[vehicle_type]:
+                # Check if the order still active.
+                if order.expiration_buffer is not None and tick > order.creation_tick + order.expiration_buffer:
+                    order.order_status = OrderStatus.EXPIRED
+                    # Update waiting order quantity info in Consumer.
+                    consumer = order.dest_facility.products[order.sku_id].consumer
+                    consumer.waiting_order_quantity -= order.quantity
+                    continue
+                # Try to schedule order and load products.
+                if self._has_available_vehicle(vehicle_type) and self._try_load(order.sku_id, order.quantity):
                     transportation_cost_per_day = self._schedule_order(tick, order)
                     self.transportation_cost[order.sku_id] += transportation_cost_per_day
-
                     # The transportation cost of this newly scheduled order would be counted soon, do not count here.
                     self._busy_vehicle_num[vehicle_type] += 1
-                    self._maintain_pending_order_info(order, departure=True)
+                    self._maintain_pending_order_info(order, is_increase=False)
                 else:
+                    # Count delay order penalty.
+                    self.delay_order_penalty[order.sku_id] += self._unit_delay_order_penalty[order.sku_id]
                     order_load_failed.append(order)
-            self._order_queues[vehicle_type].extend(order_load_failed)
 
-            # Else count delay order penalty
-            for order in self._order_queues[vehicle_type]:
-                self.delay_order_penalty[order.sku_id] += self._unit_delay_order_penalty[order.sku_id]
+            self._order_queues[vehicle_type] = order_load_failed
 
     def step(self, tick: int) -> None:
         # Update transportation cost for orders that are already on the way.
@@ -239,7 +241,8 @@ class DistributionUnit(UnitBase):
     def handle_arrival_payloads(self, tick: int) -> None:
         # Handle arrival payloads.
         for payload in self._payload_on_the_way[tick]:
-            if self._try_unload(payload):
+            payload.order.order_status = OrderStatus.PENDING_UNLOAD
+            if self._try_unload(payload, tick):
                 self._busy_vehicle_num[payload.order.vehicle_type] -= 1
             else:
                 self._payload_on_the_way[tick + 1].append(payload)
