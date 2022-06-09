@@ -4,10 +4,19 @@
 from __future__ import annotations
 
 import typing
+from enum import Enum
 from typing import List, Optional
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+
+
+class OrderStatus(Enum):
+    PENDING_SCHEDULE = "pending_schedule"
+    ON_THE_WAY = "on_the_way"
+    PENDING_UNLOAD = "pending_unload"
+    FINISHED = "finished"
+    EXPIRED = "expired"
 
 
 class Order:
@@ -20,6 +29,7 @@ class Order:
         vehicle_type: str,
         creation_tick: int,
         expected_finish_tick: Optional[int],  # It is the expected tick in the moment of taking ConsumerAction.
+        expiration_buffer: Optional[int]=None,
     ) -> None:
         self.src_facility: FacilityBase = src_facility
         self.dest_facility: FacilityBase = dest_facility
@@ -27,21 +37,21 @@ class Order:
         self.quantity: int = quantity
         self.vehicle_type: str = vehicle_type
         self.creation_tick: int = creation_tick
-        self.expected_finish_tick: int = expected_finish_tick
+        self.expected_finish_tick: Optional[int] = expected_finish_tick
+        self.expiration_buffer: Optional[int] = expiration_buffer
+
+        self.order_status: OrderStatus = OrderStatus.PENDING_SCHEDULE
 
         self.receive_tick_list: List[int] = []
         self.receive_payload_list: List[int] = []
         self.actual_finish_tick: Optional[int] = None
         self._pending_receive_quantity: int = quantity
 
-    @property
-    def is_finished(self) -> bool:
-        return self._pending_receive_quantity == 0
-
     def receive(self, tick: int, quantity: int) -> None:
         assert quantity <= self._pending_receive_quantity, (
             f"Only {self._pending_receive_quantity} pending received, but {quantity} got!"
         )
+        self.order_status = OrderStatus.PENDING_UNLOAD
 
         self.receive_tick_list.append(tick)
         self.receive_payload_list.append(quantity)
@@ -49,6 +59,7 @@ class Order:
         self._pending_receive_quantity -= quantity
         if self._pending_receive_quantity == 0:
             self.actual_finish_tick = tick
+            self.order_status = OrderStatus.FINISHED
 
         return
 
