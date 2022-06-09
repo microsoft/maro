@@ -211,6 +211,7 @@ class DistributionUnit(UnitBase):
                     # Update waiting order quantity info in Consumer.
                     consumer = order.dest_facility.products[order.sku_id].consumer
                     consumer.waiting_order_quantity -= order.quantity
+                    consumer._update_open_orders(self.facility.id, order.sku_id, -order.quantity)
                     continue
                 # Try to schedule order and load products.
                 if self._has_available_vehicle(vehicle_type) and self._try_load(order.sku_id, order.quantity):
