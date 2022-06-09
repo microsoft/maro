@@ -2,6 +2,7 @@ name: test_with_cli
 
 on:
   pull_request_review:
+    branches: [ master, v0.1, v0.2, v0.3 ]
     types: [ submitted ]
   workflow_dispatch:
 

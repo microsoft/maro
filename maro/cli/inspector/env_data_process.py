@@ -210,13 +210,23 @@ def _get_index_index_name_conversion(scenario: GlobalScenarios, source_path: str
     if os.path.exists(os.path.join(source_path, GlobalFileNames.name_convert)):
         os.remove(os.path.join(source_path, GlobalFileNames.name_convert))
     if scenario == GlobalScenarios.CITI_BIKE:
-        with open(conversion_path, "r", encoding="utf8")as mapping_file:
-            mapping_json_data = json.load(mapping_file)
-            name_list = []
-            for item in mapping_json_data["data"]["stations"]:
-                name_list.append(item["name"])
-            df = pd.DataFrame({"name": name_list})
-            df.to_csv(os.path.join(source_path, GlobalFileNames.name_convert), index=False)
+        # TODO: the commented out code are older version which will cause errors.
+        # TODO: the updated code could work but the fix is temporary.
+        # TODO: we need to refactor the dump logic in citi bike scenario and make a stable solution later.
+
+        # with open(conversion_path, "r", encoding="utf8")as mapping_file:
+        #     mapping_json_data = json.load(mapping_file)
+        #     name_list = []
+        #     for item in mapping_json_data["data"]["stations"]:
+        #         name_list.append(item["name"])
+        #     df = pd.DataFrame({"name": name_list})
+        #     df.to_csv(os.path.join(source_path, GlobalFileNames.name_convert), index=False)
+
+        df_station = pd.read_csv(os.path.join(source_path, "epoch_0", "stations.csv"))
+        name_list = df_station["name"].unique()
+        df = pd.DataFrame({"name": name_list})
+        df.to_csv(os.path.join(source_path, GlobalFileNames.name_convert), index=False)
+
     elif scenario == GlobalScenarios.CIM:
         cim_information = yaml.load(
             open(conversion_path, "r").read(),
