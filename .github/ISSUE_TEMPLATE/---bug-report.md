@@ -32,12 +32,12 @@ Steps to reproduce the behavior:
 ## Environment
 
 - MARO version (e.g., v0.1.1a1):
-- MARO scenario (`CIM`, `Citi Bike`):
+- MARO scenario (`CIM`, `Citi Bike`, `VM Scheduling`):
 - MARO component (`Simulation`, `RL`, `Distributed Training`):
 - Orchestration platform (`GraSS on Azure`, `AKS on Azure`):
 - How you installed MARO (`pip`, `source`):
 - OS (`Linux`, `Windows`, `macOS`):
-- Python version (`3.6`, `3.7`):
+- Python version (`3.7`, `3.8`, `3.9`):
 - Docker image (e.g., maro2020/maro:latest):
 - CPU/GPU:
 - Any other relevant information:

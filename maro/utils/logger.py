@@ -220,12 +220,12 @@ class CliLogger:
             if self.log_level == logging.DEBUG:
                 super().__init__(
                     tag='cli',
-                    format_=LogFormat.cli_debug, dump_path=dump_path, dump_mode='a', stdout_level=self.log_level
+                    format_=LogFormat.cli_debug, dump_folder=dump_path, dump_mode='a', stdout_level=self.log_level
                 )
             elif self.log_level >= logging.INFO:
                 super().__init__(
                     tag='cli',
-                    format_=LogFormat.cli_info, dump_path=dump_path, dump_mode='a', stdout_level=self.log_level
+                    format_=LogFormat.cli_info, dump_folder=dump_path, dump_mode='a', stdout_level=self.log_level
                 )
 
     _logger = None

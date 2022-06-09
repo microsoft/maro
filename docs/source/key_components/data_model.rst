@@ -265,7 +265,7 @@ For better data access, we also provide some advanced features, including:
 States in built-in scenarios' snapshot list
 -------------------------------------------
 
-TODO: move to environment part?
+.. TODO: move to environment part?
 
 Currently there are 3 ways to expose states in built-in scenarios:
 
