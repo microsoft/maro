@@ -7,10 +7,9 @@ import collections
 import os
 import typing
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict, deque
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Deque, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import torch
@@ -107,8 +106,8 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         self, state_by_agent: Dict[Any, Union[np.ndarray, List[object]]],
     ) -> Dict[Any, Union[np.ndarray, List[object]]]:
         # Aggregate states by policy
-        states_by_policy = defaultdict(list)  # {str: list of np.ndarray}
-        agents_by_policy = defaultdict(list)  # {str: list of str}
+        states_by_policy = collections.defaultdict(list)  # {str: list of np.ndarray}
+        agents_by_policy = collections.defaultdict(list)  # {str: list of str}
         for agent_name, state in state_by_agent.items():
             policy_name = self._agent2policy[agent_name]
             states_by_policy[policy_name].append(state)
@@ -141,19 +140,6 @@ class SimpleAgentWrapper(AbsAgentWrapper):
 
 
 @dataclass
-class CacheElement:
-    """Raw transition information that can be post-processed into an `ExpElement`.
-    """
-    tick: int
-    event: object
-    state: np.ndarray
-    agent_state_dict: Dict[Any, np.ndarray]
-    action_dict: Dict[Any, np.ndarray]
-    env_action_dict: Dict[Any, np.ndarray]
-    reward_dict: Dict[Any, float] = None
-
-
-@dataclass
 class ExpElement:
     """Stores the complete information for a tick.
     """
@@ -164,7 +150,7 @@ class ExpElement:
     reward_dict: Dict[Any, float]
     terminal_dict: Dict[Any, bool]
     next_state: Optional[np.ndarray]
-    next_agent_state_dict: Optional[Dict[Any, np.ndarray]]
+    next_agent_state_dict: Dict[Any, np.ndarray]
 
     @property
     def agent_names(self) -> list:
@@ -174,7 +160,24 @@ class ExpElement:
     def num_agents(self) -> int:
         return len(self.agent_state_dict)
 
-    def split_contents(self, agent2trainer: Dict[Any, str]) -> Dict[str, ExpElement]:
+    def split_contents_by_agent(self) -> Dict[Any, ExpElement]:
+        ret = {}
+        for agent_name in self.agent_state_dict.keys():
+            ret[agent_name] = ExpElement(
+                tick=self.tick,
+                state=self.state,
+                agent_state_dict={agent_name: self.agent_state_dict[agent_name]},
+                action_dict={agent_name: self.action_dict[agent_name]},
+                reward_dict={agent_name: self.reward_dict[agent_name]},
+                terminal_dict={agent_name: self.terminal_dict[agent_name]},
+                next_state=self.next_state,
+                next_agent_state_dict={
+                    agent_name: self.next_agent_state_dict[agent_name]
+                } if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict else {},
+            )
+        return ret
+
+    def split_contents_by_trainer(self, agent2trainer: Dict[Any, str]) -> Dict[str, ExpElement]:
         """Split the ExpElement's contents by trainer.
 
         Args:
@@ -205,6 +208,27 @@ class ExpElement:
         return ret
 
 
+@dataclass
+class CacheElement(ExpElement):
+    event: object
+    env_action_dict: Dict[Any, np.ndarray]
+
+    def make_exp_element(self) -> ExpElement:
+        assert len(self.terminal_dict) == len(self.agent_state_dict) == len(self.action_dict)
+        assert len(self.terminal_dict) == len(self.next_agent_state_dict) == len(self.reward_dict)
+
+        return ExpElement(
+            tick=self.tick,
+            state=self.state,
+            agent_state_dict=self.agent_state_dict,
+            action_dict=self.action_dict,
+            reward_dict=self.reward_dict,
+            terminal_dict=self.terminal_dict,
+            next_state=self.next_state,
+            next_agent_state_dict=self.next_agent_state_dict,
+        )
+
+
 class AbsEnvSampler(object, metaclass=ABCMeta):
     """Simulation data collector and policy evaluator.
 
@@ -228,10 +252,13 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         self._agent_wrapper_cls = agent_wrapper_cls
 
+        self._event = None
+        self._end_of_episode = True
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
 
-        self._trans_cache: Deque[CacheElement] = deque()
+        self._trans_cache: List[CacheElement] = []
+        self._agent_last_index: Dict[Any, int] = {}  # Index of last occurrence of agent in self._trans_cache
         self._reward_eval_delay = reward_eval_delay
 
         self._info = {}
@@ -247,7 +274,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             rl_component_bundle (RLComponentBundle): The RL component bundle of the job.
         """
         self._env: Optional[Env] = None
-        self._event = None  # Need this to remember the last event if an episode is divided into multiple segments
 
         self._policy_dict = {
             policy_name: rl_component_bundle.policy_creator[policy_name]()
@@ -328,12 +354,53 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    def _step(self, actions: Optional[list]) -> None:
+        _, self._event, self._end_of_episode = self._env.step(actions)
+        self._state, self._agent_state_dict = (None, {}) \
+            if self._end_of_episode else self._get_global_and_agent_state(self._event)
+
+    def _calc_reward(self, cache_element: CacheElement) -> None:
+        cache_element.reward_dict = self._get_reward(
+            cache_element.env_action_dict, cache_element.event, cache_element.tick,
+        )
+
+    def _append_cache_element(self, cache_element: Optional[CacheElement]) -> None:
+        """`cache_element` == None means we are processing the last element in trans_cache"""
+        if cache_element is None:
+            if len(self._trans_cache) > 0:
+                self._trans_cache[-1].next_state = self._trans_cache[-1].state
+
+            for agent_name, i in self._agent_last_index.items():
+                e = self._trans_cache[i]
+                e.terminal_dict[agent_name] = self._end_of_episode
+                e.next_agent_state_dict[agent_name] = e.agent_state_dict[agent_name]
+        else:
+            self._trans_cache.append(cache_element)
+
+            if len(self._trans_cache) > 0:
+                self._trans_cache[-1].next_state = cache_element.state
+
+            cur_index = len(self._trans_cache) - 1
+            for agent_name in cache_element.agent_names:
+                if agent_name in self._agent_last_index:
+                    i = self._agent_last_index[agent_name]
+                    self._trans_cache[i].terminal_dict[agent_name] = False
+                    self._trans_cache[i].next_agent_state_dict[agent_name] = cache_element.agent_state_dict[agent_name]
+                self._agent_last_index[agent_name] = cur_index
+
     def _reset(self) -> None:
         self._env.reset()
         self._info.clear()
         self._trans_cache.clear()
-        _, self._event, _ = self._env.step(None)
-        self._state, self._agent_state_dict = self._get_global_and_agent_state(self._event)
+        self._agent_last_index.clear()
+        self._step(None)
+
+    def _select_trainable_agents(self, original_dict: dict) -> dict:
+        return {
+            k: v
+            for k, v in original_dict.items()
+            if k in self._trainable_agents
+        }
 
     def sample(self, policy_state: Optional[Dict[str, dict]] = None, num_steps: Optional[int] = None) -> dict:
         """Sample experiences.
@@ -349,7 +416,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         """
         # Init the env
         self._env = self._learn_env
-        if not self._agent_state_dict:
+        if self._end_of_episode:
             self._reset()
 
         # Update policy state if necessary
@@ -359,7 +426,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         # Collect experience
         self._agent_wrapper.explore()
         steps_to_go = float("inf") if num_steps is None else num_steps
-        while self._agent_state_dict and steps_to_go > 0:
+        while not self._end_of_episode and steps_to_go > 0:
             # Get agent actions and translate them to env actions
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
@@ -369,95 +436,47 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 tick=self._env.tick,
                 event=self._event,
                 state=self._state,
-                agent_state_dict={
-                    id_: state
-                    for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
-                },
-                action_dict={
-                    id_: action
-                    for id_, action in action_dict.items() if id_ in self._trainable_agents
-                },
-                env_action_dict={
-                    id_: env_action
-                    for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
-                },
+                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                action_dict=self._select_trainable_agents(action_dict),
+                env_action_dict=self._select_trainable_agents(env_action_dict),
+                # The following will be generated later
+                reward_dict={},
+                terminal_dict={},
+                next_state=None,
+                next_agent_state_dict={},
             )
 
             # Update env and get new states (global & agent)
-            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if is_done \
-                else self._get_global_and_agent_state(self._event)
+            self._step(list(env_action_dict.values()))
 
             if self._reward_eval_delay is None:
-                cache_element.reward_dict = self._get_reward(
-                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
-                )
+                self._calc_reward(cache_element)
                 self._post_step(cache_element)
-            self._trans_cache.append(cache_element)
-
+            self._append_cache_element(cache_element)
             steps_to_go -= 1
+        self._append_cache_element(None)
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
-        experiences = []
+        experiences: List[ExpElement] = []
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-            cache_element = self._trans_cache.popleft()
+            cache_element = self._trans_cache.pop(0)
             # !: Here the reward calculation method requires the given tick is enough and must be used then.
             if self._reward_eval_delay is not None:
-                cache_element.reward_dict = self._get_reward(
-                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
-                )
+                self._calc_reward(cache_element)
                 self._post_step(cache_element)
+            experiences.append(cache_element.make_exp_element())
 
-            if len(self._trans_cache) > 0:
-                next_state = self._trans_cache[0].state
-                next_agent_state_dict = dict(self._trans_cache[0].agent_state_dict)
-            else:
-                next_state = self._state
-                next_agent_state_dict = {
-                    id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
-                }
-
-            experiences.append(ExpElement(
-                tick=cache_element.tick,
-                state=cache_element.state,
-                agent_state_dict=cache_element.agent_state_dict,
-                action_dict=cache_element.action_dict,
-                reward_dict=cache_element.reward_dict,
-                terminal_dict={},  # Will be processed later in `_post_polish_experiences()`
-                next_state=next_state,
-                next_agent_state_dict=next_agent_state_dict,
-            ))
-
-        experiences = self._post_polish_experiences(experiences)
+        self._agent_last_index = {
+            k: v - len(experiences)
+            for k, v in self._agent_last_index.items()
+            if v >= len(experiences)
+        }
 
         return {
-            "end_of_episode": not self._agent_state_dict,
+            "end_of_episode": self._end_of_episode,
             "experiences": [experiences],
             "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
         }
-
-    def _post_polish_experiences(self, experiences: List[ExpElement]) -> List[ExpElement]:
-        """Update next_agent_state_dict & terminal_dict using the entire experience list.
-
-        Args:
-            experiences (List[ExpElement]): Sequence of ExpElements.
-
-        Returns:
-            The update sequence of ExpElements.
-        """
-        latest_agent_state_dict = {}  # Used to update next_agent_state_dict
-        have_log = set([])  # Used to update terminal_dict
-        for i in range(len(experiences))[::-1]:
-            # Update terminal_dict
-            for agent_name in experiences[i].agent_state_dict:
-                experiences[i].terminal_dict[agent_name] = (not self._agent_state_dict and agent_name not in have_log)
-                have_log.add(agent_name)
-            # Update next_agent_state_dict
-            for key, value in latest_agent_state_dict.items():
-                if key not in experiences[i].next_agent_state_dict:
-                    experiences[i].next_agent_state_dict[key] = value
-            latest_agent_state_dict.update(experiences[i].agent_state_dict)
-        return experiences
 
     def set_policy_state(self, policy_state_dict: Dict[str, dict]) -> None:
         """Set policies' states.
@@ -488,7 +507,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self.set_policy_state(policy_state)
 
         self._agent_wrapper.exploit()
-        while self._agent_state_dict:
+        while not self._end_of_episode:
             action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
             env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
@@ -497,34 +516,31 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 tick=self._env.tick,
                 event=self._event,
                 state=self._state,
-                agent_state_dict={
-                    id_: state for id_, state in self._agent_state_dict.items() if id_ in self._trainable_agents
-                },
-                action_dict={id_: action for id_, action in action_dict.items() if id_ in self._trainable_agents},
-                env_action_dict={
-                    id_: env_action for id_, env_action in env_action_dict.items() if id_ in self._trainable_agents
-                },
+                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                action_dict=self._select_trainable_agents(action_dict),
+                env_action_dict=self._select_trainable_agents(env_action_dict),
+                # The following will be generated later
+                reward_dict={},
+                terminal_dict={},
+                next_state=None,
+                next_agent_state_dict={},
             )
 
             # Update env and get new states (global & agent)
-            _, self._event, is_done = self._env.step(list(env_action_dict.values()))
-            self._state, self._agent_state_dict = (None, {}) if is_done \
-                else self._get_global_and_agent_state(self._event)
+            self._step(list(env_action_dict.values()))
 
-            if self._reward_eval_delay is None:
-                cache_element.reward_dict = self._get_reward(
-                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
-                )
+            if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
+                self._calc_reward(cache_element)
                 self._post_eval_step(cache_element)
-            self._trans_cache.append(cache_element)
+
+            self._append_cache_element(cache_element)
+        self._append_cache_element(None)
 
         tick_bound = self._env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-            cache_element = self._trans_cache.popleft()
+            cache_element = self._trans_cache.pop(0)
             if self._reward_eval_delay is not None:
-                cache_element.reward_dict = self._get_reward(
-                    cache_element.env_action_dict, cache_element.event, cache_element.tick,
-                )
+                self._calc_reward(cache_element)
                 self._post_eval_step(cache_element)
 
         return {"info": [self._info]}

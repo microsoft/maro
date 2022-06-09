@@ -1,43 +1,43 @@
 
 
 .. image:: https://img.shields.io/pypi/l/pymaro
-  :target: https://github.com/microsoft/maro/blob/master/LICENSE
-  :alt: License
+   :target: https://github.com/microsoft/maro/blob/master/LICENSE
+   :alt: License
 
 
 .. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/platform.svg
-  :target: https://pypi.org/project/pymaro/
-  :alt: Platform
+   :target: https://pypi.org/project/pymaro/
+   :alt: Platform
 
 
 .. image:: https://img.shields.io/pypi/pyversions/pymaro.svg?logo=python&logoColor=white
-  :target: https://pypi.org/project/pymaro/#files
-  :alt: Python Versions
+   :target: https://pypi.org/project/pymaro/#files
+   :alt: Python Versions
 
 
 .. image:: https://img.shields.io/github/languages/code-size/microsoft/maro
-  :target: https://github.com/microsoft/maro
-  :alt: Code Size
+   :target: https://github.com/microsoft/maro
+   :alt: Code Size
 
 
 .. image:: https://img.shields.io/docker/image-size/maro2020/maro
-  :target: https://hub.docker.com/repository/docker/maro2020/maro/tags?page=1
-  :alt: Docker Size
+   :target: https://hub.docker.com/repository/docker/maro2020/maro/tags?page=1
+   :alt: Docker Size
 
 
 .. image:: https://img.shields.io/github/issues/microsoft/maro
-  :target: https://github.com/microsoft/maro/issues
-  :alt: Issues
+   :target: https://github.com/microsoft/maro/issues
+   :alt: Issues
 
 
 .. image:: https://img.shields.io/github/issues-pr/microsoft/maro
-  :target: https://github.com/microsoft/maro/pulls
-  :alt: Pull Requests
+   :target: https://github.com/microsoft/maro/pulls
+   :alt: Pull Requests
 
 
 .. image:: https://img.shields.io/librariesio/github/microsoft/maro
-  :target: https://libraries.io/pypi/pymaro
-  :alt: Dependencies
+   :target: https://libraries.io/pypi/pymaro
+   :alt: Dependencies
 
 
 .. image:: https://github.com/microsoft/maro/workflows/test/badge.svg
@@ -51,8 +51,8 @@
 
 
 .. image:: https://github.com/microsoft/maro/workflows/docker/badge.svg
-  :target: https://hub.docker.com/repository/docker/maro2020/maro
-  :alt: docker
+   :target: https://hub.docker.com/repository/docker/maro2020/maro
+   :alt: docker
 
 
 .. image:: https://readthedocs.org/projects/maro/badge/?version=latest
@@ -61,23 +61,86 @@
 
 
 .. image:: https://img.shields.io/pypi/v/pymaro
-  :target: https://pypi.org/project/pymaro/#files
-  :alt: PypI Versions
+   :target: https://pypi.org/project/pymaro/#files
+   :alt: PypI Versions
 
 
 .. image:: https://img.shields.io/pypi/wheel/pymaro
-  :target: https://pypi.org/project/pymaro/#files
-  :alt: Wheel
+   :target: https://pypi.org/project/pymaro/#files
+   :alt: Wheel
 
 
 .. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/citi_bike.svg
-  :target: https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html
-  :alt: Citi Bike
+   :target: https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html
+   :alt: Citi Bike
 
 
 .. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/cim.svg
-  :target: https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html
-  :alt: CIM
+   :target: https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html
+   :alt: CIM
+
+
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/vm_scheduling.svg
+   :target: https://maro.readthedocs.io/en/latest/scenarios/vm_scheduling.html
+   :alt: VM Scheduling
+
+
+.. image:: https://img.shields.io/gitter/room/microsoft/maro
+   :target: https://gitter.im/Microsoft/MARO#
+   :alt: Gitter
+
+
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/stack_overflow.svg
+   :target: https://stackoverflow.com/questions/ask?tags=maro
+   :alt: Stack Overflow
+
+
+.. image:: https://img.shields.io/github/release-date-pre/microsoft/maro
+   :target: https://github.com/microsoft/maro/releases
+   :alt: Releases
+
+
+.. image:: https://img.shields.io/github/commits-since/microsoft/maro/latest/master
+   :target: https://github.com/microsoft/maro/commits/master
+   :alt: Commits
+
+
+.. image:: https://github.com/microsoft/maro/workflows/vulnerability%20scan/badge.svg
+   :target: https://github.com/microsoft/maro/actions?query=workflow%3A%22vulnerability+scan%22
+   :alt: Vulnerability Scan
+
+
+.. image:: https://github.com/microsoft/maro/workflows/lint/badge.svg
+   :target: https://github.com/microsoft/maro/actions?query=workflow%3Alint
+   :alt: Lint
+
+
+.. image:: https://img.shields.io/codecov/c/github/microsoft/maro
+   :target: https://codecov.io/gh/microsoft/maro
+   :alt: Coverage
+
+
+.. image:: https://img.shields.io/pypi/dm/pymaro
+   :target: https://pypi.org/project/pymaro/#files
+   :alt: Downloads
+
+
+.. image:: https://img.shields.io/docker/pulls/maro2020/maro
+   :target: https://hub.docker.com/repository/docker/maro2020/maro
+   :alt: Docker Pulls
+
+
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/play_with_maro.svg
+   :target: https://hub.docker.com/r/maro2020/maro
+   :alt: Play with MARO
+
+
+
+.. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/logo.svg
+   :target: https://maro.readthedocs.io/en/latest/
+   :alt: MARO LOGO
+
+================================================================================================================
 
 
 .. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/vm_scheduling.svg
@@ -164,8 +227,8 @@ Key Components of MARO:
 
 
 .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/maro_overview.svg
-  :target: https://github.com/microsoft/maro/blob/master/docs/source/images/maro_overview.svg
-  :alt: MARO Key Components
+   :target: https://github.com/microsoft/maro/blob/master/docs/source/images/maro_overview.svg
+   :alt: MARO Key Components
 
 
 Contents
@@ -244,22 +307,22 @@ Install MARO from Source
 
     .. code-block:: powershell
 
-      # If your environment is not clean, create a virtual environment firstly.
-      python -m venv maro_venv
+       # If your environment is not clean, create a virtual environment firstly.
+       python -m venv maro_venv
 
       # You may need this for SecurityError in PowerShell.
       Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
 
-      # Activate the virtual environment.
-      .\maro_venv\Scripts\activate
+       # Activate the virtual environment.
+       .\maro_venv\Scripts\activate
 
 *
   Install MARO
 
   .. code-block:: sh
 
-    # Git Clone the whole source code.
-    git clone https://github.com/microsoft/maro.git
+     # Git Clone the whole source code.
+     git clone https://github.com/microsoft/maro.git
 
 
   *
@@ -286,14 +349,14 @@ Install MARO from Source
 
   .. code-block:: sh
 
-    export PYTHONPATH=PATH-TO-MARO
+     export PYTHONPATH=PATH-TO-MARO
 
 
   * Windows
 
   .. code-block:: powershell
 
-    $Env:PYTHONPATH=PATH-TO-MARO
+     $Env:PYTHONPATH=PATH-TO-MARO
 
 Quick Example
 -------------
@@ -316,15 +379,15 @@ Quick Example
 
 .. code-block:: sh
 
-  # Enable environment dump feature, when initializing the environment instance
-  env = Env(scenario="cim",
-            topology="toy.5p_ssddd_l0.0",
-            start_tick=0,
-            durations=100,
-            options={"enable-dump-snapshot": "./dump_data"})
+   # Enable environment dump feature, when initializing the environment instance
+   env = Env(scenario="cim",
+             topology="toy.5p_ssddd_l0.0",
+             start_tick=0,
+             durations=100,
+             options={"enable-dump-snapshot": "./dump_data"})
 
-  # Inspect environment with the dump data
-  maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
+   # Inspect environment with the dump data
+   maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
 
 Show Cases
 ^^^^^^^^^^
@@ -334,26 +397,26 @@ Show Cases
   Case I - Container Inventory Management
 
   .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_inter_epoch.gif
-    :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_inter_epoch.gif
-    :alt: CIM Inter Epoch
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_inter_epoch.gif
+     :alt: CIM Inter Epoch
 
 
   .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif
-    :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif
-    :alt: CIM Intra Epoch
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif
+     :alt: CIM Intra Epoch
 
 
 *
   Case II - Citi Bike
 
   .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif
-    :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif
-    :alt: Citi Bike Inter Epoch
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif
+     :alt: Citi Bike Inter Epoch
 
 
   .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
-    :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
-    :alt: Citi Bike Intra Epoch
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
+     :alt: Citi Bike Intra Epoch
 
 
 Run Playground
@@ -365,13 +428,13 @@ Run Playground
 
   .. code-block:: sh
 
-    # Pull the docker image from docker hub
-    docker pull maro2020/playground
+     # Pull the docker image from docker hub
+     docker pull maro2020/playground
 
-    # Run playground container.
-    # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-    # Jupyter lab with maro -> http://127.0.0.1:40010
-    docker run -p 40009:40009 -p 40010:40010 maro2020/playground
+     # Run playground container.
+     # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+     # Jupyter lab with maro -> http://127.0.0.1:40010
+     docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
 *
   Build from source
@@ -385,10 +448,10 @@ Run Playground
       # Build playground image.
       bash ./scripts/build_playground.sh
 
-      # Run playground container.
-      # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-      # Jupyter lab with maro -> http://127.0.0.1:40010
-      docker run -p 40009:40009 -p 40010:40010 maro2020/playground
+       # Run playground container.
+       # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+       # Jupyter lab with maro -> http://127.0.0.1:40010
+       docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
   *
     Windows
@@ -398,10 +461,10 @@ Run Playground
       # Build playground image.
       .\scripts\build_playground.bat
 
-      # Run playground container.
-      # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-      # Jupyter lab with maro -> http://127.0.0.1:40010
-      docker run -p 40009:40009 -p 40010:40010 maro2020/playground
+       # Run playground container.
+       # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+       # Jupyter lab with maro -> http://127.0.0.1:40010
+       docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
 Contributing
 ------------
@@ -431,8 +494,8 @@ Related Papers
 
 
 .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/scenario/cim_vis.gif
-  :target: https://github.com/microsoft/maro/blob/master/docs/source/images/scenario/cim_vis.gif
-  :alt: CIM Vis
+   :target: https://github.com/microsoft/maro/blob/master/docs/source/images/scenario/cim_vis.gif
+   :alt: CIM Vis
 
 
 Wenlei Shi, Xinran Wei, Jia Zhang, Xiaoyuan Ni, Arthur Jiang, Jiang Bian, Tie-Yan Liu. "\ `Cooperative Policy Learning with Pre-trained Heterogeneous Observation Representations <https://arxiv.org/abs/2012.13099>`_\ ". AAMAS 2021

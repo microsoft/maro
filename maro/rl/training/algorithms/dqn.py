@@ -14,7 +14,6 @@ from maro.utils import clone
 @dataclass
 class DQNParams(TrainerParams):
     """
-    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
     num_epochs (int, default=1): Number of training epochs.
     update_target_every (int, default=5): Number of gradient steps between target model updates.
     soft_update_coef (float, default=0.1): Soft update coefficient, e.g.,
@@ -26,7 +25,6 @@ class DQNParams(TrainerParams):
         is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
         sequentially with wrap-around.
     """
-    reward_discount: float = 0.9
     num_epochs: int = 1
     update_target_every: int = 5
     soft_update_coef: float = 0.1

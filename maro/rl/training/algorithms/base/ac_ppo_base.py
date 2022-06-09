@@ -20,7 +20,6 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
     Parameter bundle for Actor-Critic based algorithms (Actor-Critic & PPO)
 
     get_v_critic_net_func (Callable[[], VNet]): Function to get V critic net.
-    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
     grad_iters (int, default=1): Number of iterations to calculate gradients.
     critic_loss_cls (Callable, default=None): Critic loss function. If it is None, use MSE.
     lam (float, default=0.9): Lambda value for generalized advantage estimation (TD-Lambda).
@@ -30,7 +29,6 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
     is_discrete_action (bool, default=True): Indicator of continuous or discrete action policy.
     """
     get_v_critic_net_func: Callable[[], VNet] = None
-    reward_discount: float = 0.9
     grad_iters: int = 1
     critic_loss_cls: Callable = None
     lam: float = 0.9
