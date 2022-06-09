@@ -168,7 +168,7 @@ class MyTestCase(unittest.TestCase):
     def test_consumer_unit_dynamics_sampler(self):
         """Tested the store_001  Interaction between consumer unit and dynamics csv data.
            The data file of this test is test_case_ 04.csv"""
-        env = build_env("case_04", 600)
+        env = build_env("case_04", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
         env.step(None)

@@ -4,11 +4,9 @@
 from __future__ import annotations
 
 import typing
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import List, Optional, Union
-
-from scipy.ndimage.interpolation import shift
+from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction
 from maro.simulator.scenarios.supply_chain.datamodels import ConsumerDataModel
@@ -37,7 +35,8 @@ class ConsumerUnit(ExtendUnitBase):
         super(ConsumerUnit, self).__init__(
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
-
+        self.order_quantity_on_the_way: Dict[int, int] = defaultdict(int)
+        self.waiting_order_quantity: int = 0
         self._open_orders = Counter()
         self._in_transit_quantity: int = 0
 
@@ -49,9 +48,16 @@ class ConsumerUnit(ExtendUnitBase):
         self._order_base_cost: float = 0  # order.quantity * unit_order_cost
 
         self.source_facility_id_list: List[int] = []
-        self.pending_order_daily: Optional[List[int]] = None
 
         self._unit_order_cost: float = 0
+
+    def get_pending_order_daily(self, tick: int) -> List[int]:
+        ret = [
+            self.order_quantity_on_the_way[tick + i] for i in range(self.world.configs.settings["pending_order_len"])
+        ]
+        if tick in self.order_quantity_on_the_way:  # Remove data at tick to save storage
+            self.order_quantity_on_the_way.pop(tick)
+        return ret
 
     @property
     def in_transit_quantity(self) -> int:
@@ -90,8 +96,6 @@ class ConsumerUnit(ExtendUnitBase):
         super(ConsumerUnit, self).initialize()
 
         self._unit_order_cost = self.facility.skus[self.sku_id].unit_order_cost
-
-        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
         assert isinstance(self.data_model, ConsumerDataModel)
 
@@ -160,7 +164,7 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.latest_consumptions = 0
 
     def step(self, tick: int) -> None:
-        self._update_pending_order()
+        pass
 
     def flush_states(self) -> None:
         if self._received > 0:
@@ -186,10 +190,6 @@ class ConsumerUnit(ExtendUnitBase):
         self._purchased = 0
         self._order_product_cost = 0
         self._order_base_cost = 0
-        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
-
-    def _update_pending_order(self) -> None:
-        self.pending_order_daily = shift(self.pending_order_daily, -1, cval=0)
 
     def get_unit_info(self) -> ConsumerUnitInfo:
         return ConsumerUnitInfo(

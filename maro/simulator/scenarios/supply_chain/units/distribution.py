@@ -10,8 +10,8 @@ from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order
 
-from .storage import AddStrategy
-from .unitbase import BaseUnitInfo, UnitBase
+from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
+from maro.simulator.scenarios.supply_chain.units.unitbase import BaseUnitInfo, UnitBase
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
@@ -36,6 +36,7 @@ class DistributionUnit(UnitBase):
 
     One distribution can accept all kind of sku order.
     """
+
     def __init__(
         self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
         facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
@@ -110,6 +111,9 @@ class DistributionUnit(UnitBase):
             self._order_queues[order.vehicle_type].append(order)
             self._maintain_pending_order_info(order, departure=False)
 
+            consumer = order.destination.products[order.sku_id].consumer
+            consumer.waiting_order_quantity += order.quantity
+
             self.check_in_quantity_in_order[order.sku_id] += order.quantity
             sku = self.facility.skus[order.sku_id]
             order_total_price = sku.price * order.quantity  # TODO: add transportation cost or not?
@@ -135,7 +139,7 @@ class DistributionUnit(UnitBase):
         return self.facility.storage.try_take_products({sku_id: quantity})
 
     def _try_unload(self, payload: DistributionPayload) -> bool:
-        """Try unload products into destination's storage."""
+        """Try to unload products into destination's storage."""
         unloaded = payload.order.destination.storage.try_add_products(
             {payload.order.sku_id: payload.payload},
             add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
@@ -178,9 +182,9 @@ class DistributionUnit(UnitBase):
             payload=order.quantity,
         ))
 
-        dest_consumer = order.destination.products[order.sku_id].consumer
-        if vlt_info.vlt < len(dest_consumer.pending_order_daily):  # Check use (arrival tick - tick) or vlt
-            dest_consumer.pending_order_daily[vlt_info.vlt] += order.quantity
+        consumer = order.destination.products[order.sku_id].consumer
+        consumer.order_quantity_on_the_way[arrival_tick] += order.quantity
+        consumer.waiting_order_quantity -= order.quantity
 
         return vlt_info.unit_transportation_cost * order.quantity
 
@@ -222,6 +226,7 @@ class DistributionUnit(UnitBase):
 
     def step(self, tick: int) -> None:
         # Update transportation cost for orders that are already on the way.
+
         for payload_list in self._payload_on_the_way.values():
             for payload in payload_list:
                 self.transportation_cost[payload.order.sku_id] += (
@@ -265,7 +270,6 @@ class DistributionUnit(UnitBase):
 
         for vehicle_type in self._vehicle_num.keys():
             self._busy_vehicle_num[vehicle_type] = 0
-
         self._payload_on_the_way.clear()
 
     def get_unit_info(self) -> DistributionUnitInfo:
