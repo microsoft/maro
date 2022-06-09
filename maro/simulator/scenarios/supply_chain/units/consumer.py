@@ -140,6 +140,7 @@ class ConsumerUnit(ExtendUnitBase):
             vehicle_type=action.vehicle_type,
             creation_tick=tick,
             expected_finish_tick=tick + expected_vlt,
+            expiration_buffer=action.expiration_buffer,
         )
 
         # Here the order cost is calculated by the upper distribution unit, with the sku price in that facility.
