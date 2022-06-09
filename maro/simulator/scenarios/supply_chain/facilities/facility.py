@@ -174,6 +174,7 @@ class FacilityBase(ABC):
             for sku_id in self.skus.keys():
                 price = self.sampler.sample_price(tick, sku_id)
                 if price is not None:
+                    price = round(price, 3)
                     self.skus[sku_id].price = price
                     # Update the corresponding property in data model.
                     self.products[sku_id].data_model.price = price
