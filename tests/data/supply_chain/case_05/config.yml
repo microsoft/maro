@@ -1,0 +1,297 @@
+# Test for VehicleUnit, DistributionUnit, SellerUnit
+
+facility_definitions:
+  SupplierFacility: &supplier_facility
+    class: "SupplierFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        manufacture:
+          class: "ManufactureUnit"
+
+  WarehouseFacility: &warehouse_facility
+    class: "WarehouseFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+
+  RetailerFacility: &retailer_facility
+    class: "RetailerFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        seller:
+          class: "SellerUnit"
+          config:
+            sale_hist_len: 4
+
+  StoreFacility:
+      class: "OuterRetailerFacility"
+      datamodel: "FacilityDataModel"
+      children:
+        storage:
+          class: "StorageUnit"
+      products:
+        class: "StoreProductUnit"
+        config:
+          consumer:
+            class: "ConsumerUnit"
+          seller:
+            class: "OuterSellerUnit"
+            config:
+              sale_hist_len: 6
+      config:
+        dynamics_sampler_type: processed_price_demand # What kind of sampler to use.
+        sku_column: "SKU" # SKU column name
+        price_column: "Price" # Price column name
+        demand_column: "Sales" # Demand column name
+        datetime_column: "Date" # Date-time column name
+        file_path: "/path/to/data.csv" # full path to data file, override by each store instance
+
+
+small_storage: &small_storage
+  config:
+    capacity: 100
+    unit_storage_cost: 1
+
+multiple_storage: &multiple_storage
+  config:
+    -
+      id: 1
+      capacity: 100
+      unit_storage_cost: 1
+    -
+      id: 2
+      capacity: 100
+      unit_storage_cost: 1
+
+
+train_config: &train
+  config:
+    patient: 3
+    unit_transport_cost: 12
+
+normal_distribution: &normal_distribution
+  config:
+    train:
+      number: 2
+      config: *train
+
+
+skus: &sku_definitions
+  - id: 1
+    name: "sku1"
+    output_units_per_lot: 1
+    bom:
+      sku3: 2
+
+  - id: 2
+    name: "sku2"
+    output_units_per_lot: 2
+    bom:
+      sku1: 4
+
+  - id: 3
+    name: "sku3"
+    output_units_per_lot: 1
+
+  - id: 4
+    name: "sku4"
+    output_units_per_lot: 2
+    bom:
+      sku2: 1
+single_storage: &single_storage
+  config:
+    capacity: 80000
+    unit_storage_cost: 0.1
+
+
+world:
+  skus: *sku_definitions
+  facilities:
+    - name: "Supplier_SKU3"
+      definition_ref: "SupplierFacility"
+      skus:
+        sku3:
+          init_stock: 80
+          has_manufacture: True
+          max_manufacture_rate: 50
+          manufacture_leading_time: 1
+          unit_product_cost: 1
+          price: 10
+          unit_delay_order_penalty: 10
+      children:
+        storage: *small_storage
+        distribution: *normal_distribution
+      config:
+        unit_delay_order_penalty: 20
+        unit_order_cost: 0
+
+    - name: "Warehouse_001"
+      definition_ref: "WarehouseFacility"
+      skus:
+        sku1:
+          init_stock: 10
+          sub_storage_id: 1
+          storage_upper_bound: 40
+          price: 100
+        sku2:
+          init_stock: 12
+          sub_storage_id: 1
+          price: 100
+        sku3:
+          init_stock: 10
+          sub_storage_id: 1
+          price: 100
+          has_consumer: True
+      children:
+        storage: *multiple_storage
+        distribution: *normal_distribution
+      config:
+        unit_delay_order_penalty: 20
+        unit_order_cost: 200
+
+    - name: "Retailer_001"
+      definition_ref: "RetailerFacility"
+      skus:
+        sku1:
+          price: 300
+          init_stock: 10
+          sale_gamma: 11
+          backlog_ratio: 0.1
+          has_consumer: True
+          has_seller: True
+        sku3:
+          price: 200
+          init_stock: 10
+          sale_gamma: 13
+          backlog_ratio: 0.1
+          has_consumer: True
+          has_seller: True
+        sku2:
+          price: 100
+          init_stock: 10
+          sale_gamma: 12
+          backlog_ratio: 0.1
+          has_consumer: True
+          has_seller: True
+      children:
+        storage: *small_storage
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 100
+
+
+    - name: "Store_001"
+      definition_ref: "StoreFacility"
+      skus:
+        "sku1":
+          price: 33
+          init_stock: 10000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 1
+          backlog_ratio: 0.0
+        "sku3":
+          price: 33
+          init_stock: 5000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 3
+          backlog_ratio: 0.0
+        sku2:
+          price: 100
+          init_stock: 1000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 2
+          backlog_ratio: 0.1
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 200
+        file_path: "tests/data/supply_chain/case_05/test_case_05.csv"
+
+  topology:
+
+    "Store_001":
+      "sku1":
+        "Warehouse_001":
+          "air":
+            vlt: 7
+            cost: 3.0  # Unit transportation cost per product per day
+          "train":
+            vlt: 7
+            cost: 0.5
+      "sku2":
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 0.6
+      "sku3":
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 0.6
+
+    Warehouse_001:
+      sku3:
+        "Supplier_SKU3":
+          "train":
+            vlt: 3
+            cost: 1
+
+    Retailer_001:
+      sku1:
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 1
+      sku2:
+        "Warehouse_001":
+          "train":
+            vlt: 5
+            cost: 1
+      sku3:
+        "Warehouse_001":
+          "train":
+            vlt: 7
+            cost: 1
+
+
+settings:
+  pending_order_len: 4
+  start_date_time: "2021-01-01"
+
+policy_parameter:
+  facilities:
+    Vendor_001:
+      max_price: 33
+    Plant_001:
+      max_price: 33
+    Warehouse_001:
+      max_price: 33
+    Store_001:
+      max_price: 33
