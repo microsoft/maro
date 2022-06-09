@@ -6,7 +6,7 @@ import sys
 import unittest
 
 from maro.vector_env import VectorEnv
-from tests.utils import backends_to_test
+from .utils import backends_to_test
 
 class TestVectorEnv(unittest.TestCase):
     def test_batch_number_large_than_cpu_core(self):
