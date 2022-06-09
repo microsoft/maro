@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 from math import floor
-from .dummy.dummy_business_engine import DummyEngine
+from tests.dummy.dummy_business_engine import DummyEngine
 
 from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
 from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index

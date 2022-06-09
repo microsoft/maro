@@ -669,7 +669,7 @@ slots: 1
 
 Weather at current tick.
 
-0: sunny, 1: rainy, 2: snowy， 3: sleet.
+0: sunny, 1: rainy, 2: snowy, 3: sleet.
 
 holiday
 *******

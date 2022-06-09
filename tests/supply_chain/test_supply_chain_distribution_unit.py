@@ -124,9 +124,8 @@ class MyTestCase(unittest.TestCase):
         required_quantity = 10
         action = ConsumerAction(sku1_consumer_unit.id, SKU1_ID, supplier_1.id, required_quantity, "train")
         purchase_tick: int = env.tick
-
         env.step([action])
-
+        env.step(None)
         purchase_frame = env.business_engine.frame_index(purchase_tick)
         states = consumer_nodes[purchase_frame:consumer_node_index:features].flatten().astype(np.int)
         self.assertEqual(required_quantity, states[IDX_PURCHASED])

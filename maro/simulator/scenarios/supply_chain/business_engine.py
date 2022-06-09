@@ -26,6 +26,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._collect_units()
 
         self._product_units: List[ProductUnit] = []
+        self._tick: int = 0
 
         # Prepare product unit for later using.
         for unit in self.world.units.values():
@@ -79,6 +80,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         decision_event = self._event_buffer.gen_decision_event(tick, None)
 
         self._event_buffer.insert_event(decision_event)
+
+        self._tick = tick
 
     def post_step(self, tick: int) -> bool:
         # Call post_step functions by facility.
@@ -167,7 +170,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             consumer_unit = self._consumer_dict[unit_id]
             consumer_unit.process_actions(consumer_actions)
         for unit_id, manufacture_actions in manufacture_actions_by_unit.items():
-            assert len(manufacture_actions) == 1  # Manufacture unit should has at most one action
+            assert len(manufacture_actions) == 1  # Manufacture unit should have at most one action
             manufacture_unit = self._manufacture_dict[unit_id]
             manufacture_unit.process_action(tick, manufacture_actions[0])
 
@@ -194,7 +197,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
-                            None if product.consumer is None else product.consumer.pending_order_daily,
+                            product.consumer.get_pending_order_daily(self._tick)
+                            if product.consumer is not None else None,
+                        "waiting_order_quantity":
+                            product.consumer.waiting_order_quantity if product.consumer is not None else None,
                     } for product in self._product_units
                 },
                 "facilities": {
