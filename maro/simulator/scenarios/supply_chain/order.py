@@ -31,17 +31,26 @@ class Order:
         expected_finish_tick: Optional[int],  # It is the expected tick in the moment of taking ConsumerAction.
         expiration_buffer: Optional[int]=None,
     ) -> None:
+        # States specified by ConsumerUnit.
         self.src_facility: FacilityBase = src_facility
         self.dest_facility: FacilityBase = dest_facility
         self.sku_id: int = sku_id
-        self.quantity: int = quantity
+        self.required_quantity: int = quantity
         self.vehicle_type: str = vehicle_type
         self.creation_tick: int = creation_tick
         self.expected_finish_tick: Optional[int] = expected_finish_tick
         self.expiration_buffer: Optional[int] = expiration_buffer
 
-        self.order_status: OrderStatus = OrderStatus.PENDING_SCHEDULE
+        # States set by DistributionUnit.
+        self.payload: int = 0
+        self.arrival_tick: Optional[int] = None
+        self.unit_transportation_cost_per_day: Optional[float] = None
 
+        # Maintained by both DistributionUnit and ConsumerUnit.
+        self.order_status: OrderStatus = OrderStatus.PENDING_SCHEDULE
+        self.expiration_tick: Optional[int] = None
+
+        # States maintained by ConsumerUnit.
         self.receive_tick_list: List[int] = []
         self.receive_payload_list: List[int] = []
         self.actual_finish_tick: Optional[int] = None
@@ -66,7 +75,7 @@ class Order:
     def __repr__(self) -> str:
         return (
             f"Order (created at {self.creation_tick}): "
-            f"Ask {self.quantity} products(SKU id: {self.sku_id}) "
+            f"Ask {self.required_quantity} products(SKU id: {self.sku_id}) "
             f"from {self.src_facility.name} to {self.dest_facility.name} "
             f"by {self.vehicle_type}"
         )

@@ -180,7 +180,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Process distributions
         for distribution_unit in self._distribution_dict.values():
             distribution_unit.try_schedule_orders(tick)
-            distribution_unit.handle_arrival_payloads(tick)
+            distribution_unit.handle_arrival_orders(tick)
 
         # Do manufacturing
         for manufacture_unit in self._manufacture_dict.values():

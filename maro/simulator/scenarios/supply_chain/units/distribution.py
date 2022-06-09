@@ -6,7 +6,7 @@ from __future__ import annotations
 import typing
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union
+from typing import Deque, Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order, OrderStatus
 
@@ -16,14 +16,6 @@ from maro.simulator.scenarios.supply_chain.units.unitbase import BaseUnitInfo, U
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
     from maro.simulator.scenarios.supply_chain.world import World
-
-
-@dataclass
-class DistributionPayload:
-    arrival_tick: int
-    order: Order
-    unit_transportation_cost_per_day: float
-    payload: int
 
 
 @dataclass
@@ -49,10 +41,10 @@ class DistributionUnit(UnitBase):
         self._busy_vehicle_num: Dict[str, int] = {}
 
         # TODO：replace this with BE's event buffer
-        self._payload_on_the_way: Dict[int, List[DistributionPayload]] = defaultdict(list)
+        self._order_on_the_way: Dict[int, List[Order]] = defaultdict(list)
 
         # A dict of pending order queue. Key: vehicle type; Value: pending order queue.
-        self._order_queues: Dict[str, deque] = defaultdict(deque)
+        self._order_queues: Dict[str, Deque[Order]] = defaultdict(deque)
         self._pending_order_number: int = 0
         self._total_pending_quantity: int = 0
         self._pending_product_quantity: Dict[int, int] = defaultdict(int)
@@ -106,17 +98,17 @@ class DistributionUnit(UnitBase):
             order.sku_id in self.facility.downstream_vlt_infos,
             order.dest_facility.id in self.facility.downstream_vlt_infos[order.sku_id],
             order.vehicle_type in self.facility.downstream_vlt_infos[order.sku_id][order.dest_facility.id],
-            order.quantity > 0
+            order.required_quantity > 0
         ]):
             self._order_queues[order.vehicle_type].append(order)
             self._maintain_pending_order_info(order, is_increase=True)
 
             consumer = order.dest_facility.products[order.sku_id].consumer
-            consumer.waiting_order_quantity += order.quantity
+            consumer.on_order_successfully_placed(order)
 
-            self.check_in_quantity_in_order[order.sku_id] += order.quantity
+            self.check_in_quantity_in_order[order.sku_id] += order.required_quantity
             sku = self.facility.skus[order.sku_id]
-            order_total_price = sku.price * order.quantity  # TODO: add transportation cost or not?
+            order_total_price = sku.price * order.required_quantity  # TODO: add transportation cost or not?
             return order_total_price
         else:
             return 0
@@ -138,27 +130,24 @@ class DistributionUnit(UnitBase):
         """
         return self.facility.storage.try_take_products({sku_id: quantity})
 
-    def _try_unload(self, payload: DistributionPayload, tick: int) -> bool:
+    def _try_unload(self, order: Order, tick: int) -> bool:
         """Try unload products into destination's storage."""
-        unloaded = payload.order.dest_facility.storage.try_add_products(
-            {payload.order.sku_id: payload.payload},
+        unloaded = order.dest_facility.storage.try_add_products(
+            {order.sku_id: order.payload},
             add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
         )
 
         # Update order if we unloaded any.
         if len(unloaded) > 0:
             assert len(unloaded) == 1
-            unloaded_quantity = unloaded[payload.order.sku_id]
+            unloaded_quantity = unloaded[order.sku_id]
 
-            payload.order.dest_facility.products[payload.order.sku_id].consumer.on_order_reception(
-                order=payload.order,
-                received_quantity=unloaded_quantity,
-                tick=tick,
-            )
+            consumer = order.dest_facility.products[order.sku_id].consumer
+            consumer.on_order_reception(order=order, received_quantity=unloaded_quantity, tick=tick)
 
-            payload.payload -= unloaded_quantity
+            order.payload -= unloaded_quantity
 
-        return payload.payload == 0
+        return order.payload == 0
 
     def _schedule_order(self, tick: int, order: Order) -> float:
         """Schedule order and return the daily transportation cost for this order.
@@ -174,19 +163,17 @@ class DistributionUnit(UnitBase):
 
         arrival_tick = tick + vlt_info.vlt  # TODO: add random factor if needed
 
-        self._payload_on_the_way[arrival_tick].append(DistributionPayload(
-            arrival_tick=arrival_tick,
-            order=order,
-            unit_transportation_cost_per_day=vlt_info.unit_transportation_cost,
-            payload=order.quantity,
-        ))
+        # Update order states and add it into order_on_the_way.
+        order.arrival_tick = arrival_tick
+        order.payload = order.required_quantity
+        order.unit_transportation_cost_per_day = vlt_info.unit_transportation_cost
         order.order_status = OrderStatus.ON_THE_WAY
+        self._order_on_the_way[arrival_tick].append(order)
 
         consumer = order.dest_facility.products[order.sku_id].consumer
-        consumer.order_quantity_on_the_way[arrival_tick] += order.quantity
-        consumer.waiting_order_quantity -= order.quantity
+        consumer.on_order_scheduled(order)
 
-        return vlt_info.unit_transportation_cost * order.quantity
+        return vlt_info.unit_transportation_cost * order.required_quantity
 
     def pre_step(self, tick: int) -> None:
         self.check_in_quantity_in_order.clear()
@@ -196,8 +183,8 @@ class DistributionUnit(UnitBase):
     def _maintain_pending_order_info(self, order: Order, is_increase: bool) -> None:
         indicator = 1 if is_increase else -1
         self._pending_order_number += 1 * indicator
-        self._total_pending_quantity += order.quantity * indicator
-        self._pending_product_quantity[order.sku_id] += order.quantity * indicator
+        self._total_pending_quantity += order.required_quantity * indicator
+        self._pending_product_quantity[order.sku_id] += order.required_quantity * indicator
         self._is_order_changed = True
 
     def try_schedule_orders(self, tick: int) -> None:
@@ -208,13 +195,13 @@ class DistributionUnit(UnitBase):
                 # Check if the order still active.
                 if order.expiration_buffer is not None and tick > order.creation_tick + order.expiration_buffer:
                     order.order_status = OrderStatus.EXPIRED
+                    self._maintain_pending_order_info(order, is_increase=False)
                     # Update waiting order quantity info in Consumer.
                     consumer = order.dest_facility.products[order.sku_id].consumer
-                    consumer.waiting_order_quantity -= order.quantity
-                    consumer._update_open_orders(self.facility.id, order.sku_id, -order.quantity)
+                    consumer.on_order_expired(order)
                     continue
                 # Try to schedule order and load products.
-                if self._has_available_vehicle(vehicle_type) and self._try_load(order.sku_id, order.quantity):
+                if self._has_available_vehicle(vehicle_type) and self._try_load(order.sku_id, order.required_quantity):
                     transportation_cost_per_day = self._schedule_order(tick, order)
                     self.transportation_cost[order.sku_id] += transportation_cost_per_day
                     # The transportation cost of this newly scheduled order would be counted soon, do not count here.
@@ -230,25 +217,25 @@ class DistributionUnit(UnitBase):
     def step(self, tick: int) -> None:
         # Update transportation cost for orders that are already on the way.
 
-        for payload_list in self._payload_on_the_way.values():
-            for payload in payload_list:
-                self.transportation_cost[payload.order.sku_id] += (
-                    payload.unit_transportation_cost_per_day * payload.payload
+        for order_list in self._order_on_the_way.values():
+            for order in order_list:
+                self.transportation_cost[order.sku_id] += (
+                    order.unit_transportation_cost_per_day * order.payload
                 )
 
         # Schedule orders
         self.try_schedule_orders(tick)
 
-    def handle_arrival_payloads(self, tick: int) -> None:
+    def handle_arrival_orders(self, tick: int) -> None:
         # Handle arrival payloads.
-        for payload in self._payload_on_the_way[tick]:
-            payload.order.order_status = OrderStatus.PENDING_UNLOAD
-            if self._try_unload(payload, tick):
-                self._busy_vehicle_num[payload.order.vehicle_type] -= 1
+        for order in self._order_on_the_way[tick]:
+            order.order_status = OrderStatus.PENDING_UNLOAD
+            if self._try_unload(order, tick):
+                self._busy_vehicle_num[order.vehicle_type] -= 1
             else:
-                self._payload_on_the_way[tick + 1].append(payload)
+                self._order_on_the_way[tick + 1].append(order)
 
-        self._payload_on_the_way.pop(tick)
+        self._order_on_the_way.pop(tick)
 
     def flush_states(self) -> None:
         super(DistributionUnit, self).flush_states()
@@ -274,7 +261,7 @@ class DistributionUnit(UnitBase):
 
         for vehicle_type in self._vehicle_num.keys():
             self._busy_vehicle_num[vehicle_type] = 0
-        self._payload_on_the_way.clear()
+        self._order_on_the_way.clear()
 
     def get_unit_info(self) -> DistributionUnitInfo:
         return DistributionUnitInfo(
