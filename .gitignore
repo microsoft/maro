@@ -28,3 +28,4 @@ htmlcov/
 .coverage
 .coveragerc
 .tmp/
+.xmake/
