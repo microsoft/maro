@@ -187,11 +187,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             manufacture_unit.execute_manufacture(tick)
 
     def get_metrics(self) -> dict:
-        for consumer in self._consumer_dict.values():
-            consumer.clear_pending_order_daily()
-        for distribution in self._distribution_dict.values():
-            distribution.calc_pending_order_daily(self._tick)
-
         if self._metrics_cache is None:
             self._metrics_cache = {
                 "products": {
@@ -202,7 +197,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
-                            None if product.consumer is None else product.consumer.pending_order_daily,
+                            product.consumer.get_pending_order_daily(self._tick)
+                            if product.consumer is not None else None,
+                        "waiting_order_quantity":
+                            product.consumer.waiting_order_quantity if product.consumer is not None else None,
                     } for product in self._product_units
                 },
                 "facilities": {

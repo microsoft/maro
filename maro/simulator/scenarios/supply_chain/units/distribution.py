@@ -111,6 +111,9 @@ class DistributionUnit(UnitBase):
             self._order_queues[order.vehicle_type].append(order)
             self._maintain_pending_order_info(order, departure=False)
 
+            consumer = order.destination.products[order.sku_id].consumer
+            consumer.waiting_order_quantity += order.quantity
+
             self.check_in_quantity_in_order[order.sku_id] += order.quantity
             sku = self.facility.skus[order.sku_id]
             order_total_price = sku.price * order.quantity  # TODO: add transportation cost or not?
@@ -179,6 +182,10 @@ class DistributionUnit(UnitBase):
             payload=order.quantity,
         ))
 
+        consumer = order.destination.products[order.sku_id].consumer
+        consumer.order_quantity_on_the_way[arrival_tick] += order.quantity
+        consumer.waiting_order_quantity -= order.quantity
+
         return vlt_info.unit_transportation_cost * order.quantity
 
     def pre_step(self, tick: int) -> None:
@@ -246,14 +253,6 @@ class DistributionUnit(UnitBase):
             self.data_model.pending_order_number = self._pending_order_number
             self.data_model.pending_product_quantity = self._total_pending_quantity
             self._is_order_changed = False
-
-    def calc_pending_order_daily(self, tick) -> None:
-        for arrival_tick, payload_list in self._payload_on_the_way.items():
-            if 0 <= arrival_tick - tick < self.world.configs.settings["pending_order_len"]:
-                for payload in payload_list:
-                    order = payload.order
-                    consumer = order.destination.products[order.sku_id].consumer
-                    consumer.pending_order_daily[arrival_tick - tick] = order.quantity
 
     def reset(self) -> None:
         super(DistributionUnit, self).reset()

@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 import typing
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction
 from maro.simulator.scenarios.supply_chain.datamodels import ConsumerDataModel
@@ -35,7 +35,8 @@ class ConsumerUnit(ExtendUnitBase):
         super(ConsumerUnit, self).__init__(
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
-        self.pending_order_daily: Optional[List[int]] = None
+        self.order_quantity_on_the_way: Dict[int, int] = defaultdict(int)
+        self.waiting_order_quantity: int = 0
         self._open_orders = Counter()
         self._in_transit_quantity: int = 0
 
@@ -49,6 +50,14 @@ class ConsumerUnit(ExtendUnitBase):
         self.source_facility_id_list: List[int] = []
 
         self._unit_order_cost: float = 0
+
+    def get_pending_order_daily(self, tick: int) -> List[int]:
+        ret = [
+            self.order_quantity_on_the_way[tick + i] for i in range(self.world.configs.settings["pending_order_len"])
+        ]
+        if tick in self.order_quantity_on_the_way:  # Remove data at tick to save storage
+            self.order_quantity_on_the_way.pop(tick)
+        return ret
 
     @property
     def in_transit_quantity(self) -> int:
@@ -187,7 +196,3 @@ class ConsumerUnit(ExtendUnitBase):
             **super(ConsumerUnit, self).get_unit_info().__dict__,
             source_facility_id_list=self.source_facility_id_list,
         )
-
-    def clear_pending_order_daily(self):
-        self.pending_order_daily = [0] * self.world.configs.settings['pending_order_len']
-
