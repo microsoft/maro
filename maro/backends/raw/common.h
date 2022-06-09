@@ -29,7 +29,7 @@ namespace maro
 
       using NODE_INDEX = uint32_t;
       using SLOT_INDEX = uint32_t;
-      using QUERY_FLOAT = double;
+      using QUERY_FLOAT = double;  // TODO: Precision issue for Long data type.
 
       using ATTR_CHAR = char;
       using ATTR_UCHAR = unsigned char;
