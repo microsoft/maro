@@ -27,7 +27,7 @@ ctypedef float ATTR_FLOAT
 ctypedef double ATTR_DOUBLE
 
 # Type for snapshot querying.
-ctypedef float QUERY_FLOAT
+ctypedef double QUERY_FLOAT
 
 # TYPE of node and attribute
 ctypedef unsigned short NODE_TYPE
