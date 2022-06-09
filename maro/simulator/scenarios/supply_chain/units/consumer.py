@@ -63,6 +63,18 @@ class ConsumerUnit(ExtendUnitBase):
     def in_transit_quantity(self) -> int:
         return self._in_transit_quantity
 
+    def on_order_successfully_placed(self, order: Order) -> None:
+        self.waiting_order_quantity += order.required_quantity
+
+    def on_order_scheduled(self, order: Order) -> None:
+        # TODO: use the actual arrival tick here.
+        self.order_quantity_on_the_way[order.arrival_tick] += order.payload
+        self.waiting_order_quantity -= order.required_quantity
+
+    def on_order_expired(self, order: Order) -> None:
+        self.waiting_order_quantity -= order.required_quantity
+        self._update_open_orders(order.src_facility.id, order.sku_id, -order.required_quantity)
+
     def on_order_reception(self, order: Order, received_quantity: int, tick: int) -> None:
         """Called after order product is received.
 
@@ -148,7 +160,7 @@ class ConsumerUnit(ExtendUnitBase):
         # TODO: the order would be cancelled if there is no available vehicles,
         # TODO: but the cost is not decreased at that time.
 
-        self._order_base_cost += order.quantity * self._unit_order_cost
+        self._order_base_cost += order.required_quantity * self._unit_order_cost
 
         self._purchased += action.quantity
 
