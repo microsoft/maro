@@ -284,11 +284,7 @@ class TestEnv(unittest.TestCase):
 
         env_list = get_available_envs()
 
-<<<<<<< HEAD
         self.assertEqual(len(env_list), len(cim_topologies) + len(citi_bike_topologies) + len(vm_topologies) + len(get_topologies("supply_chain")))
-=======
-        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties) + len(get_topologies("supply_chain")))
->>>>>>> master
 
     def test_frame_index_to_ticks(self):
         ticks = frame_index_to_ticks(0, 10, 2)
@@ -298,11 +294,7 @@ class TestEnv(unittest.TestCase):
         self.assertListEqual([0, 1], ticks[0])
         self.assertListEqual([8, 9], ticks[4])
 
-<<<<<<< HEAD
     def test_get_available_frame_index_to_ticks_with_default_resolution(self):
-=======
-    def test_get_avalible_frame_index_to_ticks_with_default_resolution(self):
->>>>>>> master
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
 
@@ -319,11 +311,7 @@ class TestEnv(unittest.TestCase):
             self.assertListEqual([t for t in t2f_mapping.keys()], [t for t in range(max_tick)])
             self.assertListEqual([f for f in t2f_mapping.values()], [f for f in range(max_tick)])
 
-<<<<<<< HEAD
     def test_get_available_frame_index_to_ticks_with_resolution2(self):
-=======
-    def test_get_avalible_frame_index_to_ticks_with_resolution2(self):
->>>>>>> master
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
 
