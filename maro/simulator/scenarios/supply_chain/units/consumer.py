@@ -57,11 +57,24 @@ class ConsumerUnit(ExtendUnitBase):
         self.in_transit_quantity: int = 0  # In transit = pending scheduled + on the way.
 
         # Only incremental action valid.
-        self.total_order_num: int = 0
-        self.finished_order_num: int = 0
-        self.expired_order_num: int = 0
-        self.actual_order_leading_time: Counter = Counter()
-        self.order_schedule_delay_time: Counter = Counter()
+        self._total_order_num: int = 0
+        self._finished_order_num: int = 0
+        self._expired_order_num: int = 0
+        self._actual_order_leading_time: Counter = Counter()
+        self._order_schedule_delay_time: Counter = Counter()
+
+    @property
+    def order_statistics(self) -> Dict[str, Union[int, Counter]]:
+        return {
+            "total_order_num": self._total_order_num,
+            "finished_order_num": self._finished_order_num,
+            "expired_order_num": self._expired_order_num,
+            "actual_order_leading_time": self._actual_order_leading_time,
+            "order_schedule_delay_time": self._order_schedule_delay_time,
+            "pending_scheduled_quantity": self.pending_scheduled_order_quantity,
+            "active_ordered_quantity": self.in_transit_quantity,
+            "expected_future_received": self.get_pending_order_daily(),
+        }
 
     def get_pending_order_daily(self, tick: int) -> List[int]:
         ret = [
@@ -75,7 +88,7 @@ class ConsumerUnit(ExtendUnitBase):
         self.pending_scheduled_order_quantity += order.required_quantity
         self.in_transit_quantity += order.required_quantity
 
-        self.total_order_num += 1
+        self._total_order_num += 1
 
     def on_order_scheduled(self, order: Order, tick: int) -> None:
         # TODO: here the actual arrival tick is used.
@@ -83,7 +96,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         self.pending_scheduled_order_quantity -= order.required_quantity
 
-        self.order_schedule_delay_time[tick - order.creation_tick] += 1
+        self._order_schedule_delay_time[tick - order.creation_tick] += 1
 
     def on_order_expired(self, order: Order) -> None:
         self._open_orders[order.src_facility.id] -= order.required_quantity
@@ -91,7 +104,7 @@ class ConsumerUnit(ExtendUnitBase):
         self.pending_scheduled_order_quantity -= order.required_quantity
         self.in_transit_quantity -= order.required_quantity
 
-        self.expired_order_num += 1
+        self._expired_order_num += 1
 
     def on_order_received(self, order: Order, received_quantity: int, tick: int) -> None:
         """Called after order product is received.
@@ -113,8 +126,10 @@ class ConsumerUnit(ExtendUnitBase):
         self.in_transit_quantity -= received_quantity
 
         if order.order_status == OrderStatus.FINISHED:
-            self.finished_order_num += 1
-            self.actual_order_leading_time[tick - order.creation_tick] += 1
+            self._finished_order_num += 1
+            self._actual_order_leading_time[tick - order.creation_tick] += 1
+        else:
+            self.order_quantity_on_the_way[tick + 1] += order.pending_receive_quantity
 
     def initialize(self) -> None:
         super(ConsumerUnit, self).initialize()
@@ -229,11 +244,11 @@ class ConsumerUnit(ExtendUnitBase):
         self.pending_scheduled_order_quantity = 0
         self.in_transit_quantity = 0
 
-        self.total_order_num = 0
-        self.finished_order_num = 0
-        self.expired_order_num = 0
-        self.actual_order_leading_time.clear()
-        self.order_schedule_delay_time.clear()
+        self._total_order_num = 0
+        self._finished_order_num = 0
+        self._expired_order_num = 0
+        self._actual_order_leading_time.clear()
+        self._order_schedule_delay_time.clear()
 
     def get_unit_info(self) -> ConsumerUnitInfo:
         return ConsumerUnitInfo(

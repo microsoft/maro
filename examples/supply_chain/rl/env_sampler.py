@@ -464,7 +464,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._cur_seller_hist_states = self._env.snapshot_list["seller"][
             sale_hist_ticks::seller_features
         ].reshape(self._workflow_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
-        
+
         history_feature_shape = (len(self._env.snapshot_list), -1)
         # Get all history demand from snapshot list.
         self.history_demand = self._env.snapshot_list["seller"][

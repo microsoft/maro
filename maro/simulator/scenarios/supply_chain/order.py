@@ -54,19 +54,23 @@ class Order:
         self.receive_tick_list: List[int] = []
         self.receive_payload_list: List[int] = []
         self.actual_finish_tick: Optional[int] = None
-        self._pending_receive_quantity: int = quantity
+        self.pending_receive_quantity: int = 0
+
+    def add_payload(self, payload: int) -> None:
+        self.payload = payload
+        self.pending_receive_quantity = payload
 
     def receive(self, tick: int, quantity: int) -> None:
-        assert quantity <= self._pending_receive_quantity, (
-            f"Only {self._pending_receive_quantity} pending received, but {quantity} got!"
+        assert quantity <= self.pending_receive_quantity, (
+            f"Only {self.pending_receive_quantity} pending received, but {quantity} got!"
         )
         self.order_status = OrderStatus.PENDING_UNLOAD
 
         self.receive_tick_list.append(tick)
         self.receive_payload_list.append(quantity)
 
-        self._pending_receive_quantity -= quantity
-        if self._pending_receive_quantity == 0:
+        self.pending_receive_quantity -= quantity
+        if self.pending_receive_quantity == 0:
             self.actual_finish_tick = tick
             self.order_status = OrderStatus.FINISHED
 

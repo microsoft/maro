@@ -216,7 +216,8 @@ class MyTestCase(unittest.TestCase):
             expected_tick = env.tick
             self.assertEqual(1, len(distribution_unit._order_on_the_way[expected_tick]))
             self.assertEqual(warehouse_1, distribution_unit._order_on_the_way[expected_tick][0].dest_facility)
-            self.assertEqual(80 - 70, distribution_unit._order_on_the_way[expected_tick][0].payload)
+            self.assertEqual(80, distribution_unit._order_on_the_way[expected_tick][0].payload)
+            self.assertEqual(80 - 70, distribution_unit._order_on_the_way[expected_tick][0].pending_receive_quantity)
 
             _, _, is_done = env.step(None)
 

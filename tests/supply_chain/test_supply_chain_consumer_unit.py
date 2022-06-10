@@ -151,7 +151,10 @@ class MyTestCase(unittest.TestCase):
 
         required_quantity = 1
         action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, required_quantity, "train")
-        order = Order(
+        env.step([action])
+
+        # Dummy order for consumer order received.
+        dummy_order = Order(
             src_facility=supplier_3,
             dest_facility=supplier_1,
             sku_id=SKU3_ID,
@@ -160,11 +163,9 @@ class MyTestCase(unittest.TestCase):
             creation_tick=env.tick,
             expected_finish_tick=None,
         )
-
-        env.step([action])
-
+        dummy_order.add_payload(payload=required_quantity)
         # simulate purchased product is arrived by vehicle unit
-        sku3_consumer_unit.on_order_received(order=order, received_quantity=required_quantity, tick=env.tick)
+        sku3_consumer_unit.on_order_received(order=dummy_order, received_quantity=required_quantity, tick=env.tick)
 
         # now all order is done
         self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id])

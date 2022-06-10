@@ -140,7 +140,7 @@ class DistributionUnit(UnitBase):
     def _try_unload(self, order: Order, tick: int) -> bool:
         """Try unload products into destination's storage."""
         unloaded = order.dest_facility.storage.try_add_products(
-            {order.sku_id: order.payload},
+            {order.sku_id: order.pending_receive_quantity},
             add_strategy=AddStrategy.IgnoreUpperBoundAddInOrder,  # TODO: check which strategy to use.
         )
 
@@ -151,8 +151,6 @@ class DistributionUnit(UnitBase):
 
             consumer = order.dest_facility.products[order.sku_id].consumer
             consumer.on_order_received(order=order, received_quantity=unloaded_quantity, tick=tick)
-
-            order.payload -= unloaded_quantity
 
         if order.order_status == OrderStatus.FINISHED:
             self.finished_order_num += 1
@@ -176,7 +174,7 @@ class DistributionUnit(UnitBase):
 
         # Update order states and add it into order_on_the_way.
         order.arrival_tick = arrival_tick
-        order.payload = order.required_quantity
+        order.add_payload(payload=order.required_quantity)
         order.unit_transportation_cost_per_day = vlt_info.unit_transportation_cost
         order.order_status = OrderStatus.ON_THE_WAY
         self._order_on_the_way[arrival_tick].append(order)
@@ -229,7 +227,7 @@ class DistributionUnit(UnitBase):
 
     def step(self, tick: int) -> None:
         # Update transportation cost for orders that are already on the way.
-
+        # TODO: here do not distinguish on the way & pending unloading.
         for order_list in self._order_on_the_way.values():
             for order in order_list:
                 self.transportation_cost[order.sku_id] += (
