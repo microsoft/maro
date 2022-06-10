@@ -55,7 +55,7 @@ class ContinuousRLPolicy(RLPolicy):
 
         super(ContinuousRLPolicy, self).__init__(
             name=name, state_dim=policy_net.state_dim, action_dim=policy_net.action_dim,
-            trainable=trainable,
+            trainable=trainable, is_discrete_action=False,
         )
 
         self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)

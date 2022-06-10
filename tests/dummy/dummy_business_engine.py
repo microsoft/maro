@@ -54,3 +54,6 @@ class DummyEngine(AbsBusinessEngine):
 
     def get_agent_idx_list(self):
         return [node.index for node in self._dummy_list]
+
+    def set_seed(self, seed: int) -> None:
+        pass
