@@ -196,6 +196,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "demand_mean": product.get_demand_mean(),
                         "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
+                        # The product quantity that will be received in a future time window.
+                        # The ones that not scheduled yet are not included here.
                         "pending_order_daily":
                             product.consumer.get_pending_order_daily(self._tick)
                             if product.consumer is not None else None,
@@ -204,7 +206,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                 },
                 "facilities": {
                     facility.id: {
+                        # The dict of current active ordered product quantity,
+                        # here active = pending scheduled + on the way (+ pending unload).
                         "in_transit_orders": facility.get_in_transit_orders(),
+                        # The dict of current ordered but not yet scheduled product quantity.
                         "pending_order":
                             defaultdict(int) if facility.distribution is None
                             else facility.distribution.pending_product_quantity,

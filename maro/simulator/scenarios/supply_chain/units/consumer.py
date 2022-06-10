@@ -66,13 +66,22 @@ class ConsumerUnit(ExtendUnitBase):
     @property
     def order_statistics(self) -> Dict[str, Union[int, Counter]]:
         return {
+            # The accumulated order number that have been placed to distribution unit, = finished + expired + active.
             "total_order_num": self._total_order_num,
+            # The accumulated finished order number (expired order number not included).
             "finished_order_num": self._finished_order_num,
+            # The accumulated expired order number (expired due to waiting too long to load by upstream).
             "expired_order_num": self._expired_order_num,
+            # The accumulated actual leading time distribution, leading time = finished time - order creation time.
             "actual_order_leading_time": self._actual_order_leading_time,
+            # The accumulated scheduling delayed time distribution, delay time = departure time - order creation time.
             "order_schedule_delay_time": self._order_schedule_delay_time,
+            # The current total pending scheduled (waiting to load by upstream) product quantity.
             "pending_scheduled_quantity": self.pending_scheduled_order_quantity,
+            # The current active ordered product quantity, active = pending scheduled + on the way (+ pending unload).
             "active_ordered_quantity": self.in_transit_quantity,
+            # The product quantity that will be received in a future time window.
+            # The ones that not scheduled yet are not included here.
             "expected_future_received": self.get_pending_order_daily(),
         }
 
