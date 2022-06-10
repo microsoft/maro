@@ -284,20 +284,23 @@ class StorageUnit(AbsStorageUnit):
                     quantity = min(
                         int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id],
                     )
-                    self._add_product(sku_id, quantity)
-                    added_quantities[sku_id] = quantity
+                    if quantity > 0:
+                        self._add_product(sku_id, quantity)
+                        added_quantities[sku_id] = quantity
 
         elif add_strategy == AddStrategy.IgnoreUpperBoundAddInOrder:
             for sku_id, quantity in product_quantities.items():
                 quantity = min(quantity, self._remaining_space_dict[self._sku_id2sub_storage_id[sku_id]])
-                self._add_product(sku_id, quantity)
-                added_quantities[sku_id] = quantity
+                if quantity > 0:
+                    self._add_product(sku_id, quantity)
+                    added_quantities[sku_id] = quantity
 
         elif add_strategy == AddStrategy.LimitedByUpperBound:
             for sku_id, quantity in product_quantities.items():
                 quantity = min(quantity, self.get_product_max_remaining_space(sku_id))
-                self._add_product(sku_id, quantity)
-                added_quantities[sku_id] = quantity
+                if quantity > 0:
+                    self._add_product(sku_id, quantity)
+                    added_quantities[sku_id] = quantity
 
         else:
             raise ValueError(f"Unrecognized storage add strategy: {add_strategy}!")

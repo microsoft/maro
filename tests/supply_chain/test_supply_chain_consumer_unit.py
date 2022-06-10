@@ -164,7 +164,7 @@ class MyTestCase(unittest.TestCase):
         env.step([action])
 
         # simulate purchased product is arrived by vehicle unit
-        sku3_consumer_unit.on_order_reception(order=order, received_quantity=required_quantity, tick=env.tick)
+        sku3_consumer_unit.on_order_received(order=order, received_quantity=required_quantity, tick=env.tick)
 
         # now all order is done
         self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id])

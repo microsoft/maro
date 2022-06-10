@@ -60,7 +60,6 @@ class MyTestCase(unittest.TestCase):
         #  vlt is greater than len(pending_order_len), which will cause the pending order to increase
         order_1 = Order(supplier_3, warehouse_1, SKU3_ID, 1, "train", env.tick, None)
         distribution_unit.place_order(order_1)
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 1)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(1, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
         self.assertEqual(0 * 1, distribution_unit.transportation_cost[SKU3_ID])
@@ -75,7 +74,6 @@ class MyTestCase(unittest.TestCase):
         # add another order, it would be successfully scheduled.
         order_2 = Order(supplier_3, warehouse_1, SKU3_ID, 2, "train", env.tick, None)
         distribution_unit.place_order(order_2)
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 2)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(2, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
 
@@ -90,7 +88,6 @@ class MyTestCase(unittest.TestCase):
         # Add another order, which will be successfully arranged, but there are no extra vehicles now.
         order_3 = Order(supplier_3, warehouse_1, SKU3_ID, 3, "train", env.tick, None)
         distribution_unit.place_order(order_3)
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 3)
 
         self.assertEqual(2, len(distribution_unit._order_queues["train"]))
         self.assertEqual(5, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
@@ -139,7 +136,6 @@ class MyTestCase(unittest.TestCase):
 
         env.step(None)
 
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 1)
         distribution_unit.place_order(order_1)
 
         self.assertEqual(
@@ -191,7 +187,6 @@ class MyTestCase(unittest.TestCase):
 
         order_1 = Order(warehouse_1, retailer_1, SKU2_ID, 1, "train", env.tick, None)
         warehouse_1_distribution_unit.place_order(order_1)
-        consumer_unit._update_open_orders(retailer_1.id, SKU2_ID, 1)
         # The vlt configuration of this topology is 5.
         self.assertEqual(1, len(warehouse_1_distribution_unit._order_queues["train"]))
 
@@ -205,7 +200,6 @@ class MyTestCase(unittest.TestCase):
 
         order_2 = Order(warehouse_1, retailer_1, SKU2_ID, 2, "train", env.tick, None)
         warehouse_1_distribution_unit.place_order(order_2)
-        consumer_unit._update_open_orders(retailer_1.id, SKU2_ID, 2)
 
         # The vlt configuration of this topology is 5.
         self.assertEqual(1, len(warehouse_1_distribution_unit._order_queues["train"]))
@@ -230,7 +224,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, len(warehouse_1_distribution_unit._order_queues["train"]))
         order_3 = Order(warehouse_1, retailer_1, SKU2_ID, 3, "train", env.tick, None)
         warehouse_1_distribution_unit.place_order(order_3)
-        consumer_unit._update_open_orders(retailer_1.id, SKU2_ID, 3)
 
         # After env.step runs, where tick is 4. order_1 will arrive at tick=5.
         # order_2 will arrive at tick=6.order_3 is expected to arrive at tick=8 under normal circumstances.
@@ -271,7 +264,6 @@ class MyTestCase(unittest.TestCase):
 
         order_4 = Order(warehouse_1, retailer_1, SKU2_ID, 4, "train", env.tick, None)
         warehouse_1_distribution_unit.place_order(order_4)
-        consumer_unit._update_open_orders(retailer_1.id, SKU2_ID, 4)
 
         # After env.step runs, where tick is 8. order_3 will arrive at tick = 11.
         # order_4 is expected to arrive at tick=12 under normal circumstances.
@@ -356,13 +348,12 @@ class MyTestCase(unittest.TestCase):
         distribution_unit = supplier_3.distribution
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
         retailer_1: FacilityBase = be.world._get_facility_by_name("Retailer_001")
-        consumer_unit = warehouse_1.products[3].consumer
+
         env.step(None)
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
         order = Order(supplier_3, warehouse_1, SKU3_ID, 20, "train", env.tick, None)
         distribution_unit.place_order(order)
-        consumer_unit._update_open_orders(warehouse_1, SKU3_ID, 20)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(20, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
         supplier_3_id, warehouse_1_id, retailer_1_id = 1, 6, 13
@@ -373,48 +364,51 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(
             [0, 0, 20, 0], list(env.metrics["products"][warehouse_1.products[SKU3_ID].id]["pending_order_daily"]),
         )
+        self.assertEqual(20, env.metrics["facilities"][warehouse_1_id]["in_transit_orders"][SKU3_ID])
 
         # add another order, it would be successfully scheduled.
         order = Order(supplier_3, warehouse_1, SKU3_ID, 25, "train", env.tick, None)
         distribution_unit.place_order(order)
-        consumer_unit._update_open_orders(warehouse_1, SKU3_ID, 25)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(25, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
 
         # 3rd order, will cause the pending order increase
         order_1 = Order(supplier_3, warehouse_1, SKU3_ID, 30, "train", env.tick, None)
         distribution_unit.place_order(order_1)
-        consumer_unit._update_open_orders(warehouse_1, SKU3_ID, 30)
 
         self.assertEqual(2, len(distribution_unit._order_queues["train"]))
-        self.assertEqual(55, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
-        self.assertEqual(55, env.metrics["facilities"][supplier_3_id]["pending_order"][SKU3_ID])
-        self.assertEqual(55, distribution_unit._pending_product_quantity[SKU3_ID])
+        self.assertEqual(25 + 30, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
+        self.assertEqual(25 + 30, env.metrics["facilities"][supplier_3_id]["pending_order"][SKU3_ID])
+        self.assertEqual(25 + 30, distribution_unit.pending_product_quantity[SKU3_ID])
 
         warehouse_1_distribution_unit = warehouse_1.distribution
 
         order_2 = Order(warehouse_1, retailer_1, SKU3_ID, 5, "train", env.tick, None)
         warehouse_1_distribution_unit.place_order(order_2)
-        consumer_unit._update_open_orders(warehouse_1, SKU3_ID, 5)
 
         order_3 = Order(warehouse_1, retailer_1, SKU3_ID, 5, "train", env.tick, None)
         warehouse_1_distribution_unit.place_order(order_3)
-        consumer_unit._update_open_orders(warehouse_1, SKU3_ID, 5)
 
-        self.assertEqual(5+5, env.metrics["facilities"][warehouse_1_id]["pending_order"][SKU3_ID])
-        self.assertEqual(5+5, warehouse_1_distribution_unit._pending_product_quantity[SKU3_ID])
+        self.assertEqual(5 + 5, env.metrics["facilities"][warehouse_1_id]["pending_order"][SKU3_ID])
+        self.assertEqual(5 + 5, warehouse_1_distribution_unit.pending_product_quantity[SKU3_ID])
 
-        consumer_unit._update_open_orders(warehouse_1, SKU3_ID, 5)
-        warehouse_1_distribution_unit.place_order(order_2)
-        self.assertEqual(15, env.metrics["facilities"][warehouse_1_id]["pending_order"][SKU3_ID])
-        self.assertEqual(15, warehouse_1_distribution_unit._pending_product_quantity[SKU3_ID])
+        order_4 = Order(warehouse_1, retailer_1, SKU3_ID, 5, "train", env.tick, None)
+        warehouse_1_distribution_unit.place_order(order_4)
+        self.assertEqual(5 + 5 + 5, env.metrics["facilities"][warehouse_1_id]["pending_order"][SKU3_ID])
+        self.assertEqual(5 + 5 + 5, warehouse_1_distribution_unit.pending_product_quantity[SKU3_ID])
 
         # There is no place_order for the distribution of supplier_3, there should be no change
-        self.assertEqual(55, env.metrics["facilities"][supplier_3_id]["pending_order"][SKU3_ID])
-        self.assertEqual(55, distribution_unit._pending_product_quantity[SKU3_ID])
+        self.assertEqual(25 + 30, env.metrics["facilities"][supplier_3_id]["pending_order"][SKU3_ID])
+        self.assertEqual(25 + 30, distribution_unit.pending_product_quantity[SKU3_ID])
 
         start_tick = env.tick
         expected_supplier_tick = start_tick + 3
+
+        env.step(None)
+        self.assertEqual(
+            [0, 20, 25, 0], list(env.metrics["products"][warehouse_1.products[SKU3_ID].id]["pending_order_daily"]),
+        )
+        self.assertEqual(20 + 25 + 30, env.metrics["facilities"][warehouse_1_id]["in_transit_orders"][SKU3_ID])
 
         while env.tick < expected_supplier_tick - 1:
             env.step(None)
@@ -422,27 +416,28 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(
             [20, 25, 0, 0], list(env.metrics["products"][warehouse_1.products[SKU3_ID].id]["pending_order_daily"]),
         )
+        self.assertEqual(20 + 25 + 30, env.metrics["facilities"][warehouse_1_id]["in_transit_orders"][SKU3_ID])
 
         env.step(None)
         self.assertEqual(
             [25, 0, 0, 30], list(env.metrics["products"][warehouse_1.products[SKU3_ID].id]["pending_order_daily"]),
         )
+        self.assertEqual(25 + 30, env.metrics["facilities"][warehouse_1_id]["in_transit_orders"][SKU3_ID])
 
         # will arrive at the end of this tick, still on the way.
         assert env.tick == expected_supplier_tick
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
         self.assertEqual(0, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
         self.assertEqual(5, env.metrics["facilities"][warehouse_1_id]["pending_order"][SKU3_ID])
-        self.assertEqual(5, warehouse_1_distribution_unit._pending_product_quantity[SKU3_ID])
+        self.assertEqual(5, warehouse_1_distribution_unit.pending_product_quantity[SKU3_ID])
 
         env.step(None)
 
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
         self.assertEqual(0, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
-        self.assertEqual(45, env.metrics["facilities"][warehouse_1_id]["in_transit_orders"][SKU3_ID])
 
         self.assertEqual(5, env.metrics["facilities"][warehouse_1_id]["pending_order"][SKU3_ID])
-        self.assertEqual(5, warehouse_1_distribution_unit._pending_product_quantity[SKU3_ID])
+        self.assertEqual(5, warehouse_1_distribution_unit.pending_product_quantity[SKU3_ID])
 
 
 if __name__ == "__main__":

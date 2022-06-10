@@ -199,8 +199,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "pending_order_daily":
                             product.consumer.get_pending_order_daily(self._tick)
                             if product.consumer is not None else None,
-                        "waiting_order_quantity":
-                            product.consumer.waiting_order_quantity if product.consumer is not None else None,
+                        "pending_scheduled_quantity":
+                            product.consumer.pending_scheduled_order_quantity if product.consumer is not None else None,
                     } for product in self._product_units
                 },
                 "facilities": {

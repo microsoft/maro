@@ -66,7 +66,6 @@ class MyTestCase(unittest.TestCase):
         )
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order_1)
         distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
@@ -82,7 +81,6 @@ class MyTestCase(unittest.TestCase):
             creation_tick=env.tick,
             expected_finish_tick=env.tick + 7,
         )
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order_2)
         distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(0, len(distribution_unit._order_queues["train"]))
@@ -101,7 +99,6 @@ class MyTestCase(unittest.TestCase):
             creation_tick=env.tick,
             expected_finish_tick=env.tick + 7,
         )
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 10)
         distribution_unit.place_order(order_3)
         distribution_unit.try_schedule_orders(env.tick)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
@@ -185,7 +182,6 @@ class MyTestCase(unittest.TestCase):
             creation_tick=env.tick,
             expected_finish_tick=env.tick + 7,
         )
-        consumer_unit._update_open_orders(warehouse_1.id, SKU3_ID, 80)
         distribution_unit.place_order(order)
         distribution_unit.try_schedule_orders(start_tick)
 

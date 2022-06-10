@@ -6,7 +6,7 @@ from __future__ import annotations
 import typing
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Deque, Dict, List, Optional, Union
+from typing import Counter, Deque, Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order, OrderStatus
 
@@ -40,16 +40,6 @@ class DistributionUnit(UnitBase):
         self._vehicle_num: Dict[str, Optional[int]] = {}
         self._busy_vehicle_num: Dict[str, int] = {}
 
-        # TODO：replace this with BE's event buffer
-        self._order_on_the_way: Dict[int, List[Order]] = defaultdict(list)
-
-        # A dict of pending order queue. Key: vehicle type; Value: pending order queue.
-        self._order_queues: Dict[str, Deque[Order]] = defaultdict(deque)
-        self._pending_order_number: int = 0
-        self._total_pending_quantity: int = 0
-        self._pending_product_quantity: Dict[int, int] = defaultdict(int)
-        self._is_order_changed: bool = False
-
         # Below 3 attributes are used to track states for ProductUnit's data model
         # The transportation cost of each product of current tick. Would be set to 0 in ProductUnit.
         # Do not consider the destination here.
@@ -62,6 +52,31 @@ class DistributionUnit(UnitBase):
         self.check_in_quantity_in_order: Dict[int, float] = defaultdict(float)
 
         self._unit_delay_order_penalty: Dict[int, float] = {}
+
+        self._init_statistics()
+
+    def _init_statistics(self) -> None:
+        # TODO：replace this with BE's event buffer
+        self._order_on_the_way: Dict[int, List[Order]] = defaultdict(list)
+
+        # A dict of pending order queue. Key: vehicle type; Value: pending order queue.
+        self._order_queues: Dict[str, Deque[Order]] = defaultdict(deque)
+
+        # Pending order related statistics.
+        self._pending_order_number: int = 0
+        self._total_pending_quantity: int = 0
+        # TODO: could it be added to data model?
+        # The key is product id, the value is accumulated requested product quantity.
+        self.pending_product_quantity: Dict[int, int] = defaultdict(int)
+
+        self._is_order_changed: bool = False
+
+        # Only incremental action valid.
+        self.total_order_num: int = 0
+        self.finished_order_num: int = 0
+        self.expired_order_num: int = 0
+        self.actual_order_leading_time: Counter = Counter()
+        self.order_schedule_delay_time: Counter = Counter()
 
     def initialize(self) -> None:
         super(DistributionUnit, self).initialize()
@@ -102,6 +117,7 @@ class DistributionUnit(UnitBase):
         ]):
             self._order_queues[order.vehicle_type].append(order)
             self._maintain_pending_order_info(order, is_increase=True)
+            self.total_order_num += 1
 
             consumer = order.dest_facility.products[order.sku_id].consumer
             consumer.on_order_successfully_placed(order)
@@ -112,15 +128,6 @@ class DistributionUnit(UnitBase):
             return order_total_price
         else:
             return 0
-
-    @property
-    def pending_product_quantity(self) -> Dict[int, int]:  # TODO: add it into data model.
-        """Count the requested product quantity in pending orders. Only used by BE metrics.
-
-        Returns:
-            Dict[int, int]: The key is product id, the value is accumulated requested product quantity.
-        """
-        return self._pending_product_quantity
 
     def _try_load(self, sku_id: int, quantity: int) -> bool:
         """Try to load specified number of scheduled product.
@@ -143,11 +150,15 @@ class DistributionUnit(UnitBase):
             unloaded_quantity = unloaded[order.sku_id]
 
             consumer = order.dest_facility.products[order.sku_id].consumer
-            consumer.on_order_reception(order=order, received_quantity=unloaded_quantity, tick=tick)
+            consumer.on_order_received(order=order, received_quantity=unloaded_quantity, tick=tick)
 
             order.payload -= unloaded_quantity
 
-        return order.payload == 0
+        if order.order_status == OrderStatus.FINISHED:
+            self.finished_order_num += 1
+            self.actual_order_leading_time[tick - order.creation_tick] += 1
+
+        return order.order_status == OrderStatus.FINISHED
 
     def _schedule_order(self, tick: int, order: Order) -> float:
         """Schedule order and return the daily transportation cost for this order.
@@ -169,9 +180,10 @@ class DistributionUnit(UnitBase):
         order.unit_transportation_cost_per_day = vlt_info.unit_transportation_cost
         order.order_status = OrderStatus.ON_THE_WAY
         self._order_on_the_way[arrival_tick].append(order)
+        self.order_schedule_delay_time[tick - order.creation_tick] += 1
 
         consumer = order.dest_facility.products[order.sku_id].consumer
-        consumer.on_order_scheduled(order)
+        consumer.on_order_scheduled(order, tick)
 
         return vlt_info.unit_transportation_cost * order.required_quantity
 
@@ -184,7 +196,7 @@ class DistributionUnit(UnitBase):
         indicator = 1 if is_increase else -1
         self._pending_order_number += 1 * indicator
         self._total_pending_quantity += order.required_quantity * indicator
-        self._pending_product_quantity[order.sku_id] += order.required_quantity * indicator
+        self.pending_product_quantity[order.sku_id] += order.required_quantity * indicator
         self._is_order_changed = True
 
     def try_schedule_orders(self, tick: int) -> None:
@@ -196,6 +208,7 @@ class DistributionUnit(UnitBase):
                 if order.expiration_buffer is not None and tick > order.creation_tick + order.expiration_buffer:
                     order.order_status = OrderStatus.EXPIRED
                     self._maintain_pending_order_info(order, is_increase=False)
+                    self.expired_order_num += 1
                     # Update waiting order quantity info in Consumer.
                     consumer = order.dest_facility.products[order.sku_id].consumer
                     consumer.on_order_expired(order)
@@ -248,20 +261,31 @@ class DistributionUnit(UnitBase):
     def reset(self) -> None:
         super(DistributionUnit, self).reset()
 
-        # Reset status in Python side.
-        self._order_queues.clear()
-        self._pending_order_number = 0
-        self._total_pending_quantity = 0
-        self._pending_product_quantity.clear()
-        self._is_order_changed = False
-
         self.transportation_cost.clear()
         self.delay_order_penalty.clear()
         self.check_in_quantity_in_order.clear()
 
         for vehicle_type in self._vehicle_num.keys():
             self._busy_vehicle_num[vehicle_type] = 0
+
+        self._reset_statistics()
+
+    def _reset_statistics(self) -> None:
         self._order_on_the_way.clear()
+
+        self._order_queues.clear()
+
+        self._pending_order_number = 0
+        self._total_pending_quantity = 0
+        self.pending_product_quantity.clear()
+
+        self._is_order_changed = False
+
+        self.total_order_num = 0
+        self.finished_order_num = 0
+        self.expired_order_num = 0
+        self.actual_order_leading_time = Counter()
+        self.order_schedule_delay_time = Counter()
 
     def get_unit_info(self) -> DistributionUnitInfo:
         return DistributionUnitInfo(

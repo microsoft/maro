@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction
 from maro.simulator.scenarios.supply_chain.datamodels import ConsumerDataModel
-from maro.simulator.scenarios.supply_chain.order import Order
+from maro.simulator.scenarios.supply_chain.order import Order, OrderStatus
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
 from .unitbase import UnitBase
@@ -35,11 +35,6 @@ class ConsumerUnit(ExtendUnitBase):
         super(ConsumerUnit, self).__init__(
             id, data_model_name, data_model_index, facility, parent, world, config,
         )
-        self.order_quantity_on_the_way: Dict[int, int] = defaultdict(int)
-        self.waiting_order_quantity: int = 0
-        self._open_orders = Counter()
-        self._in_transit_quantity: int = 0
-
         # States in python side.
         self._received: int = 0  # The quantity of product received in current step.
 
@@ -51,31 +46,54 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._unit_order_cost: float = 0
 
+        self._init_statistics()
+
+    def _init_statistics(self) -> None:
+        self.order_quantity_on_the_way: Dict[int, int] = defaultdict(int)
+        self._open_orders: Counter = Counter()
+
+        # Dynamically changing statistics.
+        self.pending_scheduled_order_quantity: int = 0
+        self.in_transit_quantity: int = 0  # In transit = pending scheduled + on the way.
+
+        # Only incremental action valid.
+        self.total_order_num: int = 0
+        self.finished_order_num: int = 0
+        self.expired_order_num: int = 0
+        self.actual_order_leading_time: Counter = Counter()
+        self.order_schedule_delay_time: Counter = Counter()
+
     def get_pending_order_daily(self, tick: int) -> List[int]:
         ret = [
             self.order_quantity_on_the_way[tick + i] for i in range(self.world.configs.settings["pending_order_len"])
         ]
-        if tick in self.order_quantity_on_the_way:  # Remove data at tick to save storage
-            self.order_quantity_on_the_way.pop(tick)
         return ret
 
-    @property
-    def in_transit_quantity(self) -> int:
-        return self._in_transit_quantity
-
     def on_order_successfully_placed(self, order: Order) -> None:
-        self.waiting_order_quantity += order.required_quantity
+        self._open_orders[order.src_facility.id] += order.required_quantity
 
-    def on_order_scheduled(self, order: Order) -> None:
-        # TODO: use the actual arrival tick here.
+        self.pending_scheduled_order_quantity += order.required_quantity
+        self.in_transit_quantity += order.required_quantity
+
+        self.total_order_num += 1
+
+    def on_order_scheduled(self, order: Order, tick: int) -> None:
+        # TODO: here the actual arrival tick is used.
         self.order_quantity_on_the_way[order.arrival_tick] += order.payload
-        self.waiting_order_quantity -= order.required_quantity
+
+        self.pending_scheduled_order_quantity -= order.required_quantity
+
+        self.order_schedule_delay_time[tick - order.creation_tick] += 1
 
     def on_order_expired(self, order: Order) -> None:
-        self.waiting_order_quantity -= order.required_quantity
-        self._update_open_orders(order.src_facility.id, order.sku_id, -order.required_quantity)
+        self._open_orders[order.src_facility.id] -= order.required_quantity
 
-    def on_order_reception(self, order: Order, received_quantity: int, tick: int) -> None:
+        self.pending_scheduled_order_quantity -= order.required_quantity
+        self.in_transit_quantity -= order.required_quantity
+
+        self.expired_order_num += 1
+
+    def on_order_received(self, order: Order, received_quantity: int, tick: int) -> None:
         """Called after order product is received.
 
         Args:
@@ -84,25 +102,19 @@ class ConsumerUnit(ExtendUnitBase):
             tick (int): The simulation tick.
         """
         assert order.sku_id == self.sku_id
+        assert received_quantity > 0
         self._received += received_quantity
 
         order.receive(tick, received_quantity)
-        # TODO: add order related statistics
 
-        self._update_open_orders(order.src_facility.id, order.sku_id, -received_quantity)
+        # TODO: order quantity on the way
+        self._open_orders[order.src_facility.id] -= received_quantity
 
-    def _update_open_orders(self, source_id: int, sku_id: int, additional_quantity: int) -> None:
-        """Update the order states.
+        self.in_transit_quantity -= received_quantity
 
-        Args:
-            source_id (int): Where is the product from (facility id).
-            sku_id (int): What product in the order.
-            additional_quantity (int): Number of product to update (sum).
-        """
-        # New order for product.
-        assert sku_id == self.sku_id
-        self._open_orders[source_id] += additional_quantity
-        self._in_transit_quantity += additional_quantity
+        if order.order_status == OrderStatus.FINISHED:
+            self.finished_order_num += 1
+            self.actual_order_leading_time[tick - order.creation_tick] += 1
 
     def initialize(self) -> None:
         super(ConsumerUnit, self).initialize()
@@ -138,8 +150,6 @@ class ConsumerUnit(ExtendUnitBase):
             action.quantity <= 0,
         ]):
             return
-
-        self._update_open_orders(action.source_id, action.sku_id, action.quantity)
 
         source_facility = self.world.get_facility_by_id(action.source_id)
         expected_vlt = source_facility.downstream_vlt_infos[self.sku_id][self.facility.id][action.vehicle_type].vlt
@@ -183,6 +193,11 @@ class ConsumerUnit(ExtendUnitBase):
     def step(self, tick: int) -> None:
         pass
 
+    def post_step(self, tick: int) -> None:
+        # TODO: cannot handle the case when unload failed.
+        if tick in self.order_quantity_on_the_way:  # Remove data at tick to save storage
+            self.order_quantity_on_the_way.pop(tick)
+
     def flush_states(self) -> None:
         if self._received > 0:
             self.data_model.received = self._received
@@ -199,14 +214,26 @@ class ConsumerUnit(ExtendUnitBase):
     def reset(self) -> None:
         super(ConsumerUnit, self).reset()
 
-        self._open_orders.clear()
-        self._in_transit_quantity = 0
-
         # Reset status in Python side.
         self._received = 0
         self._purchased = 0
         self._order_product_cost = 0
         self._order_base_cost = 0
+
+        self._reset_statistics()
+
+    def _reset_statistics(self) -> None:
+        self.order_quantity_on_the_way.clear()
+        self._open_orders.clear()
+
+        self.pending_scheduled_order_quantity = 0
+        self.in_transit_quantity = 0
+
+        self.total_order_num = 0
+        self.finished_order_num = 0
+        self.expired_order_num = 0
+        self.actual_order_leading_time.clear()
+        self.order_schedule_delay_time.clear()
 
     def get_unit_info(self) -> ConsumerUnitInfo:
         return ConsumerUnitInfo(
