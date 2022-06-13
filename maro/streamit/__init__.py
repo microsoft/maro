@@ -3,4 +3,4 @@
 
 from .client import streamit
 
-__all__ = ['streamit']
+__all__ = ["streamit"]

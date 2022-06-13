@@ -19,7 +19,12 @@ class TestDataCollectionDump(unittest.TestCase):
 
         # check output folder
         for fname in [
-            "ports.csv", "vessels.csv", "routes.csv", "global_order_proportion.txt", "order_proportion.csv", "misc.yml"
+            "ports.csv",
+            "vessels.csv",
+            "routes.csv",
+            "global_order_proportion.txt",
+            "order_proportion.csv",
+            "misc.yml",
         ]:
             self.assertTrue(os.path.exists(os.path.join(output_folder, fname)), fname)
 

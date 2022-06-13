@@ -45,12 +45,12 @@ jobs:
         uses: github/super-linter@latest
         env:
           VALIDATE_ALL_CODEBASE: false
-          VALIDATE_PYTHON_PYLINT: false # disable pylint, as we have not configure it
-          VALIDATE_PYTHON_BLACK: false # same as above
+          VALIDATE_PYTHON_PYLINT: false # disable pylint, as we have not configured it
           VALIDATE_PYTHON_MYPY: false # same as above
           VALIDATE_JSCPD: false # Can not exclude specific file: https://github.com/kucherenko/jscpd/issues/215
           PYTHON_FLAKE8_CONFIG_FILE: tox.ini
-          PYTHON_ISORT_CONFIG_FILE: tox.ini
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
           EDITORCONFIG_FILE_NAME: ../../.editorconfig
           FILTER_REGEX_INCLUDE: maro/.*
           FILTER_REGEX_EXCLUDE: tests/.*

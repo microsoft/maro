@@ -13,6 +13,8 @@ from maro.simulator.utils import random
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
 os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "cim_testing"
 
+from tests.utils import backends_to_test, compare_dictionary
+
 from maro.data_lib.cim import dump_from_config
 from maro.data_lib.cim.entities import PortSetting, Stop, SyntheticPortSetting, VesselSetting
 from maro.data_lib.cim.vessel_stop_wrapper import VesselStopsWrapper
@@ -20,7 +22,6 @@ from maro.simulator import Env
 from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
-from tests.utils import backends_to_test, compare_dictionary
 
 TOPOLOGY_PATH_CONFIG = "tests/data/cim/case_data/config_folder"
 TOPOLOGY_PATH_DUMP = "tests/data/cim/case_data/dump_folder"
@@ -48,7 +49,7 @@ class TestCimScenarios(unittest.TestCase):
             topology=self._reload_topology,
             start_tick=0,
             durations=200,
-            options={"enable-dump-snapshot": tempfile.gettempdir()}
+            options={"enable-dump-snapshot": tempfile.gettempdir()},
         )
         self._business_engine = self._env.business_engine
 
@@ -98,7 +99,7 @@ class TestCimScenarios(unittest.TestCase):
                 for target in port.target_proportions:
                     self.assertEqual(
                         target.noise,
-                        port_config["order_distribution"]["targets"][port_names[target.index]]["noise"]
+                        port_config["order_distribution"]["targets"][port_names[target.index]]["noise"],
                     )
 
             for name, idx in self._business_engine.get_node_mapping()["ports"].items():
@@ -150,9 +151,52 @@ class TestCimScenarios(unittest.TestCase):
             self._init_env(backend_name)
 
             hard_coded_period = [
-                67, 75, 84, 67, 53, 58, 51, 58, 61, 49, 164, 182, 146, 164, 182, 146, 90, 98, 79, 95, 104, 84, 87, 97,
-                78, 154, 169, 136, 154, 169, 94, 105, 117, 94, 189, 210, 167, 189, 210, 167, 141, 158, 125, 141, 158,
-                125
+                67,
+                75,
+                84,
+                67,
+                53,
+                58,
+                51,
+                58,
+                61,
+                49,
+                164,
+                182,
+                146,
+                164,
+                182,
+                146,
+                90,
+                98,
+                79,
+                95,
+                104,
+                84,
+                87,
+                97,
+                78,
+                154,
+                169,
+                136,
+                154,
+                169,
+                94,
+                105,
+                117,
+                94,
+                189,
+                210,
+                167,
+                189,
+                210,
+                167,
+                141,
+                158,
+                125,
+                141,
+                158,
+                125,
             ]
             self.assertListEqual(self._business_engine._data_cntr.vessel_period, hard_coded_period)
 
@@ -236,8 +280,8 @@ class TestCimScenarios(unittest.TestCase):
             self._init_env(backend_name)
 
             for i, port in enumerate(self._business_engine._ports):
-                total_containers = self._raw_topology['total_containers']
-                initial_container_proportion = self._raw_topology['ports'][port.name]['initial_container_proportion']
+                total_containers = self._raw_topology["total_containers"]
+                initial_container_proportion = self._raw_topology["ports"][port.name]["initial_container_proportion"]
 
                 self.assertEqual(port.booking, 0)
                 self.assertEqual(port.shortage, 0)
@@ -248,10 +292,28 @@ class TestCimScenarios(unittest.TestCase):
             self.assertEqual(self._env.tick, 5)
 
             hard_coded_truth = [  # Should get same results under default random seed
-                [223, 0, 14726], [16, 0, 916], [18, 0, 917], [89, 0, 5516], [84, 0, 4613], [72, 0, 4603],
-                [26, 0, 1374], [24, 0, 1378], [48, 0, 2756], [54, 0, 2760], [26, 0, 1379], [99, 0, 5534],
-                [137, 0, 7340], [19, 0, 912], [13, 0, 925], [107, 0, 6429], [136, 0, 9164], [64, 0, 3680],
-                [24, 0, 1377], [31, 0, 1840], [109, 0, 6454], [131, 0, 7351]
+                [223, 0, 14726],
+                [16, 0, 916],
+                [18, 0, 917],
+                [89, 0, 5516],
+                [84, 0, 4613],
+                [72, 0, 4603],
+                [26, 0, 1374],
+                [24, 0, 1378],
+                [48, 0, 2756],
+                [54, 0, 2760],
+                [26, 0, 1379],
+                [99, 0, 5534],
+                [137, 0, 7340],
+                [19, 0, 912],
+                [13, 0, 925],
+                [107, 0, 6429],
+                [136, 0, 9164],
+                [64, 0, 3680],
+                [24, 0, 1377],
+                [31, 0, 1840],
+                [109, 0, 6454],
+                [131, 0, 7351],
             ]
             for i, port in enumerate(self._business_engine._ports):
                 self.assertEqual(port.booking, hard_coded_truth[i][0])
@@ -286,7 +348,7 @@ class TestCimScenarios(unittest.TestCase):
                 for stop1, stop3 in zip(vessel_stops_1[i], vessel_stops_3[i]):
                     self.assertListEqual(
                         [stop1.index, stop1.port_idx, stop1.vessel_idx],
-                        [stop3.index, stop3.port_idx, stop3.vessel_idx]
+                        [stop3.index, stop3.port_idx, stop3.vessel_idx],
                     )
                     if (stop1.arrival_tick, stop1.leave_tick) != (stop3.arrival_tick, stop3.leave_tick):
                         flag = False
@@ -340,13 +402,13 @@ class TestCimScenarios(unittest.TestCase):
                 vessel_idx=decision_event.vessel_idx,
                 port_idx=decision_event.port_idx,
                 quantity=1201,
-                action_type=ActionType.LOAD
+                action_type=ActionType.LOAD,
             )
             discharge_action = Action(
                 vessel_idx=decision_event.vessel_idx,
                 port_idx=decision_event.port_idx,
                 quantity=1,
-                action_type=ActionType.DISCHARGE
+                action_type=ActionType.DISCHARGE,
             )
             metric, decision_event, is_done = self._env.step([load_action, discharge_action])
 
@@ -359,26 +421,39 @@ class TestCimScenarios(unittest.TestCase):
                     history.append((v.full, v.empty, v.early_discharge))
 
             hard_coded_benchmark = [
-                (465, 838, 362), (756, 547, 291), (1261, 42, 505), (1303, 0, 42), (1303, 0, 0), (1303, 0, 0),
-                (803, 0, 0)
+                (465, 838, 362),
+                (756, 547, 291),
+                (1261, 42, 505),
+                (1303, 0, 42),
+                (1303, 0, 0),
+                (1303, 0, 0),
+                (803, 0, 0),
             ]
             self.assertListEqual(history, hard_coded_benchmark)
 
             #
             payload_detail_benchmark = {
-                'ORDER': ['tick', 'src_port_idx', 'dest_port_idx', 'quantity'],
-                'RETURN_FULL': ['src_port_idx', 'dest_port_idx', 'quantity'],
-                'VESSEL_ARRIVAL': ['port_idx', 'vessel_idx'],
-                'LOAD_FULL': ['port_idx', 'vessel_idx'],
-                'DISCHARGE_FULL': ['vessel_idx', 'port_idx', 'from_port_idx', 'quantity'],
-                'PENDING_DECISION': [
-                    'tick', 'port_idx', 'vessel_idx', 'snapshot_list', 'action_scope', 'early_discharge'],
-                'LOAD_EMPTY': ['port_idx', 'vessel_idx', 'action_type', 'quantity'],
-                'DISCHARGE_EMPTY': ['port_idx', 'vessel_idx', 'action_type', 'quantity'],
-                'VESSEL_DEPARTURE': ['port_idx', 'vessel_idx'], 'RETURN_EMPTY': ['port_idx', 'quantity']
+                "ORDER": ["tick", "src_port_idx", "dest_port_idx", "quantity"],
+                "RETURN_FULL": ["src_port_idx", "dest_port_idx", "quantity"],
+                "VESSEL_ARRIVAL": ["port_idx", "vessel_idx"],
+                "LOAD_FULL": ["port_idx", "vessel_idx"],
+                "DISCHARGE_FULL": ["vessel_idx", "port_idx", "from_port_idx", "quantity"],
+                "PENDING_DECISION": [
+                    "tick",
+                    "port_idx",
+                    "vessel_idx",
+                    "snapshot_list",
+                    "action_scope",
+                    "early_discharge",
+                ],
+                "LOAD_EMPTY": ["port_idx", "vessel_idx", "action_type", "quantity"],
+                "DISCHARGE_EMPTY": ["port_idx", "vessel_idx", "action_type", "quantity"],
+                "VESSEL_DEPARTURE": ["port_idx", "vessel_idx"],
+                "RETURN_EMPTY": ["port_idx", "quantity"],
             }
             self.assertTrue(
-                compare_dictionary(self._business_engine.get_event_payload_detail(), payload_detail_benchmark))
+                compare_dictionary(self._business_engine.get_event_payload_detail(), payload_detail_benchmark),
+            )
             port_number = self._business_engine._data_cntr.port_number
             self.assertListEqual(self._business_engine.get_agent_idx_list(), list(range(port_number)))
 

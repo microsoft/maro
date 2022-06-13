@@ -13,12 +13,13 @@ import unittest
 import uuid
 
 import yaml
+from tests.cli.utils import record_running_time
 
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError
-from tests.cli.utils import record_running_time
+
 
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require cli prerequisites.")
 class TestK8s(unittest.TestCase):
@@ -43,7 +44,7 @@ class TestK8s(unittest.TestCase):
     maro_pkg_path = os.path.normpath(os.path.join(test_file_path, "../../../../"))
     test_config_path = os.path.normpath(os.path.join(test_dir_path, "../config.yml"))
     create_deployment_template_path = os.path.normpath(
-        path=os.path.join(test_dir_path, "./modes/aks/k8s_aks_create.yml")
+        path=os.path.join(test_dir_path, "./modes/aks/k8s_aks_create.yml"),
     )
     create_deployment_path = f"{GlobalPaths.ABS_MARO_TEST}/{test_id}/k8s_aks_create.yml"
 
@@ -92,8 +93,9 @@ class TestK8s(unittest.TestCase):
         print(
             json.dumps(
                 cls.test_func_to_time,
-                indent=4, sort_keys=True
-            )
+                indent=4,
+                sort_keys=True,
+            ),
         )
 
         # Delete resource group.
@@ -276,7 +278,7 @@ class TestK8s(unittest.TestCase):
 
         # Get cluster details and rebuild config
         cluster_details = self._get_cluster_details()
-        with open(f"{dqn_target_dir}/config.yml", 'r') as fr:
+        with open(f"{dqn_target_dir}/config.yml", "r") as fr:
             config = yaml.safe_load(fr)
         with open(f"{dqn_target_dir}/distributed_config.yml", "r") as fr:
             distributed_config = yaml.safe_load(fr)
@@ -284,7 +286,7 @@ class TestK8s(unittest.TestCase):
             config["main_loop"]["max_episode"] = 25
             config["main_loop"]["exploration"]["split_ep"] = 20
             yaml.safe_dump(config, fw)
-        with open(f"{dqn_target_dir}/distributed_config.yml", 'w') as fw:
+        with open(f"{dqn_target_dir}/distributed_config.yml", "w") as fw:
             distributed_config["redis"]["hostname"] = cluster_details["redis"]["private_ip_address"]
             yaml.safe_dump(distributed_config, fw)
 
@@ -297,7 +299,7 @@ class TestK8s(unittest.TestCase):
 
         # Start job.
         start_job_dqn_template_path = os.path.normpath(
-            os.path.join(self.test_dir_path, "./modes/aks/k8s_aks_start_job_dqn.yml")
+            os.path.join(self.test_dir_path, "./modes/aks/k8s_aks_start_job_dqn.yml"),
         )
         command = f"maro k8s job start {self.cluster_name} {start_job_dqn_template_path}"
         Subprocess.run(command=command)

@@ -9,8 +9,7 @@ from maro.cli.utils.operation_lock_wrapper import operation_lock
 @check_details_validity
 @operation_lock
 def push_image(
-    cluster_name: str, image_name: str, image_path: str, remote_context_path: str, remote_image_name: str,
-    **kwargs
+    cluster_name: str, image_name: str, image_path: str, remote_context_path: str, remote_image_name: str, **kwargs
 ):
     # Late imports.
     from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
@@ -26,7 +25,7 @@ def push_image(
             image_name=image_name,
             image_path=image_path,
             remote_context_path=remote_context_path,
-            remote_image_name=remote_image_name
+            remote_image_name=remote_image_name,
         )
     elif cluster_details["mode"] == "grass/on-premises":
         executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
@@ -34,7 +33,7 @@ def push_image(
             image_name=image_name,
             image_path=image_path,
             remote_context_path=remote_context_path,
-            remote_image_name=remote_image_name
+            remote_image_name=remote_image_name,
         )
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")

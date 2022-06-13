@@ -29,7 +29,6 @@ class TestBinaryConverter(unittest.TestCase):
         # flush will close the file, cannot add again
         bct.flush()
 
-
         # check if output exist
         self.assertTrue(os.path.exists(out_bin))
 
@@ -53,15 +52,14 @@ class TestBinaryConverter(unittest.TestCase):
         self.assertEqual(end_date.day, 1)
         self.assertEqual(end_date.hour, 0)
         self.assertEqual(end_date.minute, 5)
-        self.assertEqual(end_date.second, 0)     
-
+        self.assertEqual(end_date.second, 0)
 
         # there should be double items as trips.csv
-        self.assertEqual(4*2, reader.header.item_count)
+        self.assertEqual(4 * 2, reader.header.item_count)
 
         # 20 byte
-        self.assertEqual(20, reader.header.item_size)   
-        
+        self.assertEqual(20, reader.header.item_size)
+
         start_station_index = [0, 0, 1, 0]
 
         idx = 0
@@ -69,23 +67,23 @@ class TestBinaryConverter(unittest.TestCase):
         # check iterating interface
         for item in reader.items():
             # check if fields same as meta
-            self.assertTupleEqual(('timestamp', 'durations', 'src_station', 'dest_station'), item._fields)
+            self.assertTupleEqual(("timestamp", "durations", "src_station", "dest_station"), item._fields)
 
             # check item start station index
             self.assertEqual(start_station_index[idx % len(start_station_index)], item.src_station)
 
             idx += 1
-        
+
         # check if filter works as expected
         l = len([item for item in reader.items(end_time_offset=0, time_unit="m")])
 
-        # although there are 2 items that match the condition, but they not sorted, reader will not try to read to the end, but 
+        # although there are 2 items that match the condition, but they not sorted, reader will not try to read to the end, but
         # to the first item which not match the condition
         self.assertEqual(1, l)
 
-        l = len([item for item in reader.items(start_time_offset=1, time_unit='m')])
+        l = len([item for item in reader.items(start_time_offset=1, time_unit="m")])
 
-        # reader will try to read 1st one that > end tick, so there should be 6 items 
+        # reader will try to read 1st one that > end tick, so there should be 6 items
         self.assertEqual(6, l)
 
     def test_convert_without_events(self):
@@ -110,9 +108,15 @@ class TestBinaryConverter(unittest.TestCase):
         self.assertIsNotNone(meta)
 
         # check events
-        self.assertListEqual(["require_bike", "return_bike", "rebalance_bike", "deliver_bike"], [event.display_name for event in meta.events])
+        self.assertListEqual(
+            ["require_bike", "return_bike", "rebalance_bike", "deliver_bike"],
+            [event.display_name for event in meta.events],
+        )
 
-        self.assertListEqual(["RequireBike", "ReturnBike", "RebalanceBike", "DeliverBike"], [event.type_name for event in meta.events])
+        self.assertListEqual(
+            ["RequireBike", "ReturnBike", "RebalanceBike", "DeliverBike"],
+            [event.type_name for event in meta.events],
+        )
 
         self.assertEqual("RequireBike", meta.default_event_name)
         self.assertIsNone(meta.event_attr_name)
@@ -125,7 +129,7 @@ class TestBinaryConverter(unittest.TestCase):
         meta_file = os.path.join("tests", "data", "data_lib", "case_2", "meta.yml")
         csv_file = os.path.join("tests", "data", "data_lib", "trips.csv")
 
-        #12/31/2018 @ 11:59pm (UTC)
+        # 12/31/2018 @ 11:59pm (UTC)
         bct = BinaryConverter(out_bin, meta_file, utc_start_timestamp=1546300740)
 
         bct.add_csv(csv_file)
@@ -139,15 +143,14 @@ class TestBinaryConverter(unittest.TestCase):
         self.assertEqual(1546300740, reader.header.starttime)
 
         # then tick 0 will not be 2019/01/01 00:00:00
-        l = len([item for item in reader.items(end_time_offset=0, time_unit='m')])
+        l = len([item for item in reader.items(end_time_offset=0, time_unit="m")])
 
         self.assertEqual(0, l)
 
         # it should be tick 1 for now
-        l = len([item for item in reader.items(end_time_offset=1, time_unit='m')])
+        l = len([item for item in reader.items(end_time_offset=1, time_unit="m")])
 
         self.assertEqual(1, l)
-
 
     def test_convert_without_meta_timestamp(self):
         out_dir = tempfile.mkdtemp()
@@ -155,11 +158,11 @@ class TestBinaryConverter(unittest.TestCase):
         out_bin = os.path.join(out_dir, "trips.bin")
 
         meta_file = os.path.join("tests", "data", "data_lib", "case_3", "meta.yml")
-        csv_file = os.path.join("tests", "data", "data_lib", "trips.csv")
+        os.path.join("tests", "data", "data_lib", "trips.csv")
 
-        #12/31/2018 @ 11:59pm (UTC)
+        # 12/31/2018 @ 11:59pm (UTC)
         with self.assertRaises(Exception) as ctx:
-            bct = BinaryConverter(out_bin, meta_file)
+            BinaryConverter(out_bin, meta_file)
 
 
 if __name__ == "__main__":

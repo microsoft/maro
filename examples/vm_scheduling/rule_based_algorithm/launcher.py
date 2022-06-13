@@ -1,19 +1,18 @@
+import importlib
 import io
 import os
 import random
 import timeit
 
 import yaml
-import importlib
+from agent import VMSchedulingAgent
 
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
-from agent import VMSchedulingAgent
-
 
 def import_class(name):
-    components = name.rsplit('.', 1)
+    components = name.rsplit(".", 1)
     mod = importlib.import_module(components[0])
     mod = getattr(mod, components[1])
     return mod
@@ -33,7 +32,7 @@ if __name__ == "__main__":
         topology=config.env.topology,
         start_tick=config.env.start_tick,
         durations=config.env.durations,
-        snapshot_resolution=config.env.resolution
+        snapshot_resolution=config.env.resolution,
     )
 
     if config.env.seed is not None:
@@ -57,7 +56,7 @@ if __name__ == "__main__":
     end_time = timeit.default_timer()
     print(
         f"[{config.algorithm.type.split('.')[1]}] Topology: {config.env.topology}. Total ticks: {config.env.durations}."
-        f" Start tick: {config.env.start_tick}."
+        f" Start tick: {config.env.start_tick}.",
     )
     print(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")
     print(metrics)

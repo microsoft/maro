@@ -8,13 +8,24 @@
 import os
 
 import numpy as np
-cimport numpy as np
+
 cimport cython
-
+cimport numpy as np
 from cpython cimport bool
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
-    INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
 
+from maro.backends.backend cimport (
+    ATTR_TYPE,
+    INT,
+    NODE_INDEX,
+    NODE_TYPE,
+    SLOT_INDEX,
+    UINT,
+    ULONG,
+    USHORT,
+    AttributeType,
+    BackendAbc,
+    SnapshotListAbc,
+)
 
 # Attribute data type mapping.
 attribute_type_mapping = {
@@ -44,10 +55,9 @@ attribute_type_range = {
 
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
     # with this flag, we will allocate a big enough memory for all node types, then use this block construct numpy array
+    from cpython cimport Py_INCREF, PyObject, PyTypeObject
+    from cpython.mem cimport PyMem_Free, PyMem_Malloc
     from libc.string cimport memset
-
-    from cpython cimport PyObject, Py_INCREF, PyTypeObject
-    from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
     # we need this to avoid seg fault
     np.import_array()

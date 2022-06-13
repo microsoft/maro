@@ -15,10 +15,11 @@ from .maro_events import MaroEvents
 
 class EventRecorder:
     """Recorder used to record events to csv file."""
+
     def __init__(self, path: str) -> None:
-        self._fp = open(path, "wt+", newline='')
+        self._fp = open(path, "wt+", newline="")
         self._writer = csv.writer(self._fp)
-        self._writer.writerow(['episode', 'tick', 'event_type', 'payload'])
+        self._writer.writerow(["episode", "tick", "event_type", "payload"])
 
     def record(self, o: dict) -> None:
         # yaml.dump(o, self._fp, sort_keys=False)
@@ -234,10 +235,13 @@ class EventBuffer:
                     self._finished_events.append(next_events)
 
                 if self._record_events:
-                    self._recorder.record({
-                        "episode": self._recorder_ep,
-                        "tick": next_events.tick,
-                        "type": str(next_events.event_type),
-                        "payload": next_events.payload})
+                    self._recorder.record(
+                        {
+                            "episode": self._recorder_ep,
+                            "tick": next_events.tick,
+                            "type": str(next_events.event_type),
+                            "payload": next_events.payload,
+                        },
+                    )
 
         return []

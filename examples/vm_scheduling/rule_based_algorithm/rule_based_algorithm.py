@@ -9,6 +9,5 @@ class RuleBasedAlgorithm(object):
 
     @abc.abstractmethod
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
-        """This method will determine allocate which PM to the current VM.
-        """
-        pass
+        """This method will determine allocate which PM to the current VM."""
+        raise NotImplementedError

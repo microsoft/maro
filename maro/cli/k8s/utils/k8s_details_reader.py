@@ -24,6 +24,6 @@ class K8sDetailsReader:
         k8s_client = client.CoreV1Api()
         config_map = k8s_client.read_namespaced_config_map(
             name=f"schedule.details-{schedule_name}",
-            namespace="default"
+            namespace="default",
         )
         return json.loads(config_map.data["encoded_data"])

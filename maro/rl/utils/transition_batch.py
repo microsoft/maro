@@ -98,8 +98,15 @@ class MultiTransitionBatch:
         returns = None if self.returns is None else [r[i::k] for r in self.returns]
         advantages = None if self.advantages is None else [advantage[i::k] for advantage in self.advantages]
         return MultiTransitionBatch(
-            states, actions, rewards, next_states, agent_states,
-            next_agent_states, terminals, returns, advantages,
+            states,
+            actions,
+            rewards,
+            next_states,
+            agent_states,
+            next_agent_states,
+            terminals,
+            returns,
+            advantages,
         )
 
     def split(self, k: int) -> List[MultiTransitionBatch]:
@@ -115,7 +122,9 @@ def merge_transition_batches(batch_list: List[TransitionBatch]) -> TransitionBat
         terminals=np.concatenate([batch.terminals for batch in batch_list]),
         returns=np.concatenate([batch.returns for batch in batch_list]),
         advantages=np.concatenate([batch.advantages for batch in batch_list]),
-        old_logps=None if batch_list[0].old_logps is None else np.concatenate(
-            [batch.old_logps for batch in batch_list]
+        old_logps=None
+        if batch_list[0].old_logps is None
+        else np.concatenate(
+            [batch.old_logps for batch in batch_list],
         ),
     )

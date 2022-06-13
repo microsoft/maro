@@ -2,20 +2,19 @@
 # Licensed under the MIT license.
 
 import os
-import math
 import unittest
-import pandas as pd
-import numpy as np
 
-from math import isnan
+import numpy as np
+import pandas as pd
+from tests.utils import backends_to_test
 
 from maro.backends.backend import AttributeType
-from maro.backends.frame import (FrameBase, FrameNode, NodeAttribute, NodeBase,
-                                 node)
+from maro.backends.frame import FrameBase, FrameNode, NodeAttribute, NodeBase, node
 from maro.utils.exception.backends_exception import (
-    BackendsArrayAttributeAccessException, BackendsGetItemInvalidException,
-    BackendsSetItemInvalidException)
-from tests.utils import backends_to_test
+    BackendsArrayAttributeAccessException,
+    BackendsGetItemInvalidException,
+    BackendsSetItemInvalidException,
+)
 
 STATIC_NODE_NUM = 5
 DYNAMIC_NODE_NUM = 10
@@ -35,14 +34,16 @@ class DynamicNode(NodeBase):
 
 
 def build_frame(enable_snapshot: bool = False, total_snapshot: int = 10, backend_name="static"):
-
     class MyFrame(FrameBase):
         static_nodes = FrameNode(StaticNode, STATIC_NODE_NUM)
         dynamic_nodes = FrameNode(DynamicNode, DYNAMIC_NODE_NUM)
 
         def __init__(self):
-            super().__init__(enable_snapshot=enable_snapshot,
-                             total_snapshot=total_snapshot, backend_name=backend_name)
+            super().__init__(
+                enable_snapshot=enable_snapshot,
+                total_snapshot=total_snapshot,
+                backend_name=backend_name,
+            )
 
     return MyFrame()
 
@@ -53,10 +54,20 @@ class TestFrame(unittest.TestCase):
         for backend_name in backends_to_test:
             frame = build_frame(backend_name=backend_name)
 
-            self.assertEqual(STATIC_NODE_NUM, len(
-                frame.static_nodes), backend_name)
-            self.assertEqual(DYNAMIC_NODE_NUM, len(
-                frame.dynamic_nodes), backend_name)
+            self.assertEqual(
+                STATIC_NODE_NUM,
+                len(
+                    frame.static_nodes,
+                ),
+                backend_name,
+            )
+            self.assertEqual(
+                DYNAMIC_NODE_NUM,
+                len(
+                    frame.dynamic_nodes,
+                ),
+                backend_name,
+            )
 
     def test_node_accessing(self):
         """Test node accessing correct"""
@@ -72,9 +83,16 @@ class TestFrame(unittest.TestCase):
             dynamic_node.b1 = 12.34
 
             self.assertEqual(
-                10, static_node.a2, msg="a2 attribute should be 10 for 1st static node")
+                10,
+                static_node.a2,
+                msg="a2 attribute should be 10 for 1st static node",
+            )
             self.assertAlmostEqual(
-                12.34, dynamic_node.b1, 2, msg="b1 attribute should be 12.34 for 1st dynamic node")
+                12.34,
+                dynamic_node.b1,
+                2,
+                msg="b1 attribute should be 12.34 for 1st dynamic node",
+            )
 
             # check if values correct for multiple nodes
             for node in frame.static_nodes:
@@ -82,32 +100,56 @@ class TestFrame(unittest.TestCase):
 
             # check if the value correct
             for node in frame.static_nodes:
-                self.assertEqual(node.index, node.a2,
-                                 msg=f"static node.a2 should be {node.index}")
+                self.assertEqual(
+                    node.index,
+                    node.a2,
+                    msg=f"static node.a2 should be {node.index}",
+                )
 
             # check slice accessing
             static_node.a1[1] = 12
             static_node.a1[0] = 20
 
-            self.assertListEqual([20, 12], list(
-                static_node.a1[:]), msg="static node's a1 should be [20, 12]")
+            self.assertListEqual(
+                [20, 12],
+                list(
+                    static_node.a1[:],
+                ),
+                msg="static node's a1 should be [20, 12]",
+            )
             self.assertEqual(
-                20, static_node.a1[0], msg="1st slot of a1 should be 20")
+                20,
+                static_node.a1[0],
+                msg="1st slot of a1 should be 20",
+            )
             self.assertEqual(
-                12, static_node.a1[1], msg="2nd slot of a1 should be 12")
+                12,
+                static_node.a1[1],
+                msg="2nd slot of a1 should be 12",
+            )
 
             # set again with another way
             static_node.a1[(1, 0)] = (22, 11)
 
-            self.assertListEqual([11, 22], list(
-                static_node.a1[:]), msg="static node a1 should be [11, 22]")
+            self.assertListEqual(
+                [11, 22],
+                list(
+                    static_node.a1[:],
+                ),
+                msg="static node a1 should be [11, 22]",
+            )
 
             # another way
             # NOTE: additional value will be ignored
             static_node.a1[:] = (1, 2, 3)
 
-            self.assertListEqual([1, 2], list(
-                static_node.a1[:]), msg="static node a1 should be [1, 2")
+            self.assertListEqual(
+                [1, 2],
+                list(
+                    static_node.a1[:],
+                ),
+                msg="static node a1 should be [1, 2",
+            )
 
     def test_invalid_node_accessing(self):
         for backend_name in backends_to_test:
@@ -117,7 +159,7 @@ class TestFrame(unittest.TestCase):
 
             # get attribute value with not supported parameter
             with self.assertRaises(BackendsGetItemInvalidException) as ctx:
-                a = static_node.a1["a"]
+                static_node.a1["a"]
 
             with self.assertRaises(BackendsSetItemInvalidException) as ctx:
                 static_node.a1["a"] = 1
@@ -148,23 +190,32 @@ class TestFrame(unittest.TestCase):
             self.assertTrue("b2" in node_info["dynamic"]["attributes"])
 
             # check slot number
-            self.assertEqual(2, node_info["static"]
-                             ["attributes"]["a1"]["slots"])
-            self.assertEqual(1, node_info["static"]
-                             ["attributes"]["a2"]["slots"])
+            self.assertEqual(
+                2,
+                node_info["static"]["attributes"]["a1"]["slots"],
+            )
+            self.assertEqual(
+                1,
+                node_info["static"]["attributes"]["a2"]["slots"],
+            )
 
     def test_enable_snapshots(self):
         for backend_name in backends_to_test:
             """Test if snapshot enabled"""
-            frame = build_frame(enable_snapshot=True,
-                                backend_name=backend_name)
+            frame = build_frame(
+                enable_snapshot=True,
+                backend_name=backend_name,
+            )
 
             # snapshots should not be None
             self.assertIsNotNone(frame)
 
             # length should be 0 before taking snapshot
-            self.assertEqual(0, len(frame.snapshots),
-                             msg="snapshot length should be 0")
+            self.assertEqual(
+                0,
+                len(frame.snapshots),
+                msg="snapshot length should be 0",
+            )
 
             # another frame without snapshots enabled
             frame1 = build_frame(backend_name=backend_name)
@@ -179,19 +230,32 @@ class TestFrame(unittest.TestCase):
             frame.static_nodes[0].a1[:] = (1, 234)
 
             # before reset
-            self.assertListEqual([1, 234], list(
-                frame.static_nodes[0].a1[:]), msg="static node's a1 should be [1, 234] before reset")
+            self.assertListEqual(
+                [1, 234],
+                list(
+                    frame.static_nodes[0].a1[:],
+                ),
+                msg="static node's a1 should be [1, 234] before reset",
+            )
 
             frame.reset()
 
             # after reset
-            self.assertListEqual([0, 0], list(
-                frame.static_nodes[0].a1[:]), msg="static node's a1 should be [0, 0] after reset")
+            self.assertListEqual(
+                [0, 0],
+                list(
+                    frame.static_nodes[0].a1[:],
+                ),
+                msg="static node's a1 should be [0, 0] after reset",
+            )
 
     def test_append_nodes(self):
         # NOTE: this case only support raw backend
-        frame = build_frame(enable_snapshot=True,
-                            total_snapshot=10, backend_name="dynamic")
+        frame = build_frame(
+            enable_snapshot=True,
+            total_snapshot=10,
+            backend_name="dynamic",
+        )
 
         # set value for last static node
         last_static_node = frame.static_nodes[-1]
@@ -246,7 +310,7 @@ class TestFrame(unittest.TestCase):
         self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states)[0:5])
 
         # 2 padding (NAN) in the end
-        self.assertTrue((states[-2:].astype(np.int)==0).all())
+        self.assertTrue((states[-2:].astype(np.int) == 0).all())
 
         states = static_snapshot[1::"a3"]
 
@@ -258,15 +322,19 @@ class TestFrame(unittest.TestCase):
 
         # no padding value
         self.assertListEqual(
-            [0.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0], list(states))
+            [0.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0],
+            list(states),
+        )
 
         # with specify node indices, will not padding to max node number
         states = static_snapshot[0:[0, 1, 2, 3, 4]:"a3"]
 
         self.assertTupleEqual(states.shape, (1, 5, 1, 1))
 
-        self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0],
-                             list(states.flatten()[0:5]))
+        self.assertListEqual(
+            [0.0, 0.0, 0.0, 0.0, 9.0],
+            list(states.flatten()[0:5]),
+        )
 
         frame.snapshots.reset()
         frame.reset()
@@ -275,8 +343,11 @@ class TestFrame(unittest.TestCase):
         self.assertEqual(STATIC_NODE_NUM, len(frame.static_nodes))
 
     def test_delete_node(self):
-        frame = build_frame(enable_snapshot=True,
-                            total_snapshot=10, backend_name="dynamic")
+        frame = build_frame(
+            enable_snapshot=True,
+            total_snapshot=10,
+            backend_name="dynamic",
+        )
 
         # set value for last static node
         last_static_node = frame.static_nodes[-1]
@@ -307,7 +378,7 @@ class TestFrame(unittest.TestCase):
 
         # attribute getter failed too
         with self.assertRaises(Exception) as ctx:
-            a = second_static_node.a3
+            second_static_node.a3
 
         static_snapshots = frame.snapshots["static"]
 
@@ -331,8 +402,10 @@ class TestFrame(unittest.TestCase):
         # 2nd is padding value
         self.assertEqual(0, int(states[1]))
 
-        self.assertListEqual([0.0, 0.0, 0.0, 123.0],
-                             list(states[[0, 2, 3, 4]]))
+        self.assertListEqual(
+            [0.0, 0.0, 0.0, 123.0],
+            list(states[[0, 2, 3, 4]]),
+        )
 
         # then we resume the deleted node, this mark it as not deleted, but values will be reset to 0
         frame.resume_node(second_static_node)
@@ -376,7 +449,7 @@ class TestFrame(unittest.TestCase):
                 super().__init__(enable_snapshot=True, total_snapshot=10, backend_name="dynamic")
 
         with self.assertRaises(RuntimeError) as ctx:
-            frame = TestFrame()
+            TestFrame()
 
     def test_query_const_attribute_without_taking_snapshot(self):
         @node("test")
@@ -498,7 +571,7 @@ class TestFrame(unittest.TestCase):
         # first tick a1 has no value, so states will be None
         self.assertIsNone(states)
 
-        states = frame.snapshots['test'][1:0:"a1"]
+        states = frame.snapshots["test"][1:0:"a1"]
         states = states.flatten()
 
         # a1 has 3 value at tick 1
@@ -547,7 +620,7 @@ class TestFrame(unittest.TestCase):
 
         n1a1 = frame.test_nodes[0].a1
 
-        max_size = 200*10000
+        max_size = 200 * 10000
 
         for i in range(max_size):
             n1a1.append(1)
@@ -572,7 +645,7 @@ class TestFrame(unittest.TestCase):
 
         # default list attribute's size is 0, so index accessing will out of range
         with self.assertRaises(RuntimeError) as ctx:
-            a = n1a1[0]
+            n1a1[0]
 
         with self.assertRaises(RuntimeError) as ctx:
             n1a1.remove(0)
@@ -585,7 +658,7 @@ class TestFrame(unittest.TestCase):
         # there should be 2 output files
         self.assertTrue(os.path.exists("node_static.csv"))
         self.assertTrue(os.path.exists("node_dynamic.csv"))
-        list_parser = lambda c: c if not c.startswith("[") else [float(n) for n in c.strip('[] ,').split(",")]
+        list_parser = lambda c: c if not c.startswith("[") else [float(n) for n in c.strip("[] ,").split(",")]
 
         # a1 is a list
         static_df = pd.read_csv("node_static.csv", converters={"a1": list_parser})
@@ -637,13 +710,13 @@ class TestFrame(unittest.TestCase):
             # initial value
             node1.a1[:] = [i for i in range(batch_number)]
 
-            results = node1.a1.where(lambda x : x < 10)
+            results = node1.a1.where(lambda x: x < 10)
 
             # value of index 0...9 match < 10 filter
             self.assertListEqual([i for i in range(10)], results)
 
             # no matched one
-            results = node1.a1.where(lambda x : x > batch_number)
+            results = node1.a1.where(lambda x: x > batch_number)
 
             self.assertEqual(0, len(results))
 
@@ -662,7 +735,7 @@ class TestFrame(unittest.TestCase):
 
             results = node1.a1 <= 10
 
-            self.assertListEqual([i for i in range(10+1)], results)
+            self.assertListEqual([i for i in range(10 + 1)], results)
 
             results = node1.a1 >= 99
 

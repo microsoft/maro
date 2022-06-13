@@ -3,7 +3,6 @@
 
 from maro.simulator import Env
 
-
 env_conf = {
     "scenario": "vm_scheduling",
     "topology": "azure.2019.10k",

@@ -11,6 +11,7 @@ URL_PREFIX = "/v1/visible"
 
 # Api functions.
 
+
 @blueprint.route(f"{URL_PREFIX}/static", methods=["GET"])
 @check_jwt_validity
 def get_static_resource():
@@ -34,6 +35,6 @@ def get_dynamic_resource(previous_length: str):
     """
 
     name_to_node_usage = redis_controller.get_resource_usage(
-        previous_length=int(previous_length)
+        previous_length=int(previous_length),
     )
     return name_to_node_usage

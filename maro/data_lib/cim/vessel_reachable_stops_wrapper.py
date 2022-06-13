@@ -24,6 +24,6 @@ class VesselReachableStopsWrapper:
         vessel_idx, route_idx, next_loc_idx = extract_key_of_three_ints(key)
 
         route_length = len(self._routes[route_idx])
-        stops = self._stops[vessel_idx][next_loc_idx + 1: next_loc_idx + 1 + route_length]
+        stops = self._stops[vessel_idx][next_loc_idx + 1 : next_loc_idx + 1 + route_length]
 
         return [(stop.port_idx, stop.arrival_tick) for stop in stops]

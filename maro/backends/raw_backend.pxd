@@ -5,14 +5,29 @@
 #distutils: language = c++
 
 cimport cython
-
 from cpython cimport bool
 from libcpp cimport bool as cppbool
 from libcpp.string cimport string
 
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, NODE_INDEX, SLOT_INDEX,
-    ATTR_CHAR, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE, QUERY_FLOAT, ATTR_TYPE, NODE_TYPE)
-
+from maro.backends.backend cimport (
+    ATTR_CHAR,
+    ATTR_DOUBLE,
+    ATTR_FLOAT,
+    ATTR_INT,
+    ATTR_LONG,
+    ATTR_SHORT,
+    ATTR_TYPE,
+    INT,
+    NODE_INDEX,
+    NODE_TYPE,
+    QUERY_FLOAT,
+    SLOT_INDEX,
+    UINT,
+    ULONG,
+    USHORT,
+    BackendAbc,
+    SnapshotListAbc,
+)
 
 
 cdef extern from "raw/common.h" namespace "maro::backends::raw":

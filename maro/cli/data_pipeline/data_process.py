@@ -16,7 +16,7 @@ scenario_map["vm_scheduling"] = VmSchedulingProcess
 def generate(scenario: str, topology: str = "", forced: bool = False, **kwargs):
     logger.info_green(
         f"Generating data files for scenario {scenario} topology {topology}"
-        f" {'forced redownload.' if forced else ', not forced redownload.'}"
+        f" {'forced redownload.' if forced else ', not forced redownload.'}",
     )
     if scenario in scenario_map:
         process = scenario_map[scenario]()

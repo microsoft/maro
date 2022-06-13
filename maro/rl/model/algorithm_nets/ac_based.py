@@ -21,7 +21,6 @@ class DiscreteACBasedNet(DiscretePolicyNet, metaclass=ABCMeta):
     - get_state(self) -> dict:
     - set_state(self, net_state: dict) -> None:
     """
-    pass
 
 
 class ContinuousACBasedNet(ContinuousPolicyNet, metaclass=ABCMeta):

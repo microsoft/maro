@@ -24,7 +24,7 @@ def get_job_queue():
     killed_job_queue = redis_controller.get_killed_job_ticket()
     return {
         "pending_jobs": pending_job_queue,
-        "killed_jobs": killed_job_queue
+        "killed_jobs": killed_job_queue,
     }
 
 
@@ -66,10 +66,10 @@ def create_job(**kwargs):
     job_details = kwargs["json_dict"]
     redis_controller.set_job_details(
         job_name=job_details["name"],
-        job_details=job_details
+        job_details=job_details,
     )
     redis_controller.push_pending_job_ticket(
-        job_name=job_details["name"]
+        job_name=job_details["name"],
     )
     return {}
 
@@ -118,6 +118,6 @@ def clean_jobs():
         node_hostname = node_details["hostname"]
         for container_name in node_details["containers"]:
             requests.delete(
-                url=f"http://{node_hostname}:{node_details['api_server']['port']}/containers/{container_name}"
+                url=f"http://{node_hostname}:{node_details['api_server']['port']}/containers/{container_name}",
             )
     return {}

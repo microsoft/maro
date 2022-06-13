@@ -19,10 +19,10 @@ def escape(value: str, escape_quotes=False):
     """
     # Escape backslashes first since the other characters are escaped with
     # backslashes
-    new_value = value.replace('\\', '\\\\')
-    new_value = new_value.replace(' ', '\\ ')
-    new_value = new_value.replace('=', '\\=')
-    new_value = new_value.replace(',', '\\,')
+    new_value = value.replace("\\", "\\\\")
+    new_value = new_value.replace(" ", "\\ ")
+    new_value = new_value.replace("=", "\\=")
+    new_value = new_value.replace(",", "\\,")
 
     if escape_quotes:
         new_value = new_value.replace('"', '\\"')
@@ -39,15 +39,17 @@ def is_int_type(v_type: type):
     Returns:
         bool: True if an int type.
     """
-    return v_type is int        \
-        or v_type is np.int64   \
-        or v_type is np.int32   \
-        or v_type is np.int16   \
-        or v_type is np.int8    \
-        or v_type is np.uint8   \
-        or v_type is np.uint16  \
-        or v_type is np.uint32  \
+    return (
+        v_type is int
+        or v_type is np.int64
+        or v_type is np.int32
+        or v_type is np.int16
+        or v_type is np.int8
+        or v_type is np.uint8
+        or v_type is np.uint16
+        or v_type is np.uint32
         or v_type is np.uint64
+    )
 
 
 def is_float_type(v_type: type):
@@ -59,14 +61,11 @@ def is_float_type(v_type: type):
     Returns:
         bool: True if an float type.
     """
-    return v_type is float      \
-        or v_type is np.float   \
-        or v_type is np.float32 \
-        or v_type is np.float64
+    return v_type is float or v_type is np.float or v_type is np.float32 or v_type is np.float64
 
 
 def parse_value(value: object):
-    """"Parse value into string to fit influxdb line protocol.
+    """ "Parse value into string to fit influxdb line protocol.
 
     Args:
         value (object): Value to parse.
@@ -91,7 +90,7 @@ def parse_value(value: object):
     if v_type is np.ndarray:
         value = json.dumps(value.tolist())
 
-    return "\"%s\"" % escape(value, True)
+    return '"%s"' % escape(value, True)
 
 
 # modified version from: https://pypi.org/project/influx-line-protocol/
@@ -101,6 +100,7 @@ class Metric(object):
     Args:
         measurement (str): Name of the measurement of current message.
     """
+
     def __init__(self, measurement: str):
         self.measurement = measurement
         self.values = {}
@@ -138,8 +138,8 @@ class Metric(object):
 
     def __str__(self):
         # Escape measurement manually.
-        escaped_measurement = self.measurement.replace(',', '\\,')
-        escaped_measurement = escaped_measurement.replace(' ', '\\ ')
+        escaped_measurement = self.measurement.replace(",", "\\,")
+        escaped_measurement = escaped_measurement.replace(" ", "\\ ")
         protocol = escaped_measurement
 
         # Create tag strings.
@@ -170,4 +170,4 @@ class Metric(object):
         return protocol
 
 
-__all__ = ['Metric']
+__all__ = ["Metric"]

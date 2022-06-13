@@ -1,9 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 import os
 import time
 from itertools import chain
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import torch
 import zmq
@@ -95,8 +96,7 @@ class ParallelTaskController(object):
         return results
 
     def exit(self) -> None:
-        """Signal the remote workers to exit and terminate the connections.
-        """
+        """Signal the remote workers to exit and terminate the connections."""
         for worker_id in self._workers:
             self._task_endpoint.send_multipart([worker_id, b"EXIT"])
         self._task_endpoint.close()
@@ -168,7 +168,8 @@ class BatchEnvSampler:
             "index": self._ep,
         }
         results = self._controller.collect(
-            req, self._sampling_parallelism,
+            req,
+            self._sampling_parallelism,
             min_replies=self._min_env_samples,
             grace_factor=self._grace_factor,
         )

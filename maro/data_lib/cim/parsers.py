@@ -45,8 +45,8 @@ def parse_vessels(conf: dict) -> (Dict[str, int], List[VesselSetting]):
                 parking["duration"],
                 parking["noise"],
                 # default no empty
-                vessel_node.get("empty", 0)
-            )
+                vessel_node.get("empty", 0),
+            ),
         )
 
         index += 1
@@ -178,7 +178,8 @@ def parse_ports(conf: dict, total_container: int) -> (Dict[str, int], List[Synth
                 dist = NoisedItem(
                     ports_mapping[target_port_name],
                     target_conf["proportion"],
-                    target_conf["noise"])
+                    target_conf["noise"],
+                )
 
                 targets_dist.append(dist)
 
@@ -190,19 +191,19 @@ def parse_ports(conf: dict, total_container: int) -> (Dict[str, int], List[Synth
             NoisedItem(
                 port_idx,
                 empty_return_conf["buffer_ticks"],
-                empty_return_conf["noise"]
+                empty_return_conf["noise"],
             ),
             NoisedItem(
                 port_idx,
                 full_return_conf["buffer_ticks"],
-                full_return_conf["noise"]
+                full_return_conf["noise"],
             ),
             NoisedItem(
                 port_idx,
                 source_dist_conf["proportion"],
-                source_dist_conf["noise"]
+                source_dist_conf["noise"],
             ),
-            targets_dist
+            targets_dist,
         )
 
         port_settings.append(port_setting)

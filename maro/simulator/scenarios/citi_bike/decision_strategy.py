@@ -50,7 +50,6 @@ class DistanceFilter:
 
     def reset(self):
         """Reset internal states."""
-        pass
 
 
 class RequirementsFilter:
@@ -76,14 +75,16 @@ class RequirementsFilter:
         """
         output_num = min(self._output_num, len(source))
 
-        neighbor_scope = sorted(source.items(),
-                                key=lambda kv: (kv[1], kv[0]), reverse=True)
+        neighbor_scope = sorted(
+            source.items(),
+            key=lambda kv: (kv[1], kv[0]),
+            reverse=True,
+        )
 
         return {neighbor_scope[i][0]: neighbor_scope[i][1] for i in range(output_num)}
 
     def reset(self):
         """Reset internal states."""
-        pass
 
 
 class TripsWindowFilter:
@@ -153,7 +154,7 @@ class TripsWindowFilter:
 
         result = {}
 
-        for neighbor_idx, _ in sorted_neighbors[0: output_num]:
+        for neighbor_idx, _ in sorted_neighbors[0:output_num]:
             result[neighbor_idx] = source[neighbor_idx]
 
         return result
@@ -176,15 +177,15 @@ class BikeDecisionStrategy:
         self._filter_cls_mapping = {
             "distance": {
                 "cls": DistanceFilter,
-                "options": [self]
+                "options": [self],
             },
             "requirements": {
-                "cls": RequirementsFilter
+                "cls": RequirementsFilter,
             },
             "trip_window": {
                 "cls": TripsWindowFilter,
-                "options": [snapshots]
-            }
+                "options": [snapshots],
+            },
         }
 
         self._filters = []
@@ -325,7 +326,10 @@ class BikeDecisionStrategy:
             neighbor.bikes = neighbor_bikes + accept_number
 
             cost = self._calculate_extra_cost(
-                accept_number, distance, order_index)
+                accept_number,
+                distance,
+                order_index,
+            )
 
             total_cost += cost
 

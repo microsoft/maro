@@ -20,6 +20,7 @@ URL_PREFIX = "/v1/nodes"
 
 # Api functions.
 
+
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 @check_jwt_validity
 def list_nodes():
@@ -65,14 +66,14 @@ def create_node(**kwargs):
     node_details["image_files"] = {}
     node_details["containers"] = {}
     node_details["state"] = {
-        "status": NodeStatus.PENDING
+        "status": NodeStatus.PENDING,
     }
 
     node_name = node_details["name"]
     with redis_controller.lock(f"lock:name_to_node_details:{node_name}"):
         redis_controller.set_node_details(
             node_name=node_name,
-            node_details=node_details
+            node_details=node_details,
         )
     return node_details
 
@@ -121,7 +122,7 @@ def start_node(node_name: str):
             node_username=node_details["username"],
             node_hostname=node_details["hostname"],
             node_ssh_port=node_details["ssh"]["port"],
-            cluster_name=local_cluster_details["name"]
+            cluster_name=local_cluster_details["name"],
         )
     except ConnectionFailed:
         abort(400)
@@ -162,7 +163,7 @@ def stop_node(node_name: str):
             node_username=node_details["username"],
             node_hostname=node_details["hostname"],
             node_ssh_port=node_details["ssh"]["port"],
-            cluster_name=local_cluster_details["name"]
+            cluster_name=local_cluster_details["name"],
         )
     except ConnectionFailed:
         abort(400)

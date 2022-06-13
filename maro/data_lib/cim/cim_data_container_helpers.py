@@ -15,7 +15,6 @@ from .utils import DATA_CONTAINER_INIT_SEED_LIMIT, ROUTE_INIT_RAND_KEY
 
 
 class CimDataContainerWrapper:
-
     def __init__(self, config_path: str, max_tick: int, topology: str):
         self._data_cntr: Optional[CimBaseDataContainer] = None
         self._max_tick = max_tick
@@ -24,7 +23,10 @@ class CimDataContainerWrapper:
 
         self._topology = topology
         self._output_folder = os.path.join(
-            StaticParameter.data_root, "cim", urllib.parse.quote(self._topology), str(self._max_tick)
+            StaticParameter.data_root,
+            "cim",
+            urllib.parse.quote(self._topology),
+            str(self._max_tick),
         )
         self._meta_path = os.path.join(StaticParameter.data_root, "cim", "meta", "cim.stops.meta.yml")
 
@@ -40,8 +42,10 @@ class CimDataContainerWrapper:
         config_path = os.path.join(self._config_path, "config.yml")
         if os.path.exists(config_path):
             self._data_cntr = data_from_generator(
-                config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick,
-                topology_seed=topology_seed
+                config_path=config_path,
+                max_tick=self._max_tick,
+                start_tick=self._start_tick,
+                topology_seed=topology_seed,
             )
         elif os.path.exists(os.path.join(self._config_path, "order_proportion.csv")):
             self._data_cntr = data_from_dumps(dumps_folder=self._config_path)
@@ -50,8 +54,7 @@ class CimDataContainerWrapper:
             self._data_cntr = data_from_files(data_folder=self._config_path)
 
     def reset(self, keep_seed: bool) -> None:
-        """Reset data container internal state
-        """
+        """Reset data container internal state"""
         if not keep_seed:
             self._random_seed = random[ROUTE_INIT_RAND_KEY].randint(0, DATA_CONTAINER_INIT_SEED_LIMIT - 1)
             self._re_init_data_cntr_flag = True
@@ -89,8 +92,12 @@ def data_from_dumps(dumps_folder: str) -> CimSyntheticDataContainer:
     return CimSyntheticDataContainer(data_collection)
 
 
-def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0,
-                        topology_seed: int = None) -> CimSyntheticDataContainer:
+def data_from_generator(
+    config_path: str,
+    max_tick: int,
+    start_tick: int = 0,
+    topology_seed: int = None,
+) -> CimSyntheticDataContainer:
     """Collect data from data generator with configurations.
 
     Args:
@@ -104,7 +111,11 @@ def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0,
         CimSyntheticDataContainer: Data container used to provide cim data related interfaces.
     """
     data_collection = gen_cim_data(
-        config_path, start_tick=start_tick, max_tick=max_tick, topology_seed=topology_seed)
+        config_path,
+        start_tick=start_tick,
+        max_tick=max_tick,
+        topology_seed=topology_seed,
+    )
 
     return CimSyntheticDataContainer(data_collection)
 
@@ -119,4 +130,4 @@ def data_from_files(data_folder: str) -> CimRealDataContainer:
     return CimRealDataContainer(data_collection)
 
 
-__all__ = ['data_from_dumps', 'data_from_generator', 'data_from_files']
+__all__ = ["data_from_dumps", "data_from_generator", "data_from_files"]

@@ -6,7 +6,12 @@ from .continuous_rl_policy import ContinuousRLPolicy
 from .discrete_rl_policy import DiscretePolicyGradient, DiscreteRLPolicy, ValueBasedPolicy
 
 __all__ = [
-    "AbsPolicy", "DummyPolicy", "RLPolicy", "RuleBasedPolicy",
+    "AbsPolicy",
+    "DummyPolicy",
+    "RLPolicy",
+    "RuleBasedPolicy",
     "ContinuousRLPolicy",
-    "DiscretePolicyGradient", "DiscreteRLPolicy", "ValueBasedPolicy",
+    "DiscretePolicyGradient",
+    "DiscreteRLPolicy",
+    "ValueBasedPolicy",
 ]

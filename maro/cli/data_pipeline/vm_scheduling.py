@@ -33,7 +33,7 @@ class VmSchedulingPipeline(DataPipeline):
 
     _meta_file_name = "vmtable.yml"
     # VM category includes three types, converting to 0, 1, 2.
-    _category_map = {'Delay-insensitive': 0, 'Interactive': 1, 'Unknown': 2}
+    _category_map = {"Delay-insensitive": 0, "Interactive": 1, "Unknown": 2}
 
     def __init__(self, topology: str, source: str, sample: int, seed: int, is_temp: bool = False):
         super().__init__(scenario="vm_scheduling", topology=topology, source=source, is_temp=is_temp)
@@ -56,8 +56,8 @@ class VmSchedulingPipeline(DataPipeline):
             aria2p.Client(
                 host="http://localhost",
                 port=6800,
-                secret=""
-            )
+                secret="",
+            ),
         )
         self._download_file_list = []
 
@@ -97,14 +97,14 @@ class VmSchedulingPipeline(DataPipeline):
         with open(self._download_file, mode="r", encoding="utf-8") as urls:
             for remote_url in urls.read().splitlines():
                 # Get the file name.
-                file_name = remote_url.split('/')[-1]
+                file_name = remote_url.split("/")[-1]
                 # Two kinds of required files "vmtable" and "vm_cpu_readings-" start with vm.
                 if file_name.startswith("vmtable"):
                     if (not is_force) and os.path.exists(self._vm_table_file):
                         logger.info_green(f"{self._vm_table_file} already exists, skipping download.")
                     else:
                         logger.info_green(f"Downloading vmtable from {remote_url} to {self._vm_table_file}.")
-                        self.aria2.add_uris(uris=[remote_url], options={'dir': self._download_folder})
+                        self.aria2.add_uris(uris=[remote_url], options={"dir": self._download_folder})
 
                 elif file_name.startswith("vm_cpu_readings") and num_files > 0:
                     num_files -= 1
@@ -115,7 +115,7 @@ class VmSchedulingPipeline(DataPipeline):
                         logger.info_green(f"{cpu_readings_file} already exists, skipping download.")
                     else:
                         logger.info_green(f"Downloading cpu_readings from {remote_url} to {cpu_readings_file}.")
-                        self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
+                        self.aria2.add_uris(uris=[remote_url], options={"dir": f"{self._download_folder}"})
 
         self._check_all_download_completed()
 
@@ -149,7 +149,7 @@ class VmSchedulingPipeline(DataPipeline):
                 # Unzip gz file.
                 with gzip.open(original_file, mode="rb") as f_in:
                     logger.info_green(
-                        f"Unzip {original_file} to {raw_file}."
+                        f"Unzip {original_file} to {raw_file}.",
                     )
                     with open(raw_file, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out)
@@ -184,63 +184,80 @@ class VmSchedulingPipeline(DataPipeline):
         """Process vmtable file."""
 
         headers = [
-            'vmid', 'subscriptionid', 'deploymentid', 'vmcreated', 'vmdeleted', 'maxcpu', 'avgcpu', 'p95maxcpu',
-            'vmcategory', 'vmcorecountbucket', 'vmmemorybucket'
+            "vmid",
+            "subscriptionid",
+            "deploymentid",
+            "vmcreated",
+            "vmdeleted",
+            "maxcpu",
+            "avgcpu",
+            "p95maxcpu",
+            "vmcategory",
+            "vmcorecountbucket",
+            "vmmemorybucket",
         ]
 
         required_headers = [
-            'vmid', 'subscriptionid', 'deploymentid', 'vmcreated', 'vmdeleted', 'vmcategory',
-            'vmcorecountbucket', 'vmmemorybucket'
+            "vmid",
+            "subscriptionid",
+            "deploymentid",
+            "vmcreated",
+            "vmdeleted",
+            "vmcategory",
+            "vmcorecountbucket",
+            "vmmemorybucket",
         ]
 
         vm_table = pd.read_csv(raw_vm_table_file, header=None, index_col=False, names=headers)
         vm_table = vm_table.loc[:, required_headers]
         # Convert to tick by dividing by 300 (5 minutes).
-        vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
-        vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
+        vm_table["vmcreated"] = pd.to_numeric(vm_table["vmcreated"], errors="coerce", downcast="integer") // 300
+        vm_table["vmdeleted"] = pd.to_numeric(vm_table["vmdeleted"], errors="coerce", downcast="integer") // 300
         # The lifetime of the VM is deleted time - created time + 1 (tick).
-        vm_table['lifetime'] = vm_table['vmdeleted'] - vm_table['vmcreated'] + 1
+        vm_table["lifetime"] = vm_table["vmdeleted"] - vm_table["vmcreated"] + 1
 
-        vm_table['vmcategory'] = vm_table['vmcategory'].map(self._category_map)
+        vm_table["vmcategory"] = vm_table["vmcategory"].map(self._category_map)
 
         # Transform vmcorecount '>24' bucket to 32 and vmmemory '>64' to 128.
-        vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 32)
-        vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 128)
-        vm_table['vmcorecountbucket'] = pd.to_numeric(
-            vm_table['vmcorecountbucket'], errors="coerce", downcast="integer"
+        vm_table = vm_table.replace({"vmcorecountbucket": ">24"}, 32)
+        vm_table = vm_table.replace({"vmmemorybucket": ">64"}, 128)
+        vm_table["vmcorecountbucket"] = pd.to_numeric(
+            vm_table["vmcorecountbucket"],
+            errors="coerce",
+            downcast="integer",
         )
-        vm_table['vmmemorybucket'] = pd.to_numeric(vm_table['vmmemorybucket'], errors="coerce", downcast="integer")
+        vm_table["vmmemorybucket"] = pd.to_numeric(vm_table["vmmemorybucket"], errors="coerce", downcast="integer")
         vm_table.dropna(inplace=True)
 
-        vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
+        vm_table = vm_table.sort_values(by="vmcreated", ascending=True)
 
         # Generate ID map.
-        vm_id_map = self._generate_id_map(vm_table['vmid'].unique())
-        sub_id_map = self._generate_id_map(vm_table['subscriptionid'].unique())
-        deployment_id_map = self._generate_id_map(vm_table['deploymentid'].unique())
+        vm_id_map = self._generate_id_map(vm_table["vmid"].unique())
+        sub_id_map = self._generate_id_map(vm_table["subscriptionid"].unique())
+        deployment_id_map = self._generate_id_map(vm_table["deploymentid"].unique())
 
         id_maps = (vm_id_map, sub_id_map, deployment_id_map)
 
         # Mapping IDs.
-        vm_table['vmid'] = vm_table['vmid'].map(vm_id_map)
-        vm_table['subscriptionid'] = vm_table['subscriptionid'].map(sub_id_map)
-        vm_table['deploymentid'] = vm_table['deploymentid'].map(deployment_id_map)
+        vm_table["vmid"] = vm_table["vmid"].map(vm_id_map)
+        vm_table["subscriptionid"] = vm_table["subscriptionid"].map(sub_id_map)
+        vm_table["deploymentid"] = vm_table["deploymentid"].map(deployment_id_map)
 
         # Sampling the VM table.
         # 2695548 is the total number of vms in the original Azure public dataset.
         if self._sample < 2695548:
             vm_table = vm_table.sample(n=self._sample, random_state=self._seed)
-            vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
+            vm_table = vm_table.sort_values(by="vmcreated", ascending=True)
 
         return id_maps, vm_table
 
     def _convert_cpu_readings_id(self, old_data_path: str, new_data_path: str, vm_id_map: dict):
         """Convert vmid in each cpu readings file."""
-        with open(old_data_path, 'r') as f_in:
+        with open(old_data_path, "r") as f_in:
             csv_reader = reader(f_in)
-            with open(new_data_path, 'w') as f_out:
+            with open(new_data_path, "w") as f_out:
                 csv_writer = writer(f_out)
-                csv_writer.writerow(['timestamp', 'vmid', 'maxcpu'])
+                csv_writer.writerow(["timestamp", "vmid", "maxcpu"])
                 for row in csv_reader:
                     # [timestamp, vmid, mincpu, maxcpu, avgcpu]
                     if row[1] in vm_id_map:
@@ -248,12 +265,12 @@ class VmSchedulingPipeline(DataPipeline):
                         csv_writer.writerow(new_row)
 
     def _write_id_map_to_csv(self, id_maps):
-        file_name = ['vm_id_map', 'sub_id_map', 'deployment_id_map']
+        file_name = ["vm_id_map", "sub_id_map", "deployment_id_map"]
         for index in range(len(id_maps)):
             id_map = id_maps[index]
-            with open(os.path.join(self._raw_folder, file_name[index]) + '.csv', 'w') as f:
+            with open(os.path.join(self._raw_folder, file_name[index]) + ".csv", "w") as f:
                 csv_writer = writer(f)
-                csv_writer.writerow(['original_id', 'new_id'])
+                csv_writer.writerow(["original_id", "new_id"])
                 for key, value in id_map.items():
                     csv_writer.writerow([key, value])
 
@@ -288,7 +305,7 @@ class VmSchedulingPipeline(DataPipeline):
             self._convert_cpu_readings_id(
                 old_data_path=raw_cpu_readings_file,
                 new_data_path=clean_cpu_readings_file,
-                vm_id_map=filtered_vm_id_map
+                vm_id_map=filtered_vm_id_map,
             )
 
     def build(self):
@@ -313,7 +330,7 @@ class VmSchedulingTopology(DataTopology):
             source=source,
             sample=sample,
             seed=seed,
-            is_temp=is_temp
+            is_temp=is_temp,
         )
 
 
@@ -336,5 +353,5 @@ class VmSchedulingProcess:
                     source=self._conf["vm_data"][topology]["remote_url"],
                     sample=self._conf["vm_data"][topology]["sample"],
                     seed=self._conf["vm_data"][topology]["seed"],
-                    is_temp=is_temp
+                    is_temp=is_temp,
                 )
