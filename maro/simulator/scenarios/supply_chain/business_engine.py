@@ -168,7 +168,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Allocate consumer & manufacture actions
         for unit_id, consumer_actions in consumer_actions_by_unit.items():
             consumer_unit = self._consumer_dict[unit_id]
-            consumer_unit.process_actions(consumer_actions)
+            consumer_unit.process_actions(consumer_actions, tick)
         for unit_id, manufacture_actions in manufacture_actions_by_unit.items():
             assert len(manufacture_actions) == 1  # Manufacture unit should have at most one action
             manufacture_unit = self._manufacture_dict[unit_id]
@@ -180,7 +180,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Process distributions
         for distribution_unit in self._distribution_dict.values():
             distribution_unit.try_schedule_orders(tick)
-            distribution_unit.handle_arrival_payloads(tick)
+            distribution_unit.handle_arrival_orders(tick)
 
         # Do manufacturing
         for manufacture_unit in self._manufacture_dict.values():
@@ -196,16 +196,24 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "demand_mean": product.get_demand_mean(),
                         "demand_std": product.get_demand_std(),
                         "selling_price": product.get_max_sale_price(),
-                        "pending_order_daily":
+                        # The product quantity that will be received in a future time window.
+                        # The ones that not scheduled yet are not included here.
+                        "pending_order_daily": (
                             product.consumer.get_pending_order_daily(self._tick)
-                            if product.consumer is not None else None,
-                        "waiting_order_quantity":
-                            product.consumer.waiting_order_quantity if product.consumer is not None else None,
+                            if product.consumer is not None else None
+                        ),
+                        "order_statistics": (
+                            product.consumer.get_order_statistics(self._tick)
+                            if product.consumer is not None else None
+                        ),
                     } for product in self._product_units
                 },
                 "facilities": {
                     facility.id: {
+                        # The dict of current active ordered product quantity,
+                        # here active = pending scheduled + on the way (+ pending unload).
                         "in_transit_orders": facility.get_in_transit_orders(),
+                        # The dict of current ordered but not yet scheduled product quantity.
                         "pending_order":
                             defaultdict(int) if facility.distribution is None
                             else facility.distribution.pending_product_quantity,

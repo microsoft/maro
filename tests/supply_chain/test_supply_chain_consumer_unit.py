@@ -6,6 +6,7 @@ import numpy as np
 
 from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
+from maro.simulator.scenarios.supply_chain.order import Order
 
 from tests.supply_chain.common import build_env, SKU3_ID, FOOD_1_ID
 
@@ -150,11 +151,21 @@ class MyTestCase(unittest.TestCase):
 
         required_quantity = 1
         action = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, required_quantity, "train")
-
         env.step([action])
 
+        # Dummy order for consumer order received.
+        dummy_order = Order(
+            src_facility=supplier_3,
+            dest_facility=supplier_1,
+            sku_id=SKU3_ID,
+            quantity=required_quantity,
+            vehicle_type="train",
+            creation_tick=env.tick,
+            expected_finish_tick=None,
+        )
+        dummy_order.add_payload(payload=required_quantity)
         # simulate purchased product is arrived by vehicle unit
-        sku3_consumer_unit.on_order_reception(supplier_3.id, SKU3_ID, required_quantity, required_quantity)
+        sku3_consumer_unit.handle_order_received(order=dummy_order, received_quantity=required_quantity, tick=env.tick)
 
         # now all order is done
         self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id])
