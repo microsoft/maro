@@ -165,7 +165,7 @@ class MyTestCase(unittest.TestCase):
         )
         dummy_order.add_payload(payload=required_quantity)
         # simulate purchased product is arrived by vehicle unit
-        sku3_consumer_unit.on_order_received(order=dummy_order, received_quantity=required_quantity, tick=env.tick)
+        sku3_consumer_unit.handle_order_received(order=dummy_order, received_quantity=required_quantity, tick=env.tick)
 
         # now all order is done
         self.assertEqual(0, sku3_consumer_unit._open_orders[supplier_3.id])

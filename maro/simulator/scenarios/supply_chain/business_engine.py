@@ -198,10 +198,14 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "selling_price": product.get_max_sale_price(),
                         # The product quantity that will be received in a future time window.
                         # The ones that not scheduled yet are not included here.
-                        "pending_order_daily":
+                        "pending_order_daily": (
                             product.consumer.get_pending_order_daily(self._tick)
-                            if product.consumer is not None else None,
-                        "order_statistics": product.consumer.order_statistics if product.consumer is not None else None,
+                            if product.consumer is not None else None
+                        ),
+                        "order_statistics": (
+                            product.consumer.get_order_statistics(self._tick)
+                            if product.consumer is not None else None
+                        ),
                     } for product in self._product_units
                 },
                 "facilities": {

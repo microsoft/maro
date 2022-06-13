@@ -63,8 +63,7 @@ class ConsumerUnit(ExtendUnitBase):
         self._actual_order_leading_time: Counter = Counter()
         self._order_schedule_delay_time: Counter = Counter()
 
-    @property
-    def order_statistics(self) -> Dict[str, Union[int, Counter]]:
+    def get_order_statistics(self, tick: int) -> Dict[str, Union[int, Counter]]:
         return {
             # The accumulated order number that have been placed to distribution unit, = finished + expired + active.
             "total_order_num": self._total_order_num,
@@ -82,7 +81,7 @@ class ConsumerUnit(ExtendUnitBase):
             "active_ordered_quantity": self.in_transit_quantity,
             # The product quantity that will be received in a future time window.
             # The ones that not scheduled yet are not included here.
-            "expected_future_received": self.get_pending_order_daily(),
+            "expected_future_received": self.get_pending_order_daily(tick),
         }
 
     def get_pending_order_daily(self, tick: int) -> List[int]:
@@ -91,7 +90,7 @@ class ConsumerUnit(ExtendUnitBase):
         ]
         return ret
 
-    def on_order_successfully_placed(self, order: Order) -> None:
+    def handle_order_successfully_placed(self, order: Order) -> None:
         self._open_orders[order.src_facility.id] += order.required_quantity
 
         self.pending_scheduled_order_quantity += order.required_quantity
@@ -99,7 +98,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._total_order_num += 1
 
-    def on_order_scheduled(self, order: Order, tick: int) -> None:
+    def handle_order_scheduled(self, order: Order, tick: int) -> None:
         # TODO: here the actual arrival tick is used.
         self.order_quantity_on_the_way[order.arrival_tick] += order.payload
 
@@ -107,7 +106,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._order_schedule_delay_time[tick - order.creation_tick] += 1
 
-    def on_order_expired(self, order: Order) -> None:
+    def handle_order_expired(self, order: Order) -> None:
         self._open_orders[order.src_facility.id] -= order.required_quantity
 
         self.pending_scheduled_order_quantity -= order.required_quantity
@@ -115,7 +114,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         self._expired_order_num += 1
 
-    def on_order_received(self, order: Order, received_quantity: int, tick: int) -> None:
+    def handle_order_received(self, order: Order, received_quantity: int, tick: int) -> None:
         """Called after order product is received.
 
         Args:

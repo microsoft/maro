@@ -120,7 +120,7 @@ class DistributionUnit(UnitBase):
             self.total_order_num += 1
 
             consumer = order.dest_facility.products[order.sku_id].consumer
-            consumer.on_order_successfully_placed(order)
+            consumer.handle_order_successfully_placed(order)
 
             self.check_in_quantity_in_order[order.sku_id] += order.required_quantity
             sku = self.facility.skus[order.sku_id]
@@ -150,7 +150,7 @@ class DistributionUnit(UnitBase):
             unloaded_quantity = unloaded[order.sku_id]
 
             consumer = order.dest_facility.products[order.sku_id].consumer
-            consumer.on_order_received(order=order, received_quantity=unloaded_quantity, tick=tick)
+            consumer.handle_order_received(order=order, received_quantity=unloaded_quantity, tick=tick)
 
         if order.order_status == OrderStatus.FINISHED:
             self.finished_order_num += 1
@@ -181,7 +181,7 @@ class DistributionUnit(UnitBase):
         self.order_schedule_delay_time[tick - order.creation_tick] += 1
 
         consumer = order.dest_facility.products[order.sku_id].consumer
-        consumer.on_order_scheduled(order, tick)
+        consumer.handle_order_scheduled(order, tick)
 
         return vlt_info.unit_transportation_cost * order.required_quantity
 
@@ -209,7 +209,7 @@ class DistributionUnit(UnitBase):
                     self.expired_order_num += 1
                     # Update waiting order quantity info in Consumer.
                     consumer = order.dest_facility.products[order.sku_id].consumer
-                    consumer.on_order_expired(order)
+                    consumer.handle_order_expired(order)
                     continue
                 # Try to schedule order and load products.
                 if self._has_available_vehicle(vehicle_type) and self._try_load(order.sku_id, order.required_quantity):
