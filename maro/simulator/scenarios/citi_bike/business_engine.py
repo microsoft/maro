@@ -259,9 +259,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         self._trip_start_date: datetime.datetime = self._trip_reader.start_datetime
 
         # Since binary data hold UTC timestamp, convert it into our target timezone.
-        self._trip_start_date = self._trip_start_date.astimezone(
-            self._time_zone,
-        )
+        self._trip_start_date = self._trip_start_date.astimezone(self._time_zone)
 
         # Used to cache last date we updated the station additional features to avoid to much time updating.
         self._last_date: datetime.datetime = None
