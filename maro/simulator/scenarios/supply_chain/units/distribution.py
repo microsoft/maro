@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from typing import Counter, Deque, Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.order import Order, OrderStatus
-
 from maro.simulator.scenarios.supply_chain.units.storage import AddStrategy
 from maro.simulator.scenarios.supply_chain.units.unitbase import BaseUnitInfo, UnitBase
 
