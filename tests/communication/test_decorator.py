@@ -8,9 +8,9 @@ import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 
-from tests.communication.utils import get_random_port, proxy_generator
-
 from maro.communication import SessionMessage, dist
+
+from tests.communication.utils import get_random_port, proxy_generator
 
 
 def handler_function(that, proxy, message):

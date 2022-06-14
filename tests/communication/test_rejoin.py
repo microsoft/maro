@@ -8,9 +8,9 @@ import sys
 import time
 import unittest
 
-from tests.communication.utils import get_random_port
-
 from maro.communication import Proxy, SessionMessage, SessionType
+
+from tests.communication.utils import get_random_port
 
 PROXY_PARAMETER = {
     "group_name": "communication_unit_test",

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from flask import Blueprint
 
 from ..jwt_wrapper import check_jwt_validity

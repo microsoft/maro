@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 import collections
 import os
 from abc import ABCMeta, abstractmethod

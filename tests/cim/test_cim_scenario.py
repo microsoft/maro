@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import csv
 import os
 import pickle
@@ -13,8 +16,6 @@ from maro.simulator.utils import random
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
 os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "cim_testing"
 
-from tests.utils import backends_to_test, compare_dictionary
-
 from maro.data_lib.cim import dump_from_config
 from maro.data_lib.cim.entities import PortSetting, Stop, SyntheticPortSetting, VesselSetting
 from maro.data_lib.cim.vessel_stop_wrapper import VesselStopsWrapper
@@ -22,6 +23,8 @@ from maro.simulator import Env
 from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
+
+from tests.utils import backends_to_test, compare_dictionary
 
 TOPOLOGY_PATH_CONFIG = "tests/data/cim/case_data/config_folder"
 TOPOLOGY_PATH_DUMP = "tests/data/cim/case_data/dump_folder"

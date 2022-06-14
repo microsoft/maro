@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from itertools import count
 from typing import Iterable, Iterator, List, Union
 

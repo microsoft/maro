@@ -1,5 +1,5 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.s
+# Licensed under the MIT license.
 
 from datetime import datetime
 
