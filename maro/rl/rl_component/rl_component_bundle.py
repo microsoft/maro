@@ -4,7 +4,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
 
@@ -45,7 +45,7 @@ class RLComponentBundle:
         kept_policies = []
         for policy in self.policies:
             if policy.name not in self.agent2policy.values():
-                raise Warning(f"Policy {policy.name} if removed since it is not used by any agent.")
+                raise Warning(f"Policy {policy.name} is removed since it is not used by any agent.")
             else:
                 kept_policies.append(policy)
         self.policies = kept_policies
@@ -91,5 +91,10 @@ class RLComponentBundle:
         }
 
     @property
-    def trainable_policies(self) -> List[AbsPolicy]:  # TODO: Abs or RL?
-        return [policy for policy in self.policies if policy.name in self.policy_trainer_mapping]
+    def trainable_policies(self) -> List[RLPolicy]:
+        policies = []
+        for policy in self.policies:
+            if policy.name in self.policy_trainer_mapping:
+                assert isinstance(policy, RLPolicy)
+                policies.append(policy)
+        return policies
