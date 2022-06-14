@@ -1,14 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from examples.vm_scheduling.rl.config import algorithm, env_conf, num_features, num_pms, state_dim, test_env_conf
-from examples.vm_scheduling.rl.env_sampler import VMEnvSampler
-
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.simulator import Env
 
 from .algorithms.ac import get_ac, get_ac_policy
 from .algorithms.dqn import get_dqn, get_dqn_policy
+from examples.vm_scheduling.rl.config import algorithm, env_conf, num_features, num_pms, state_dim, test_env_conf
+from examples.vm_scheduling.rl.env_sampler import VMEnvSampler
 
 # Environments
 learn_env = Env(**env_conf)

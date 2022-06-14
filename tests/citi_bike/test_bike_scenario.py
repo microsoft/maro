@@ -4,8 +4,6 @@
 import os
 import unittest
 
-from tests.utils import backends_to_test, be_run_to_end, next_step
-
 from maro.data_lib import BinaryConverter
 from maro.event_buffer import EventBuffer
 from maro.simulator.scenarios.citi_bike.business_engine import CitibikeBusinessEngine

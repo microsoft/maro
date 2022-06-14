@@ -16,8 +16,6 @@ from maro.simulator.utils import random
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
 os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "cim_testing"
 
-from tests.utils import backends_to_test, compare_dictionary
-
 from maro.data_lib.cim import dump_from_config
 from maro.data_lib.cim.entities import PortSetting, Stop, SyntheticPortSetting, VesselSetting
 from maro.data_lib.cim.vessel_stop_wrapper import VesselStopsWrapper

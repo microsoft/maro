@@ -385,9 +385,9 @@ class TestEnv(unittest.TestCase):
         self.assertTrue("cim" in scenario_names)
         self.assertTrue("citi_bike" in scenario_names)
 
-        cim_topologies = get_topologies("cim")
+        get_topologies("cim")
         citi_bike_topologies = get_topologies("citi_bike")
-        vm_topologies = get_topologies("vm_scheduling")
+        get_topologies("vm_scheduling")
 
         env_list = get_available_envs()
 

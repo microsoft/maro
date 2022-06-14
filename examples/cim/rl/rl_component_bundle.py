@@ -1,9 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from examples.cim.rl.config import action_num, algorithm, env_conf, reward_shaping_conf, state_dim
-from examples.cim.rl.env_sampler import CIMEnvSampler
-
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.simulator import Env
 
@@ -11,6 +8,8 @@ from .algorithms.ac import get_ac, get_ac_policy
 from .algorithms.dqn import get_dqn, get_dqn_policy
 from .algorithms.maddpg import get_maddpg, get_maddpg_policy
 from .algorithms.ppo import get_ppo, get_ppo_policy
+from examples.cim.rl.config import action_num, algorithm, env_conf, reward_shaping_conf, state_dim
+from examples.cim.rl.env_sampler import CIMEnvSampler
 
 # Environments
 learn_env = Env(**env_conf)

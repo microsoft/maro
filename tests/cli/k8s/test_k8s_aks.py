@@ -13,7 +13,6 @@ import unittest
 import uuid
 
 import yaml
-from tests.cli.utils import record_running_time
 
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths

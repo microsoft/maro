@@ -12,7 +12,6 @@ import unittest
 import uuid
 
 import yaml
-from tests.cli.utils import record_running_time
 
 from maro.cli.grass.utils.params import GrassParams, NodeStatus
 from maro.cli.utils.azure_controller import AzureController

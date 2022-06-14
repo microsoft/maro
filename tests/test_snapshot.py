@@ -6,6 +6,7 @@ import unittest
 from .test_frame import DYNAMIC_NODE_NUM, STATIC_NODE_NUM, build_frame
 from tests.utils import backends_to_test
 
+
 class TestFrame(unittest.TestCase):
     def test_take_snapshot(self):
         for backend_name in backends_to_test:

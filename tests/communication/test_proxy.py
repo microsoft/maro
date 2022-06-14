@@ -10,8 +10,6 @@ from maro.communication import SessionMessage, SessionType
 
 from tests.communication.utils import get_random_port, proxy_generator
 
-from maro.communication import SessionMessage, SessionType
-
 
 def message_receive(proxy):
     return proxy.receive_once().body
