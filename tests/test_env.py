@@ -4,13 +4,12 @@
 import os
 import unittest
 
-from tests.utils import backends_to_test
-
 from maro.simulator.core import Env
 from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
 from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index
 
 from .dummy.dummy_business_engine import DummyEngine
+from tests.utils import backends_to_test
 
 
 def run_to_end(env: Env):

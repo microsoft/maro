@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from rule_based_algorithm import RuleBasedAlgorithm
 
 from maro.simulator import Env

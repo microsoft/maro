@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from maro.backends.frame import FrameBase, FrameNode, NodeAttribute, NodeBase, node
 
 TOTAL_PRODUCT_CATEGORIES = 10

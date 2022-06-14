@@ -1,15 +1,18 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from functools import partial
 from typing import Any, Callable, Dict, Optional
-
-from examples.vm_scheduling.rl.algorithms.ac import get_ac, get_ac_policy
-from examples.vm_scheduling.rl.algorithms.dqn import get_dqn, get_dqn_policy
-from examples.vm_scheduling.rl.config import algorithm, env_conf, num_features, num_pms, state_dim, test_env_conf
-from examples.vm_scheduling.rl.env_sampler import VMEnvSampler
 
 from maro.rl.policy import AbsPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
+
+from examples.vm_scheduling.rl.algorithms.ac import get_ac, get_ac_policy
+from examples.vm_scheduling.rl.algorithms.dqn import get_dqn, get_dqn_policy
+from examples.vm_scheduling.rl.config import algorithm, env_conf, num_features, num_pms, state_dim, test_env_conf
+from examples.vm_scheduling.rl.env_sampler import VMEnvSampler
 
 
 class VMBundle(RLComponentBundle):

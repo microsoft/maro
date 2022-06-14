@@ -6,7 +6,6 @@ import unittest
 
 import numpy as np
 import pandas as pd
-from tests.utils import backends_to_test
 
 from maro.backends.backend import AttributeType
 from maro.backends.frame import FrameBase, FrameNode, NodeAttribute, NodeBase, node
@@ -15,6 +14,8 @@ from maro.utils.exception.backends_exception import (
     BackendsGetItemInvalidException,
     BackendsSetItemInvalidException,
 )
+
+from tests.utils import backends_to_test
 
 STATIC_NODE_NUM = 5
 DYNAMIC_NODE_NUM = 10

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import numpy as np
 from rule_based_algorithm import RuleBasedAlgorithm
 

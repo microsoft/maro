@@ -12,13 +12,14 @@ import unittest
 import uuid
 
 import yaml
-from tests.cli.utils import record_running_time
 
 from maro.cli.grass.utils.params import GrassParams, NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError
+
+from tests.cli.utils import record_running_time
 
 
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require CLI prerequisites.")
