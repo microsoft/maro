@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from abc import ABC, abstractmethod
 from collections import deque
 from typing import Iterable
