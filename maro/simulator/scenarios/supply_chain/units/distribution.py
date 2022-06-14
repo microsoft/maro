@@ -29,11 +29,23 @@ class DistributionUnit(UnitBase):
     """
 
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(DistributionUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
         self._vehicle_num: Dict[str, Optional[int]] = {}
@@ -108,12 +120,14 @@ class DistributionUnit(UnitBase):
             float: The corresponding total order fee, will paid by the consumer.
         """
         # TODO: to indicate whether it is a valid order or not in Return value?
-        if all([
-            order.sku_id in self.facility.downstream_vlt_infos,
-            order.dest_facility.id in self.facility.downstream_vlt_infos[order.sku_id],
-            order.vehicle_type in self.facility.downstream_vlt_infos[order.sku_id][order.dest_facility.id],
-            order.required_quantity > 0
-        ]):
+        if all(
+            [
+                order.sku_id in self.facility.downstream_vlt_infos,
+                order.dest_facility.id in self.facility.downstream_vlt_infos[order.sku_id],
+                order.vehicle_type in self.facility.downstream_vlt_infos[order.sku_id][order.dest_facility.id],
+                order.required_quantity > 0,
+            ],
+        ):
             self._order_queues[order.vehicle_type].append(order)
             self._maintain_pending_order_info(order, is_increase=True)
             self.total_order_num += 1
@@ -229,9 +243,7 @@ class DistributionUnit(UnitBase):
         # TODO: here do not distinguish on the way & pending unloading.
         for order_list in self._order_on_the_way.values():
             for order in order_list:
-                self.transportation_cost[order.sku_id] += (
-                    order.unit_transportation_cost_per_day * order.payload
-                )
+                self.transportation_cost[order.sku_id] += order.unit_transportation_cost_per_day * order.payload
 
         # Schedule orders
         self.try_schedule_orders(tick)

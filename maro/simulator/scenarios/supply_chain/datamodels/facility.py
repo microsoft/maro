@@ -8,7 +8,6 @@ from .base import DataModelBase
 
 @node("facility")
 class FacilityDataModel(DataModelBase):
-
     def __init__(self) -> None:
         super(FacilityDataModel, self).__init__()
 

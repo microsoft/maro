@@ -2,12 +2,13 @@
 # Licensed under the MIT license.
 
 import unittest
+
 import numpy as np
 
 from maro.simulator.scenarios.supply_chain import FacilityBase, ManufactureAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 
-from tests.supply_chain.common import build_env, get_product_dict_from_storage, SKU1_ID, SKU2_ID, SKU3_ID, SKU4_ID
+from tests.supply_chain.common import SKU1_ID, SKU2_ID, SKU3_ID, SKU4_ID, build_env, get_product_dict_from_storage
 
 
 class MyTestCase(unittest.TestCase):
@@ -43,7 +44,10 @@ class MyTestCase(unittest.TestCase):
 
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_features = (
-            "id", "facility_id", "start_manufacture_quantity", "sku_id",
+            "id",
+            "facility_id",
+            "start_manufacture_quantity",
+            "sku_id",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_SKU_ID = 0, 1, 2, 3
 
@@ -52,8 +56,10 @@ class MyTestCase(unittest.TestCase):
         # tick 0 passed, no product manufacturing.
         env.step(None)
 
-        capacities = storage_nodes[env.frame_index:sku3_storage_index:"capacity"].flatten().astype(np.int)
-        remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
+        capacities = storage_nodes[env.frame_index : sku3_storage_index : "capacity"].flatten().astype(np.int)
+        remaining_spaces = (
+            storage_nodes[env.frame_index : sku3_storage_index : "remaining_space"].flatten().astype(np.int)
+        )
 
         # there should be 80 units been taken at the beginning according to the config file.
         # so remaining space should be 20
@@ -84,9 +90,11 @@ class MyTestCase(unittest.TestCase):
             env.step(None)
 
         start_frame = env.business_engine.frame_index(start_tick)
-        states = manufacture_nodes[
-                 start_frame:manufacture_sku3_unit.data_model_index:manufacture_features
-                 ].flatten().astype(np.int)
+        states = (
+            manufacture_nodes[start_frame : manufacture_sku3_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # Sku3 produce rate is 1 per tick, so start_manufacture_quantity should be 1.
         self.assertEqual(1, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -107,9 +115,11 @@ class MyTestCase(unittest.TestCase):
         # leave the action as None will cause manufacture unit stop manufacturing.
         env.step(None)
 
-        states = manufacture_nodes[
-                 env.frame_index:manufacture_sku3_unit.data_model_index:manufacture_features
-                 ].flatten().astype(np.int)
+        states = (
+            manufacture_nodes[env.frame_index : manufacture_sku3_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # so start_manufacture_quantity should be 0
         self.assertEqual(0, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -131,9 +141,11 @@ class MyTestCase(unittest.TestCase):
             env.step(None)
 
         start_frame = env.business_engine.frame_index(start_tick)
-        states = manufacture_nodes[
-                 start_frame:manufacture_sku3_unit.data_model_index:manufacture_features
-                 ].flatten().astype(np.int)
+        states = (
+            manufacture_nodes[start_frame : manufacture_sku3_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # so start_manufacture_number should be 19 instead 20
         self.assertEqual(19, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -151,8 +163,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_manufacture_meet_source_lack(self) -> None:
         """Test sku4 manufacturing. -- Supplier_SKU4.
-            This sku supplier does not have enough source material at the beginning,
-            so it cannot produce anything without consumer purchase."""
+        This sku supplier does not have enough source material at the beginning,
+        so it cannot produce anything without consumer purchase."""
         env = build_env("case_01", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -165,7 +177,10 @@ class MyTestCase(unittest.TestCase):
 
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_features = (
-            "id", "facility_id", "start_manufacture_quantity", "sku_id"
+            "id",
+            "facility_id",
+            "start_manufacture_quantity",
+            "sku_id",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_SKU_ID = 0, 1, 2, 3
 
@@ -175,17 +190,21 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         # capacity is same as configured.
-        capacities = storage_nodes[env.frame_index:sku4_storage_index:"capacity"].flatten().astype(np.int)
+        capacities = storage_nodes[env.frame_index : sku4_storage_index : "capacity"].flatten().astype(np.int)
         self.assertEqual(200, capacities.sum())
 
         # remaining space should be capacity 200 - (sku4 50 + sku2 0)
-        remaining_spaces = storage_nodes[env.frame_index:sku4_storage_index:"remaining_space"].flatten().astype(np.int)
+        remaining_spaces = (
+            storage_nodes[env.frame_index : sku4_storage_index : "remaining_space"].flatten().astype(np.int)
+        )
         self.assertEqual(200 - (50 + 0 + 50), remaining_spaces.sum())
 
         # no manufacture number as we have not pass any action
-        manufacture_states = manufacture_nodes[
-                             env.frame_index:manufacture_sku4_unit.data_model_index:manufacture_features
-                             ].flatten().astype(np.int)
+        manufacture_states = (
+            manufacture_nodes[env.frame_index : manufacture_sku4_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # manufacture_quantity should be 0
         self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
@@ -209,9 +228,11 @@ class MyTestCase(unittest.TestCase):
             # push to the end, the storage should not br changed, no matter what production rate we give it.
             _, _, is_done = env.step([ManufactureAction(manufacture_sku4_unit.id, 10)])
 
-        manufacture_states = manufacture_nodes[
-                             env.frame_index:manufacture_sku4_unit.data_model_index:manufacture_features
-                             ].flatten().astype(np.int)
+        manufacture_states = (
+            manufacture_nodes[env.frame_index : manufacture_sku4_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # manufacture_quantity should be 0
         self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
@@ -243,7 +264,10 @@ class MyTestCase(unittest.TestCase):
 
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_features = (
-            "id", "facility_id", "start_manufacture_quantity", "sku_id"
+            "id",
+            "facility_id",
+            "start_manufacture_quantity",
+            "sku_id",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_SKU_ID = 0, 1, 2, 3
 
@@ -264,18 +288,22 @@ class MyTestCase(unittest.TestCase):
             env.step(None)
 
         start_frame = env.business_engine.frame_index(start_tick)
-        manufacture_states = manufacture_nodes[
-                             start_frame:manufacture_sku1_unit.data_model_index:manufacture_features
-                             ].flatten().astype(np.int)
+        manufacture_states = (
+            manufacture_nodes[start_frame : manufacture_sku1_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # we can produce 4 sku1, as it will meet storage avg limitation per sku. 4 = 200//2 - 96
         self.assertEqual(200 // 2 - 96, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4 * 2 sku3/sku1))
         expected_frame = env.business_engine.frame_index(expected_tick)
-        remaining_spaces = storage_nodes[
-                           expected_frame:manufacture_sku1_unit.data_model_index:"remaining_space"
-                           ].flatten().astype(np.int)
+        remaining_spaces = (
+            storage_nodes[expected_frame : manufacture_sku1_unit.data_model_index : "remaining_space"]
+            .flatten()
+            .astype(np.int)
+        )
         self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku1_storage_index)
@@ -296,17 +324,19 @@ class MyTestCase(unittest.TestCase):
         while not is_done:
             _, _, is_done = env.step(None)
 
-        manufacture_states = manufacture_nodes[
-                             env.frame_index:manufacture_sku1_unit.data_model_index:manufacture_features
-                             ].flatten().astype(np.int)
+        manufacture_states = (
+            manufacture_nodes[env.frame_index : manufacture_sku1_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # but manufacture number is 0
         self.assertEqual(0, manufacture_states[IDX_START_MANUFACTURE_QUANTITY])
 
         # so storage remaining space should be 200 - ((96 + 4) + (100 - 4*2))
-        remaining_spaces = storage_nodes[
-                           env.frame_index:sku1_storage_index:"remaining_space"
-                           ].flatten().astype(np.int)
+        remaining_spaces = (
+            storage_nodes[env.frame_index : sku1_storage_index : "remaining_space"].flatten().astype(np.int)
+        )
         self.assertEqual(200 - ((96 + 4) + (100 - 4 * 2)), remaining_spaces.sum())
 
         product_dict = get_product_dict_from_storage(env, env.frame_index, sku1_storage_index)
@@ -331,7 +361,10 @@ class MyTestCase(unittest.TestCase):
 
         manufacture_nodes = env.snapshot_list["manufacture"]
         manufacture_features = (
-            "id", "facility_id", "start_manufacture_quantity", "sku_id",
+            "id",
+            "facility_id",
+            "start_manufacture_quantity",
+            "sku_id",
         )
         IDX_ID, IDX_FACILITY_ID, IDX_START_MANUFACTURE_QUANTITY, IDX_SKU_ID = 0, 1, 2, 3
 
@@ -340,8 +373,10 @@ class MyTestCase(unittest.TestCase):
         # tick 0 passed, no product manufacturing.
         env.step(None)
 
-        capacities = storage_nodes[env.frame_index:sku2_storage_index:"capacity"].flatten().astype(np.int)
-        remaining_spaces = storage_nodes[env.frame_index:sku2_storage_index:"remaining_space"].flatten().astype(np.int)
+        capacities = storage_nodes[env.frame_index : sku2_storage_index : "capacity"].flatten().astype(np.int)
+        remaining_spaces = (
+            storage_nodes[env.frame_index : sku2_storage_index : "remaining_space"].flatten().astype(np.int)
+        )
 
         # there should be 50 + 50 units been taken at the beginning according to the config file.
         # so remaining space should be 200 - (50 + 50) = 100
@@ -373,9 +408,11 @@ class MyTestCase(unittest.TestCase):
             env.step(None)
 
         start_frame = env.business_engine.frame_index(start_tick)
-        states = manufacture_nodes[
-                 start_frame:manufacture_sku2_unit.data_model_index:manufacture_features
-                 ].flatten().astype(np.int)
+        states = (
+            manufacture_nodes[start_frame : manufacture_sku2_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # Sku2 produce rate is 1 per tick, and the output per lot is 2, so manufacture_quantity should be 2.
         self.assertEqual(1 * 2, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -398,9 +435,11 @@ class MyTestCase(unittest.TestCase):
         # leave the action as None will keep the manufacture rate as 0, so at to stop manufacturing.
         env.step(None)
 
-        states = manufacture_nodes[
-                 env.frame_index:manufacture_sku2_unit.data_model_index:manufacture_features
-                 ].flatten().astype(np.int)
+        states = (
+            manufacture_nodes[env.frame_index : manufacture_sku2_unit.data_model_index : manufacture_features]
+            .flatten()
+            .astype(np.int)
+        )
 
         # so manufacture_quantity should be 0
         self.assertEqual(0, states[IDX_START_MANUFACTURE_QUANTITY])
@@ -411,5 +450,5 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(50 + 1 * 2, product_dict[SKU2_ID])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

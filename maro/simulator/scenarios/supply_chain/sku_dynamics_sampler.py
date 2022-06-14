@@ -17,7 +17,10 @@ from dateutil.parser import parse
 from tqdm import tqdm
 
 from maro.data_lib.supply_chain import (
-    DATE_INDEX_COLUMN_NAME, get_date_index, get_preprocessed_file_path, preprocess_file
+    DATE_INDEX_COLUMN_NAME,
+    get_date_index,
+    get_preprocessed_file_path,
+    preprocess_file,
 )
 
 if typing.TYPE_CHECKING:
@@ -48,6 +51,7 @@ class SkuDynamicsSampler(metaclass=ABCMeta):
             . "datetime_column", column name that contains datetime, NOTE: we will parse it that ignore the time zone.
         world (World): Current world this facility belongs to.
     """
+
     def __init__(self, configs: dict, world: World) -> None:
         self._configs: dict = configs
         self._world: World = world
@@ -79,6 +83,7 @@ class SkuDynamicsSampler(metaclass=ABCMeta):
 
 class OneTimeSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
     """Load & cache all data when initializing."""
+
     def __init__(self, configs: dict, world: World) -> None:
         super(OneTimeSkuDynamicsSampler, self).__init__(configs, world)
         self._load_all_data()
@@ -120,6 +125,7 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
     episode because the data are loaded while executing the first episode. The execution efficiency will back to normal
     starting from the second episode.
     """
+
     def __init__(self, configs: dict, world: World) -> None:
         super(StreamSkuDynamicsSampler, self).__init__(configs, world)
         self._fp = open(self._preprocessed_file_path, "rt")
@@ -134,7 +140,9 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
         """
         while not self._is_fp_closed and (self._latest_tick is None or self._latest_tick <= tick):
             try:
-                row = next(self._reader) # This entry may be after `tick`. We have to process it as we already loaded it.
+                row = next(
+                    self._reader,
+                )  # This entry may be after `tick`. We have to process it as we already loaded it.
             except StopIteration:
                 self._fp.close()
                 self._is_fp_closed = True
@@ -156,7 +164,6 @@ class StreamSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
             self._cache[target_tick][sku_id] = {}
             for attr_name, item in self._info_dict.items():
                 self._cache[target_tick][sku_id][attr_name] = item.type_name(row[item.column_name])
-
 
 
 class SkuPriceMixin(metaclass=ABCMeta):
@@ -200,11 +207,7 @@ class OneTimeSkuPriceDemandSampler(OneTimeSkuDynamicsSampler, SkuPriceMixin, Sel
         }
 
     def _sample_attr(self, tick: int, sku_id: int, attr_name: str) -> object:
-        if (
-            tick not in self._cache
-            or sku_id not in self._cache[tick]
-            or attr_name not in self._cache[tick][sku_id]
-        ):
+        if tick not in self._cache or sku_id not in self._cache[tick] or attr_name not in self._cache[tick][sku_id]:
             return self._info_dict[attr_name].default_value
 
         return self._info_dict[attr_name].type_name(self._cache[tick][sku_id][attr_name])
@@ -230,11 +233,7 @@ class StreamSkuPriceDemandSampler(StreamSkuDynamicsSampler, SkuPriceMixin, Selle
     def _sample_attr(self, tick: int, sku_id: int, attr_name: str) -> object:
         self._load_data_until_tick(tick)
 
-        if (
-            tick not in self._cache
-            or sku_id not in self._cache[tick]
-            or attr_name not in self._cache[tick][sku_id]
-        ):
+        if tick not in self._cache or sku_id not in self._cache[tick] or attr_name not in self._cache[tick][sku_id]:
             return self._info_dict[attr_name].default_value
 
         return self._info_dict[attr_name].type_name(self._cache[tick][sku_id][attr_name])
@@ -268,6 +267,7 @@ class DataFileDemandSampler(SellerDemandMixin):
             . "demand_column", column name that will be treated as sale number (demand).
             . "datetime_column", column name that contains datetime, NOTE: we will parse it that ignore the time zone.
     """
+
     def __init__(self, configs: dict, world: World) -> None:
         self._configs: dict = configs
         self._world: World = world

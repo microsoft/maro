@@ -12,6 +12,7 @@ from .base import DataModelBase
 @node("storage")
 class StorageDataModel(DataModelBase):
     """Data model for storage unit."""
+
     capacity = NodeAttribute(AttributeType.UInt, 1, is_list=True)
     remaining_space = NodeAttribute(AttributeType.UInt, 1, is_list=True)
 

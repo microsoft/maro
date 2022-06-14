@@ -36,11 +36,23 @@ class ProductUnit(ExtendUnitBase):
     """Unit that used to group units of one specific SKU, usually contains consumer, seller and manufacture."""
 
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(ProductUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
         # The consumer unit of this SKU.
@@ -172,7 +184,7 @@ class ProductUnit(ExtendUnitBase):
         return demand_means
 
     def get_sale_mean(self) -> float:
-        """"Here the sale mean of upstreams means the sum of its downstreams,
+        """ "Here the sale mean of upstreams means the sum of its downstreams,
         which indicates the daily demand of this product from the aspect of the facility it belongs."""
         sale_means = self._get_sale_means()
         return float(np.sum(sale_means))
@@ -200,11 +212,23 @@ class ProductUnit(ExtendUnitBase):
 
 class StoreProductUnit(ProductUnit):
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(StoreProductUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
     def get_sale_mean(self) -> float:

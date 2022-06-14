@@ -7,6 +7,7 @@ import json
 import os
 import pickle
 import random
+import shutil
 import sys
 import typing
 from collections import defaultdict
@@ -15,15 +16,17 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import pandas as pd
-import shutil
 
-from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 from maro.event_buffer import CascadeEvent
 from maro.rl.policy import RLPolicy, RuleBasedPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction, ConsumerUnit, ManufactureAction, ManufactureUnit, StoreProductUnit
+    ConsumerAction,
+    ConsumerUnit,
+    ManufactureAction,
+    ManufactureUnit,
+    StoreProductUnit,
 )
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
@@ -31,18 +34,30 @@ from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, Facil
 from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
 from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, ProductUnit, StorageUnitInfo
-from maro.utils.logger import Logger, LogFormat
+from maro.utils.logger import LogFormat, Logger
 
+from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
+from .config import (
+    ALGO,
+    IDX_CONSUMER_PURCHASED,
+    IDX_PRODUCT_PRICE,
+    IDX_SELLER_DEMAND,
+    OR_NUM_CONSUMER_ACTIONS,
+    TEAM_REWARD,
+    VehicleSelection,
+    consumer_features,
+    distribution_features,
+    env_conf,
+    product_features,
+    seller_features,
+    test_env_conf,
+    workflow_settings,
+)
+from .or_agent_state import ScOrAgentStates
+from .rl_agent_state import ScRlAgentStates, serialize_state
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 from examples.supply_chain.common.render_tools.plot_render import SimulationTracker
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
-from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
-from .config import consumer_features, distribution_features, seller_features, product_features
-from .config import IDX_SELLER_DEMAND, IDX_PRODUCT_PRICE, IDX_CONSUMER_PURCHASED
-from .config import env_conf, test_env_conf, workflow_settings
-from .config import ALGO, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD, VehicleSelection
-from .or_agent_state import ScOrAgentStates
-from .rl_agent_state import ScRlAgentStates, serialize_state
 
 if typing.TYPE_CHECKING:
     from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
@@ -53,7 +68,10 @@ def get_unit2product_unit(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[i
     for facility_info in facility_info_dict.values():
         for product_info in facility_info.products_info.values():
             for unit in (
-                product_info, product_info.seller_info, product_info.consumer_info, product_info.manufacture_info
+                product_info,
+                product_info.seller_info,
+                product_info.consumer_info,
+                product_info.manufacture_info,
             ):
                 if unit is not None:
                     unit2product[unit.id] = product_info.id
@@ -98,28 +116,24 @@ class SCEnvSampler(AbsEnvSampler):
             file_path = os.path.join(
                 os.path.dirname(self._learn_env.business_engine._config_path),
                 self._learn_env.business_engine._topology,
-                "default_vendor.pkl"
+                "default_vendor.pkl",
             )
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 self._default_vendor = pickle.load(f)
 
         business_engine = self._learn_env.business_engine
         assert isinstance(business_engine, SupplyChainBusinessEngine)
         self._entity_dict: Dict[int, SupplyChainEntity] = {
-            entity.id: entity
-            for entity in business_engine.get_entity_list()
+            entity.id: entity for entity in business_engine.get_entity_list()
         }
 
-        self._summary: dict = self._learn_env.summary['node_mapping']
+        self._summary: dict = self._learn_env.summary["node_mapping"]
 
         # Key: Unit id; Value: (unit.data_model_name, unit.data_model_index, unit.facility.id, SkuInfo)
         self._units_mapping: Dict[int, Tuple[str, int, int, SkuInfo]] = self._summary["unit_mapping"]
 
         self._sku_metas: Dict[int, SkuMeta] = self._summary["skus"]
-        self._global_sku_id2idx: Dict[int, int] = {
-            sku_id: idx
-            for idx, sku_id in enumerate(self._sku_metas.keys())
-        }
+        self._global_sku_id2idx: Dict[int, int] = {sku_id: idx for idx, sku_id in enumerate(self._sku_metas.keys())}
         self._sku_number: int = len(self._sku_metas)
 
         self._facility_info_dict: Dict[int, FacilityInfo] = self._summary["facilities"]
@@ -128,7 +142,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         # Key 1: Facility id; Key 2: Product id; Value: Index in product list
         self._sku_id2idx_in_product_list: Dict[int, Dict[int, int]] = get_sku_id2idx_in_product_list(
-            self._facility_info_dict
+            self._facility_info_dict,
         )
 
         # Key: Consumer unit id; Value: corresponding product id.
@@ -182,7 +196,7 @@ class SCEnvSampler(AbsEnvSampler):
             settings=self._workflow_settings,
         )
 
-        self.baseline_policy = ConsumerBaselinePolicy('baseline_eoq')
+        self.baseline_policy = ConsumerBaselinePolicy("baseline_eoq")
 
         self._or_agent_states: ScOrAgentStates = ScOrAgentStates(
             entity_dict=self._entity_dict,
@@ -219,11 +233,15 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._mean_reward: Dict[int, float] = defaultdict(float)
         self._step_idx = 0
-        self._eval_reward = 0.0 # only consider those that are associated with RLPolicy
+        self._eval_reward = 0.0  # only consider those that are associated with RLPolicy
 
         self.product_metric_track: Dict[str, list] = defaultdict(list)
 
-        self._logger = Logger(tag="env_sampler", format_=LogFormat.time_only, dump_folder=self._workflow_settings["log_path"])
+        self._logger = Logger(
+            tag="env_sampler",
+            format_=LogFormat.time_only,
+            dump_folder=self._workflow_settings["log_path"],
+        )
 
         shutil.copy(
             src=os.path.join(os.path.dirname(__file__), "config.py"),
@@ -235,13 +253,12 @@ class SCEnvSampler(AbsEnvSampler):
 
         self._logger.info(
             f"Total number of policy-related agents / entities: "
-            f"{len(self._agent2policy.keys())} / {len(self._entity_dict.keys())}"
+            f"{len(self._agent2policy.keys())} / {len(self._entity_dict.keys())}",
         )
 
     def _parse_policy_parameter(self, raw_info: dict) -> Dict[str, Any]:
         facility_name2id: Dict[str, int] = {
-            facility_info.name: facility_id
-            for facility_id, facility_info in self._facility_info_dict.items()
+            facility_info.name: facility_id for facility_id, facility_info in self._facility_info_dict.items()
         }
 
         max_prices: Dict[int, float] = {}
@@ -282,7 +299,7 @@ class SCEnvSampler(AbsEnvSampler):
         if issubclass(entity.class_type, ConsumerUnit):
             return np.float32(bwt[1]) / np.float32(self._workflow_settings["reward_normalization"])
         else:
-            return .0
+            return 0.0
 
     def _get_vlt_info(self, entity_id: int) -> Optional[VendorLeadingTimeInfo]:
         if entity_id not in self._cached_vlt:
@@ -294,9 +311,7 @@ class SCEnvSampler(AbsEnvSampler):
 
             info_by_fid = facility_info.upstream_vlt_infos[sku_id]
             vlt_info_candidates: List[VendorLeadingTimeInfo] = [
-                info
-                for info_by_type in info_by_fid.values()
-                for info in info_by_type.values()
+                info for info_by_type in info_by_fid.values() for info in info_by_type.values()
             ]
 
             if len(vlt_info_candidates) > 0:
@@ -314,11 +329,11 @@ class SCEnvSampler(AbsEnvSampler):
                     default_vehicle_type = self._default_vendor[facility_info.name][sku_name]
                     vlt_info = next(
                         filter(lambda info: info.vehicle_type == default_vehicle_type, vlt_info_candidates),
-                        None
+                        None,
                     )
-                    assert vlt_info is not None, (
-                        f"Default vehicle type {default_vehicle_type} not exist for {facility_info.name}'s {sku_name}!"
-                    )
+                    assert (
+                        vlt_info is not None
+                    ), f"Default vehicle type {default_vehicle_type} not exist for {facility_info.name}'s {sku_name}!"
                 else:
                     raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
             else:
@@ -351,11 +366,11 @@ class SCEnvSampler(AbsEnvSampler):
 
         file_path = os.path.join(self._workflow_settings["log_path"], f"vendor.py")
         pprint_path = os.path.join(self._workflow_settings["log_path"], f"vendor_pprint.py")
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             json.dump(default_vendor, f)
 
         stdout_fh = sys.stdout
-        sys.stdout = open(pprint_path, 'w')
+        sys.stdout = open(pprint_path, "w")
         pprint(default_vendor)
         sys.stdout.close()
         sys.stdout = stdout_fh
@@ -400,8 +415,8 @@ class SCEnvSampler(AbsEnvSampler):
         assert issubclass(entity.class_type, ConsumerUnit)
         baseline_state = self.get_or_policy_state(entity)
         baseline_action = self.baseline_policy.get_actions([baseline_state])[0]
-        state['baseline_action'] = [0] * OR_NUM_CONSUMER_ACTIONS
-        state['baseline_action'][baseline_action] = 1.0
+        state["baseline_action"] = [0] * OR_NUM_CONSUMER_ACTIONS
+        state["baseline_action"][baseline_action] = 1.0
 
         np_state = serialize_state(state)
         return np_state
@@ -437,7 +452,9 @@ class SCEnvSampler(AbsEnvSampler):
             self._sold_status[entity_id] = self._cur_metrics["products"][product_unit_id]["sale_mean"]
 
     def _get_global_and_agent_state_impl(
-        self, event: CascadeEvent, tick: int = None,
+        self,
+        event: CascadeEvent,
+        tick: int = None,
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         """Update the status variables first, then call the state shaper for each agent."""
         if tick is None:
@@ -449,35 +466,40 @@ class SCEnvSampler(AbsEnvSampler):
         self._cur_metrics = self._env.metrics
 
         # Get distribution features of current tick from snapshot list.
-        self._cur_distribution_states = self._env.snapshot_list["distribution"][
-            tick::distribution_features
-        ].flatten().reshape(-1, len(distribution_features)).astype(np.int)
+        self._cur_distribution_states = (
+            self._env.snapshot_list["distribution"][tick::distribution_features]
+            .flatten()
+            .reshape(-1, len(distribution_features))
+            .astype(np.int)
+        )
 
         # Get consumer features of specific ticks from snapshot list.
-        consumption_hist_ticks = [tick - i for i in range(self._workflow_settings['consumption_hist_len'] - 1, -1, -1)]
+        consumption_hist_ticks = [tick - i for i in range(self._workflow_settings["consumption_hist_len"] - 1, -1, -1)]
         self._cur_consumer_hist_states = self._env.snapshot_list["consumer"][
             consumption_hist_ticks::consumer_features
-        ].reshape(self._workflow_settings['consumption_hist_len'], -1, len(consumer_features))
+        ].reshape(self._workflow_settings["consumption_hist_len"], -1, len(consumer_features))
 
         # Get seller features of specific ticks from snapshot list.
-        sale_hist_ticks = [tick - i for i in range(self._workflow_settings['sale_hist_len'] - 1, -1, -1)]
-        self._cur_seller_hist_states = self._env.snapshot_list["seller"][
-            sale_hist_ticks::seller_features
-        ].reshape(self._workflow_settings['sale_hist_len'], -1, len(seller_features)).astype(np.int)
+        sale_hist_ticks = [tick - i for i in range(self._workflow_settings["sale_hist_len"] - 1, -1, -1)]
+        self._cur_seller_hist_states = (
+            self._env.snapshot_list["seller"][sale_hist_ticks::seller_features]
+            .reshape(self._workflow_settings["sale_hist_len"], -1, len(seller_features))
+            .astype(np.int)
+        )
 
         history_feature_shape = (len(self._env.snapshot_list), -1)
         # Get all history demand from snapshot list.
-        self.history_demand = self._env.snapshot_list["seller"][
-            ::seller_features[IDX_SELLER_DEMAND]
-        ].reshape(history_feature_shape)
+        self.history_demand = self._env.snapshot_list["seller"][:: seller_features[IDX_SELLER_DEMAND]].reshape(
+            history_feature_shape,
+        )
 
         # Get all history selling price from snapshot list.
-        self.history_price = self._env.snapshot_list["product"][
-            ::product_features[IDX_PRODUCT_PRICE]
-        ].reshape(history_feature_shape)
+        self.history_price = self._env.snapshot_list["product"][:: product_features[IDX_PRODUCT_PRICE]].reshape(
+            history_feature_shape,
+        )
 
         self.history_purchased = self._env.snapshot_list["consumer"][
-            ::consumer_features[IDX_CONSUMER_PURCHASED]
+            :: consumer_features[IDX_CONSUMER_PURCHASED]
         ].reshape(history_feature_shape)
 
         # 1. Update storage product quantity info.
@@ -489,9 +511,13 @@ class SCEnvSampler(AbsEnvSampler):
             self._facility_in_transit_quantity[facility_id] = [0] * self._sku_number
             self._facility_to_distribute_quantity[facility_id] = [0] * self._sku_number
             if facility_info.storage_info.node_index is not None:
-                product_quantities = self._env.snapshot_list["storage"][
-                    tick:facility_info.storage_info.node_index:"product_quantity"
-                ].flatten().astype(np.int)
+                product_quantities = (
+                    self._env.snapshot_list["storage"][
+                        tick : facility_info.storage_info.node_index : "product_quantity"
+                    ]
+                    .flatten()
+                    .astype(np.int)
+                )
 
                 for pid, index in self._sku_id2idx_in_product_list[facility_id].items():
                     product_quantity = product_quantities[index]
@@ -506,13 +532,10 @@ class SCEnvSampler(AbsEnvSampler):
                 quantity = self._env.snapshot_list["consumer"][tick:consumer_index:"in_transit_quantity"].flatten()[0]
                 self._facility_in_transit_quantity[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
-            for sku_id, quantity in self._cur_metrics['facilities'][facility_id]["pending_order"].items():
+            for sku_id, quantity in self._cur_metrics["facilities"][facility_id]["pending_order"].items():
                 self._facility_to_distribute_quantity[facility_id][self._global_sku_id2idx[sku_id]] = quantity
 
-        state = {
-            id_: self._get_entity_state(id_)
-            for id_ in self._agent2policy.keys()
-        }
+        state = {id_: self._get_entity_state(id_) for id_ in self._agent2policy.keys()}
 
         # NOTE: update tracker status after call get_entity_state to get the updated rl states.
         if self._is_eval:
@@ -542,16 +565,16 @@ class SCEnvSampler(AbsEnvSampler):
         def get_reward_norm(entity_id):
             entity = self._entity_dict[entity_id]
             if (not TEAM_REWARD) and issubclass(entity.class_type, ConsumerUnit):
-                return (entity.skus.price + 1e-3)
+                return entity.skus.price + 1e-3
             else:
                 return 1.0
 
-        return {
-            entity_id: r / get_reward_norm(entity_id) for entity_id, r in rewards.items()
-        }
+        return {entity_id: r / get_reward_norm(entity_id) for entity_id, r in rewards.items()}
 
     def _translate_to_env_action(
-        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: object,
+        self,
+        action_dict: Dict[Any, Union[np.ndarray, List[object]]],
+        event: object,
     ) -> Dict[Any, object]:
         env_action_dict: Dict[int, SupplyChainAction] = {}
 
@@ -565,7 +588,7 @@ class SCEnvSampler(AbsEnvSampler):
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
                 if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
                     baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
-                    or_action = np.where(baseline_action==1.0)[0][0]
+                    or_action = np.where(baseline_action == 1.0)[0][0]
                     # action_idx = int(action[0] + or_action)
                     action_idx = max(0, int(action[0] - 1 + or_action))
                 else:
@@ -573,7 +596,7 @@ class SCEnvSampler(AbsEnvSampler):
 
                 product_unit_id: int = self._unit2product_unit[entity_id]
                 action_quantity = int(
-                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"])
+                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"]),
                 )
 
                 # Ignore 0 quantity to reduce action number
@@ -625,16 +648,16 @@ class SCEnvSampler(AbsEnvSampler):
 
         for facility_id, facility_info in self._facility_info_dict.items():
             for product_info in facility_info.products_info.values():
-                self.product_metric_track['tick'].append(tick)
+                self.product_metric_track["tick"].append(tick)
 
                 # TODO: it could be got from snapshot list.
-                self.product_metric_track['inventory_in_transit'].append(
-                    self._cur_metrics['facilities'][facility_id]["in_transit_orders"][product_info.sku_id]
+                self.product_metric_track["inventory_in_transit"].append(
+                    self._cur_metrics["facilities"][facility_id]["in_transit_orders"][product_info.sku_id],
                 )
 
-                pending_orders = self._cur_metrics['facilities'][facility_id]["pending_order"]
-                self.product_metric_track['inventory_to_distribute'].append(
-                    pending_orders[product_info.sku_id] if pending_orders else 0
+                pending_orders = self._cur_metrics["facilities"][facility_id]["pending_order"]
+                self.product_metric_track["inventory_to_distribute"].append(
+                    pending_orders[product_info.sku_id] if pending_orders else 0,
                 )
 
     def _post_update_product_metric_track(self) -> None:
@@ -644,44 +667,52 @@ class SCEnvSampler(AbsEnvSampler):
             storage_info: StorageUnitInfo = facility_info.storage_info
 
             for product_info in facility_info.products_info.values():
-                static_product_metrics['id'].append(product_info.id)
-                static_product_metrics['sku_id'].append(product_info.sku_id)
-                static_product_metrics['facility_id'].append(facility_id)
-                static_product_metrics['facility_name'].append(facility_info.name)
-                static_product_metrics['name'].append(self._sku_metas[product_info.sku_id].name)
-                static_product_metrics['unit_inventory_holding_cost'].append(
-                    self._entity_dict[product_info.id].skus.unit_storage_cost
+                static_product_metrics["id"].append(product_info.id)
+                static_product_metrics["sku_id"].append(product_info.sku_id)
+                static_product_metrics["facility_id"].append(facility_id)
+                static_product_metrics["facility_name"].append(facility_info.name)
+                static_product_metrics["name"].append(self._sku_metas[product_info.sku_id].name)
+                static_product_metrics["unit_inventory_holding_cost"].append(
+                    self._entity_dict[product_info.id].skus.unit_storage_cost,
                 )
 
                 # The indexes below are only used for accessing dynamic metrics
-                static_product_metrics['product_node_index'].append(product_info.node_index)
-                static_product_metrics['consumer_node_index'].append(
-                    product_info.consumer_info.node_index if product_info.consumer_info else None)
-                static_product_metrics['seller_node_index'].append(
-                    product_info.seller_info.node_index if product_info.seller_info else None)
-                static_product_metrics['manufacture_node_index'].append(
-                    product_info.manufacture_info.node_index if product_info.manufacture_info else None)
-                static_product_metrics['distribution_node_index'].append(
-                    distribution_info.node_index if distribution_info else None)
-                static_product_metrics['storage_node_index'].append(storage_info.node_index if storage_info else None)
+                static_product_metrics["product_node_index"].append(product_info.node_index)
+                static_product_metrics["consumer_node_index"].append(
+                    product_info.consumer_info.node_index if product_info.consumer_info else None,
+                )
+                static_product_metrics["seller_node_index"].append(
+                    product_info.seller_info.node_index if product_info.seller_info else None,
+                )
+                static_product_metrics["manufacture_node_index"].append(
+                    product_info.manufacture_info.node_index if product_info.manufacture_info else None,
+                )
+                static_product_metrics["distribution_node_index"].append(
+                    distribution_info.node_index if distribution_info else None,
+                )
+                static_product_metrics["storage_node_index"].append(storage_info.node_index if storage_info else None)
 
-        num_ticks = self.product_metric_track['tick'][-1] - self.product_metric_track['tick'][0] + 1
+        num_ticks = self.product_metric_track["tick"][-1] - self.product_metric_track["tick"][0] + 1
         for key, value_list in static_product_metrics.items():
             self.product_metric_track[key] = value_list * num_ticks
 
         for (name, features) in [
-            ("product", ("price", 'check_in_quantity_in_order', 'delay_order_penalty', "transportation_cost")),
+            ("product", ("price", "check_in_quantity_in_order", "delay_order_penalty", "transportation_cost")),
             ("consumer", ("purchased", "received", "order_base_cost", "order_product_cost")),
             ("seller", ("sold", "demand", "backlog_ratio")),
-            ("manufacture", ("finished_quantity", 'in_pipeline_quantity', 'manufacture_cost', 'start_manufacture_quantity')),
-            ("distribution", ("pending_product_quantity", "pending_order_number"))
+            (
+                "manufacture",
+                ("finished_quantity", "in_pipeline_quantity", "manufacture_cost", "start_manufacture_quantity"),
+            ),
+            ("distribution", ("pending_product_quantity", "pending_order_number")),
         ]:
             for feature in features:
                 value_dict = get_attributes(self._env, name, feature, tick=None)
                 self.product_metric_track[f"{name}_{feature}"] = [
                     value_dict[tick][node_index] if node_index else 0
                     for tick, node_index in zip(
-                        self.product_metric_track['tick'], self.product_metric_track[f'{name}_node_index']
+                        self.product_metric_track["tick"],
+                        self.product_metric_track[f"{name}_node_index"],
                     )
                 ]
 
@@ -689,44 +720,52 @@ class SCEnvSampler(AbsEnvSampler):
         quantity_lists = get_list_attributes(self._env, "storage", "product_quantity", tick=None)
 
         quantity_dict = {}
-        for tick in self.product_metric_track['tick']:
+        for tick in self.product_metric_track["tick"]:
             if tick in quantity_dict:
                 continue
             quantity_dict[tick] = {}
 
-            for node_index in self.product_metric_track['storage_node_index']:
+            for node_index in self.product_metric_track["storage_node_index"]:
                 if node_index is None or node_index in quantity_dict[tick]:
                     continue
 
                 quantity_dict[tick][node_index] = {
-                    sku_id: quantity for sku_id, quantity in zip(
-                        sku_id_lists[node_index].astype(np.int), quantity_lists[tick][node_index].astype(np.int)
+                    sku_id: quantity
+                    for sku_id, quantity in zip(
+                        sku_id_lists[node_index].astype(np.int),
+                        quantity_lists[tick][node_index].astype(np.int),
                     )
                 }
 
-        self.product_metric_track['inventory_in_stock'] = [
+        self.product_metric_track["inventory_in_stock"] = [
             quantity_dict[tick][node_index][sku_id] if node_index else 0
             for tick, node_index, sku_id in zip(
-                self.product_metric_track['tick'],
-                self.product_metric_track[f'storage_node_index'],
-                self.product_metric_track['sku_id'],
+                self.product_metric_track["tick"],
+                self.product_metric_track[f"storage_node_index"],
+                self.product_metric_track["sku_id"],
             )
         ]
 
         for key in [
-            'product_node_index', 'consumer_node_index', 'seller_node_index', 'manufacture_node_index',
-            'distribution_node_index', 'storage_node_index'
+            "product_node_index",
+            "consumer_node_index",
+            "seller_node_index",
+            "manufacture_node_index",
+            "distribution_node_index",
+            "storage_node_index",
         ]:
             self.product_metric_track.pop(key)
 
     def _post_eval_step(self, cache_element: CacheElement) -> None:
         self._logger.info(f"Step: {self._step_idx}")
         if self._tracker.eval_period[0] <= cache_element.tick < self._tracker.eval_period[1]:
-            self._eval_reward += np.sum([
-                self._balance_status[entity_id]
-                for entity_id, entity in self._entity_dict.items()
-                if issubclass(entity.class_type, StoreProductUnit)
-            ])
+            self._eval_reward += np.sum(
+                [
+                    self._balance_status[entity_id]
+                    for entity_id, entity in self._entity_dict.items()
+                    if issubclass(entity.class_type, StoreProductUnit)
+                ],
+            )
 
         if self._workflow_settings["log_consumer_actions"]:
             consumer_action_dict = {}
@@ -737,15 +776,20 @@ class SCEnvSampler(AbsEnvSampler):
                     parent_entity = self._entity_dict[entity.parent_id]
                     if issubclass(parent_entity.class_type, StoreProductUnit):
                         action = (
-                            cache_element.action_dict[entity_id] if np.isscalar(cache_element.action_dict[entity_id])
+                            cache_element.action_dict[entity_id]
+                            if np.isscalar(cache_element.action_dict[entity_id])
                             else cache_element.action_dict[entity_id][0]
                         )
                         or_action = 0
                         if ALGO != "EOQ":
-                            baseline_action = np.array(cache_element.agent_state_dict[entity_id][-OR_NUM_CONSUMER_ACTIONS:])
-                            or_action = np.where(baseline_action==1.0)[0][0]
+                            baseline_action = np.array(
+                                cache_element.agent_state_dict[entity_id][-OR_NUM_CONSUMER_ACTIONS:],
+                            )
+                            or_action = np.where(baseline_action == 1.0)[0][0]
                         consumer_action_dict[parent_entity.id] = (
-                            action, or_action, round(cache_element.reward_dict[entity_id], 2)
+                            action,
+                            or_action,
+                            round(cache_element.reward_dict[entity_id], 2),
                         )
             # self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
 
@@ -781,7 +825,7 @@ class SCEnvSampler(AbsEnvSampler):
         if not self._fixed_vlt:
             self._cached_vlt.clear()
 
-    def _get_action_status(self, ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def _get_action_status(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         first_tick, last_tick = self._tracker.eval_period
         len_period = last_tick - first_tick
         status_shape = (1, len_period, len(self._tracker.tracking_entity_ids))
@@ -845,10 +889,10 @@ class SCEnvSampler(AbsEnvSampler):
 
                 self._logger.info("Start dump product metrics...")
                 df_product = pd.DataFrame(self.product_metric_track)
-                df_product = df_product.groupby(['tick', 'id']).first().reset_index()
+                df_product = df_product.groupby(["tick", "id"]).first().reset_index()
                 df_product.to_csv(
                     os.path.join(self._workflow_settings["log_path"], "output_product_metrics.csv"),
-                    index=False
+                    index=False,
                 )
 
                 self._logger.info("product metrics dumped to csv")

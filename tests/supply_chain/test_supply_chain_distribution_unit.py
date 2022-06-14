@@ -2,26 +2,27 @@
 # Licensed under the MIT license.
 
 import unittest
+
 import numpy as np
 
-from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction
+from maro.simulator.scenarios.supply_chain import ConsumerAction, FacilityBase
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.order import Order
 
-from tests.supply_chain.common import build_env, get_product_dict_from_storage, SKU1_ID, SKU3_ID
+from tests.supply_chain.common import SKU1_ID, SKU3_ID, build_env, get_product_dict_from_storage
 
 
 class MyTestCase(unittest.TestCase):
     """
-        Distribution unit test:
+    Distribution unit test:
 
-        . initial state
-        . place order and dispatch with available vehicle
-        . place order but has no available vehicle
-        . if arrive at destination within special vlt
-        . if support for 0-vlt
-        . try_unload if target storage cannot take all
-        """
+    . initial state
+    . place order and dispatch with available vehicle
+    . place order but has no available vehicle
+    . if arrive at destination within special vlt
+    . if support for 0-vlt
+    . try_unload if target storage cannot take all
+    """
 
     def test_distribution_unit_initial_state(self) -> None:
         """Test initial state of the DistributionUnit of Supplier_SKU3."""
@@ -53,7 +54,7 @@ class MyTestCase(unittest.TestCase):
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
 
         distribution_unit = supplier_3.distribution
-        consumer_unit = warehouse_1.products[SKU3_ID].consumer
+        warehouse_1.products[SKU3_ID].consumer
 
         order_1 = Order(
             src_facility=supplier_3,
@@ -166,7 +167,7 @@ class MyTestCase(unittest.TestCase):
         supplier_3 = be.world._get_facility_by_name("Supplier_SKU3")
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
         distribution_unit = supplier_3.distribution
-        consumer_unit = warehouse_1.products[SKU3_ID].consumer
+        warehouse_1.products[SKU3_ID].consumer
         warehouse_storage_unit = warehouse_1.storage
 
         env.step(None)
@@ -188,7 +189,9 @@ class MyTestCase(unittest.TestCase):
         while env.tick <= expected_tick:
             # Check the inventory level in target storage
             quantity = get_product_dict_from_storage(
-                env, env.frame_index, warehouse_storage_unit.data_model_index
+                env,
+                env.frame_index,
+                warehouse_storage_unit.data_model_index,
             )[SKU3_ID]
 
             self.assertEqual(10, quantity)
@@ -207,7 +210,9 @@ class MyTestCase(unittest.TestCase):
         while not is_done:
             # Check the inventory level in target storage
             quantity = get_product_dict_from_storage(
-                env, env.frame_index, warehouse_storage_unit.data_model_index
+                env,
+                env.frame_index,
+                warehouse_storage_unit.data_model_index,
             )[SKU3_ID]
 
             self.assertEqual(10 + 70, quantity)
@@ -222,5 +227,5 @@ class MyTestCase(unittest.TestCase):
             _, _, is_done = env.step(None)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -29,7 +29,7 @@ class Order:
         vehicle_type: str,
         creation_tick: int,
         expected_finish_tick: Optional[int],  # It is the expected tick in the moment of taking ConsumerAction.
-        expiration_buffer: Optional[int]=None,
+        expiration_buffer: Optional[int] = None,
     ) -> None:
         # States specified by ConsumerUnit.
         self.src_facility: FacilityBase = src_facility
@@ -61,9 +61,9 @@ class Order:
         self.pending_receive_quantity = payload
 
     def receive(self, tick: int, quantity: int) -> None:
-        assert quantity <= self.pending_receive_quantity, (
-            f"Only {self.pending_receive_quantity} pending received, but {quantity} got!"
-        )
+        assert (
+            quantity <= self.pending_receive_quantity
+        ), f"Only {self.pending_receive_quantity} pending received, but {quantity} got!"
         self.order_status = OrderStatus.PENDING_UNLOAD
 
         self.receive_tick_list.append(tick)

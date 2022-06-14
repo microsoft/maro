@@ -9,6 +9,7 @@ from .base import DataModelBase
 
 class ExtendDataModel(DataModelBase):
     """Data model for sku related unit."""
+
     # Product id of this consumer belongs to.
     sku_id = NodeAttribute(AttributeType.UInt)
 

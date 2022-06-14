@@ -10,6 +10,7 @@ from .extend import ExtendDataModel
 @node("seller")
 class SellerDataModel(ExtendDataModel):
     """Data model for seller unit."""
+
     demand = NodeAttribute(AttributeType.UInt)
     sold = NodeAttribute(AttributeType.UInt)
     total_demand = NodeAttribute(AttributeType.UInt)

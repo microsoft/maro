@@ -15,7 +15,6 @@ from plotly.subplots import make_subplots
 
 from maro.simulator.scenarios.supply_chain.facilities import OuterRetailerFacility
 
-
 # "wide": use the entire screen; "centered": centered into a fixed width.
 st.set_page_config(layout="wide")
 
@@ -32,14 +31,14 @@ MARKDOWN_BODY = f"""
 """
 
 LINE_TYPE = {
-    "Exp_1": dict(color="deepskyblue", width=1,),
-    "Exp_2": dict(color="magenta", width=1,),
-    "Exp_3": dict(color="yellowgreen", width=1,),
-    "Exp_4": dict(color="orangered", width=1,),
-    "Fea_1": dict(color="dodgerblue", width=1,),
-    "Fea_2": dict(color="darkorange", width=1,),
-    "Fea_3": dict(color="lightseagreen", width=1,),
-    "Fea_4": dict(color="violet", width=1,),
+    "Exp_1": dict(color="deepskyblue", width=1),
+    "Exp_2": dict(color="magenta", width=1),
+    "Exp_3": dict(color="yellowgreen", width=1),
+    "Exp_4": dict(color="orangered", width=1),
+    "Fea_1": dict(color="dodgerblue", width=1),
+    "Fea_2": dict(color="darkorange", width=1),
+    "Fea_3": dict(color="lightseagreen", width=1),
+    "Fea_4": dict(color="violet", width=1),
 }
 
 SHOW_NAME = {
@@ -51,7 +50,7 @@ SHOW_NAME = {
 
 
 def set_exp_option(exp_idx: int, exp_list: List[str], log_dir: str):
-    color = SHOW_NAME[LINE_TYPE[f"Exp_{exp_idx}"].__getitem__('color')]
+    color = SHOW_NAME[LINE_TYPE[f"Exp_{exp_idx}"].__getitem__("color")]
     exp_name = st.sidebar.selectbox(f"Experiment {exp_idx} ({color})", exp_list)
     if exp_name == "DUMMY":
         return None, None, None
@@ -77,9 +76,7 @@ def _parse_entity_info(sku_status):
 
 def _parse_facility_info(sku_status):
     facility_infos = sku_status["facility_infos"]
-    facility_by_name = {
-        f_name: (i, f_id, f_class) for (i, f_id, f_name, f_class) in facility_infos
-    }
+    facility_by_name = {f_name: (i, f_id, f_class) for (i, f_id, f_name, f_class) in facility_infos}
     return facility_by_name
 
 
@@ -120,38 +117,47 @@ def set_exp_list(exp_num: int, exp_list: List[str], log_dir: str):
 
 
 def _calculate_metrics(df: pd.DataFrame, len_period: int):
-    max_tick = df['tick'].max()
+    max_tick = df["tick"].max()
     min_tick = max_tick - len_period
-    df = df[min_tick < df['tick']][df['tick'] <= max_tick]
+    df = df[min_tick < df["tick"]][df["tick"] <= max_tick]
 
-    df.loc[:, "GMV"] = df['product_price'] * df['seller_sold']
+    df.loc[:, "GMV"] = df["product_price"] * df["seller_sold"]
     df.loc[:, "order_cost"] = df["consumer_order_product_cost"] + df["consumer_order_base_cost"]
-    df.loc[:, 'inventory_holding_cost'] = df['inventory_in_stock'] * df['unit_inventory_holding_cost']
-    df.loc[:, 'out_of_stock_loss'] = (
-        df['seller_backlog_ratio'] * df['product_price'] * (df['seller_demand'] - df['seller_sold'])
+    df.loc[:, "inventory_holding_cost"] = df["inventory_in_stock"] * df["unit_inventory_holding_cost"]
+    df.loc[:, "out_of_stock_loss"] = (
+        df["seller_backlog_ratio"] * df["product_price"] * (df["seller_demand"] - df["seller_sold"])
     )
     df.loc[:, "profit"] = (
-        df["GMV"] - df['order_cost'] - df['inventory_holding_cost'] - df['out_of_stock_loss']
+        df["GMV"]
+        - df["order_cost"]
+        - df["inventory_holding_cost"]
+        - df["out_of_stock_loss"]
         + df["product_check_in_quantity_in_order"] * df["product_price"]
     )
 
     cols = [
-        'facility_name', 'GMV', 'profit', 'order_cost', 'inventory_in_stock',
-        'inventory_holding_cost', 'seller_sold', 'seller_demand', 'product_price'
+        "facility_name",
+        "GMV",
+        "profit",
+        "order_cost",
+        "inventory_in_stock",
+        "inventory_holding_cost",
+        "seller_sold",
+        "seller_demand",
+        "product_price",
     ]
-    df = df[['name'] + cols].groupby(['facility_name', 'name']).sum().reset_index()
-    df.loc[:, "turnover_rate"] = df['seller_demand'] * len_period / df['inventory_in_stock']
-    df.loc[:, "available_rate"] = df['seller_sold'] / df['seller_demand']
-    cols.extend(['turnover_rate', 'available_rate'])
-    agg_func = {
-        col: np.mean if col in ['turnover_rate', 'available_rate'] else np.sum
-        for col in cols[2:]
-    }
-    df = df[cols].groupby(['facility_name']).agg(agg_func).reset_index()
+    df = df[["name"] + cols].groupby(["facility_name", "name"]).sum().reset_index()
+    df.loc[:, "turnover_rate"] = df["seller_demand"] * len_period / df["inventory_in_stock"]
+    df.loc[:, "available_rate"] = df["seller_sold"] / df["seller_demand"]
+    cols.extend(["turnover_rate", "available_rate"])
+    agg_func = {col: np.mean if col in ["turnover_rate", "available_rate"] else np.sum for col in cols[2:]}
+    df = df[cols].groupby(["facility_name"]).agg(agg_func).reset_index()
 
     turnover_rate_dict, available_rate_dict = {}, {}
     for facility, turnover_rate, available_rate in zip(
-        df['facility_name'].tolist(), df['turnover_rate'].tolist(), df['available_rate'].tolist()
+        df["facility_name"].tolist(),
+        df["turnover_rate"].tolist(),
+        df["available_rate"].tolist(),
     ):
         turnover_rate_dict[facility] = round(turnover_rate, 3)
         available_rate_dict[facility] = round(available_rate, 3)
@@ -162,11 +168,11 @@ def _calculate_metrics(df: pd.DataFrame, len_period: int):
 @st.cache
 def read_data(exp_log_dir: str) -> dict:
     sku_status_path = os.path.join(exp_log_dir, "sku_status.pkl")
-    with open(sku_status_path, 'rb') as f:
+    with open(sku_status_path, "rb") as f:
         sku_status = pickle.load(f)
 
     network_path = os.path.join(exp_log_dir, "vendor.py")
-    with open(network_path, 'r') as f:
+    with open(network_path, "r") as f:
         vendor_dict = json.load(f)
 
     csv_path = os.path.join(exp_log_dir, "output_product_metrics.csv")
@@ -220,20 +226,22 @@ def plot_team_balance(facility_by_name: Dict[str, tuple], len_period: int, exp_d
 
     # st.table(table_data)
 
-    fig = go.Figure(data=go.Table(
-        header=dict(
-            values=["Exp Name", "Acc Balance"],
-            font=dict(size=24),
-            height=40,
+    fig = go.Figure(
+        data=go.Table(
+            header=dict(
+                values=["Exp Name", "Acc Balance"],
+                font=dict(size=24),
+                height=40,
+            ),
+            columnwidth=[250, 80],
+            cells=dict(
+                values=[table_data["Exp Name"], table_data["Acc Balance"]],
+                font=dict(size=24),
+                height=40,
+                align=["left", "right"],
+            ),
         ),
-        columnwidth=[250, 80],
-        cells=dict(
-            values=[table_data["Exp Name"], table_data["Acc Balance"]],
-            font=dict(size=24),
-            height=40,
-            align=['left', 'right']
-        ),
-    ))
+    )
 
     st.plotly_chart(fig)
 
@@ -259,7 +267,11 @@ def plot_facility_balance(f_name: str, idx: int, len_period: int, exp_data_list:
 
 
 def plot_single_sku_status(
-    title: str, status_key: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]
+    title: str,
+    status_key: str,
+    status_idx: int,
+    len_period: int,
+    exp_data_list: List[Tuple[str, int, dict]],
 ):
     fig = go.Figure()
     fig.update_layout(title_text=title)
@@ -286,7 +298,7 @@ def plot_stock_related_status(fname: str, status_idx: int, len_period: int, exp_
         for idx, metric, legend in zip(
             [1, 2, 3],
             ["stock_status", "stock_in_transit_status", "stock_ordered_to_distribute_status"],
-            ["Stock", "In-Transit", "To-Distribute"]
+            ["Stock", "In-Transit", "To-Distribute"],
         ):
             data = sku_status[metric][0, :, status_idx]
 
@@ -308,7 +320,10 @@ def plot_stock_related_status(fname: str, status_idx: int, len_period: int, exp_
 
 
 def plot_consumer_action_status(
-    fname: str, status_idx: int, len_period: int, exp_data_list: List[Tuple[str, int, dict]]
+    fname: str,
+    status_idx: int,
+    len_period: int,
+    exp_data_list: List[Tuple[str, int, dict]],
 ):
     fig = make_subplots(rows=len(exp_data_list), cols=1, subplot_titles=[data[0] for data in exp_data_list])
     fig.update_layout(title_text=f"[{fname}] purchased quantity & received quantity")
@@ -316,7 +331,7 @@ def plot_consumer_action_status(
         for idx, metric, legend in zip(
             [1, 2],
             ["consumer_purchased", "consumer_received"],
-            ["Purchased", "Received"]
+            ["Purchased", "Received"],
         ):
             data = sku_status[metric][0, :, status_idx]
 
@@ -368,19 +383,19 @@ def plot_route_network(exp_data: Tuple[str, int, dict]):
     graph = graphviz.Digraph(
         name=f"Route Network of {exp_name}",
         edge_attr={
-            'color': LINE_TYPE[line_col].__getitem__('color'),
+            "color": LINE_TYPE[line_col].__getitem__("color"),
         },
         node_attr={
-            'shape': 'ellipse',
-            'color': LINE_TYPE[line_col].__getitem__('color'),
-            'fixedsize': 'true',
-            'width': '0.8',
-            'height': '0.6',
-            'fontsize': '14',
+            "shape": "ellipse",
+            "color": LINE_TYPE[line_col].__getitem__("color"),
+            "fixedsize": "true",
+            "width": "0.8",
+            "height": "0.6",
+            "fontsize": "14",
         },
         graph_attr={
-            'rankdir': 'LR',
-        }
+            "rankdir": "LR",
+        },
     )
     for f_down, up_list in upstream_set_dict.items():
         for f_up in up_list:
@@ -398,25 +413,25 @@ def plot_metric_network(exp_data: Tuple[str, int, dict], metric: str):
     graph = graphviz.Digraph(
         name=f"{metric} of {exp_name}",
         edge_attr={
-            'color': LINE_TYPE[line_col].__getitem__('color'),
+            "color": LINE_TYPE[line_col].__getitem__("color"),
         },
         node_attr={
-            'shape': 'ellipse',
-            'color': LINE_TYPE[line_col].__getitem__('color'),
-            'fixedsize': 'true',
-            'width': '0.8',
-            'height': '0.6',
-            'fontsize': '14',
+            "shape": "ellipse",
+            "color": LINE_TYPE[line_col].__getitem__("color"),
+            "fixedsize": "true",
+            "width": "0.8",
+            "height": "0.6",
+            "fontsize": "14",
         },
         graph_attr={
-            'rankdir': 'LR',
-        }
+            "rankdir": "LR",
+        },
     )
     for f_down, up_list in upstream_set_dict.items():
         for f_up in up_list:
-            if f_up[2] == '_':
+            if f_up[2] == "_":
                 f_up = f"{f_up}-{metric_dict[f_up]}"
-            if f_down[2] == '_':
+            if f_down[2] == "_":
                 f_down = f"{f_down}-{metric_dict[f_down]}"
             graph.edge(f_up, f_down)
 
@@ -427,7 +442,7 @@ def main():
     st.markdown(MARKDOWN_BODY, unsafe_allow_html=True)
 
     ############################################################################
-    ## Experiment List
+    # Experiment List
     ############################################################################
     st.sidebar.title("Experiment List")
 
@@ -439,7 +454,7 @@ def main():
     exp_data_list, by_fname_type_sku, facility_by_name, len_period = set_exp_list(exp_num, exp_list, log_dir)
 
     ############################################################################
-    ## General
+    # General
     ############################################################################
     st.sidebar.title("General Filter")
 
@@ -460,15 +475,14 @@ def main():
 
     facility_idx_list = [facility_by_name[f_name][0] for f_name in selected_facility]
     status_idx_list = [
-        by_fname_type_sku[facility][selected_product_type][selected_sku_name][0]
-        for facility in selected_facility
+        by_fname_type_sku[facility][selected_product_type][selected_sku_name][0] for facility in selected_facility
     ]
 
     exp_name_list = [exp_name for (exp_name, _, _) in exp_data_list]
     selected_exp_names = st.sidebar.multiselect("Experiments", exp_name_list, exp_name_list)
 
     ############################################################################
-    ## Balance Comparison
+    # Balance Comparison
     ############################################################################
     st.header("Facility Balance")
 
@@ -480,7 +494,7 @@ def main():
             plot_facility_balance(f_name, f_idx, len_period, exp_data_list)
 
     ############################################################################
-    ## Topology Comparison
+    # Topology Comparison
     ############################################################################
     st.header("Distribution Network Comparison")
 
@@ -490,7 +504,7 @@ def main():
                 plot_route_network(exp_data)
 
     ############################################################################
-    ## Metrics Comparison
+    # Metrics Comparison
     ############################################################################
     st.header("Metrics Comparison")
 
@@ -505,7 +519,7 @@ def main():
                 plot_metric_network(exp_data, "available_rate")
 
     ############################################################################
-    ## SKU Render
+    # SKU Render
     ############################################################################
     st.header("SKU Comparison")
 
@@ -520,7 +534,11 @@ def main():
     if st.checkbox("Demand", False):
         for status_idx, fname in zip(status_idx_list, selected_facility):
             plot_single_sku_status(
-                f"[{fname}] Step Demand", "demand_status", status_idx, len_period, exp_data_list
+                f"[{fname}] Step Demand",
+                "demand_status",
+                status_idx,
+                len_period,
+                exp_data_list,
             )
 
     if st.checkbox("Sales v.s. Demand", False):
@@ -530,7 +548,11 @@ def main():
     if st.checkbox("Balance", False):
         for status_idx, fname in zip(status_idx_list, selected_facility):
             plot_single_sku_status(
-                f"[{fname}] Step Balance", "balance_status", status_idx, len_period, exp_data_list
+                f"[{fname}] Step Balance",
+                "balance_status",
+                status_idx,
+                len_period,
+                exp_data_list,
             )
 
 

@@ -32,8 +32,12 @@ class BaseStockPolicy(RuleBasedPolicy):
         self.stock_quantity: Dict[int, Dict[int, int]] = defaultdict(dict)
 
     def calculate_stock_quantity(
-        self, input_df: pd.DataFrame, 
-        product_level: int, in_transition_quantity: int, vlt: int, purchased_before_action: List[int]
+        self,
+        input_df: pd.DataFrame,
+        product_level: int,
+        in_transition_quantity: int,
+        vlt: int,
+        purchased_before_action: List[int],
     ) -> np.ndarray:
         # time_hrz_len = history_len + 1 + future_len
         time_hrz_len = len(input_df)
@@ -67,18 +71,17 @@ class BaseStockPolicy(RuleBasedPolicy):
             stocks[0] == product_level,
             transits[0] == in_transition_quantity,
             # Recursion formulas.
-            stocks[1:time_hrz_len + 1] == stocks[0:time_hrz_len] + buy_arv - sales,
-            transits[1:time_hrz_len + 1] == transits[0:time_hrz_len] - buy_arv + buy_in,
+            stocks[1 : time_hrz_len + 1] == stocks[0:time_hrz_len] + buy_arv - sales,
+            transits[1 : time_hrz_len + 1] == transits[0:time_hrz_len] - buy_arv + buy_in,
             sales <= stocks[0:time_hrz_len],
             sales <= demand,
-            buy_in == buy[vlt:time_hrz_len + vlt],
+            buy_in == buy[vlt : time_hrz_len + vlt],
             buy_arv == buy[0:time_hrz_len],
             target_stock == stocks[0:time_hrz_len] + transits[0:time_hrz_len] + buy_in,
             # Objective function.
-            profit == cp.sum(
-                cp.multiply(price, sales)
-                - cp.multiply(order_cost, buy_in)
-                - cp.multiply(storage_cost, stocks[1:])
+            profit
+            == cp.sum(
+                cp.multiply(price, sales) - cp.multiply(order_cost, buy_in) - cp.multiply(storage_cost, stocks[1:]),
             ),
         ]
         # Init the buy before action
@@ -107,7 +110,7 @@ class BaseStockPolicy(RuleBasedPolicy):
                 self.product_level_snapshot[entity_id][self.history_start],
                 self.in_transit_snapshot[entity_id][self.history_start],
                 state["cur_vlt"],
-                purchased_before_action
+                purchased_before_action,
             )
 
         if self.share_same_stock_level:
@@ -117,7 +120,7 @@ class BaseStockPolicy(RuleBasedPolicy):
 
         booked_quantity = state["product_level"] + state["in_transition_quantity"]
         quantity = stock_quantity - booked_quantity
-        quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
+        quantity = max(0.0, (1.0 if state["demand_mean"] <= 0.0 else round(quantity / state["demand_mean"], 0)))
         return int(quantity)
 
     def _rule(self, states: List[dict]) -> List[int]:

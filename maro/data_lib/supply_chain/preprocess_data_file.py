@@ -10,8 +10,7 @@ PREPROCESS_SUFFIX = "_preprocessed"
 
 
 def get_preprocessed_file_path(path: str) -> str:
-    """XXX.csv => XXX_preprocessed.csv
-    """
+    """XXX.csv => XXX_preprocessed.csv"""
     return path.rstrip(CSV_SUFFIX) + PREPROCESS_SUFFIX + CSV_SUFFIX
 
 

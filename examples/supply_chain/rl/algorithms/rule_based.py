@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import math, random
+import math
+import random
 from abc import abstractmethod
 from typing import List, Optional
 
@@ -61,10 +62,7 @@ class ConsumerBasePolicy(RuleBasedPolicy):
         raise NotImplementedError
 
     def _rule(self, states: List[dict]) -> List[int]:
-        return [
-            self._take_action_mask(state) * self._get_action_quantity(state)
-            for state in states
-        ]
+        return [self._take_action_mask(state) * self._get_action_quantity(state) for state in states]
 
 
 class ConsumerBaselinePolicy(ConsumerBasePolicy):
@@ -75,13 +73,13 @@ class ConsumerBaselinePolicy(ConsumerBasePolicy):
 class ConsumerEOQPolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
         quantity = math.sqrt(2 * state["demand_mean"] * state["unit_order_cost"] / state["unit_storage_cost"])
-        quantity /= (state["demand_mean"] + 1e-8)
+        quantity /= state["demand_mean"] + 1e-8
         return min(int(quantity), OR_NUM_CONSUMER_ACTIONS - 1)
 
 
 class ConsumerMinMaxPolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
-        quantity = (self._replenishment_threshold - self._booked_quantity)
+        quantity = self._replenishment_threshold - self._booked_quantity
         # special care for cases when demand_mean = 0
-        quantity = max(0.0, (1.0 if state['demand_mean'] <= 0.0 else round(quantity / state['demand_mean'], 0)))
+        quantity = max(0.0, (1.0 if state["demand_mean"] <= 0.0 else round(quantity / state["demand_mean"], 0)))
         return min(int(quantity), OR_NUM_CONSUMER_ACTIONS - 1)

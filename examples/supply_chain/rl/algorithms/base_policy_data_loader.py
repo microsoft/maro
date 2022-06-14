@@ -33,8 +33,8 @@ class DataLoaderFromFile(BaseDataLoader):
         future_end = state["tick"] + self.data_loader_conf["future_len"]
         target_df = self.df_raws[
             (self.df_raws["entity_id"] == entity_id)
-             & (self.df_raws["step"] >= history_start)
-             & (self.df_raws["step"] <= future_end)
+            & (self.df_raws["step"] >= history_start)
+            & (self.df_raws["step"] <= future_end)
         ]
         return target_df.sort_values(by=["step"])
 
@@ -46,22 +46,32 @@ class DataLoaderFromHistory(BaseDataLoader):
         # Including history and today
         history_start = max(state["tick"] - self.data_loader_conf["history_len"], 0)
         for index in range(history_start, state["tick"] + 1):
-            target_df = target_df.append(pd.Series({
-                'price': state["history_price"][index],
-                'storage_cost': state["unit_storage_cost"],
-                'order_cost': state["unit_order_cost"],
-                'demand': state["history_demand"][index]
-            }), ignore_index=True)
+            target_df = target_df.append(
+                pd.Series(
+                    {
+                        "price": state["history_price"][index],
+                        "storage_cost": state["unit_storage_cost"],
+                        "order_cost": state["unit_order_cost"],
+                        "demand": state["history_demand"][index],
+                    },
+                ),
+                ignore_index=True,
+            )
 
         # Use history mean represents the future
         his_mean_price = target_df["price"].mean().item()
         his_demand_price = target_df["demand"].mean().item()
         future_len = self.data_loader_conf["future_len"]
         for index in range(0, future_len):
-            target_df = target_df.append(pd.Series({
-                'price': his_mean_price,
-                'storage_cost': state["unit_storage_cost"],
-                'order_cost': state["unit_order_cost"],
-                'demand': his_demand_price
-            }), ignore_index=True)
+            target_df = target_df.append(
+                pd.Series(
+                    {
+                        "price": his_mean_price,
+                        "storage_cost": state["unit_storage_cost"],
+                        "order_cost": state["unit_order_cost"],
+                        "demand": his_demand_price,
+                    },
+                ),
+                ignore_index=True,
+            )
         return target_df

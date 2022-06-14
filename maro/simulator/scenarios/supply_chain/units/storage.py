@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Union
 
-from .unitbase import BaseUnitInfo, UnitBase
 from ..objects import SubStorageConfig
+from .unitbase import BaseUnitInfo, UnitBase
 
 if typing.TYPE_CHECKING:
     from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
@@ -38,8 +38,14 @@ class StorageUnitInfo(BaseUnitInfo):
 
 class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(AbsStorageUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
 
@@ -93,11 +99,23 @@ class StorageUnit(AbsStorageUnit):
     """Unit that used to store skus."""
 
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(StorageUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
         # Key: Sub-Storage ID
@@ -140,9 +158,9 @@ class StorageUnit(AbsStorageUnit):
             self._sku_id2sub_storage_id[sku.id] = sku.sub_storage_id
             assert sku.sub_storage_id in self._remaining_space_dict
             self._remaining_space_dict[sku.sub_storage_id] -= sku.init_stock
-            assert self._remaining_space_dict[sku.sub_storage_id] >= 0, (
-                f"Initial stock too much for Sub Storage {sku.sub_storage_id} of Facility {self.facility.name}!"
-            )
+            assert (
+                self._remaining_space_dict[sku.sub_storage_id] >= 0
+            ), f"Initial stock too much for Sub Storage {sku.sub_storage_id} of Facility {self.facility.name}!"
             self._storage_sku_upper_bound[sku.sub_storage_id][sku.id] = sku.storage_upper_bound
 
         # Initialize the None upper bound SKU with the average remaining space.
@@ -160,7 +178,7 @@ class StorageUnit(AbsStorageUnit):
                 # TODO: decide to evenly expand the upper bound or not.
                 print(
                     f"The given upper bound cannot fill the whole capacity of Sub storage {sub_storage_id} "
-                    f"in facility {self.facility.name}"
+                    f"in facility {self.facility.name}",
                 )
 
             # TODO: Can Sum(Upper Bound) > Capacity?
@@ -241,6 +259,7 @@ class StorageUnit(AbsStorageUnit):
     - would be called by DistributionUnit.post_step() -> _try_unload()
     - would be called by ManufactureUnit.post_step()
     """
+
     def try_add_products(
         self,
         product_quantities: Dict[int, int],
@@ -282,7 +301,8 @@ class StorageUnit(AbsStorageUnit):
                 for sku_id, quantity in product_quantities.items():
                     storage_id = self._sku_id2sub_storage_id[sku_id]
                     quantity = min(
-                        int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id],
+                        int(quantity * fulfill_ratio_dict[storage_id]),
+                        self._remaining_space_dict[storage_id],
                     )
                     if quantity > 0:
                         self._add_product(sku_id, quantity)
@@ -311,6 +331,7 @@ class StorageUnit(AbsStorageUnit):
     - would be called by DistributionUnit.place_order(), when action taking.
     - would be called by DistributionUnit.step()
     """
+
     def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
         """Try to take specified number of product.
 
@@ -334,6 +355,7 @@ class StorageUnit(AbsStorageUnit):
     """
     - would be called by SellerUnit.step()
     """
+
     def take_available(self, sku_id: int, quantity: int) -> int:
         """Take as much as available specified product from storage.
 
@@ -388,9 +410,16 @@ class SuperStorageUnit(AbsStorageUnit):
     Function get_product_quantity(self, sku_id: int) and get_product_max_remaining_space(self, sku_id: int) are only
     used in ManufactureUnit, so leave them to raise NotImplementError to indicate wrong setting.
     """
+
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(SuperStorageUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
 
