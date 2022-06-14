@@ -376,6 +376,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             cache_element.event,
             cache_element.tick,
         )
+        cache_element.reward_dict = {agent: cache_element.reward_dict[agent] for agent in cache_element.agent_names}
 
     def _append_cache_element(self, cache_element: Optional[CacheElement]) -> None:
         """`cache_element` == None means we are processing the last element in trans_cache"""
