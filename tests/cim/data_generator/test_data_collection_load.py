@@ -11,7 +11,12 @@ from maro.data_lib.cim import load_from_folder
 from maro.data_lib.cim.cim_data_dump import CimDataDumpUtil
 from maro.data_lib.cim.cim_data_generator import gen_cim_data
 from maro.data_lib.cim.entities import (
-    CimSyntheticDataCollection, NoisedItem, RoutePoint, Stop, SyntheticPortSetting, VesselSetting
+    CimSyntheticDataCollection,
+    NoisedItem,
+    RoutePoint,
+    Stop,
+    SyntheticPortSetting,
+    VesselSetting,
 )
 
 MAX_TICK = 20

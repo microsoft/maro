@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from abc import ABCMeta
 from typing import Tuple
 
@@ -21,7 +24,6 @@ class DiscreteACBasedNet(DiscretePolicyNet, metaclass=ABCMeta):
     - get_state(self) -> dict:
     - set_state(self, net_state: dict) -> None:
     """
-    pass
 
 
 class ContinuousACBasedNet(ContinuousPolicyNet, metaclass=ABCMeta):

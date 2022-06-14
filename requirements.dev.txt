@@ -38,6 +38,7 @@ networkx==2.4
 numpy<1.20.0
 palettable==3.3.0
 pandas==0.25.3
+pre-commit==2.19.0
 prompt_toolkit==2.0.10
 psutil==5.8.0
 ptvsd==4.3.2

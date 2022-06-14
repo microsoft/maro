@@ -46,8 +46,7 @@ def ndarray_to_tensor(array: np.ndarray, device: torch.device = None) -> torch.T
 
 
 def average_grads(grad_list: List[dict]) -> dict:
-    """Obtain the average of a list of gradients.
-    """
+    """Obtain the average of a list of gradients."""
     if len(grad_list) == 1:
         return grad_list[0]
     return {

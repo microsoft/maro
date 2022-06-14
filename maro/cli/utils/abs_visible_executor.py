@@ -11,19 +11,19 @@ class AbsVisibleExecutor(ABC):
     @abstractmethod
     def get_job_details(self):
         """Get job details."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_job_queue(self):
         """Get pending job and killed job queue."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_resource(self):
         """Get cluster resource."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_resource_usage(self, previous_length: int):
         """Get cluster resource usage."""
-        pass
+        raise NotImplementedError

@@ -15,6 +15,7 @@ class SessionType(Enum):
     - ``TASK``: Task session is used to trigger remote job(s).
     - ``NOTIFICATION``: Notification session is used to sync information to peers.
     """
+
     TASK = "task"
     NOTIFICATION = "notification"
 
@@ -26,6 +27,7 @@ class TaskSessionStage(Enum):
     - ``RECEIVE``: Task session stage 2.
     - ``COMPLETE``: Task session stage 3.
     """
+
     REQUEST = "task_request"
     RECEIVE = "task_receive"
     COMPLETE = "task_complete"
@@ -37,6 +39,7 @@ class NotificationSessionStage(Enum):
     - ``REQUEST``: Notification session stage 1.
     - ``RECEIVE``: Notification session stage 2.
     """
+
     REQUEST = "notification_request"
     RECEIVE = "notification_receive"
 
@@ -93,10 +96,11 @@ class SessionMessage(Message):
     def __init__(
         self,
         tag: Union[str, Enum],
-        source: str, destination: str,
+        source: str,
+        destination: str,
         body=None,
         session_type: SessionType = SessionType.TASK,
-        session_stage=None
+        session_stage=None,
     ):
         super().__init__(tag, source, destination, body)
         self.session_type = session_type
@@ -106,4 +110,4 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            raise KeyError(f'Unsupported session type {self.session_type}.')
+            raise KeyError(f"Unsupported session type {self.session_type}.")

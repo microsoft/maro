@@ -5,5 +5,6 @@ from .abs_proxy import AbsProxy
 from .abs_worker import AbsWorker
 
 __all__ = [
-    "AbsProxy", "AbsWorker",
+    "AbsProxy",
+    "AbsWorker",
 ]

@@ -32,11 +32,12 @@ class PortOrderExporter:
                 writer = csv.writer(fp)
 
                 writer.writerow(
-                    ["tick", "src_port_idx", "dest_port_idx", "quantity"]
+                    ["tick", "src_port_idx", "dest_port_idx", "quantity"],
                 )
 
                 for order in self._orders:
                     writer.writerow(
-                        [order.tick, order.src_port_idx, order.dest_port_idx, order.quantity])
+                        [order.tick, order.src_port_idx, order.dest_port_idx, order.quantity],
+                    )
 
             self._orders.clear()

@@ -5,6 +5,10 @@ from .scheduling import AbsExplorationScheduler, LinearExplorationScheduler, Mul
 from .strategies import epsilon_greedy, gaussian_noise, uniform_noise
 
 __all__ = [
-    "AbsExplorationScheduler", "LinearExplorationScheduler", "MultiLinearExplorationScheduler",
-    "epsilon_greedy", "gaussian_noise", "uniform_noise",
+    "AbsExplorationScheduler",
+    "LinearExplorationScheduler",
+    "MultiLinearExplorationScheduler",
+    "epsilon_greedy",
+    "gaussian_noise",
+    "uniform_noise",
 ]

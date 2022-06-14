@@ -65,7 +65,8 @@ class AzureController:
     def start_deployment(
         resource_group: str,
         deployment_name: str,
-        template_file_path: str, parameters_file_path: str
+        template_file_path: str,
+        parameters_file_path: str,
     ) -> None:
         command = (
             f"az deployment group create -g {resource_group} --name {deployment_name} "
@@ -203,7 +204,7 @@ class AzureController:
         services: str = "bqtf",
         resource_types: str = "sco",
         permissions: str = "rwdlacup",
-        expiry: str = (datetime.datetime.utcnow() + datetime.timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%S") + "Z"
+        expiry: str = (datetime.datetime.utcnow() + datetime.timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%S") + "Z",
     ) -> str:
         command = (
             f"az storage account generate-sas --account-name {account_name} --services {services} "
@@ -239,4 +240,4 @@ class AzureController:
     def _get_valid_json(message: str) -> str:
         left_idx = message.find("{")
         right_idx = message.rindex("}")
-        return message[left_idx:right_idx + 1]
+        return message[left_idx : right_idx + 1]

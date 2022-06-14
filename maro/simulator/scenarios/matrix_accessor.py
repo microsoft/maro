@@ -77,7 +77,7 @@ class MatrixAttributeAccessor:
         self._ensure_attr()
 
         start = self._col_num * row_idx
-        return self._attr[start: start + self._col_num]
+        return self._attr[start : start + self._col_num]
 
     def get_column(self, column_idx: int):
         """Get values of a column.

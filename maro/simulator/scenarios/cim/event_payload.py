@@ -9,6 +9,7 @@ class VesselStatePayload:
         port_idx (int): Which port the vessel at.
         vessel_idx (int): Which vessel's state changed.
     """
+
     summary_key = ["port_idx", "vessel_idx"]
 
     def __init__(self, port_idx: int, vessel_idx: int):
@@ -29,6 +30,7 @@ class VesselDischargePayload:
         port_idx (int): Which port will receive the discharged containers.
         quantity (int): How many containers will be discharged.
     """
+
     summary_key = ["vessel_idx", "port_idx", "from_port_idx", "quantity"]
 
     def __init__(self, vessel_idx: int, from_port_idx: int, port_idx: int, quantity: int):
@@ -38,8 +40,13 @@ class VesselDischargePayload:
         self.quantity = int(quantity)
 
     def __repr__(self):
-        return "%s {port_idx: %r, vessel_idx: %r, quantity: %r, from_port_idx: %r}" % \
-            (self.__class__.__name__, self.port_idx, self.vessel_idx, self.quantity, self.from_port_idx)
+        return "%s {port_idx: %r, vessel_idx: %r, quantity: %r, from_port_idx: %r}" % (
+            self.__class__.__name__,
+            self.port_idx,
+            self.vessel_idx,
+            self.quantity,
+            self.from_port_idx,
+        )
 
 
 class LadenReturnPayload:
@@ -50,6 +57,7 @@ class LadenReturnPayload:
         dest_port_idx (int): Which port the laden are to be sent, i.e, the destination port of the corresponding order.
         quantity (int): How many ladens/containers are returned.
     """
+
     summary_key = ["src_port_idx", "dest_port_idx", "quantity"]
 
     def __init__(self, src_port_idx: int, dest_port_idx: int, quantity: int):
@@ -58,8 +66,12 @@ class LadenReturnPayload:
         self.quantity = int(quantity)
 
     def __repr__(self):
-        return "%s {src_port_idx: %r, dest_port_idx: %r, quantity:%r}" % \
-            (self.__class__.__name__, self.src_port_idx, self.dest_port_idx, self.quantity)
+        return "%s {src_port_idx: %r, dest_port_idx: %r, quantity:%r}" % (
+            self.__class__.__name__,
+            self.src_port_idx,
+            self.dest_port_idx,
+            self.quantity,
+        )
 
 
 class EmptyReturnPayload:
@@ -69,6 +81,7 @@ class EmptyReturnPayload:
         port_idx (int): Which port the empty containers are returned to.
         quantity (int): How many empty containers are returned.
     """
+
     summary_key = ["port_idx", "quantity"]
 
     def __init__(self, port_idx: int, quantity: int):
@@ -76,5 +89,4 @@ class EmptyReturnPayload:
         self.quantity = int(quantity)
 
     def __repr__(self):
-        return "%s {port_idx: %r, quantity: %r}" % \
-            (self.__class__.__name__, self.port_idx, self.quantity)
+        return "%s {port_idx: %r, quantity: %r}" % (self.__class__.__name__, self.port_idx, self.quantity)

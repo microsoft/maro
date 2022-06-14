@@ -10,9 +10,16 @@ from .virtual_machine import VirtualMachine
 
 __all__ = [
     "VmSchedulingBusinessEngine",
-    "AllocateAction", "PostponeAction", "DecisionPayload", "Latency", "VmRequestPayload",
+    "AllocateAction",
+    "PostponeAction",
+    "DecisionPayload",
+    "Latency",
+    "VmRequestPayload",
     "CpuReader",
-    "Events", "PmState", "PostponeType", "VmCategory",
+    "Events",
+    "PmState",
+    "PostponeType",
+    "VmCategory",
     "PhysicalMachine",
-    "VirtualMachine"
+    "VirtualMachine",
 ]

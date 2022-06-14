@@ -18,6 +18,7 @@ URL_PREFIX = "/v1/schedules"
 
 # Api functions.
 
+
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 @check_jwt_validity
 def list_schedules():
@@ -57,14 +58,14 @@ def create_schedule(**kwargs):
 
     redis_controller.set_schedule_details(
         schedule_name=schedule_details["name"],
-        schedule_details=schedule_details
+        schedule_details=schedule_details,
     )
 
     # Build individual jobs
     for job_name in schedule_details["job_names"]:
         redis_controller.set_job_details(
             job_name=job_name,
-            job_details=_build_job_details(schedule_details=schedule_details, job_name=job_name)
+            job_details=_build_job_details(schedule_details=schedule_details, job_name=job_name),
         )
         redis_controller.push_pending_job_ticket(job_name=job_name)
     return {}
@@ -111,7 +112,7 @@ def _build_job_details(schedule_details: dict, job_name: str) -> dict:
     job_details["name"] = job_name
     job_details["tags"] = {
         "schedule_name": schedule_details["name"],
-        "schedule_id": schedule_details["id"]
+        "schedule_id": schedule_details["id"],
     }
     job_details.pop("job_names")
 

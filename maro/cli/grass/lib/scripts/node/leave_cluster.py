@@ -92,7 +92,7 @@ class Subprocess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            timeout=timeout
+            timeout=timeout,
         )
         if completed_process.returncode != 0:
             raise Exception(completed_process.stderr)

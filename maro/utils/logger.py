@@ -30,6 +30,7 @@ class LogFormat(Enum):
         - ``LogFormat.cli_info`` (file): simple time | level | msg
         - ``LogFormat.cli_info`` (stdout):  msg
     """
+
     full = 1
     simple = 2
     internal = 3
@@ -41,22 +42,31 @@ class LogFormat(Enum):
 
 FORMAT_NAME_TO_FILE_FORMAT = {
     LogFormat.full: logging.Formatter(
-        fmt='%(asctime)s | %(host)s | %(user)s | %(process)d | %(tag)s | %(levelname)s | %(message)s'),
+        fmt="%(asctime)s | %(host)s | %(user)s | %(process)d | %(tag)s | %(levelname)s | %(message)s",
+    ),
     LogFormat.simple: logging.Formatter(
-        fmt='%(asctime)s | %(tag)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S'),
+        fmt="%(asctime)s | %(tag)s | %(levelname)s | %(message)s",
+        datefmt="%H:%M:%S",
+    ),
     LogFormat.internal: logging.Formatter(
-        fmt='%(asctime)s | %(component)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S'),
+        fmt="%(asctime)s | %(component)s | %(levelname)s | %(message)s",
+        datefmt="%H:%M:%S",
+    ),
     LogFormat.cli_debug: logging.Formatter(
-        fmt="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"),
+        fmt="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    ),
     LogFormat.cli_info: logging.Formatter(
-        fmt="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"),
+        fmt="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    ),
     LogFormat.none: None,
-    LogFormat.time_only: logging.Formatter(fmt='%(asctime)s | %(message)s', datefmt='%H:%M:%S'),
+    LogFormat.time_only: logging.Formatter(fmt="%(asctime)s | %(message)s", datefmt="%H:%M:%S"),
 }
 
 FORMAT_NAME_TO_STDOUT_FORMAT = {
     # We need to output clean messages in the INFO mode.
-    LogFormat.cli_info: logging.Formatter(fmt='%(message)s'),
+    LogFormat.cli_info: logging.Formatter(fmt="%(message)s"),
 }
 
 # Progress of training, we give it a highest level.
@@ -69,7 +79,7 @@ LEVEL_MAP = {
     "WARN": logging.WARN,
     "ERROR": logging.ERROR,
     "CRITICAL": logging.CRITICAL,
-    "PROGRESS": PROGRESS
+    "PROGRESS": PROGRESS,
 }
 
 
@@ -111,14 +121,22 @@ class Logger(object):
     """
 
     def __init__(
-        self, tag: str, format_: LogFormat = LogFormat.simple, dump_folder: str = cwd, dump_mode: str = 'w',
-        extension_name: str = 'log', auto_timestamp: bool = False, stdout_level="INFO"
+        self,
+        tag: str,
+        format_: LogFormat = LogFormat.simple,
+        dump_folder: str = cwd,
+        dump_mode: str = "w",
+        extension_name: str = "log",
+        auto_timestamp: bool = False,
+        stdout_level="INFO",
     ):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
-        self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
-            if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
-            FORMAT_NAME_TO_FILE_FORMAT[format_]
-        self._stdout_level = os.environ.get('LOG_LEVEL') or stdout_level
+        self._stdout_format = (
+            FORMAT_NAME_TO_STDOUT_FORMAT[format_]
+            if format_ in FORMAT_NAME_TO_STDOUT_FORMAT
+            else FORMAT_NAME_TO_FILE_FORMAT[format_]
+        )
+        self._stdout_level = os.environ.get("LOG_LEVEL") or stdout_level
         self._logger = logging.getLogger(tag)
         self._logger.setLevel(logging.DEBUG)
         self._extension_name = extension_name
@@ -127,20 +145,22 @@ class Logger(object):
             try:
                 os.makedirs(dump_folder)
             except FileExistsError:
-                logging.warning("Receive File Exist Error about creating dump folder for internal log. "
-                                "It may be caused by multi-thread and it won't have any impact on logger dumps.")
+                logging.warning(
+                    "Receive File Exist Error about creating dump folder for internal log. "
+                    "It may be caused by multi-thread and it won't have any impact on logger dumps.",
+                )
             except Exception as e:
                 raise e
 
         if auto_timestamp:
-            filename = f'{tag}.{datetime.now().timestamp()}'
+            filename = f"{tag}.{datetime.now().timestamp()}"
         else:
-            filename = f'{tag}'
+            filename = f"{tag}"
 
-        filename += f'.{self._extension_name}'
+        filename += f".{self._extension_name}"
 
         # File handler
-        fh = logging.FileHandler(filename=f'{os.path.join(dump_folder, filename)}', mode=dump_mode, encoding="utf-8")
+        fh = logging.FileHandler(filename=f"{os.path.join(dump_folder, filename)}", mode=dump_mode, encoding="utf-8")
         fh.setLevel(logging.DEBUG)
         if self._file_format is not None:
             fh.setFormatter(self._file_format)
@@ -154,7 +174,7 @@ class Logger(object):
         self._logger.addHandler(fh)
         self._logger.addHandler(sh)
 
-        self._extra = {'host': socket.gethostname(), 'user': getpass.getuser(), 'tag': tag}
+        self._extra = {"host": socket.gethostname(), "user": getpass.getuser(), "tag": tag}
 
     @msgformat
     def debug(self, msg, *args):
@@ -219,13 +239,19 @@ class CliLogger:
             dump_path = os.path.join(os.path.expanduser("~/.maro/log/cli"), current_time)
             if self.log_level == logging.DEBUG:
                 super().__init__(
-                    tag='cli',
-                    format_=LogFormat.cli_debug, dump_folder=dump_path, dump_mode='a', stdout_level=self.log_level
+                    tag="cli",
+                    format_=LogFormat.cli_debug,
+                    dump_folder=dump_path,
+                    dump_mode="a",
+                    stdout_level=self.log_level,
                 )
             elif self.log_level >= logging.INFO:
                 super().__init__(
-                    tag='cli',
-                    format_=LogFormat.cli_info, dump_folder=dump_path, dump_mode='a', stdout_level=self.log_level
+                    tag="cli",
+                    format_=LogFormat.cli_info,
+                    dump_folder=dump_path,
+                    dump_mode="a",
+                    stdout_level=self.log_level,
                 )
 
     _logger = None
@@ -254,7 +280,7 @@ class CliLogger:
             message (str): logged message.
         """
         self.passive_init()
-        self._logger.debug('\033[33m' + message + '\033[0m')
+        self._logger.debug("\033[33m" + message + "\033[0m")
 
     def debug_green(self, message: str) -> None:
         """``logger.debug()`` with color green and passive init.
@@ -263,7 +289,7 @@ class CliLogger:
             message (str): logged message.
         """
         self.passive_init()
-        self._logger.debug('\033[32m' + message + '\033[0m')
+        self._logger.debug("\033[32m" + message + "\033[0m")
 
     def info(self, message: str) -> None:
         """``logger.info()`` with passive init.
@@ -299,7 +325,7 @@ class CliLogger:
             message (str): logged message.
         """
         self.passive_init()
-        self._logger.info('\033[32m' + message + '\033[0m')
+        self._logger.info("\033[32m" + message + "\033[0m")
 
     def warning_yellow(self, message: str) -> None:
         """``logger.warning()`` with color yellow and passive init.
@@ -308,7 +334,7 @@ class CliLogger:
             message (str): logged message.
         """
         self.passive_init()
-        self._logger.warn('\033[33m' + message + '\033[0m')
+        self._logger.warn("\033[33m" + message + "\033[0m")
 
     def error_red(self, message: str) -> None:
         """``logger.error()`` with color red and passive init.
@@ -317,7 +343,7 @@ class CliLogger:
             message (str): logged message.
         """
         self.passive_init()
-        self._logger.error('\033[31m' + message + '\033[0m')
+        self._logger.error("\033[31m" + message + "\033[0m")
 
 
 class LoggerV2(object):
@@ -339,13 +365,20 @@ class LoggerV2(object):
     """
 
     def __init__(
-        self, tag: str, format_: LogFormat = LogFormat.simple, dump_path: str = None, dump_mode: str = 'w',
-        stdout_level="INFO", file_level="DEBUG"
+        self,
+        tag: str,
+        format_: LogFormat = LogFormat.simple,
+        dump_path: str = None,
+        dump_mode: str = "w",
+        stdout_level="INFO",
+        file_level="DEBUG",
     ):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
-        self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
-            if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
-            FORMAT_NAME_TO_FILE_FORMAT[format_]
+        self._stdout_format = (
+            FORMAT_NAME_TO_STDOUT_FORMAT[format_]
+            if format_ in FORMAT_NAME_TO_STDOUT_FORMAT
+            else FORMAT_NAME_TO_FILE_FORMAT[format_]
+        )
         self._stdout_level = LEVEL_MAP[stdout_level] if isinstance(stdout_level, str) else stdout_level
         self._file_level = LEVEL_MAP[file_level] if isinstance(file_level, str) else file_level
         self._logger = logging.getLogger(tag)
@@ -367,7 +400,7 @@ class LoggerV2(object):
             sh.setFormatter(self._stdout_format)
         self._logger.addHandler(sh)
 
-        self._extra = {'host': socket.gethostname(), 'user': getpass.getuser(), 'tag': tag}
+        self._extra = {"host": socket.gethostname(), "user": getpass.getuser(), "tag": tag}
 
     @msgformat
     def debug(self, msg, *args):

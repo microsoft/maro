@@ -11,7 +11,7 @@ from torch.distributions import Categorical
 from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl.training.algorithms.base import ACBasedOps, ACBasedParams, ACBasedTrainer
-from maro.rl.utils import discount_cumsum, ndarray_to_tensor, TransitionBatch
+from maro.rl.utils import TransitionBatch, discount_cumsum, ndarray_to_tensor
 
 
 @dataclass
@@ -22,6 +22,7 @@ class PPOParams(ACBasedParams):
     clip_ratio (float, default=None): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf).
         If it is None, the actor loss is calculated using the usual policy gradient theorem.
     """
+
     clip_ratio: float = None
 
     def extract_ops_params(self) -> Dict[str, object]:
@@ -119,13 +120,13 @@ class DiscretePPOWithEntropyOps(ACBasedOps):
         action_probs = self._policy.get_action_probs(states)
         dist_entropy = Categorical(action_probs).entropy()
         logps = torch.log(action_probs.gather(1, actions).squeeze())
-        logps = torch.clamp(logps, min=self._min_logp, max=.0)
+        logps = torch.clamp(logps, min=self._min_logp, max=0.0)
         if self._clip_ratio is not None:
             ratio = torch.exp(logps - logps_old)
             clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
             actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).float()
             kl = (logps_old - logps).mean().item()
-            early_stop = (kl >= 0.01 * 1.5)  # TODO
+            early_stop = kl >= 0.01 * 1.5  # TODO
         else:
             actor_loss = -(logps * advantages).float()  # I * delta * log pi(a|s)
             early_stop = False
@@ -150,7 +151,7 @@ class DiscretePPOWithEntropyOps(ACBasedOps):
         states = ndarray_to_tensor(batch.states, self._device)
         state_values = self._v_critic_net.v_values(states).cpu().detach().numpy()
         values = np.concatenate([state_values[1:], np.zeros(1).astype(np.float32)])
-        deltas = (batch.rewards + self._reward_discount * values - state_values)
+        deltas = batch.rewards + self._reward_discount * values - state_values
         # special care for tail state
         deltas[-1] = 0.0
         batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)

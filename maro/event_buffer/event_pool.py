@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from itertools import count
 from typing import Iterable, Iterator, List, Union
 
@@ -36,8 +37,11 @@ class EventPool:
         return len(self._cascade_events)
 
     def gen(
-        self, tick: int, event_type: object, payload: object,
-        is_cascade: bool = False
+        self,
+        tick: int,
+        event_type: object,
+        payload: object,
+        is_cascade: bool = False,
     ) -> ActualEvent:
         """Generate an event.
 
@@ -52,8 +56,11 @@ class EventPool:
         """
         event = _pop(self._cascade_events, CascadeEvent) if is_cascade else _pop(self._atom_events, AtomEvent)
         event.reset_value(
-            id=next(self._event_count), tick=tick, event_type=event_type,
-            payload=payload, state=EventState.PENDING
+            id=next(self._event_count),
+            tick=tick,
+            event_type=event_type,
+            payload=payload,
+            state=EventState.PENDING,
         )
         return event
 

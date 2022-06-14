@@ -14,8 +14,16 @@ from yaml import safe_load
 from maro.data_lib import BinaryReader
 
 from .entities import (
-    CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode, PortSetting, RoutePoint,
-    Stop, SyntheticPortSetting, VesselSetting
+    CimRealDataCollection,
+    CimSyntheticDataCollection,
+    NoisedItem,
+    Order,
+    OrderGenerateMode,
+    PortSetting,
+    RoutePoint,
+    Stop,
+    SyntheticPortSetting,
+    VesselSetting,
 )
 
 
@@ -63,7 +71,7 @@ def _load_vessels(data_folder: str) -> (Dict[str, int], List[VesselSetting]):
             float(line["sailing_speed_noise"]),
             int(line["parking_duration"]),
             float(line["parking_noise"]),
-            int(line["empty"])
+            int(line["empty"]),
         )
 
         vessels.append(vessel)
@@ -82,7 +90,9 @@ def _load_vessel_period(data_folder: str) -> List[int]:
 
 
 def _calculate_vessel_period(
-    vessels: List[VesselSetting], routes: List[List[RoutePoint]], route_mapping: Dict[str, int]
+    vessels: List[VesselSetting],
+    routes: List[List[RoutePoint]],
+    route_mapping: Dict[str, int],
 ) -> List[int]:
     expected_periods: List[int] = []
     for vessel in vessels:
@@ -90,9 +100,8 @@ def _calculate_vessel_period(
 
         expected_period = 0
         for route_point in route_points:
-            expected_period += (
-                vessel.parking_duration
-                + math.ceil(route_point.distance_to_next_port / vessel.sailing_speed)
+            expected_period += vessel.parking_duration + math.ceil(
+                route_point.distance_to_next_port / vessel.sailing_speed,
             )
         expected_periods.append(expected_period)
 
@@ -115,7 +124,10 @@ def _load_routes(data_folder: str) -> (Dict[str, int], List[List[RoutePoint]]):
             routes.append([])
 
         route_point = RoutePoint(
-            route_index, line["port_name"], int(line["distance_to_next_port"]))
+            route_index,
+            line["port_name"],
+            int(line["distance_to_next_port"]),
+        )
 
         routes[route_index].append(route_point)
 
@@ -136,7 +148,7 @@ def _load_stops_from_csv(stops_file_path: str, vessel_number: int) -> List[List[
             int(line["arrival_tick"]),
             int(line["departure_tick"]),
             int(line["port_index"]),
-            int(line["vessel_index"])
+            int(line["vessel_index"]),
         )
 
         vessel_stops.append(stop)
@@ -155,11 +167,13 @@ def _load_stops_from_bin(stops_file_path: str, vessel_number: int) -> List[List[
     for stop_item in reader.items():
         vessel_stops: List[Stop] = stops[stop_item.vessel_index]
 
-        stop = Stop(len(vessel_stops),
-                    stop_item.timestamp,
-                    stop_item.leave_tick,
-                    stop_item.port_index,
-                    stop_item.vessel_index)
+        stop = Stop(
+            len(vessel_stops),
+            stop_item.timestamp,
+            stop_item.leave_tick,
+            stop_item.port_index,
+            stop_item.vessel_index,
+        )
 
         vessel_stops.append(stop)
 
@@ -179,7 +193,9 @@ def _load_stops(data_folder: str, vessel_number: int) -> List[List[Stop]]:
 def _load_global_order_proportions(data_folder: str) -> np.ndarray:
     """load global order proportions from txt file"""
     global_order_prop_file = os.path.join(
-        data_folder, "global_order_proportion.txt")
+        data_folder,
+        "global_order_proportion.txt",
+    )
 
     return np.loadtxt(global_order_prop_file)
 
@@ -196,7 +212,7 @@ def _load_order_proportions(data_folder: str) -> Dict[int, List[NoisedItem]]:
         target_prop = NoisedItem(
             int(line["dest_port_index"]),
             float(line["proportion"]),
-            float(line["proportion_noise"])
+            float(line["proportion_noise"]),
         )
 
         target_proportions[source_port_index].append(target_prop)
@@ -205,7 +221,8 @@ def _load_order_proportions(data_folder: str) -> Dict[int, List[NoisedItem]]:
 
 
 def _load_ports_dump(
-    data_folder: str, order_target_proportion: Dict[int, List[NoisedItem]]
+    data_folder: str,
+    order_target_proportion: Dict[int, List[NoisedItem]],
 ) -> Tuple[dict, List[SyntheticPortSetting]]:
     ports_file_path = os.path.join(data_folder, "ports.csv")
 
@@ -221,17 +238,19 @@ def _load_ports_dump(
         full_rtn_buffer = NoisedItem(
             port_index,
             int(line["full_return_buffer"]),
-            int(line["full_return_buffer_noise"]))
+            int(line["full_return_buffer_noise"]),
+        )
 
         empty_rtn_buffer = NoisedItem(
             port_index,
             int(line["empty_return_buffer"]),
-            int(line["empty_return_buffer_noise"]))
+            int(line["empty_return_buffer_noise"]),
+        )
 
         source_order_proportion = NoisedItem(
             port_index,
             float(line["order_proportion"]),
-            float(line["order_proportion_noise"])
+            float(line["order_proportion_noise"]),
         )
 
         port = SyntheticPortSetting(
@@ -242,7 +261,7 @@ def _load_ports_dump(
             empty_rtn_buffer,
             full_rtn_buffer,
             source_order_proportion,
-            order_target_proportion[port_index]
+            order_target_proportion[port_index],
         )
 
         ports.append(port)
@@ -265,13 +284,13 @@ def _load_ports_real(data_folder: str) -> Tuple[dict, List[PortSetting]]:
         full_rtn_buffer = NoisedItem(
             port_index,
             int(line["full_return_buffer"]),
-            int(line["full_return_buffer_noise"])
+            int(line["full_return_buffer_noise"]),
         )
 
         empty_rtn_buffer = NoisedItem(
             port_index,
             int(line["empty_return_buffer"]),
-            int(line["empty_return_buffer_noise"])
+            int(line["empty_return_buffer_noise"]),
         )
 
         port = PortSetting(
@@ -280,7 +299,7 @@ def _load_ports_real(data_folder: str) -> Tuple[dict, List[PortSetting]]:
             int(line["capacity"]),
             int(line["empty"]),
             empty_rtn_buffer,
-            full_rtn_buffer
+            full_rtn_buffer,
         )
 
         ports.append(port)
@@ -300,8 +319,8 @@ def _load_orders_from_csv(order_file_path: str) -> Dict[int, List[Order]]:
                 int(line["tick"]),
                 int(line["source_port_index"]),
                 int(line["dest_port_index"]),
-                int(line["quantity"])
-            )
+                int(line["quantity"]),
+            ),
         )
 
     return orders
@@ -321,8 +340,8 @@ def _load_orders_from_bin(order_file_path: str) -> Dict[int, List[Order]]:
                 order.timestamp,
                 order.src_port_index,
                 order.dest_port_index,
-                order.quantity
-            )
+                order.quantity,
+            ),
         )
 
     return orders
@@ -383,7 +402,7 @@ def load_from_folder(source_folder: str) -> CimSyntheticDataCollection:
         total_containers=misc_items["total_container"],
         order_mode=OrderGenerateMode(misc_items["order_mode"]),
         order_proportion=global_order_proportions,
-        version=misc_items["version"]
+        version=misc_items["version"],
     )
 
 
@@ -427,5 +446,5 @@ def load_real_data_from_folder(source_folder: str) -> CimRealDataCollection:
         future_stop_number=misc_items["future_stop_number"],
         max_tick=misc_items["max_tick"],
         seed=misc_items["seed"],
-        orders=orders
+        orders=orders,
     )

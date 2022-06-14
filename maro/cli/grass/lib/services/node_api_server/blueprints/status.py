@@ -16,5 +16,5 @@ URL_PREFIX = "/v1/status"
 def status():
     return {
         "status": "OK",
-        "time": time.time()
+        "time": time.time(),
     }

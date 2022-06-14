@@ -14,9 +14,11 @@ def worker(group_name):
     Args:
         group_name (str): Identifier for the group of all communication components.
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="worker",
-                  expected_peers={"master": 1})
+    proxy = Proxy(
+        group_name=group_name,
+        component_type="worker",
+        expected_peers={"master": 1},
+    )
     counter = 0
     print(f"{proxy.name}'s counter is {counter}.")
 
@@ -45,14 +47,14 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
     proxy = Proxy(
         group_name=group_name,
         component_type="master",
-        expected_peers={"worker": worker_num}
+        expected_peers={"worker": worker_num},
     )
 
     if is_immediate:
         session_ids = proxy.ibroadcast(
             component_type="worker",
             tag="INC",
-            session_type=SessionType.NOTIFICATION
+            session_type=SessionType.NOTIFICATION,
         )
         # Do some tasks with higher priority here.
         replied_msgs = proxy.receive_by_id(session_ids, timeout=-1)
@@ -61,13 +63,13 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
             component_type="worker",
             tag="INC",
             session_type=SessionType.NOTIFICATION,
-            timeout=-1
+            timeout=-1,
         )
 
     for msg in replied_msgs:
         print(
             f"{proxy.name} get receive notification from {msg.source} with "
-            f"message session stage {msg.session_stage}."
+            f"message session stage {msg.session_stage}.",
         )
 
 
@@ -84,7 +86,7 @@ if __name__ == "__main__":
 
     workers = mp.Pool(worker_number)
 
-    master_process = mp.Process(target=master, args=(group_name, worker_number, is_immediate,))
+    master_process = mp.Process(target=master, args=(group_name, worker_number, is_immediate))
     master_process.start()
 
     workers.map(worker, [group_name] * worker_number)

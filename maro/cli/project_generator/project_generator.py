@@ -18,12 +18,13 @@ from maro.simulator.utils.common import get_scenarios, get_topologies
 default_topologies = {
     "cim": "toy.4p_ssdd_l0.0",
     "citi_bike": "toy.3s_4t",
-    "vm_scheduling": "azure.2019.10k"
+    "vm_scheduling": "azure.2019.10k",
 }
 
 
 class NonEmptyStringValidator(Validator):
     """Validator used to validate to make sure input is not empty string."""
+
     def __init__(self, err_msg: str):
         super().__init__()
         self._err_msg = err_msg
@@ -35,6 +36,7 @@ class NonEmptyStringValidator(Validator):
 
 class PositiveNumberValidator(Validator):
     """Validator used to make sure input value is a positive number."""
+
     def validate(self, document):
         text = document.text
 
@@ -69,6 +71,7 @@ def new_project(**kwargs: dict):
         # Validator for scenario name to make sure input is a built-in scenario.
         class BuiltInScenarioValidator(Validator):
             """Validate is input scenario is built-in one."""
+
             def validate(self, document):
                 if document.text not in builtin_scenarios:
                     raise ValidationError(message="Scenario name not a built-in one.")
@@ -82,13 +85,15 @@ def new_project(**kwargs: dict):
             completer=builtin_scenario_completer,
             complete_while_typing=True,
             validate_while_typing=True,
-            validator=BuiltInScenarioValidator()
+            validator=BuiltInScenarioValidator(),
         )
 
-        use_builtin_topology = is_command_yes(prompt(
-            "Use built-in topology (configuration)?",
-            default="yes"
-        ))
+        use_builtin_topology = is_command_yes(
+            prompt(
+                "Use built-in topology (configuration)?",
+                default="yes",
+            ),
+        )
 
         if use_builtin_topology:
             # Build topology completer for topology selecting.
@@ -97,6 +102,7 @@ def new_project(**kwargs: dict):
 
             class BuiltinTopologyValidator(Validator):
                 """Validate if input topology is built-in one."""
+
                 def validate(self, document):
                     if document.text not in builtin_topologies:
                         raise ValidationError(message="Topology not exist.")
@@ -107,13 +113,13 @@ def new_project(**kwargs: dict):
                 completer=builtin_topologies_completer,
                 validator=BuiltinTopologyValidator(),
                 validate_while_typing=True,
-                complete_while_typing=True
+                complete_while_typing=True,
             )
         else:
             topology_name = prompt(
                 "Topology name to create (content is copied from built-in topology.):",
                 validator=NonEmptyStringValidator("Topology name cannot be empty."),
-                validate_while_typing=True
+                validate_while_typing=True,
             )
     else:
         use_builtin_topology = False
@@ -123,13 +129,13 @@ def new_project(**kwargs: dict):
         scenario_name = prompt(
             "New scenario name:",
             default=scenario_name,
-            validator=NonEmptyStringValidator("Scenario name cannot be empty.")
+            validator=NonEmptyStringValidator("Scenario name cannot be empty."),
         )
 
         topology_name = prompt(
             "New topology name:",
             default=scenario_name,
-            validator=NonEmptyStringValidator("Topology name cannot be empty.")
+            validator=NonEmptyStringValidator("Topology name cannot be empty."),
         )
 
     # Misc settings.
@@ -137,29 +143,28 @@ def new_project(**kwargs: dict):
         "Durations to emulate:",
         default="100",
         validator=PositiveNumberValidator(),
-        validate_while_typing=True
+        validate_while_typing=True,
     )
 
     episodes = prompt(
         "Number of episodes to emulate:",
         default="10",
         validator=PositiveNumberValidator(),
-        validate_while_typing=True
+        validate_while_typing=True,
     )
 
-    options = \
-        {
-            "use_builtin_scenario": use_builtin_scenario,
-            "scenario": scenario_name,
-            "total_episodes": int(episodes),
-            "durations": int(durations),
-            "use_builtin_topology": use_builtin_topology,
-            "topology": topology_name
-        }
+    options = {
+        "use_builtin_scenario": use_builtin_scenario,
+        "scenario": scenario_name,
+        "total_episodes": int(episodes),
+        "durations": int(durations),
+        "use_builtin_topology": use_builtin_topology,
+        "topology": topology_name,
+    }
 
     should_continue = prompt(
         pprint.pformat(options) + "\n\nIs this OK?",
-        default="yes"
+        default="yes",
     )
 
     if is_command_yes(should_continue):
@@ -196,7 +201,7 @@ def new_project_with_builtin_scenario(options: dict):
                 "scenarios",
                 scenario_name,
                 "topologies",
-                topology_to_copy
+                topology_to_copy,
             )
 
         # If the default one not exist, then use first one.
@@ -208,7 +213,7 @@ def new_project_with_builtin_scenario(options: dict):
                 "scenarios",
                 scenario_name,
                 "topologies",
-                topology_to_copy
+                topology_to_copy,
             )
 
         with open(os.path.join(topology_to_copy_path, "config.yml"), "rt") as source_fp:
@@ -276,7 +281,7 @@ def generate_environment():
     """Generate a common template environment."""
     env = Environment(
         loader=PackageLoader("maro", "cli/project_generator/templates"),
-        trim_blocks=True
+        trim_blocks=True,
     )
 
     return env

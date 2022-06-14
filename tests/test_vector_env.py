@@ -2,11 +2,12 @@
 # Licensed under the MIT license.
 
 import os
-import sys
 import unittest
 
 from maro.vector_env import VectorEnv
-from tests.utils import backends_to_test
+
+from .utils import backends_to_test
+
 
 class TestVectorEnv(unittest.TestCase):
     def test_batch_number_large_than_cpu_core(self):
@@ -14,18 +15,22 @@ class TestVectorEnv(unittest.TestCase):
 
         # We pass more batch number, it should cause assert error
         with self.assertRaises(AssertionError) as ctx:
-            ve = VectorEnv(actual_core + 5,
-                           scenario="cim",
-                           topology="toy.5p_ssddd_l0.0",
-                           durations=100)
+            ve = VectorEnv(
+                actual_core + 5,
+                scenario="cim",
+                topology="toy.5p_ssddd_l0.0",
+                durations=100,
+            )
 
     def test_push_single_env(self):
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
-            with VectorEnv(batch_num=2,
-                        scenario="cim",
-                        topology="toy.5p_ssddd_l0.0",
-                        durations=100) as ve:
+            with VectorEnv(
+                batch_num=2,
+                scenario="cim",
+                topology="toy.5p_ssddd_l0.0",
+                durations=100,
+            ) as ve:
 
                 # We use dict to specified which environment should go to next step.
 
@@ -47,6 +52,6 @@ class TestVectorEnv(unittest.TestCase):
                 ticks = ve.tick
                 self.assertListEqual([99, 99], ticks)
 
+
 if __name__ == "__main__":
     unittest.main()
-

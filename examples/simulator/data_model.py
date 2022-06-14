@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from maro.backends.frame import FrameBase, FrameNode, NodeAttribute, NodeBase, node
 
 TOTAL_PRODUCT_CATEGORIES = 10
@@ -80,5 +83,5 @@ retail_frame.stores[0].shortages[:] = [i + 1 for i in range(TOTAL_PRODUCT_CATEGO
 retail_frame.take_snapshot(1)
 
 # Query shortage information of first and second store at first and second tick.
-store_shortage_history = snapshot_list["store"][[0, 1]: [0, 1]: "shortages"].reshape(2, -1)
+store_shortage_history = snapshot_list["store"][[0, 1]:[0, 1]:"shortages"].reshape(2, -1)
 print(f"First and second store shortage history at the first and second tick (numpy array): {store_shortage_history}")

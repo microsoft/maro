@@ -93,7 +93,7 @@ class Proxy:
         max_length_for_message_cache: int = MAX_LENGTH_FOR_MESSAGE_CACHE,
         timeout_for_minimal_peer_number: int = TIMEOUT_FOR_MINIMAL_PEER_NUMBER,
         is_remove_failed_container: bool = IS_REMOVE_FAILED_CONTAINER,
-        max_rejoin_times: int = MAX_REJOIN_TIMES
+        max_rejoin_times: int = MAX_REJOIN_TIMES,
     ):
         self._group_name = group_name
         self._component_type = component_type
@@ -113,9 +113,11 @@ class Proxy:
         # Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.
         # Initialize the driver.
         if driver_type == DriverType.ZMQ:
-            self._driver = ZmqDriver(
-                component_type=self._component_type, **driver_parameters, logger=self._logger
-            ) if driver_parameters else ZmqDriver(component_type=self._component_type, logger=self._logger)
+            self._driver = (
+                ZmqDriver(component_type=self._component_type, **driver_parameters, logger=self._logger)
+                if driver_parameters
+                else ZmqDriver(component_type=self._component_type, logger=self._logger)
+            )
         else:
             self._logger.error(f"Unsupported driver type {driver_type}, please use DriverType class.")
             sys.exit(NON_RESTART_EXIT_CODE)
@@ -130,7 +132,7 @@ class Proxy:
                 break
             except Exception as e:
                 self._logger.error(
-                    f"{self._name} failed to connect to Redis due to {e}. Retrying in {next_retry} seconds."
+                    f"{self._name} failed to connect to Redis due to {e}. Retrying in {next_retry} seconds.",
                 )
                 time.sleep(next_retry)
                 next_retry *= 2
@@ -138,7 +140,7 @@ class Proxy:
         if success:
             self._logger.debug(
                 f"{self._name} is successfully connected to the redis server "
-                f"at {redis_address[0]}:{redis_address[1]}."
+                f"at {redis_address[0]}:{redis_address[1]}.",
             )
         else:
             self._logger.error(f"{self._name} failed to connect to the redis server.")
@@ -149,7 +151,7 @@ class Proxy:
         for peer_type, number in expected_peers.items():
             self._peers_info_dict[peer_type] = _PEER_INFO(
                 hash_table_name=f"{self._group_name}:{peer_type}",
-                expected_number=number
+                expected_number=number,
             )
         self._onboard_peer_dict = defaultdict(dict)
 
@@ -166,13 +168,12 @@ class Proxy:
             self._enable_message_cache = enable_message_cache_for_rejoin
             if self._enable_message_cache:
                 self._message_cache_for_exited_peers = defaultdict(
-                    lambda: deque([], maxlen=max_length_for_message_cache)
+                    lambda: deque([], maxlen=max_length_for_message_cache),
                 )
 
             if isinstance(minimal_peers, int):
                 self._minimal_peers = {
-                    peer_type: max(minimal_peers, 1)
-                    for peer_type, peer_info in self._peers_info_dict.items()
+                    peer_type: max(minimal_peers, 1) for peer_type, peer_info in self._peers_info_dict.items()
                 }
             elif isinstance(minimal_peers, dict):
                 self._minimal_peers = {
@@ -210,14 +211,16 @@ class Proxy:
             rejoin_config = {
                 "rejoin:enable": int(self._enable_rejoin),
                 "rejoin:max_restart_times": self._max_rejoin_times,
-                "is_remove_failed_container": int(self._is_remove_failed_container)
+                "is_remove_failed_container": int(self._is_remove_failed_container),
             }
 
             self._redis_connection.hmset(f"job:{job_id}:runtime_details", rejoin_config)
 
             if self._enable_rejoin:
                 self._redis_connection.hset(
-                    f"job:{job_id}:rejoin_component_name_to_container_name", self._name, container_name
+                    f"job:{job_id}:rejoin_component_name_to_container_name",
+                    self._name,
+                    container_name,
                 )
 
     def __del__(self):
@@ -241,13 +244,13 @@ class Proxy:
             self._logger.error(
                 "Signal detector disable. This may cause dirty data to be left in the Redis! "
                 "To avoid this, please use multiprocess or make sure it can exit successfully."
-                f"Due to {str(e)}."
+                f"Due to {str(e)}.",
             )
 
     def _get_peers_list(self):
         """To collect all peers' name in the same group (group name) from Redis."""
         if not self._peers_info_dict:
-            raise PeersMissError(f"Cannot get {self._name}\'s peers.")
+            raise PeersMissError(f"Cannot get {self._name}'s peers.")
 
         for peer_type, (peer_hash_name, num_expected) in self._peers_info_dict.items():
             registered_peers, next_retry = [], self._initial_peer_discovery_retry_interval
@@ -256,18 +259,18 @@ class Proxy:
                     registered_peers = [peer.decode() for peer in self._redis_connection.hkeys(peer_hash_name)]
                     if len(registered_peers) > num_expected:
                         del registered_peers[num_expected:]
-                    self._logger.debug(f"{self._name} successfully get all {peer_type}\'s names.")
+                    self._logger.debug(f"{self._name} successfully get all {peer_type}'s names.")
                     break
                 else:
                     self._logger.warn(
-                        f"{self._name} failed to get {peer_type}\'s name. Retrying in {next_retry} seconds."
+                        f"{self._name} failed to get {peer_type}'s name. Retrying in {next_retry} seconds.",
                     )
                     time.sleep(next_retry)
                     next_retry *= 2
 
             if not registered_peers:
                 raise InformationUncompletedError(
-                    f"{self._name} failed to get the required number of {peer_type}s from redis."
+                    f"{self._name} failed to get the required number of {peer_type}s from redis.",
                 )
 
             self._onboard_peer_dict[peer_type] = {peer_name: None for peer_name in registered_peers}
@@ -282,9 +285,9 @@ class Proxy:
                 peers_socket_value = self._redis_connection.hmget(info.hash_table_name, name_list)
                 for idx, peer_name in enumerate(name_list):
                     self._onboard_peer_dict[peer_type][peer_name] = json.loads(peers_socket_value[idx])
-                    self._logger.debug(f"{self._name} successfully get {peer_name}\'s socket address")
+                    self._logger.debug(f"{self._name} successfully get {peer_name}'s socket address")
             except Exception as e:
-                raise InformationUncompletedError(f"{self._name} failed to get {name_list}\'s address. Due to {str(e)}")
+                raise InformationUncompletedError(f"{self._name} failed to get {name_list}'s address. Due to {str(e)}")
 
             self._driver.connect(self._onboard_peer_dict[peer_type])
 
@@ -377,7 +380,7 @@ class Proxy:
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_body_list: list
+        destination_body_list: list,
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of session id."""
         session_id_list = []
@@ -388,7 +391,7 @@ class Proxy:
                 source=self._name,
                 destination=destination,
                 body=body,
-                session_type=session_type
+                session_type=session_type,
             )
             send_result = self.isend(message)
             if isinstance(send_result, list):
@@ -401,7 +404,7 @@ class Proxy:
         tag: Union[str, Enum],
         session_type: SessionType,
         destination_body_list: list,
-        timeout: int = -1
+        timeout: int = -1,
     ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
 
@@ -417,14 +420,14 @@ class Proxy:
         """
         return self.receive_by_id(
             targets=self._scatter(tag, session_type, destination_body_list),
-            timeout=timeout
+            timeout=timeout,
         )
 
     def iscatter(
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_body_list: list
+        destination_body_list: list,
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of message id.
 
@@ -445,12 +448,12 @@ class Proxy:
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        body=None
+        body=None,
     ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
         if component_type not in self._onboard_peer_dict:
             self._logger.error(
-                f"peer_type: {component_type} cannot be recognized. Please check the input of proxy.broadcast."
+                f"peer_type: {component_type} cannot be recognized. Please check the input of proxy.broadcast.",
             )
             sys.exit(NON_RESTART_EXIT_CODE)
 
@@ -462,7 +465,7 @@ class Proxy:
             source=self._name,
             destination=component_type,
             body=body,
-            session_type=session_type
+            session_type=session_type,
         )
 
         self._driver.broadcast(component_type, message)
@@ -475,7 +478,7 @@ class Proxy:
         tag: Union[str, Enum],
         session_type: SessionType,
         body=None,
-        timeout: int = None
+        timeout: int = None,
     ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
 
@@ -490,7 +493,7 @@ class Proxy:
         """
         return self.receive_by_id(
             targets=self._broadcast(component_type, tag, session_type, body),
-            timeout=timeout
+            timeout=timeout,
         )
 
     def ibroadcast(
@@ -498,7 +501,7 @@ class Proxy:
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        body=None
+        body=None,
     ) -> List[str]:
         """Broadcast message to all subscribers, and return list of message's session id.
 
@@ -568,7 +571,7 @@ class Proxy:
     def send(
         self,
         message: Message,
-        timeout: int = None
+        timeout: int = None,
     ) -> Union[List[Message], None]:
         """Send a message to a remote peer.
 
@@ -588,7 +591,7 @@ class Proxy:
         message: Union[SessionMessage, Message],
         tag: Union[str, Enum] = None,
         body=None,
-        ack_reply: bool = False
+        ack_reply: bool = False,
     ) -> List[str]:
         """Reply a received message.
 
@@ -616,7 +619,7 @@ class Proxy:
         message: Union[SessionMessage, Message],
         destination: str,
         tag: Union[str, Enum] = None,
-        body=None
+        body=None,
     ) -> List[str]:
         """Forward a received message.
 
@@ -645,7 +648,7 @@ class Proxy:
         for peer_type in self._peers_info_dict.keys():
             # onboard_peers_dict_on_redis is the newest peers' information from the Redis.
             onboard_peers_dict_on_redis = self._redis_connection.hgetall(
-                self._peers_info_dict[peer_type].hash_table_name
+                self._peers_info_dict[peer_type].hash_table_name,
             )
             onboard_peers_dict_on_redis = {
                 key.decode(): json.loads(value) for key, value in onboard_peers_dict_on_redis.items()
@@ -654,8 +657,9 @@ class Proxy:
             # Mappings (instances of dict) compare equal if and only if they have equal (key, value) pairs.
             # Equality comparison of the keys and values enforces reflexivity.
             if self._onboard_peer_dict[peer_type] != onboard_peers_dict_on_redis:
-                union_peer_name = list(self._onboard_peer_dict[peer_type].keys()) + \
-                    list(onboard_peers_dict_on_redis.keys())
+                union_peer_name = list(self._onboard_peer_dict[peer_type].keys()) + list(
+                    onboard_peers_dict_on_redis.keys(),
+                )
                 for peer_name in union_peer_name:
                     # Add new peers (new key added on redis).
                     if peer_name not in list(self._onboard_peer_dict[peer_type].keys()):
@@ -697,7 +701,7 @@ class Proxy:
         while time.time() - start_time < self._timeout_for_minimal_peer_number:
             self._logger.warn(
                 f"No enough peers in {peer_type}! Wait for some peer restart. Remaining time: "
-                f"{start_time + self._timeout_for_minimal_peer_number - time.time()}"
+                f"{start_time + self._timeout_for_minimal_peer_number - time.time()}",
             )
             self._check_peers_update()
 
@@ -720,12 +724,12 @@ class Proxy:
         """
         # peer_name is consist by peer_type + '_proxy_' + UUID where UUID is only compose by digits and letters.
         # So the peer_type must be the part before last '_proxy_'.
-        peer_type = peer_name[:peer_name.rfind("_proxy_")]
+        peer_type = peer_name[: peer_name.rfind("_proxy_")]
 
         if peer_type not in list(self._onboard_peer_dict.keys()):
             self._logger.error(
                 f"The message's destination {peer_name} does not belong to any recognized peer type. "
-                f"Please check the input of message."
+                f"Please check the input of message.",
             )
             sys.exit(NON_RESTART_EXIT_CODE)
 

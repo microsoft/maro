@@ -38,7 +38,7 @@ def convert_val(val: str, dtype: str, tzone):
 
     # process the value first
     # clear
-    val = val.strip("\"\'")
+    val = val.strip("\"'")
     # clear space at 2 side
     val = val.strip()
 
@@ -81,6 +81,7 @@ class BinaryConverter:
             used to adjust the data reader pipeline.
 
     """
+
     def __init__(self, output_file: str, meta_file: str, utc_start_timestamp: int = None):
         self._output_fp = None
         self._meta = BinaryMeta()
@@ -119,7 +120,7 @@ class BinaryConverter:
         Args:
             csv_file(str): Csv to convert.
         """
-        with open(csv_file, newline='') as csv_fp:
+        with open(csv_file, newline="") as csv_fp:
             reader = DictReader(csv_fp)
 
             # write items
@@ -150,7 +151,7 @@ class BinaryConverter:
             self._data_offset,
             self._data_size,
             self._starttime,
-            self._endtime
+            self._endtime,
         )
 
         self._meta_offset = len(header_bytes)
@@ -226,4 +227,4 @@ class BinaryConverter:
                 self._data_size += self._item_size
 
 
-__all__ = ['BinaryConverter']
+__all__ = ["BinaryConverter"]

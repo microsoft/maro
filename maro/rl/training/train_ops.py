@@ -169,15 +169,13 @@ class AsyncClient(object):
                 return bytes_to_pyobj(result[0])
 
     def close(self) -> None:
-        """Close the connection to the proxy.
-        """
+        """Close the connection to the proxy."""
         self._poller.unregister(self._socket)
         self._socket.disconnect(self._address)
         self._socket.close()
 
     def connect(self) -> None:
-        """Establish the connection to the proxy.
-        """
+        """Establish the connection to the proxy."""
         self._socket = Context.instance().socket(zmq.DEALER)
         self._socket.setsockopt_string(zmq.IDENTITY, self._name)
         self._socket.setsockopt(zmq.LINGER, 0)
@@ -187,8 +185,7 @@ class AsyncClient(object):
         self._poller.register(self._socket, zmq.POLLIN)
 
     async def exit(self) -> None:
-        """Send EXIT signals to the proxy indicating no more tasks.
-        """
+        """Send EXIT signals to the proxy indicating no more tasks."""
         await self._socket.send(b"EXIT")
 
 
@@ -241,6 +238,5 @@ class RemoteOps(object):
         return attr
 
     async def exit(self) -> None:
-        """Close the internal task client.
-        """
+        """Close the internal task client."""
         await self._client.exit()

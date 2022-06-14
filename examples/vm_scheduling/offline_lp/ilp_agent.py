@@ -1,20 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import numpy as np
-import timeit
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from typing import List, Set
 
-from maro.data_lib import BinaryReader
-from maro.simulator.scenarios.vm_scheduling import PostponeAction, AllocateAction
-from maro.simulator.scenarios.vm_scheduling.common import Action
-from maro.utils import DottableDict, Logger
-
+import numpy as np
 from common import IlpPmCapacity, IlpVmInfo
 from vm_scheduling_ilp import NOT_ALLOCATE_NOW, VmSchedulingILP
 
-class IlpAgent():
+from maro.data_lib import BinaryReader
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, PostponeAction
+from maro.simulator.scenarios.vm_scheduling.common import Action
+from maro.utils import DottableDict, Logger
+
+
+class IlpAgent:
     def __init__(
         self,
         ilp_config: DottableDict,
@@ -24,11 +24,11 @@ class IlpAgent():
         env_duration: int,
         simulation_logger: Logger,
         ilp_logger: Logger,
-        log_path: str
+        log_path: str,
     ):
         self._simulation_logger = simulation_logger
         self._ilp_logger = ilp_logger
-        
+
         self._allocation_counter = Counter()
 
         pm_capacity: List[IlpPmCapacity] = [IlpPmCapacity(core=pm[0], mem=pm[1]) for pm in pm_capacity]
@@ -41,7 +41,7 @@ class IlpAgent():
         self.vm_item_picker = self.vm_reader.items_tick_picker(
             env_start_tick,
             env_start_tick + env_duration,
-            time_unit="s"
+            time_unit="s",
         )
 
         # Used to keep the info already read from the vm_item_picker.
@@ -87,7 +87,7 @@ class IlpAgent():
                         core=vm.vm_cpu_cores,
                         mem=vm.vm_memory,
                         lifetime=vm.vm_lifetime,
-                        arrival_env_tick=tick
+                        arrival_env_tick=tick,
                     )
                     if tick < env_tick + self.ilp_apply_buffer_size:
                         self.refreshed_allocated_vm_dict[vm.vm_id] = vmInfo
@@ -109,7 +109,13 @@ class IlpAgent():
 
         # Choose action by ILP, may trigger a new formulation and solution,
         # may directly return the decision if the cur_vm_id is still in the apply buffer size of last solution.
-        chosen_pm_idx = self.ilp.choose_pm(env_tick, cur_vm_id, self.allocated_vm, self.future_vm_req, self._vm_id_to_idx)
+        chosen_pm_idx = self.ilp.choose_pm(
+            env_tick,
+            cur_vm_id,
+            self.allocated_vm,
+            self.future_vm_req,
+            self._vm_id_to_idx,
+        )
         self._simulation_logger.info(f"tick: {env_tick}, vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
 
         if chosen_pm_idx == NOT_ALLOCATE_NOW:
