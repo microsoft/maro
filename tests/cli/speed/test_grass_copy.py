@@ -21,9 +21,9 @@ TEST_TO_TIME = {}
 
 def record_speed(func):
     def with_record_speed(*args, **kwargs):
-        start_time = time.time_ns() / (10 ** 9)
+        start_time = time.time_ns() / (10**9)
         func(*args, **kwargs)
-        end_time = time.time_ns() / (10 ** 9)
+        end_time = time.time_ns() / (10**9)
         print(f"{func.__name__}: {end_time - start_time} s")
         TEST_TO_TIME[func.__name__] = end_time - start_time
 
@@ -40,6 +40,7 @@ class TestGrassCopy(unittest.TestCase):
     Therefore, we use test_X (X is a digit) as prefix to specify the order of the tests.
     Ref: https://docs.python.org/3.7/library/unittest.html#organizing-test-code
     """
+
     test_id = None
     cluster_name = None
 
@@ -52,7 +53,8 @@ class TestGrassCopy(unittest.TestCase):
         cls.file_path = os.path.abspath(__file__)
         cls.dir_path = os.path.dirname(cls.file_path)
         cls.deployment_template_path = os.path.normpath(
-            os.path.join(cls.dir_path, "../templates/test_grass_azure_create.yml"))
+            os.path.join(cls.dir_path, "../templates/test_grass_azure_create.yml"),
+        )
         cls.deployment_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_grass_azure_create.yml")
         cls.config_path = os.path.normpath(os.path.join(cls.dir_path, "../config.yml"))
 
@@ -98,8 +100,9 @@ class TestGrassCopy(unittest.TestCase):
         print(
             json.dumps(
                 TEST_TO_TIME,
-                indent=4, sort_keys=True
-            )
+                indent=4,
+                sort_keys=True,
+            ),
         )
 
         # Delete tmp test folder
@@ -117,80 +120,110 @@ class TestGrassCopy(unittest.TestCase):
 
     @record_speed
     def test_1_rsync_big_file_to_remote(self) -> None:
-        command = (f"ssh -o StrictHostKeyChecking=no "
-                   f"{self.admin_username}@{self.master_public_ip_address} "
-                   f"'mkdir -p ~/test/{self.test_id}/test_1_rsync_big_file_to_remote'")
+        command = (
+            f"ssh -o StrictHostKeyChecking=no "
+            f"{self.admin_username}@{self.master_public_ip_address} "
+            f"'mkdir -p ~/test/{self.test_id}/test_1_rsync_big_file_to_remote'"
+        )
         _ = Subprocess.run(command=command)
-        command = (f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
-                   f"{self.local_big_file_path} "
-                   f"{self.admin_username}@{self.master_public_ip_address}:"
-                   f"~/test/{self.test_id}/test_1_rsync_big_file_to_remote")
+        command = (
+            f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
+            f"{self.local_big_file_path} "
+            f"{self.admin_username}@{self.master_public_ip_address}:"
+            f"~/test/{self.test_id}/test_1_rsync_big_file_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
     def test_1_rsync_small_files_to_remote(self) -> None:
-        command = (f"ssh -o StrictHostKeyChecking=no "
-                   f"{self.admin_username}@{self.master_public_ip_address} "
-                   f"'mkdir -p ~/test/{self.test_id}/test_1_rsync_small_files_to_remote'")
+        command = (
+            f"ssh -o StrictHostKeyChecking=no "
+            f"{self.admin_username}@{self.master_public_ip_address} "
+            f"'mkdir -p ~/test/{self.test_id}/test_1_rsync_small_files_to_remote'"
+        )
         _ = Subprocess.run(command=command)
-        command = (f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
-                   f"{self.local_small_files_path} "
-                   f"{self.admin_username}@{self.master_public_ip_address}:"
-                   f"~/test/{self.test_id}/test_1_rsync_small_files_to_remote")
+        command = (
+            f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
+            f"{self.local_small_files_path} "
+            f"{self.admin_username}@{self.master_public_ip_address}:"
+            f"~/test/{self.test_id}/test_1_rsync_small_files_to_remote"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
     def test_2_rsync_big_file_to_local(self) -> None:
         command = f"mkdir -p {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_rsync_big_file_to_local"
         _ = Subprocess.run(command=command)
-        command = (f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
-                   f"{self.admin_username}@{self.master_public_ip_address}:"
-                   f"~/test/{self.test_id}/test_1_rsync_big_file_to_remote "
-                   f"{GlobalPaths.MARO_TEST}/{self.test_id}/test_2_rsync_big_file_to_local")
+        command = (
+            f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
+            f"{self.admin_username}@{self.master_public_ip_address}:"
+            f"~/test/{self.test_id}/test_1_rsync_big_file_to_remote "
+            f"{GlobalPaths.MARO_TEST}/{self.test_id}/test_2_rsync_big_file_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_rsync_big_file_to_local/test_1_rsync_big_file_to_remote/big_file")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_rsync_big_file_to_local/test_1_rsync_big_file_to_remote/big_file",
+                ),
+            ),
+        )
 
     @record_speed
     def test_2_rsync_small_files_to_local(self) -> None:
         command = f"mkdir -p {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_rsync_small_files_to_local"
         _ = Subprocess.run(command=command)
-        command = (f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
-                   f"{self.admin_username}@{self.master_public_ip_address}:"
-                   f"~/test/{self.test_id}/test_1_rsync_small_files_to_remote "
-                   f"{GlobalPaths.MARO_TEST}/{self.test_id}/test_2_rsync_small_files_to_local")
+        command = (
+            f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az -r "
+            f"{self.admin_username}@{self.master_public_ip_address}:"
+            f"~/test/{self.test_id}/test_1_rsync_small_files_to_remote "
+            f"{GlobalPaths.MARO_TEST}/{self.test_id}/test_2_rsync_small_files_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_rsync_small_files_to_local/test_1_rsync_small_files_to_remote/small_files/README.md")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_rsync_small_files_to_local/test_1_rsync_small_files_to_remote/small_files/README.md",
+                ),
+            ),
+        )
 
     @record_speed
     def test_1_tar_ssh_big_file_to_remote(self) -> None:
-        command = (f"ssh -o StrictHostKeyChecking=no "
-                   f"{self.admin_username}@{self.master_public_ip_address} "
-                   f"'mkdir -p ~/test/{self.test_id}/test_1_tar_ssh_big_file_to_remote'")
+        command = (
+            f"ssh -o StrictHostKeyChecking=no "
+            f"{self.admin_username}@{self.master_public_ip_address} "
+            f"'mkdir -p ~/test/{self.test_id}/test_1_tar_ssh_big_file_to_remote'"
+        )
         _ = Subprocess.run(command=command)
 
         basename = os.path.basename(self.local_big_file_path)
         dirname = os.path.dirname(self.local_big_file_path)
-        command = (f"tar cf - -C {dirname} {basename} | "
-                   f"ssh {self.admin_username}@{self.master_public_ip_address} "
-                   f"'tar xf - -C ~/test/{self.test_id}/test_1_tar_ssh_big_file_to_remote'")
+        command = (
+            f"tar cf - -C {dirname} {basename} | "
+            f"ssh {self.admin_username}@{self.master_public_ip_address} "
+            f"'tar xf - -C ~/test/{self.test_id}/test_1_tar_ssh_big_file_to_remote'"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
     def test_1_tar_ssh_small_files_to_remote(self) -> None:
-        command = (f"ssh -o StrictHostKeyChecking=no "
-                   f"{self.admin_username}@{self.master_public_ip_address} "
-                   f"'mkdir -p ~/test/{self.test_id}/test_1_tar_ssh_small_files_to_remote'")
+        command = (
+            f"ssh -o StrictHostKeyChecking=no "
+            f"{self.admin_username}@{self.master_public_ip_address} "
+            f"'mkdir -p ~/test/{self.test_id}/test_1_tar_ssh_small_files_to_remote'"
+        )
         _ = Subprocess.run(command=command)
 
         basename = os.path.basename(self.local_small_files_path)
         dirname = os.path.dirname(self.local_small_files_path)
-        command = (f"tar cf - -C {dirname} {basename} | "
-                   f"ssh {self.admin_username}@{self.master_public_ip_address} "
-                   f"'tar xf - -C ~/test/{self.test_id}/test_1_tar_ssh_small_files_to_remote'")
+        command = (
+            f"tar cf - -C {dirname} {basename} | "
+            f"ssh {self.admin_username}@{self.master_public_ip_address} "
+            f"'tar xf - -C ~/test/{self.test_id}/test_1_tar_ssh_small_files_to_remote'"
+        )
         Subprocess.interactive_run(command=command)
 
     @record_speed
@@ -200,12 +233,19 @@ class TestGrassCopy(unittest.TestCase):
 
         basename = os.path.basename(f"~/test/{self.test_id}/test_1_tar_ssh_big_file_to_remote")
         dirname = os.path.dirname(f"~/test/{self.test_id}/test_1_tar_ssh_big_file_to_remote")
-        command = (f"ssh {self.admin_username}@{self.master_public_ip_address} 'tar cf - -C {dirname} {basename}' | "
-                   f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_tar_ssh_big_file_to_local")
+        command = (
+            f"ssh {self.admin_username}@{self.master_public_ip_address} 'tar cf - -C {dirname} {basename}' | "
+            f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_tar_ssh_big_file_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_tar_ssh_big_file_to_local/test_1_tar_ssh_big_file_to_remote/big_file")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_tar_ssh_big_file_to_local/test_1_tar_ssh_big_file_to_remote/big_file",
+                ),
+            ),
+        )
 
     @record_speed
     def test_2_tar_ssh_small_files_to_local(self) -> None:
@@ -213,12 +253,19 @@ class TestGrassCopy(unittest.TestCase):
         _ = Subprocess.run(command=command)
         basename = os.path.basename(f"~/test/{self.test_id}/test_1_tar_ssh_small_files_to_remote")
         dirname = os.path.dirname(f"~/test/{self.test_id}/test_1_tar_ssh_small_files_to_remote")
-        command = (f"ssh {self.admin_username}@{self.master_public_ip_address} 'tar cf - -C {dirname} {basename}' | "
-                   f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_tar_ssh_small_files_to_local")
+        command = (
+            f"ssh {self.admin_username}@{self.master_public_ip_address} 'tar cf - -C {dirname} {basename}' | "
+            f"tar xf - -C {GlobalPaths.MARO_TEST}/{self.test_id}/test_2_tar_ssh_small_files_to_local"
+        )
         Subprocess.interactive_run(command=command)
-        self.assertTrue(os.path.exists(os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
-            f"test_2_tar_ssh_small_files_to_local/test_1_tar_ssh_small_files_to_remote/small_files/README.md")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.expanduser(
+                    f"{GlobalPaths.MARO_TEST}/{self.test_id}/"
+                    f"test_2_tar_ssh_small_files_to_local/test_1_tar_ssh_small_files_to_remote/small_files/README.md",
+                ),
+            ),
+        )
 
 
 if __name__ == "__main__":

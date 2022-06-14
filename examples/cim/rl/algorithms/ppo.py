@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import torch
 
 from maro.rl.policy import DiscretePolicyGradient
@@ -15,11 +18,11 @@ def get_ppo(state_dim: int, name: str) -> PPOTrainer:
         name=name,
         params=PPOParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
-            reward_discount=.0,
+            reward_discount=0.0,
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=None,
-            lam=.0,
+            lam=0.0,
             clip_ratio=0.1,
         ),
     )

@@ -8,21 +8,37 @@
 import warnings
 
 import numpy as np
-cimport numpy as np
-cimport cython
 
+cimport cython
+cimport numpy as np
+from cpython cimport bool
 from cython cimport view
 from cython.operator cimport dereference as deref
-
-from cpython cimport bool
 from libcpp cimport bool as cppbool
 from libcpp.map cimport map
 
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
-    INT, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX,
-    ATTR_CHAR, ATTR_UCHAR, ATTR_SHORT, ATTR_USHORT, ATTR_INT, ATTR_UINT,
-    ATTR_LONG, ATTR_ULONG, ATTR_FLOAT, ATTR_DOUBLE)
-
+from maro.backends.backend cimport (
+    ATTR_CHAR,
+    ATTR_DOUBLE,
+    ATTR_FLOAT,
+    ATTR_INT,
+    ATTR_LONG,
+    ATTR_SHORT,
+    ATTR_TYPE,
+    ATTR_UCHAR,
+    ATTR_UINT,
+    ATTR_ULONG,
+    ATTR_USHORT,
+    INT,
+    NODE_INDEX,
+    NODE_TYPE,
+    SLOT_INDEX,
+    UINT,
+    ULONG,
+    AttributeType,
+    BackendAbc,
+    SnapshotListAbc,
+)
 
 # Ensure numpy will not crash, as we use numpy as query result
 np.import_array()

@@ -1,13 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from dataclasses import dataclass
 from typing import Callable, Dict
 
 import torch
 
 from maro.rl.policy import RLPolicy, ValueBasedPolicy
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, remote, RemoteOps, SingleAgentTrainer, TrainerParams
-from maro.rl.utils import get_torch_device, ndarray_to_tensor, TransitionBatch
+from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
+from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
@@ -25,6 +26,7 @@ class DQNParams(TrainerParams):
         is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
         sequentially with wrap-around.
     """
+
     num_epochs: int = 1
     update_target_every: int = 5
     soft_update_coef: float = 0.1
@@ -136,8 +138,7 @@ class DQNOps(AbsTrainOps):
         self._target_policy.set_state(state["target_q_net"])
 
     def soft_update_target(self) -> None:
-        """Soft update the target policy.
-        """
+        """Soft update the target policy."""
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
     def to_device(self, device: str) -> None:
@@ -196,8 +197,7 @@ class DQNTrainer(SingleAgentTrainer):
         self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
-        """Soft update the target policy and target critic.
-        """
+        """Soft update the target policy and target critic."""
         self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
             self._ops.soft_update_target()

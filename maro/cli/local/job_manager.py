@@ -72,10 +72,12 @@ if __name__ == "__main__":
                 elif details["status"] == JobStatus.PENDING:
                     pending.append((job_name, json.loads(redis_conn.hget(RedisHashKey.JOB_CONF, job_name))))
 
-            for job_name, conf in pending[:max(0, max_running - num_running)]:
+            for job_name, conf in pending[: max(0, max_running - num_running)]:
                 if containerize and not image_exists(docker_image_name):
                     redis_conn.hset(
-                        RedisHashKey.JOB_DETAILS, job_name, json.dumps({"status": JobStatus.IMAGE_BUILDING})
+                        RedisHashKey.JOB_DETAILS,
+                        job_name,
+                        json.dumps({"status": JobStatus.IMAGE_BUILDING}),
                     )
                     build_image(local_maro_root, docker_file_path, docker_image_name)
 

@@ -34,8 +34,8 @@ class TestRoutePoint(unittest.TestCase):
         self.assertEqual(2, len(route_mapping))
         self.assertEqual(2, len(routes))
 
-        self.assertEqual(0, route_mapping['route_001'])
-        self.assertEqual(1, route_mapping['route_002'])
+        self.assertEqual(0, route_mapping["route_001"])
+        self.assertEqual(1, route_mapping["route_002"])
 
         # check distance
         self.assertListEqual([60, 70], [r.distance_to_next_port for r in routes[0]])

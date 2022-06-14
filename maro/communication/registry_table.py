@@ -16,6 +16,7 @@ from .message import Message
 
 class Operation(Enum):
     """The Enum class of the logic operations."""
+
     AND = "AND"
     OR = "OR"
 
@@ -82,7 +83,7 @@ class ConditionalEvent:
                 suffix_tree.value = Operation.OR
             else:
                 raise ConditionalEventSyntaxError(
-                    "The last of the conditional event tuple must be one of ['AND', 'OR', '&&', '||]"
+                    "The last of the conditional event tuple must be one of ['AND', 'OR', '&&', '||]",
                 )
 
             for slot in event[:-1]:
@@ -106,7 +107,7 @@ class ConditionalEvent:
         slots = unit_event.split(":")
         if len(slots) != 3:
             raise ConditionalEventSyntaxError(
-                f"The conditional event: {unit_event}, must have three parts, and divided by ':'."
+                f"The conditional event: {unit_event}, must have three parts, and divided by ':'.",
             )
 
         # The third part of unit conditional event must be an integer or percentage(*%).
@@ -117,14 +118,17 @@ class ConditionalEvent:
             int(slots[-1])
         except Exception as e:
             raise ConditionalEventSyntaxError(
-                f"The third part of conditional event must be an integer or percentage with % in the end. {str(e)}"
+                f"The third part of conditional event must be an integer or percentage with % in the end. {str(e)}",
             )
 
     def _get_request_message_number(self, unit_event: str) -> int:
         """To get the number of request messages by the given unit event."""
         component_type, _, number = unit_event.split(":")
-        peers_number = len(self._peers_name[component_type]) if component_type != "*" else \
-            len(list(itertools.chain.from_iterable(self._peers_name.values())))
+        peers_number = (
+            len(self._peers_name[component_type])
+            if component_type != "*"
+            else len(list(itertools.chain.from_iterable(self._peers_name.values())))
+        )
 
         if peers_number == 0:
             raise PeersMissError(f"There is no target component in peer list! Required peer type {component_type}.")

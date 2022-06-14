@@ -1,7 +1,10 @@
-from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 from rule_based_algorithm import RuleBasedAlgorithm
+
+from maro.simulator import Env
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload
 
 
 class FirstFit(RuleBasedAlgorithm):
@@ -14,7 +17,7 @@ class FirstFit(RuleBasedAlgorithm):
         # Take action to allocate on the chose PM.
         action: AllocateAction = AllocateAction(
             vm_id=decision_event.vm_id,
-            pm_id=chosen_idx
+            pm_id=chosen_idx,
         )
 
         return action

@@ -87,8 +87,7 @@ class SimRandom:
         rand.seed(self._seed_dict[key])
 
     def clear(self) -> None:
-        """Clear all existing random keys.
-        """
+        """Clear all existing random keys."""
         self._rand_instances = OrderedDict()
         self._seed_dict = {}
         self._seed = int(time.time())
@@ -100,4 +99,4 @@ random = SimRandom()
 seed = random.seed
 """Set seed for simulator."""
 
-__all__ = ['seed', 'random', 'SimRandom']
+__all__ = ["seed", "random", "SimRandom"]

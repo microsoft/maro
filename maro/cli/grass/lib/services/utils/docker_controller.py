@@ -8,8 +8,7 @@ from .subprocess import Subprocess
 
 
 class DockerController:
-    """Controller class for docker.
-    """
+    """Controller class for docker."""
 
     @staticmethod
     def remove_container(container_name: str) -> None:
@@ -69,13 +68,12 @@ class DockerController:
             command=create_config["command"],
             image_name=create_config["image_name"],
             volumes=DockerController._build_list_params_str(params=create_config["volumes"], option="-v"),
-
             # System related.
             container_name=create_config["container_name"],
             fluentd_address=create_config["fluentd_address"],
             fluentd_tag=create_config["fluentd_tag"],
             environments=DockerController._build_dict_params_str(params=create_config["environments"], option="-e"),
-            labels=DockerController._build_dict_params_str(params=create_config["labels"], option="-l")
+            labels=DockerController._build_dict_params_str(params=create_config["labels"], option="-l"),
         )
 
         # Start creating
@@ -86,7 +84,7 @@ class DockerController:
 
     @staticmethod
     def list_container_names() -> list:
-        command = "sudo docker ps -a --format \"{{.Names}}\""
+        command = 'sudo docker ps -a --format "{{.Names}}"'
         return_str = Subprocess.run(command=command)
         if return_str == "":
             return []

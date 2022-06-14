@@ -9,8 +9,15 @@ from typing import Dict, List
 from maro.simulator.utils import random
 
 from .entities import (
-    CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
-    PortSetting, SyntheticPortSetting, VesselSetting
+    CimBaseDataCollection,
+    CimRealDataCollection,
+    CimSyntheticDataCollection,
+    NoisedItem,
+    Order,
+    OrderGenerateMode,
+    PortSetting,
+    SyntheticPortSetting,
+    VesselSetting,
 )
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
 from .utils import BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY, apply_noise, list_sum_normalize
@@ -42,6 +49,7 @@ class CimBaseDataContainer(ABC):
     Args:
         data_collection (CimBaseDataCollection): Corresponding data collection.
     """
+
     def __init__(self, data_collection: CimBaseDataCollection) -> None:
         self._data_collection = data_collection
 
@@ -49,11 +57,11 @@ class CimBaseDataContainer(ABC):
         self._stops_wrapper = VesselStopsWrapper(self._data_collection)
         self._full_return_buffer_wrapper = PortBufferTickWrapper(
             self._data_collection,
-            lambda p: p.full_return_buffer
+            lambda p: p.full_return_buffer,
         )
         self._empty_return_buffer_wrapper = PortBufferTickWrapper(
             self._data_collection,
-            lambda p: p.empty_return_buffer
+            lambda p: p.empty_return_buffer,
         )
         self._future_stop_prediction = VesselFutureStopsPrediction(self._data_collection)
         self._past_stop_wrapper = VesselPastStopsWrapper(self._data_collection)
@@ -105,8 +113,7 @@ class CimBaseDataContainer(ABC):
 
     @property
     def container_volume(self) -> int:
-        """int: Volume of a container.
-        """
+        """int: Volume of a container."""
         # NOTE: we only support 1 type container
         return self._data_collection.container_volume
 
@@ -355,7 +362,8 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
             # apply noise and normalize
             noised_targets_dist = list_sum_normalize(
-                [apply_noise(target.base, target.noise, random[ORDER_NUM_RAND_KEY]) for target in targets_dist])
+                [apply_noise(target.base, target.noise, random[ORDER_NUM_RAND_KEY]) for target in targets_dist],
+            )
 
             # order for current ports
             cur_port_order_num = ceil(orders_to_gen * noised_source_order_dist[port_idx])

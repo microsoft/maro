@@ -1,4 +1,5 @@
-
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 """
 This script is used to launch data and vis services, and the start the experiment script.

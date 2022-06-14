@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import os
+
 import tempfile
 import time
 import unittest
@@ -149,14 +149,21 @@ class TestEventBuffer(unittest.TestCase):
 
     def test_event_dispatch(self):
         """Test event dispatching work as expected"""
+
         def cb(evt):
             # test event tick
             self.assertEqual(
-                1, evt.tick, msg="received event tick should be 1")
+                1,
+                evt.tick,
+                msg="received event tick should be 1",
+            )
 
             # test event payload
             self.assertTupleEqual(
-                (1, 3), evt.payload, msg="received event's payload should be (1, 3)")
+                (1, 3),
+                evt.payload,
+                msg="received event's payload should be (1, 3)",
+            )
 
         evt = self.eb.gen_atom_event(1, 1, (1, 3))
 
@@ -170,8 +177,11 @@ class TestEventBuffer(unittest.TestCase):
         """Test if we can get correct finished events"""
 
         # no finished at first
-        self.assertListEqual([], self.eb.get_finished_events(),
-                             msg="finished pool should be empty")
+        self.assertListEqual(
+            [],
+            self.eb.get_finished_events(),
+            msg="finished pool should be empty",
+        )
 
         evt = self.eb.gen_atom_event(1, 1, (1, 3))
 
@@ -180,22 +190,31 @@ class TestEventBuffer(unittest.TestCase):
         self.eb.execute(1)
 
         # after dispatching, finish pool should contains 1 object
-        self.assertEqual(1, len(self.eb.get_finished_events()),
-                         msg="after dispatching, there should 1 object")
+        self.assertEqual(
+            1,
+            len(self.eb.get_finished_events()),
+            msg="after dispatching, there should 1 object",
+        )
 
     def test_get_pending_events(self):
         """Test if we can get correct pending events"""
 
         # not pending at first
-        self.assertEqual(0, len(self.eb.get_pending_events(1)),
-                         msg="pending pool should be empty")
+        self.assertEqual(
+            0,
+            len(self.eb.get_pending_events(1)),
+            msg="pending pool should be empty",
+        )
 
         evt = self.eb.gen_atom_event(1, 1, (1, 3))
 
         self.eb.insert_event(evt)
 
-        self.assertEqual(1, len(self.eb.get_pending_events(1)),
-                         msg="pending pool should contains 1 objects")
+        self.assertEqual(
+            1,
+            len(self.eb.get_pending_events(1)),
+            msg="pending pool should contains 1 objects",
+        )
 
     def test_reset(self):
         """Test reset, all internal states should be reset"""
@@ -214,7 +233,6 @@ class TestEventBuffer(unittest.TestCase):
         self.assertEqual(len(self.eb._finished_events), 0)
 
     def test_sub_events(self):
-
         def cb1(evt):
             self.assertEqual(1, evt.payload)
 
@@ -274,7 +292,7 @@ class TestEventBuffer(unittest.TestCase):
 
     def test_record_events(self):
         timestamp = str(time.time()).replace(".", "_")
-        temp_file_path = f'{tempfile.gettempdir()}/{timestamp}.txt'
+        temp_file_path = f"{tempfile.gettempdir()}/{timestamp}.txt"
 
         try:
             EventBuffer(record_events=True, record_path=None)
@@ -298,17 +316,20 @@ class TestEventBuffer(unittest.TestCase):
 
         with open(temp_file_path, "r") as input_stream:
             texts = input_stream.readlines()
-            self.assertListEqual(texts, [
-                'episode,tick,event_type,payload\n',
-                '0,1,1,"(1, 3)"\n',
-                '0,1,1,"(1, 3)"\n',
-                '0,1,1,"(1, 3)"\n',
-                '0,1,1,"(1, 3)"\n',
-                '1,1,1,"(1, 3)"\n',
-                '1,1,1,"(1, 3)"\n',
-                '1,1,1,"(1, 3)"\n',
-                '1,1,1,"(1, 3)"\n'
-            ])
+            self.assertListEqual(
+                texts,
+                [
+                    "episode,tick,event_type,payload\n",
+                    '0,1,1,"(1, 3)"\n',
+                    '0,1,1,"(1, 3)"\n',
+                    '0,1,1,"(1, 3)"\n',
+                    '0,1,1,"(1, 3)"\n',
+                    '1,1,1,"(1, 3)"\n',
+                    '1,1,1,"(1, 3)"\n',
+                    '1,1,1,"(1, 3)"\n',
+                    '1,1,1,"(1, 3)"\n',
+                ],
+            )
 
 
 if __name__ == "__main__":

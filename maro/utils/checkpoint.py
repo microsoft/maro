@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import io
 import os
 from abc import ABC, abstractmethod
@@ -75,7 +78,7 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         blob_client = BlobClient.from_connection_string(
             conn_str=self._conn_str,
             container_name=self._container_name,
-            blob_name=key
+            blob_name=key,
         )
         blob_client.upload_blob(value, overwrite=True)
 
@@ -84,7 +87,7 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         blob_client = BlobClient.from_connection_string(
             conn_str=self._conn_str,
             container_name=self._container_name,
-            blob_name=key
+            blob_name=key,
         )
         blob_data = blob_client.download_blob()
         bytes_io = io.BytesIO()
@@ -96,7 +99,7 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         blob_client = BlobClient.from_connection_string(
             conn_str=self._conn_str,
             container_name=self._container_name,
-            blob_name=key
+            blob_name=key,
         )
         return blob_client.exists()
 
@@ -111,7 +114,7 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         """
         container_client = ContainerClient.from_connection_string(
             conn_str=self._conn_str,
-            container_name=container
+            container_name=container,
         )
         try:
             container_client.create_container()
@@ -143,7 +146,7 @@ class ServerCheckpoint(AbsCheckpoint):
         transport = paramiko.Transport((ip_address, port))
         transport.connect(
             username=admin_username,
-            pkey=paramiko.RSAKey.from_private_key(open(f"{Path.home()}/.ssh/id_rsa"))
+            pkey=paramiko.RSAKey.from_private_key(open(f"{Path.home()}/.ssh/id_rsa")),
         )
         self._sftp = paramiko.SFTPClient.from_transport(transport)
 

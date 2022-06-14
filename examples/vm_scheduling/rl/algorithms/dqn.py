@@ -33,8 +33,8 @@ class MyQNet(DiscreteQNet):
         self._lr_scheduler = CosineAnnealingWarmRestarts(self._optim, **q_net_lr_scheduler_params)
 
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
-        masks = states[:, self._num_features:]
-        q_for_all_actions = self._fc(states[:, :self._num_features])
+        masks = states[:, self._num_features :]
+        q_for_all_actions = self._fc(states[:, : self._num_features])
         return q_for_all_actions + (masks - 1) * 1e8
 
 
@@ -44,11 +44,13 @@ class MaskedEpsGreedy:
         self._num_features = num_features
 
     def __call__(self, states, actions, num_actions, *, epsilon):
-        masks = states[:, self._num_features:]
-        return np.array([
-            action if np.random.random() > epsilon else np.random.choice(np.where(mask == 1)[0])
-            for action, mask in zip(actions, masks)
-        ])
+        masks = states[:, self._num_features :]
+        return np.array(
+            [
+                action if np.random.random() > epsilon else np.random.choice(np.where(mask == 1)[0])
+                for action, mask in zip(actions, masks)
+            ],
+        )
 
 
 def get_dqn_policy(state_dim: int, action_num: int, num_features: int, name: str) -> ValueBasedPolicy:
@@ -56,14 +58,18 @@ def get_dqn_policy(state_dim: int, action_num: int, num_features: int, name: str
         name=name,
         q_net=MyQNet(state_dim, action_num, num_features),
         exploration_strategy=(MaskedEpsGreedy(state_dim, num_features), {"epsilon": 0.4}),
-        exploration_scheduling_options=[(
-            "epsilon", MultiLinearExplorationScheduler, {
-                "splits": [(100, 0.32)],
-                "initial_value": 0.4,
-                "last_ep": 400,
-                "final_value": 0.0,
-            }
-        )],
+        exploration_scheduling_options=[
+            (
+                "epsilon",
+                MultiLinearExplorationScheduler,
+                {
+                    "splits": [(100, 0.32)],
+                    "initial_value": 0.4,
+                    "last_ep": 400,
+                    "final_value": 0.0,
+                },
+            ),
+        ],
         warmup=100,
     )
 

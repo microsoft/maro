@@ -8,7 +8,6 @@ from maro.data_lib.cim.parsers import parse_global_order_proportion
 
 
 class TestOrderGlobalProportion(unittest.TestCase):
-
     def test_orders_without_noise(self):
         total_cnt = 100
         max_tick = 50
@@ -19,9 +18,9 @@ class TestOrderGlobalProportion(unittest.TestCase):
             "period": period,
             "sample_nodes": [
                 (0, ratio),
-                (period - 1, ratio)
+                (period - 1, ratio),
             ],
-            "sample_noise": 0
+            "sample_noise": 0,
         }
 
         prop = parse_global_order_proportion(conf, total_container=total_cnt, max_tick=max_tick)
@@ -42,9 +41,9 @@ class TestOrderGlobalProportion(unittest.TestCase):
             "period": period,
             "sample_nodes": [
                 (0, ratio),
-                (period - 1, ratio)
+                (period - 1, ratio),
             ],
-            "sample_noise": 0.1
+            "sample_noise": 0.1,
         }
 
         prop = parse_global_order_proportion(conf, total_container=total_cnt, max_tick=max_tick)
@@ -62,9 +61,9 @@ class TestOrderGlobalProportion(unittest.TestCase):
             "period": period,
             "sample_nodes": [
                 (0, ratio),
-                (period - 1, ratio)
+                (period - 1, ratio),
             ],
-            "sample_noise": 0
+            "sample_noise": 0,
         }
 
         prop = parse_global_order_proportion(conf, total_container=total_cnt, start_tick=start_tick, max_tick=max_tick)

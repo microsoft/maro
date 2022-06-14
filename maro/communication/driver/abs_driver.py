@@ -12,7 +12,7 @@ class AbsDriver(ABC):
     @abstractmethod
     def address(self):
         """Dict: The socket's address. Based on the real socket driver, it usually be a ``Dict``."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def connect(self, peers_address):
@@ -22,24 +22,24 @@ class AbsDriver(ABC):
             peers_address: The store of peers' socket address. Based on the real socket driver,
                 the peers' socket address usually be a ``Dict``.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def receive(self):
         """Receive message."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def send(self, message):
         """Unicast send message."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def broadcast(self, component_type, message):
         """Broadcast send message."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def close(self):
         """Close all sockets."""
-        pass
+        raise NotImplementedError

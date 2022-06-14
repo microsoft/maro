@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import csv
-import json
 import os
 from typing import List
 
@@ -47,7 +46,7 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
         raise CliError("Manifest file missed.")
     settings = yaml.load(
         open(os.path.join(source_path, "manifest.yml"), "r").read(),
-        Loader=yaml.FullLoader
+        Loader=yaml.FullLoader,
     )
     scenario = GlobalScenarios[str(settings["scenario"]).upper()]
     conversion_path = str(settings["mappings"])
@@ -94,9 +93,9 @@ def str2bool(force_type) -> bool:
         bool: Converted parameter.
 
     """
-    if force_type.lower() in ('yes', 'true', 't', 'y', '1'):
+    if force_type.lower() in ("yes", "true", "t", "y", "1"):
         return True
-    elif force_type.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif force_type.lower() in ("no", "false", "f", "n", "0"):
         return False
 
 
@@ -117,8 +116,12 @@ def _init_csv(file_path: str, header: List[str]):
 
 
 def _summary_append(
-    scenario: GlobalScenarios, input_path: str, header_list: List[str],
-    sum_dataframe: pd.DataFrame, epoch_index: int, output_path: str
+    scenario: GlobalScenarios,
+    input_path: str,
+    header_list: List[str],
+    sum_dataframe: pd.DataFrame,
+    epoch_index: int,
+    output_path: str,
 ):
     """Calculate summary info and generate corresponding csv file.
 
@@ -160,26 +163,32 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
         _init_csv(os.path.join(source_path, GlobalFileNames.ports_sum), ports_header)
         ports_sum_dataframe = pd.read_csv(
             os.path.join(source_path, GlobalFileNames.ports_sum),
-            names=ports_header
+            names=ports_header,
         )
         for epoch_index in tqdm.tqdm(range(0, epoch_num)):
             input_path = os.path.join(source_path, f"{prefix}{epoch_index}", "ports.csv")
             _summary_append(
-                scenario, input_path, ports_header,
-                ports_sum_dataframe, epoch_index, os.path.join(source_path, GlobalFileNames.ports_sum)
+                scenario,
+                input_path,
+                ports_header,
+                ports_sum_dataframe,
+                epoch_index,
+                os.path.join(source_path, GlobalFileNames.ports_sum),
             )
     elif scenario == GlobalScenarios.CITI_BIKE:
         _init_csv(os.path.join(source_path, GlobalFileNames.stations_sum), stations_header)
         stations_sum_dataframe = pd.read_csv(
             os.path.join(source_path, GlobalFileNames.stations_sum),
-            names=stations_header
+            names=stations_header,
         )
         for epoch_index in tqdm.tqdm(range(0, epoch_num)):
             _init_csv(
                 os.path.join(
-                    source_path, f"{prefix}{epoch_index}", GlobalFileNames.stations_sum
+                    source_path,
+                    f"{prefix}{epoch_index}",
+                    GlobalFileNames.stations_sum,
                 ),
-                stations_header
+                stations_header,
             )
             input_path = os.path.join(source_path, f"{prefix}{epoch_index}", "stations.csv")
             data = pd.read_csv(input_path)
@@ -188,18 +197,22 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
                 map(
                     lambda x, y: round(x / (y + 1 / 1000), 4),
                     data["fulfillment"],
-                    data["trip_requirement"]
-                )
+                    data["trip_requirement"],
+                ),
             )
             data.to_csv(os.path.join(source_path, f"{prefix}{epoch_index}", GlobalFileNames.stations_sum))
             _summary_append(
-                scenario, input_path, stations_header, stations_sum_dataframe,
-                epoch_index, os.path.join(source_path, GlobalFileNames.stations_sum)
+                scenario,
+                input_path,
+                stations_header,
+                stations_sum_dataframe,
+                epoch_index,
+                os.path.join(source_path, GlobalFileNames.stations_sum),
             )
 
 
 def _get_index_index_name_conversion(scenario: GlobalScenarios, source_path: str, conversion_path: str):
-    """ Generate a CSV File which indicates the relationship between resource holder's index and name.
+    """Generate a CSV File which indicates the relationship between resource holder's index and name.
 
     Args:
         scenario (GlobalScenarios): Current scenario. Different scenario has different type of mapping file.
@@ -230,7 +243,7 @@ def _get_index_index_name_conversion(scenario: GlobalScenarios, source_path: str
     elif scenario == GlobalScenarios.CIM:
         cim_information = yaml.load(
             open(conversion_path, "r").read(),
-            Loader=yaml.FullLoader
+            Loader=yaml.FullLoader,
         )
         conversion = cim_information["ports"].keys()
         df = pd.DataFrame(list(conversion))

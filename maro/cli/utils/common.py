@@ -69,7 +69,7 @@ def get_last_k_lines(file_name: str, k: int):
     # Create an empty list to keep the track of last k lines
     lines = deque()
     # Open file for reading in binary mode
-    with open(file_name, 'rb') as fp:
+    with open(file_name, "rb") as fp:
         # Move the cursor to the end of the file
         fp.seek(0, os.SEEK_END)
         # Create a buffer to keep the last read line
@@ -85,7 +85,7 @@ def get_last_k_lines(file_name: str, k: int):
             # read that byte / character
             new_byte = fp.read(1)
             # If the read byte is new line character then it means one line is read
-            if new_byte != b'\n':
+            if new_byte != b"\n":
                 # If last read character is not eol then add it in buffer
                 buffer.extend(new_byte)
             elif buffer:
@@ -107,7 +107,7 @@ def show_log(log_path: str, tail: int = -1, logger: Logger = None):
     if tail == -1:
         with open(log_path, "r") as fp:
             for line in fp:
-                print_fn(line.rstrip('\n'))
+                print_fn(line.rstrip("\n"))
     else:
         for line in get_last_k_lines(log_path, tail):
             print_fn(line)

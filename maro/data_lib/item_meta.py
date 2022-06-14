@@ -17,7 +17,8 @@ from maro.utils.exception.data_lib_exception import MetaTimestampNotExist
 
 class EntityAttr(YAMLObject):
     """Entity attribute in yaml."""
-    yaml_tag = u"!MaroAttribute"
+
+    yaml_tag = "!MaroAttribute"
     yaml_loader = SafeLoader
     yaml_dumper = SafeDumper
 
@@ -32,7 +33,8 @@ class EntityAttr(YAMLObject):
 
 class Event(YAMLObject):
     """Event from yaml."""
-    yaml_tag = u"!MaroEvent"
+
+    yaml_tag = "!MaroEvent"
     yaml_loader = SafeLoader
     yaml_dumper = SafeDumper
 
@@ -132,8 +134,13 @@ class BinaryMeta:
 
         self._raw_cols = [(a.raw_name, a.dtype) for a in self._attrs]
 
-        self._adjust_attrs = {i: a.adjust_ratio for i, a, in enumerate(
-            self._attrs) if a.adjust_ratio is not None}
+        self._adjust_attrs = {
+            i: a.adjust_ratio
+            for i, a, in enumerate(
+                self._attrs,
+            )
+            if a.adjust_ratio is not None
+        }
 
         self._build_item_struct()
 
@@ -158,7 +165,7 @@ class BinaryMeta:
                 "events": self._events,
                 "attributes": self._attrs,
                 "default_event_name": self._default_event_name,
-                "event_attr_name": self._event_attr_name
+                "event_attr_name": self._event_attr_name,
             },
         ).encode()
 
@@ -273,7 +280,8 @@ class BinaryMeta:
             value_in_csv = event_settings.get("value_in_csv", None)
 
             self._events.append(
-                Event(display_name, evt_type_name, value_in_csv))
+                Event(display_name, evt_type_name, value_in_csv),
+            )
 
 
 __all__ = ["BinaryMeta"]

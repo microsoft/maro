@@ -13,7 +13,12 @@ import zmq
 # private package
 from maro.utils import DummyLogger
 from maro.utils.exception.communication_exception import (
-    DriverReceiveError, DriverSendError, PeersConnectionError, PeersDisconnectionError, PendingToSend, SocketTypeError
+    DriverReceiveError,
+    DriverSendError,
+    PeersConnectionError,
+    PeersDisconnectionError,
+    PendingToSend,
+    SocketTypeError,
 )
 from maro.utils.exit_code import NON_RESTART_EXIT_CODE
 
@@ -45,7 +50,7 @@ class ZmqDriver(AbsDriver):
         protocol: str = PROTOCOL,
         send_timeout: int = SEND_TIMEOUT,
         receive_timeout: int = RECEIVE_TIMEOUT,
-        logger=DummyLogger()
+        logger=DummyLogger(),
     ):
         self._component_type = component_type
         self._protocol = protocol
@@ -85,7 +90,7 @@ class ZmqDriver(AbsDriver):
         # Record own sockets' address.
         self._address = {
             zmq.PULL: f"{self._protocol}://{self._ip_address}:{unicast_receiver_port}",
-            zmq.SUB: f"{self._protocol}://{self._ip_address}:{broadcast_receiver_port}"
+            zmq.SUB: f"{self._protocol}://{self._ip_address}:{broadcast_receiver_port}",
         }
 
         self._poller = zmq.Poller()

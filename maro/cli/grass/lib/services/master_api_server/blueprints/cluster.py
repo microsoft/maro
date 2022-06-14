@@ -15,6 +15,7 @@ URL_PREFIX = "/v1/cluster"
 
 # Api functions.
 
+
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 @check_jwt_validity
 def get_cluster():

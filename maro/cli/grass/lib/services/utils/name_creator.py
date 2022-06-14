@@ -6,8 +6,7 @@ import uuid
 
 
 class NameCreator:
-    """Creator class for MARO Resource namings.
-    """
+    """Creator class for MARO Resource namings."""
 
     @staticmethod
     def create_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:

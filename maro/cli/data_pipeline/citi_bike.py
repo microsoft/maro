@@ -1,5 +1,5 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 import csv
 import os
@@ -83,9 +83,8 @@ class CitiBikePipeline(DataPipeline):
             with zipfile.ZipFile(self._download_file, "r") as zip_ref:
                 for filename in zip_ref.namelist():
                     # Only one csv file is expected.
-                    if (
-                        filename.endswith(".csv") and
-                        (not (filename.startswith("__MACOSX") or filename.startswith(".")))
+                    if filename.endswith(".csv") and (
+                        not (filename.startswith("__MACOSX") or filename.startswith("."))
                     ):
 
                         logger.info_green(f"Unzip {filename} from {self._download_file}.")
@@ -106,10 +105,13 @@ class CitiBikePipeline(DataPipeline):
         with open(self._station_info_file, mode="r", encoding="utf-8") as station_file:
             # read station to station file
             raw_station_data = pd.DataFrame.from_dict(pd.read_json(station_file)["data"]["stations"])
-            station_data = raw_station_data.rename(columns={
-                "lon": "station_longitude",
-                "lat": "station_latitude",
-                "region_id": "region"})
+            station_data = raw_station_data.rename(
+                columns={
+                    "lon": "station_longitude",
+                    "lat": "station_latitude",
+                    "region_id": "region",
+                },
+            )
 
             # group by station to generate station init info
             full_stations = station_data[
@@ -124,7 +126,8 @@ class CitiBikePipeline(DataPipeline):
             full_stations["station_latitude"] = pd.to_numeric(full_stations["station_latitude"], downcast="float")
             full_stations.drop(full_stations[full_stations["capacity"] == 0].index, axis=0, inplace=True)
             full_stations.dropna(
-                subset=["station_id", "capacity", "station_longitude", "station_latitude"], inplace=True
+                subset=["station_id", "capacity", "station_longitude", "station_latitude"],
+                inplace=True,
             )
 
         self._common_data["full_stations"] = full_stations
@@ -141,13 +144,24 @@ class CitiBikePipeline(DataPipeline):
             with open(file, "r", encoding="utf-8", errors="ignore") as fp:
 
                 ret = pd.read_csv(fp)
-                ret = ret[[
-                    "tripduration", "starttime", "start station id", "end station id", "start station latitude",
-                    "start station longitude", "end station latitude", "end station longitude", "gender", "usertype",
-                    "bikeid"
-                ]]
+                ret = ret[
+                    [
+                        "tripduration",
+                        "starttime",
+                        "start station id",
+                        "end station id",
+                        "start station latitude",
+                        "start station longitude",
+                        "end station latitude",
+                        "end station longitude",
+                        "gender",
+                        "usertype",
+                        "bikeid",
+                    ]
+                ]
                 ret["tripduration"] = pd.to_numeric(
-                    pd.to_numeric(ret["tripduration"], downcast="integer") / 60, downcast="integer"
+                    pd.to_numeric(ret["tripduration"], downcast="integer") / 60,
+                    downcast="integer",
                 )
                 ret["starttime"] = pd.to_datetime(ret["starttime"])
                 ret["start station id"] = pd.to_numeric(ret["start station id"], errors="coerce", downcast="integer")
@@ -158,23 +172,34 @@ class CitiBikePipeline(DataPipeline):
                 ret["end station longitude"] = pd.to_numeric(ret["end station longitude"], downcast="float")
                 ret["bikeid"] = pd.to_numeric(ret["bikeid"], errors="coerce", downcast="integer")
                 ret["gender"] = pd.to_numeric(ret["gender"], errors="coerce", downcast="integer")
-                ret["usertype"] = ret["usertype"].apply(str).apply(
-                    lambda x: 0 if x in ["Subscriber", "subscriber"] else 1 if x in ["Customer", "customer"] else 2
+                ret["usertype"] = (
+                    ret["usertype"]
+                    .apply(str)
+                    .apply(
+                        lambda x: 0 if x in ["Subscriber", "subscriber"] else 1 if x in ["Customer", "customer"] else 2,
+                    )
                 )
-                ret.dropna(subset=[
-                    "start station id", "end station id", "start station latitude", "end station latitude",
-                    "start station longitude", "end station longitude"
-                ], inplace=True)
+                ret.dropna(
+                    subset=[
+                        "start station id",
+                        "end station id",
+                        "start station latitude",
+                        "end station latitude",
+                        "start station longitude",
+                        "end station longitude",
+                    ],
+                    inplace=True,
+                )
                 ret.drop(
                     ret[
-                        (ret["tripduration"] <= 1) |
-                        (ret["start station latitude"] == 0) |
-                        (ret["start station longitude"] == 0) |
-                        (ret["end station latitude"] == 0) |
-                        (ret["end station longitude"] == 0)
+                        (ret["tripduration"] <= 1)
+                        | (ret["start station latitude"] == 0)
+                        | (ret["start station longitude"] == 0)
+                        | (ret["end station latitude"] == 0)
+                        | (ret["end station longitude"] == 0)
                     ].index,
                     axis=0,
-                    inplace=True
+                    inplace=True,
                 )
                 ret = ret.sort_values(by="starttime", ascending=True)
 
@@ -184,16 +209,16 @@ class CitiBikePipeline(DataPipeline):
         used_bikes = len(src_data[["bikeid"]].drop_duplicates(subset=["bikeid"]))
 
         trip_data = src_data[
-            (src_data["start station latitude"] > 40.689960) &
-            (src_data["start station latitude"] < 40.768334) &
-            (src_data["start station longitude"] > -74.019623) &
-            (src_data["start station longitude"] < -73.909760)
+            (src_data["start station latitude"] > 40.689960)
+            & (src_data["start station latitude"] < 40.768334)
+            & (src_data["start station longitude"] > -74.019623)
+            & (src_data["start station longitude"] < -73.909760)
         ]
         trip_data = trip_data[
-            (trip_data["end station latitude"] > 40.689960) &
-            (trip_data["end station latitude"] < 40.768334) &
-            (trip_data["end station longitude"] > -74.019623) &
-            (trip_data["end station longitude"] < -73.909760)
+            (trip_data["end station latitude"] > 40.689960)
+            & (trip_data["end station latitude"] < 40.768334)
+            & (trip_data["end station longitude"] > -74.019623)
+            & (trip_data["end station longitude"] < -73.909760)
         ]
 
         trip_data["start_station_id"] = trip_data["start station id"]
@@ -202,25 +227,40 @@ class CitiBikePipeline(DataPipeline):
         # get new stations
         used_stations = []
         used_stations.append(
-            trip_data[["start_station_id", "start station latitude", "start station longitude", ]].drop_duplicates(
-                subset=["start_station_id"]).rename(
-                    columns={
-                        "start_station_id": "station_id",
-                        "start station latitude": "latitude",
-                        "start station longitude": "longitude"
-                    }))
+            trip_data[["start_station_id", "start station latitude", "start station longitude"]]
+            .drop_duplicates(
+                subset=["start_station_id"],
+            )
+            .rename(
+                columns={
+                    "start_station_id": "station_id",
+                    "start station latitude": "latitude",
+                    "start station longitude": "longitude",
+                },
+            ),
+        )
         used_stations.append(
-            trip_data[["end_station_id", "end station latitude", "end station longitude", ]].drop_duplicates(
-                subset=["end_station_id"]).rename(
-                    columns={
-                        "end_station_id": "station_id",
-                        "end station latitude": "latitude",
-                        "end station longitude": "longitude"
-                    }))
+            trip_data[["end_station_id", "end station latitude", "end station longitude"]]
+            .drop_duplicates(
+                subset=["end_station_id"],
+            )
+            .rename(
+                columns={
+                    "end_station_id": "station_id",
+                    "end station latitude": "latitude",
+                    "end station longitude": "longitude",
+                },
+            ),
+        )
 
-        in_data_station = pd.concat(used_stations, ignore_index=True).drop_duplicates(
-            subset=["station_id"]
-        ).sort_values(by=["station_id"]).reset_index(drop=True)
+        in_data_station = (
+            pd.concat(used_stations, ignore_index=True)
+            .drop_duplicates(
+                subset=["station_id"],
+            )
+            .sort_values(by=["station_id"])
+            .reset_index(drop=True)
+        )
 
         stations_existed = pd.DataFrame(in_data_station[["station_id"]])
 
@@ -229,11 +269,11 @@ class CitiBikePipeline(DataPipeline):
         # get start station id and end station id
         trip_data = trip_data.join(
             stations_existed.set_index("station_id"),
-            on="start_station_id"
+            on="start_station_id",
         ).rename(columns={"station_index": "start_station_index"})
         trip_data = trip_data.join(
             stations_existed.set_index("station_id"),
-            on="end_station_id"
+            on="end_station_id",
         ).rename(columns={"station_index": "end_station_index"})
         trip_data = trip_data.rename(columns={"starttime": "start_time", "tripduration": "duration"})
 
@@ -244,13 +284,17 @@ class CitiBikePipeline(DataPipeline):
         return trip_data, used_bikes, in_data_station, stations_existed
 
     def _process_current_topo_station_info(
-            self, stations_existed: pd.DataFrame, used_bikes: int, loc_ref: pd.DataFrame):
+        self,
+        stations_existed: pd.DataFrame,
+        used_bikes: int,
+        loc_ref: pd.DataFrame,
+    ):
         data_station_init = stations_existed.join(
             self._common_data["full_stations"][["station_id", "capacity"]].set_index("station_id"),
-            on="station_id"
+            on="station_id",
         ).join(
             loc_ref[["station_id", "latitude", "longitude"]].set_index("station_id"),
-            on="station_id"
+            on="station_id",
         )
         # data_station_init.rename(columns={"station_id": "station_index"}, inplace=True)
         avg_capacity = int(self._common_data["full_dock_num"] / self._common_data["full_station_num"])
@@ -259,22 +303,36 @@ class CitiBikePipeline(DataPipeline):
         data_station_init.fillna(value=values, inplace=True)
         data_station_init["init"] = (data_station_init["capacity"] * avalible_bike_rate).round().apply(int)
         data_station_init["capacity"] = pd.to_numeric(
-            data_station_init["capacity"], errors="coerce", downcast="integer"
+            data_station_init["capacity"],
+            errors="coerce",
+            downcast="integer",
         )
         data_station_init["station_id"] = pd.to_numeric(
-            data_station_init["station_id"], errors="coerce", downcast="integer"
+            data_station_init["station_id"],
+            errors="coerce",
+            downcast="integer",
         )
 
         return data_station_init
 
     def _process_distance(self, station_info: pd.DataFrame):
-        distance_adj = pd.DataFrame(0, index=station_info["station_index"],
-                                    columns=station_info["station_index"], dtype=np.float)
+        distance_adj = pd.DataFrame(
+            0,
+            index=station_info["station_index"],
+            columns=station_info["station_index"],
+            dtype=np.float,
+        )
         look_up_df = station_info[["latitude", "longitude"]]
-        return distance_adj.apply(lambda x: pd.DataFrame(x).apply(lambda y: geopy.distance.distance(
-            (look_up_df.at[x.name, "latitude"], look_up_df.at[x.name, "longitude"]),
-            (look_up_df.at[y.name, "latitude"], look_up_df.at[y.name, "longitude"])
-        ).km, axis=1), axis=1)
+        return distance_adj.apply(
+            lambda x: pd.DataFrame(x).apply(
+                lambda y: geopy.distance.distance(
+                    (look_up_df.at[x.name, "latitude"], look_up_df.at[x.name, "longitude"]),
+                    (look_up_df.at[y.name, "latitude"], look_up_df.at[y.name, "longitude"]),
+                ).km,
+                axis=1,
+            ),
+            axis=1,
+        )
 
     def _preprocess(self, unzipped_file: str):
         self._read_common_data()
@@ -292,7 +350,9 @@ class CitiBikePipeline(DataPipeline):
 
         logger.info_green("Processing station info data.")
         station_info = self._process_current_topo_station_info(
-            stations_existed=stations_existed, used_bikes=used_bikes, loc_ref=in_data_station
+            stations_existed=stations_existed,
+            used_bikes=used_bikes,
+            loc_ref=in_data_station,
         )
         with open(self._station_meta_file, mode="w", encoding="utf-8", newline="") as f:
             station_info.to_csv(f, index=False, header=True)
@@ -415,7 +475,13 @@ class CitiBikeTopology(DataTopology):
     """
 
     def __init__(
-            self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
+        self,
+        topology: str,
+        trip_source: str,
+        station_info: str,
+        weather_source: str,
+        is_temp: bool = False,
+    ):
         super().__init__()
         self._data_pipeline["trip"] = CitiBikePipeline(topology, trip_source, station_info, is_temp)
         self._data_pipeline["weather"] = NOAAWeatherPipeline(topology, weather_source, is_temp)
@@ -453,7 +519,14 @@ class CitiBikeToyPipeline(DataPipeline):
     _meta_file_name = "trips.yml"
 
     def __init__(
-            self, start_time: str, end_time: str, stations: list, trips: list, topology: str, is_temp: bool = False):
+        self,
+        start_time: str,
+        end_time: str,
+        stations: list,
+        trips: list,
+        topology: str,
+        is_temp: bool = False,
+    ):
         super().__init__("citi_bike", topology, "", is_temp)
         self._start_time = start_time
         self._end_time = end_time
@@ -465,7 +538,6 @@ class CitiBikeToyPipeline(DataPipeline):
 
     def download(self, is_force: bool):
         """Toy datapipeline not need download process."""
-        pass
 
     def _station_dict_to_pd(self, station_dict):
         """Convert dictionary of station information to pd series."""
@@ -477,7 +549,8 @@ class CitiBikeToyPipeline(DataPipeline):
                 station_dict["lat"],
                 station_dict["lon"],
             ],
-            index=["station_index", "capacity", "init", "latitude", "longitude"])
+            index=["station_index", "capacity", "init", "latitude", "longitude"],
+        )
 
     def _gen_stations(self):
         """Generate station meta csv."""
@@ -523,10 +596,14 @@ class CitiBikeToyPipeline(DataPipeline):
         trips_df = pd.DataFrame.from_dict(trips)
 
         trips_df["start_station_index"] = pd.to_numeric(
-            trips_df["start_station_index"], errors="coerce", downcast="integer"
+            trips_df["start_station_index"],
+            errors="coerce",
+            downcast="integer",
         )
         trips_df["end_station_index"] = pd.to_numeric(
-            trips_df["end_station_index"], errors="coerce", downcast="integer"
+            trips_df["end_station_index"],
+            errors="coerce",
+            downcast="integer",
         )
         self._new_file_list.append(self._clean_file)
         with open(self._clean_file, "w", encoding="utf-8", newline="") as f:
@@ -540,13 +617,19 @@ class CitiBikeToyPipeline(DataPipeline):
             0,
             index=station_init["station_index"],
             columns=station_init["station_index"],
-            dtype=np.float
+            dtype=np.float,
         )
         look_up_df = station_init[["latitude", "longitude"]]
-        distance_df = distance_adj.apply(lambda x: pd.DataFrame(x).apply(lambda y: geopy.distance.distance(
-            (look_up_df.at[x.name, "latitude"], look_up_df.at[x.name, "longitude"]),
-            (look_up_df.at[y.name, "latitude"], look_up_df.at[y.name, "longitude"])
-        ).km, axis=1), axis=1)
+        distance_df = distance_adj.apply(
+            lambda x: pd.DataFrame(x).apply(
+                lambda y: geopy.distance.distance(
+                    (look_up_df.at[x.name, "latitude"], look_up_df.at[x.name, "longitude"]),
+                    (look_up_df.at[y.name, "latitude"], look_up_df.at[y.name, "longitude"]),
+                ).km,
+                axis=1,
+            ),
+            axis=1,
+        )
         self._new_file_list.append(self._distance_file)
         with open(self._distance_file, "w", encoding="utf-8", newline="") as f:
             distance_df.to_csv(f, index=False, header=True)
@@ -589,7 +672,6 @@ class WeatherToyPipeline(WeatherPipeline):
 
     def download(self, is_force: bool):
         """Toy datapipeline not need download process."""
-        pass
 
     def clean(self):
         """Clean the original data file."""
@@ -660,13 +742,13 @@ class CitiBikeToyTopology(DataTopology):
                     stations=cfg["stations"],
                     trips=cfg["trips"],
                     topology=topology,
-                    is_temp=is_temp
+                    is_temp=is_temp,
                 )
                 self._data_pipeline["weather"] = WeatherToyPipeline(
                     topology=topology,
                     start_time=cfg["start_time"],
                     end_time=cfg["end_time"],
-                    is_temp=is_temp
+                    is_temp=is_temp,
                 )
         else:
             logger.warning(f"Config file {config_path} for toy topology {topology} not found.")
@@ -701,7 +783,7 @@ class CitiBikeProcess:
                     self.topologies[topology] = CitiBikeToyTopology(
                         topology=topology,
                         config_path=self._conf["trips"][topology]["toy_meta_path"],
-                        is_temp=is_temp
+                        is_temp=is_temp,
                     )
                 else:
                     self.topologies[topology] = CitiBikeTopology(
@@ -709,7 +791,7 @@ class CitiBikeProcess:
                         trip_source=self._conf["trips"][topology]["trip_remote_url"],
                         station_info=self._conf["station_info"]["ny_station_info_url"],
                         weather_source=self._conf["weather"][topology]["noaa_weather_url"],
-                        is_temp=is_temp
+                        is_temp=is_temp,
                     )
 
 
@@ -782,8 +864,8 @@ class NOAAWeatherPipeline(WeatherPipeline):
 
     def _gen_fall_back_file(self):
         fall_back_content = [
-            "\"STATION\",\"DATE\",\"AWND\",\"PRCP\",\"SNOW\",\"TMAX\",\"TMIN\"\n",
-            ",,,,,,\n"
+            '"STATION","DATE","AWND","PRCP","SNOW","TMAX","TMIN"\n',
+            ",,,,,,\n",
         ]
         with open(self._download_file, mode="w", encoding="utf-8", newline="") as f:
             f.writelines(fall_back_content)

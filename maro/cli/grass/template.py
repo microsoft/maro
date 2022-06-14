@@ -7,5 +7,5 @@ def template(export_path: str, **kwargs):
     from maro.cli.grass.executors.grass_executor import GrassExecutor
 
     GrassExecutor.template(
-        export_path=export_path
+        export_path=export_path,
     )

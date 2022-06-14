@@ -9,6 +9,7 @@ from maro.backends.frame import NodeAttribute, NodeBase, node
 @node("regions")
 class Region(NodeBase):
     """Region node definition in frame."""
+
     id = NodeAttribute("i2")
 
     total_machine_num = NodeAttribute("i")
