@@ -192,7 +192,7 @@ class MyTestCase(unittest.TestCase):
 
         # NOTE: this simple seller unit return demands that same as current tick
 
-        # Tick 0 will have demand == 25.first row of data after preprocessing data.
+        # Tick 0 will have demand == 10.first row of data after preprocessing data.
         # from sample_preprocessed.csv
         self.assertEqual(10, seller_unit._sold)
         self.assertEqual(10, seller_unit._demand)
