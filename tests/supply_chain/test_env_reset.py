@@ -100,13 +100,14 @@ class MyTestCase(unittest.TestCase):
 
         # ##################################### Before reset #####################################
 
-        order_1 = Order(src_facility=supplier_3,
-                        dest_facility=warehouse_1,
-                        sku_id=SKU3_ID,
-                        quantity=10,
-                        vehicle_type="train",
-                        creation_tick=env.tick,
-                        expected_finish_tick=env.tick + 7, )
+        order_1 = Order(
+            src_facility=supplier_3,
+            dest_facility=warehouse_1,
+            sku_id=SKU3_ID,
+            quantity=10,
+            vehicle_type="train",
+            creation_tick=env.tick,
+            expected_finish_tick=env.tick + 7, )
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
         distribution_unit.place_order(order_1)
@@ -243,15 +244,15 @@ class MyTestCase(unittest.TestCase):
         sku3_manufacture_index = manufacture_sku3_unit.data_model_index
 
         storage_nodes = env.snapshot_list["storage"]
+        manufacture_nodes = env.snapshot_list["manufacture"]
 
         manufacture_features = (
             "id", "facility_id", "start_manufacture_quantity", "sku_id", "in_pipeline_quantity", "finished_quantity",
             "product_unit_id",
         )
 
-        # ############################### TICK: 0 ######################################
+        # ##################################### Before reset #####################################
 
-        # tick 0 passed, no product manufacturing.
         env.step(None)
 
         capacities = storage_nodes[env.frame_index:sku3_storage_index:"capacity"].flatten().astype(np.int)
@@ -272,17 +273,19 @@ class MyTestCase(unittest.TestCase):
         # all the id is greater than 0
         self.assertGreater(manufacture_sku3_unit.id, 0)
 
-        # ######################################################################
-
-        # pass an action to start manufacturing for this tick.
         action = ManufactureAction(manufacture_sku3_unit.id, 1)
 
         expect_tick = 30
-        env_metric_1: Dict[int, dict] = defaultdict(dict)
-        states_1: Dict[int, list] = defaultdict(list)
-        random_tick: List[int] = []
-        manufacture_nodes = env.snapshot_list["manufacture"]
 
+        # Save the env.metric of each tick into env_metric_1
+        env_metric_1: Dict[int, dict] = defaultdict(dict)
+
+        # Store the information about the snapshot manufacture unit of each tick in states_1
+        states_1: Dict[int, list] = defaultdict(list)
+
+        random_tick: List[int] = []
+
+        # The purpose is to randomly perform the order operation
         for i in range(10):
             random_tick.append(random.randint(1, 30))
 
@@ -293,12 +296,16 @@ class MyTestCase(unittest.TestCase):
             env_metric_1[i] = env.metrics
             states_1[i] = manufacture_nodes[i:sku3_manufacture_index:manufacture_features].flatten().astype(np.int)
 
-        # ############################### Test whether reset updates the distribution unit completely ################
+        # ############################### Test whether reset updates the manufacture unit completely ################
         env.reset()
         env.step(None)
 
+        # snapshot should reset after env.reset().
         states = manufacture_nodes[1:sku3_manufacture_index:manufacture_features].flatten().astype(np.int)
         self.assertEqual([0, 0, 0, 0, 0, 0, 0], list(states))
+
+        storage_nodes = env.snapshot_list["storage"]
+        manufacture_nodes = env.snapshot_list["manufacture"]
 
         capacities = storage_nodes[env.frame_index:sku3_storage_index:"capacity"].flatten().astype(np.int)
         remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
@@ -319,9 +326,12 @@ class MyTestCase(unittest.TestCase):
         self.assertGreater(manufacture_sku3_unit.id, 0)
 
         expect_tick = 30
+
+        # Save the env.metric of each tick into env_metric_2
         env_metric_2: Dict[int, dict] = defaultdict(dict)
+
+        # Store the information about the snapshot manufacture unit of each tick in states_2
         states_2: Dict[int, list] = defaultdict(list)
-        manufacture_nodes = env.snapshot_list["manufacture"]
 
         for i in range(expect_tick):
             env.step([action])
@@ -344,13 +354,13 @@ class MyTestCase(unittest.TestCase):
 
         env.step(None)
         Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
+
         seller_unit = Store_001.products[FOOD_1_ID].seller
-
         seller_node_index = seller_unit.data_model_index
-
         seller_nodes = env.snapshot_list["seller"]
 
-        features = ("sold", "demand", "total_sold", "total_demand", "backlog_ratio", "facility_id", "product_unit_id",)
+        features = ("sold", "demand", "total_sold", "id", "total_demand", "backlog_ratio", "facility_id", "product_unit_id",)
+        # ##################################### Before reset #####################################
 
         self.assertEqual(20, seller_unit.sku_id)
 
@@ -363,23 +373,33 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(10, seller_unit._total_sold)
 
         expect_tick = 12
+
+        # Save the env.metric of each tick into env_metric_1
         env_metric_1: Dict[int, dict] = defaultdict(dict)
+
+        # Store the information about the snapshot seller unit of each tick in states_1
         states_1: Dict[int, list] = defaultdict(list)
         for i in range(expect_tick):
             env.step(None)
             env_metric_1[i] = env.metrics
             states_1[i] = seller_nodes[i:seller_node_index:features].flatten().astype(np.int)
 
-        # ############################### Test whether reset updates the distribution unit completely ################
+        # ################# Test whether reset updates the seller unit completely ################
         env.reset()
         env.step(None)
+
+        # snapshot should reset after env.reset().
         states = seller_nodes[1:seller_node_index:features].flatten().astype(np.int)
-        self.assertEqual([0, 0, 0, 0, 0, 0, 0], list(states))
+        self.assertEqual([0, 0, 0, 0, 0, 0, 0, 0], list(states))
 
         expect_tick = 12
 
+        # Save the env.metric of each tick into env_metric_2
         env_metric_2: Dict[int, dict] = defaultdict(dict)
+
+        # Store the information about the snapshot seller unit of each tick in states_2
         states_2: Dict[int, list] = defaultdict(list)
+
         for i in range(expect_tick):
             env.step(None)
             env_metric_2[i] = env.metrics
@@ -398,19 +418,20 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
+
         storage_unit: StorageUnit = supplier_3.storage
         storage_node_index = storage_unit.data_model_index
-
         storage_nodes = env.snapshot_list["storage"]
-
         features = ("id", "facility_id",)
 
-        # ############################### Take more than existing ######################################
-
-        # which this setting, it will return false, as no enough product for ous
+        # ##################################### Before reset #####################################
 
         expect_tick = 10
+
+        # Save the env.metric of each tick into env_metric_1
         env_metric_1: Dict[int, dict] = defaultdict(dict)
+
+        # Store the information about the snapshot storage unit of each tick in states_1
         states_1: Dict[int, list] = defaultdict(list)
         for i in range(expect_tick):
             env.step(None)
@@ -420,17 +441,22 @@ class MyTestCase(unittest.TestCase):
             states_1[i].append(storage_nodes[i:storage_node_index:"product_quantity"].flatten().astype(np.int).sum())
             states_1[i].append(storage_nodes[i:storage_node_index:"remaining_space"].flatten().astype(np.int).sum())
 
-        # ############################### Test whether reset updates the distribution unit completely ################
+        # ############################### Test whether reset updates the storage unit completely ################
         env.reset()
         env.step(None)
 
+        # snapshot should reset after env.reset().
         states = storage_nodes[1:storage_node_index:features].flatten().astype(np.int)
         self.assertEqual([0, 0], list(states))
 
         expect_tick = 10
 
+        # Save the env.metric of each tick into env_metric_2
         env_metric_2: Dict[int, dict] = defaultdict(dict)
+
+        # Store the information about the snapshot storage unit of each tick in states_2
         states_2: Dict[int, list] = defaultdict(list)
+
         for i in range(expect_tick):
             env.step(None)
             env_metric_2[i] = env.metrics
