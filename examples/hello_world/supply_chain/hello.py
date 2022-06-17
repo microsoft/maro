@@ -5,7 +5,6 @@ from maro.simulator import Env
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
-
 env = Env(scenario="supply_chain", topology="walmart", start_tick=0, durations=100)
 
 balance_calculator = BalanceSheetCalculator(env=env)
@@ -19,8 +18,8 @@ for ep in range(2):
 
     print("*******************************************************************")
 
-    total_sold = env.snapshot_list["seller"][env.tick::"total_sold"].reshape(-1)
-    total_demand = env.snapshot_list["seller"][env.tick::"total_demand"].reshape(-1)
+    total_sold = env.snapshot_list["seller"][env.tick :: "total_sold"].reshape(-1)
+    total_demand = env.snapshot_list["seller"][env.tick :: "total_demand"].reshape(-1)
     total_sold_ratio = total_sold / total_demand * 100
     print(f"Ep {ep}: Total sold ratio (%):")
     print(total_sold_ratio[::15])

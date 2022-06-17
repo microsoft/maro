@@ -20,8 +20,12 @@ if typing.TYPE_CHECKING:
 
 class SimulationTracker:
     def __init__(
-        self, episode_len: int, n_episodes: int, env_sampler: SCEnvSampler,
-        log_path: str, eval_period: Optional[Tuple[int, int]] = None,
+        self,
+        episode_len: int,
+        n_episodes: int,
+        env_sampler: SCEnvSampler,
+        log_path: str,
+        eval_period: Optional[Tuple[int, int]] = None,
     ):
         self._log_path = log_path
         os.makedirs(self._log_path, exist_ok=True)
@@ -73,8 +77,13 @@ class SimulationTracker:
         self.manufacture_finished: np.ndarray = None
 
     def add_balance_and_reward(
-        self, episode: int, tick: int, global_balance: float, global_reward: float,
-        step_balances: Dict[int, float], step_rewards: Dict[int, float]
+        self,
+        episode: int,
+        tick: int,
+        global_balance: float,
+        global_reward: float,
+        step_balances: Dict[int, float],
+        step_rewards: Dict[int, float],
     ):
         if tick < self.eval_period[0] or tick >= self.eval_period[1]:
             return
@@ -87,10 +96,16 @@ class SimulationTracker:
             self.step_rewards[episode, t, i] = step_rewards[facility_id]
 
     def add_sku_status(
-        self, episode: int, tick: int,
-        stock: Dict[int, int], stock_in_transit: Dict[int, int], stock_ordered_to_distribute: Dict[int, int],
-        demands: Dict[int, Union[int, float]], solds: Dict[int, Union[int, float]],
-        rewards: Dict[int, float], balances: Dict[int, float],
+        self,
+        episode: int,
+        tick: int,
+        stock: Dict[int, int],
+        stock_in_transit: Dict[int, int],
+        stock_ordered_to_distribute: Dict[int, int],
+        demands: Dict[int, Union[int, float]],
+        solds: Dict[int, Union[int, float]],
+        rewards: Dict[int, float],
+        balances: Dict[int, float],
     ):
         if tick < self.eval_period[0] or tick >= self.eval_period[1]:
             return
@@ -111,8 +126,11 @@ class SimulationTracker:
             self.balance_status[episode, t, i] = balances.get(entity_id, 0)
 
     def add_action_status(
-        self, consumer_purchased: np.ndarray, consumer_received: np.ndarray,
-        manufacture_started: np.ndarray, manufacture_finished: np.ndarray,
+        self,
+        consumer_purchased: np.ndarray,
+        consumer_received: np.ndarray,
+        manufacture_started: np.ndarray,
+        manufacture_finished: np.ndarray,
     ) -> None:
         self.consumer_purchased = consumer_purchased
         self.consumer_received = consumer_received
@@ -143,7 +161,7 @@ class SimulationTracker:
                     i,  # index in step_balance & step_reward
                     facility_id,
                     facility_info.name,
-                    facility_info.class_name
+                    facility_info.class_name,
                 )
                 for i, (facility_id, facility_info) in enumerate(self._facility_info_dict.items())
             ],
@@ -153,8 +171,9 @@ class SimulationTracker:
                     entity_id,  # entity id
                     self._facility_info_dict[self._entity_dict[entity_id].facility_id].name,  # facility name
                     self._sku_metas[self._entity_dict[entity_id].skus.id].name,  # sku name
-                    self._entity_dict[entity_id].class_type  # entity class type
-                ) for entity_id in self.tracking_entity_ids
+                    self._entity_dict[entity_id].class_type,  # entity class type
+                )
+                for entity_id in self.tracking_entity_ids
                 if issubclass(self._entity_dict[entity_id].class_type, entity_types)
             ],
             "tracking_entity_ids": self.tracking_entity_ids,
@@ -174,7 +193,7 @@ class SimulationTracker:
         with open(os.path.join(self._log_path, "sku_status.pkl"), "wb") as fout:
             pickle.dump(dump_data, fout)
 
-    def load_sku_status(self, file_path: str=None) -> None:
+    def load_sku_status(self, file_path: str = None) -> None:
         if file_path is None:
             file_path = os.path.join(self._log_path, "sku_status.pkl")
 
@@ -197,8 +216,13 @@ class SimulationTracker:
 
         if len(self.tracking_entity_ids) == 0:
             for variable in [
-                self.stock_status, self.stock_in_transit_status, self.stock_ordered_to_distribute_status,
-                self.demand_status, self.sold_status, self.reward_status, self.balance_status,
+                self.stock_status,
+                self.stock_in_transit_status,
+                self.stock_ordered_to_distribute_status,
+                self.demand_status,
+                self.sold_status,
+                self.reward_status,
+                self.balance_status,
             ]:
                 assert variable is None, f"Loaded Non-None status but with valid tracking entity id list!"
 
@@ -207,8 +231,12 @@ class SimulationTracker:
             assert isinstance(self.stock_status, np.ndarray), f"Status data must be np.ndarray!"
             assert self.stock_status.shape[2] == len(self.tracking_entity_ids), f"The last dim must be entity list len!"
             for variable in [
-                self.stock_in_transit_status, self.stock_ordered_to_distribute_status,
-                self.demand_status, self.sold_status, self.reward_status, self.balance_status,
+                self.stock_in_transit_status,
+                self.stock_ordered_to_distribute_status,
+                self.demand_status,
+                self.sold_status,
+                self.reward_status,
+                self.balance_status,
             ]:
                 assert isinstance(variable, np.ndarray), f"Status data must be np.ndarray!"
                 assert variable.shape == self.stock_status.shape, f"Shapes must be the same!"
@@ -223,18 +251,18 @@ class SimulationTracker:
 
         ax[0].set_title("SKU Stock Status by Episode")
         for y_label, y in [
-            ('stock', self.stock_status[0, :, i]),
-            ('stock_in_transit', self.stock_in_transit_status[0, :, i]),
-            ('stock_to_distribute', self.stock_ordered_to_distribute_status[0, :, i]),
+            ("stock", self.stock_status[0, :, i]),
+            ("stock_in_transit", self.stock_in_transit_status[0, :, i]),
+            ("stock_to_distribute", self.stock_ordered_to_distribute_status[0, :, i]),
         ]:
             ax[0].plot(x, y, label=y_label)
 
-        ax[1].set_title('SKU Reward / Balance Status by Episode')
-        ax[1].plot(x, self.balance_status[0, :, i], label='Balance')
+        ax[1].set_title("SKU Reward / Balance Status by Episode")
+        ax[1].plot(x, self.balance_status[0, :, i], label="Balance")
         ax_r = ax[1].twinx()
-        ax_r.plot(x, self.reward_status[0, :, i], label='Reward', color='r')
+        ax_r.plot(x, self.reward_status[0, :, i], label="Reward", color="r")
 
-        ax[2].set_title('SKU demand')
+        ax[2].set_title("SKU demand")
         ax[2].plot(x, self.demand_status[0, :, i], label="Demand")
         ax[2].plot(x, self.sold_status[0, :, i], label="Sold")
 
@@ -252,14 +280,18 @@ class SimulationTracker:
         fig.savefig(os.path.join(self._sku_render_path, file_name))
         plt.close(fig=fig)
 
-    def render_all_sku(self, entity_types: Tuple[type, ...]=None):
+    def render_all_sku(self, entity_types: Tuple[type, ...] = None):
         for entity_id in self.tracking_entity_ids:
             entity = self._entity_dict[entity_id]
             if entity_types is None or issubclass(entity.class_type, entity_types):
                 self._render_sku(entity_id)
 
     def _render_balance_or_reward(
-        self, metrics: np.ndarray, data_idx_list: List[int], legend_name_list: List[str], filename: str
+        self,
+        metrics: np.ndarray,
+        data_idx_list: List[int],
+        legend_name_list: List[str],
+        filename: str,
     ) -> None:
         step_metrics = [metrics[0, :, i] for i in data_idx_list]
         total_val = np.sum(np.sum(step_metrics, axis=0))
@@ -277,9 +309,10 @@ class SimulationTracker:
         fig.savefig(os.path.join(self._log_path, filename))
         plt.close(fig=fig)
 
-    def render_facility_balance_and_reward(self, facility_types: Tuple[type, ...]=None) -> None:
+    def render_facility_balance_and_reward(self, facility_types: Tuple[type, ...] = None) -> None:
         for metrics, filename in zip(
-            [self.step_balances, self.step_rewards], ["facility_balance.png", "facility_reward.png"]
+            [self.step_balances, self.step_rewards],
+            ["facility_balance.png", "facility_reward.png"],
         ):
             data_idx_list = []
             legend_name_list = []

@@ -13,7 +13,10 @@ import numpy as np
 
 from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import (
-    DataFileDemandSampler, OneTimeSkuPriceDemandSampler, SkuDynamicsSampler, SkuPriceMixin
+    DataFileDemandSampler,
+    OneTimeSkuPriceDemandSampler,
+    SkuDynamicsSampler,
+    SkuPriceMixin,
 )
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
@@ -51,8 +54,15 @@ class FacilityInfo:
 
 class FacilityBase(ABC):
     """Base of all facilities."""
+
     def __init__(
-        self, id: int, name: str, data_model_name: str, data_model_index: int, world: World, config: dict,
+        self,
+        id: int,
+        name: str,
+        data_model_name: str,
+        data_model_index: int,
+        world: World,
+        config: dict,
     ) -> None:
         # Id and name of this facility.
         self.id: int = id
@@ -238,17 +248,13 @@ class FacilityBase(ABC):
             },
             storage_info=self.storage.get_unit_info() if self.storage else None,
             distribution_info=self.distribution.get_unit_info() if self.distribution else None,
-            products_info={
-                sku_id: product.get_unit_info()
-                for sku_id, product in self.products.items()
-            },
+            products_info={sku_id: product.get_unit_info() for sku_id, product in self.products.items()},
         )
 
     def get_sku_cost(self, sku_id: int) -> float:
         # TODO: updating for manufacture, ...
         src_prices: List[float] = [
-            src_facility.skus[sku_id].price
-            for src_facility in self.upstream_facility_list[sku_id]
+            src_facility.skus[sku_id].price for src_facility in self.upstream_facility_list[sku_id]
         ]
         return np.mean(src_prices) if len(src_prices) > 0 else self.skus[sku_id].price
 

@@ -12,7 +12,7 @@ from typing import Optional
 
 import numpy as np
 from flloat.parser.ltlf import LTLfParser
-from yaml import safe_load, safe_dump
+from yaml import safe_dump, safe_load
 
 # Definition of warehouse.
 warehouse_def = """
@@ -139,11 +139,20 @@ config: {}
 """
 
 
-def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retailer_num: int, grid_width: int,
-                    grid_height: int, output_path: Optional[str] = None):
-    constraints = ['G(stock_constraint)',
-                   'G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))',
-                   'G(low_profit -> low_stock_constraint)']
+def generate_config(
+    sku_num: int,
+    supplier_num: int,
+    warehouse_num: int,
+    retailer_num: int,
+    grid_width: int,
+    grid_height: int,
+    output_path: Optional[str] = None,
+):
+    constraints = [
+        "G(stock_constraint)",
+        "G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))",
+        "G(low_profit -> low_stock_constraint)",
+    ]
 
     # constraints = ['G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))']
 
@@ -153,8 +162,9 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
         return formula
 
     constraint_formulas = {constraint: construct_formula(constraint) for constraint in constraints}
-    constraint_automata = {constraint: constraint_formulas[constraint].to_automaton().determinize() for constraint in
-                           constraints}
+    constraint_automata = {
+        constraint: constraint_formulas[constraint].to_automaton().determinize() for constraint in constraints
+    }
 
     max_constraint_states = int(np.max([len(a.states) for a in constraint_automata.values()]))
 
@@ -163,8 +173,8 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
         "class": "VehicleUnit",
         "config": {
             "patient": 100,
-            "unit_transport_cost": 1
-        }
+            "unit_transport_cost": 1,
+        },
     }
 
     # Save the vehicle definition in the config, so later distribution will reference to it.
@@ -188,7 +198,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
             "gamma": 0.99,
             "tail_timesteps": 7,
             "heading_timesteps": 7,
-        }
+        },
     }
 
     # Add the facility definitions.
@@ -199,25 +209,27 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
     # Generate settings first.
     world_conf = {}
 
-    sku_names = [f'SKU{i}' for i in range(sku_num)]
+    sku_names = [f"SKU{i}" for i in range(sku_num)]
 
     sku_list = []
     for sku_index, sku_name in enumerate(sku_names):
-        sku_list.append({
-            "id": sku_index,
-            "name": sku_name
-        })
+        sku_list.append(
+            {
+                "id": sku_index,
+                "name": sku_name,
+            },
+        )
 
     # Add the sku list to the world configuration.
     world_conf["skus"] = sku_list
 
     # Generate sku information.
-    sku_cost = {f'SKU{i}': random.randint(10, 500) for i in range(sku_num)}
-    sku_product_cost = {f'SKU{i}': int(sku_cost[f'SKU{i}'] * 0.9) for i in range(sku_num)}
-    sku_price = {f'SKU{i}': int(sku_cost[f'SKU{i}'] * (1 + random.randint(10, 100) / 100)) for i in range(sku_num)}
-    sku_gamma = {f'SKU{i}': random.randint(5, 100) for i in range(sku_num)}
+    sku_cost = {f"SKU{i}": random.randint(10, 500) for i in range(sku_num)}
+    sku_product_cost = {f"SKU{i}": int(sku_cost[f"SKU{i}"] * 0.9) for i in range(sku_num)}
+    sku_price = {f"SKU{i}": int(sku_cost[f"SKU{i}"] * (1 + random.randint(10, 100) / 100)) for i in range(sku_num)}
+    sku_gamma = {f"SKU{i}": random.randint(5, 100) for i in range(sku_num)}
     total_gamma = sum(list(sku_gamma.values()))
-    sku_vlt = {f'SKU{i}': random.randint(1, 3) for i in range(sku_num)}
+    sku_vlt = {f"SKU{i}": random.randint(1, 3) for i in range(sku_num)}
 
     # Generate suppliers.
     supplier_facilities = []
@@ -245,7 +257,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
             sku_list[sku_name] = {
                 "price": sku_cost[sku_name],
                 "cost": sku_product_cost[sku_name],
-                "service_level": .95,
+                "service_level": 0.95,
                 "vlt": 3,
                 "init_stock": int(sku_gamma[sku_name] * 50),
                 # Why this configuration, as manufacture is controlled by action?
@@ -283,7 +295,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
                 "cost": sku_cost[sku_name],
                 "vlt": sku_vlt[sku_name],
                 "init_stock": int(sku_gamma[sku_name] * 20),
-                "service_level": .96
+                "service_level": 0.96,
             }
 
         facility["skus"] = sku_list
@@ -317,8 +329,8 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
                 "cost": sku_cost[sku_name],
                 "init_stock": sku_gamma[sku_name] * (sku_vlt[sku_name] + random.randint(1, 5)),
                 "sale_gamma": sku_gamma[sku_name],
-                'max_stock': 1000,
-                "constraint": sku_constraints.get(sku_name, None)
+                "max_stock": 1000,
+                "constraint": sku_constraints.get(sku_name, None),
             }
 
         facility["skus"] = sku_list
@@ -338,7 +350,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
 
         for i in range(sku_num):
             sku_name = f"SKU{i}"
-            store_upstream[sku_name] = [warehouse_list[random.randint(0, warehouse_num - 1)]["name"], ]
+            store_upstream[sku_name] = [warehouse_list[random.randint(0, warehouse_num - 1)]["name"]]
 
         world_conf["topology"][store["name"]] = store_upstream
 
@@ -348,7 +360,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
 
         for i in range(sku_num):
             sku_name = f"SKU{i}"
-            warehouse_upstream[sku_name] = [supplier_facilities[random.randint(0, supplier_num) - 1]["name"], ]
+            warehouse_upstream[sku_name] = [supplier_facilities[random.randint(0, supplier_num) - 1]["name"]]
 
         world_conf["topology"][warehouse["name"]] = warehouse_upstream
 
@@ -396,5 +408,5 @@ if __name__ == "__main__":
         arg.retailer_num,
         arg.grid_width,
         arg.grid_height,
-        arg.output_path
+        arg.output_path,
     )

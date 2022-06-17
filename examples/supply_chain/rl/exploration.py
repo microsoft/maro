@@ -28,5 +28,5 @@ def or_epsilon_greedy(
     buffer = 2
     rnd_actions_upper = np.where(or_actions + buffer > num_actions, num_actions, or_actions + buffer)
     rnd_actions_lower = np.where(or_actions - buffer < 0, 0, or_actions - buffer)
-    rnd_actions = np.random.randint(rnd_actions_lower, rnd_actions_upper) # half open
+    rnd_actions = np.random.randint(rnd_actions_lower, rnd_actions_upper)  # half open
     return np.array([act if np.random.random() > epsilon else rnd_act for act, rnd_act in zip(action, rnd_actions)])

@@ -4,7 +4,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-
 DEFAULT_EXPIRATION_BUFFER = 3
 
 

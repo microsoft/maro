@@ -3,8 +3,6 @@
 
 from enum import Enum
 
-import numpy as np
-
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, ManufactureUnit
@@ -14,7 +12,9 @@ class VehicleSelection(Enum):
     DEFAULT_ONE = "default"  # Choose the default one
     RANDOM = "random"  # Randomly choosing one for each decision
     SHORTEST_LEADING_TIME = "shortest"  # Always choosing the one with shortest leading time
-    CHEAPEST_TOTAL_COST = "cheapest"  # Always choosing the one with cheapest total cost (products, order base, transportation)
+    CHEAPEST_TOTAL_COST = (
+        "cheapest"  # Always choosing the one with cheapest total cost (products, order base, transportation)
+    )
 
 
 distribution_features = ("pending_product_quantity", "pending_order_number")
@@ -26,7 +26,7 @@ IDX_SELLER_TOTAL_DEMAND, IDX_SELLER_SOLD, IDX_SELLER_DEMAND = 0, 1, 2
 consumer_features = ("order_base_cost", "latest_consumptions", "purchased")
 IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS, IDX_CONSUMER_PURCHASED = 0, 1, 2
 
-product_features = ("price", )
+product_features = ("price",)
 IDX_PRODUCT_PRICE = 0
 
 
@@ -42,7 +42,7 @@ def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo
         else:
             return ns_vlt
     else:
-        raise(f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
+        raise (f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
 
 
 ALGO = "EOQ"
@@ -89,10 +89,9 @@ base_policy_conf = {
     "history_len": 28,  # E.g., mapping to np.inf in instance creation if it is static
     "future_len": 7,
     "update_frequency": 7,  # E.g., mapping to np.inf in instance creation if no update
-
     # If true, until next update, all steps will share the same stock level
     # otherwise, each steps will calculate own stock level.
-    "share_same_stock_level": False
+    "share_same_stock_level": False,
 }
 
 workflow_settings: dict = {

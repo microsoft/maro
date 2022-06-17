@@ -4,6 +4,7 @@
 from typing import Dict
 
 import torch
+
 # import numpy as np
 from torch.optim import Adam
 
@@ -11,6 +12,7 @@ from maro.rl.exploration import LinearExplorationScheduler, epsilon_greedy
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.training.algorithms import DQNParams, DQNTrainer
+
 # from maro.rl.utils import ndarray_to_tensor
 
 
@@ -95,14 +97,18 @@ def get_dqn_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPoli
         name=name,
         q_net=MyQNet(state_dim, action_num),
         exploration_strategy=(epsilon_greedy, {"epsilon": 1.0}),
-        exploration_scheduling_options=[(
-            "epsilon", LinearExplorationScheduler, {
-            "last_ep": 1000,
-            "initial_value": 1.0,
-            "final_value": 0.0,
-            }
-        )],
-        warmup=10000
+        exploration_scheduling_options=[
+            (
+                "epsilon",
+                LinearExplorationScheduler,
+                {
+                    "last_ep": 1000,
+                    "initial_value": 1.0,
+                    "final_value": 0.0,
+                },
+            ),
+        ],
+        warmup=10000,
     )
     return policy
 
@@ -111,7 +117,7 @@ def get_dqn(name: str) -> DQNTrainer:
     return DQNTrainer(
         name=name,
         params=DQNParams(
-            reward_discount=.99,
+            reward_discount=0.99,
             update_target_every=8,
             num_epochs=512,
             soft_update_coef=0.005,

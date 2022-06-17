@@ -7,12 +7,16 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 from maro.backends.frame import FrameBase
-from maro.simulator.scenarios.supply_chain.units.storage import StorageUnit
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .objects import (
-    DEFAULT_SUB_STORAGE_ID, LeadingTimeInfo, SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo,
+    DEFAULT_SUB_STORAGE_ID,
+    LeadingTimeInfo,
+    SkuInfo,
+    SkuMeta,
+    SupplyChainEntity,
+    VendorLeadingTimeInfo,
     parse_storage_config,
 )
 from .parser import DataModelDef, EntityDef, SupplyChainConfiguration
@@ -195,15 +199,21 @@ class World:
         # Collection entity list
         for facility in self.facilities.values():
             entity = SupplyChainEntity(
-                id=facility.id, class_type=facility.__class__, skus=None, facility_id=facility.id, parent_id=None,
+                id=facility.id,
+                class_type=facility.__class__,
+                skus=None,
+                facility_id=facility.id,
+                parent_id=None,
             )
             self.entity_list.append(entity)
 
         for unit in self.units.values():
             entity = SupplyChainEntity(
-                id=unit.id, class_type=unit.__class__,
+                id=unit.id,
+                class_type=unit.__class__,
                 skus=unit.facility.skus[unit.sku_id] if isinstance(unit, ExtendUnitBase) else None,
-                facility_id=unit.facility.id, parent_id=unit.parent.id,
+                facility_id=unit.facility.id,
+                parent_id=unit.parent.id,
             )
             self.entity_list.append(entity)
 
@@ -242,7 +252,10 @@ class World:
         return self._data_class_collection[alias] - 1
 
     def _build_unit(
-        self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict,
+        self,
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        config: dict,
     ) -> UnitBase:
         """Build a unit by its configuration.
 
@@ -318,7 +331,7 @@ class World:
                 # Here we make sure consumer is the first one, so it can place order first.
                 for child_name, has_unit in zip(
                     ["consumer", "seller", "manufacture"],
-                    [sku.has_consumer, sku.has_seller, sku.has_manufacture]
+                    [sku.has_consumer, sku.has_seller, sku.has_manufacture],
                 ):
                     conf = product_config.get(child_name, None)
 
@@ -335,7 +348,7 @@ class World:
 
                 for src_sku_id, src_sku_quantity in self._sku_collection[sku_id].bom.items():
                     bom_out_info_dict[src_sku_id].append(
-                        (sku_id, src_sku_quantity / self._sku_collection[sku_id].output_units_per_lot)
+                        (sku_id, src_sku_quantity / self._sku_collection[sku_id].output_units_per_lot),
                     )
 
         # Added for sales mean statistics
@@ -348,7 +361,7 @@ class World:
         for facility_conf in self.configs.world["facilities"]:
             # TODO: decide parse here or require the config to be
             facility_conf["children"]["storage"]["config"] = parse_storage_config(
-                facility_conf["children"]["storage"]["config"]
+                facility_conf["children"]["storage"]["config"],
             )
 
             facility_def: EntityDef = self.configs.entity_defs[facility_conf["class"]]
@@ -376,19 +389,21 @@ class World:
                 sku_config["name"] = sku_name
 
                 sub_storage_id: int = sku_config.get("sub_storage_id", DEFAULT_SUB_STORAGE_ID)
-                sku_config["unit_storage_cost"] = float(sku_config.get(
-                    "unit_storage_cost",
-                    facility_conf["children"]["storage"]["config"][sub_storage_id].unit_storage_cost
-                ))
+                sku_config["unit_storage_cost"] = float(
+                    sku_config.get(
+                        "unit_storage_cost",
+                        facility_conf["children"]["storage"]["config"][sub_storage_id].unit_storage_cost,
+                    ),
+                )
 
                 sku_config["unit_order_cost"] = sku_config.get(
                     "unit_order_cost",
-                    facility_conf["config"].get("unit_order_cost", None)
+                    facility_conf["config"].get("unit_order_cost", None),
                 )
 
                 sku_config["unit_delay_order_penalty"] = sku_config.get(
                     "unit_delay_order_penalty",
-                    facility_conf["config"].get("unit_delay_order_penalty", None)
+                    facility_conf["config"].get("unit_delay_order_penalty", None),
                 )
 
                 facility.skus[sku_id] = SkuInfo(**sku_config)
@@ -419,11 +434,13 @@ class World:
 
         for alias, number in self._data_class_collection.items():
             data_model_def: DataModelDef = self.configs.data_model_defs[alias]
-            data_class_in_frame.append((
-                data_model_def.class_type,
-                data_model_def.name_in_frame,
-                number,
-            ))
+            data_class_in_frame.append(
+                (
+                    data_model_def.class_type,
+                    data_model_def.name_in_frame,
+                    number,
+                ),
+            )
 
         frame = build_frame(True, snapshot_number, data_class_in_frame)
 
@@ -462,8 +479,14 @@ class World:
 
                     for vehicle_type, vehicle_conf in src_conf.items():
                         facility.upstream_vlt_infos[sku_id][src_facility.id][vehicle_type] = VendorLeadingTimeInfo(
-                            src_facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"]
+                            src_facility,
+                            vehicle_type,
+                            vehicle_conf["vlt"],
+                            vehicle_conf["cost"],
                         )
                         src_facility.downstream_vlt_infos[sku_id][facility.id][vehicle_type] = LeadingTimeInfo(
-                            facility, vehicle_type, vehicle_conf["vlt"], vehicle_conf["cost"]
+                            facility,
+                            vehicle_type,
+                            vehicle_conf["vlt"],
+                            vehicle_conf["cost"],
                         )

@@ -29,11 +29,23 @@ class ConsumerUnit(ExtendUnitBase):
     """Consumer unit used to generate order to purchase from upstream by action."""
 
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(ConsumerUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
         # States in python side.
         self._received: int = 0  # The quantity of product received in current step.
@@ -167,11 +179,13 @@ class ConsumerUnit(ExtendUnitBase):
 
     def _process_action(self, action: ConsumerAction, tick: int) -> None:
         # NOTE: id == 0 means invalid, as our id is 1-based.
-        if any([
-            action.source_id not in self.source_facility_id_list,
-            action.sku_id != self.sku_id,
-            action.quantity <= 0,
-        ]):
+        if any(
+            [
+                action.source_id not in self.source_facility_id_list,
+                action.sku_id != self.sku_id,
+                action.quantity <= 0,
+            ],
+        ):
             return
 
         source_facility = self.world.get_facility_by_id(action.source_id)

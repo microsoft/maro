@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict, deque, Counter
+from collections import Counter, defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
@@ -38,8 +38,7 @@ class BalanceSheetCalculator:
         self._facility_info_dict: Dict[int, FacilityInfo] = self._env.summary["node_mapping"]["facilities"]
 
         self._entity_dict: Dict[int, SupplyChainEntity] = {
-            entity.id: entity
-            for entity in self._env.business_engine.get_entity_list()
+            entity.id: entity for entity in self._env.business_engine.get_entity_list()
         }
 
         product_infos, pid2idx, cid2pid, cid2fid, sidx2pidx = self._extract_facility_and_product_info()
@@ -66,9 +65,9 @@ class BalanceSheetCalculator:
     def update_env(self, env: Env) -> None:
         self._env = env
 
-    def _extract_facility_and_product_info(self) -> Tuple[
-        List[GlobalProductInfo], Dict[int, int], Dict[int, int], Dict[int, int],
-    ]:
+    def _extract_facility_and_product_info(
+        self,
+    ) -> Tuple[List[GlobalProductInfo], Dict[int, int], Dict[int, int], Dict[int, int]]:
         product_infos: List[GlobalProductInfo] = []
         product_id2idx_in_product_infos: Dict[int, int] = {}
 
@@ -107,16 +106,23 @@ class BalanceSheetCalculator:
                         ),
                         downstream_product_id_list=[
                             self._facility_info_dict[fid].products_info[sku_id].id for fid in downstreams[sku_id]
-                        ] if sku_id in downstreams else [],
+                        ]
+                        if sku_id in downstreams
+                        else [],
                         upstream_product_id_list=[
                             self._facility_info_dict[fid].products_info[sku_id].id for fid in upstreams[sku_id]
-                        ] if sku_id in upstreams else [],
-                    )
+                        ]
+                        if sku_id in upstreams
+                        else [],
+                    ),
                 )
 
         return (
-            product_infos, product_id2idx_in_product_infos,
-            consumer_id2product_id, consumer_id2facility_id, seller_index2product_index
+            product_infos,
+            product_id2idx_in_product_infos,
+            consumer_id2product_id,
+            consumer_id2facility_id,
+            seller_index2product_index,
         )
 
     def _get_products_sorted_from_downstreams_to_upstreams(self) -> List[GlobalProductInfo]:
@@ -169,9 +175,9 @@ class BalanceSheetCalculator:
             np.ndarray: seller step cost, with seller node index as 1st-dim index.
         """
         price = self._env.snapshot_list["product"][
-            self._env.business_engine.frame_index(tick):[
+            self._env.business_engine.frame_index(tick) : [
                 self.seller_index2product_index[sidx] for sidx in range(len(self._env.snapshot_list["seller"]))
-            ]:"price"
+            ] : "price"
         ].flatten()
 
         # profit = sold * price
@@ -216,7 +222,9 @@ class BalanceSheetCalculator:
             {
                 sku_id: -quantity * self._entity_dict[product_id].skus.unit_storage_cost
                 for sku_id, product_id, quantity in zip(
-                    sku_id_list.astype(np.int), product_id_list.astype(np.int), quantity_list.astype(np.int)
+                    sku_id_list.astype(np.int),
+                    product_id_list.astype(np.int),
+                    quantity_list.astype(np.int),
                 )
             }
             for sku_id_list, product_id_list, quantity_list in zip(sku_id_lists, product_id_lists, quantity_lists)
@@ -232,10 +240,12 @@ class BalanceSheetCalculator:
             np.ndarray: product step distribution cost, with product node index as 1st-dim index.
         """
         # product distribution profit = check order * price
-        product_step_distribution_profit = (
-            get_attributes(self._env, "product", "check_in_quantity_in_order", tick)
-            * get_attributes(self._env, "product", "price", tick)
-        )
+        product_step_distribution_profit = get_attributes(
+            self._env,
+            "product",
+            "check_in_quantity_in_order",
+            tick,
+        ) * get_attributes(self._env, "product", "price", tick)
 
         # product distribution loss = transportation cost + delay order penalty
         product_step_distribution_cost = -1 * (
@@ -387,7 +397,7 @@ class BalanceSheetCalculator:
                 facility_id = self.consumer_id2facility_id[id_]
                 team_reward[facility_id] = (
                     team_reward[facility_id][0] + balance_and_reward[id_][0],
-                    team_reward[facility_id][1] + balance_and_reward[id_][1]
+                    team_reward[facility_id][1] + balance_and_reward[id_][1],
                 )
 
             for id_ in consumer_ids:
@@ -423,13 +433,17 @@ class BalanceSheetCalculator:
             product_storage_step_cost,
             product_distribution_step_profit,
             product_distribution_step_cost,
-            tick
+            tick,
         )
 
         _, _, facility_step_balance = self._calc_facility(product_step_profit, product_step_cost)
 
         balance_and_reward = self._update_balance_sheet(
-            product_step_balance, consumer_ids, manufacture_ids, manufacture_step_cost, facility_step_balance
+            product_step_balance,
+            consumer_ids,
+            manufacture_ids,
+            manufacture_step_cost,
+            facility_step_balance,
         )
 
         return balance_and_reward

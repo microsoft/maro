@@ -25,11 +25,23 @@ class ExtendUnitBase(UnitBase):
     """A base of sku related unit."""
 
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(ExtendUnitBase, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
         # SKU id, 0 means invalid.

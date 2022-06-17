@@ -7,6 +7,7 @@ from maro.backends.frame import NodeAttribute, NodeBase
 
 class DataModelBase(NodeBase):
     """Base of all data model of this scenario."""
+
     # Id of related unit or facility, 0 is invalid by default.
     id = NodeAttribute(AttributeType.Int)
 
@@ -27,7 +28,6 @@ class DataModelBase(NodeBase):
                 reset after frame reset.
         """
         # Called from unit after frame is ready.
-        pass
 
     def reset(self) -> None:
         """Reset after each episode."""

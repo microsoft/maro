@@ -10,6 +10,7 @@ from .extend import ExtendDataModel
 @node("consumer")
 class ConsumerDataModel(ExtendDataModel):
     """Data model for consumer unit."""
+
     # Can be updated in on_order_reception() <- called by DistributionUnit.post_step().
     received = NodeAttribute(AttributeType.UInt)
 

@@ -29,9 +29,16 @@ class ManufactureUnit(ExtendUnitBase):
 
     One manufacture unit per sku.
     """
+
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(ManufactureUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
 
@@ -115,10 +122,12 @@ class ManufactureUnit(ExtendUnitBase):
         if self._num_to_produce > 0 and len(self._bom):
             self._num_to_produce = min(
                 self._num_to_produce,
-                min([
-                    self.facility.storage.get_product_quantity(sku_id) // consumption
-                    for sku_id, consumption in self._bom.items()
-                ])
+                min(
+                    [
+                        self.facility.storage.get_product_quantity(sku_id) // consumption
+                        for sku_id, consumption in self._bom.items()
+                    ],
+                ),
             )
 
         # Start manufacture.
@@ -166,11 +175,23 @@ class SimpleManufactureUnit(ManufactureUnit):
     """This simple manufacture unit will ignore source sku, just generate specified number of product."""
 
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(SimpleManufactureUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
     def _manufacture(self, tick: int) -> None:

@@ -41,9 +41,16 @@ class UnitBase:
     . Unit.set_action is called when there is any action from out-side.
 
     """
+
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
 
         # Id of this unit.
@@ -81,12 +88,9 @@ class UnitBase:
         Args:
             tick (int): Current simulator tick.
         """
-        pass
 
     def flush_states(self) -> None:
-        """Flush states into frame for current tick.
-        """
-        pass
+        """Flush states into frame for current tick."""
 
     def post_step(self, tick: int) -> None:
         """Post-processing for current step.
@@ -94,7 +98,6 @@ class UnitBase:
         Args:
             tick (int): Current simulator tick.
         """
-        pass
 
     def reset(self) -> None:
         """Reset this unit for a new episode."""

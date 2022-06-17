@@ -15,16 +15,15 @@ from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBus
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 
+from .algorithms.base_stock_policy import BaseStockPolicy
 from .algorithms.dqn import get_dqn, get_dqn_policy
 from .algorithms.ppo import get_ppo, get_ppo_policy
-from .algorithms.rule_based import ManufacturerSSPolicy, ConsumerMinMaxPolicy
-from .algorithms.base_stock_policy import BaseStockPolicy
-from .config import ALGO, NUM_CONSUMER_ACTIONS, SHARED_MODEL, env_conf, test_env_conf, base_policy_conf
+from .algorithms.rule_based import ConsumerMinMaxPolicy, ManufacturerSSPolicy
+from .config import ALGO, NUM_CONSUMER_ACTIONS, SHARED_MODEL, base_policy_conf, env_conf, test_env_conf
 from .env_sampler import SCEnvSampler
 from .rl_agent_state import STATE_DIM
 
-
-IS_BASELINE = (ALGO == "EOQ")
+IS_BASELINE = ALGO == "EOQ"
 
 
 def entity2policy(entity: SupplyChainEntity, facility_info_dict: Dict[int, FacilityInfo]) -> Optional[str]:
@@ -33,11 +32,13 @@ def entity2policy(entity: SupplyChainEntity, facility_info_dict: Dict[int, Facil
 
     elif issubclass(entity.class_type, ConsumerUnit):
         facility_name = facility_info_dict[entity.facility_id].name
-        if not IS_BASELINE and any([
-            facility_name.startswith("CA_"),
-            facility_name.startswith("TX_"),
-            facility_name.startswith("WI_"),
-        ]):
+        if not IS_BASELINE and any(
+            [
+                facility_name.startswith("CA_"),
+                facility_name.startswith("TX_"),
+                facility_name.startswith("WI_"),
+            ],
+        ):
             if SHARED_MODEL:
                 return "consumer.policy"
             else:
@@ -68,8 +69,7 @@ class SupplyChainBundle(RLComponentBundle):
         assert isinstance(helper_business_engine, SupplyChainBusinessEngine)
 
         entity_dict: Dict[Any, SupplyChainEntity] = {
-            entity.id: entity
-            for entity in helper_business_engine.get_entity_list()
+            entity.id: entity for entity in helper_business_engine.get_entity_list()
         }
 
         facility_info_dict: Dict[int, FacilityInfo] = self.env.summary["node_mapping"]["facilities"]
@@ -82,7 +82,7 @@ class SupplyChainBundle(RLComponentBundle):
         return agent2policy
 
     def get_policy_creator(self) -> Dict[str, Callable[[], AbsPolicy]]:
-        get_policy = (get_dqn_policy if ALGO == "DQN" else get_ppo_policy)
+        get_policy = get_dqn_policy if ALGO == "DQN" else get_ppo_policy
         policy_creator = {
             "consumer_baseline_policy": lambda: ConsumerMinMaxPolicy("consumer_baseline_policy"),
             "base_stock_policy": lambda: BaseStockPolicy("base_stock_policy", base_policy_conf),
@@ -95,7 +95,7 @@ class SupplyChainBundle(RLComponentBundle):
         return policy_creator
 
     def get_trainer_creator(self) -> Dict[str, Callable[[], AbsTrainer]]:
-        get_trainer = (get_dqn if ALGO=="DQN" else partial(get_ppo, STATE_DIM))
+        get_trainer = get_dqn if ALGO == "DQN" else partial(get_ppo, STATE_DIM)
         if SHARED_MODEL:
             trainer_creator = {"consumer": partial(get_trainer, STATE_DIM, "consumer")}
         else:
@@ -135,7 +135,7 @@ class SupplyChainBundle(RLComponentBundle):
     def get_policy_trainer_mapping(self) -> Dict[str, str]:
         if SHARED_MODEL:
             policy_trainer_mapping = {
-                "consumer.policy": "consumer"
+                "consumer.policy": "consumer",
             }
         else:
             policy_trainer_mapping = {

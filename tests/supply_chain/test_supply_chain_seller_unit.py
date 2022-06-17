@@ -2,22 +2,23 @@
 # Licensed under the MIT license.
 
 import unittest
+
 import numpy as np
 
 from maro.simulator.scenarios.supply_chain import FacilityBase
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 
-from tests.supply_chain.common import build_env, SKU3_ID, FOOD_1_ID
+from tests.supply_chain.common import FOOD_1_ID, SKU3_ID, build_env
 
 
 class MyTestCase(unittest.TestCase):
     """
-        Seller unit test:
-            . initial state
-            . with a customized seller unit
-            . with built-in one
-            . with dynamics sampler
-        """
+    Seller unit test:
+        . initial state
+        . with a customized seller unit
+        . with built-in one
+        . with dynamics sampler
+    """
 
     def test_seller_unit_initial_states(self) -> None:
         """Test the initial states of sku3's SellerUnit of Retailer_001."""
@@ -93,7 +94,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(actual_sold, seller_unit._total_sold)
         self.assertEqual(actual_sold, seller_unit.data_model.total_sold)
 
-        states = seller_nodes[env.frame_index:seller_node_index:features].flatten().astype(np.int)
+        states = seller_nodes[env.frame_index : seller_node_index : features].flatten().astype(np.int)
 
         self.assertEqual(actual_sold, states[IDX_SOLD])
         self.assertEqual(seller_unit._demand, states[IDX_DEMAND])
@@ -113,7 +114,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(actual_sold + actual_sold_2, seller_unit._total_sold)
         self.assertEqual(actual_sold + actual_sold_2, seller_unit.data_model.total_sold)
 
-        states = seller_nodes[env.frame_index:seller_node_index:features].flatten().astype(np.int)
+        states = seller_nodes[env.frame_index : seller_node_index : features].flatten().astype(np.int)
 
         self.assertEqual(actual_sold_2, states[IDX_SOLD])
         self.assertEqual(seller_unit._demand, states[IDX_DEMAND])
@@ -156,22 +157,22 @@ class MyTestCase(unittest.TestCase):
         while not is_done:
             _, _, is_done = env.step(None)
 
-        states = seller_nodes[:seller_node_index:features[IDX_DEMAND]].flatten().astype(np.int)
+        states = seller_nodes[: seller_node_index : features[IDX_DEMAND]].flatten().astype(np.int)
 
         # Check demand history, it should be same as tick
         self.assertListEqual([i for i in range(100)], list(states))
 
         # Check sold states. Since the init stock 10 = 1 + 2 + 3 + 4, sold value should be 0 after tick 4.
-        states = seller_nodes[:seller_node_index:features[IDX_SOLD]].flatten().astype(np.int)
+        states = seller_nodes[: seller_node_index : features[IDX_SOLD]].flatten().astype(np.int)
         self.assertListEqual([0, 1, 2, 3, 4] + [0] * 95, list(states))
 
         # Check total sold, should be: 0, 0 + 1, 0 + 1 + 2, 0 + 1 + 2 + 3, 0 + 1 + 2 + 3 + 4, 10, 10, ...
-        states = seller_nodes[:seller_node_index:features[IDX_TOTAL_SOLD]].flatten().astype(np.int)
+        states = seller_nodes[: seller_node_index : features[IDX_TOTAL_SOLD]].flatten().astype(np.int)
         self.assertListEqual([0, 1, 3, 6, 10] + [10] * 95, list(states))
 
     def test_seller_unit_dynamics_sampler(self):
         """Tested the store_001  Interaction between seller unit and dynamics csv data.
-           The data file of this test is test_case_ 04.csv"""
+        The data file of this test is test_case_ 04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -205,9 +206,9 @@ class MyTestCase(unittest.TestCase):
         while env.tick < expected_tick - 1:
             env.step(None)
 
-        states = seller_nodes[:seller_node_index:features[IDX_SOLD]].flatten().astype(np.int)
+        states = seller_nodes[: seller_node_index : features[IDX_SOLD]].flatten().astype(np.int)
         self.assertListEqual([10, 20, 30, 40, 50], list(states))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

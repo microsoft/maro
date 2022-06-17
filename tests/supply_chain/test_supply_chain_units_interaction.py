@@ -2,14 +2,13 @@
 # Licensed under the MIT license.
 
 import unittest
+
 import numpy as np
 
-from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction, FacilityBase
-)
+from maro.simulator.scenarios.supply_chain import ConsumerAction, FacilityBase
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 
-from tests.supply_chain.common import build_env, SKU3_ID
+from tests.supply_chain.common import SKU3_ID, build_env
 
 
 class MyTestCase(unittest.TestCase):
@@ -64,7 +63,7 @@ class MyTestCase(unittest.TestCase):
         expected_frame = env.business_engine.frame_index(expected_tick_1)
 
         # Not received yet.
-        states = consumer_nodes[expected_frame - 1:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[expected_frame - 1 : consumer_node_index : features].flatten().astype(np.int)
         self.assertEqual(0, states[IDX_RECEIVED])
 
         # received.
@@ -91,7 +90,7 @@ class MyTestCase(unittest.TestCase):
         expected_frame = env.business_engine.frame_index(expected_tick_2)
 
         # Not received yet.
-        states = consumer_nodes[expected_frame - 1:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[expected_frame - 1 : consumer_node_index : features].flatten().astype(np.int)
         self.assertEqual(0, states[IDX_RECEIVED])
 
         # received.
@@ -99,5 +98,5 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(required_quantity_2, states[IDX_RECEIVED])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -2,27 +2,28 @@
 # Licensed under the MIT license.
 
 import unittest
+
 import numpy as np
 
-from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction
+from maro.simulator.scenarios.supply_chain import ConsumerAction, FacilityBase
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.order import Order
 
-from tests.supply_chain.common import build_env, SKU3_ID, FOOD_1_ID
+from tests.supply_chain.common import FOOD_1_ID, SKU3_ID, build_env
 
 
 class MyTestCase(unittest.TestCase):
     """
-        Consumer test:
+    Consumer test:
 
-        . initial state
-        . state after reset
-        . set_action directly from code
-        . set_action by env.step
-        . call on_order_reception directly to simulation order arrived
-        . call update_open_orders directly
-        . with dynamics sampler
-        """
+    . initial state
+    . state after reset
+    . set_action directly from code
+    . set_action by env.step
+    . call on_order_reception directly to simulation order arrived
+    . call update_open_orders directly
+    . with dynamics sampler
+    """
 
     def test_consumer_init_state(self) -> None:
         """Consumer of sku3 in Supplier_SKU1."""
@@ -65,7 +66,7 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         # check state
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[env.frame_index : consumer_node_index : features].flatten().astype(np.int)
 
         self.assertEqual(sku3_consumer_unit.id, states[IDX_ID])
         self.assertEqual(sku3_consumer_unit.facility.id, states[IDX_FACILITY_ID])
@@ -75,7 +76,7 @@ class MyTestCase(unittest.TestCase):
         env.reset()
         env.step(None)
 
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[env.frame_index : consumer_node_index : features].flatten().astype(np.int)
 
         # Nothing happened at tick 0, so most states will be 0
         self.assertEqual(0, states[IDX_PURCHASED])
@@ -110,7 +111,7 @@ class MyTestCase(unittest.TestCase):
         action_with_zero = ConsumerAction(sku3_consumer_unit.id, SKU3_ID, supplier_3.id, 0, "train")
         env.step([action_with_zero])
 
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[env.frame_index : consumer_node_index : features].flatten().astype(np.int)
 
         # Nothing happened at tick 0, at the action will be recorded
         self.assertEqual(action_with_zero.sku_id, states[IDX_SKU_ID])
@@ -178,7 +179,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_consumer_unit_dynamics_sampler(self):
         """Tested the store_001  Interaction between consumer unit and dynamics csv data.
-           The data file of this test is test_case_ 04.csv"""
+        The data file of this test is test_case_ 04.csv"""
         env = build_env("case_04", 100)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -218,7 +219,7 @@ class MyTestCase(unittest.TestCase):
         env.step(None)
 
         # check state
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[env.frame_index : consumer_node_index : features].flatten().astype(np.int)
 
         self.assertEqual(FOOD_1_consumer_unit.id, states[IDX_ID])
         self.assertEqual(FOOD_1_consumer_unit.facility.id, states[IDX_FACILITY_ID])
@@ -228,7 +229,7 @@ class MyTestCase(unittest.TestCase):
         env.reset()
         env.step(None)
 
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[env.frame_index : consumer_node_index : features].flatten().astype(np.int)
 
         # Nothing happened at tick 0, so most states will be 0
         self.assertEqual(0, states[IDX_PURCHASED])
@@ -251,7 +252,7 @@ class MyTestCase(unittest.TestCase):
         action_with_zero = ConsumerAction(FOOD_1_consumer_unit.id, FOOD_1_ID, Store_001.id, 0, "train")
         env.step([action_with_zero])
 
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[env.frame_index : consumer_node_index : features].flatten().astype(np.int)
 
         # Nothing happened at tick 0, at the action will be recorded
         self.assertEqual(action_with_zero.sku_id, states[IDX_SKU_ID])
@@ -267,7 +268,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(action.quantity, FOOD_1_consumer_unit._purchased)
         self.assertEqual(0, FOOD_1_consumer_unit._received)
 
-        states = consumer_nodes[env.frame_index:consumer_node_index:features].flatten().astype(np.int)
+        states = consumer_nodes[env.frame_index : consumer_node_index : features].flatten().astype(np.int)
 
         # action field should be recorded
         self.assertEqual(action.sku_id, states[IDX_SKU_ID])
@@ -278,5 +279,5 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, states[IDX_RECEIVED])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

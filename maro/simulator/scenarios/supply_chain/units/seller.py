@@ -29,12 +29,25 @@ class SellerUnit(ExtendUnitBase):
     """
     Unit that used to generate product consume demand, and move demand product from current storage.
     """
+
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(SellerUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
         self._gamma = 0
@@ -146,11 +159,23 @@ class OuterSellerUnit(SellerUnit):
     """Seller that demand is from out side sampler, like a data file or data model prediction."""
 
     def __init__(
-        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
-        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+        self,
+        id: int,
+        data_model_name: Optional[str],
+        data_model_index: Optional[int],
+        facility: FacilityBase,
+        parent: Union[FacilityBase, UnitBase],
+        world: World,
+        config: dict,
     ) -> None:
         super(OuterSellerUnit, self).__init__(
-            id, data_model_name, data_model_index, facility, parent, world, config,
+            id,
+            data_model_name,
+            data_model_index,
+            facility,
+            parent,
+            world,
+            config,
         )
 
     # Sample used to sample demand.

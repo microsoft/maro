@@ -200,13 +200,14 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         # The ones that not scheduled yet are not included here.
                         "pending_order_daily": (
                             product.consumer.get_pending_order_daily(self._tick)
-                            if product.consumer is not None else None
+                            if product.consumer is not None
+                            else None
                         ),
                         "order_statistics": (
-                            product.consumer.get_order_statistics(self._tick)
-                            if product.consumer is not None else None
+                            product.consumer.get_order_statistics(self._tick) if product.consumer is not None else None
                         ),
-                    } for product in self._product_units
+                    }
+                    for product in self._product_units
                 },
                 "facilities": {
                     facility.id: {
@@ -214,11 +215,12 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         # here active = pending scheduled + on the way (+ pending unload).
                         "in_transit_orders": facility.get_in_transit_orders(),
                         # The dict of current ordered but not yet scheduled product quantity.
-                        "pending_order":
-                            defaultdict(int) if facility.distribution is None
-                            else facility.distribution.pending_product_quantity,
-                    } for facility in self.world.facilities.values()
-                }
+                        "pending_order": defaultdict(int)
+                        if facility.distribution is None
+                        else facility.distribution.pending_product_quantity,
+                    }
+                    for facility in self.world.facilities.values()
+                },
             }
 
         return self._metrics_cache
