@@ -6,7 +6,7 @@ from __future__ import annotations
 import typing
 from typing import Dict
 
-from maro.rl.distributed import AbsWorker
+from maro.rl.distributed import DEFAULT_TRAINING_BACKEND_PORT, AbsWorker
 from maro.rl.training import SingleAgentTrainer
 from maro.rl.utils.common import bytes_to_pyobj, bytes_to_string, pyobj_to_bytes
 from maro.utils import LoggerV2
@@ -34,13 +34,13 @@ class TrainOpsWorker(AbsWorker):
         idx: int,
         rl_component_bundle: RLComponentBundle,
         producer_host: str,
-        producer_port: int = 10001,
+        producer_port: int = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(TrainOpsWorker, self).__init__(
             idx=idx,
             producer_host=producer_host,
-            producer_port=producer_port,
+            producer_port=producer_port if producer_port is not None else DEFAULT_TRAINING_BACKEND_PORT,
             logger=logger,
         )
 

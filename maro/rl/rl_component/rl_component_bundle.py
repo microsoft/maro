@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from maro.rl.policy import AbsPolicy, RLPolicy
@@ -9,7 +8,6 @@ from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
 
 
-@dataclass
 class RLComponentBundle:
     """Bundle of all necessary components to run a RL job in MARO.
 
@@ -27,15 +25,20 @@ class RLComponentBundle:
         mapping will not be trained.
     """
 
-    env_sampler: AbsEnvSampler
-    agent2policy: Dict[Any, str]
-    policies: List[AbsPolicy]
-    trainers: List[AbsTrainer]
-    device_mapping: Dict[str, str] = None
-    policy_trainer_mapping: Dict[str, str] = None
+    def __init__(
+        self,
+        env_sampler: AbsEnvSampler,
+        agent2policy: Dict[Any, str],
+        policies: List[AbsPolicy],
+        trainers: List[AbsTrainer],
+        device_mapping: Dict[str, str] = None,
+        policy_trainer_mapping: Dict[str, str] = None,
+    ) -> None:
+        self.env_sampler = env_sampler
+        self.agent2policy = agent2policy
+        self.policies = policies
+        self.trainers = trainers
 
-    def __post_init__(self) -> None:
-        # Check missing policies
         policy_set = set([policy.name for policy in self.policies])
         not_found = [policy_name for policy_name in self.agent2policy.values() if policy_name not in policy_set]
         if len(not_found) > 0:
@@ -51,14 +54,14 @@ class RLComponentBundle:
         self.policies = kept_policies
         policy_set = set([policy.name for policy in self.policies])
 
-        if self.device_mapping is not None:
-            self.device_mapping = {k: v for k, v in self.device_mapping.items() if k in policy_set}
-        else:
-            self.device_mapping = {}
-
-        # Create default policy-trainer mapping if not provided
-        if self.policy_trainer_mapping is None:  # Default policy-trainer naming rule
-            self.policy_trainer_mapping = {policy_name: policy_name.split(".")[0] for policy_name in policy_set}
+        self.device_mapping = (
+            {k: v for k, v in device_mapping.items() if k in policy_set} if device_mapping is not None else {}
+        )
+        self.policy_trainer_mapping = (
+            policy_trainer_mapping
+            if policy_trainer_mapping is not None
+            else {policy_name: policy_name.split(".")[0] for policy_name in policy_set}
+        )
 
         # Check missing trainers
         self.policy_trainer_mapping = {

@@ -21,37 +21,8 @@ from .train_ops import AbsTrainOps, RemoteOps
 
 
 @dataclass
-class TrainerParams:
-    """Common trainer parameters.
-
-    replay_memory_capacity (int, default=100000): Maximum capacity of the replay memory.
-    batch_size (int, default=128): Training batch size.
-    data_parallelism (int, default=1): Degree of data parallelism. A value greater than 1 can be used when
-        a model is large and computing gradients with respect to a batch becomes expensive. In this case, the
-        batch may be split into multiple smaller batches whose gradients can be computed in parallel on a set
-        of remote nodes. For simplicity, only synchronous parallelism is supported, meaning that the model gets
-        updated only after collecting all the gradients from the remote nodes. Note that this value is the desired
-        parallelism and the actual parallelism in a distributed experiment may be smaller depending on the
-        availability of compute resources. For details on distributed deep learning and data parallelism, see
-        https://web.stanford.edu/~rezab/classes/cme323/S16/projects_reports/hedge_usmani.pdf, as well as an abundance
-        of resources available on the internet.
-    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
-
-    """
-
-    replay_memory_capacity: int = 10000
-    batch_size: int = 128
-    data_parallelism: int = 1
-    reward_discount: float = 0.9
-
-    @abstractmethod
-    def extract_ops_params(self) -> Dict[str, object]:
-        """Extract parameters that should be passed to the train ops.
-
-        Returns:
-            params (Dict[str, object]): Parameter dict.
-        """
-        raise NotImplementedError
+class BaseTrainerParams:
+    pass
 
 
 class AbsTrainer(object, metaclass=ABCMeta):
@@ -64,16 +35,36 @@ class AbsTrainer(object, metaclass=ABCMeta):
 
     Args:
         name (str): Name of the trainer.
-        params (TrainerParams): Trainer's parameters.
+        replay_memory_capacity (int, default=100000): Maximum capacity of the replay memory.
+        batch_size (int, default=128): Training batch size.
+        data_parallelism (int, default=1): Degree of data parallelism. A value greater than 1 can be used when
+            a model is large and computing gradients with respect to a batch becomes expensive. In this case, the
+            batch may be split into multiple smaller batches whose gradients can be computed in parallel on a set
+            of remote nodes. For simplicity, only synchronous parallelism is supported, meaning that the model gets
+            updated only after collecting all the gradients from the remote nodes. Note that this value is the desired
+            parallelism and the actual parallelism in a distributed experiment may be smaller depending on the
+            availability of compute resources. For details on distributed deep learning and data parallelism, see
+            https://web.stanford.edu/~rezab/classes/cme323/S16/projects_reports/hedge_usmani.pdf, as well as an
+            abundance of resources available on the internet.
+        reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
     """
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
+    def __init__(
+        self,
+        name: str,
+        replay_memory_capacity: int = 10000,
+        batch_size: int = 128,
+        data_parallelism: int = 1,
+        reward_discount: float = 0.9,
+    ) -> None:
         self._name = name
-        self._params = params
-        self._batch_size = self._params.batch_size
+        self._replay_memory_capacity = replay_memory_capacity
+        self._batch_size = batch_size
+        self._data_parallelism = data_parallelism
+        self._reward_discount = reward_discount
+
         self._agent2policy: Dict[Any, str] = {}
         self._proxy_address: Optional[Tuple[str, int]] = None
-        self._logger = None
 
     @property
     def name(self) -> str:
@@ -83,7 +74,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
     def agent_num(self) -> int:
         return len(self._agent2policy)
 
-    def register_logger(self, logger: LoggerV2) -> None:
+    def register_logger(self, logger: LoggerV2 = None) -> None:
         self._logger = logger
 
     def register_agent2policy(self, agent2policy: Dict[Any, str], policy_trainer_mapping: Dict[str, str]) -> None:
@@ -140,7 +131,7 @@ class AbsTrainer(object, metaclass=ABCMeta):
         self._proxy_address = proxy_address
 
     @abstractmethod
-    def get_policy_state(self) -> Dict[str, object]:
+    def get_policy_state(self) -> Dict[str, dict]:
         """Get policies' states.
 
         Returns:
@@ -164,22 +155,46 @@ class AbsTrainer(object, metaclass=ABCMeta):
 class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains only one policy."""
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
-        super(SingleAgentTrainer, self).__init__(name, params)
-        self._policy: Optional[RLPolicy] = None
-        self._ops: Optional[AbsTrainOps] = None
-        self._replay_memory: Optional[ReplayMemory] = None
+    def __init__(
+        self,
+        name: str,
+        replay_memory_capacity: int = 10000,
+        batch_size: int = 128,
+        data_parallelism: int = 1,
+        reward_discount: float = 0.9,
+    ) -> None:
+        super(SingleAgentTrainer, self).__init__(
+            name,
+            replay_memory_capacity,
+            batch_size,
+            data_parallelism,
+            reward_discount,
+        )
 
     @property
-    def ops(self):
-        return self._ops
+    def ops(self) -> Union[AbsTrainOps, RemoteOps]:
+        ops = getattr(self, "_ops", None)
+        assert isinstance(ops, (AbsTrainOps, RemoteOps))
+        return ops
+
+    @property
+    def replay_memory(self) -> ReplayMemory:
+        replay_memory = getattr(self, "_replay_memory", None)
+        assert isinstance(replay_memory, ReplayMemory), "Replay memory is required."
+        return replay_memory
 
     def register_policies(self, policies: List[AbsPolicy], policy_trainer_mapping: Dict[str, str]) -> None:
         policies = [policy for policy in policies if policy_trainer_mapping[policy.name] == self.name]
         if len(policies) != 1:
             raise ValueError(f"Trainer {self._name} should have exactly one policy assigned to it")
 
-        self._policy = policies.pop()
+        policy = policies.pop()
+        assert isinstance(policy, RLPolicy)
+        self._register_policy(policy)
+
+    @abstractmethod
+    def _register_policy(self, policy: RLPolicy) -> None:
+        raise NotImplementedError
 
     @abstractmethod
     def get_local_ops(self) -> AbsTrainOps:
@@ -201,9 +216,9 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         ops = self.get_local_ops()
         return RemoteOps(ops, self._proxy_address, logger=self._logger) if self._proxy_address else ops
 
-    def get_policy_state(self) -> Dict[str, object]:
+    def get_policy_state(self) -> Dict[str, dict]:
         self._assert_ops_exists()
-        policy_name, state = self._ops.get_policy_state()
+        policy_name, state = self.ops.get_policy_state()
         return {policy_name: state}
 
     def load(self, path: str) -> None:
@@ -212,7 +227,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         policy_state = torch.load(os.path.join(path, f"{self.name}_policy.{FILE_SUFFIX}"))
         non_policy_state = torch.load(os.path.join(path, f"{self.name}_non_policy.{FILE_SUFFIX}"))
 
-        self._ops.set_state(
+        self.ops.set_state(
             {
                 "policy": policy_state,
                 "non_policy": non_policy_state,
@@ -222,7 +237,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     def save(self, path: str) -> None:
         self._assert_ops_exists()
 
-        ops_state = self._ops.get_state()
+        ops_state = self.ops.get_state()
         policy_state = ops_state["policy"]
         non_policy_state = ops_state["non_policy"]
 
@@ -252,40 +267,57 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
                 next_states=np.vstack([exp[4] for exp in exps]),
             )
             transition_batch = self._preprocess_batch(transition_batch)
-            self._replay_memory.put(transition_batch)
+            self.replay_memory.put(transition_batch)
 
     @abstractmethod
     def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
         raise NotImplementedError
 
     def _assert_ops_exists(self) -> None:
-        if not self._ops:
+        if not self.ops:
             raise ValueError("'build' needs to be called to create an ops instance first.")
 
     async def exit(self) -> None:
         self._assert_ops_exists()
-        if isinstance(self._ops, RemoteOps):
-            await self._ops.exit()
+        ops = self.ops
+        if isinstance(ops, RemoteOps):
+            await ops.exit()
 
 
 class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
     """Policy trainer that trains multiple policies."""
 
-    def __init__(self, name: str, params: TrainerParams) -> None:
-        super(MultiAgentTrainer, self).__init__(name, params)
-        self._policy_names: List[str] = []
-        self._policy_dict: Dict[str, RLPolicy] = {}
-        self._ops_dict: Dict[str, AbsTrainOps] = {}
+    def __init__(
+        self,
+        name: str,
+        replay_memory_capacity: int = 10000,
+        batch_size: int = 128,
+        data_parallelism: int = 1,
+        reward_discount: float = 0.9,
+    ) -> None:
+        super(MultiAgentTrainer, self).__init__(
+            name,
+            replay_memory_capacity,
+            batch_size,
+            data_parallelism,
+            reward_discount,
+        )
 
     @property
-    def ops_dict(self):
-        return self._ops_dict
+    def ops_dict(self) -> Dict[str, AbsTrainOps]:
+        ops_dict = getattr(self, "_ops_dict", None)
+        assert isinstance(ops_dict, dict)
+        return ops_dict
 
     def register_policies(self, policies: List[AbsPolicy], policy_trainer_mapping: Dict[str, str]) -> None:
-        self._policy_names = [policy.name for policy in policies if policy_trainer_mapping[policy.name] == self.name]
-        self._policy_dict = {
-            policy.name: policy for policy in policies if policy_trainer_mapping[policy.name] == self.name
-        }
+        self._policy_names: List[str] = [
+            policy.name for policy in policies if policy_trainer_mapping[policy.name] == self.name
+        ]
+        self._policy_dict: Dict[str, RLPolicy] = {}
+        for policy in policies:
+            if policy_trainer_mapping[policy.name] == self.name:
+                assert isinstance(policy, RLPolicy)
+                self._policy_dict[policy.name] = policy
 
     @abstractmethod
     def get_local_ops(self, name: str) -> AbsTrainOps:
@@ -314,7 +346,7 @@ class MultiAgentTrainer(AbsTrainer, metaclass=ABCMeta):
         return RemoteOps(ops, self._proxy_address, logger=self._logger) if self._proxy_address else ops
 
     @abstractmethod
-    def get_policy_state(self) -> Dict[str, object]:
+    def get_policy_state(self) -> Dict[str, dict]:
         raise NotImplementedError
 
     @abstractmethod

@@ -98,14 +98,15 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         start_ep: int = 1,
         initial_value: float = None,
     ) -> None:
+        super().__init__(exploration_params, param_name, initial_value=initial_value)
+
         # validate splits
-        splits = [(start_ep, initial_value)] + splits + [(last_ep, final_value)]
+        splits = [(start_ep, self._exploration_params[self.param_name])] + splits + [(last_ep, final_value)]
         splits.sort()
         for (ep, _), (ep2, _) in zip(splits, splits[1:]):
             if ep == ep2:
                 raise ValueError("The zeroth element of split points must be unique")
 
-        super().__init__(exploration_params, param_name, initial_value=initial_value)
         self.final_value = final_value
         self._splits = splits
         self._ep = start_ep

@@ -2,13 +2,12 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
-from typing import Callable, Dict, Tuple
+from typing import Tuple
 
 import numpy as np
 import torch
 from torch.distributions import Categorical
 
-from maro.rl.model import VNet
 from maro.rl.policy import DiscretePolicyGradient, RLPolicy
 from maro.rl.training.algorithms.base import ACBasedOps, ACBasedParams, ACBasedTrainer
 from maro.rl.utils import TransitionBatch, discount_cumsum, ndarray_to_tensor
@@ -24,21 +23,7 @@ class PPOParams(ACBasedParams):
         If it is None, the actor loss is calculated using the usual policy gradient theorem.
     """
 
-    clip_ratio: float = None
-
-    def extract_ops_params(self) -> Dict[str, object]:
-        return {
-            "get_v_critic_net_func": self.get_v_critic_net_func,
-            "reward_discount": self.reward_discount,
-            "critic_loss_cls": self.critic_loss_cls,
-            "clip_ratio": self.clip_ratio,
-            "lam": self.lam,
-            "min_logp": self.min_logp,
-            "is_discrete_action": self.is_discrete_action,
-        }
-
     def __post_init__(self) -> None:
-        assert self.get_v_critic_net_func is not None
         assert self.clip_ratio is not None
 
 
@@ -47,30 +32,19 @@ class DiscretePPOWithEntropyOps(ACBasedOps):
         self,
         name: str,
         policy: RLPolicy,
-        get_v_critic_net_func: Callable[[], VNet],
+        params: ACBasedParams,
         parallelism: int = 1,
         reward_discount: float = 0.9,
-        critic_loss_cls: Callable = None,
-        clip_ratio: float = None,
-        lam: float = 0.9,
-        min_logp: float = None,
-        is_discrete_action: bool = True,
     ) -> None:
         super(DiscretePPOWithEntropyOps, self).__init__(
-            name=name,
-            policy=policy,
-            get_v_critic_net_func=get_v_critic_net_func,
-            parallelism=parallelism,
-            reward_discount=reward_discount,
-            critic_loss_cls=critic_loss_cls,
-            clip_ratio=clip_ratio,
-            lam=lam,
-            min_logp=min_logp,
-            is_discrete_action=is_discrete_action,
+            name,
+            policy,
+            params,
+            reward_discount,
+            parallelism,
         )
-        assert is_discrete_action
-        assert isinstance(self._policy, DiscretePolicyGradient)
-        self._policy_old = clone(policy)
+        assert self._is_discrete_action
+        self._policy_old: DiscretePolicyGradient = clone(policy)
         self.update_policy_old()
 
     def update_policy_old(self) -> None:
@@ -173,8 +147,23 @@ class PPOTrainer(ACBasedTrainer):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ppo.
     """
 
-    def __init__(self, name: str, params: PPOParams) -> None:
-        super(PPOTrainer, self).__init__(name, params)
+    def __init__(
+        self,
+        name: str,
+        params: PPOParams,
+        replay_memory_capacity: int = 10000,
+        batch_size: int = 128,
+        data_parallelism: int = 1,
+        reward_discount: float = 0.9,
+    ) -> None:
+        super(PPOTrainer, self).__init__(
+            name,
+            params,
+            replay_memory_capacity,
+            batch_size,
+            data_parallelism,
+            reward_discount,
+        )
 
 
 class DiscretePPOWithEntropyTrainer(ACBasedTrainer):
@@ -185,8 +174,9 @@ class DiscretePPOWithEntropyTrainer(ACBasedTrainer):
         return DiscretePPOWithEntropyOps(
             name=self._policy.name,
             policy=self._policy,
-            parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params(),
+            parallelism=self._data_parallelism,
+            reward_discount=self._reward_discount,
+            params=self._params,
         )
 
     def train_step(self) -> None:

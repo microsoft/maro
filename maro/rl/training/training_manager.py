@@ -7,7 +7,6 @@ import asyncio
 import collections
 import os
 import typing
-from itertools import chain
 from typing import Any, Dict, Iterable, List, Tuple
 
 from maro.rl.rollout import ExpElement
@@ -92,13 +91,16 @@ class TrainingManager(object):
             for trainer in self._trainer_dict.values():
                 trainer.train_step()
 
-    def get_policy_state(self) -> Dict[str, Dict[str, object]]:
+    def get_policy_state(self) -> Dict[str, dict]:
         """Get policies' states.
 
         Returns:
             A double-deck dict with format: {trainer_name: {policy_name: policy_state}}
         """
-        return dict(chain(*[trainer.get_policy_state().items() for trainer in self._trainer_dict.values()]))
+        policy_states: Dict[str, dict] = {}
+        for trainer in self._trainer_dict.values():
+            policy_states.update(trainer.get_policy_state())
+        return policy_states
 
     def record_experiences(self, experiences: List[List[ExpElement]]) -> None:
         """Record experiences collected from external modules (for example, EnvSampler).

@@ -85,9 +85,11 @@ class ValueBasedPolicy(DiscreteRLPolicy):
 
         self._exploration_func = exploration_strategy[0]
         self._exploration_params = clone(exploration_strategy[1])  # deep copy is needed to avoid unwanted sharing
-        self._exploration_schedulers = [
-            opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options
-        ]
+        self._exploration_schedulers = (
+            [opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options]
+            if exploration_scheduling_options is not None
+            else []
+        )
 
         self._call_cnt = 0
         self._warmup = warmup
@@ -219,7 +221,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def train(self) -> None:
         self._q_net.train()
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         return self._q_net.get_state()
 
     def set_state(self, policy_state: dict) -> None:

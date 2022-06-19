@@ -54,9 +54,9 @@ def get_ac_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyG
 def get_ac(state_dim: int, name: str) -> ActorCriticTrainer:
     return ActorCriticTrainer(
         name=name,
+        reward_discount=0.0,
         params=ActorCriticParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
-            reward_discount=0.0,
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=None,

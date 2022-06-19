@@ -2,19 +2,19 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional, cast
 
 import torch
 
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy, RLPolicy
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, RandomReplayMemory, RemoteOps, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
 @dataclass
-class DDPGParams(TrainerParams):
+class DDPGParams(BaseTrainerParams):
     """
     get_q_critic_net_func (Callable[[], QNet]): Function to get Q critic net.
     num_epochs (int, default=1): Number of training epochs per call to ``learn``.
@@ -30,24 +30,13 @@ class DDPGParams(TrainerParams):
     min_num_to_trigger_training (int, default=0): Minimum number required to start training.
     """
 
-    get_q_critic_net_func: Callable[[], QNet] = None
+    get_q_critic_net_func: Callable[[], QNet]
     num_epochs: int = 1
     update_target_every: int = 5
-    q_value_loss_cls: Callable = None
+    q_value_loss_cls: Optional[Callable] = None
     soft_update_coef: float = 1.0
     random_overwrite: bool = False
     min_num_to_trigger_training: int = 0
-
-    def __post_init__(self) -> None:
-        assert self.get_q_critic_net_func is not None
-
-    def extract_ops_params(self) -> Dict[str, object]:
-        return {
-            "get_q_critic_net_func": self.get_q_critic_net_func,
-            "reward_discount": self.reward_discount,
-            "q_value_loss_cls": self.q_value_loss_cls,
-            "soft_update_coef": self.soft_update_coef,
-        }
 
 
 class DDPGOps(AbsTrainOps):
@@ -57,11 +46,9 @@ class DDPGOps(AbsTrainOps):
         self,
         name: str,
         policy: RLPolicy,
-        get_q_critic_net_func: Callable[[], QNet],
-        reward_discount: float,
+        params: DDPGParams,
+        reward_discount: float = 0.9,
         parallelism: int = 1,
-        q_value_loss_cls: Callable = None,
-        soft_update_coef: float = 1.0,
     ) -> None:
         super(DDPGOps, self).__init__(
             name=name,
@@ -71,16 +58,18 @@ class DDPGOps(AbsTrainOps):
 
         assert isinstance(self._policy, ContinuousRLPolicy)
 
-        self._target_policy = clone(self._policy)
+        self._target_policy: ContinuousRLPolicy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
-        self._q_critic_net = get_q_critic_net_func()
+        self._q_critic_net = params.get_q_critic_net_func()
         self._target_q_critic_net: QNet = clone(self._q_critic_net)
         self._target_q_critic_net.eval()
 
         self._reward_discount = reward_discount
-        self._q_value_loss_func = q_value_loss_cls() if q_value_loss_cls is not None else torch.nn.MSELoss()
-        self._soft_update_coef = soft_update_coef
+        self._q_value_loss_func = (
+            params.q_value_loss_cls() if params.q_value_loss_cls is not None else torch.nn.MSELoss()
+        )
+        self._soft_update_coef = params.soft_update_coef
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
@@ -207,7 +196,7 @@ class DDPGOps(AbsTrainOps):
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
         self._target_q_critic_net.soft_update(self._q_critic_net, self._soft_update_coef)
 
-    def to_device(self, device: str) -> None:
+    def to_device(self, device: str = None) -> None:
         self._device = get_torch_device(device=device)
         self._policy.to_device(self._device)
         self._target_policy.to_device(self._device)
@@ -223,20 +212,38 @@ class DDPGTrainer(SingleAgentTrainer):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
     """
 
-    def __init__(self, name: str, params: DDPGParams) -> None:
-        super(DDPGTrainer, self).__init__(name, params)
+    def __init__(
+        self,
+        name: str,
+        params: DDPGParams,
+        replay_memory_capacity: int = 10000,
+        batch_size: int = 128,
+        data_parallelism: int = 1,
+        reward_discount: float = 0.9,
+    ) -> None:
+        super(DDPGTrainer, self).__init__(
+            name,
+            replay_memory_capacity,
+            batch_size,
+            data_parallelism,
+            reward_discount,
+        )
         self._params = params
         self._policy_version = self._target_policy_version = 0
         self._memory_size = 0
 
     def build(self) -> None:
-        self._ops = self.get_ops()
+        self._ops = cast(DDPGOps, self.get_ops())
         self._replay_memory = RandomReplayMemory(
-            capacity=self._params.replay_memory_capacity,
+            capacity=self._replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
             random_overwrite=self._params.random_overwrite,
         )
+
+    def _register_policy(self, policy: RLPolicy) -> None:
+        assert isinstance(policy, ContinuousRLPolicy)
+        self._policy = policy
 
     def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
         return transition_batch
@@ -245,8 +252,9 @@ class DDPGTrainer(SingleAgentTrainer):
         return DDPGOps(
             name=self._policy.name,
             policy=self._policy,
-            parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params(),
+            parallelism=self._data_parallelism,
+            reward_discount=self._reward_discount,
+            params=self._params,
         )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:

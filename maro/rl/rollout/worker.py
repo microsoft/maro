@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import typing
 
-from maro.rl.distributed import AbsWorker
+from maro.rl.distributed import DEFAULT_ROLLOUT_PRODUCER_PORT, AbsWorker
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.utils import LoggerV2
 
@@ -30,13 +30,13 @@ class RolloutWorker(AbsWorker):
         idx: int,
         rl_component_bundle: RLComponentBundle,
         producer_host: str,
-        producer_port: int = 20000,
+        producer_port: int = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(RolloutWorker, self).__init__(
             idx=idx,
             producer_host=producer_host,
-            producer_port=producer_port,
+            producer_port=producer_port if producer_port is not None else DEFAULT_ROLLOUT_PRODUCER_PORT,
             logger=logger,
         )
         self._env_sampler = rl_component_bundle.env_sampler
@@ -54,18 +54,19 @@ class RolloutWorker(AbsWorker):
             req = bytes_to_pyobj(msg[-1])
             assert isinstance(req, dict)
             assert req["type"] in {"sample", "eval", "set_policy_state", "post_collect", "post_evaluate"}
-            if req["type"] == "sample":
-                result = self._env_sampler.sample(policy_state=req["policy_state"], num_steps=req["num_steps"])
-            elif req["type"] == "eval":
-                result = self._env_sampler.eval(policy_state=req["policy_state"])
-            elif req["type"] == "set_policy_state":
-                self._env_sampler.set_policy_state(policy_state_dict=req["policy_state"])
-                result = True
-            elif req["type"] == "post_collect":
-                self._env_sampler.post_collect(info_list=req["info_list"], ep=req["index"])
-                result = True
-            else:
-                self._env_sampler.post_evaluate(info_list=req["info_list"], ep=req["index"])
-                result = True
 
-            self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))
+            if req["type"] in ("sample", "eval"):
+                result = (
+                    self._env_sampler.sample(policy_state=req["policy_state"], num_steps=req["num_steps"])
+                    if req["type"] == "sample"
+                    else self._env_sampler.eval(policy_state=req["policy_state"])
+                )
+                self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))
+            else:
+                if req["type"] == "set_policy_state":
+                    self._env_sampler.set_policy_state(policy_state_dict=req["policy_state"])
+                elif req["type"] == "post_collect":
+                    self._env_sampler.post_collect(info_list=req["info_list"], ep=req["index"])
+                else:
+                    self._env_sampler.post_evaluate(info_list=req["info_list"], ep=req["index"])
+                self._stream.send(pyobj_to_bytes({"result": True, "index": req["index"]}))

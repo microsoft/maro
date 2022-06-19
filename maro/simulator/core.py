@@ -89,7 +89,7 @@ class Env(AbsEnv):
 
         self._streamit_episode = 0
 
-    def step(self, action) -> Tuple[Optional[dict], Optional[List[object]], Optional[bool]]:
+    def step(self, action) -> Tuple[Optional[dict], Optional[list], bool]:
         """Push the environment to next step with action.
 
         Args:
@@ -267,7 +267,7 @@ class Env(AbsEnv):
             additional_options=self._additional_options,
         )
 
-    def _simulate(self) -> Generator[Tuple[dict, List[object], bool], object, None]:
+    def _simulate(self) -> Generator[Tuple[dict, list, bool], object, None]:
         """This is the generator to wrap each episode process."""
         self._streamit_episode += 1
 
