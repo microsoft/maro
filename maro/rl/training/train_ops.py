@@ -3,8 +3,9 @@
 
 import inspect
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Tuple
+from typing import Any, Callable, Optional, Tuple, Union
 
+import torch
 import zmq
 from zmq.asyncio import Context, Poller
 
@@ -32,10 +33,8 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         super(AbsTrainOps, self).__init__()
         self._name = name
         self._policy = policy
-
         self._parallelism = parallelism
-
-        self._device = None
+        self._device: Optional[torch.device] = None
 
     @property
     def name(self) -> str:
@@ -43,11 +42,11 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 
     @property
     def policy_state_dim(self) -> int:
-        return self._policy.state_dim if self._policy else None
+        return self._policy.state_dim
 
     @property
     def policy_action_dim(self) -> int:
-        return self._policy.action_dim if self._policy else None
+        return self._policy.action_dim
 
     @property
     def parallelism(self) -> int:
@@ -74,12 +73,12 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self.set_policy_state(ops_state_dict["policy"][1])
         self.set_non_policy_state(ops_state_dict["non_policy"])
 
-    def get_policy_state(self) -> Tuple[str, object]:
+    def get_policy_state(self) -> Tuple[str, dict]:
         """Get the policy's state.
 
         Returns:
             policy_name (str)
-            policy_state (object)
+            policy_state (Any)
         """
         return self._policy.name, self._policy.get_state()
 
@@ -110,17 +109,17 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def to_device(self, device: str):
+    def to_device(self, device: str = None) -> None:
         raise NotImplementedError
 
 
-def remote(func) -> Callable:
+def remote(func: Callable) -> Callable:
     """Annotation to indicate that a function / method can be called remotely.
 
     This annotation takes effect only when an ``AbsTrainOps`` object is wrapped by a ``RemoteOps``.
     """
 
-    def remote_annotate(*args, **kwargs) -> object:
+    def remote_annotate(*args: Any, **kwargs: Any) -> Any:
         return func(*args, **kwargs)
 
     return remote_annotate
@@ -136,7 +135,7 @@ class AsyncClient(object):
     """
 
     def __init__(self, name: str, address: Tuple[str, int], logger: LoggerV2 = None) -> None:
-        self._logger = DummyLogger() if logger is None else logger
+        self._logger: Union[LoggerV2, DummyLogger] = logger if logger is not None else DummyLogger()
         self._name = name
         host, port = address
         self._proxy_ip = get_ip_address_by_hostname(host)
@@ -154,7 +153,7 @@ class AsyncClient(object):
         await self._socket.send(pyobj_to_bytes(req))
         self._logger.debug(f"{self._name} sent request {req['func']}")
 
-    async def get_response(self) -> object:
+    async def get_response(self) -> Any:
         """Waits for a result in asynchronous fashion.
 
         This is a coroutine and is executed asynchronously with calls to other AsyncClients' ``get_response`` calls.
@@ -208,15 +207,15 @@ class RemoteOps(object):
         self._client = AsyncClient(self._ops.name, address, logger=logger)
         self._client.connect()
 
-    def __getattribute__(self, attr_name: str) -> object:
+    def __getattribute__(self, attr_name: str) -> Any:
         # Ignore methods that belong to the parent class
         try:
             return super().__getattribute__(attr_name)
         except AttributeError:
             pass
 
-        def remote_method(ops_state, func_name: str, desired_parallelism: int, client: AsyncClient) -> Callable:
-            async def remote_call(*args, **kwargs) -> object:
+        def remote_method(ops_state: Any, func_name: str, desired_parallelism: int, client: AsyncClient) -> Callable:
+            async def remote_call(*args: Any, **kwargs: Any) -> Any:
                 req = {
                     "state": ops_state,
                     "func": func_name,

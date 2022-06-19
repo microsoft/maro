@@ -14,20 +14,21 @@ from maro.rl.training import TrainingManager
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.utils.training import get_latest_ep
+from maro.rl.workflows.utils import env_str_helper
 from maro.utils import LoggerV2
 
 
 class WorkflowEnvAttributes:
     def __init__(self) -> None:
         # Number of training episodes
-        self.num_episodes = int(get_env("NUM_EPISODES"))
+        self.num_episodes = int(env_str_helper(get_env("NUM_EPISODES")))
 
         # Maximum number of steps in on round of sampling.
         self.num_steps = int_or_none(get_env("NUM_STEPS", required=False))
 
         # Minimum number of data samples to start a round of training. If the data samples are insufficient, re-run
         # data sampling until we have at least `min_n_sample` data entries.
-        self.min_n_sample = int_or_none(get_env("MIN_N_SAMPLE"))
+        self.min_n_sample = int(env_str_helper(get_env("MIN_N_SAMPLE")))
 
         # Path to store logs.
         self.log_path = get_env("LOG_PATH")
@@ -57,7 +58,7 @@ class WorkflowEnvAttributes:
         # Parallel sampling configurations.
         self.parallel_rollout = self.env_sampling_parallelism is not None or self.env_eval_parallelism is not None
         if self.parallel_rollout:
-            self.port = int(get_env("ROLLOUT_CONTROLLER_PORT"))
+            self.port = int(env_str_helper(get_env("ROLLOUT_CONTROLLER_PORT")))
             self.min_env_samples = int_or_none(get_env("MIN_ENV_SAMPLES", required=False))
             self.grace_factor = float_or_none(get_env("GRACE_FACTOR", required=False))
 
@@ -65,7 +66,10 @@ class WorkflowEnvAttributes:
 
         # Distributed training configurations.
         if self.train_mode != "simple":
-            self.proxy_address = (get_env("TRAIN_PROXY_HOST"), int(get_env("TRAIN_PROXY_FRONTEND_PORT")))
+            self.proxy_address = (
+                env_str_helper(get_env("TRAIN_PROXY_HOST")),
+                int(env_str_helper(get_env("TRAIN_PROXY_FRONTEND_PORT"))),
+            )
 
         self.logger = LoggerV2(
             "MAIN",
@@ -87,7 +91,8 @@ def _get_env_sampler(
     env_attr: WorkflowEnvAttributes,
 ) -> Union[AbsEnvSampler, BatchEnvSampler]:
     if env_attr.parallel_rollout:
-        env_sampler = BatchEnvSampler(
+        assert env_attr.env_sampling_parallelism is not None
+        return BatchEnvSampler(
             sampling_parallelism=env_attr.env_sampling_parallelism,
             port=env_attr.port,
             min_env_samples=env_attr.min_env_samples,
@@ -100,8 +105,7 @@ def _get_env_sampler(
         if rl_component_bundle.device_mapping is not None:
             for policy_name, device_name in rl_component_bundle.device_mapping.items():
                 env_sampler.assign_policy_to_device(policy_name, get_torch_device(device_name))
-
-    return env_sampler
+        return env_sampler
 
 
 def main(rl_component_bundle: RLComponentBundle, env_attr: WorkflowEnvAttributes, args: argparse.Namespace) -> None:
@@ -144,7 +148,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
 
     # main loop
     for ep in range(start_ep, env_attr.num_episodes + 1):
-        collect_time = training_time = 0
+        collect_time = training_time = 0.0
         total_experiences: List[List[ExpElement]] = []
         total_info_list: List[dict] = []
         n_sample = 0
@@ -214,7 +218,7 @@ def evaluate_only_workflow(rl_component_bundle: RLComponentBundle, env_attr: Wor
 
 
 if __name__ == "__main__":
-    scenario_path = get_env("SCENARIO_PATH")
+    scenario_path = env_str_helper(get_env("SCENARIO_PATH"))
     scenario_path = os.path.normpath(scenario_path)
     sys.path.insert(0, os.path.dirname(scenario_path))
     module = importlib.import_module(os.path.basename(scenario_path))

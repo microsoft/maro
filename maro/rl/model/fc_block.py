@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import OrderedDict
-from typing import Any, List, Optional, Type
+from typing import Any, List, Optional, Tuple, Type
 
 import torch
 import torch.nn as nn
@@ -46,7 +46,7 @@ class FullyConnected(nn.Module):
         skip_connection: bool = False,
         dropout_p: float = None,
         gradient_threshold: float = None,
-        name: str = None,
+        name: str = "NONAME",
     ) -> None:
         super(FullyConnected, self).__init__()
         self._input_dim = input_dim
@@ -101,12 +101,12 @@ class FullyConnected(nn.Module):
     def output_dim(self) -> int:
         return self._output_dim
 
-    def _build_layer(self, input_dim: int, output_dim: int, head: bool = False) -> torch.nn.Module:
+    def _build_layer(self, input_dim: int, output_dim: int, head: bool = False) -> nn.Module:
         """Build a basic layer.
 
         BN -> Linear -> Activation -> Dropout
         """
-        components = []
+        components: List[Tuple[str, nn.Module]] = []
         if self._batch_norm:
             components.append(("batch_norm", nn.BatchNorm1d(input_dim)))
         components.append(("linear", nn.Linear(input_dim, output_dim)))

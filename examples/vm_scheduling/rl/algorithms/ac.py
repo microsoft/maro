@@ -61,9 +61,9 @@ def get_ac_policy(state_dim: int, action_num: int, num_features: int, name: str)
 def get_ac(state_dim: int, num_features: int, name: str) -> ActorCriticTrainer:
     return ActorCriticTrainer(
         name=name,
+        reward_discount=0.9,
         params=ActorCriticParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim, num_features),
-            reward_discount=0.9,
             grad_iters=100,
             critic_loss_cls=torch.nn.MSELoss,
             min_logp=-20,
