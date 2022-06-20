@@ -25,7 +25,7 @@ class Station(NodeBase):
     # avg temp
     temperature = NodeAttribute("i2")
 
-    # 0: sunny, 1: rainy, 2: snowy， 3: sleet
+    # 0: sunny, 1: rainy, 2: snowy, 3: sleet
     weather = NodeAttribute("i2")
 
     # 0: holiday, 1: not holiday
