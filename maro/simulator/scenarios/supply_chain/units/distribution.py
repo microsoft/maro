@@ -60,7 +60,7 @@ class DistributionUnit(UnitBase):
         self.delay_order_penalty: Dict[int, float] = defaultdict(float)
         # The check-in product quantity in orders of current tick. Would be set to 0 in ProductUnit.
         # Do not consider the destination.
-        self.check_in_quantity_in_order: Dict[int, float] = defaultdict(float)
+        self.check_in_quantity_in_order: Dict[int, int] = defaultdict(int)
 
         self._unit_delay_order_penalty: Dict[int, float] = {}
 

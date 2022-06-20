@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
+from maro.simulator.scenarios.supply_chain.objects import FLOAT_NDIGITS
 
 from .consumer import ConsumerUnit, ConsumerUnitInfo
 from .distribution import DistributionUnit
@@ -117,10 +118,10 @@ class ProductUnit(ExtendUnitBase):
             self.data_model.check_in_quantity_in_order = self._check_in_quantity_in_order
 
         if self._transportation_cost > 0:
-            self.data_model.transportation_cost = self._transportation_cost
+            self.data_model.transportation_cost = round(self._transportation_cost, FLOAT_NDIGITS)
 
         if self._delay_order_penalty > 0:
-            self.data_model.delay_order_penalty = self._delay_order_penalty
+            self.data_model.delay_order_penalty = round(self._delay_order_penalty, FLOAT_NDIGITS)
 
     def post_step(self, tick: int) -> None:
         for unit in self.children:

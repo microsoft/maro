@@ -19,7 +19,7 @@ class ConsumerDataModel(ExtendDataModel):
     order_product_cost = NodeAttribute(AttributeType.Float)  # order.quantity * upstream.price
     order_base_cost = NodeAttribute(AttributeType.Float)  # order.quantity * unit_order_cost
 
-    latest_consumptions = NodeAttribute(AttributeType.Float)
+    latest_consumptions = NodeAttribute(AttributeType.UInt)
 
     in_transit_quantity = NodeAttribute(AttributeType.UInt)
 

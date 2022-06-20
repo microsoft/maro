@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 
 
 DEFAULT_SUB_STORAGE_ID = 0
+FLOAT_NDIGITS = 1
 
 
 @dataclass
@@ -68,6 +69,21 @@ class SkuInfo:
     unit_delay_order_penalty: Optional[float] = None
     # For policy only
     service_level: float = 0.95
+
+    def round_floats(self) -> None:
+        self.price = round(self.price, FLOAT_NDIGITS)
+
+        if self.unit_storage_cost is not None:
+            self.unit_storage_cost = round(self.unit_storage_cost, FLOAT_NDIGITS)
+
+        if self.unit_product_cost is not None:
+            self.unit_product_cost = round(self.unit_product_cost, FLOAT_NDIGITS)
+
+        if self.unit_order_cost is not None:
+            self.unit_order_cost = round(self.unit_order_cost, FLOAT_NDIGITS)
+
+        if self.unit_delay_order_penalty is not None:
+            self.unit_delay_order_penalty = round(self.unit_delay_order_penalty, FLOAT_NDIGITS)
 
 
 @dataclass

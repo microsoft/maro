@@ -10,6 +10,7 @@ from typing import Dict, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
 from maro.simulator.scenarios.supply_chain.datamodels import ManufactureDataModel
+from maro.simulator.scenarios.supply_chain.objects import FLOAT_NDIGITS
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
 from .unitbase import UnitBase
@@ -157,7 +158,7 @@ class ManufactureUnit(ExtendUnitBase):
         self.data_model.start_manufacture_quantity = self._num_to_produce
         self.data_model.in_pipeline_quantity = self._in_pipeline_quantity
         self.data_model.finished_quantity = self._finished_quantity
-        self.data_model.manufacture_cost = self._manufacture_cost
+        self.data_model.manufacture_cost = round(self._manufacture_cost, FLOAT_NDIGITS)
 
     def reset(self) -> None:
         super(ManufactureUnit, self).reset()

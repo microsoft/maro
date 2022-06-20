@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Union
 
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction
 from maro.simulator.scenarios.supply_chain.datamodels import ConsumerDataModel
+from maro.simulator.scenarios.supply_chain.objects import FLOAT_NDIGITS
 from maro.simulator.scenarios.supply_chain.order import Order, OrderStatus
 
 from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
@@ -241,9 +242,9 @@ class ConsumerUnit(ExtendUnitBase):
 
         if self._purchased > 0:
             self.data_model.purchased = self._purchased
-            self.data_model.order_product_cost = self._order_product_cost
-            self.data_model.order_base_cost = self._order_base_cost
-            self.data_model.latest_consumptions = 1.0
+            self.data_model.order_product_cost = round(self._order_product_cost, FLOAT_NDIGITS)
+            self.data_model.order_base_cost = round(self._order_base_cost, FLOAT_NDIGITS)
+            self.data_model.latest_consumptions = 1
 
         if self._received > 0 or self._purchased > 0:
             self.data_model.in_transit_quantity = self.in_transit_quantity

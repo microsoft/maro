@@ -406,7 +406,9 @@ class World:
                     facility_conf["config"].get("unit_delay_order_penalty", None),
                 )
 
-                facility.skus[sku_id] = SkuInfo(**sku_config)
+                sku_info = SkuInfo(**sku_config)
+                sku_info.round_floats()
+                facility.skus[sku_id] = sku_info
 
             # Build children Units.
             for child_name, child_conf in facility_conf["children"].items():

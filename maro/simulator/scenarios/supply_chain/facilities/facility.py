@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from maro.simulator.scenarios.supply_chain.objects import LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
+from maro.simulator.scenarios.supply_chain.objects import FLOAT_NDIGITS, LeadingTimeInfo, SkuInfo, VendorLeadingTimeInfo
 from maro.simulator.scenarios.supply_chain.sku_dynamics_sampler import (
     DataFileDemandSampler,
     OneTimeSkuPriceDemandSampler,
@@ -184,6 +184,7 @@ class FacilityBase(ABC):
             for sku_id in self.skus.keys():
                 price = self.sampler.sample_price(tick, sku_id)
                 if price is not None:
+                    price = round(price, FLOAT_NDIGITS)
                     self.skus[sku_id].price = price
                     # Update the corresponding property in data model.
                     self.products[sku_id].data_model.price = price
