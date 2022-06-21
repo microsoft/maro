@@ -7,7 +7,6 @@ azure-mgmt-containerservice
 azure-mgmt-resource
 azure-mgmt-storage
 azure-storage-file-share
-azure_storage>=0.37.0
 coverage>=6.4.1
 cryptography>=36.0.1
 deepdiff>=5.7.0
