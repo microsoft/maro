@@ -1,7 +1,6 @@
 autopep8>=1.4.4
 ipython-genutils>=0.2.0
 ipython>=7.16.3
-isort>=4.3.21
 jupyter-client
 jupyter-console
 jupyter-contrib-core
@@ -16,8 +15,5 @@ jupyterlab-server
 jupyterthemes
 maro
 matplotlib>=3.1.2
-numba>=0.46.0
-numpy<1.20.0
-pandas>=0.25.0
 seaborn>=0.9.0
 shap>=0.32.1
