@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license
+# Licensed under the MIT license.
+
 import random
 import unittest
 from collections import defaultdict
@@ -7,21 +8,21 @@ from typing import Dict, List
 
 import numpy as np
 
-from maro.simulator.scenarios.supply_chain import FacilityBase, ConsumerAction, ManufactureAction, StorageUnit
+from maro.simulator.scenarios.supply_chain import ConsumerAction, FacilityBase, ManufactureAction, StorageUnit
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.order import Order
 
-from tests.supply_chain.common import build_env, SKU3_ID, FOOD_1_ID, get_product_dict_from_storage
+from tests.supply_chain.common import FOOD_1_ID, SKU3_ID, build_env, get_product_dict_from_storage
 
 
 class MyTestCase(unittest.TestCase):
     """
-        . consumer unit test
-        . distribution unit test
-        . manufacture unit test
-        . seller unit test
-        . storage unit test
-        """
+    . consumer unit test
+    . distribution unit test
+    . manufacture unit test
+    . seller unit test
+    . storage unit test
+    """
 
     def test_consumer_unit_reset(self) -> None:
         """Test whether reset updates the consumer unit completely"""
@@ -37,8 +38,17 @@ class MyTestCase(unittest.TestCase):
 
         consumer_node_index = sku3_consumer_unit.data_model_index
 
-        features = ("id", "facility_id", "sku_id", "order_base_cost", "purchased", "received", "order_product_cost",
-                    "latest_consumptions", "in_transit_quantity")
+        features = (
+            "id",
+            "facility_id",
+            "sku_id",
+            "order_base_cost",
+            "purchased",
+            "received",
+            "order_product_cost",
+            "latest_consumptions",
+            "in_transit_quantity",
+        )
 
         # ##################################### Before reset #####################################
         consumer_nodes = env.snapshot_list["consumer"]
@@ -107,7 +117,8 @@ class MyTestCase(unittest.TestCase):
             quantity=10,
             vehicle_type="train",
             creation_tick=env.tick,
-            expected_finish_tick=env.tick + 7, )
+            expected_finish_tick=env.tick + 7,
+        )
 
         # There are 2 "train" in total, and 1 left after scheduling this order.
         distribution_unit.place_order(order_1)
@@ -247,7 +258,12 @@ class MyTestCase(unittest.TestCase):
         manufacture_nodes = env.snapshot_list["manufacture"]
 
         manufacture_features = (
-            "id", "facility_id", "start_manufacture_quantity", "sku_id", "in_pipeline_quantity", "finished_quantity",
+            "id",
+            "facility_id",
+            "start_manufacture_quantity",
+            "sku_id",
+            "in_pipeline_quantity",
+            "finished_quantity",
             "product_unit_id",
         )
 
@@ -255,8 +271,10 @@ class MyTestCase(unittest.TestCase):
 
         env.step(None)
 
-        capacities = storage_nodes[env.frame_index:sku3_storage_index:"capacity"].flatten().astype(np.int)
-        remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
+        capacities = storage_nodes[env.frame_index : sku3_storage_index : "capacity"].flatten().astype(np.int)
+        remaining_spaces = (
+            storage_nodes[env.frame_index : sku3_storage_index : "remaining_space"].flatten().astype(np.int)
+        )
 
         # there should be 80 units been taken at the beginning according to the config file.
         # so remaining space should be 20
@@ -307,8 +325,10 @@ class MyTestCase(unittest.TestCase):
         storage_nodes = env.snapshot_list["storage"]
         manufacture_nodes = env.snapshot_list["manufacture"]
 
-        capacities = storage_nodes[env.frame_index:sku3_storage_index:"capacity"].flatten().astype(np.int)
-        remaining_spaces = storage_nodes[env.frame_index:sku3_storage_index:"remaining_space"].flatten().astype(np.int)
+        capacities = storage_nodes[env.frame_index : sku3_storage_index : "capacity"].flatten().astype(np.int)
+        remaining_spaces = (
+            storage_nodes[env.frame_index : sku3_storage_index : "remaining_space"].flatten().astype(np.int)
+        )
 
         # there should be 80 units been taken at the beginning according to the config file.
         # so remaining space should be 20
@@ -347,7 +367,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_seller_unit_dynamics_sampler(self):
         """Tested the store_001  Interaction between seller unit and dynamics csv data.
-           The data file of this test is test_case_ 04.csv"""
+        The data file of this test is test_case_ 04.csv"""
         env = build_env("case_04", 600)
         be = env.business_engine
         assert isinstance(be, SupplyChainBusinessEngine)
@@ -359,7 +379,16 @@ class MyTestCase(unittest.TestCase):
         seller_node_index = seller_unit.data_model_index
         seller_nodes = env.snapshot_list["seller"]
 
-        features = ("sold", "demand", "total_sold", "id", "total_demand", "backlog_ratio", "facility_id", "product_unit_id",)
+        features = (
+            "sold",
+            "demand",
+            "total_sold",
+            "id",
+            "total_demand",
+            "backlog_ratio",
+            "facility_id",
+            "product_unit_id",
+        )
         # ##################################### Before reset #####################################
 
         self.assertEqual(20, seller_unit.sku_id)
@@ -422,7 +451,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit: StorageUnit = supplier_3.storage
         storage_node_index = storage_unit.data_model_index
         storage_nodes = env.snapshot_list["storage"]
-        features = ("id", "facility_id",)
+        features = ("id", "facility_id")
 
         # ##################################### Before reset #####################################
 
@@ -470,5 +499,5 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

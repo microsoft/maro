@@ -146,6 +146,25 @@ world:
         unit_delay_order_penalty: 20
         unit_order_cost: 0
 
+    - name: "Supplier_SKU1"
+      definition_ref: "SupplierFacility"
+      skus:
+        sku3:
+          init_stock: 80
+          has_manufacture: True
+          max_manufacture_rate: 50
+          manufacture_leading_time: 1
+          unit_product_cost: 1
+          price: 10
+          unit_delay_order_penalty: 10
+          has_consumer: True
+      children:
+        storage: *small_storage
+        distribution: *normal_distribution
+      config:
+        unit_delay_order_penalty: 20
+        unit_order_cost: 0
+
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
@@ -232,7 +251,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        file_path: "tests/data/supply_chain/case_05/test_case_05.csv"
+        file_path: "tests/data/supply_chain/case_04/test_case_04.csv"
 
   topology:
 
@@ -258,6 +277,10 @@ world:
 
     Warehouse_001:
       sku3:
+        "Supplier_SKU1":
+          "train":
+            vlt: 3
+            cost: 1
         "Supplier_SKU3":
           "train":
             vlt: 3

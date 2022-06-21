@@ -100,6 +100,7 @@ class DistributionUnit(UnitBase):
             self._busy_vehicle_num[vehicle_type] = 0
 
             # TODO: add vehicle patient setting if needed
+
         self.data_model.initialize()
 
         for sku_id in self.facility.products.keys():

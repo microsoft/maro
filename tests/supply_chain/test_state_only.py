@@ -185,7 +185,7 @@ class MyTestCase(unittest.TestCase):
 
         warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
         retailer_1: FacilityBase = be.world._get_facility_by_name("Retailer_001")
-        warehouse_1_id, retailer_1_id = 6, 13
+        warehouse_1_id, retailer_1_id = 12, 19
 
         warehouse_1_distribution_unit = warehouse_1.distribution
         self.assertEqual(0, len(warehouse_1_distribution_unit._order_queues["train"]))
@@ -375,7 +375,7 @@ class MyTestCase(unittest.TestCase):
         distribution_unit.place_order(order)
         self.assertEqual(1, len(distribution_unit._order_queues["train"]))
         self.assertEqual(20, sum([order.required_quantity for order in distribution_unit._order_queues["train"]]))
-        supplier_3_id, warehouse_1_id, retailer_1_id = 1, 6, 13
+        supplier_3_id, warehouse_1_id, retailer_1_id = 1, 12, 19
 
         env.step(None)
 

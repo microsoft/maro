@@ -88,6 +88,7 @@ world:
         sku3:
           init_stock: 80
           has_manufacture: True
+          has_consumer: True
           max_manufacture_rate: 50
           manufacture_leading_time: 1
           unit_product_cost: 1
@@ -105,6 +106,7 @@ world:
           init_stock: 96
           has_manufacture: True
           max_manufacture_rate: 50
+          has_consumer: True
           manufacture_leading_time: 1
           unit_product_cost: 1
           price: 100
