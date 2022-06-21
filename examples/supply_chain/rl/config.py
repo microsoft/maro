@@ -9,12 +9,15 @@ from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, Manufactur
 
 
 class VehicleSelection(Enum):
-    DEFAULT_ONE = "default"  # Choose the default one
-    RANDOM = "random"  # Randomly choosing one for each decision
-    SHORTEST_LEADING_TIME = "shortest"  # Always choosing the one with shortest leading time
-    CHEAPEST_TOTAL_COST = (
-        "cheapest"  # Always choosing the one with cheapest total cost (products, order base, transportation)
-    )
+    # Choose the default one, NOTE: it will try to read file default_vendor.pkl from the topology folder.
+    DEFAULT_ONE = "default"
+    # Randomly choosing one for each decision, NOTE: it requires no cycle exists in route network.
+    RANDOM = "random"
+    # Always choosing the one with shortest leading time, NOTE: it requires no cycle exists in route network.
+    SHORTEST_LEADING_TIME = "shortest"
+    # Always choosing the one with cheapest total cost (products, order base, transportation),
+    # NOTE: it requires no cycle exists in route network.
+    CHEAPEST_TOTAL_COST = "cheapest"
 
 
 distribution_features = ("pending_product_quantity", "pending_order_number")
@@ -64,7 +67,7 @@ storage_enlarged = False
 #     f"_{selection.value}"
 #     f"{'_storage_enlarged' if storage_enlarged else ''}"
 # )
-TOPOLOGY = "super_vendor"
+TOPOLOGY = "SCI_10_default"
 
 TRAIN_STEPS = 180
 EVAL_STEPS = 60
@@ -115,6 +118,7 @@ EXP_NAME = (
     f"{'_TR' if TEAM_REWARD else ''}"
     f"{'_SM' if SHARED_MODEL else ''}"
     # f"_vlt-{m_vlt}-{s_vlt}-{ns_vlt}"
+    f"_test"
 )
 
 workflow_settings["log_path"] = f"examples/supply_chain/logs/{EXP_NAME}/"
