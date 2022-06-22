@@ -135,7 +135,6 @@ setup(
     ],
     install_requires=[
         # TODO: use a helper function to collect these
-        "azure_storage>=0.37.0",
         "holidays>=0.10.3",
         "numpy>=1.19.5",
         "pandas>=0.25.3",
