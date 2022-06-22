@@ -257,7 +257,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        file_path: "tests/data/supply_chain/case_05/test_case_05.csv"
+        file_path: "tests/data/supply_chain/case_04/test_case_05.csv"
 
   topology:
 
