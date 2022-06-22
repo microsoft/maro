@@ -149,8 +149,8 @@ world:
     - name: "Supplier_SKU1"
       definition_ref: "SupplierFacility"
       skus:
-        sku3:
-          init_stock: 80
+        sku1:
+          init_stock: 20
           has_manufacture: True
           max_manufacture_rate: 50
           manufacture_leading_time: 1
@@ -158,6 +158,11 @@ world:
           price: 10
           unit_delay_order_penalty: 10
           has_consumer: True
+        sku3:
+          init_stock: 80
+          unit_product_cost: 1
+          price: 10
+          unit_delay_order_penalty: 10
       children:
         storage: *small_storage
         distribution: *normal_distribution
@@ -173,6 +178,7 @@ world:
           sub_storage_id: 1
           storage_upper_bound: 40
           price: 100
+          has_consumer: True
         sku2:
           init_stock: 12
           sub_storage_id: 1
@@ -251,7 +257,7 @@ world:
         storage: *single_storage
       config:
         unit_order_cost: 200
-        file_path: "tests/data/supply_chain/case_04/test_case_04.csv"
+        file_path: "tests/data/supply_chain/case_05/test_case_05.csv"
 
   topology:
 
@@ -276,11 +282,12 @@ world:
             cost: 0.6
 
     Warehouse_001:
-      sku3:
+      sku1:
         "Supplier_SKU1":
           "train":
             vlt: 3
             cost: 1
+      sku3:
         "Supplier_SKU3":
           "train":
             vlt: 3
