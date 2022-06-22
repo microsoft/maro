@@ -13,7 +13,7 @@ jupyter>=1.0.0
 jupyterlab
 jupyterlab-server
 jupyterthemes
-maro
 matplotlib>=3.1.2
 seaborn>=0.9.0
 shap>=0.32.1
+pymaro

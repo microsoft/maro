@@ -1,6 +1,4 @@
-maro
 matplotlib>=3.1.2
 pulp>=2.1.0
-pymaro.egg==info
-PyYAML>=5.4.1
+pymaro
 tweepy>=4.10.0

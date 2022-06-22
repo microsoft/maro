@@ -1,5 +1,5 @@
 PyJWT>=2.4.0
-numpy<1.20.0
+numpy>=1.19.0
 cython>=0.29.14
 altair>=4.1.0
 streamlit>=0.69.1
