@@ -25,7 +25,7 @@ def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):
             --ports.csv: Record ports' attributes in this file.
             --vessel.csv: Record vessels' attributes in this file.
             --matrices.csv: Record transfer volume information in this file.
-        ………………
+        ......
         --epoch_{epoch_num-1}
         --manifest.yml: Record basic info like scenario name, name of index_name_mapping file.
         --config.yml: Record the relationship between ports' index and name.
