@@ -14,8 +14,6 @@ from maro.simulator.scenarios.supply_chain import (
     ManufactureAction,
     ManufactureUnit,
     RetailerFacility,
-    StorageUnit,
-    WarehouseFacility,
 )
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 
@@ -44,22 +42,6 @@ class MyTestCase(unittest.TestCase):
         assert isinstance(be, SupplyChainBusinessEngine)
 
         env.step(None)
-
-        supplier_1: FacilityBase = be.world._get_facility_by_name("Supplier_SKU1")
-        warehouse_1 = be.world._get_facility_by_name("Warehouse_001")
-        Store_001: FacilityBase = be.world._get_facility_by_name("Store_001")
-
-        consumer_unit: ConsumerUnit = warehouse_1.products[SKU3_ID].consumer
-        storage_unit: StorageUnit = supplier_1.storage
-        Store_001.products[SKU3_ID].seller
-        supplier_1.products[SKU1_ID].manufacture
-        supplier_1.distribution
-
-        env.snapshot_list["consumer"]
-        env.snapshot_list["storage"]
-        env.snapshot_list["seller"]
-        env.snapshot_list["manufacture"]
-        env.snapshot_list["distribution"]
 
         # ##################################### Before reset #####################################
 
@@ -137,20 +119,10 @@ class MyTestCase(unittest.TestCase):
         assert isinstance(be, SupplyChainBusinessEngine)
 
         supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
-        warehouse_1: WarehouseFacility = be.world._get_facility_by_name("Warehouse_001")
-        retailer_1: RetailerFacility = be.world._get_facility_by_name("Retailer_001")
 
         storage_unit = supplier_3.storage
-        warehouse_1.products[SKU3_ID].consumer
         manufacture_unit = supplier_3.products[SKU3_ID].manufacture
-        supplier_3.distribution
-        retailer_1.products[SKU3_ID].seller
-
-        env.snapshot_list["consumer"]
         storage_nodes = env.snapshot_list["storage"]
-        env.snapshot_list["seller"]
-        env.snapshot_list["manufacture"]
-        env.snapshot_list["distribution"]
 
         # ##################################### Before reset #####################################
 
@@ -286,12 +258,6 @@ class MyTestCase(unittest.TestCase):
         supplier_3: FacilityBase = be.world._get_facility_by_name("Supplier_SKU3")
         consumer_unit = warehouse_1.products[SKU3_ID].consumer
 
-        env.snapshot_list["consumer"]
-        env.snapshot_list["storage"]
-        env.snapshot_list["seller"]
-        env.snapshot_list["manufacture"]
-        env.snapshot_list["distribution"]
-
         # ##################################### Before reset #####################################
         action = ConsumerAction(consumer_unit.id, SKU3_ID, supplier_3.id, 1, "train")
         expect_tick = 100
@@ -373,12 +339,6 @@ class MyTestCase(unittest.TestCase):
         warehouse_1: RetailerFacility = be.world._get_facility_by_name("Warehouse_001")
         consumer_unit: ConsumerUnit = warehouse_1.products[SKU1_ID].consumer
         manufacture_unit: ManufactureUnit = supplier_1.products[SKU1_ID].manufacture
-
-        consumer_unit.data_model_index
-        manufacture_unit.data_model_index
-
-        env.snapshot_list["consumer"]
-        env.snapshot_list["manufacture"]
 
         # ##################################### Before reset #####################################
         action_consumer = ConsumerAction(consumer_unit.id, SKU1_ID, supplier_1.id, 5, "train")
