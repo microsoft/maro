@@ -177,7 +177,7 @@ class ConfigParser:
 
     def _parse_config(self) -> None:
         """Parse configurations."""
-        with open(os.path.join(self._config_path, "config.yml"), "rt") as fp:
+        with open(os.path.join(self._config_path, "config.yml"), "rt", encoding="utf-8") as fp:
             conf = safe_load(fp)
 
             # Read customized core part.
