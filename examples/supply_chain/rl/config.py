@@ -86,9 +86,9 @@ test_env_conf = {
 }
 
 base_policy_conf = {
-    "data_loader": "OracleDataLoader",
+    "forecastor": "OracleForecastor",
 
-    # Oracle file only need in OracleDataLoader
+    # Oracle file only need in OracleForecastor
     "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data",
     "oracle_files": [
         "Store_4803.csv", "Store_6649.csv", "Store_6685.csv", "Store_6688.csv", "Store_6743.csv", 
