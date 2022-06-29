@@ -3,6 +3,8 @@
 
 from enum import Enum
 
+import numpy as np
+
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, ManufactureUnit
@@ -45,7 +47,7 @@ def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo
         raise (f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
 
 
-ALGO = "EOQ"
+ALGO = "BSP"
 assert ALGO in ["DQN", "EOQ", "PPO", "BSP"], "wrong ALGO"
 
 TEAM_REWARD = False
@@ -64,10 +66,10 @@ storage_enlarged = False
 #     f"_{selection.value}"
 #     f"{'_storage_enlarged' if storage_enlarged else ''}"
 # )
-TOPOLOGY = "super_vendor"
+TOPOLOGY = "walmart_3_layers"
 
-TRAIN_STEPS = 180
-EVAL_STEPS = 60
+TRAIN_STEPS = 1
+EVAL_STEPS = 91
 
 PLOT_RENDER = False
 
@@ -84,14 +86,25 @@ test_env_conf = {
 }
 
 base_policy_conf = {
-    "data_loader": "DataLoaderFromFile",
-    "oracle_file": "oracle_samples.csv",  # Only need in DataLoaderFromFile loader
-    "history_len": 28,  # E.g., mapping to np.inf in instance creation if it is static
-    "future_len": 7,
-    "update_frequency": 7,  # E.g., mapping to np.inf in instance creation if no update
+    "data_loader": "OracleDataLoader",
+
+    # Oracle file only need in OracleDataLoader
+    "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data",
+    "oracle_files": [
+        "Store_4803.csv", "Store_6649.csv", "Store_6685.csv", "Store_6688.csv", "Store_6743.csv", 
+        "Store_6773.csv", "Store_4830.csv", "Store_6107.csv", "Store_6686.csv", "Store_6687.csv", 
+        "Store_6752.csv", "Store_6765.csv", "Store_6505.csv", "Store_6640.csv", "Store_6648.csv",
+        "Store_6672.csv", "Store_6673.csv", "Store_6684.csv", "Store_6753.csv", "Store_6822.csv"
+    ],
+    "history_len": np.inf,  # E.g., mapping to np.inf in instance creation if it is static
+    "future_len": np.inf,
+    "update_frequency": np.inf,  # E.g., mapping to np.inf in instance creation if no update
+
     # If true, until next update, all steps will share the same stock level
     # otherwise, each steps will calculate own stock level.
     "share_same_stock_level": False,
+    "start_date_time": "2021-07-01",
+    "durations": TRAIN_STEPS + EVAL_STEPS,
 }
 
 workflow_settings: dict = {

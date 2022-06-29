@@ -69,6 +69,7 @@ class ScOrAgentStates:
         product_levels: List[int],
         in_transit_quantity: List[int],
         to_distribute_quantity: List[int],
+        upstream_price_mean: Optional[int],
         history_demand: np.ndarray,
         history_price: np.ndarray,
         history_purchased: np.ndarray,
@@ -99,8 +100,10 @@ class ScOrAgentStates:
         state["to_distribute_quantity"] = to_distribute_quantity[self._global_sku_id2idx[entity.skus.id]]
 
         state["cur_vlt"] = chosen_vlt_info.vlt + 1 if chosen_vlt_info else 0
-        state["entity_id"] = entity_id
+        state["sku_name"] = entity.skus.name
+        state["facility_name"] = self._facility_info_dict[entity.facility_id].name
         state["tick"] = tick
+        state["upstream_price_mean"] = upstream_price_mean
 
         product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
         if product_info.seller_info is not None:

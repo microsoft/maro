@@ -301,6 +301,16 @@ class SCEnvSampler(AbsEnvSampler):
         else:
             return 0.0
 
+    def _get_upstream_sku_info(self, facility_id: int, sku_id: int) -> Optional[Dict[int, SkuInfo]]:
+        upstreams_sku_ids = self._facility_info_dict[facility_id].upstreams
+        if sku_id in upstreams_sku_ids:
+            upstream_facility_ids = upstreams_sku_ids[sku_id]
+            facility_list = [self._facility_info_dict[facility_id] for facility_id in upstream_facility_ids]
+            facility_id_to_sku_info = {facility.id:facility.skus[sku_id]  for facility in facility_list}
+            return facility_id_to_sku_info
+        else:
+            return None
+
     def _get_vlt_info(self, entity_id: int) -> Optional[VendorLeadingTimeInfo]:
         if entity_id not in self._cached_vlt:
             entity = self._entity_dict[entity_id]
@@ -379,6 +389,13 @@ class SCEnvSampler(AbsEnvSampler):
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
+        upstream_skus = self._get_upstream_sku_info(entity.facility_id, entity.skus.id)
+
+        if upstream_skus != None:
+            upstream_prices = [sku.price for sku in upstream_skus.values()]
+            upstream_price_mean = np.mean(upstream_prices)
+        else:
+            upstream_price_mean = None
         state = self._or_agent_states.update_entity_state(
             entity_id=entity.id,
             tick=self._env.tick,
@@ -387,6 +404,7 @@ class SCEnvSampler(AbsEnvSampler):
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_quantity=self._facility_in_transit_quantity[entity.facility_id],
             to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
+            upstream_price_mean=upstream_price_mean,
             history_demand=self.history_demand,
             history_price=self.history_price,
             history_purchased=self.history_purchased,
@@ -589,15 +607,16 @@ class SCEnvSampler(AbsEnvSampler):
                 if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
                     baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
                     or_action = np.where(baseline_action == 1.0)[0][0]
-                    # action_idx = int(action[0] + or_action)
                     action_idx = max(0, int(action[0] - 1 + or_action))
                 else:
                     action_idx = action[0]
 
                 product_unit_id: int = self._unit2product_unit[entity_id]
+                # TODO: Discuss
                 action_quantity = int(
                     int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"]),
                 )
+                action_quantity = action_idx
 
                 # Ignore 0 quantity to reduce action number
                 if action_quantity:
@@ -898,6 +917,7 @@ class SCEnvSampler(AbsEnvSampler):
                 self._logger.info("product metrics dumped to csv")
 
         self._logger.info(f"Max Eval Reward: {self._max_eval_reward:,.2f}")
+
         self._logger.debug(f"Eval Reward List: {self._eval_reward_list}")
         self._mean_reward = {entity_id: val / self._step_idx for entity_id, val in self._mean_reward.items()}
 

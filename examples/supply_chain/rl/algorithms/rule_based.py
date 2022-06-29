@@ -80,6 +80,7 @@ class ConsumerEOQPolicy(ConsumerBasePolicy):
 class ConsumerMinMaxPolicy(ConsumerBasePolicy):
     def _get_action_quantity(self, state: dict) -> int:
         quantity = self._replenishment_threshold - self._booked_quantity
+        return quantity
         # special care for cases when demand_mean = 0
-        quantity = max(0.0, (1.0 if state["demand_mean"] <= 0.0 else round(quantity / state["demand_mean"], 0)))
-        return min(int(quantity), OR_NUM_CONSUMER_ACTIONS - 1)
+        # quantity = max(0.0, (1.0 if state["demand_mean"] <= 0.0 else round(quantity / state["demand_mean"], 0)))
+        # return min(int(quantity), OR_NUM_CONSUMER_ACTIONS - 1)
