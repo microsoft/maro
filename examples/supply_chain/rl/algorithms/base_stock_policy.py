@@ -14,7 +14,8 @@ from ..forecastor.moving_average_forecastor import MovingAverageForecastor
 
 class BaseStockPolicy(RuleBasedPolicy):
     def __init__(self, name: str, policy_parameters: dict) -> None:
-        super().__init__(name)
+        # Base stock policy action will be determined by quantity.
+        super().__init__(name, False)
 
         forecastor_class = eval(policy_parameters["forecastor"])
         assert issubclass(forecastor_class, (OracleForecastor, MovingAverageForecastor))

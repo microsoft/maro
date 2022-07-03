@@ -89,13 +89,8 @@ base_policy_conf = {
     "forecastor": "OracleForecastor",
 
     # Oracle file only need in OracleForecastor
+    # All files with suffix csv, tsv and xlsx without preprocessed will be loaded.
     "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data",
-    "oracle_files": [
-        "Store_4803.csv", "Store_6649.csv", "Store_6685.csv", "Store_6688.csv", "Store_6743.csv", 
-        "Store_6773.csv", "Store_4830.csv", "Store_6107.csv", "Store_6686.csv", "Store_6687.csv", 
-        "Store_6752.csv", "Store_6765.csv", "Store_6505.csv", "Store_6640.csv", "Store_6648.csv",
-        "Store_6672.csv", "Store_6673.csv", "Store_6684.csv", "Store_6753.csv", "Store_6822.csv"
-    ],
     "history_len": np.inf,  # E.g., mapping to np.inf in instance creation if it is static
     "future_len": np.inf,
     "update_frequency": np.inf,  # E.g., mapping to np.inf in instance creation if no update
