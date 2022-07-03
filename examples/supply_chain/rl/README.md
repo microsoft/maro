@@ -1,4 +1,4 @@
-# Brief tutorial to try MARO Supply Chain
+# Brief Tutorial for Trying MARO Supply Chain
 
 ## Source Code and Environment
 
