@@ -1,1 +1,4 @@
-PuLP==2.1
+matplotlib>=3.1.2
+pulp>=2.1.0
+tweepy>=4.10.0
+cvxpy
