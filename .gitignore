@@ -29,3 +29,4 @@ htmlcov/
 .coveragerc
 .tmp/
 .xmake/
+SCI_*/
