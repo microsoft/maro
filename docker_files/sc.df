@@ -23,12 +23,34 @@ RUN pip install --no-cache-dir torch==1.6.0
 RUN pip install --no-cache-dir scipy
 RUN pip install --no-cache-dir redis
 
+# Add files
 COPY maro /maro/maro
-COPY scripts /maro/scripts/
-COPY setup.py /maro/
-RUN bash /maro/scripts/install_maro.sh
+COPY scripts /maro/scripts
+COPY setup.py /maro
+COPY requirements.dev.txt /maro
+COPY notebooks/requirements.nb.txt /maro
+COPY examples/requirements.ex.txt /maro
+
+# Install maro and requirements
+RUN bash scripts/install_maro.sh
+RUN pip install -r requirements.dev.txt
+RUN pip install -r requirements.nb.txt
+RUN pip install -r requirements.ex.txt
 RUN pip cache purge
+
+# Remove requirements files
+RUN rm -r /maro/scripts
+RUN rm /maro/setup.py
+RUN rm /maro/requirements.*.txt
+RUN rm -r /maro/maro/simulator/scenarios/supply_chain/topologies
+RUN rm -r /maro/build
+RUN rm -r /maro/pymaro.egg-info
 
 ENV PYTHONPATH=/maro
 
-CMD ["/bin/bash"]
+# For docker run
+COPY scripts/get_sci_data.sh /maro/get_sci_data.sh
+COPY scripts/run_notebook.sh /run_notebook.sh
+COPY examples/supply_chain/rl/README.md /maro/README.md
+
+CMD ["/bin/bash", "/run_notebook.sh"]
