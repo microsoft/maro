@@ -42,6 +42,8 @@ python examples/supply_chain/simple_random_example.py
 
 ## Supply Chain Examples
 
+Now you can try the examples in container terminal or in the [jupyter lab](http://localhost:40010/lab/tree/notebooks/supply_chain/simple_tutorial.ipynb).
+
 ### Topology Data
 
 You can get the example *SCI* topologies with sampled data from SCI dataset (and also the data for topology *plant* and *super_vendor*) from the data blob by:
