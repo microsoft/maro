@@ -75,7 +75,6 @@ class BaseStockPolicy(RuleBasedPolicy):
         purchased_before_action: List[int],
     ) -> np.ndarray:
         # time_hrz_len = history_len + 1 + future_len
-        vlt = vlt - 1
         time_hrz_len = len(input_df)
         price = np.round(input_df["Price"], 1)
         order_cost = np.round(input_df["Cost"], 1)
@@ -143,7 +142,8 @@ class BaseStockPolicy(RuleBasedPolicy):
                 target_df,
                 self.product_level_snapshot[index].get(self.history_start, 0),
                 self.in_transit_snapshot[index].get(self.history_start, 0),
-                state["cur_vlt"],
+                # Since maro is performing the action at the end of each day, vlt needs to be deduced by 1
+                state["cur_vlt"] - 1,
                 state["unit_storage_cost"],
                 purchased_before_action,
             )
