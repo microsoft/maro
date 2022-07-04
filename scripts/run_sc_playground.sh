@@ -13,4 +13,4 @@ docker run --name ${container_name} \
     -v ${abs_local_dir}/notebooks:/maro/notebooks \
     -v ${abs_local_dir}/${sc_topo_dir}:/maro/${sc_topo_dir} \
     -p ${host_port}:40010 \
-    -it maro_sc
+    -it maro2020/maro_sc

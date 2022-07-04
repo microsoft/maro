@@ -71,5 +71,9 @@ if __name__ == "__main__":
                 )
         _, _, is_done = env.step(action=actions)
 
+    print("")
+    print("Hello Supply Chain!")
+    print("")
+
     # Output the metrics
     print(get_metrics(env))
