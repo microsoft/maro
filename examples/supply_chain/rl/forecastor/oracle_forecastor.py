@@ -30,9 +30,8 @@ class OracleForecastor(BaseForecastor):
                     raise NotImplementedError
         self.df_raws = pd.concat(df_list, axis=0)
         self.df_raws.sort_values(by="Date", ascending=True)
-        self.start_date = min(self.df_raws["Date"])
-        self.end_date = max(self.df_raws["Date"])
-        self.date_len = len(pd.date_range(self.start_date, self.end_date))
+        self.start_date = datetime.datetime.strptime(self.data_loader_conf["start_date_time"], "%Y-%m-%d")
+        self.date_len = self.data_loader_conf["durations"]
 
     def forecast_future_demand(self, state: dict, history_df: pd.DataFrame) -> pd.DataFrame:
         sku_name = state["sku_name"]
