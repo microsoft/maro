@@ -105,7 +105,7 @@ class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
             or the action will be determined by quantity.
     """
 
-    def __init__(self, name: str, action_by_idx: bool=True) -> None:
+    def __init__(self, name: str, action_by_idx: bool = True) -> None:
         self.action_by_idx = action_by_idx
         super(RuleBasedPolicy, self).__init__(name=name, trainable=False)
 

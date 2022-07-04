@@ -7,10 +7,12 @@ from typing import Dict, List
 import cvxpy as cp
 import numpy as np
 import pandas as pd
+
 from maro.rl.policy import RuleBasedPolicy
 
-from ..forecastor.oracle_forecastor import OracleForecastor
 from ..forecastor.moving_average_forecastor import MovingAverageForecastor
+from ..forecastor.oracle_forecastor import OracleForecastor
+
 
 class BaseStockPolicy(RuleBasedPolicy):
     def __init__(self, name: str, policy_parameters: dict) -> None:
@@ -31,31 +33,40 @@ class BaseStockPolicy(RuleBasedPolicy):
         self.in_transit_snapshot: Dict[tuple(str, str), Dict[int, int]] = defaultdict(dict)
         self.stock_quantity: Dict[tuple(str, str), Dict[int, int]] = defaultdict(dict)
 
-    def load_data(self, state: dict, history_start:int) -> pd.DataFrame:
+    def load_data(self, state: dict, history_start: int) -> pd.DataFrame:
         cost = state["upstream_price_mean"]
         # Load history and today data from env
         target_df = pd.DataFrame(columns=["Price", "Cost", "Demand"])
         for index in range(history_start, state["tick"] + 1):
-            target_df = target_df.append(pd.Series({
-                "Price": state["history_price"][index],
-                "Cost": cost, 
-                "Demand": state["history_demand"][index]
-            }), ignore_index=True)
-        
+            target_df = target_df.append(
+                pd.Series(
+                    {
+                        "Price": state["history_price"][index],
+                        "Cost": cost,
+                        "Demand": state["history_demand"][index],
+                    },
+                ),
+                ignore_index=True,
+            )
+
         # Forecast future data by forecastor
         future_demands = self.forecastor.forecast_future_demand(state, target_df)
         his_price_mean = target_df["Price"].mean().item()
         for demand in future_demands:
-            target_df = target_df.append(pd.Series({
-                "Price": his_price_mean,
-                "Cost": cost, 
-                "Demand": demand
-            }), ignore_index=True)
+            target_df = target_df.append(
+                pd.Series(
+                    {
+                        "Price": his_price_mean,
+                        "Cost": cost,
+                        "Demand": demand,
+                    },
+                ),
+                ignore_index=True,
+            )
         return target_df
 
-
     def calculate_stock_quantity(
-        self, 
+        self,
         input_df: pd.DataFrame,
         product_level: int,
         in_transition_quantity: int,
@@ -103,10 +114,9 @@ class BaseStockPolicy(RuleBasedPolicy):
             buy_arv == buy[0:time_hrz_len],
             target_stock == stocks[0:time_hrz_len] + transits[0:time_hrz_len] + buy_in,
             # Objective function.
-            profit == cp.sum(
-                cp.multiply(price, sales)
-                - cp.multiply(order_cost, buy_in)
-                - cp.multiply(storage_cost, stocks[1:])
+            profit
+            == cp.sum(
+                cp.multiply(price, sales) - cp.multiply(order_cost, buy_in) - cp.multiply(storage_cost, stocks[1:]),
             ),
         ]
         # Init the buy before action
@@ -146,7 +156,7 @@ class BaseStockPolicy(RuleBasedPolicy):
                 stock_quantity = 0
 
         booked_quantity = state["product_level"] + state["in_transition_quantity"] - state["to_distribute_quantity"]
-        quantity = (stock_quantity - booked_quantity)
+        quantity = stock_quantity - booked_quantity
         return quantity
 
     def _rule(self, states: List[dict]) -> List[int]:

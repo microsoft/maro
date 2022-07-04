@@ -306,7 +306,7 @@ class SCEnvSampler(AbsEnvSampler):
         if sku_id in upstreams_sku_ids:
             upstream_facility_ids = upstreams_sku_ids[sku_id]
             facility_list = [self._facility_info_dict[facility_id] for facility_id in upstream_facility_ids]
-            facility_id_to_sku_info = {facility.id:facility.skus[sku_id]  for facility in facility_list}
+            facility_id_to_sku_info = {facility.id: facility.skus[sku_id] for facility in facility_list}
             return facility_id_to_sku_info
         else:
             return None
@@ -391,7 +391,7 @@ class SCEnvSampler(AbsEnvSampler):
 
         upstream_skus = self._get_upstream_sku_info(entity.facility_id, entity.skus.id)
 
-        if upstream_skus != None:
+        if upstream_skus is not None:
             upstream_prices = [sku.price for sku in upstream_skus.values()]
             upstream_price_mean = np.mean(upstream_prices)
         else:

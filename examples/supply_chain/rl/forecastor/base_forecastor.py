@@ -3,6 +3,7 @@
 
 import pandas as pd
 
+
 class BaseForecastor(object):
     def __init__(self, data_loader_conf) -> None:
         self.data_loader_conf = data_loader_conf

@@ -1,11 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import datetime
+import os
+
 import pandas as pd
 
 from .base_forecastor import BaseForecastor
+
 
 class OracleForecastor(BaseForecastor):
     def __init__(self, data_loader_conf) -> None:

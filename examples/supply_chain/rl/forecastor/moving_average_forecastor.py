@@ -5,6 +5,7 @@ import pandas as pd
 
 from .base_forecastor import BaseForecastor
 
+
 class MovingAverageForecastor(BaseForecastor):
     def forecast_future_demand(self, state: dict, history_df) -> pd.DataFrame:
         his_demand_mean = history_df["Demand"].mean().item()

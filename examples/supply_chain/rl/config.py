@@ -87,14 +87,12 @@ test_env_conf = {
 
 base_policy_conf = {
     "forecastor": "OracleForecastor",
-
     # Oracle file only need in OracleForecastor
     # All files with suffix csv, tsv and xlsx without preprocessed will be loaded.
     "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data",
     "history_len": np.inf,  # E.g., mapping to np.inf in instance creation if it is static
     "future_len": np.inf,
     "update_frequency": np.inf,  # E.g., mapping to np.inf in instance creation if no update
-
     # If true, until next update, all steps will share the same stock level
     # otherwise, each steps will calculate own stock level.
     "share_same_stock_level": False,
