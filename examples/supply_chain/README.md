@@ -26,6 +26,12 @@ Then run the given script to start the container:
 bash scripts/run_sc_playground.sh
 ```
 
+or
+
+```powershell
+.\scripts\run_sc_playground.bat
+```
+
 Now your local *examples/*, *notebooks/*, *topologies/* (of supply_chain scenario only) are bind mounted into the docker container you just started. Also, there is a jupyter lab running in port 40010, access *http://localhost:40010/* to have a try :)
 
 For ones who want to confirm the availability of the docker container, try:
@@ -42,6 +48,12 @@ You can get the example *SCI* topologies with sampled data from SCI dataset (and
 
 ```sh
 bash scripts/get_sci_data.sh
+```
+
+or call it in container by:
+
+```sh
+bash get_sci_data.sh
 ```
 
 The scripts will automatically download below topologies to the *topologies* folder of supply chain:
@@ -65,10 +77,10 @@ python examples/supply_chain/simple_random_example.py
 
 The complex example leverage the RL workflow in MARO. And the example code enable many configurations. Simpler configurations are listed in file [*examples/supply_chain/rl/config.py*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/supply_chain/rl/config.py). The basic ones you may need are:
 
-- `ALGO`: The algorithm to use. "DQN" and "PPO" are RL algorithms, "EOQ" is a rule-based algorithm.
-- `TOPOLOGY`: The topology to use. Try the ["SCI(_XX)"](#topology-data) listed above.
-- `PLOT_RENDER`: Render figures to show important metrics during experiment or not.
-- `EXP_NAME`: The experiment name, the experiment logs would be saved to the log path with `EXP_NAME` as the folder name.
+- `ALGO` in line 61: The algorithm to use. "DQN" and "PPO" are RL algorithms, "EOQ" is a rule-based algorithm.
+- `TOPOLOGY` in line 77: The topology to use. Try the ["SCI(_XX)"](#topology-data) listed above.
+- `PLOT_RENDER` in line 87: Render figures to show important metrics during experiment or not.
+- `EXP_NAME` in line 123: The experiment name, the experiment logs would be saved to the log path with `EXP_NAME` as the folder name.
 
 You can find the introduction of more configurable parameters inside file [*examples/supply_chain/rl/config.py*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/supply_chain/rl/config.py).
 
@@ -82,9 +94,11 @@ python examples/rl/run_rl_example.py examples/rl/supply_chain.yml --evaluate_onl
 
 If you want to try trainable RL policy, you may also need to adjust the training workflow in file [*examples/rl/supply_chain.yml*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/rl/supply_chain.yml). The basic ones you may need are:
 
-- `num_episodes` in line 15: Number of episode to run. Each episode is one cycle of roll-out and policy training.
-- `eval_schedule` in line 17: Intervals between two evaluation process. `eval_schedule: 5` means will evaluate every 5 episodes.
-- `interval` in line 31: Intervals between two dump action of policy network.
+- `num_episodes` in line 16: Number of episode to run. Each episode is one cycle of roll-out and policy training.
+- `eval_schedule` in line 24: Intervals between two evaluation process. `eval_schedule: 5` means will evaluate every 5 episodes.
+- `interval` in line 51: Intervals between two dump action of policy network.
+
+You can find the introduction of more configurable parameters inside file [*examples/rl/supply_chain.yml*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/rl/supply_chain.yml).
 
 With setting `ALGO = "PPO"` of *config.py*, we can try to simulate with the PPO algorithm based policy. The rl policy requires training process, so we need to enable training mode by:
 
@@ -96,11 +110,11 @@ python examples/rl/run_rl_example.py examples/rl/supply_chain.yml
 
 The complex solution configurations are gathered in file [*examples/supply_chain/rl/rl_component_bundle.py*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/supply_chain/rl/rl_component_bundle.py), the ones you may concern about are:
 
-- `get_agent2policy` in line 67: the mapping from the entity id in the scenario to the policy alias.
-- `get_policy_creator` in line 84: what exactly the policy is for each policy alias.
-- `get_trainer_creator` in line 97: the trainer for the policy training. It is related to what algorithm to use.
-- `get_device_mapping` in line 109: the mapping from the policy alias to the training device.
-- `get_policy_trainer_mapping` in line 135: the mapping from the policy alias to the trainer alias.
+- `get_agent2policy` in line 62: the mapping from the entity id in the scenario to the policy alias.
+- `get_policy_creator` in line 79: what exactly the policy is for each policy alias.
+- `get_trainer_creator` in line 91: the trainer for the policy training. It is related to what algorithm to use.
+- `get_device_mapping` in line 103: the mapping from the policy alias to the training device.
+- `get_policy_trainer_mapping` in line 129: the mapping from the policy alias to the trainer alias.
 
 Besides, the **state shaping**, **action shaping** and **reward shaping** logics are defined in file [*examples/supply_chain/rl/env_sampler.py*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/supply_chain/rl/env_sampler.py), while [*examples/supply_chain/rl/rl_agent_state.py*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/supply_chain/rl/rl_agent_state.py) and [*examples/supply_chain/rl/or_agent_state.py*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/supply_chain/rl/or_agent_state.py) are used by **state shaping** logic.
 
