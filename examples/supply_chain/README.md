@@ -103,7 +103,7 @@ python examples/supply_chain/simple_random_example.py
 
 The complex example leverage the RL workflow in MARO. And the example code enable many configurations. Simpler configurations are listed in file [*examples/supply_chain/rl/config.py*](https://github.com/microsoft/maro/blob/sc_tutorial/examples/supply_chain/rl/config.py). The basic ones you may need are:
 
-- `ALGO`: The algorithm to use. "DQN" and "PPO" are RL algorithms, "EOQ" is a rule-based algorithm, "BSP" is an OR-algorithm base-stock policy.
+- `ALGO`: The algorithm to use. "DQN" and "PPO" are RL algorithms, "EOQ" is a rule-based algorithm.
 - `TOPOLOGY`: The "plant" and "super_vendor" are toy topologies. You can use the "SCI(_XX)" ones if you add the topology under directory *maro/simulator/scenarios/supply_chain/topologies*
 - `PLOT_RENDER`: Render figures to show important metrics during experiment or not.
 - `EXP_NAME`: The experiment name, the experiment logs would be saved to the log path with `EXP_NAME` as the folder name.

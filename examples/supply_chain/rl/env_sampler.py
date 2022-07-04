@@ -791,7 +791,7 @@ class SCEnvSampler(AbsEnvSampler):
                             or_action,
                             round(cache_element.reward_dict[entity_id], 2),
                         )
-            # self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
+            self._logger.debug(f"Consumer_action_dict: {consumer_action_dict}")
 
         self._tracker.add_balance_and_reward(
             episode=0,
