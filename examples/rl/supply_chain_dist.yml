@@ -12,7 +12,8 @@ job: supply_chain_rl_workflow
 scenario_path: "examples/supply_chain/rl"
 log_path: "examples/supply_chain/logs/rl_job/supply_chain.txt"
 main:
-  num_episodes: 1000  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  num_episodes: 1000
   # num_steps: None
   eval_schedule: 20
   logging:
@@ -20,7 +21,8 @@ main:
     file: DEBUG
 rollout:
   parallelism:
-    sampling: 4  # Number of parallel roll-outs to collecting training data from.
+    # Number of parallel roll-outs to collecting training data from.
+    sampling: 4
     # Number of parallel roll-outs to evaluate policies on. If not specified, one roll-out worker is chosen to perform
     # evaluation.
     eval: null
@@ -33,9 +35,12 @@ rollout:
     # "min_env_samples" are received. For example, if T seconds elapsed after receiving "min_env_samples" environment
     # samples, it will wait an additional T * grace_factor seconds to try to collect the remaining results.
     grace_factor: 0.2
-    controller:  # Parallel roll-out controller settings. Ignored if rollout.parallelism section is absent.
-      host: "127.0.0.1"  # Controller's IP address. Ignored if run in containerized environments.
-      port: 20000  # Controller's network port for remote roll-out workers to connect to.
+    # Parallel roll-out controller settings. Ignored if rollout.parallelism section is absent.
+    controller:
+      # Controller's IP address. Ignored if run in containerized environments.
+      host: "127.0.0.1"
+      # Controller's network port for remote roll-out workers to connect to.
+      port: 20000
   logging:
     stdout: INFO
     file: DEBUG
@@ -46,10 +51,14 @@ training:
   checkpointing:
     path: "checkpoint/rl_job/supply_chain"
     interval: 1000
-  proxy:  # Proxy settings. Ignored if training.mode is "simple".
-    host: "127.0.0.1"  # Proxy service host's IP address. Ignored if run in containerized environments.
-    frontend: 10000  # Proxy service's network port for trainers to send tasks to.
-    backend: 10001  # Proxy service's network port for remote workers to connect to.
+  # Proxy settings. Ignored if training.mode is "simple".
+  proxy:
+    # Proxy service host's IP address. Ignored if run in containerized environments.
+    host: "127.0.0.1"
+    # Proxy service's network port for trainers to send tasks to.
+    frontend: 10000
+    # Proxy service's network port for remote workers to connect to.
+    backend: 10001
   num_workers: 1
   logging:
     stdout: INFO
