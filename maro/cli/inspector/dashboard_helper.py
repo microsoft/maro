@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import copy
 import math
 from typing import List
 
@@ -206,10 +207,10 @@ def _get_attribute_option(
     if scenario == GlobalScenarios.CITI_BIKE:
         for item in attribute_option:
             if item == "All":
-                attribute_option_candidates.remove("All")
-                attribute_option_candidates.remove("Requirement Info")
-                attribute_option_candidates.remove("Station Info")
-                attribute_option_res = attribute_option_candidates
+                attribute_option_res = copy.deepcopy(attribute_option_candidates)
+                attribute_option_res.remove("All")
+                attribute_option_res.remove("Requirement Info")
+                attribute_option_res.remove("Station Info")
                 break
             elif item == "Requirement Info":
                 attribute_option_res = attribute_option_res + CITIBIKEItemOption.requirement_info
@@ -222,10 +223,10 @@ def _get_attribute_option(
     if scenario == GlobalScenarios.CIM:
         for item in attribute_option:
             if item == "All":
-                attribute_option_candidates.remove("All")
-                attribute_option_candidates.remove("Booking Info")
-                attribute_option_candidates.remove("Port Info")
-                attribute_option_res = attribute_option_candidates
+                attribute_option_res = copy.deepcopy(attribute_option_candidates)
+                attribute_option_res.remove("All")
+                attribute_option_res.remove("Booking Info")
+                attribute_option_res.remove("Port Info")
                 break
             elif item == "Booking Info":
                 attribute_option_res = attribute_option_res + CIMItemOption.booking_info
