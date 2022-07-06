@@ -123,7 +123,7 @@ class BaseStockPolicy(RuleBasedPolicy):
             constraints.append(buy[i] == purchased_before_action[i])
         obj = cp.Maximize(profit)
         prob = cp.Problem(obj, constraints)
-        prob.solve(solver=cp.GLPK_MI, verbose=True)
+        prob.solve(solver=cp.GLPK_MI, verbose=False)
         return target_stock.value
 
     def _get_action_quantity(self, state: dict) -> int:
