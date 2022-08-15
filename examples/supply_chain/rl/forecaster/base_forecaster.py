@@ -4,9 +4,9 @@
 import pandas as pd
 
 
-class BaseForecastor(object):
-    def __init__(self, data_loader_conf) -> None:
+class BaseForecaster(object):
+    def __init__(self, data_loader_conf: dict) -> None:
         self.data_loader_conf = data_loader_conf
 
-    def forecast_future_demand(self, state: dict, history_df: pd.DataFrame) -> pd.DataFrame:
+    def forecast_future_demand(self, state: dict, df_history: pd.DataFrame) -> pd.DataFrame:
         raise NotImplementedError

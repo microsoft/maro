@@ -96,17 +96,9 @@ class DummyPolicy(AbsPolicy):
 
 
 class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
-    """Rule-based policy. The user should define the rule of this policy, and a rule-based policy is not trainable.
+    """Rule-based policy. The user should define the rule of this policy, and a rule-based policy is not trainable."""
 
-    Args:
-        name(str): name of this policy
-        action_by_idx (bool, default=True):
-            When set to true, the action quantity will be set as action index,
-            or the action will be determined by quantity.
-    """
-
-    def __init__(self, name: str, action_by_idx: bool = True) -> None:
-        self.action_by_idx = action_by_idx
+    def __init__(self, name: str) -> None:
         super(RuleBasedPolicy, self).__init__(name=name, trainable=False)
 
     def get_actions(self, states: List[object]) -> List[object]:

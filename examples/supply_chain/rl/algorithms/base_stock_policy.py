@@ -10,18 +10,18 @@ import pandas as pd
 
 from maro.rl.policy import RuleBasedPolicy
 
-from ..forecastor.moving_average_forecastor import MovingAverageForecastor
-from ..forecastor.oracle_forecastor import OracleForecastor
+from ..forecaster.moving_average_forecaster import MovingAverageForecaster
+from ..forecaster.oracle_forecaster import OracleForecaster
 
 
 class BaseStockPolicy(RuleBasedPolicy):
     def __init__(self, name: str, policy_parameters: dict) -> None:
         # Base stock policy action will be determined by quantity.
-        super().__init__(name, False)
+        super().__init__(name)
 
-        forecastor_class = eval(policy_parameters["forecastor"])
-        assert issubclass(forecastor_class, (OracleForecastor, MovingAverageForecastor))
-        self.forecastor = forecastor_class(policy_parameters)
+        forecaster_class = eval(policy_parameters["forecaster"])
+        assert issubclass(forecaster_class, (OracleForecaster, MovingAverageForecaster))
+        self.forecaster = forecaster_class(policy_parameters)
 
         self.share_same_stock_level = policy_parameters.get("share_same_stock_level", True)
         self.update_frequency = policy_parameters["update_frequency"]
@@ -36,9 +36,9 @@ class BaseStockPolicy(RuleBasedPolicy):
     def load_data(self, state: dict, history_start: int) -> pd.DataFrame:
         cost = state["upstream_price_mean"]
         # Load history and today data from env
-        target_df = pd.DataFrame(columns=["Price", "Cost", "Demand"])
+        df_target = pd.DataFrame(columns=["Price", "Cost", "Demand"])
         for index in range(history_start, state["tick"] + 1):
-            target_df = target_df.append(
+            df_target = df_target.append(
                 pd.Series(
                     {
                         "Price": state["history_price"][index],
@@ -49,25 +49,25 @@ class BaseStockPolicy(RuleBasedPolicy):
                 ignore_index=True,
             )
 
-        # Forecast future data by forecastor
-        future_demands = self.forecastor.forecast_future_demand(state, target_df)
-        his_price_mean = target_df["Price"].mean().item()
+        # Forecast future data by forecaster
+        future_demands = self.forecaster.forecast_future_demand(state, df_target)
+        history_price_mean = df_target["Price"].mean().item()
         for demand in future_demands:
-            target_df = target_df.append(
+            df_target = df_target.append(
                 pd.Series(
                     {
-                        "Price": his_price_mean,
+                        "Price": history_price_mean,
                         "Cost": cost,
                         "Demand": demand,
                     },
                 ),
                 ignore_index=True,
             )
-        return target_df
+        return df_target
 
     def calculate_stock_quantity(
         self,
-        input_df: pd.DataFrame,
+        df_input: pd.DataFrame,
         product_level: int,
         in_transition_quantity: int,
         vlt: int,
@@ -75,10 +75,10 @@ class BaseStockPolicy(RuleBasedPolicy):
         purchased_before_action: List[int],
     ) -> np.ndarray:
         # time_hrz_len = history_len + 1 + future_len
-        time_hrz_len = len(input_df)
-        price = np.round(input_df["Price"], 1)
-        order_cost = np.round(input_df["Cost"], 1)
-        demand = np.round(input_df["Demand"], 1)
+        time_hrz_len = len(df_input)
+        price = np.round(df_input["Price"], 1)
+        order_cost = np.round(df_input["Cost"], 1)
+        demand = np.round(df_input["Demand"], 1)
 
         # Inventory on hand.
         stocks = cp.Variable(time_hrz_len + 1, integer=True)
@@ -134,15 +134,15 @@ class BaseStockPolicy(RuleBasedPolicy):
 
         if current_tick % self.update_frequency == 0:
             self.history_start = max(current_tick - self.history_len, 0)
-            target_df = self.load_data(state, self.history_start)
+            df_target = self.load_data(state, self.history_start)
             purchased_before_action = [0] * state["cur_vlt"]
             for i in range(min(self.history_start, state["cur_vlt"])):
                 purchased_before_action[-i - 1] = state["history_purchased"][self.history_start - i - 1]
             self.stock_quantity[index] = self.calculate_stock_quantity(
-                target_df,
+                df_target,
                 self.product_level_snapshot[index].get(self.history_start, 0),
                 self.in_transit_snapshot[index].get(self.history_start, 0),
-                # Since maro is performing the action at the end of each day, vlt needs to be deduced by 1
+                # Since the action is taken at the end of each day, vlt should be decreased by 1
                 state["cur_vlt"] - 1,
                 state["unit_storage_cost"],
                 purchased_before_action,

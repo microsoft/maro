@@ -47,7 +47,7 @@ def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo
         raise (f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
 
 
-ALGO = "BSP"
+ALGO = "EOQ"
 assert ALGO in ["DQN", "EOQ", "PPO", "BSP"], "wrong ALGO"
 
 TEAM_REWARD = False
@@ -66,10 +66,10 @@ storage_enlarged = False
 #     f"_{selection.value}"
 #     f"{'_storage_enlarged' if storage_enlarged else ''}"
 # )
-TOPOLOGY = "walmart_3_layers"
+TOPOLOGY = "super_vendor"
 
-TRAIN_STEPS = 1
-EVAL_STEPS = 91
+TRAIN_STEPS = 180
+EVAL_STEPS = 60
 
 PLOT_RENDER = False
 
@@ -86,12 +86,10 @@ test_env_conf = {
 }
 
 base_policy_conf = {
-    "forecastor": "OracleForecastor",
-    # Oracle file, start_date_time and durations are only needed in OracleForecastor
+    "forecaster": "OracleForecaster",
+    # Oracle file, start_date_time and durations are only needed in OracleForecaster
     # All files with suffix csv, tsv and xlsx without preprocessed will be loaded.
     "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data",
-    "start_date_time": "2021-07-01",
-    "durations": TRAIN_STEPS + EVAL_STEPS,
     "history_len": np.inf,  # E.g., mapping to np.inf in instance creation if it is static
     "future_len": np.inf,
     "update_frequency": np.inf,  # E.g., mapping to np.inf in instance creation if no update

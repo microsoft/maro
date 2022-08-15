@@ -4,6 +4,7 @@
 
 from typing import Dict, List, Optional
 
+import datetime
 import numpy as np
 import scipy.stats as st
 
@@ -75,6 +76,8 @@ class ScOrAgentStates:
         history_purchased: np.ndarray,
         chosen_vlt_info: Optional[VendorLeadingTimeInfo],
         fixed_vlt: bool,
+        start_date_time: datetime,
+        durations: int
     ) -> dict:
         entity: SupplyChainEntity = self._entity_dict[entity_id]
 
@@ -104,6 +107,8 @@ class ScOrAgentStates:
         state["facility_name"] = self._facility_info_dict[entity.facility_id].name
         state["tick"] = tick
         state["upstream_price_mean"] = upstream_price_mean
+        state["start_date_time"] = start_date_time
+        state["durations"] = durations
 
         product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
         if product_info.seller_info is not None:

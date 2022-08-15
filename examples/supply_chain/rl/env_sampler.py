@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import datetime
 import json
 import os
 import pickle
@@ -37,6 +38,7 @@ from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, Pr
 from maro.utils.logger import LogFormat, Logger
 
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
+from .algorithms.base_stock_policy import BaseStockPolicy
 from .config import (
     ALGO,
     IDX_CONSUMER_PURCHASED,
@@ -198,6 +200,8 @@ class SCEnvSampler(AbsEnvSampler):
 
         self.baseline_policy = ConsumerBaselinePolicy("baseline_eoq")
 
+        self.policy_action_by_quantity = [BaseStockPolicy]
+
         self._or_agent_states: ScOrAgentStates = ScOrAgentStates(
             entity_dict=self._entity_dict,
             facility_info_dict=self._facility_info_dict,
@@ -301,12 +305,13 @@ class SCEnvSampler(AbsEnvSampler):
         else:
             return 0.0
 
-    def _get_upstream_sku_info(self, facility_id: int, sku_id: int) -> Optional[Dict[int, SkuInfo]]:
-        upstreams_sku_ids = self._facility_info_dict[facility_id].upstreams
-        if sku_id in upstreams_sku_ids:
-            upstream_facility_ids = upstreams_sku_ids[sku_id]
-            facility_list = [self._facility_info_dict[facility_id] for facility_id in upstream_facility_ids]
-            facility_id_to_sku_info = {facility.id: facility.skus[sku_id] for facility in facility_list}
+    def _get_upstream_facility_id_to_sku_info_dict(self, facility_id: int, sku_id: int) -> Optional[Dict[int, SkuInfo]]:
+        # sku_id_to_facility_id_list: Dict[int, List[int]] = Dict[sku_id, upstream_facility_id_list]
+        sku_id_to_facility_id_list = self._facility_info_dict[facility_id].upstreams
+        if sku_id in sku_id_to_facility_id_list:
+            upstream_facility_id_list = sku_id_to_facility_id_list[sku_id]
+            facility_info_list = [self._facility_info_dict[facility_id] for facility_id in upstream_facility_id_list]
+            facility_id_to_sku_info = {facility.id: facility.skus[sku_id] for facility in facility_info_list}
             return facility_id_to_sku_info
         else:
             return None
@@ -388,11 +393,11 @@ class SCEnvSampler(AbsEnvSampler):
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
+        
+        upstream_facility_id_to_sku_info_dict = self._get_upstream_facility_id_to_sku_info_dict(entity.facility_id, entity.skus.id)
 
-        upstream_skus = self._get_upstream_sku_info(entity.facility_id, entity.skus.id)
-
-        if upstream_skus is not None:
-            upstream_prices = [sku.price for sku in upstream_skus.values()]
+        if upstream_facility_id_to_sku_info_dict is not None:
+            upstream_prices = [sku.price for sku in upstream_facility_id_to_sku_info_dict.values()]
             upstream_price_mean = np.mean(upstream_prices)
         else:
             upstream_price_mean = None
@@ -410,6 +415,8 @@ class SCEnvSampler(AbsEnvSampler):
             history_purchased=self.history_purchased,
             chosen_vlt_info=self._get_vlt_info(entity.id),
             fixed_vlt=self._fixed_vlt,
+            start_date_time=datetime.datetime.strptime(self._env.configs.settings["start_date_time"], "%Y-%m-%d"),
+            durations=self._test_env._durations
         )
         return state
 
@@ -612,12 +619,12 @@ class SCEnvSampler(AbsEnvSampler):
                     action_idx = action[0]
 
                 product_unit_id: int = self._unit2product_unit[entity_id]
-                if self._policy_dict[self._agent2policy[agent_id]].action_by_idx:
+                if type(self._policy_dict[self._agent2policy[agent_id]]) in self.policy_action_by_quantity:
+                    action_quantity = action_idx
+                else:
                     action_quantity = int(
                         int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"]),
                     )
-                else:
-                    action_quantity = action_idx
 
                 # Ignore 0 quantity to reduce action number
                 if action_quantity:
