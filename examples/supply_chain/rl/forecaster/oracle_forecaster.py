@@ -12,14 +12,14 @@ from .base_forecaster import BaseForecaster
 class OracleForecaster(BaseForecaster):
     """
     The oracle forecaster load data from form files. Each form needs to include the following columns.
-    FacilityName: facility name, should be defined in config.yml 
-    SkuName: sku name, should be defined in config.yml 
+    FacilityName: facility name, should be defined in config.yml
+    SkuName: sku name, should be defined in config.yml
     Date: date
     Price: sku's mean price in this facility
     Demand: sku's demand in this facility.
     Cost: sku's mean cost in this facility.
-
     """
+
     def __init__(self, data_loader_conf: dict) -> None:
         super().__init__(data_loader_conf)
 
@@ -37,7 +37,7 @@ class OracleForecaster(BaseForecaster):
                 elif oracle_file_path.endswith(".xlsx"):
                     df_list.append(pd.read_excel(oracle_file_path, parse_dates=["Date"]))
                 else:
-                    # TODO: Whether to terminate the program or just skip the file need to be decided. 
+                    # TODO: Whether to terminate the program or just skip the file need to be decided.
                     raise NotImplementedError
         self.df_raws = pd.concat(df_list, axis=0)
         self.df_raws.sort_values(by="Date", ascending=True)

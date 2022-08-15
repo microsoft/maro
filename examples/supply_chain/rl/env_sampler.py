@@ -18,48 +18,46 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 import numpy as np
 import pandas as pd
 
+from examples.supply_chain.common.balance_calculator import \
+  BalanceSheetCalculator
+from examples.supply_chain.common.render_tools.plot_render import \
+  SimulationTracker
+from examples.supply_chain.common.utils import (get_attributes,
+                                                get_list_attributes)
 from maro.event_buffer import CascadeEvent
 from maro.rl.policy import RLPolicy, RuleBasedPolicy
-from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
+from maro.rl.rollout import (AbsAgentWrapper, AbsEnvSampler, CacheElement,
+                             SimpleAgentWrapper)
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain import (
-    ConsumerAction,
-    ConsumerUnit,
-    ManufactureAction,
-    ManufactureUnit,
-    StoreProductUnit,
-)
+from maro.simulator.scenarios.supply_chain import (ConsumerAction,
+                                                   ConsumerUnit,
+                                                   ManufactureAction,
+                                                   ManufactureUnit,
+                                                   StoreProductUnit)
 from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
-from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
-from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo, OuterRetailerFacility
-from maro.simulator.scenarios.supply_chain.objects import SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo
-from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguration
-from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, ProductUnit, StorageUnitInfo
+from maro.simulator.scenarios.supply_chain.business_engine import \
+  SupplyChainBusinessEngine
+from maro.simulator.scenarios.supply_chain.facilities import (
+  FacilityBase, FacilityInfo, OuterRetailerFacility)
+from maro.simulator.scenarios.supply_chain.objects import (
+  SkuInfo, SkuMeta, SupplyChainEntity, VendorLeadingTimeInfo)
+from maro.simulator.scenarios.supply_chain.parser import \
+  SupplyChainConfiguration
+from maro.simulator.scenarios.supply_chain.units import (DistributionUnitInfo,
+                                                         ProductUnit,
+                                                         StorageUnitInfo)
 from maro.utils.logger import LogFormat, Logger
 
-from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 from .algorithms.base_stock_policy import BaseStockPolicy
-from .config import (
-    ALGO,
-    IDX_CONSUMER_PURCHASED,
-    IDX_PRODUCT_PRICE,
-    IDX_SELLER_DEMAND,
-    OR_NUM_CONSUMER_ACTIONS,
-    TEAM_REWARD,
-    VehicleSelection,
-    consumer_features,
-    distribution_features,
-    env_conf,
-    product_features,
-    seller_features,
-    test_env_conf,
-    workflow_settings,
-)
+from .algorithms.rule_based import \
+  ConsumerMinMaxPolicy as ConsumerBaselinePolicy
+from .config import (ALGO, IDX_CONSUMER_PURCHASED, IDX_PRODUCT_PRICE,
+                     IDX_SELLER_DEMAND, OR_NUM_CONSUMER_ACTIONS, TEAM_REWARD,
+                     VehicleSelection, consumer_features,
+                     distribution_features, env_conf, product_features,
+                     seller_features, test_env_conf, workflow_settings)
 from .or_agent_state import ScOrAgentStates
 from .rl_agent_state import ScRlAgentStates, serialize_state
-from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
-from examples.supply_chain.common.render_tools.plot_render import SimulationTracker
-from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 
 if typing.TYPE_CHECKING:
     from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
@@ -393,8 +391,11 @@ class SCEnvSampler(AbsEnvSampler):
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
-        
-        upstream_facility_id_to_sku_info_dict = self._get_upstream_facility_id_to_sku_info_dict(entity.facility_id, entity.skus.id)
+
+        upstream_facility_id_to_sku_info_dict = self._get_upstream_facility_id_to_sku_info_dict(
+            entity.facility_id,
+            entity.skus.id,
+        )
 
         if upstream_facility_id_to_sku_info_dict is not None:
             upstream_prices = [sku.price for sku in upstream_facility_id_to_sku_info_dict.values()]
@@ -416,7 +417,7 @@ class SCEnvSampler(AbsEnvSampler):
             chosen_vlt_info=self._get_vlt_info(entity.id),
             fixed_vlt=self._fixed_vlt,
             start_date_time=datetime.datetime.strptime(self._env.configs.settings["start_date_time"], "%Y-%m-%d"),
-            durations=self._test_env._durations
+            durations=self._test_env._durations,
         )
         return state
 
@@ -925,7 +926,6 @@ class SCEnvSampler(AbsEnvSampler):
                 self._logger.info("product metrics dumped to csv")
 
         self._logger.info(f"Max Eval Reward: {self._max_eval_reward:,.2f}")
-
         self._logger.debug(f"Eval Reward List: {self._eval_reward_list}")
         self._mean_reward = {entity_id: val / self._step_idx for entity_id, val in self._mean_reward.items()}
 

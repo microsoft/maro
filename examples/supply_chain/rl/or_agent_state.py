@@ -1,17 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+import datetime
 from typing import Dict, List, Optional
 
-import datetime
 import numpy as np
 import scipy.stats as st
 
+from examples.supply_chain.rl.config import get_vlt_buffer_factor
 from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity, VendorLeadingTimeInfo
-
-from examples.supply_chain.rl.config import get_vlt_buffer_factor
 
 
 class ScOrAgentStates:
@@ -76,8 +74,8 @@ class ScOrAgentStates:
         history_purchased: np.ndarray,
         chosen_vlt_info: Optional[VendorLeadingTimeInfo],
         fixed_vlt: bool,
-        start_date_time: datetime,
-        durations: int
+        start_date_time: datetime.datetime,
+        durations: int,
     ) -> dict:
         entity: SupplyChainEntity = self._entity_dict[entity_id]
 
