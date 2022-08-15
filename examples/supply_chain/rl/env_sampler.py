@@ -37,6 +37,7 @@ from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguratio
 from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, ProductUnit, StorageUnitInfo
 from maro.utils.logger import LogFormat, Logger
 
+from .algorithms.base_stock_policy import BaseStockPolicy
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 from .config import (
     ALGO,
