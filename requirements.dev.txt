@@ -57,7 +57,7 @@ setuptools==58.0.4
 six==1.13.0
 sphinx==1.8.6
 sphinx_rtd_theme==1.0.0
-streamlit==0.69.1
+streamlit==1.11.1
 stringcase==1.2.0
 tabulate==0.8.5
 termgraph==0.5.3
