@@ -15,9 +15,9 @@ class OracleForecaster(BaseForecaster):
     FacilityName: facility name, should be defined in config.yml
     SkuName: sku name, should be defined in config.yml
     Date: date in format YYYY-MM-DD
-    Price: sku's mean price to end-customers in this store
-    Demand: sku's demand to end-customers in this store.
-    Cost: sku's mean cost for upstream facility in this store.
+    Price: sku's mean price to end-customers in this facility
+    Demand: sku's demand to end-customers in this facility
+    Cost: sku's mean cost for upstream facility in this facility
     """
 
     def __init__(self, data_loader_conf: dict) -> None:
