@@ -311,7 +311,7 @@ class SCEnvSampler(AbsEnvSampler):
         if sku_id in sku_id_to_facility_id_list:
             upstream_facility_id_list = sku_id_to_facility_id_list[sku_id]
             facility_info_list = [self._facility_info_dict[facility_id] for facility_id in upstream_facility_id_list]
-            facility_id_to_sku_info = {facility.id: facility_info.skus[sku_id] for facility_info in facility_info_list}
+            facility_id_to_sku_info = {facility_info.id: facility_info.skus[sku_id] for facility_info in facility_info_list}
             return facility_id_to_sku_info
         else:
             return None
