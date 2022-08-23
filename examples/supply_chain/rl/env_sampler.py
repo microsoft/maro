@@ -306,7 +306,6 @@ class SCEnvSampler(AbsEnvSampler):
             return 0.0
 
     def _get_upstream_facility_id_to_sku_info_dict(self, facility_id: int, sku_id: int) -> Optional[Dict[int, SkuInfo]]:
-        sku_id_to_facility_id_list = self._facility_info_dict[facility_id].upstreams
         sku_id_to_facility_id_list: Dict[int, List[int]] = self._facility_info_dict[facility_id].upstreams
         if sku_id in sku_id_to_facility_id_list:
             upstream_facility_id_list = sku_id_to_facility_id_list[sku_id]
