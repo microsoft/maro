@@ -7,9 +7,10 @@ from typing import Dict, List, Optional
 import numpy as np
 import scipy.stats as st
 
-from examples.supply_chain.rl.config import get_vlt_buffer_factor
 from maro.simulator.scenarios.supply_chain.facilities import FacilityBase, FacilityInfo
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity, VendorLeadingTimeInfo
+
+from examples.supply_chain.rl.config import get_vlt_buffer_factor
 
 
 class ScOrAgentStates:
