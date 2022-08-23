@@ -305,12 +305,12 @@ class SCEnvSampler(AbsEnvSampler):
             return 0.0
 
     def _get_upstream_facility_id_to_sku_info_dict(self, facility_id: int, sku_id: int) -> Optional[Dict[int, SkuInfo]]:
-        # sku_id_to_facility_id_list: Dict[int, List[int]] = Dict[sku_id, upstream_facility_id_list]
         sku_id_to_facility_id_list = self._facility_info_dict[facility_id].upstreams
+        sku_id_to_facility_id_list: Dict[int, List[int]] = self._facility_info_dict[facility_id].upstreams
         if sku_id in sku_id_to_facility_id_list:
             upstream_facility_id_list = sku_id_to_facility_id_list[sku_id]
             facility_info_list = [self._facility_info_dict[facility_id] for facility_id in upstream_facility_id_list]
-            facility_id_to_sku_info = {facility.id: facility.skus[sku_id] for facility in facility_info_list}
+            facility_id_to_sku_info = {facility.id: facility_info.skus[sku_id] for facility_info in facility_info_list}
             return facility_id_to_sku_info
         else:
             return None
@@ -393,7 +393,7 @@ class SCEnvSampler(AbsEnvSampler):
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
-        upstream_facility_id_to_sku_info_dict = self._get_upstream_facility_id_to_sku_info_dict(
+        upstream_facility_id_to_sku_info_dict: Dict[int, SkuInfo] = self._get_upstream_facility_id_to_sku_info_dict(
             entity.facility_id,
             entity.skus.id,
         )
