@@ -11,6 +11,7 @@ from .event_linked_list import EventLinkedList
 from .event_pool import EventPool
 from .event_state import EventState
 from .maro_events import MaroEvents
+from .payload import DecisionEventPayload
 
 
 class EventRecorder:
@@ -142,15 +143,16 @@ class EventBuffer:
         assert isinstance(event, CascadeEvent)
         return event
 
-    def gen_decision_event(self, tick: int, payload: object) -> CascadeEvent:
+    def gen_decision_event(self, tick: int, payload: DecisionEventPayload) -> CascadeEvent:
         """Generate a decision event that will stop current simulation, and ask agent for action.
 
         Args:
             tick (int): Tick that the event will be processed.
-            payload (object): Payload of event, used to pass data to handlers.
+            payload (DecisionEventPayload): Payload of event, used to pass data to handlers.
         Returns:
             CascadeEvent: Event object
         """
+        assert isinstance(payload, DecisionEventPayload)
         return self.gen_cascade_event(tick, MaroEvents.PENDING_DECISION, payload)
 
     def gen_action_event(self, tick: int, payload: object) -> CascadeEvent:

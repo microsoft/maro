@@ -5,6 +5,7 @@
 from enum import Enum, IntEnum
 
 from maro.backends.frame import SnapshotList
+from maro.event_buffer import DecisionEventPayload
 
 
 class VesselState(IntEnum):
@@ -68,7 +69,7 @@ class ActionScope:
         return "%s {load: %r, discharge: %r}" % (self.__class__.__name__, self.load, self.discharge)
 
 
-class DecisionEvent:
+class DecisionEvent(DecisionEventPayload):
     """Decision event for agent.
 
     Args:

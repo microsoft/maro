@@ -3,6 +3,8 @@
 
 from typing import List
 
+from maro.event_buffer import DecisionEventPayload
+
 from .virtual_machine import VirtualMachine
 
 
@@ -74,7 +76,7 @@ class VmRequestPayload:
         )
 
 
-class DecisionPayload:
+class DecisionPayload(DecisionEventPayload):
     """Decision event in VM Scheduling scenario that contains information for agent to choose action.
 
     Args:

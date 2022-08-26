@@ -4,11 +4,11 @@
 from collections.abc import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
-from typing import Generator, List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple, Union
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.dump_csv_converter import DumpConverter
-from maro.event_buffer import ActualEvent, CascadeEvent, EventBuffer, EventState
+from maro.event_buffer import ActualEvent, CascadeEvent, DecisionEventPayload, EventBuffer, EventState
 from maro.streamit import streamit
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
@@ -73,8 +73,8 @@ class Env(AbsEnv):
 
         self._event_buffer = EventBuffer(disable_finished_events, record_finished_events, record_file_path)
 
-        # decision_events array for dump.
-        self._decision_events = []
+        # decision_event_payloads array for dump.
+        self._decision_event_payloads = []
 
         # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()
@@ -89,7 +89,10 @@ class Env(AbsEnv):
 
         self._streamit_episode = 0
 
-    def step(self, action) -> Tuple[Optional[dict], Optional[List[object]], Optional[bool]]:
+    def step(
+        self,
+        action,
+    ) -> Tuple[Optional[dict], Union[DecisionEventPayload, List[DecisionEventPayload], None], Optional[bool]]:
         """Push the environment to next step with action.
 
         Args:
@@ -99,11 +102,11 @@ class Env(AbsEnv):
             tuple: a tuple of (metrics, decision event, is_done).
         """
         try:
-            metrics, decision_event, _is_done = self._simulate_generator.send(action)
+            metrics, decision_event_payloads, _is_done = self._simulate_generator.send(action)
         except StopIteration:
             return None, None, True
 
-        return metrics, decision_event, _is_done
+        return metrics, decision_event_payloads, _is_done
 
     def dump(self) -> None:
         """Dump environment for restore.
@@ -131,10 +134,14 @@ class Env(AbsEnv):
 
             self._business_engine.frame.dump(dump_folder)
             self._converter.start_processing(self.configs)
-            self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
+            self._converter.dump_descsion_events(
+                self._decision_event_payloads,
+                self._start_tick,
+                self._snapshot_resolution,
+            )
             self._business_engine.dump(dump_folder)
 
-        self._decision_events.clear()
+        self._decision_event_payloads.clear()
 
         self._business_engine.reset(keep_seed)
 
@@ -267,7 +274,9 @@ class Env(AbsEnv):
             additional_options=self._additional_options,
         )
 
-    def _simulate(self) -> Generator[Tuple[dict, List[object], bool], object, None]:
+    def _simulate(
+        self,
+    ) -> Generator[Tuple[dict, Union[DecisionEventPayload, List[DecisionEventPayload]], bool], object, None]:
         """This is the generator to wrap each episode process."""
         self._streamit_episode += 1
 
@@ -292,16 +301,22 @@ class Env(AbsEnv):
                 self._business_engine.frame.take_snapshot(self.frame_index)
 
                 # Append source event id to decision events, to support sequential action in joint mode.
-                decision_events = [event.payload for event in pending_events]
+                decision_event_payloads = [event.payload for event in pending_events]
 
-                decision_events = (
-                    decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
+                decision_event_payloads = (
+                    decision_event_payloads[0]
+                    if self._decision_mode == DecisionMode.Sequential
+                    else decision_event_payloads
                 )
 
                 # Yield current state first, and waiting for action.
-                actions = yield self._business_engine.get_metrics(), decision_events, False
+                actions = yield self._business_engine.get_metrics(), decision_event_payloads, False
                 # archive decision events.
-                self._decision_events.append(decision_events)
+
+                if self._decision_mode == DecisionMode.Sequential:
+                    self._decision_event_payloads.append(decision_event_payloads)
+                else:
+                    self._decision_event_payloads += decision_event_payloads
 
                 if actions is None:
                     # Make business engine easy to work.
