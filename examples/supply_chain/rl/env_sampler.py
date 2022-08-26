@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import datetime
 import json
 import os
 import pickle
@@ -19,6 +20,7 @@ import pandas as pd
 
 from maro.event_buffer import CascadeEvent
 from maro.rl.policy import RLPolicy, RuleBasedPolicy
+from maro.rl.policy.abs_policy import AbsPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
@@ -36,6 +38,7 @@ from maro.simulator.scenarios.supply_chain.parser import SupplyChainConfiguratio
 from maro.simulator.scenarios.supply_chain.units import DistributionUnitInfo, ProductUnit, StorageUnitInfo
 from maro.utils.logger import LogFormat, Logger
 
+from .algorithms.base_stock_policy import BaseStockPolicy
 from .algorithms.rule_based import ConsumerMinMaxPolicy as ConsumerBaselinePolicy
 from .config import (
     ALGO,
@@ -99,6 +102,12 @@ def get_consumer_id2sku_id(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[
                 consumer_id2sku_id[product.consumer_info.id] = sku_id
 
     return consumer_id2sku_id
+
+
+def is_index_action(policy: AbsPolicy) -> bool:
+    if isinstance(policy, BaseStockPolicy):
+        return False
+    return True
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -197,6 +206,8 @@ class SCEnvSampler(AbsEnvSampler):
         )
 
         self.baseline_policy = ConsumerBaselinePolicy("baseline_eoq")
+
+        self.policy_action_by_quantity = [BaseStockPolicy]
 
         self._or_agent_states: ScOrAgentStates = ScOrAgentStates(
             entity_dict=self._entity_dict,
@@ -301,6 +312,18 @@ class SCEnvSampler(AbsEnvSampler):
         else:
             return 0.0
 
+    def _get_upstream_facility_id_to_sku_info_dict(self, facility_id: int, sku_id: int) -> Optional[Dict[int, SkuInfo]]:
+        sku_id_to_facility_id_list: Dict[int, List[int]] = self._facility_info_dict[facility_id].upstreams
+        if sku_id in sku_id_to_facility_id_list:
+            upstream_facility_id_list = sku_id_to_facility_id_list[sku_id]
+            facility_info_list = [self._facility_info_dict[facility_id] for facility_id in upstream_facility_id_list]
+            facility_id_to_sku_info = {
+                facility_info.id: facility_info.skus[sku_id] for facility_info in facility_info_list
+            }
+            return facility_id_to_sku_info
+        else:
+            return None
+
     def _get_vlt_info(self, entity_id: int) -> Optional[VendorLeadingTimeInfo]:
         if entity_id not in self._cached_vlt:
             entity = self._entity_dict[entity_id]
@@ -379,6 +402,16 @@ class SCEnvSampler(AbsEnvSampler):
         if self._storage_capacity_dict is None:
             self._storage_capacity_dict = self._get_storage_capacity_dict_info()
 
+        upstream_facility_id_to_sku_info_dict: Dict[int, SkuInfo] = self._get_upstream_facility_id_to_sku_info_dict(
+            entity.facility_id,
+            entity.skus.id,
+        )
+
+        if upstream_facility_id_to_sku_info_dict is not None:
+            upstream_prices = [sku.price for sku in upstream_facility_id_to_sku_info_dict.values()]
+            upstream_price_mean = np.mean(upstream_prices)
+        else:
+            upstream_price_mean = None
         state = self._or_agent_states.update_entity_state(
             entity_id=entity.id,
             tick=self._env.tick,
@@ -387,11 +420,14 @@ class SCEnvSampler(AbsEnvSampler):
             product_levels=self._storage_product_quantity[entity.facility_id],
             in_transit_quantity=self._facility_in_transit_quantity[entity.facility_id],
             to_distribute_quantity=self._facility_to_distribute_quantity[entity.facility_id],
+            upstream_price_mean=upstream_price_mean,
             history_demand=self.history_demand,
             history_price=self.history_price,
             history_purchased=self.history_purchased,
             chosen_vlt_info=self._get_vlt_info(entity.id),
             fixed_vlt=self._fixed_vlt,
+            start_date_time=datetime.datetime.strptime(self._env.configs.settings["start_date_time"], "%Y-%m-%d"),
+            durations=self._test_env._durations,
         )
         return state
 
@@ -586,18 +622,22 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
-                if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
-                    baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
-                    or_action = np.where(baseline_action == 1.0)[0][0]
-                    # action_idx = int(action[0] + or_action)
-                    action_idx = max(0, int(action[0] - 1 + or_action))
+                policy = self._policy_dict[self._agent2policy[agent_id]]
+                if not is_index_action(policy):
+                    action_quantity = action[0]
                 else:
-                    action_idx = action[0]
+                    if isinstance(policy, RLPolicy):
+                        baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
+                        or_action = np.where(baseline_action == 1.0)[0][0]
+                        # action_idx = int(action[0] + or_action)
+                        action_idx = max(0, int(action[0] - 1 + or_action))
+                    else:
+                        action_idx = action[0]
 
-                product_unit_id: int = self._unit2product_unit[entity_id]
-                action_quantity = int(
-                    int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"]),
-                )
+                    product_unit_id: int = self._unit2product_unit[entity_id]
+                    action_quantity = int(
+                        int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"]),
+                    )
 
                 # Ignore 0 quantity to reduce action number
                 if action_quantity:

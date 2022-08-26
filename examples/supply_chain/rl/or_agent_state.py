@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+import datetime
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -69,11 +69,14 @@ class ScOrAgentStates:
         product_levels: List[int],
         in_transit_quantity: List[int],
         to_distribute_quantity: List[int],
+        upstream_price_mean: Optional[int],
         history_demand: np.ndarray,
         history_price: np.ndarray,
         history_purchased: np.ndarray,
         chosen_vlt_info: Optional[VendorLeadingTimeInfo],
         fixed_vlt: bool,
+        start_date_time: datetime.datetime,
+        durations: int,
     ) -> dict:
         entity: SupplyChainEntity = self._entity_dict[entity_id]
 
@@ -99,8 +102,12 @@ class ScOrAgentStates:
         state["to_distribute_quantity"] = to_distribute_quantity[self._global_sku_id2idx[entity.skus.id]]
 
         state["cur_vlt"] = chosen_vlt_info.vlt + 1 if chosen_vlt_info else 0
-        state["entity_id"] = entity_id
+        state["sku_name"] = entity.skus.name
+        state["facility_name"] = self._facility_info_dict[entity.facility_id].name
         state["tick"] = tick
+        state["upstream_price_mean"] = upstream_price_mean
+        state["start_date_time"] = start_date_time
+        state["durations"] = durations
 
         product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
         if product_info.seller_info is not None:
