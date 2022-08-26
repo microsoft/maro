@@ -11,13 +11,13 @@ from .base_forecaster import BaseForecaster
 
 class OracleForecaster(BaseForecaster):
     """
-    The oracle forecaster load data from form spreadsheets. Each form needs to include the following columns.
-    FacilityName: facility name, should be defined in config.yml
-    SkuName: sku name, should be defined in config.yml
-    Date: date in format YYYY-MM-DD
-    Price: sku's mean price to end-customers in this facility
-    Demand: sku's demand to end-customers in this facility
-    Cost: sku's mean cost for upstream facility in this facility
+    The oracle forecaster load data from form spreadsheets. Each form needs to include the following columns:
+      - FacilityName: facility name, should be defined in config.yml
+      - SkuName: sku name, should be defined in config.yml
+      - Date: date in format YYYY-MM-DD
+      - Price: sku's mean price to end-customers in this facility
+      - Demand: sku's demand to end-customers in this facility
+      - Cost: sku's mean cost for upstream facility in this facility
     """
 
     def __init__(self, data_loader_conf: dict) -> None:
@@ -45,11 +45,11 @@ class OracleForecaster(BaseForecaster):
     def forecast_future_demand(self, state: dict, df_history: pd.DataFrame) -> pd.DataFrame:
         """
         The OracleForecaster filters data from the read-in file by the info in the given state. The required state keys include:
-        sku_name: target sku name for forecasting.
-        facility_name: target facility name for forecasting
-        tick: date tick to indicate the days
-        start_date_time: start date for simulation
-        durations: time span in days
+          - sku_name: target sku name for forecasting.
+          - facility_name: target facility name for forecasting
+          - tick: date tick to indicate the days
+          - start_date_time: start date for simulation
+          - durations: time span in days
         """
         sku_name = state["sku_name"]
         facility_name = state["facility_name"]

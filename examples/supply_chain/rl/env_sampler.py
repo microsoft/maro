@@ -20,6 +20,7 @@ import pandas as pd
 
 from maro.event_buffer import CascadeEvent
 from maro.rl.policy import RLPolicy, RuleBasedPolicy
+from maro.rl.policy.abs_policy import AbsPolicy
 from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import (
@@ -101,6 +102,12 @@ def get_consumer_id2sku_id(facility_info_dict: Dict[int, FacilityInfo]) -> Dict[
                 consumer_id2sku_id[product.consumer_info.id] = sku_id
 
     return consumer_id2sku_id
+
+
+def is_index_action(policy: AbsPolicy) -> bool:
+    if isinstance(policy, BaseStockPolicy):
+        return False
+    return True
 
 
 class SCEnvSampler(AbsEnvSampler):
@@ -615,17 +622,19 @@ class SCEnvSampler(AbsEnvSampler):
 
             # Consumer action
             if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit):
-                if isinstance(self._policy_dict[self._agent2policy[agent_id]], RLPolicy):
-                    baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
-                    or_action = np.where(baseline_action == 1.0)[0][0]
-                    action_idx = max(0, int(action[0] - 1 + or_action))
+                policy = self._policy_dict[self._agent2policy[agent_id]]
+                if not is_index_action(policy):
+                    action_quantity = action[0]
                 else:
-                    action_idx = action[0]
+                    if isinstance(policy, RLPolicy):
+                        baseline_action = np.array(self._agent_state_dict[agent_id][-OR_NUM_CONSUMER_ACTIONS:])
+                        or_action = np.where(baseline_action == 1.0)[0][0]
+                        # action_idx = int(action[0] + or_action)
+                        action_idx = max(0, int(action[0] - 1 + or_action))
+                    else:
+                        action_idx = action[0]
 
-                product_unit_id: int = self._unit2product_unit[entity_id]
-                if type(self._policy_dict[self._agent2policy[agent_id]]) in self.policy_action_by_quantity:
-                    action_quantity = action_idx
-                else:
+                    product_unit_id: int = self._unit2product_unit[entity_id]
                     action_quantity = int(
                         int(action_idx) * max(1.0, self._cur_metrics["products"][product_unit_id]["demand_mean"]),
                     )
