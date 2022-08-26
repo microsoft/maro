@@ -45,7 +45,7 @@ class OracleForecaster(BaseForecaster):
     def forecast_future_demand(self, state: dict, df_history: pd.DataFrame) -> pd.DataFrame:
         """
         The OracleForecaster filters data from the read-in file by the info in the given state. The required state keys include:
-          - sku_name: target sku name for forecasting.
+          - sku_name: target sku name for forecasting
           - facility_name: target facility name for forecasting
           - tick: date tick to indicate the days
           - start_date_time: start date for simulation
