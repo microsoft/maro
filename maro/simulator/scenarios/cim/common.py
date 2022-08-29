@@ -69,8 +69,8 @@ class ActionScope:
         return "%s {load: %r, discharge: %r}" % (self.__class__.__name__, self.load, self.discharge)
 
 
-class DecisionEvent(DecisionEventPayload):
-    """Decision event for agent.
+class DecisionPayload(DecisionEventPayload):
+    """Decision event payload for agent.
 
     Args:
         tick (int): On which tick we need an action.

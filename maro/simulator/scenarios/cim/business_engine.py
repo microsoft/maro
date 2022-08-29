@@ -17,7 +17,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 from maro.streamit import streamit
 
-from .common import Action, ActionScope, ActionType, DecisionEvent
+from .common import Action, ActionScope, ActionType, DecisionPayload
 from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
 from .events import Events
 from .frame_builder import gen_cim_frame
@@ -178,7 +178,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                     self._event_buffer.insert_event(load_event)
 
                     # Generate cascade event and payload.
-                    decision_payload = DecisionEvent(
+                    decision_payload = DecisionPayload(
                         tick,
                         port_idx,
                         vessel_idx,
@@ -300,7 +300,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             Events.VESSEL_ARRIVAL.name: VesselStatePayload.summary_key,
             Events.LOAD_FULL.name: VesselStatePayload.summary_key,
             Events.DISCHARGE_FULL.name: VesselDischargePayload.summary_key,
-            Events.PENDING_DECISION.name: DecisionEvent.summary_key,
+            Events.PENDING_DECISION.name: DecisionPayload.summary_key,
             Events.LOAD_EMPTY.name: Action.summary_key,
             Events.DISCHARGE_EMPTY.name: Action.summary_key,
             Events.VESSEL_DEPARTURE.name: VesselStatePayload.summary_key,

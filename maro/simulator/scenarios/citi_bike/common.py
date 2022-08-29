@@ -65,8 +65,8 @@ class DecisionType(Enum):
     Demand = "demand"
 
 
-class DecisionEvent(DecisionEventPayload):
-    """Citi bike scenario decision event that contains station information for agent to choose action.
+class DecisionPayload(DecisionEventPayload):
+    """Citi bike scenario decision event payload that contains station information for agent to choose action.
 
     Args:
         station_idx (int): Which station need an action.

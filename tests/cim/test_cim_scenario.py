@@ -21,7 +21,7 @@ from maro.data_lib.cim.entities import PortSetting, Stop, SyntheticPortSetting, 
 from maro.data_lib.cim.vessel_stop_wrapper import VesselStopsWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine
-from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
+from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionPayload
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
 
 from tests.utils import backends_to_test, compare_dictionary
@@ -393,7 +393,7 @@ class TestCimScenarios(unittest.TestCase):
             self._init_env(backend_name)
 
             metric, decision_event, is_done = self._env.step(None)
-            assert isinstance(decision_event, DecisionEvent)
+            assert isinstance(decision_event, DecisionPayload)
 
             self.assertEqual(decision_event.action_scope.load, 1240)
             self.assertEqual(decision_event.action_scope.discharge, 0)
@@ -418,7 +418,7 @@ class TestCimScenarios(unittest.TestCase):
             history = []
             while not is_done:
                 metric, decision_event, is_done = self._env.step(None)
-                assert decision_event is None or isinstance(decision_event, DecisionEvent)
+                assert decision_event is None or isinstance(decision_event, DecisionPayload)
                 if decision_event is not None and decision_event.vessel_idx == 35:
                     v = self._business_engine._vessels[35]
                     history.append((v.full, v.empty, v.early_discharge))
