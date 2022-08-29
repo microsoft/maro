@@ -11,7 +11,7 @@ from .event_linked_list import EventLinkedList
 from .event_pool import EventPool
 from .event_state import EventState
 from .maro_events import MaroEvents
-from .payload import DecisionEventPayload
+from .payload import ActionPayload, DecisionEventPayload
 
 
 class EventRecorder:
@@ -155,16 +155,18 @@ class EventBuffer:
         assert isinstance(payload, DecisionEventPayload)
         return self.gen_cascade_event(tick, MaroEvents.PENDING_DECISION, payload)
 
-    def gen_action_event(self, tick: int, payload: object) -> CascadeEvent:
+    def gen_action_event(self, tick: int, payloads: List[ActionPayload]) -> CascadeEvent:
         """Generate an event that used to dispatch action to business engine.
 
         Args:
             tick (int): Tick that the event will be processed.
-            payload (object): Payload of event, used to pass data to handlers.
+            payloads (List[ActionPayload]): Payloads of event, used to pass data to handlers.
         Returns:
             CascadeEvent: Event object
         """
-        return self.gen_cascade_event(tick, MaroEvents.TAKE_ACTION, payload)
+        assert isinstance(payloads, list)
+        assert all(isinstance(p, ActionPayload) for p in payloads)
+        return self.gen_cascade_event(tick, MaroEvents.TAKE_ACTION, payloads)
 
     def register_event_handler(self, event_type: object, handler: Callable) -> None:
         """Register an event with handler, when there is an event need to be processed,

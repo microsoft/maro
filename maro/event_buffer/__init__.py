@@ -5,7 +5,7 @@ from .event import AbsEvent, ActualEvent, AtomEvent, CascadeEvent, DummyEvent
 from .event_buffer import EventBuffer
 from .event_state import EventState
 from .maro_events import MaroEvents
-from .payload import DecisionEventPayload
+from .payload import ActionPayload, DecisionEventPayload
 
 __all__ = [
     "AbsEvent",
@@ -16,5 +16,6 @@ __all__ = [
     "EventBuffer",
     "EventState",
     "MaroEvents",
+    "ActionPayload",
     "DecisionEventPayload",
 ]

@@ -1,14 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections.abc import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
-from typing import Generator, List, Optional, Tuple, Union
+from typing import Generator, List, Optional, Tuple, Union, cast
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.dump_csv_converter import DumpConverter
-from maro.event_buffer import ActualEvent, CascadeEvent, DecisionEventPayload, EventBuffer, EventState
+from maro.event_buffer import ActionPayload, ActualEvent, CascadeEvent, DecisionEventPayload, EventBuffer, EventState
 from maro.streamit import streamit
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
@@ -73,8 +72,8 @@ class Env(AbsEnv):
 
         self._event_buffer = EventBuffer(disable_finished_events, record_finished_events, record_file_path)
 
-        # decision_event_payloads array for dump.
-        self._decision_event_payloads = []
+        # decision_payloads array for dump.
+        self._decision_payloads = []
 
         # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()
@@ -91,22 +90,22 @@ class Env(AbsEnv):
 
     def step(
         self,
-        action,
-    ) -> Tuple[Optional[dict], Union[DecisionEventPayload, List[DecisionEventPayload], None], Optional[bool]]:
+        action: Union[ActionPayload, List[ActionPayload], None] = None,
+    ) -> Tuple[Optional[dict], Union[DecisionEventPayload, List[DecisionEventPayload], None], bool]:
         """Push the environment to next step with action.
 
         Args:
-            action (Action): Action(s) from agent.
+            action (Union[ActionPayload, List[ActionPayload], None]): Action(s) from agent.
 
         Returns:
             tuple: a tuple of (metrics, decision event, is_done).
         """
         try:
-            metrics, decision_event_payloads, _is_done = self._simulate_generator.send(action)
+            metrics, decision_payloads, _is_done = self._simulate_generator.send(action)
         except StopIteration:
             return None, None, True
 
-        return metrics, decision_event_payloads, _is_done
+        return metrics, decision_payloads, _is_done
 
     def dump(self) -> None:
         """Dump environment for restore.
@@ -135,13 +134,13 @@ class Env(AbsEnv):
             self._business_engine.frame.dump(dump_folder)
             self._converter.start_processing(self.configs)
             self._converter.dump_descsion_events(
-                self._decision_event_payloads,
+                self._decision_payloads,
                 self._start_tick,
                 self._snapshot_resolution,
             )
             self._business_engine.dump(dump_folder)
 
-        self._decision_event_payloads.clear()
+        self._decision_payloads.clear()
 
         self._business_engine.reset(keep_seed)
 
@@ -274,9 +273,29 @@ class Env(AbsEnv):
             additional_options=self._additional_options,
         )
 
+    def _assign_action(
+        self,
+        action: Union[ActionPayload, List[ActionPayload], None],
+        decision_event: CascadeEvent,
+    ) -> None:
+        decision_event.state = EventState.EXECUTING
+
+        if action is None:
+            actions = []
+        elif not isinstance(action, list):
+            actions = [action]
+        else:
+            actions = action
+
+        decision_event.add_immediate_event(self._event_buffer.gen_action_event(self._tick, actions), is_head=True)
+
     def _simulate(
         self,
-    ) -> Generator[Tuple[dict, Union[DecisionEventPayload, List[DecisionEventPayload]], bool], object, None]:
+    ) -> Generator[
+        Tuple[dict, Union[DecisionEventPayload, List[DecisionEventPayload]], bool],
+        Union[ActionPayload, List[ActionPayload], None],
+        None,
+    ]:
         """This is the generator to wrap each episode process."""
         self._streamit_episode += 1
 
@@ -291,7 +310,7 @@ class Env(AbsEnv):
 
             while True:
                 # Keep processing events, until no more events in this tick.
-                pending_events = self._event_buffer.execute(self._tick)
+                pending_events = cast(List[CascadeEvent], self._event_buffer.execute(self._tick))
 
                 if len(pending_events) == 0:
                     # We have processed all the event of current tick, lets go for next tick.
@@ -301,56 +320,23 @@ class Env(AbsEnv):
                 self._business_engine.frame.take_snapshot(self.frame_index)
 
                 # Append source event id to decision events, to support sequential action in joint mode.
-                decision_event_payloads = [event.payload for event in pending_events]
-
-                decision_event_payloads = (
-                    decision_event_payloads[0]
-                    if self._decision_mode == DecisionMode.Sequential
-                    else decision_event_payloads
-                )
-
-                # Yield current state first, and waiting for action.
-                actions = yield self._business_engine.get_metrics(), decision_event_payloads, False
-                # archive decision events.
+                decision_payloads = [event.payload for event in pending_events]
 
                 if self._decision_mode == DecisionMode.Sequential:
-                    self._decision_event_payloads.append(decision_event_payloads)
+                    action = yield self._business_engine.get_metrics(), decision_payloads[0], False
+                    self._assign_action(action, pending_events[0])
                 else:
-                    self._decision_event_payloads += decision_event_payloads
+                    actions = yield self._business_engine.get_metrics(), decision_payloads, False
+                    if actions is None:
+                        actions = []
+                    assert isinstance(actions, list)
 
-                if actions is None:
-                    # Make business engine easy to work.
-                    actions = []
-                elif not isinstance(actions, Iterable):
-                    actions = [actions]
+                    for action, event in zip(actions, pending_events):
+                        self._assign_action(action, event)
 
-                if self._decision_mode == DecisionMode.Sequential:
-                    # Generate a new atom event first.
-                    action_event = self._event_buffer.gen_action_event(self._tick, actions)
-
-                    # NOTE: decision event always be a CascadeEvent
-                    # We just append the action into sub event of first pending cascade event.
-                    event = pending_events[0]
-                    assert isinstance(event, CascadeEvent)
-                    event.state = EventState.EXECUTING
-                    event.add_immediate_event(action_event, is_head=True)
-                else:
-                    # For joint mode, we will assign actions from beginning to end.
-                    # Then mark others pending events to finished if not sequential action mode.
-                    for i, pending_event in enumerate(pending_events):
-                        if i >= len(actions):
-                            if self._decision_mode == DecisionMode.Joint:
-                                # Ignore following pending events that have no action matched.
-                                pending_event.state = EventState.FINISHED
-                        else:
-                            # Set the state as executing, so event buffer will not pop them again.
-                            # Then insert the action to it.
-                            action = actions[i]
-                            pending_event.state = EventState.EXECUTING
-                            action_event = self._event_buffer.gen_action_event(self._tick, action)
-
-                            assert isinstance(pending_event, CascadeEvent)
-                            pending_event.add_immediate_event(action_event, is_head=True)
+                    if self._decision_mode == DecisionMode.Joint:
+                        for event in pending_events[len(actions) :]:
+                            event.state = EventState.FINISHED
 
             # Check the end tick of the simulation to decide if we should end the simulation.
             is_end_tick = self._business_engine.post_step(self._tick)

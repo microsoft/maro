@@ -3,7 +3,7 @@
 
 from enum import Enum
 
-from maro.event_buffer import DecisionEventPayload
+from maro.event_buffer import ActionPayload, DecisionEventPayload
 
 
 class BikeTransferPayload:
@@ -129,7 +129,7 @@ class DecisionPayload(DecisionEventPayload):
         )
 
 
-class Action:
+class Action(ActionPayload):
     """Citi bike scenario action object, that used to pass action from agent to business engine.
 
     Args:

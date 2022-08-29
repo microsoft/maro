@@ -17,7 +17,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
-from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, VmRequestPayload
+from .common import Action, AllocateAction, DecisionPayload, Latency, PostponeAction, VmRequestPayload
 from .cpu_reader import CpuReader
 from .enums import Events, PmState, PostponeType, VmCategory
 from .frame_builder import build_frame
@@ -846,20 +846,24 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _on_action_received(self, event: CascadeEvent):
         """Callback wen we get an action from agent."""
-        action = None
-        if event is None or event.payload is None:
+        actions = event.payload
+        assert isinstance(actions, list)
+
+        if len(actions) == 0:
             self._pending_vm_request_payload.pop(self._pending_action_vm_id)
             return
 
-        cur_tick: int = event.tick
+        for action in actions:
+            assert isinstance(action, Action)
 
-        for action in event.payload:
+            cur_tick: int = event.tick
+
             vm_id: int = action.vm_id
 
             if vm_id not in self._pending_vm_request_payload:
                 raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
 
-            if type(action) == AllocateAction:
+            if isinstance(action, AllocateAction):
                 pm_id = action.pm_id
                 vm: VirtualMachine = self._pending_vm_request_payload[vm_id].vm_info
                 lifetime = vm.lifetime
@@ -899,7 +903,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 )
                 self._successful_allocation += 1
 
-            elif type(action) == PostponeAction:
+            elif isinstance(action, PostponeAction):
                 postpone_step = action.postpone_step
                 remaining_buffer_time = self._pending_vm_request_payload[vm_id].remaining_buffer_time
                 # Either postpone the requirement event or failed.

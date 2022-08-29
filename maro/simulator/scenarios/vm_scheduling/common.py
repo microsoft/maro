@@ -3,12 +3,12 @@
 
 from typing import List
 
-from maro.event_buffer import DecisionEventPayload
+from maro.event_buffer import ActionPayload, DecisionEventPayload
 
 from .virtual_machine import VirtualMachine
 
 
-class Action:
+class Action(ActionPayload):
     """VM Scheduling scenario action object, which was used to pass action from agent to business engine.
 
     Args:

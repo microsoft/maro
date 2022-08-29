@@ -11,7 +11,7 @@ from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
-from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
+from maro.event_buffer import ActualEvent, AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
@@ -705,47 +705,47 @@ class CimBusinessEngine(AbsBusinessEngine):
         port.on_consignee -= payload.quantity
         port.empty += payload.quantity
 
-    def _on_action_received(self, event: CascadeEvent):
+    def _on_action_received(self, event: ActualEvent):
         """Handler for processing actions from agent.
 
         Args:
-            event (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
+            event (ActualEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
         """
         actions = event.payload
         assert isinstance(actions, list)
 
-        if actions:
-            for action in actions:
-                vessel_idx = action.vessel_idx
-                port_idx = action.port_idx
-                move_num = action.quantity
-                vessel = self._vessels[vessel_idx]
-                port = self._ports[port_idx]
-                port_empty = port.empty
-                vessel_empty = vessel.empty
+        for action in actions:
+            assert isinstance(action, Action)
 
-                assert isinstance(action, Action)
-                action_type = action.action_type
+            vessel_idx = action.vessel_idx
+            port_idx = action.port_idx
+            move_num = action.quantity
+            vessel = self._vessels[vessel_idx]
+            port = self._ports[port_idx]
+            port_empty = port.empty
+            vessel_empty = vessel.empty
 
-                if action_type == ActionType.DISCHARGE:
-                    assert move_num <= vessel_empty
+            action_type = action.action_type
 
-                    port.empty = port_empty + move_num
-                    vessel.empty = vessel_empty - move_num
-                else:
-                    assert move_num <= min(port_empty, vessel.remaining_space)
+            if action_type == ActionType.DISCHARGE:
+                assert move_num <= vessel_empty
 
-                    port.empty = port_empty - move_num
-                    vessel.empty = vessel_empty + move_num
+                port.empty = port_empty + move_num
+                vessel.empty = vessel_empty - move_num
+            else:
+                assert move_num <= min(port_empty, vessel.remaining_space)
 
-                # Align the event type to make the output readable.
-                event.event_type = Events.DISCHARGE_EMPTY if action_type == ActionType.DISCHARGE else Events.LOAD_EMPTY
+                port.empty = port_empty - move_num
+                vessel.empty = vessel_empty + move_num
 
-                # Update transfer cost for port and metrics.
-                self._total_operate_num += move_num
-                port.transfer_cost += move_num
+            # Align the event type to make the output readable.
+            event.event_type = Events.DISCHARGE_EMPTY if action_type == ActionType.DISCHARGE else Events.LOAD_EMPTY
 
-                self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]
+            # Update transfer cost for port and metrics.
+            self._total_operate_num += move_num
+            port.transfer_cost += move_num
+
+            self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]
 
     def _stream_base_info(self):
         if streamit:
