@@ -4,7 +4,7 @@
 
 import csv
 from collections import defaultdict
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, cast
 
 from .event import ActualEvent, AtomEvent, CascadeEvent
 from .event_linked_list import EventLinkedList
@@ -123,9 +123,7 @@ class EventBuffer:
         Returns:
             AtomEvent: Atom event object
         """
-        event = self._event_pool.gen(tick, event_type, payload, False)
-        assert isinstance(event, AtomEvent)
-        return event
+        return cast(AtomEvent, self._event_pool.gen(tick, event_type, payload, is_cascade=False))
 
     def gen_cascade_event(self, tick: int, event_type: object, payload: object) -> CascadeEvent:
         """Generate an cascade event that used to hold immediate events that
@@ -139,9 +137,7 @@ class EventBuffer:
         Returns:
             CascadeEvent: Cascade event object.
         """
-        event = self._event_pool.gen(tick, event_type, payload, True)
-        assert isinstance(event, CascadeEvent)
-        return event
+        return cast(CascadeEvent, self._event_pool.gen(tick, event_type, payload, is_cascade=False))
 
     def gen_decision_event(self, tick: int, payload: DecisionEventPayload) -> CascadeEvent:
         """Generate a decision event that will stop current simulation, and ask agent for action.

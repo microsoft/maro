@@ -94,6 +94,30 @@ class Env(AbsEnv):
     ) -> Tuple[Optional[dict], Union[DecisionEventPayload, List[DecisionEventPayload], None], bool]:
         """Push the environment to next step with action.
 
+        Under Sequential mode:
+            - If `action` is None, a empty list will be assigned to the decision event.
+            - Otherwise, the action(s) will be assigned to the decision event.
+
+        Under Joint mode:
+            - If `action` is None, no actions will be assigned to any decision event.
+            - If `action` is a single action, it will be assigned to the first decision event.
+            - If `action` is a list, actions are assigned to each decision event in order. If the number of actions
+                is less than the number of decision events, extra decision events will not be assigned actions. If
+                the number of actions if larger than the number of decision events, extra actions will be ignored.
+            If you want to assign multiple actions to specific event(s), please explicitly pass a list of list. For
+            example:
+
+            ```
+            env.step(action=[[a1, a2], a3, [a4, a5]])
+            ```
+
+            Will assign `a1` & `a2` to the first decision event, `a3` to the second decision event, and `a4` & `a5`
+            to the third decision event.
+
+            Particularly, if you only want to assign multiple actions to the first decision event, please
+            pass `[[a1, a2, ..., an]]` (a list of one list) instead of `[a1, a2, ..., an]` (an 1D list of n elements),
+            since the latter one will assign the n actions to the first n decision events.
+
         Args:
             action (Union[ActionPayload, List[ActionPayload], None]): Action(s) from agent.
 
