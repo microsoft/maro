@@ -19,5 +19,8 @@ class DistributionDataModel(DataModelBase):
     def __init__(self) -> None:
         super(DistributionDataModel, self).__init__()
 
+    def initialize(self) -> None:
+        self.reset()
+
     def reset(self) -> None:
         super(DistributionDataModel, self).reset()
