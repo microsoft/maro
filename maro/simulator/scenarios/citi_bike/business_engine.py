@@ -15,7 +15,7 @@ from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
 from maro.cli.data_pipeline.utils import chagne_file_path
 from maro.data_lib import BinaryReader
-from maro.event_buffer import AtomEvent, EventBuffer, MaroEvents
+from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
@@ -23,7 +23,7 @@ from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 from .adj_loader import load_adj_from_csv
-from .common import BikeReturnPayload, BikeTransferPayload, DecisionEvent
+from .common import Action, BikeReturnPayload, BikeTransferPayload, DecisionEvent
 from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
@@ -32,7 +32,6 @@ from .stations_info import get_station_info
 from .weather_table import WeatherTable
 
 logger = CliLogger(name=__name__)
-
 
 metrics_desc = """
 Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick).
@@ -519,14 +518,15 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         station.bikes = station_bikes + max_accept_number
 
-    def _on_action_received(self, evt: AtomEvent):
+    def _on_action_received(self, evt: CascadeEvent):
         """Callback when we get an action from agent."""
-        action = None
+        actions = evt.payload
 
-        if evt is None or evt.payload is None:
-            return
+        assert isinstance(actions, list)
 
-        for action in evt.payload:
+        for action in actions:
+            assert isinstance(action, Action)
+
             from_station_idx: int = action.from_station_idx
             to_station_idx: int = action.to_station_idx
 

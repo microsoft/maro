@@ -8,7 +8,7 @@ from maro.simulator.core import Env
 from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
 from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index
 
-from .dummy.dummy_business_engine import DummyEngine
+from tests.dummy.dummy_business_engine import DummyEngine
 from tests.utils import backends_to_test
 
 
@@ -376,24 +376,17 @@ class TestEnv(unittest.TestCase):
         with self.assertRaises(FileNotFoundError) as ctx:
             Env("cim", "None", 100)
 
-    def test_get_avaiable_envs(self):
-        scenario_names = get_scenarios()
+    def test_get_available_envs(self):
+        scenario_names = sorted(get_scenarios())
 
         # we have 3 built-in scenarios
-        self.assertEqual(3, len(scenario_names))
-
-        self.assertTrue("cim" in scenario_names)
-        self.assertTrue("citi_bike" in scenario_names)
-
-        cim_topoloies = get_topologies("cim")
-        citi_bike_topologies = get_topologies("citi_bike")
-        vm_topoloties = get_topologies("vm_scheduling")
+        self.assertListEqual(scenario_names, ["cim", "citi_bike", "vm_scheduling"])
 
         env_list = get_available_envs()
 
         self.assertEqual(
             len(env_list),
-            len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties) + len(get_topologies("supply_chain")),
+            sum(len(get_topologies(s)) for s in scenario_names),
         )
 
     def test_frame_index_to_ticks(self):
@@ -404,7 +397,7 @@ class TestEnv(unittest.TestCase):
         self.assertListEqual([0, 1], ticks[0])
         self.assertListEqual([8, 9], ticks[4])
 
-    def test_get_avalible_frame_index_to_ticks_with_default_resolution(self):
+    def test_get_available_frame_index_to_ticks_with_default_resolution(self):
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
 
@@ -425,7 +418,7 @@ class TestEnv(unittest.TestCase):
             self.assertListEqual([t for t in t2f_mapping.keys()], [t for t in range(max_tick)])
             self.assertListEqual([f for f in t2f_mapping.values()], [f for f in range(max_tick)])
 
-    def test_get_avalible_frame_index_to_ticks_with_resolution2(self):
+    def test_get_available_frame_index_to_ticks_with_resolution2(self):
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
 

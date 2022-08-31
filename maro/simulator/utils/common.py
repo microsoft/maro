@@ -27,6 +27,11 @@ def get_available_envs():
     return envs
 
 
+def scenario_not_empty(scenario_path: str) -> bool:
+    _, _, files = next(os.walk(scenario_path))
+    return "business_engine.py" in files
+
+
 def get_scenarios() -> List[str]:
     """Get built-in scenario name list.
 
@@ -35,7 +40,13 @@ def get_scenarios() -> List[str]:
     """
     try:
         _, scenarios, _ = next(os.walk(scenarios_root_folder))
-        scenarios = sorted([s for s in scenarios if not s.startswith("__")])
+        scenarios = sorted(
+            [
+                s
+                for s in scenarios
+                if not s.startswith("__") and scenario_not_empty(os.path.join(scenarios_root_folder, s))
+            ],
+        )
 
     except StopIteration:
         return []
