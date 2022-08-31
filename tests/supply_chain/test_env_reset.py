@@ -57,11 +57,11 @@ class MyTestCase(unittest.TestCase):
             states_1_manufacture,
             states_1_distribution,
         ) = test_env_reset_snapshot_query(
-            env,
-            None,
-            None,
-            expect_tick,
-            None,
+            env=env,
+            action_1=None,
+            action_2=None,
+            expect_tick=expect_tick,
+            random_tick=None,
         )
 
         # ############################### Test whether reset updates the storage unit completely ################
@@ -76,16 +76,13 @@ class MyTestCase(unittest.TestCase):
             states_seller_initial,
             states_manufacture_initial,
             states_distribution_initial,
-        ) = snapshot_query(
-            env,
-            0,
-        )
-        self.assertEqual(list(states_1_consumer[0]), list(states_consumer_initial))
-        self.assertEqual(list(states_1_storage[0]), list(states_storage_initial))
-        self.assertEqual(list(states_1_seller[0]), list(states_seller_initial))
-        self.assertEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
-        self.assertEqual(list(states_1_distribution[0]), list(states_distribution_initial))
-        self.assertEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
+        ) = snapshot_query(env, 0)
+        self.assertListEqual(list(states_1_consumer[0]), list(states_consumer_initial))
+        self.assertListEqual(list(states_1_storage[0]), list(states_storage_initial))
+        self.assertListEqual(list(states_1_seller[0]), list(states_seller_initial))
+        self.assertListEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
+        self.assertListEqual(list(states_1_distribution[0]), list(states_distribution_initial))
+        self.assertListEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
 
         # Save the env.metric of each tick into env_metric_2
         # Store the information about the snapshot unit of each tick in states_2_unit
@@ -97,20 +94,20 @@ class MyTestCase(unittest.TestCase):
             states_2_manufacture,
             states_2_distribution,
         ) = test_env_reset_snapshot_query(
-            env,
-            None,
-            None,
-            expect_tick,
-            None,
+            env=env,
+            action_1=None,
+            action_2=None,
+            expect_tick=expect_tick,
+            random_tick=None,
         )
 
         for i in range(expect_tick):
-            self.assertEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
-            self.assertEqual(list(states_1_storage[i]), list(states_2_storage[i]))
-            self.assertEqual(list(states_1_seller[i]), list(states_2_seller[i]))
-            self.assertEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
-            self.assertEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
-            self.assertEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
+            self.assertListEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
+            self.assertListEqual(list(states_1_storage[i]), list(states_2_storage[i]))
+            self.assertListEqual(list(states_1_seller[i]), list(states_2_seller[i]))
+            self.assertListEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
+            self.assertListEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
+            self.assertListEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
 
     def test_env_reset_with_ManufactureAction_only(self) -> None:
         """test env reset with ManufactureAction only"""
@@ -146,8 +143,6 @@ class MyTestCase(unittest.TestCase):
         # 80 sku3
         self.assertEqual(80, product_dict[SKU3_ID])
 
-        ManufactureAction(manufacture_unit.id, 1)
-
         expect_tick = 30
 
         action_1 = ManufactureAction(manufacture_unit.id, 1)
@@ -169,11 +164,11 @@ class MyTestCase(unittest.TestCase):
                 states_1_manufacture,
                 states_1_distribution,
             ) = test_env_reset_snapshot_query(
-                env,
-                action_1,
-                action_2,
-                expect_tick,
-                random_tick,
+                env=env,
+                action_1=action_1,
+                action_2=action_2,
+                expect_tick=expect_tick,
+                random_tick=random_tick,
             )
 
         # ############################### Test whether reset updates the manufacture unit completely ################
@@ -188,16 +183,13 @@ class MyTestCase(unittest.TestCase):
             states_seller_initial,
             states_manufacture_initial,
             states_distribution_initial,
-        ) = snapshot_query(
-            env,
-            0,
-        )
-        self.assertEqual(list(states_1_consumer[0]), list(states_consumer_initial))
-        self.assertEqual(list(states_1_storage[0]), list(states_storage_initial))
-        self.assertEqual(list(states_1_seller[0]), list(states_seller_initial))
-        self.assertEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
-        self.assertEqual(list(states_1_distribution[0]), list(states_distribution_initial))
-        self.assertEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
+        ) = snapshot_query(env, 0)
+        self.assertListEqual(list(states_1_consumer[0]), list(states_consumer_initial))
+        self.assertListEqual(list(states_1_storage[0]), list(states_storage_initial))
+        self.assertListEqual(list(states_1_seller[0]), list(states_seller_initial))
+        self.assertListEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
+        self.assertListEqual(list(states_1_distribution[0]), list(states_distribution_initial))
+        self.assertListEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
 
         capacities = storage_nodes[env.frame_index : storage_node_index : "capacity"].flatten().astype(np.int)
         remaining_spaces = (
@@ -231,20 +223,20 @@ class MyTestCase(unittest.TestCase):
             states_2_manufacture,
             states_2_distribution,
         ) = test_env_reset_snapshot_query(
-            env,
-            action_1,
-            action_2,
-            expect_tick,
-            random_tick,
+            env=env,
+            action_1=action_1,
+            action_2=action_2,
+            expect_tick=expect_tick,
+            random_tick=random_tick,
         )
 
         for i in range(expect_tick):
-            self.assertEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
-            self.assertEqual(list(states_1_storage[i]), list(states_2_storage[i]))
-            self.assertEqual(list(states_1_seller[i]), list(states_2_seller[i]))
-            self.assertEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
-            self.assertEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
-            self.assertEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
+            self.assertListEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
+            self.assertListEqual(list(states_1_storage[i]), list(states_2_storage[i]))
+            self.assertListEqual(list(states_1_seller[i]), list(states_2_seller[i]))
+            self.assertListEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
+            self.assertListEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
+            self.assertListEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
 
     def test_env_reset_with_ConsumerAction_only(self) -> None:
         """ "test env reset with ConsumerAction only"""
@@ -272,11 +264,11 @@ class MyTestCase(unittest.TestCase):
             states_1_manufacture,
             states_1_distribution,
         ) = test_env_reset_snapshot_query(
-            env,
-            action,
-            None,
-            expect_tick,
-            None,
+            env=env,
+            action_1=action,
+            action_2=None,
+            expect_tick=expect_tick,
+            random_tick=None,
         )
 
         # ############### Test whether reset updates the consumer unit completely ################
@@ -291,16 +283,13 @@ class MyTestCase(unittest.TestCase):
             states_seller_initial,
             states_manufacture_initial,
             states_distribution_initial,
-        ) = snapshot_query(
-            env,
-            0,
-        )
-        self.assertEqual(list(states_1_consumer[0]), list(states_consumer_initial))
-        self.assertEqual(list(states_1_storage[0]), list(states_storage_initial))
-        self.assertEqual(list(states_1_seller[0]), list(states_seller_initial))
-        self.assertEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
-        self.assertEqual(list(states_1_distribution[0]), list(states_distribution_initial))
-        self.assertEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
+        ) = snapshot_query(env, 0)
+        self.assertListEqual(list(states_1_consumer[0]), list(states_consumer_initial))
+        self.assertListEqual(list(states_1_storage[0]), list(states_storage_initial))
+        self.assertListEqual(list(states_1_seller[0]), list(states_seller_initial))
+        self.assertListEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
+        self.assertListEqual(list(states_1_distribution[0]), list(states_distribution_initial))
+        self.assertListEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
 
         # Save the env.metric of each tick into env_metric_2
         # Store the information about the snapshot unit of each tick in states_2_unit
@@ -312,20 +301,20 @@ class MyTestCase(unittest.TestCase):
             states_2_manufacture,
             states_2_distribution,
         ) = test_env_reset_snapshot_query(
-            env,
-            action,
-            None,
-            expect_tick,
-            None,
+            env=env,
+            action_1=action,
+            action_2=None,
+            expect_tick=expect_tick,
+            random_tick=None,
         )
 
         for i in range(expect_tick):
-            self.assertEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
-            self.assertEqual(list(states_1_storage[i]), list(states_2_storage[i]))
-            self.assertEqual(list(states_1_seller[i]), list(states_2_seller[i]))
-            self.assertEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
-            self.assertEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
-            self.assertEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
+            self.assertListEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
+            self.assertListEqual(list(states_1_storage[i]), list(states_2_storage[i]))
+            self.assertListEqual(list(states_1_seller[i]), list(states_2_seller[i]))
+            self.assertListEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
+            self.assertListEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
+            self.assertListEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
 
     def test_env_reset_with_both_ManufactureAction_and_ConsumerAction(self) -> None:
         """test env reset with both ManufactureAction and ConsumerAction"""
@@ -362,11 +351,11 @@ class MyTestCase(unittest.TestCase):
             states_1_manufacture,
             states_1_distribution,
         ) = test_env_reset_snapshot_query(
-            env,
-            action_consumer,
-            action_manufacture,
-            expect_tick,
-            random_tick,
+            env=env,
+            action_1=action_consumer,
+            action_2=action_manufacture,
+            expect_tick=expect_tick,
+            random_tick=random_tick,
         )
 
         # ############### Test whether reset updates the consumer unit completely ################
@@ -381,16 +370,13 @@ class MyTestCase(unittest.TestCase):
             states_seller_initial,
             states_manufacture_initial,
             states_distribution_initial,
-        ) = snapshot_query(
-            env,
-            0,
-        )
-        self.assertEqual(list(states_1_consumer[0]), list(states_consumer_initial))
-        self.assertEqual(list(states_1_storage[0]), list(states_storage_initial))
-        self.assertEqual(list(states_1_seller[0]), list(states_seller_initial))
-        self.assertEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
-        self.assertEqual(list(states_1_distribution[0]), list(states_distribution_initial))
-        self.assertEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
+        ) = snapshot_query(env, 0)
+        self.assertListEqual(list(states_1_consumer[0]), list(states_consumer_initial))
+        self.assertListEqual(list(states_1_storage[0]), list(states_storage_initial))
+        self.assertListEqual(list(states_1_seller[0]), list(states_seller_initial))
+        self.assertListEqual(list(states_1_manufacture[0]), list(states_manufacture_initial))
+        self.assertListEqual(list(states_1_distribution[0]), list(states_distribution_initial))
+        self.assertListEqual(list(env_metric_1[0].values()), list(env_metric_initial.values()))
 
         # Save the env.metric of each tick into env_metric_2
         # Store the information about the snapshot unit of each tick in states_2_unit
@@ -402,20 +388,20 @@ class MyTestCase(unittest.TestCase):
             states_2_manufacture,
             states_2_distribution,
         ) = test_env_reset_snapshot_query(
-            env,
-            action_consumer,
-            action_manufacture,
-            expect_tick,
-            random_tick,
+            env=env,
+            action_1=action_consumer,
+            action_2=action_manufacture,
+            expect_tick=expect_tick,
+            random_tick=random_tick,
         )
 
         for i in range(expect_tick):
-            self.assertEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
-            self.assertEqual(list(states_1_storage[i]), list(states_2_storage[i]))
-            self.assertEqual(list(states_1_seller[i]), list(states_2_seller[i]))
-            self.assertEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
-            self.assertEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
-            self.assertEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
+            self.assertListEqual(list(states_1_consumer[i]), list(states_2_consumer[i]))
+            self.assertListEqual(list(states_1_storage[i]), list(states_2_storage[i]))
+            self.assertListEqual(list(states_1_seller[i]), list(states_2_seller[i]))
+            self.assertListEqual(list(states_1_manufacture[i]), list(states_2_manufacture[i]))
+            self.assertListEqual(list(states_1_distribution[i]), list(states_2_distribution[i]))
+            self.assertListEqual(list(env_metric_1[i].values()), list(env_metric_2[i].values()))
 
 
 if __name__ == "__main__":

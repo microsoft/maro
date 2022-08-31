@@ -3,41 +3,39 @@
 
 import os
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, List, Tuple
 
 import numpy as np
 
 from maro.simulator import Env
 
 
-def build_env(case_name: str, durations: int):
+def build_env(case_name: str, durations: int) -> Env:
     case_folder = os.path.join("tests", "data", "supply_chain", case_name)
-
-    env = Env(scenario="supply_chain", topology=case_folder, durations=durations)
-
-    return env
+    return Env(scenario="supply_chain", topology=case_folder, durations=durations)
 
 
-def get_product_dict_from_storage(env: Env, frame_index: int, node_index: int):
+def get_product_dict_from_storage(env: Env, frame_index: int, node_index: int) -> Dict[int, int]:
     sku_id_list = env.snapshot_list["storage"][frame_index:node_index:"sku_id_list"].flatten().astype(np.int)
     product_quantity = env.snapshot_list["storage"][frame_index:node_index:"product_quantity"].flatten().astype(np.int)
 
-    return {sku_id: quantity for sku_id, quantity in zip(sku_id_list, product_quantity)}
+    return dict(zip(sku_id_list, product_quantity))
 
 
-def snapshot_query(env: Env, i: int):
+def snapshot_query(env: Env, i: int) -> Tuple[
+    Dict[int, list], Dict[int, list], Dict[int, list], Dict[int, list], Dict[int, list], Dict[int, list]
+]:
     consumer_nodes = env.snapshot_list["consumer"]
     storage_nodes = env.snapshot_list["storage"]
     seller_nodes = env.snapshot_list["seller"]
     manufacture_nodes = env.snapshot_list["manufacture"]
     distribution_nodes = env.snapshot_list["distribution"]
 
-    states_consumer: Dict[int, list] = defaultdict(list)
-    states_storage: Dict[int, list] = defaultdict(list)
-    states_seller: Dict[int, list] = defaultdict(list)
-    states_manufacture: Dict[int, list] = defaultdict(list)
-    states_distribution: Dict[int, list] = defaultdict(list)
-    env_metric: Dict[int, list] = defaultdict(list)
+    states_consumer: Dict[int, list] = {}
+    states_storage: Dict[int, list] = {}
+    states_seller: Dict[int, list] = {}
+    states_manufacture: Dict[int, list] = {}
+    states_distribution: Dict[int, list] = {}
 
     env_metric = env.metrics
 
@@ -74,34 +72,23 @@ def snapshot_query(env: Env, i: int):
     return env_metric, states_consumer, states_storage, states_seller, states_manufacture, states_distribution
 
 
-def test_env_reset_snapshot_query(env: Env, action_1, action_2, expect_tick: int, random_tick: list):
-
-    states_consumer: Dict[int, dict] = defaultdict(dict)
-    states_storage: Dict[int, dict] = defaultdict(dict)
-    states_seller: Dict[int, dict] = defaultdict(dict)
-    states_manufacture: Dict[int, dict] = defaultdict(dict)
-    states_distribution: Dict[int, dict] = defaultdict(dict)
-    env_metric: Dict[int, dict] = defaultdict(dict)
-
+def test_env_reset_snapshot_query(
+    env: Env,
+    action_1: object,
+    action_2: object,
+    expect_tick: int,
+    random_tick: list = None,
+) -> List[tuple]:
+    snapshots: List[tuple] = []  # List of (env_metric, states_consumer, ..., states_distribution)
     for i in range(expect_tick):
-        (
-            env_metric[i],
-            states_consumer[i],
-            states_storage[i],
-            states_seller[i],
-            states_manufacture[i],
-            states_distribution[i],
-        ) = snapshot_query(
-            env,
-            i,
-        )
+        snapshots.append(snapshot_query(env, i))
         env.step(action_1)
 
         if random_tick is not None:
             if i in random_tick:
                 env.step(action_2)
 
-    return env_metric, states_consumer, states_storage, states_seller, states_manufacture, states_distribution
+    return list(zip(*snapshots))
 
 
 SKU1_ID = 1
