@@ -9,9 +9,9 @@ import holidays
 import numpy as np
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
-from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
+from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
 from maro.cli.data_pipeline.utils import chagne_file_path
 from maro.data_lib import BinaryReader
@@ -21,6 +21,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
+
 from .adj_loader import load_adj_from_csv
 from .common import Action, BikeReturnPayload, BikeTransferPayload, DecisionEvent
 from .decision_strategy import BikeDecisionStrategy

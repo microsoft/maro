@@ -6,16 +6,8 @@ import time
 import unittest
 from typing import Optional
 
-from maro.event_buffer import (
-    ActualEvent,
-    AtomEvent,
-    CascadeEvent,
-    DummyEvent,
-    EventBuffer,
-    EventState,
-    MaroEvents,
-)
 from maro.common import BaseDecisionEvent
+from maro.event_buffer import ActualEvent, AtomEvent, CascadeEvent, DummyEvent, EventBuffer, EventState, MaroEvents
 from maro.event_buffer.event_linked_list import EventLinkedList
 from maro.event_buffer.event_pool import EventPool
 

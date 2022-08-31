@@ -6,12 +6,12 @@ import csv
 from collections import defaultdict
 from typing import Callable, List, Optional, cast
 
+from ..common import BaseAction, BaseDecisionEvent
 from .event import ActualEvent, AtomEvent, CascadeEvent
 from .event_linked_list import EventLinkedList
 from .event_pool import EventPool
 from .event_state import EventState
 from .maro_events import MaroEvents
-from ..common import BaseAction, BaseDecisionEvent
 
 
 class EventRecorder:
