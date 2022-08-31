@@ -11,7 +11,7 @@ from .event_linked_list import EventLinkedList
 from .event_pool import EventPool
 from .event_state import EventState
 from .maro_events import MaroEvents
-from .payload import ActionPayload, DecisionEventPayload
+from ..common import BaseAction, BaseDecisionEvent
 
 
 class EventRecorder:
@@ -139,29 +139,29 @@ class EventBuffer:
         """
         return cast(CascadeEvent, self._event_pool.gen(tick, event_type, payload, is_cascade=False))
 
-    def gen_decision_event(self, tick: int, payload: DecisionEventPayload) -> CascadeEvent:
+    def gen_decision_event(self, tick: int, payload: BaseDecisionEvent) -> CascadeEvent:
         """Generate a decision event that will stop current simulation, and ask agent for action.
 
         Args:
             tick (int): Tick that the event will be processed.
-            payload (DecisionEventPayload): Payload of event, used to pass data to handlers.
+            payload (BaseDecisionEvent): Payload of event, used to pass data to handlers.
         Returns:
             CascadeEvent: Event object
         """
-        assert isinstance(payload, DecisionEventPayload)
+        assert isinstance(payload, BaseDecisionEvent)
         return self.gen_cascade_event(tick, MaroEvents.PENDING_DECISION, payload)
 
-    def gen_action_event(self, tick: int, payloads: List[ActionPayload]) -> CascadeEvent:
+    def gen_action_event(self, tick: int, payloads: List[BaseAction]) -> CascadeEvent:
         """Generate an event that used to dispatch action to business engine.
 
         Args:
             tick (int): Tick that the event will be processed.
-            payloads (List[ActionPayload]): Payloads of event, used to pass data to handlers.
+            payloads (List[BaseAction]): Payloads of event, used to pass data to handlers.
         Returns:
             CascadeEvent: Event object
         """
         assert isinstance(payloads, list)
-        assert all(isinstance(p, ActionPayload) for p in payloads)
+        assert all(isinstance(p, BaseAction) for p in payloads)
         return self.gen_cascade_event(tick, MaroEvents.TAKE_ACTION, payloads)
 
     def register_event_handler(self, event_type: object, handler: Callable) -> None:

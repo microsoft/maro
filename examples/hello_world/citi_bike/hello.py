@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.simulator import Env
-from maro.simulator.scenarios.citi_bike.common import Action, DecisionPayload
+from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent
 
 auto_event_mode = False
 start_tick = 0
@@ -30,7 +30,7 @@ print(env.summary)
 
 for ep in range(max_ep):
     metrics = None
-    decision_evt: DecisionPayload = None
+    decision_evt: DecisionEvent = None
     is_done = False
     action = None
 

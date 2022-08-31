@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 
 from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionEvent, PostponeAction
 
 from .config import (
     num_features,
@@ -44,7 +44,7 @@ class VMEnvSampler(AbsEnvSampler):
 
     def _get_global_and_agent_state_impl(
         self,
-        event: DecisionPayload,
+        event: DecisionEvent,
         tick: int = None,
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         pm_state, vm_state = self._get_pm_state(), self._get_vm_state(event)
@@ -71,14 +71,14 @@ class VMEnvSampler(AbsEnvSampler):
     def _translate_to_env_action(
         self,
         action_dict: Dict[Any, Union[np.ndarray, List[object]]],
-        event: DecisionPayload,
+        event: DecisionEvent,
     ) -> Dict[Any, object]:
         if action_dict["AGENT"] == self.num_pms:
             return {"AGENT": PostponeAction(vm_id=event.vm_id, postpone_step=1)}
         else:
             return {"AGENT": AllocateAction(vm_id=event.vm_id, pm_id=action_dict["AGENT"][0])}
 
-    def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionPayload, tick: int) -> Dict[Any, float]:
+    def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionEvent, tick: int) -> Dict[Any, float]:
         action = env_action_dict["AGENT"]
         conf = reward_shaping_conf if self._env == self._learn_env else test_reward_shaping_conf
         if isinstance(action, PostponeAction):  # postponement
@@ -121,7 +121,7 @@ class VMEnvSampler(AbsEnvSampler):
             ],
         )
 
-    def _get_allocation_reward(self, event: DecisionPayload, alpha: float, beta: float):
+    def _get_allocation_reward(self, event: DecisionEvent, alpha: float, beta: float):
         vm_unit_price = self._env.business_engine._get_unit_price(
             event.vm_cpu_cores_requirement,
             event.vm_memory_requirement,

@@ -15,7 +15,7 @@ from maro.event_buffer import AbsEvent
 from maro.forecasting import OneStepFixWindowMA as Forecaster
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.adj_loader import load_adj_from_csv
-from maro.simulator.scenarios.citi_bike.common import Action, BikeReturnPayload, DecisionPayload
+from maro.simulator.scenarios.citi_bike.common import Action, BikeReturnPayload, DecisionEvent
 from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
 from maro.utils import convert_dottable
 
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         env.set_seed(config.env.seed)
 
     # Start simulation.
-    decision_event: DecisionPayload = None
+    decision_event: DecisionEvent = None
     action: Action = None
     is_done: bool = False
     _, decision_event, is_done = env.step(action=None)

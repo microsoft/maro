@@ -22,7 +22,7 @@ from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 from .adj_loader import load_adj_from_csv
-from .common import Action, BikeReturnPayload, BikeTransferPayload, DecisionPayload
+from .common import Action, BikeReturnPayload, BikeTransferPayload, DecisionEvent
 from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
@@ -157,7 +157,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         return {
             CitiBikeEvents.RequireBike.name: list(self._trip_reader.meta.columns.keys()),
             CitiBikeEvents.ReturnBike.name: BikeReturnPayload.summary_key,
-            CitiBikeEvents.RebalanceBike.name: DecisionPayload.summary_key,
+            CitiBikeEvents.RebalanceBike.name: DecisionEvent.summary_key,
             CitiBikeEvents.DeliverBike.name: BikeTransferPayload.summary_key,
         }
 
@@ -475,7 +475,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if len(stations_need_decision) > 0:
             # Generate a decision event.
             for station_idx, decision_type in stations_need_decision:
-                decision_payload = DecisionPayload(
+                decision_payload = DecisionEvent(
                     station_idx,
                     evt.tick,
                     self.frame_index(evt.tick),

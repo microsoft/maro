@@ -7,7 +7,8 @@ from typing import Generator, List, Optional, Tuple, Union, cast
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.dump_csv_converter import DumpConverter
-from maro.event_buffer import ActionPayload, ActualEvent, CascadeEvent, DecisionEventPayload, EventBuffer, EventState
+from maro.event_buffer import ActualEvent, CascadeEvent, EventBuffer, EventState
+from ..common import BaseAction, BaseDecisionEvent
 from maro.streamit import streamit
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
@@ -90,8 +91,8 @@ class Env(AbsEnv):
 
     def step(
         self,
-        action: Union[ActionPayload, List[ActionPayload], None] = None,
-    ) -> Tuple[Optional[dict], Union[DecisionEventPayload, List[DecisionEventPayload], None], bool]:
+        action: Union[BaseAction, List[BaseAction], None] = None,
+    ) -> Tuple[Optional[dict], Union[BaseDecisionEvent, List[BaseDecisionEvent], None], bool]:
         """Push the environment to next step with action.
 
         Under Sequential mode:
@@ -119,10 +120,10 @@ class Env(AbsEnv):
             since the latter one will assign the n actions to the first n decision events.
 
         Args:
-            action (Union[ActionPayload, List[ActionPayload], None]): Action(s) from agent.
+            action (Union[BaseAction, List[ActionPayload], None]): Action(s) from agent.
 
         Returns:
-            tuple: a tuple of (metrics, decision payload, is_done).
+            tuple: a tuple of (metrics, decision event, is_done).
         """
         try:
             metrics, decision_payloads, _is_done = self._simulate_generator.send(action)
@@ -299,7 +300,7 @@ class Env(AbsEnv):
 
     def _assign_action(
         self,
-        action: Union[ActionPayload, List[ActionPayload], None],
+        action: Union[BaseAction, List[BaseAction], None],
         decision_event: CascadeEvent,
     ) -> None:
         decision_event.state = EventState.EXECUTING
@@ -316,8 +317,8 @@ class Env(AbsEnv):
     def _simulate(
         self,
     ) -> Generator[
-        Tuple[dict, Union[DecisionEventPayload, List[DecisionEventPayload]], bool],
-        Union[ActionPayload, List[ActionPayload], None],
+        Tuple[dict, Union[BaseDecisionEvent, List[BaseDecisionEvent]], bool],
+        Union[BaseAction, List[BaseAction], None],
         None,
     ]:
         """This is the generator to wrap each episode process."""

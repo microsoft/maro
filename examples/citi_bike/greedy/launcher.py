@@ -9,7 +9,7 @@ import random
 import yaml
 
 from maro.simulator import Env
-from maro.simulator.scenarios.citi_bike.common import Action, DecisionPayload, DecisionType
+from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent, DecisionType
 from maro.utils import convert_dottable
 
 config_path = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
@@ -32,7 +32,7 @@ class GreedyPolicy:
         self._supply_top_k = supply_top_k
         self._demand_top_k = demand_top_k
 
-    def choose_action(self, decision_event: DecisionPayload):
+    def choose_action(self, decision_event: DecisionEvent):
         if decision_event.type == DecisionType.Supply:
             # find k target stations with the most empty slots, randomly choose one of them and send as many bikes to
             # it as allowed by the action scope

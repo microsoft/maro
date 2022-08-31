@@ -5,7 +5,7 @@
 from enum import Enum, IntEnum
 
 from maro.backends.frame import SnapshotList
-from maro.event_buffer import ActionPayload, DecisionEventPayload
+from maro.common import BaseAction, BaseDecisionEvent
 
 
 class VesselState(IntEnum):
@@ -22,7 +22,7 @@ class ActionType(Enum):
     DISCHARGE = "discharge"
 
 
-class Action(ActionPayload):
+class Action(BaseAction):
     """Action object that used to pass action from agent to business engine.
 
     Args:
@@ -69,8 +69,8 @@ class ActionScope:
         return "%s {load: %r, discharge: %r}" % (self.__class__.__name__, self.load, self.discharge)
 
 
-class DecisionPayload(DecisionEventPayload):
-    """Decision event payload for agent.
+class DecisionEvent(BaseDecisionEvent):
+    """Decision event for agent.
 
     Args:
         tick (int): On which tick we need an action.

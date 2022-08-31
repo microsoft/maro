@@ -10,12 +10,12 @@ from maro.event_buffer import (
     ActualEvent,
     AtomEvent,
     CascadeEvent,
-    DecisionEventPayload,
     DummyEvent,
     EventBuffer,
     EventState,
     MaroEvents,
 )
+from maro.common import BaseDecisionEvent
 from maro.event_buffer.event_linked_list import EventLinkedList
 from maro.event_buffer.event_pool import EventPool
 
@@ -260,9 +260,9 @@ class TestEventBuffer(unittest.TestCase):
         self.eb.execute(1)
 
     def test_sub_events_with_decision(self):
-        evt1 = self.eb.gen_decision_event(1, DecisionEventPayload())
-        sub1 = self.eb.gen_decision_event(1, DecisionEventPayload())
-        sub2 = self.eb.gen_decision_event(1, DecisionEventPayload())
+        evt1 = self.eb.gen_decision_event(1, BaseDecisionEvent())
+        sub1 = self.eb.gen_decision_event(1, BaseDecisionEvent())
+        sub2 = self.eb.gen_decision_event(1, BaseDecisionEvent())
 
         evt1.add_immediate_event(sub1, is_head=True)
         evt1.add_immediate_event(sub2)

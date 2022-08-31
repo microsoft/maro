@@ -12,7 +12,7 @@ import yaml
 from ilp_agent import IlpAgent
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import DecisionPayload
+from maro.simulator.scenarios.vm_scheduling import DecisionEvent
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.utils import LogFormat, Logger, convert_dottable
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         env.set_seed(config.env.seed)
 
     metrics: object = None
-    decision_event: DecisionPayload = None
+    decision_event: DecisionEvent = None
     is_done: bool = False
     action: Action = None
 

@@ -3,7 +3,7 @@
 
 from enum import Enum
 
-from maro.event_buffer import ActionPayload, DecisionEventPayload
+from maro.common import BaseAction, BaseDecisionEvent
 
 
 class BikeTransferPayload:
@@ -65,8 +65,8 @@ class DecisionType(Enum):
     Demand = "demand"
 
 
-class DecisionPayload(DecisionEventPayload):
-    """Citi bike scenario decision event payload that contains station information for agent to choose action.
+class DecisionEvent(BaseDecisionEvent):
+    """Citi bike scenario decision event that contains station information for agent to choose action.
 
     Args:
         station_idx (int): Which station need an action.
@@ -129,7 +129,7 @@ class DecisionPayload(DecisionEventPayload):
         )
 
 
-class Action(ActionPayload):
+class Action(BaseAction):
     """Citi bike scenario action object, that used to pass action from agent to business engine.
 
     Args:

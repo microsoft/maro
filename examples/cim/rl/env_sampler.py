@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Tuple, Union
 import numpy as np
 
 from maro.rl.rollout import AbsEnvSampler, CacheElement
-from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionPayload
+from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
 from .config import action_shaping_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
 
@@ -14,7 +14,7 @@ from .config import action_shaping_conf, port_attributes, reward_shaping_conf, s
 class CIMEnvSampler(AbsEnvSampler):
     def _get_global_and_agent_state_impl(
         self,
-        event: DecisionPayload,
+        event: DecisionEvent,
         tick: int = None,
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         tick = self._env.tick
@@ -33,7 +33,7 @@ class CIMEnvSampler(AbsEnvSampler):
     def _translate_to_env_action(
         self,
         action_dict: Dict[Any, Union[np.ndarray, List[object]]],
-        event: DecisionPayload,
+        event: DecisionEvent,
     ) -> Dict[Any, object]:
         action_space = action_shaping_conf["action_space"]
         finite_vsl_space = action_shaping_conf["finite_vessel_space"]
@@ -62,7 +62,7 @@ class CIMEnvSampler(AbsEnvSampler):
 
         return {port_idx: Action(vsl_idx, int(port_idx), actual_action, action_type)}
 
-    def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionPayload, tick: int) -> Dict[Any, float]:
+    def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionEvent, tick: int) -> Dict[Any, float]:
         start_tick = tick + 1
         ticks = list(range(start_tick, start_tick + reward_shaping_conf["time_window"]))
 

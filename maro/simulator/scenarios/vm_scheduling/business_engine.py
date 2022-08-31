@@ -17,7 +17,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
-from .common import Action, AllocateAction, DecisionPayload, Latency, PostponeAction, VmRequestPayload
+from .common import Action, AllocateAction, DecisionEvent, Latency, PostponeAction, VmRequestPayload
 from .cpu_reader import CpuReader
 from .enums import Events, PmState, PostponeType, VmCategory
 from .frame_builder import build_frame
@@ -528,7 +528,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """dict: Event payload details of current scenario."""
         return {
             Events.REQUEST.name: VmRequestPayload.summary_key,
-            MaroEvents.PENDING_DECISION.name: DecisionPayload.summary_key,
+            MaroEvents.PENDING_DECISION.name: DecisionEvent.summary_key,
         }
 
     def get_agent_idx_list(self) -> List[int]:
@@ -820,7 +820,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
-            decision_payload = DecisionPayload(
+            decision_payload = DecisionEvent(
                 frame_index=self.frame_index(tick=self._tick),
                 valid_pms=valid_pm_list,
                 vm_id=vm_info.id,

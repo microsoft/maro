@@ -3,7 +3,7 @@
 
 from enum import Enum
 
-from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionPayload
+from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 from maro.vector_env import VectorEnv
 
 
@@ -27,7 +27,7 @@ if __name__ == "__main__":
                 action = None
 
                 if decision_event:
-                    env0_dec: DecisionPayload = decision_event[0]
+                    env0_dec: DecisionEvent = decision_event[0]
 
                     # Showcase: how to access information from snapshot list in vector env.
                     if env0_dec:
