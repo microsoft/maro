@@ -211,8 +211,6 @@ class MyTestCase(unittest.TestCase):
         # all the id is greater than 0
         self.assertGreater(manufacture_unit.id, 0)
 
-        expect_tick = 30
-
         # Save the env.metric of each tick into env_metric_2
         # Store the information about the snapshot unit of each tick in states_2_unit
         (
