@@ -137,7 +137,7 @@ class EventBuffer:
         Returns:
             CascadeEvent: Cascade event object.
         """
-        return cast(CascadeEvent, self._event_pool.gen(tick, event_type, payload, is_cascade=False))
+        return cast(CascadeEvent, self._event_pool.gen(tick, event_type, payload, is_cascade=True))
 
     def gen_decision_event(self, tick: int, payload: BaseDecisionEvent) -> CascadeEvent:
         """Generate a decision event that will stop current simulation, and ask agent for action.

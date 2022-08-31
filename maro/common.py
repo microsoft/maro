@@ -9,10 +9,10 @@ class BaseDecisionEvent:
     - CascadeEvent & AtomEvent: used to drive the MARO Env / business engine.
     - DecisionEvent: exposed to users as a means of communication.
 
-    The latter one serves the `payload` of the former ones inside of MARO Env.
+    The latter one serves as the `payload` of the former ones inside of MARO Env.
 
     Therefore, the related namings might be a little bit tricky.
-    - Inside MARO Env: `decision_event` is actually a CascadeEvent or AtomEvent. DecisionEvent is the payload of them.
+    - Inside MARO Env: `decision_event` is actually a CascadeEvent. DecisionEvent is the payload of them.
     - Outside MARO Env (for users): `decision_event` is a DecisionEvent.
     """
 

@@ -96,7 +96,7 @@ class Env(AbsEnv):
         """Push the environment to next step with action.
 
         Under Sequential mode:
-            - If `action` is None, a empty list will be assigned to the decision event.
+            - If `action` is None, an empty list will be assigned to the decision event.
             - Otherwise, the action(s) will be assigned to the decision event.
 
         Under Joint mode:
@@ -120,7 +120,7 @@ class Env(AbsEnv):
             since the latter one will assign the n actions to the first n decision events.
 
         Args:
-            action (Union[BaseAction, List[ActionPayload], None]): Action(s) from agent.
+            action (Union[BaseAction, List[BaseAction], None]): Action(s) from agent.
 
         Returns:
             tuple: a tuple of (metrics, decision event, is_done).
