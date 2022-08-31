@@ -89,7 +89,7 @@ class OneTimeSkuDynamicsSampler(SkuDynamicsSampler, metaclass=ABCMeta):
         self._load_all_data()
 
     def _load_all_data(self) -> None:
-        with open(self._preprocessed_file_path, "rt") as fp:
+        with open(self._preprocessed_file_path, "rt", encoding="utf-8") as fp:
             reader = DictReader(fp)
 
             print(f"Loading data from {fp.name}")

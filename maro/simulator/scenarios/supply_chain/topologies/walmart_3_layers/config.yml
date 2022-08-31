@@ -1,0 +1,3765 @@
+facility_definitions:
+  # Key: would be used as definition_ref in world.facilities
+  PlantFacility:
+    children:
+      distribution:
+        class: DistributionUnit
+      storage:
+        class: StorageUnit
+    class: SupplierFacility
+    datamodel: FacilityDataModel
+    products:
+      class: ProductUnit
+      config:
+        consumer:
+          class: ConsumerUnit
+        manufacture:
+          class: ManufactureUnit
+
+  WarehouseFacility:
+    class: WarehouseFacility
+    children:
+      storage:
+        class: StorageUnit
+      distribution:
+        class: DistributionUnit
+    products:
+      class: ProductUnit
+      config:
+        consumer:
+          class: ConsumerUnit
+
+  StoreFacility:
+    class: OuterRetailerFacility
+    datamodel: FacilityDataModel
+    children:
+      distribution:
+        class: DistributionUnit
+      storage:
+        class: StorageUnit
+    products:
+      class: StoreProductUnit
+      config:
+        consumer:
+          class: ConsumerUnit
+        seller:
+          class: OuterSellerUnit
+          config:
+            sale_hist_len: 14
+    config:
+      datetime_column: Date
+      demand_column: Sold
+      dynamics_sampler_type: processed_price_demand
+      file_path: /path/to/data.csv
+      price_column: Price
+      sku_column: SkuName
+
+
+single_storage: &single_storage
+  config:
+    capacity: 1000000
+    unit_storage_cost: 0.2
+
+
+simple_distribution: &simple_distribution
+  config:
+    train:
+      number: 10000
+
+
+world:
+  skus:
+    - id: 0
+      name: MM蒙牛鲜牛奶P
+
+    - id: 1
+      name: 都乐超甜蕉一把
+
+    - id: 2
+      name: 高山娃娃菜
+
+    - id: 3
+      name: MM原味伯爵瑞士卷
+
+    - id: 4
+      name: 供港生菜600G
+
+    - id: 5
+      name: MM上海青苗600G
+
+    - id: 6
+      name: MM白蘑菇
+
+    - id: 7
+      name: MM小青柠汁饮料P
+
+    - id: 8
+      name: MM生鲜鸡大胸
+
+    - id: 9
+      name: MM湾仔玉米肉水饺
+
+  facilities:
+    - name: Plant
+      definition_ref: PlantFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 7.81
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 3
+        都乐超甜蕉一把:
+          price: 7.78
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 3
+        高山娃娃菜:
+          price: 5.21
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 2
+        MM原味伯爵瑞士卷:
+          price: 26.18
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 13
+        供港生菜600G:
+          price: 5.67
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 2
+        MM上海青苗600G:
+          price: 5.17
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 2
+        MM白蘑菇:
+          price: 6.9
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 3
+        MM小青柠汁饮料P:
+          price: 12.66
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 6
+        MM生鲜鸡大胸:
+          price: 17.49
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 8
+        MM湾仔玉米肉水饺:
+          price: 19.31
+          init_stock: 100000
+          sub_storage_id: 0
+          has_manufacture: True
+          max_manufacture_rate: 10000
+          unit_delay_order_penalty: 1000
+          unit_order_cost: 1.0
+          unit_product_cost: 9
+      children:
+        storage: *single_storage
+        distribution: *simple_distribution
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 1.0
+
+    - name: Warehouse_4803
+      definition_ref: WarehouseFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 7.81
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        都乐超甜蕉一把:
+          price: 7.78
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        高山娃娃菜:
+          price: 5.21
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM原味伯爵瑞士卷:
+          price: 26.18
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        供港生菜600G:
+          price: 5.67
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM上海青苗600G:
+          price: 5.17
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM白蘑菇:
+          price: 6.9
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM小青柠汁饮料P:
+          price: 12.66
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM生鲜鸡大胸:
+          price: 17.49
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM湾仔玉米肉水饺:
+          price: 19.31
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+      children:
+        storage: *single_storage
+        distribution: *simple_distribution
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 1.0
+
+    - name: Warehouse_4830
+      definition_ref: WarehouseFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 7.81
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        都乐超甜蕉一把:
+          price: 7.78
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        高山娃娃菜:
+          price: 5.21
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM原味伯爵瑞士卷:
+          price: 26.18
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        供港生菜600G:
+          price: 5.67
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM上海青苗600G:
+          price: 5.17
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM白蘑菇:
+          price: 6.9
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM小青柠汁饮料P:
+          price: 12.66
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM生鲜鸡大胸:
+          price: 17.49
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM湾仔玉米肉水饺:
+          price: 19.31
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+      children:
+        storage: *single_storage
+        distribution: *simple_distribution
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 1.0
+
+    - name: Warehouse_6505
+      definition_ref: WarehouseFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 7.81
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        都乐超甜蕉一把:
+          price: 7.78
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        高山娃娃菜:
+          price: 5.21
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM原味伯爵瑞士卷:
+          price: 26.18
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        供港生菜600G:
+          price: 5.67
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM上海青苗600G:
+          price: 5.17
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM白蘑菇:
+          price: 6.9
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM小青柠汁饮料P:
+          price: 12.66
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM生鲜鸡大胸:
+          price: 17.49
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+        MM湾仔玉米肉水饺:
+          price: 19.31
+          init_stock: 100000
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+          unit_delay_order_penalty: 1000
+      children:
+        storage: *single_storage
+        distribution: *simple_distribution
+      config:
+        unit_delay_order_penalty: 1000
+        unit_order_cost: 1.0
+
+    - name: Store_4803
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_4803.csv"
+
+    - name: Store_4830
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_4830.csv"
+
+    - name: Store_6505
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6505.csv"
+
+    - name: Store_6649
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6649.csv"
+
+    - name: Store_6685
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6685.csv"
+
+    - name: Store_6688
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6688.csv"
+
+    - name: Store_6743
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6743.csv"
+
+    - name: Store_6773
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6773.csv"
+
+    - name: Store_6107
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6107.csv"
+
+    - name: Store_6686
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6686.csv"
+
+    - name: Store_6687
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6687.csv"
+
+    - name: Store_6752
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6752.csv"
+
+    - name: Store_6765
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6765.csv"
+
+    - name: Store_6640
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6640.csv"
+
+    - name: Store_6648
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6648.csv"
+
+    - name: Store_6672
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6672.csv"
+
+    - name: Store_6673
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6673.csv"
+
+    - name: Store_6684
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6684.csv"
+
+    - name: Store_6753
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6753.csv"
+
+    - name: Store_6822
+      definition_ref: StoreFacility
+      skus:
+        MM蒙牛鲜牛奶P:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        都乐超甜蕉一把:
+          price: 18.26
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        高山娃娃菜:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM原味伯爵瑞士卷:
+          price: 58.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        供港生菜600G:
+          price: 12.9
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM上海青苗600G:
+          price: 11.8
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM白蘑菇:
+          price: 15.6
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM小青柠汁饮料P:
+          price: 29.03
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM生鲜鸡大胸:
+          price: 43.2
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+        MM湾仔玉米肉水饺:
+          price: 43.19
+          init_stock: 0
+          sub_storage_id: 0
+          has_consumer: True
+          has_seller: True
+          sale_gamma: 100
+          unit_order_cost: 1.0
+          backlog_ratio: 0.01
+      children:
+        storage: *single_storage
+      config:
+        unit_order_cost: 1.0
+        file_path: "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data/Store_6822.csv"
+
+  topology:
+    Warehouse_4803:
+      MM蒙牛鲜牛奶P:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      都乐超甜蕉一把:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      高山娃娃菜:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM原味伯爵瑞士卷:
+        Plant:
+          train:
+            cost: 1
+            vlt: 5
+      供港生菜600G:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM上海青苗600G:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM白蘑菇:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM小青柠汁饮料P:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      MM生鲜鸡大胸:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      MM湾仔玉米肉水饺:
+        Plant:
+          train:
+            cost: 1
+            vlt: 3
+
+    Warehouse_4830:
+      MM蒙牛鲜牛奶P:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      都乐超甜蕉一把:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      高山娃娃菜:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM原味伯爵瑞士卷:
+        Plant:
+          train:
+            cost: 1
+            vlt: 5
+      供港生菜600G:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM上海青苗600G:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM白蘑菇:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM小青柠汁饮料P:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      MM生鲜鸡大胸:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      MM湾仔玉米肉水饺:
+        Plant:
+          train:
+            cost: 1
+            vlt: 3
+
+    Warehouse_6505:
+      MM蒙牛鲜牛奶P:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      都乐超甜蕉一把:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      高山娃娃菜:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM原味伯爵瑞士卷:
+        Plant:
+          train:
+            cost: 1
+            vlt: 5
+      供港生菜600G:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM上海青苗600G:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM白蘑菇:
+        Plant:
+          train:
+            cost: 1
+            vlt: 2
+      MM小青柠汁饮料P:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      MM生鲜鸡大胸:
+        Plant:
+          train:
+            cost: 1
+            vlt: 7
+      MM湾仔玉米肉水饺:
+        Plant:
+          train:
+            cost: 1
+            vlt: 3
+
+    Store_4803:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_4830:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6505:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6649:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6685:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6688:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6743:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6773:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4803:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6107:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6686:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6687:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6752:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6765:
+      MM蒙牛鲜牛奶P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_4830:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6640:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6648:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6672:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6673:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6684:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6753:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+    Store_6822:
+      MM蒙牛鲜牛奶P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      都乐超甜蕉一把:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      高山娃娃菜:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM原味伯爵瑞士卷:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      供港生菜600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM上海青苗600G:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM白蘑菇:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM小青柠汁饮料P:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM生鲜鸡大胸:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+      MM湾仔玉米肉水饺:
+        Warehouse_6505:
+          train:
+            cost: 1
+            vlt: 0
+
+
+settings:
+  pending_order_len: 4
+  start_date_time: "2021-07-01"
+
+
+policy_parameter:
+  facilities:
+    Plant:
+      max_price: 100
+    Store_4803:
+      max_price: 100
+    Store_4830:
+      max_price: 100
+    Store_6505:
+      max_price: 100
+    Store_6649:
+      max_price: 100
+    Store_6685:
+      max_price: 100
+    Store_6688:
+      max_price: 100
+    Store_6743:
+      max_price: 100
+    Store_6773:
+      max_price: 100
+    Store_6107:
+      max_price: 100
+    Store_6686:
+      max_price: 100
+    Store_6687:
+      max_price: 100
+    Store_6752:
+      max_price: 100
+    Store_6765:
+      max_price: 100
+    Store_6640:
+      max_price: 100
+    Store_6648:
+      max_price: 100
+    Store_6672:
+      max_price: 100
+    Store_6673:
+      max_price: 100
+    Store_6684:
+      max_price: 100
+    Store_6753:
+      max_price: 100
+    Store_6822:
+      max_price: 100
+    Warehouse_4803:
+      max_price: 100
+    Warehouse_4830:
+      max_price: 100
+    Warehouse_6505:
+      max_price: 100

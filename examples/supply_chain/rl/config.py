@@ -3,6 +3,8 @@
 
 from enum import Enum
 
+import numpy as np
+
 from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
 from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, ManufactureUnit
@@ -84,11 +86,13 @@ test_env_conf = {
 }
 
 base_policy_conf = {
-    "data_loader": "DataLoaderFromFile",
-    "oracle_file": "oracle_samples.csv",  # Only need in DataLoaderFromFile loader
-    "history_len": 28,  # E.g., mapping to np.inf in instance creation if it is static
-    "future_len": 7,
-    "update_frequency": 7,  # E.g., mapping to np.inf in instance creation if no update
+    "forecaster": "OracleForecaster",
+    # Oracle file, start_date_time and durations are only needed in OracleForecaster
+    # All files with suffix csv, tsv and xlsx without preprocessed will be loaded.
+    "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data",
+    "history_len": np.inf,  # E.g., mapping to np.inf in instance creation if it is static
+    "future_len": np.inf,
+    "update_frequency": np.inf,  # E.g., mapping to np.inf in instance creation if no update
     # If true, until next update, all steps will share the same stock level
     # otherwise, each steps will calculate own stock level.
     "share_same_stock_level": False,
