@@ -122,7 +122,7 @@ class Env(AbsEnv):
             action (Union[ActionPayload, List[ActionPayload], None]): Action(s) from agent.
 
         Returns:
-            tuple: a tuple of (metrics, decision event, is_done).
+            tuple: a tuple of (metrics, decision payload, is_done).
         """
         try:
             metrics, decision_payloads, _is_done = self._simulate_generator.send(action)
@@ -347,9 +347,11 @@ class Env(AbsEnv):
                 decision_payloads = [event.payload for event in pending_events]
 
                 if self._decision_mode == DecisionMode.Sequential:
+                    self._decision_payloads.append(decision_payloads[0])
                     action = yield self._business_engine.get_metrics(), decision_payloads[0], False
                     self._assign_action(action, pending_events[0])
                 else:
+                    self._decision_payloads += decision_payloads
                     actions = yield self._business_engine.get_metrics(), decision_payloads, False
                     if actions is None:
                         actions = []

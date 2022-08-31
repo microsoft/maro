@@ -705,11 +705,11 @@ class CimBusinessEngine(AbsBusinessEngine):
         port.on_consignee -= payload.quantity
         port.empty += payload.quantity
 
-    def _on_action_received(self, event: ActualEvent):
+    def _on_action_received(self, event: CascadeEvent):
         """Handler for processing actions from agent.
 
         Args:
-            event (ActualEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
+            event (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
         """
         actions = event.payload
         assert isinstance(actions, list)
