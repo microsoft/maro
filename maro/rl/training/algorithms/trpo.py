@@ -2,89 +2,49 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, cast
+from typing import Callable, Dict, Optional
 
 import numpy as np
+import scipy
 import torch
 
 from maro.rl.model import VNet
-from maro.rl.policy import DiscretePolicyGradient, ContinuousRLPolicy, RLPolicy
-from maro.rl.training import AbsTrainOps, AbsTrainer, BaseTrainerParams, FIFOReplayMemory, remote
-from maro.rl.utils import TransitionBatch, get_torch_device, discount_cumsum, ndarray_to_tensor
+from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
+from maro.rl.training import AbsTrainer, AbsTrainOps, TrainerParams, remote
+from maro.rl.utils import TransitionBatch, discount_cumsum, get_torch_device, ndarray_to_tensor
 
-# trpo_base needs to be tuned in [TRPOOps, TRPOTrainer] to fully fit MARO style.
 
-# batch 更新权重或者数据量
 @dataclass
-class TRPOParams(BaseTrainerParams):
-    """Refer to Spinning Up params
-
-    ac_kwargs (dict): Any kwargs appropriate for the actor_critic
-        function you provided to TRPO.
-    seed (int): Seed for random number generators.
-    steps_per_epoch (int): Number of steps of interaction (state-action pairs)
-        for the agent and the environment in each epoch.
-    epochs (int): Number of epochs of interaction (equivalent to
-        number of policy updates) to perform.
-    gamma (float): Discount factor. (Always between 0 and 1.)
-    delta (float): KL-divergence limit for TRPO / NPG update.
-        (Should be small for stability. Values like 0.01, 0.05.)
-    vf_lr (float): Learning rate for value function optimizer.
-    train_v_iters (int): Number of gradient descent steps to take on
-        value function per epoch.
-    damping_coeff (float): Artifact for numerical stability, should be
-        smallish. Adjusts Hessian-vector product calculation:
-        .. math:: Hv \\rightarrow (\\alpha I + H)v
-        where :math:`\\alpha` is the damping coefficient.
-        Probably don't play with this hyperparameter.
-    cg_iters (int): Number of iterations of conjugate gradient to perform.
-        Increasing this will lead to a more accurate approximation
-        to :math:`H^{-1} g`, and possibly slightly-improved performance,
-        but at the cost of slowing things down.
-        Also probably don't play with this hyperparameter.
-    backtrack_iters (int): Maximum number of steps allowed in the
-        backtracking line search. Since the line search usually doesn't
-        backtrack, and usually only steps back once when it does, this
-        hyperparameter doesn't often matter.
-    backtrack_coeff (float): How far back to step during backtracking line
-        search. (Always between 0 and 1, usually above 0.5.)
-    lam (float): Lambda for GAE-Lambda. (Always between 0 and 1,
-        close to 1.)
-    max_ep_len (int): Maximum length of trajectory / episode / rollout.
-    logger_kwargs (dict): Keyword args for EpochLogger.
-    save_freq (int): How often (in terms of gap between epochs) to save
-        the current policy and value function.
-    algo: 'trpo' algo.
-    """
-
-    # TODO:need to determine which parameters are required
+class TRPOParams(TrainerParams):
 
     # maro common params
-    get_v_critic_net_func: Callable[[], VNet]
-    critic_loss_cls: Optional[Callable] = None
+    get_v_critic_net_func: Callable[[], VNet] = None
     grad_iters: int = 1
+    critic_loss_cls: Optional[Callable] = None
+
     num_epochs: int = 1
     update_target_every: int = 5
     random_overwrite: bool = False
 
     # Refer to Spinning Up params,
-    ac_kwargs: dict = dict()
-    seed: int = 0  # seed
     # steps_per_epoch: int = 4000
     # epochs: int = 50
-    gamma: float = 0.99  # _reward_discount
-    delta: float = 0.01  # max kl
     # vf_lr: float = 1e-3
     # train_v_iters: int = 80
-    damping_coeff: float = 0.1
     # cg_iters: int = 10
     # backtrack_iters: int = 10
-    # backtrack_coeff: float = 0.8
-    lam: float = 0.97  # GAE
     # max_ep_len: int = 1000
     # logger_kwargs: dict = dict()
     # save_freq: int = 10
-    # algo = 'trpo'
+
+    ac_kwargs: dict = dict()
+    gamma: float = 0.99
+    gae_lambda: float = 0.95
+    damping_coeff: float = 0.1
+    max_kl: float = 0.01
+    backtrack_coeff: float = 0.8
+    optim_critic_iters: int = 5
+    max_backtracks: int = 10
 
 
 class TRPOOps(AbsTrainOps):
@@ -93,26 +53,26 @@ class TRPOOps(AbsTrainOps):
         name: str,
         policy: RLPolicy,
         params: TRPOParams,
-        reward_discount: float = 0.9,  # gamma
-        parallelism: int = 1,
     ) -> None:
         super(TRPOOps, self).__init__(
             name=name,
             policy=policy,
-            parallelism=parallelism,
         )
 
         # TRPO can be used for environments with either discrete or continuous action spaces.
         assert isinstance(self._policy, (ContinuousRLPolicy, DiscretePolicyGradient))
 
-        self._reward_discount = reward_discount  # gamma
         self._v_critic_net = params.get_v_critic_net_func()
-        self._critic_loss_func = (
-            params.critic_loss_cls() if params.critic_loss_cls is not None else torch.nn.MSELoss()
-        )  # torch.nn.MSELoss() used to calculate loss between predict and target
-        self._is_discrete_action = isinstance(self._policy, DiscretePolicyGradient)
-
-        # TODO: Split train_step() to ops._get_critic_loss and ....
+        self._critic_loss_func = params.critic_loss_cls() if params.critic_loss_cls is not None else torch.nn.MSELoss()
+        # self._is_discrete_action = isinstance(self._policy, DiscretePolicyGradient)
+        self._reward_discount = params.gamma
+        self._damping = params.damping_coeff
+        self._delta = params.max_kl
+        self._lambda = params.gae_lambda
+        self._backtrack_coeff = params.backtrack_coeff
+        self._optim_critic_iters = params.optim_critic_iters
+        self._max_backtracks = params.max_backtracks
+        self._optim_critic_iters = params.optim_critic_iters
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
@@ -123,15 +83,15 @@ class TRPOOps(AbsTrainOps):
         Returns:
             loss (torch.Tensor): The critic loss of the batch.
         """
-        # TODO: important!!! (maybe)not done. refer to maro-ppo
-        assert isinstance(batch, TransitionBatch)
+        # TODO:refer to maro-ppo
 
         self._v_critic_net.train()
-        states = ndarray_to_tensor(batch.states, self._device)  # states
-        state_values = self._v_critic_net.v_values(states)  # .v_values(states)
+        states = ndarray_to_tensor(batch.states, self._device)
+        # value
+        state_values = self._v_critic_net.v_values(states)
 
-        values = state_values.cpu().detach().numpy()  # get_flat_grad_from VNet
-        values = np.concatenate([values[1:], values[-1:]])  # TODO:why? no 1st, double last
+        values = state_values.cpu().detach().numpy()
+        values = np.concatenate([values[1:], values[-1:]])
         returns = batch.rewards + np.where(batch.terminals, 0.0, 1.0) * self._reward_discount * values
         returns[-1] = state_values[-1]
         returns = ndarray_to_tensor(returns, self._device)
@@ -158,6 +118,12 @@ class TRPOOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
+        # TODO
+        # self.optim.zero_grad()
+        # vf_loss.backward()
+        # self.optim.step()
+        # where to run up 3 oprations?
+
         self._v_critic_net.step(self._get_critic_loss(batch))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
@@ -178,22 +144,31 @@ class TRPOOps(AbsTrainOps):
         Returns:
             loss (torch.Tensor): The actor loss of the batch.
         """
-        # TODO: mainly to do !!!
         assert isinstance(self._policy, (ContinuousRLPolicy, DiscretePolicyGradient))
         self._policy.train()
-        states = ndarray_to_tensor(batch.states, device=self._device)  # states
+
+        # calculate villia gradient
+        # states actions advantages logp_old
+        states = ndarray_to_tensor(batch.states, device=self._device)
         actions = ndarray_to_tensor(batch.actions, device=self._device)
         advantages = ndarray_to_tensor(batch.advantages, device=self._device)
         logp_old = ndarray_to_tensor(batch.old_logps, device=self._device)
         if self._is_discrete_action:
             actions = actions.long()
-        logp = self._policy.get_states_actions_logps(states, actions)
-        ratio = torch.exp(logp - logp_old)  # pi(a|s) / pi_old(a|s)
+        # logps
+        action_probs = self._policy.get_action_probs(states)
+        logps = torch.log(action_probs.gather(1, actions).squeeze())  # 维度调整
+        logps = torch.clamp(logps, min=self._min_logp, max=0.0)  # 压缩到指定范围
+        # actor loss
+        ratio = torch.exp(logps - logp_old)  # pi(a|s) / pi_old(a|s)
         actor_loss = -torch.mean(ratio * advantages)  # -(ratio * advantages).mean()
+        # gradients
+        # compute in get_actor_grad(use the result of _get_actor_loss) func
         return actor_loss
 
     @remote
     def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        # step 7 of Pseudocode in Spinning Up --> get gradient
         """Compute the actor network's gradients of a batch.
 
         Args:
@@ -221,6 +196,98 @@ class TRPOOps(AbsTrainOps):
         """
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
+
+    def _get_kl_divergence(self, batch: TransitionBatch):
+        logp_old = ndarray_to_tensor(batch.old_logps, device=self._device)
+        states = ndarray_to_tensor(batch.states, device=self._device)
+        actions = ndarray_to_tensor(batch.actions, device=self._device)
+        action_probs = self._policy.get_action_probs(states)
+        logps = torch.log(action_probs.gather(1, actions).squeeze())  # 维度调整
+        logps = torch.clamp(logps, min=self._min_logp, max=0.0)  # 压缩到指定范围
+        kl = scipy.stats.entropy(logps, logp_old)  # 概率分布求log得dist，暂用scipy函数直接求kl
+        return kl
+
+    def get_kl_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+        return self._policy.get_gradients(self._get_kl_divergence(batch).mean())
+
+    def _MVP(self, v: torch.Tensor, batch: TransitionBatch) -> torch.Tensor:
+        """Matrix vector product."""
+        # caculate second order gradient of kl with respect to theta
+        kl_v = (self.get_kl_grad(batch) * v).sum()
+        flat_kl_grad_grad = self._policy.get_gradients(kl_v).detach()
+        return flat_kl_grad_grad + v * self._damping
+
+    def _conjugate_gradients(self, batch: TransitionBatch, nsteps: int = 10, residual_tol: float = 1e-10):
+        x = torch.zeros_like(batch)
+        r = batch.clone()
+        p = batch.clone()
+        rdotr = torch.dot(r, r)
+        for _ in range(nsteps):
+            z = self._MVP(p, self.get_kl_grad(batch))
+            alpha = rdotr / p.dot(z)
+            x += alpha * p
+            r -= alpha * z
+            new_rdotr = r.dot(r)
+            if new_rdotr < residual_tol:
+                break
+            p = r + new_rdotr / rdotr * p
+            rdotr = new_rdotr
+        return x
+
+    def get_search_direction(self, batch: TransitionBatch, nsteps=10):
+        # step 8 of Pseudocode in Spinning Up --> get x(search_direction)
+        search_direction = -self._conjugate_gradients(
+            self.get_actor_grad(batch),
+            self.get_kl_grad(batch),
+            nsteps,
+        )
+        return search_direction
+
+    def get_step_size(self, batch: TransitionBatch):
+        search_direction = self.get_search_direction(batch)
+        step_size = torch.sqrt(
+            2 * self._delta / (search_direction * self._MVP(search_direction, batch)).sum(0, keepdim=True),
+        )
+        return step_size
+
+    def _set_from_flat_params(self, policy, flat_params: torch.Tensor):
+        # TODO
+        # prev_idx = 0
+        # for param in policy.parameters():# TODO model.parameters()
+        #     flat_size = int(np.prod(list(param.size())))
+        #     param.data.copy_(
+        #         flat_params[prev_idx:prev_idx + flat_size].view(param.size())
+        #     )
+        #     prev_idx += flat_size
+        return policy
+
+    def get_linesearch_stepsize(self, batch: TransitionBatch):
+        # step 9 of Pseudocode in Spinning Up --> update policy by backtracking line search
+        with torch.no_grad():
+            flat_params = torch.cat(
+                [param.data.view(-1) for param in self._policy.parameters()],
+            )  # TODO self._policy.parameters()
+            for i in range(self._max_backtracks):
+                new_flat_params = flat_params + self.get_step_size(batch) * self.get_search_direction(batch)
+                old_actor_loss = self._get_actor_loss(batch)
+                self._set_from_flat_params(self._policy, new_flat_params)
+                kl = self._get_kl_divergence(batch).mean()
+                new_actor_loss = self._get_actor_loss(batch)
+                if kl < self._delta and new_actor_loss < old_actor_loss:
+                    if i > 0:
+                        print()
+                        # warnings.warn(f"Backtracking to step {i}.")
+                    break
+                elif i < self._max_backtracks - 1:
+                    step_size = self.get_step_size(batch)
+                    step_size = step_size * self._backtrack_coeff
+                else:
+                    self._set_from_flat_params(self._policy, new_flat_params)
+                    step_size = torch.tensor([0.0])
+                    # warnings.warn(
+                    #     "Line search failed! It seems hyperparamters" " are poor and need to be changed.",
+                    # )
+        return step_size
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -292,17 +359,6 @@ class TRPOTrainer(AbsTrainer):
             reward_discount,
         )
         self._params = params
-
-    def build(self) -> None:
-        self._ops = cast(TRPOOps, self.get_ops())
-        self._replay_memory = (
-            FIFOReplayMemory(  # TODO: memory design. which maro-memory is needed? need sample() func in _get_batch
-                capacity=self._replay_memory_capacity,
-                state_dim=self._ops.policy_state_dim,
-                action_dim=self._ops.policy_action_dim,
-                random_overwrite=self._params.random_overwrite,
-            )
-        )
 
     def _register_policy(self, policy: RLPolicy) -> None:
         assert isinstance(self._policy, (ContinuousRLPolicy, DiscretePolicyGradient))
