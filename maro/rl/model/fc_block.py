@@ -84,7 +84,7 @@ class FullyConnected(nn.Module):
         self._name = name
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self._net(x)
+        out = self._net(x.float())
         if self._skip_connection:
             out += x
         return self._softmax(out) if self._softmax else out

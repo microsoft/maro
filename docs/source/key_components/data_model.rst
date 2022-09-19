@@ -326,236 +326,84 @@ In CIM scenario, there are 3 node types:
 port
 ++++
 
-capacity
-********
-
-type: int
-slots: 1
-
-The capacity of port for stocking containers.
-
-empty
-*****
-
-type: int
-slots: 1
-
-Empty container volume on the port.
-
-full
-****
-
-type: int
-slots: 1
-
-Laden container volume on the port.
-
-on_shipper
-**********
-
-type: int
-slots: 1
-
-Empty containers, which are released to the shipper.
-
-on_consignee
-************
-
-type: int
-slots: 1
-
-Laden containers, which are delivered to the consignee.
-
-shortage
-********
-
-type: int
-slots: 1
-
-Per tick state. Shortage of empty container at current tick.
-
-acc_storage
-***********
-
-type: int
-slots: 1
-
-Accumulated shortage number to the current tick.
-
-booking
-*******
-
-type: int
-slots: 1
-
-Per tick state. Order booking number of a port at the current tick.
-
-acc_booking
-***********
-
-type: int
-slots: 1
-
-Accumulated order booking number of a port to the current tick.
-
-fulfillment
-***********
-
-type: int
-slots: 1
-
-Fulfilled order number of a port at the current tick.
-
-acc_fulfillment
-***************
-
-type: int
-slots: 1
-
-Accumulated fulfilled order number of a port to the current tick.
-
-transfer_cost
-*************
-
-type: float
-slots: 1
-
-Cost of transferring container, which also covers loading and discharging cost.
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| Field            | Type  | Slots  | Description                                                                      |
++==================+=======+========+==================================================================================+
+| capacity         | int   | 1      | The capacity of port for stocking containers.                                    |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| empty            | int   | 1      | Empty container volume on the port.                                              |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| full             | int   | 1      | Laden container volume on the port.                                              |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| on_shipper       | int   | 1      | Empty containers, which are released to the shipper.                             |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| on_consignee     | int   | 1      | Laden containers, which are delivered to the consignee.                          |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| shortage         | int   | 1      | Per tick state. Shortage of empty container at current tick.                     |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| acc_storage      | int   | 1      | Accumulated shortage number to the current tick.                                 |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| booking          | int   | 1      | Per tick state. Order booking number of a port at the current tick.              |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| acc_booking      | int   | 1      | Accumulated order booking number of a port to the current tick.                  |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| fulfillment      | int   | 1      | Fulfilled order number of a port at the current tick.                            |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| acc_fulfillment  | int   | 1      | Accumulated fulfilled order number of a port to the current tick.                |
++------------------+-------+--------+----------------------------------------------------------------------------------+
+| transfer_cost    | float | 1      | Cost of transferring container, which also covers loading and discharging cost.  |
++------------------+-------+--------+----------------------------------------------------------------------------------+
 
 vessel
 ++++++
 
-capacity
-********
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Field                  | Type   | Slots    | Description                                                                                                                                                                                                                     |
++========================+========+==========+=================================================================================================================================================================================================================================+
+| capacity               | int    | 1        | The capacity of vessel for transferring containers. NOTE: This attribute is ignored in current implementation.                                                                                                                  |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| empty                  | int    | 1        | Empty container volume on the vessel.                                                                                                                                                                                           |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| full                   | int    | 1        | Laden container volume on the vessel.                                                                                                                                                                                           |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| remaining_space        | int    | 1        | Remaining space of the vessel.                                                                                                                                                                                                  |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| early_discharge        | int    | 1        | Discharged empty container number for loading laden containers.                                                                                                                                                                 |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| is_parking	         | short  | 1	     | Is parking or not                                                                                                                                                                                                               |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| loc_port_idx	         | int	  | 1	     | The port index the vessel is parking at.                                                                                                                                                                                        |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| route_idx              | int    | 1        | Which route current vessel belongs to.                                                                                                                                                                                          |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| last_loc_idx           | int    | 1        | Last stop port index in route, it is used to identify where is current vessel.                                                                                                                                                  |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| next_loc_idx           | int    | 1        | Next stop port index in route, it is used to identify where is current vessel.                                                                                                                                                  |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| past_stop_list         | int    | dynamic  | NOTE: This and following attribute are special, that its slot number is determined by configuration, but different with a list attribute, its slot number is fixed at runtime. Stop indices that we have stopped in the past.   |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| past_stop_tick_list    | int    | dynamic  | Ticks that we stopped at the port in the past.                                                                                                                                                                                  |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| future_stop_list       | int    | dynamic  | Stop indices that we will stop in the future.                                                                                                                                                                                   |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| future_stop_tick_list  | int    | dynamic  | Ticks that we will stop in the future.                                                                                                                                                                                          |
++------------------------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-type: int
-slots: 1
-
-The capacity of vessel for transferring containers.
-
-NOTE:
-This attribute is ignored in current implementation.
-
-empty
-*****
-
-type: int
-slots: 1
-
-Empty container volume on the vessel.
-
-full
-****
-
-type: int
-slots: 1
-
-Laden container volume on the vessel.
-
-remaining_space
-***************
-
-type: int
-slots: 1
-
-Remaining space of the vessel.
-
-early_discharge
-***************
-
-type: int
-slots: 1
-
-Discharged empty container number for loading laden containers.
-
-route_idx
-*********
-
-type: int
-slots: 1
-
-Which route current vessel belongs to.
-
-last_loc_idx
-************
-
-type: int
-slots: 1
-
-Last stop port index in route, it is used to identify where is current vessel.
-
-next_loc_idx
-************
-
-type: int
-slots: 1
-
-Next stop port index in route, it is used to identify where is current vessel.
-
-past_stop_list
-**************
-
-type: int
-slots: dynamic
-
-NOTE:
-This and following attribute are special, that its slot number is determined by configuration,
-but different with a list attribute, its slot number is fixed at runtime.
-
-Stop indices that we have stopped in the past.
-
-past_stop_tick_list
-*******************
-
-type: int
-slots: dynamic
-
-Ticks that we stopped at the port in the past.
-
-future_stop_list
-****************
-
-type: int
-slots: dynamic
-
-Stop indices that we will stop in the future.
-
-future_stop_tick_list
-*********************
-
-type: int
-slots: dynamic
-
-Ticks that we will stop in the future.
 
 matrices
 ++++++++
 
 Matrices node is used to store big matrix for ports, vessels and containers.
 
-full_on_ports
-*************
-
-type: int
-slots: port number * port number
-
-Distribution of full from port to port.
-
-full_on_vessels
-***************
-
-type: int
-slots: vessel number * port number
-
-Distribution of full from vessel to port.
-
-vessel_plans
-************
-
-type: int
-slots: vessel number * port number
-
-Planed route info for vessels.
++------------------+-------+------------------------------+---------------------------------------------+
+| Field            | Type  | Slots                        | Description                                 |
++==================+=======+==============================+=============================================+
+| full_on_ports    | int   | port number * port number    | Distribution of full from port to port.     |
++------------------+-------+------------------------------+---------------------------------------------+
+| full_on_vessels  | int   | vessel number * port number  | Distribution of full from vessel to port.   |
++------------------+-------+------------------------------+---------------------------------------------+
+| vessel_plans     | int   | vessel number * port number  | Planed route info for vessels.              |
++------------------+-------+------------------------------+---------------------------------------------+
 
 How to
 ~~~~~~
@@ -597,133 +445,47 @@ Nodes and attributes in scenario
 station
 +++++++
 
-bikes
-*****
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| Field             | Type  | Slots  | Description                                                                                               |
++===================+=======+========+===========================================================================================================+
+| bikes             | int   | 1      | How many bikes avaiable in current station.                                                               |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| shortage          | int   | 1      | Per tick state. Lack number of bikes in current station.                                                  |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| trip_requirement  | int   | 1      | Per tick states. How many requirements in current station.                                                |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| fulfillment       | int   | 1      | How many requirement is fit in current station.                                                           |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| capacity          | int   | 1      | Max number of bikes this station can take.                                                                |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| id                | int   | 1      | Id of current station.                                                                                    |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| weekday           | short | 1      | Weekday at current tick.                                                                                  |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| temperature       | short | 1      | Temperature at current tick.                                                                              |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| weather           | short | 1      | Weather at current tick. (0: sunny, 1: rainy, 2: snowy， 3: sleet)                                         |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| holiday           | short | 1      | If it is holidy at current tick. (0: holiday, 1: not holiday)                                             |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| extra_cost        | int   | 1      | Cost after we reach the capacity after executing action, we have to move extra bikes to other stations.   |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| transfer_cost     | int   | 1      | Cost to execute action to transfer bikes to other station.                                                |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| failed_return     | int   | 1      | Per tick state. How many bikes failed to return to current station.                                       |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
+| min_bikes         | int   | 1      | Min bikes number in a frame.                                                                              |
++-------------------+-------+--------+-----------------------------------------------------------------------------------------------------------+
 
-type: int
-slots: 1
-
-How many bikes avaiable in current station.
-
-shortage
-********
-
-type: int
-slots: 1
-
-Per tick state. Lack number of bikes in current station.
-
-trip_requirement
-****************
-
-type: int
-slots: 1
-
-Per tick states. How many requirements in current station.
-
-fulfillment
-***********
-
-type: int
-slots: 1
-
-How many requirement is fit in current station.
-
-capacity
-********
-
-type: int
-slots: 1
-
-Max number of bikes this station can take.
-
-id
-+++
-
-type: int
-slots: 1
-
-Id of current station.
-
-weekday
-*******
-
-type: short
-slots: 1
-
-Weekday at current tick.
-
-temperature
-***********
-
-type: short
-slots: 1
-
-Temperature at current tick.
-
-weather
-*******
-
-type: short
-slots: 1
-
-Weather at current tick.
-
-0: sunny, 1: rainy, 2: snowy， 3: sleet.
-
-holiday
-*******
-
-type: short
-slots: 1
-
-If it is holidy at current tick.
-
-0: holiday, 1: not holiday
-
-extra_cost
-**********
-
-type: int
-slots: 1
-
-Cost after we reach the capacity after executing action, we have to move extra bikes
-to other stations.
-
-transfer_cost
-*************
-
-type: int
-slots: 1
-
-Cost to execute action to transfer bikes to other station.
-
-failed_return
-*************
-
-type: int
-slots: 1
-
-Per tick state. How many bikes failed to return to current station.
-
-min_bikes
-*********
-
-type: int
-slots: 1
-
-Min bikes number in a frame.
 
 matrices
 ++++++++
 
-trips_adj
-*********
-
-type: int
-slots: station number * station number
-
-Used to store trip requirement number between 2 stations.
++------------+-------+----------------------------------+------------------------------------------------------------+
+| Field      | Type  | Slots                            | Description                                                |
++============+=======+==================================+============================================================+
+| trips_adj  | int   | station number * station number  | Used to store trip requirement number between 2 stations.  |
++------------+-------+----------------------------------+------------------------------------------------------------+
 
 
 VM-scheduling
@@ -743,315 +505,121 @@ Nodes and attributes in scenario
 Cluster
 +++++++
 
-id
-***
-
-type: short
-slots: 1
-
-Id of the cluster.
-
-region_id
-*********
-
-type: short
-slots: 1
-
-Region is of current cluster.
-
-data_center_id
-**************
-
-type: short
-slots: 1
-
-Data center id of current cluster.
-
-total_machine_num
-******************
-
-type: int
-slots: 1
-
-Total number of machines in the cluster.
-
-empty_machine_num
-******************
-
-type: int
-slots: 1
-
-The number of empty machines in this cluster. A empty machine means that its allocated CPU cores are 0.
++--------------------+-------+--------+----------------------------------------------------------------------------------------------------------+
+| Field              | Type  | Slots  | Description                                                                                              |
++====================+=======+========+==========================================================================================================+
+| id                 | short | 1      | Id of the cluster.                                                                                       |
++--------------------+-------+--------+----------------------------------------------------------------------------------------------------------+
+| region_id          | short | 1      | Region id of current cluster.                                                                            |
++--------------------+-------+--------+----------------------------------------------------------------------------------------------------------+
+| zond_id            | short | 1      | Zone id of current cluster.                                                                              |
++--------------------+-------+--------+----------------------------------------------------------------------------------------------------------+
+| data_center_id     | short | 1      | Data center id of current cluster.                                                                       |
++--------------------+-------+--------+----------------------------------------------------------------------------------------------------------+
+| total_machine_num  | int   | 1      | Total number of machines in the cluster.                                                                 |
++--------------------+-------+--------+----------------------------------------------------------------------------------------------------------+
+| empty_machine_num  | int   | 1      | The number of empty machines in this cluster. A empty machine means that its allocated CPU cores are 0.  |
++--------------------+-------+--------+----------------------------------------------------------------------------------------------------------+
 
 data_centers
 ++++++++++++
 
-id
-***
-
-type: short
-slots: 1
-
-Id of current data center.
-
-region_id
-*********
-
-type: short
-slots: 1
-
-Region id of current data center.
-
-zone_id
-*******
-
-type: short
-slots: 1
-
-Zone id of current data center.
-
-total_machine_num
-*****************
-
-type: int
-slots: 1
-
-Total number of machine in current data center.
-
-empty_machine_num
-*****************
-
-type: int
-slots: 1
-
-The number of empty machines in current data center.
++--------------------+-------+--------+-------------------------------------------------------+
+| Field              | Type  | Slots  | Description                                           |
++====================+=======+========+=======================================================+
+| id                 | short | 1      | Id of current data center.                            |
++--------------------+-------+--------+-------------------------------------------------------+
+| region_id          | short | 1      | Region id of current data center.                     |
++--------------------+-------+--------+-------------------------------------------------------+
+| zone_id            | short | 1      | Zone id of current data center.                       |
++--------------------+-------+--------+-------------------------------------------------------+
+| total_machine_num  | int   | 1      | Total number of machine in current data center.       |
++--------------------+-------+--------+-------------------------------------------------------+
+| empty_machine_num  | int   | 1      | The number of empty machines in current data center.  |
++--------------------+-------+--------+-------------------------------------------------------+
 
 pms
 +++
 
 Physical machine node.
 
-id
-***
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| Field               | Type  | Slots  | Description                                                                     |
++=====================+=======+========+=================================================================================+
+| id                  | int   | 1      | Id of current machine.                                                          |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| cpu_cores_capacity  | short | 1      | Max number of cpu core can be used for current machine.                         |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| memory_capacity     | short | 1      | Max number of memory can be used for current machine.                           |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| pm_type             | short | 1      | Type of current machine.                                                        |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| cpu_cores_allocated | short | 1      | How many cpu core is allocated.                                                 |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| memory_allocated    | short | 1      | How many memory is allocated.                                                   |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| cpu_utilization     | float | 1      | CPU utilization of current machine.                                             |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| energy_consumption  | float | 1      | Energy consumption of current machine.                                          |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| oversubscribable    | short | 1      | Physical machine non-oversubscribable is -1, empty: 0, oversubscribable is 1.   |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| region_id           | short | 1      | Region id of current machine.                                                   |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| zone_id             | short | 1      | Zone id of current machine.                                                     |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| data_center_id      | short | 1      | Data center id of current machine.                                              |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| cluster_id          | short | 1      | Cluster id of current machine.                                                  |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
+| rack_id             | short | 1      | Rack id of current machine.                                                     |
++---------------------+-------+--------+---------------------------------------------------------------------------------+
 
-type: int
-slots: 1
-
-Id of current machine.
-
-cpu_cores_capacity
-******************
-
-type: short
-slots: 1
-
-Max number of cpu core can be used for current machine.
-
-memory_capacity
-***************
-
-type: short
-slots: 1
-
-Max number of memory can be used for current machine.
-
-pm_type
-*******
-
-type: short
-slots: 1
-
-Type of current machine.
-
-cpu_cores_allocated
-*******************
-
-type: short
-slots: 1
-
-How many cpu core is allocated.
-
-memory_allocated
-****************
-
-type: short
-slots: 1
-
-How many memory is allocated.
-
-cpu_utilization
-***************
-
-type: float
-slots: 1
-
-CPU utilization of current machine.
-
-energy_consumption
-******************
-
-type: float
-slots: 1
-
-Energy consumption of current machine.
-
-oversubscribable
-****************
-
-type: short
-slots: 1
-
-Physical machine type: non-oversubscribable is -1, empty: 0, oversubscribable is 1.
-
-region_id
-*********
-
-type: short
-slots: 1
-
-Region id of current machine.
-
-zone_id
-*******
-
-type: short
-slots: 1
-
-Zone id of current machine.
-
-data_center_id
-**************
-
-type: short
-slots: 1
-
-Data center id of current machine.
-
-cluster_id
-**********
-
-type: short
-slots: 1
-
-Cluster id of current machine.
-
-rack_id
-*******
-
-type: short
-slots: 1
-
-Rack id of current machine.
-
-Rack
+rack
 ++++
 
-id
-***
-
-type: int
-slots: 1
-
-Id of current rack.
-
-region_id
-*********
-
-type: short
-slots: 1
-
-Region id of current rack.
-
-zone_id
-*******
-
-type: short
-slots: 1
-
-Zone id of current rack.
-
-data_center_id
-**************
-
-type: short
-slots: 1
-
-Data center id of current rack.
-
-cluster_id
-**********
-
-type: short
-slots: 1
-
-Cluster id of current rack.
-
-total_machine_num
-*****************
-
-type: int
-slots: 1
-
-Total number of machines on this rack.
-
-empty_machine_num
-*****************
-
-type: int
-slots: 1
-
-Number of machines that not in use on this rack.
++--------------------+-------+--------+---------------------------------------------------+
+| Field              | Type  | Slots  | Description                                       |
++====================+=======+========+===================================================+
+| id                 | int   | 1      | Id of current rack.                               |
++--------------------+-------+--------+---------------------------------------------------+
+| region_id          | short | 1      | Region id of current rack.                        |
++--------------------+-------+--------+---------------------------------------------------+
+| zone_id            | short | 1      | Zone id of current rack.                          |
++--------------------+-------+--------+---------------------------------------------------+
+| data_center_id     | short | 1      | Data center id of current rack.                   |
++--------------------+-------+--------+---------------------------------------------------+
+| cluster_id         | short | 1      | Cluster id of current rack.                       |
++--------------------+-------+--------+---------------------------------------------------+
+| total_machine_num  | int   | 1      | Total number of machines on this rack.            |
++--------------------+-------+--------+---------------------------------------------------+
+| empty_machine_num  | int   | 1      | Number of machines that not in use on this rack.  |
++--------------------+-------+--------+---------------------------------------------------+
 
 regions
 +++++++
 
-id
-***
-
-type: short
-slots: 1
-
-Id of curent region.
-
-total_machine_num
-*****************
-
-type: int
-slots: 1
-
-Total number of machines in this region.
-
-empty_machine_num
-*****************
-
-type: int
-slots: 1
-
-Number of machines that not in use in this region.
++--------------------+-------+--------+------------------------------------------------------+
+| Field              | Type  | Slots  | Description                                          |
++====================+=======+========+======================================================+
+| id                 | short | 1      | Id of current region.                                |
++--------------------+-------+--------+------------------------------------------------------+
+| total_machine_num  | int   | 1      | Total number of machines in this region.             |
++--------------------+-------+--------+------------------------------------------------------+
+| empty_machine_num  | int   | 1      | Number of machines that not in use in this region.   |
++--------------------+-------+--------+------------------------------------------------------+
 
 zones
 +++++
 
-id
-***
-
-type: short
-slots: 1
-
-Id of this zone.
-
-total_machine_num
-*****************
-
-type: int
-slots: 1
-
-Total number of machines in this zone.
-
-empty_machine_num
-*****************
-
-type: int
-slots: 1
-
-Number of machines that not in use in this zone.
++--------------------+-------+--------+---------------------------------------------------+
+| Field              | Type  | Slots  | Description                                       |
++====================+=======+========+===================================================+
+| id                 | short | 1      | Id of this zone.                                  |
++--------------------+-------+--------+---------------------------------------------------+
+| region_id          | short | 1      | Region id of current rack.                        |
++--------------------+-------+--------+---------------------------------------------------+
+| total_machine_num  | int   | 1      | Total number of machines in this zone.            |
++--------------------+-------+--------+---------------------------------------------------+
+| empty_machine_num  | int   | 1      | Number of machines that not in use in this zone.  |
++--------------------+-------+--------+---------------------------------------------------+
