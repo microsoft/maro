@@ -89,7 +89,7 @@ base_policy_conf = {
     "forecaster": "OracleForecaster",
     # Oracle file, start_date_time and durations are only needed in OracleForecaster
     # All files with suffix csv, tsv and xlsx without preprocessed will be loaded.
-    "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/walmart_3_layers/data",
+    "oracle_file_dir": "maro/simulator/scenarios/supply_chain/topologies/Plant_Warehouse_Store_SKU10/data",
     "history_len": np.inf,  # E.g., mapping to np.inf in instance creation if it is static
     "future_len": np.inf,
     "update_frequency": np.inf,  # E.g., mapping to np.inf in instance creation if no update

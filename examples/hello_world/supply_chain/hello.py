@@ -5,7 +5,7 @@ from maro.simulator import Env
 
 from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 
-env = Env(scenario="supply_chain", topology="walmart", start_tick=0, durations=100)
+env = Env(scenario="supply_chain", topology="super_vendor", start_tick=0, durations=100)
 
 balance_calculator = BalanceSheetCalculator(env=env)
 
