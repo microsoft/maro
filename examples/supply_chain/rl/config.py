@@ -47,7 +47,7 @@ def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo
         raise (f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
 
 
-ALGO = "BSP"
+ALGO = "EOQ"
 assert ALGO in ["DQN", "EOQ", "PPO", "BSP"], "wrong ALGO"
 
 TEAM_REWARD = False
