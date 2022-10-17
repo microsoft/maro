@@ -2,10 +2,7 @@
 
 MARO's simulator is the runtime environment of MARO. Its high-level structure is demonstrated in the following figure. We give a brief introdution of the entire structure in a top-down fashion.
 
-![overview-overview](picture/overview-overview.svg#pic_center)
-
-
-
+![figure](overview_overview.svg#pic_center)
 
 ## `Env`
 
@@ -84,6 +81,6 @@ For these events, we constructed the `EventLinkedList` data structure to store t
 *   `_extract_sub_events` : to extract immediate events to the head.
 *   `clear_finished_and_get_front`: Empty completed events and get unfinished first.
 
-![overview-event](picture/overview-event.svg#pic_center)
+![figure](overview_event.svg#pic_center)
 
 For the overall program, each event has a start and end state. As shown in the figure, when the system tick starts, the handler will automatically process the `AtomEvent` under the current tick and check whether there is a cascadeevent. When the processing is completed, the end event will be appended to a specific time.

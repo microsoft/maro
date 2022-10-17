@@ -1,3 +1,5 @@
+# MARO RL
+
 ## What's MARO RL
 
 MARO reinforcement learning toolkits (MARO RL) is used to build the reinforcement learning workflows. It consists of three macro parts: 
@@ -5,12 +7,13 @@ MARO reinforcement learning toolkits (MARO RL) is used to build the reinforcemen
 - Sampler: used to schedule the interaction between agents and the environment, and collect the interacting experiences.
 - Training manager: used to train policies.
 
-The following figure shows the overall structure. Next, we will explain the roles and functions of different components in RL separately.
-![RL_workflow](picture/overview-RLworkflow.svg)
+The figure shows the overall structure. Next, we will explain the roles and functions of different components in RL separately.
+
+![figure](overview_rlworkflow.svg)
 
 ### What's Policy
 
-Policy is a very important part of RL. It has specific policies in different scenarios and the associated products of agents. The following figure is the structure diagram of the policy part. In the framework of deep learning, many models regard agent and policy as unified objects. But this is not the case in MARO, it is the highest level abstraction of a policy object is `AbsPolicy`, the Policy Gradient in the figure can be understood as the final model scheme, which is a subclass that inherits `Abspolicy`, here we will involve Some important interfaces:
+Policy is a very important part of RL. It has specific policies in different scenarios and the associated products of agents. The figure is the structure diagram of the policy part. In the framework of deep learning, many models regard agent and policy as unified objects. But this is not the case in MARO, it is the highest level abstraction of a policy object is `AbsPolicy`, the Policy Gradient in the figure can be understood as the final model scheme, which is a subclass that inherits `Abspolicy`, here we will involve Some important interfaces:
 
 - `policy_net`: it is the base class for all core networks in the policy. Two different interfaces, `state_dim` and `action_dim`, are defined here, namely state and action. In addition there is `step` which runs a training step to update network parameters according to a given loss; `get_gradients` for all parameter gradients according to a given loss, etc.
 - `MyActorNet`: Since Policynet is a general policy, different policy details need to be updated for different algorithms. This interface is used to update some details of the corresponding algorithm. For example `get_action_probs_impl`.
@@ -24,14 +27,13 @@ In Maro's design concept, the strategy cannot be self-trained, and it needs to b
 
 These interfaces will be called by TrainingManager for training. Currently, in the Maro design assumption, all strategies are based on deep learning models, so the training-related interfaces are specially designed for gradient descent.
 
-![policy_workflow](picture/overview-Policy.svg)
-
+![figure](overview_policy.svg)
 
 ###  What's Sampler
 
-Next comes the second component in RL - Sampler. It plays an important scheduling role in RL, interacting the policy with the environment and collecting the state and experience returned by the environment. This part is composed of environment simulator, Policy and collection experience components as shown in the following figure. Unlike Policy, sampler is an entity that inherits the base class of `AbsEnvSampler`, and `AbsEnvSampler` is mainly used to define the basic data collector and Policy Evaluator.
+Next comes the second component in RL - Sampler. It plays an important scheduling role in RL, interacting the policy with the environment and collecting the state and experience returned by the environment. This part is composed of environment simulator, Policy and collection experience components as shown in the figure. Unlike Policy, sampler is an entity that inherits the base class of `AbsEnvSampler`, and `AbsEnvSampler` is mainly used to define the basic data collector and Policy Evaluator.
 
-![sampler_workflow](picture/overview-Sampler.svg)
+![figure](overview_sampler.svg)
 
 
 In Sampler, Systemtick (that is, the time stamp in the system) will continue to enter this component, and Policy will issue relevant Actions to the environment at a specific tick time to enter the environment simulator, and then the component that collects information will recycle the experience and The status is issued as such.
@@ -66,9 +68,9 @@ env_sampler=CIMEnvSampler(
 
 ###  What's Training Manager
 
-In the above introduction, we mentioned that Policy cannot self-update training in Maro, so it must be trained through external algorithms to update Policy, so the role of Training Manager is established. The following figure is the workflow, which collects the experience provided by the Sampler, and then transmits it to the training scheduler, and then pushes the train to train and update the policy. We will describe the composition of this component in detail below.
+In the above introduction, we mentioned that Policy cannot self-update training in Maro, so it must be trained through external algorithms to update Policy, so the role of Training Manager is established. The figure is the workflow, which collects the experience provided by the Sampler, and then transmits it to the training scheduler, and then pushes the train to train and update the policy. We will describe the composition of this component in detail below.
 
-![training_mananger workflow](picture/overview-TrainingManager.svg)
+![figure](overview_trainingmanager.svg)
 
 
 #### Training Scheduler
