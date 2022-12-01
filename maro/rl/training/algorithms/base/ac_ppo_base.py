@@ -289,8 +289,9 @@ class ACBasedTrainer(SingleAgentTrainer):
 
     def train_step(self) -> None:
         assert isinstance(self._ops, ACBasedOps)
-
+        #  mask -> actions个1
         batch = self._get_batch()
+
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
 

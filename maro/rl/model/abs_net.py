@@ -7,6 +7,7 @@ from abc import ABCMeta
 from typing import Any, Dict
 
 import torch.nn
+
 from torch.optim import Optimizer
 
 
@@ -31,7 +32,12 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
             loss (torch.tensor): Loss used to update the model.
         """
         self.optim.zero_grad()
-        loss.backward()
+        # print(loss)
+
+
+
+        # loss.backward()
+
         self.optim.step()
 
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:

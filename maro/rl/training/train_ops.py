@@ -44,6 +44,7 @@ class AbsTrainOps(object, metaclass=ABCMeta):
     def policy_state_dim(self) -> int:
         return self._policy.state_dim
 
+
     @property
     def policy_action_dim(self) -> int:
         return self._policy.action_dim
