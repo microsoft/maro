@@ -126,9 +126,7 @@ def get_trpo_trainer(state_dim: int, name: str) -> TRPOTrainer:
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
-            min_logp=None,
-            lam=.0,
-            clip_ratio=0.1,
+            lam=0.97,
         ),
     )
 
@@ -214,8 +212,8 @@ rl_component_bundle = RLComponentBundle(
 
 env_sampler = rl_component_bundle.env_sampler
 
-num_episodes = 30
-eval_schedule = [5, 10, 15, 20, 25, 30]
+num_episodes = 55
+eval_schedule = [5, 10, 15, 20, 25, 30,35,40,45,50]
 eval_point_index = 0
 
 training_manager = TrainingManager(rl_component_bundle=rl_component_bundle)

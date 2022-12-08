@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import random
 from abc import ABCMeta
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional, Tuple, cast
@@ -115,17 +115,17 @@ class TRPOOps(AbsTrainOps):
         state_values = self._v_critic_net.v_values(states)
         return self._critic_loss_func(state_values, returns)
 
-    @remote
-    def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        """Compute the critic network's gradients of a batch.
-
-        Args:
-            batch (TransitionBatch): Batch.
-
-        Returns:
-            grad (torch.Tensor): The critic gradient of the batch.
-        """
-        return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
+    # @remote
+    # def get_critic_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    #     """Compute the critic network's gradients of a batch.
+    #
+    #     Args:
+    #         batch (TransitionBatch): Batch.
+    #
+    #     Returns:
+    #         grad (torch.Tensor): The critic gradient of the batch.
+    #     """
+    #     return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
 
     def update_critic(self, batch: TransitionBatch) -> None:
         """Update the critic network using a batch.
@@ -136,14 +136,14 @@ class TRPOOps(AbsTrainOps):
 
         self._v_critic_net.step(self._get_critic_loss(batch))
 
-    def update_critic_with_grad(self, grad_dict: dict) -> None:
-        """Update the critic network with remotely computed gradients.
-
-        Args:
-            grad_dict (dict): Gradients.
-        """
-        self._v_critic_net.train()
-        self._v_critic_net.apply_gradients(grad_dict)
+    # def update_critic_with_grad(self, grad_dict: dict) -> None:
+    #     """Update the critic network with remotely computed gradients.
+    #
+    #     Args:
+    #         grad_dict (dict): Gradients.
+    #     """
+    #     self._v_critic_net.train()
+    #     self._v_critic_net.apply_gradients(grad_dict)
 
     def set_flat_params_to(self,model, flat_params):
         prev_ind = 0
@@ -291,7 +291,7 @@ class TRPOOps(AbsTrainOps):
         self.deltas = torch.Tensor(self.actions.size(0), 1)
         self.values = self.value_net(Variable(self.states))
 
-        advantages = torch.Tensor(batch.advantages)
+        self.advantages = torch.Tensor(batch.advantages)
         prev_return = 0
         prev_value = 0
         prev_advantage = 0
@@ -302,18 +302,18 @@ class TRPOOps(AbsTrainOps):
             # advantages[i] = deltas[i] + self.args.gamma * self.args.tau * prev_advantage * masks[i]
             self.returns[i] = self.rewards[i] + self.args.gamma * prev_return
             self.deltas[i] = self.rewards[i] + self.args.gamma * prev_value - self.values.data[i]
-            advantages[i] = self.deltas[i] + self.args.gamma * self.args.tau * prev_advantage
+            self.advantages[i] = self.deltas[i] + self.args.gamma * self.args.tau * prev_advantage
 
             prev_return = self.returns[i]
             prev_value = self.values.data[i]
-            prev_advantage = advantages[i]
+            prev_advantage = self.advantages[i]
         self.targets = Variable(self.returns)
 
         flat_params, _, opt_info = scipy.optimize.fmin_l_bfgs_b(self.get_value_loss,
                                                                 self.get_flat_params_from(self.value_net).double().numpy(),
                                                                 maxiter=25)
         self.set_flat_params_to(self.value_net, torch.Tensor(flat_params))
-        self.advantages = (advantages - advantages.mean()) / advantages.std()
+        self.advantages = (self.advantages - self.advantages.mean()) / self.advantages.std()
         action_means, action_log_stds, action_stds = self.policy_net(Variable(self.states))
         self.fixed_log_prob = self.normal_log_density(Variable(self.actions), action_means, action_log_stds, action_stds).data.clone()
         actor_loss = self.trpo_step(self.policy_net, self.get_loss, self.get_kl, self.args.max_kl, self.args.damping)
@@ -322,19 +322,19 @@ class TRPOOps(AbsTrainOps):
 
         return actor_loss
 
-    @remote
-    def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
-        """Compute the actor network's gradients of a batch.
-
-        Args:
-            batch (TransitionBatch): Batch.
-
-        Returns:
-            grad (torch.Tensor): The actor gradient of the batch.
-            early_stop (bool): Early stop indicator.
-        """
-        loss, early_stop = self._get_actor_loss(batch)
-        return self._policy.get_gradients(loss), early_stop
+    # @remote
+    # def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
+    #     """Compute the actor network's gradients of a batch.
+    #
+    #     Args:
+    #         batch (TransitionBatch): Batch.
+    #
+    #     Returns:
+    #         grad (torch.Tensor): The actor gradient of the batch.
+    #         early_stop (bool): Early stop indicator.
+    #     """
+    #     loss, early_stop = self._get_actor_loss(batch)
+    #     return self._policy.get_gradients(loss), early_stop
 
     def update_actor(self, batch: TransitionBatch) -> bool:
         """Update the actor network using a batch.
@@ -349,18 +349,18 @@ class TRPOOps(AbsTrainOps):
 
         self._policy.train_step(loss)
 
-    def update_actor_with_grad(self, grad_dict_and_early_stop: Tuple[dict, bool]) -> bool:
-        """Update the actor network with remotely computed gradients.
-
-        Args:
-            grad_dict_and_early_stop (Tuple[dict, bool]): Gradients and early stop indicator.
-
-        Returns:
-            early stop indicator
-        """
-        self._policy.train()
-        self._policy.apply_gradients(grad_dict_and_early_stop[0])
-        return grad_dict_and_early_stop[1]
+    # def update_actor_with_grad(self, grad_dict_and_early_stop: Tuple[dict, bool]) -> bool:
+    #     """Update the actor network with remotely computed gradients.
+    #
+    #     Args:
+    #         grad_dict_and_early_stop (Tuple[dict, bool]): Gradients and early stop indicator.
+    #
+    #     Returns:
+    #         early stop indicator
+    #     """
+    #     self._policy.train()
+    #     self._policy.apply_gradients(grad_dict_and_early_stop[0])
+    #     return grad_dict_and_early_stop[1]
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -383,15 +383,32 @@ class TRPOOps(AbsTrainOps):
 
 
 
-
+        # # Preprocess advantages
+        states = ndarray_to_tensor(batch.states, device=self._device)  # s
+        actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
+        # if self._is_discrete_action:
+        #     actions = actions.long()
+        #
+        with torch.no_grad():
+            self._v_critic_net.eval()
+            self._policy.eval()
+            values = self._v_critic_net.v_values(states).detach().cpu().numpy()
+            values = np.concatenate([values, np.zeros(1)])
+            rewards = np.concatenate([batch.rewards, np.zeros(1)])
+            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
+            batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
+            batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
+        #
+        #     if self._clip_ratio is not None:
+        #         batch.old_logps = self._policy.get_states_actions_logps(states, actions).detach().cpu().numpy()
 
         return batch
 
-    def debug_get_v_values(self, batch: TransitionBatch) -> np.ndarray:
-        states = ndarray_to_tensor(batch.states, device=self._device)  # s
-        with torch.no_grad():
-            values = self._v_critic_net.v_values(states).detach().cpu().numpy()
-        return values
+    # def debug_get_v_values(self, batch: TransitionBatch) -> np.ndarray:
+    #     states = ndarray_to_tensor(batch.states, device=self._device)  # s
+    #     with torch.no_grad():
+    #         values = self._v_critic_net.v_values(states).detach().cpu().numpy()
+    #     return values
 
     def to_device(self, device: str = None) -> None:
         self._device = get_torch_device(device)
@@ -451,6 +468,7 @@ class TRPOTrainer(SingleAgentTrainer):
 
     def _get_batch(self) -> TransitionBatch:
         batch = self._replay_memory.sample(-1)
+        np.seterr(divide='ignore', invalid='ignore')
         batch.advantages = (batch.advantages - batch.advantages.mean()) / batch.advantages.std()
         return batch
 
@@ -460,8 +478,13 @@ class TRPOTrainer(SingleAgentTrainer):
         batch = self._get_batch()
         # trpo_main.update_params(batch)
         for _ in range(self._params.grad_iters):
-            self._ops.update_actor(batch)
             self._ops.update_critic(batch)
+
+        for _ in range(self._params.grad_iters):
+            self._ops.update_actor(batch)
+
+
+
 
 
         # for _ in range(self._params.grad_iters):
