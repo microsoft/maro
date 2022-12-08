@@ -224,6 +224,7 @@ training_manager = TrainingManager(rl_component_bundle=rl_component_bundle)
 for ep in range(1, num_episodes + 1):
     result = env_sampler.sample()
     experiences: List[List[ExpElement]] = result["experiences"]
+
     info_list: List[dict] = result["info"]
 
     print("Collecting result:")

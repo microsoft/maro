@@ -70,6 +70,9 @@ class TRPOOps(AbsTrainOps):
         self._lam = params.lam
         self._min_logp = params.min_logp
         self._v_critic_net = params.get_v_critic_net_func()
+
+
+
         self._is_discrete_action = isinstance(self._policy, DiscretePolicyGradient)
         self.parser = argparse.ArgumentParser(description='PyTorch actor-critic example')
         self.parser.add_argument('--gamma', type=float, default=0.995, metavar='G',
@@ -130,6 +133,7 @@ class TRPOOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
+
         self._v_critic_net.step(self._get_critic_loss(batch))
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
@@ -225,7 +229,6 @@ class TRPOOps(AbsTrainOps):
 
     def get_kl(self):
         mean1, log_std1, std1 = self.policy_net(Variable(self.states))
-
         mean0 = Variable(mean1.data)
         log_std0 = Variable(log_std1.data)
         std0 = Variable(std1.data)
@@ -240,7 +243,6 @@ class TRPOOps(AbsTrainOps):
         def Fvp(v):
             kl = get_kl()
             kl = kl.mean()
-
             grads = torch.autograd.grad(kl, model.parameters(), create_graph=True)
             flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
 
@@ -253,10 +255,8 @@ class TRPOOps(AbsTrainOps):
         stepdir = self.conjugate_gradients(Fvp, -loss_grad, 10)
 
         shs = 0.5 * (stepdir * Fvp(stepdir)).sum(0, keepdim=True)
-
         lm = torch.sqrt(shs / max_kl)
         fullstep = stepdir / lm[0]
-
         neggdotstepdir = (-loss_grad * stepdir).sum(0, keepdim=True)
         # print(("lagrange multiplier:", lm[0], "grad_norm:", loss_grad.norm()))
 
@@ -381,24 +381,9 @@ class TRPOOps(AbsTrainOps):
         """
         assert isinstance(batch, TransitionBatch)
 
-        # Preprocess advantages
-        states = ndarray_to_tensor(batch.states, device=self._device)  # s
-        actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
-        if self._is_discrete_action:
-            actions = actions.long()
 
-        with torch.no_grad():
-            self._v_critic_net.eval()
-            self._policy.eval()
-            values = self._v_critic_net.v_values(states).detach().cpu().numpy()
-            values = np.concatenate([values, np.zeros(1)])
-            rewards = np.concatenate([batch.rewards, np.zeros(1)])
-            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
-            batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
-            batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
 
-            if self._clip_ratio is not None:
-                batch.old_logps = self._policy.get_states_actions_logps(states, actions).detach().cpu().numpy()
+
 
         return batch
 
@@ -466,9 +451,7 @@ class TRPOTrainer(SingleAgentTrainer):
 
     def _get_batch(self) -> TransitionBatch:
         batch = self._replay_memory.sample(-1)
-
         batch.advantages = (batch.advantages - batch.advantages.mean()) / batch.advantages.std()
-
         return batch
 
     def train_step(self) -> None:
@@ -477,8 +460,9 @@ class TRPOTrainer(SingleAgentTrainer):
         batch = self._get_batch()
         # trpo_main.update_params(batch)
         for _ in range(self._params.grad_iters):
-            self._ops.update_critic(batch)
             self._ops.update_actor(batch)
+            self._ops.update_critic(batch)
+
 
         # for _ in range(self._params.grad_iters):
         #     self._ops.update_critic(batch)
