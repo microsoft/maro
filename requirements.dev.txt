@@ -9,7 +9,7 @@ azure-mgmt-resource
 azure-mgmt-storage
 azure-storage-file-share
 black==22.3.0
-certifi==2019.9.11
+certifi==2022.12.7
 cryptography==36.0.1
 cycler==0.10.0
 Cython==0.29.14
