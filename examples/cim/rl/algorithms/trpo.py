@@ -8,7 +8,6 @@ from maro.rl.training.algorithms import TRPOParams, TRPOTrainer
 
 from .ac import MyActorNet, MyCriticNet
 
-
 def get_trpo_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
