@@ -6,6 +6,7 @@ from .ddpg import DDPGParams, DDPGTrainer
 from .dqn import DQNParams, DQNTrainer
 from .maddpg import DiscreteMADDPGParams, DiscreteMADDPGTrainer
 from .ppo import DiscretePPOWithEntropyTrainer, PPOParams, PPOTrainer
+from .trpo import *
 from .sac import SoftActorCriticParams, SoftActorCriticTrainer
 
 __all__ = [
@@ -19,6 +20,8 @@ __all__ = [
     "DiscreteMADDPGParams",
     "PPOParams",
     "PPOTrainer",
+    "TRPOParams",
+    "TRPOTrainer",
     "DiscretePPOWithEntropyTrainer",
     "SoftActorCriticParams",
     "SoftActorCriticTrainer",

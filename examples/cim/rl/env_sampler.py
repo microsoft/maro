@@ -8,7 +8,7 @@ import numpy as np
 from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
-from .config import action_shaping_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
+from config import action_shaping_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
 
 
 class CIMEnvSampler(AbsEnvSampler):

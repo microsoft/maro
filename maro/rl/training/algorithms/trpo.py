@@ -41,8 +41,6 @@ class TRPOParams(BaseTrainerParams):
     grad_iters: int = 1
     critic_loss_cls: Optional[Callable] = None
     lam: float = 0.9
-    min_logp: float = float("-inf")
-    clip_ratio: Optional[float] = None
 
 
 class TRPOOps(AbsTrainOps):
@@ -66,13 +64,8 @@ class TRPOOps(AbsTrainOps):
 
         self._reward_discount = reward_discount
         self._critic_loss_func = params.critic_loss_cls() if params.critic_loss_cls is not None else torch.nn.MSELoss()
-        self._clip_ratio = params.clip_ratio
         self._lam = params.lam
-        self._min_logp = params.min_logp
         self._v_critic_net = params.get_v_critic_net_func()
-
-
-
         self._is_discrete_action = isinstance(self._policy, DiscretePolicyGradient)
         self.parser = argparse.ArgumentParser(description='PyTorch actor-critic example')
         self.parser.add_argument('--gamma', type=float, default=0.995, metavar='G',
@@ -133,7 +126,6 @@ class TRPOOps(AbsTrainOps):
         Args:
             batch (TransitionBatch): Batch.
         """
-
         self._v_critic_net.step(self._get_critic_loss(batch))
 
     # def update_critic_with_grad(self, grad_dict: dict) -> None:
@@ -269,16 +261,16 @@ class TRPOOps(AbsTrainOps):
 
 
     def get_value_loss(self,flat_params):
-        self.set_flat_params_to(self.value_net, torch.Tensor(flat_params))
-        for param in self.value_net.parameters():
+        self.set_flat_params_to(self._v_critic_net, torch.Tensor(flat_params))
+        for param in self._v_critic_net.parameters():
             if param.grad is not None:
                 param.grad.data.fill_(0)
-        values_ = self.value_net(Variable(self.states))
+        values_ = self._v_critic_net(Variable(self.states))
         value_loss = (values_ - self.targets).pow(2).mean()
-        for param in self.value_net.parameters():
+        for param in self._v_critic_net.parameters():
             value_loss += param.pow(2).sum() * self.args.l2_reg
         value_loss.backward()
-        return (value_loss.data.double().numpy(), self.get_flat_grad_from(self.value_net).data.double().numpy())
+        return (value_loss.data.double().numpy(), self.get_flat_grad_from(self._v_critic_net).data.double().numpy())
 
 
     def _get_actor_loss(self, batch: TransitionBatch):
@@ -398,9 +390,6 @@ class TRPOOps(AbsTrainOps):
             deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
             batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
             batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
-        #
-        #     if self._clip_ratio is not None:
-        #         batch.old_logps = self._policy.get_states_actions_logps(states, actions).detach().cpu().numpy()
 
         return batch
 

@@ -45,6 +45,5 @@ class Value(nn.Module, ABC):
     def forward(self, x):
         x = torch.tanh(self.affine1(x))
         x = torch.tanh(self.affine2(x))
-
         state_values = self.value_head(x)
         return state_values
