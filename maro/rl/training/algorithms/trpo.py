@@ -89,15 +89,23 @@ class TRPOOps(AbsTrainOps):
         self.parser.add_argument('--log-interval', type=int, default=1, metavar='N',
                                  help='interval between training status logs (default: 10)')
         self.args = self.parser.parse_args()
-        self.policy_net = Policy(171, 1)
-        self.value_net = Value(171)
+        self.num_inputs = policy.state_dim
+        self.num_outputs = policy.action_dim
+        self.policy_net = Policy(self.num_inputs, self.num_outputs)
+
+        self.affine1 = nn.Linear(self.num_inputs, 64)
+        self.affine2 = nn.Linear(64, 64)
+        self.action_mean = nn.Linear(64, self.num_outputs)
+        self.action_mean.weight.data.mul_(0.1)
+        self.action_mean.bias.data.mul_(0.0)
+        self.action_log_std = nn.Parameter(torch.zeros(1, self.num_outputs))
+
+
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
-
         Args:
             batch (TransitionBatch): Batch.
-
         Returns:
             loss (torch.Tensor): The critic loss of the batch.
         """
@@ -122,7 +130,6 @@ class TRPOOps(AbsTrainOps):
 
     def update_critic(self, batch: TransitionBatch) -> None:
         """Update the critic network using a batch.
-
         Args:
             batch (TransitionBatch): Batch.
         """
@@ -208,24 +215,9 @@ class TRPOOps(AbsTrainOps):
         return False, x
 
 
-    def get_loss(self,volatile=False):
-        if volatile:
-            with torch.no_grad():
-                action_means, action_log_stds, action_stds = self.policy_net(Variable(self.states))
-        else:
-            action_means, action_log_stds, action_stds = self.policy_net(Variable(self.states))
 
-        log_prob = self.normal_log_density(Variable(self.actions), action_means, action_log_stds, action_stds)
-        action_loss = -Variable(self.advantages) * torch.exp(log_prob - Variable(self.fixed_log_prob))
-        return action_loss.mean()
 
-    def get_kl(self):
-        mean1, log_std1, std1 = self.policy_net(Variable(self.states))
-        mean0 = Variable(mean1.data)
-        log_std0 = Variable(log_std1.data)
-        std0 = Variable(std1.data)
-        kl = log_std1 - log_std0 + (std0.pow(2) + (mean0 - mean1).pow(2)) / (2.0 * std1.pow(2)) - 0.5
-        return kl.sum(1, keepdim=True)
+
 
     def trpo_step(self,model, get_loss, get_kl, max_kl, damping):
         loss = get_loss()
@@ -260,56 +252,79 @@ class TRPOOps(AbsTrainOps):
         return loss
 
 
-    def get_value_loss(self,flat_params):
-        self.set_flat_params_to(self._v_critic_net, torch.Tensor(flat_params))
-        for param in self._v_critic_net.parameters():
-            if param.grad is not None:
-                param.grad.data.fill_(0)
-        values_ = self._v_critic_net(Variable(self.states))
-        value_loss = (values_ - self.targets).pow(2).mean()
-        for param in self._v_critic_net.parameters():
-            value_loss += param.pow(2).sum() * self.args.l2_reg
-        value_loss.backward()
-        return (value_loss.data.double().numpy(), self.get_flat_grad_from(self._v_critic_net).data.double().numpy())
+
 
 
     def _get_actor_loss(self, batch: TransitionBatch):
         assert isinstance(self._policy, DiscretePolicyGradient) or isinstance(self._policy, ContinuousRLPolicy)
         self._policy.train()
-        self.rewards = ndarray_to_tensor(batch.rewards)
-        self.actions = ndarray_to_tensor(batch.actions)
-        self.states = ndarray_to_tensor(batch.states)
-        self.returns = ndarray_to_tensor(batch.returns)
-        self.deltas = torch.Tensor(self.actions.size(0), 1)
-        self.values = self.value_net(Variable(self.states))
-
-        self.advantages = torch.Tensor(batch.advantages)
+        rewards = ndarray_to_tensor(batch.rewards)
+        actions = ndarray_to_tensor(batch.actions)
+        states = ndarray_to_tensor(batch.states)
+        returns = ndarray_to_tensor(batch.returns)
+        deltas = torch.Tensor(actions.size(0), 1)
+        values = self._v_critic_net.v_values(states).detach().cpu().numpy()
+        advantages = torch.Tensor(batch.advantages)
         prev_return = 0
         prev_value = 0
         prev_advantage = 0
 
-        for i in reversed(range(self.rewards.size(0))):
-            # returns[i] = rewards[i] + self.args.gamma * prev_return * masks[i]
-            # deltas[i] = rewards[i] + self.args.gamma * prev_value * masks[i] - values.data[i]
-            # advantages[i] = deltas[i] + self.args.gamma * self.args.tau * prev_advantage * masks[i]
-            self.returns[i] = self.rewards[i] + self.args.gamma * prev_return
-            self.deltas[i] = self.rewards[i] + self.args.gamma * prev_value - self.values.data[i]
-            self.advantages[i] = self.deltas[i] + self.args.gamma * self.args.tau * prev_advantage
+        for i in reversed(range(rewards.size(0))):
+            returns[i] = rewards[i] + self.args.gamma * prev_return
+            deltas[i] = rewards[i] + self.args.gamma * prev_value - values.data[i]
+            advantages[i] = deltas[i] + self.args.gamma * self.args.tau * prev_advantage
 
-            prev_return = self.returns[i]
-            prev_value = self.values.data[i]
-            prev_advantage = self.advantages[i]
-        self.targets = Variable(self.returns)
+            prev_return = returns[i]
+            prev_value = values.data[i]
+            prev_advantage = advantages[i]
+        targets = Variable(returns)
 
-        flat_params, _, opt_info = scipy.optimize.fmin_l_bfgs_b(self.get_value_loss,
-                                                                self.get_flat_params_from(self.value_net).double().numpy(),
+        def get_value_loss(flat_params):
+            self.set_flat_params_to(self._v_critic_net, torch.Tensor(flat_params))
+            for param in self._v_critic_net.parameters():
+                if param.grad is not None:
+                    param.grad.data.fill_(0)
+            values_ = self._v_critic_net.v_values(Variable(states))
+            value_loss = (values_ - targets).pow(2).mean()
+            for param in self._v_critic_net.parameters():
+                value_loss += param.pow(2).sum() * self.args.l2_reg
+            value_loss.backward()
+            return (value_loss.data.double().numpy(), self.get_flat_grad_from(self._v_critic_net).data.double().numpy())
+
+        def get_loss(volatile=False):
+            if volatile:
+                with torch.no_grad():
+                    action_means, action_log_stds, action_stds = self.policy_net(Variable(states))
+            else:
+                action_means, action_log_stds, action_stds = self.policy_net(Variable(states))
+
+            log_prob = self.normal_log_density(Variable(actions), action_means, action_log_stds, action_stds)
+            action_loss = -Variable(advantages) * torch.exp(log_prob - Variable(self.fixed_log_prob))
+            return action_loss.mean()
+
+        def get_kl():
+            mean1, log_std1, std1 = self.policy_net(Variable(states))
+            mean0 = Variable(mean1.data)
+            log_std0 = Variable(log_std1.data)
+            std0 = Variable(std1.data)
+            kl = log_std1 - log_std0 + (std0.pow(2) + (mean0 - mean1).pow(2)) / (2.0 * std1.pow(2)) - 0.5
+            return kl.sum(1, keepdim=True)
+
+
+
+
+        flat_params, _, opt_info = scipy.optimize.fmin_l_bfgs_b(get_value_loss,
+                                                                self.get_flat_params_from(self._v_critic_net).double().numpy(),
                                                                 maxiter=25)
-        self.set_flat_params_to(self.value_net, torch.Tensor(flat_params))
-        self.advantages = (self.advantages - self.advantages.mean()) / self.advantages.std()
-        action_means, action_log_stds, action_stds = self.policy_net(Variable(self.states))
-        self.fixed_log_prob = self.normal_log_density(Variable(self.actions), action_means, action_log_stds, action_stds).data.clone()
-        actor_loss = self.trpo_step(self.policy_net, self.get_loss, self.get_kl, self.args.max_kl, self.args.damping)
+        self.set_flat_params_to(self._v_critic_net, torch.Tensor(flat_params))
+        advantages = (advantages - advantages.mean()) / advantages.std()
+        action_means, action_log_stds, action_stds = self.policy_net(Variable(states))
+        self.fixed_log_prob = self.normal_log_density(Variable(actions), action_means, action_log_stds, action_stds).data.clone()
 
+
+
+
+        actor_loss = self.trpo_step(self.policy_net, get_loss, get_kl, self.args.max_kl, self.args.damping)
 
 
         return actor_loss
@@ -330,10 +345,8 @@ class TRPOOps(AbsTrainOps):
 
     def update_actor(self, batch: TransitionBatch) -> bool:
         """Update the actor network using a batch.
-
         Args:
             batch (TransitionBatch): Batch.
-
         Returns:
             early_stop (bool): Early stop indicator.
         """
@@ -364,18 +377,13 @@ class TRPOOps(AbsTrainOps):
 
     def preprocess_batch(self, batch: TransitionBatch) -> TransitionBatch:
         """Preprocess the batch to get the returns & advantages.
-
         Args:
             batch (TransitionBatch): Batch.
-
         Returns:
             The updated batch.
         """
         assert isinstance(batch, TransitionBatch)
-
-
-
-        # # Preprocess advantages
+        # # # Preprocess advantages
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
         actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
         # if self._is_discrete_action:
@@ -391,13 +399,14 @@ class TRPOOps(AbsTrainOps):
             batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
             batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
 
+
         return batch
 
-    # def debug_get_v_values(self, batch: TransitionBatch) -> np.ndarray:
-    #     states = ndarray_to_tensor(batch.states, device=self._device)  # s
-    #     with torch.no_grad():
-    #         values = self._v_critic_net.v_values(states).detach().cpu().numpy()
-    #     return values
+    def debug_get_v_values(self, batch: TransitionBatch) -> np.ndarray:
+        states = ndarray_to_tensor(batch.states, device=self._device)  # s
+        with torch.no_grad():
+            values = self._v_critic_net.v_values(states).detach().cpu().numpy()
+        return values
 
     def to_device(self, device: str = None) -> None:
         self._device = get_torch_device(device)
@@ -407,7 +416,6 @@ class TRPOOps(AbsTrainOps):
 
 class TRPOTrainer(SingleAgentTrainer):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
-
     References:
         https://arxiv.org/pdf/1509.02971.pdf
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg

@@ -212,7 +212,7 @@ rl_component_bundle = RLComponentBundle(
 
 env_sampler = rl_component_bundle.env_sampler
 
-num_episodes = 55
+num_episodes = 50
 eval_schedule = [5, 10, 15, 20, 25, 30,35,40,45,50]
 eval_point_index = 0
 
