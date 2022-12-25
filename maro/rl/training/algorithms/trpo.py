@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 import random
+import sys
 from abc import ABCMeta
 from dataclasses import dataclass
 from typing import Callable, Dict, Optional, Tuple, cast
-import argparse,scipy.optimize
+import argparse, scipy.optimize
 from torch.autograd import Variable
 
 from maro.rl.model import VNet
@@ -100,8 +101,6 @@ class TRPOOps(AbsTrainOps):
         self.action_mean.bias.data.mul_(0.0)
         self.action_log_std = nn.Parameter(torch.zeros(1, self.num_outputs))
 
-
-
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
         Args:
@@ -144,7 +143,7 @@ class TRPOOps(AbsTrainOps):
     #     self._v_critic_net.train()
     #     self._v_critic_net.apply_gradients(grad_dict)
 
-    def set_flat_params_to(self,model, flat_params):
+    def set_flat_params_to(self, model, flat_params):
         prev_ind = 0
         for param in model.parameters():
             flat_size = int(np.prod(list(param.size())))
@@ -152,14 +151,14 @@ class TRPOOps(AbsTrainOps):
                 flat_params[prev_ind:prev_ind + flat_size].view(param.size()))
             prev_ind += flat_size
 
-    def normal_log_density(self,x, mean, log_std, std):
+    def normal_log_density(self, x, mean, log_std, std):
         var = std.pow(2)
         # linshi = -(x - mean).pow(2) / (2 * var)
 
         log_density = -(x - mean).pow(2) / (2 * var) - 0.5 * math.log(2 * math.pi) - log_std
         return log_density.sum(1, keepdim=True)
 
-    def get_flat_params_from(self,model):
+    def get_flat_params_from(self, model):
         params = []
         for param in model.parameters():
             params.append(param.data.view(-1))
@@ -167,8 +166,7 @@ class TRPOOps(AbsTrainOps):
         flat_params = torch.cat(params)
         return flat_params
 
-
-    def get_flat_grad_from(self,net, grad_grad=False):
+    def get_flat_grad_from(self, net, grad_grad=False):
         grads = []
         for param in net.parameters():
             if grad_grad:
@@ -179,7 +177,7 @@ class TRPOOps(AbsTrainOps):
         flat_grad = torch.cat(grads)
         return flat_grad
 
-    def conjugate_gradients(self,Avp, b, nsteps, residual_tol=1e-10):
+    def conjugate_gradients(self, Avp, b, nsteps, residual_tol=1e-10):
         x = torch.zeros(b.size())
         r = b.clone()
         p = b.clone()
@@ -197,7 +195,7 @@ class TRPOOps(AbsTrainOps):
                 break
         return x
 
-    def linesearch(self,model,f,x,fullstep,expected_improve_rate,max_backtracks=10,accept_ratio=.1):
+    def linesearch(self, model, f, x, fullstep, expected_improve_rate, max_backtracks=10, accept_ratio=.1):
         fval = f(True).data
         # print("fval before", fval.item())
         for (_n_backtracks, stepfrac) in enumerate(.5 ** np.arange(max_backtracks)):
@@ -213,47 +211,6 @@ class TRPOOps(AbsTrainOps):
                 # print("fval after", newfval.item())
                 return True, xnew
         return False, x
-
-
-
-
-
-
-    def trpo_step(self,model, get_loss, get_kl, max_kl, damping):
-        loss = get_loss()
-        grads = torch.autograd.grad(loss, model.parameters())
-        loss_grad = torch.cat([grad.view(-1) for grad in grads]).data
-
-        def Fvp(v):
-            kl = get_kl()
-            kl = kl.mean()
-            grads = torch.autograd.grad(kl, model.parameters(), create_graph=True)
-            flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
-
-            kl_v = (flat_grad_kl * Variable(v)).sum()
-            grads = torch.autograd.grad(kl_v, model.parameters())
-            flat_grad_grad_kl = torch.cat([grad.contiguous().view(-1) for grad in grads]).data
-
-            return flat_grad_grad_kl + v * damping
-
-        stepdir = self.conjugate_gradients(Fvp, -loss_grad, 10)
-
-        shs = 0.5 * (stepdir * Fvp(stepdir)).sum(0, keepdim=True)
-        lm = torch.sqrt(shs / max_kl)
-        fullstep = stepdir / lm[0]
-        neggdotstepdir = (-loss_grad * stepdir).sum(0, keepdim=True)
-        # print(("lagrange multiplier:", lm[0], "grad_norm:", loss_grad.norm()))
-
-        prev_params = self.get_flat_params_from(model)
-        success, new_params = self.linesearch(model, get_loss, prev_params, fullstep,
-                                         neggdotstepdir / lm[0])
-        self.set_flat_params_to(model, new_params)
-
-        return loss
-
-
-
-
 
     def _get_actor_loss(self, batch: TransitionBatch):
         assert isinstance(self._policy, DiscretePolicyGradient) or isinstance(self._policy, ContinuousRLPolicy)
@@ -294,54 +251,92 @@ class TRPOOps(AbsTrainOps):
         def get_loss(volatile=False):
             if volatile:
                 with torch.no_grad():
-                    action_means, action_log_stds, action_stds = self.policy_net(Variable(states))
-            else:
-                action_means, action_log_stds, action_stds = self.policy_net(Variable(states))
+                    grad_states_ = torch.tanh(self.affine1(Variable(states)))
+                    grad_states_ = torch.tanh(self.affine2(grad_states_))
+                    action_means_ = self.action_mean(grad_states_)
+                    action_log_stds_ = self.action_log_std.expand_as(action_means_)
+                    action_stds_ = torch.exp(action_log_stds_)
 
-            log_prob = self.normal_log_density(Variable(actions), action_means, action_log_stds, action_stds)
+                    # action_means_, action_log_stds_, action_stds_ = self.policy_net(Variable(states))
+            else:
+                grad_states_ = torch.tanh(self.affine1(Variable(states)))
+                grad_states_ = torch.tanh(self.affine2(grad_states_))
+                action_means_ = self.action_mean(grad_states_)
+                action_log_stds_ = self.action_log_std.expand_as(action_means_)
+                action_stds_ = torch.exp(action_log_stds_)
+
+                # action_means_, action_log_stds_, action_stds_ = self.policy_net(Variable(states))
+
+            log_prob = self.normal_log_density(Variable(actions), action_means_, action_log_stds_, action_stds_)
             action_loss = -Variable(advantages) * torch.exp(log_prob - Variable(self.fixed_log_prob))
+
             return action_loss.mean()
 
         def get_kl():
+
+            a = torch.tanh(self.affine1(Variable(states)))
+            b = torch.tanh(self.affine2(a))
+            mean1 = self.action_mean(b)
+            log_std1 = self.action_log_std.expand_as(mean1)
+            std1 = torch.exp(log_std1)
             mean1, log_std1, std1 = self.policy_net(Variable(states))
+
             mean0 = Variable(mean1.data)
             log_std0 = Variable(log_std1.data)
             std0 = Variable(std1.data)
             kl = log_std1 - log_std0 + (std0.pow(2) + (mean0 - mean1).pow(2)) / (2.0 * std1.pow(2)) - 0.5
             return kl.sum(1, keepdim=True)
 
-
-
-
         flat_params, _, opt_info = scipy.optimize.fmin_l_bfgs_b(get_value_loss,
-                                                                self.get_flat_params_from(self._v_critic_net).double().numpy(),
+                                                                self.get_flat_params_from(
+                                                                    self._v_critic_net).double().numpy(),
                                                                 maxiter=25)
         self.set_flat_params_to(self._v_critic_net, torch.Tensor(flat_params))
         advantages = (advantages - advantages.mean()) / advantages.std()
-        action_means, action_log_stds, action_stds = self.policy_net(Variable(states))
-        self.fixed_log_prob = self.normal_log_density(Variable(actions), action_means, action_log_stds, action_stds).data.clone()
+        grad_states_ = torch.tanh(self.affine1(states))
+        grad_states_ = torch.tanh(self.affine2(grad_states_))
+        action_means = self.action_mean(grad_states_)
+        action_log_stds = self.action_log_std.expand_as(action_means)
+        action_stds = torch.exp(action_log_stds)
 
+        # action_means, action_log_stds, action_stds = self.policy_net(Variable(states))
 
+        self.fixed_log_prob = self.normal_log_density(Variable(actions), action_means, action_log_stds,
+                                                      action_stds).data.clone()
+        loss = get_loss()
+        # grads = torch.autograd.grad(loss, self.policy_net.parameters())
+        # loss_grad = torch.cat([grad.view(-1) for grad in grads]).data
+        #
+        # def Fvp(v):
+        #     kl = get_kl()
+        #     kl = kl.mean()
+        #     grads = torch.autograd.grad(kl, self.policy_net.parameters(), create_graph=True)
+        #     flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
+        #
+        #     kl_v = (flat_grad_kl * Variable(v)).sum()
+        #     grads = torch.autograd.grad(kl_v, self.policy_net.parameters())
+        #     flat_grad_grad_kl = torch.cat([grad.contiguous().view(-1) for grad in grads]).data
+        #
+        #     return flat_grad_grad_kl + v * self.args.damping
+        #
+        # stepdir = self.conjugate_gradients(Fvp, -loss_grad, 10)
+        #
+        # shs = 0.5 * (stepdir * Fvp(stepdir)).sum(0, keepdim=True)
+        # lm = torch.sqrt(shs / self.args.max_kl)
+        # fullstep = stepdir / lm[0]
+        # neggdotstepdir = (-loss_grad * stepdir).sum(0, keepdim=True)
+        # # print(("lagrange multiplier:", lm[0], "grad_norm:", loss_grad.norm()))
+        #
+        # prev_params = self.get_flat_params_from(self.policy_net)
+        # while True:
+        #     success, new_params = self.linesearch(self.policy_net, get_loss, prev_params, fullstep,
+        #                                           neggdotstepdir / lm[0])
+        #     if success is True:
+        #         break
+        #
+        # self.set_flat_params_to(self.policy_net, new_params)
 
-
-        actor_loss = self.trpo_step(self.policy_net, get_loss, get_kl, self.args.max_kl, self.args.damping)
-
-
-        return actor_loss
-
-    # @remote
-    # def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
-    #     """Compute the actor network's gradients of a batch.
-    #
-    #     Args:
-    #         batch (TransitionBatch): Batch.
-    #
-    #     Returns:
-    #         grad (torch.Tensor): The actor gradient of the batch.
-    #         early_stop (bool): Early stop indicator.
-    #     """
-    #     loss, early_stop = self._get_actor_loss(batch)
-    #     return self._policy.get_gradients(loss), early_stop
+        return loss
 
     def update_actor(self, batch: TransitionBatch) -> bool:
         """Update the actor network using a batch.
@@ -353,19 +348,6 @@ class TRPOOps(AbsTrainOps):
         loss = self._get_actor_loss(batch)
 
         self._policy.train_step(loss)
-
-    # def update_actor_with_grad(self, grad_dict_and_early_stop: Tuple[dict, bool]) -> bool:
-    #     """Update the actor network with remotely computed gradients.
-    #
-    #     Args:
-    #         grad_dict_and_early_stop (Tuple[dict, bool]): Gradients and early stop indicator.
-    #
-    #     Returns:
-    #         early stop indicator
-    #     """
-    #     self._policy.train()
-    #     self._policy.apply_gradients(grad_dict_and_early_stop[0])
-    #     return grad_dict_and_early_stop[1]
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -395,10 +377,9 @@ class TRPOOps(AbsTrainOps):
             values = self._v_critic_net.v_values(states).detach().cpu().numpy()
             values = np.concatenate([values, np.zeros(1)])
             rewards = np.concatenate([batch.rewards, np.zeros(1)])
-            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
+            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]
             batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
             batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
-
 
         return batch
 
@@ -479,19 +460,6 @@ class TRPOTrainer(SingleAgentTrainer):
 
         for _ in range(self._params.grad_iters):
             self._ops.update_actor(batch)
-
-
-
-
-
-        # for _ in range(self._params.grad_iters):
-        #     self._ops.update_critic(batch)
-        #     self._ops.update_actor(batch)
-
-        # for _ in range(self._params.grad_iters):
-        #     early_stop = self._ops.update_actor(batch)
-        #     if early_stop:
-        #         break
 
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)

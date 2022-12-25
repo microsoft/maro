@@ -383,3 +383,31 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
     def _to_device_impl(self, device: torch.device) -> None:
         """Implementation of `to_device`."""
         raise NotImplementedError
+
+
+
+class TRPOPolicy(RLPolicy, metaclass=ABCMeta):
+    def __init__(self, num_inputs, num_outputs):
+        super(RLPolicy, self).__init__()
+        self.affine1 = torch.nn.Linear(num_inputs, 64)
+        self.affine2 = torch.nn.Linear(64, 64)
+
+        self.action_mean = torch.nn.Linear(64, num_outputs)
+        self.action_mean.weight.data.mul_(0.1)
+        self.action_mean.bias.data.mul_(0.0)
+
+        self.action_log_std = torch.nn.Parameter(torch.zeros(1, num_outputs))
+
+        self.saved_actions = []
+        self.rewards = []
+        self.final_value = 0
+
+    def forward(self, x):
+        x = torch.tanh(self.affine1(x))
+        x = torch.tanh(self.affine2(x))
+
+        action_mean = self.action_mean(x)
+        action_log_std = self.action_log_std.expand_as(action_mean)
+        action_std = torch.exp(action_log_std)
+
+        return action_mean, action_log_std, action_std
