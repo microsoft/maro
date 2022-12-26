@@ -7,18 +7,14 @@ from dataclasses import dataclass
 from typing import Callable, Dict, Optional, Tuple, cast
 import argparse, scipy.optimize
 from torch.autograd import Variable
-
+import torch.nn as nn
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
 from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, discount_cumsum, get_torch_device, ndarray_to_tensor
-
-from maro.rl.training.algorithms.trpo_base.trpo_model import *
-import math
+import math,torch
 
 import numpy as np
-
-import torch
 
 
 @dataclass
@@ -92,7 +88,6 @@ class TRPOOps(AbsTrainOps):
         self.args = self.parser.parse_args()
         self.num_inputs = policy.state_dim
         self.num_outputs = policy.action_dim
-        self.policy_net = Policy(self.num_inputs, self.num_outputs)
 
         self.affine1 = nn.Linear(self.num_inputs, 64)
         self.affine2 = nn.Linear(64, 64)
@@ -279,7 +274,7 @@ class TRPOOps(AbsTrainOps):
             mean1 = self.action_mean(b)
             log_std1 = self.action_log_std.expand_as(mean1)
             std1 = torch.exp(log_std1)
-            # mean1, log_std1, std1 = self.policy_net(Variable(states))
+            mean1, log_std1, std1 = self.policy_net(Variable(states))
 
             mean0 = Variable(mean1.data)
             log_std0 = Variable(log_std1.data)
@@ -293,6 +288,7 @@ class TRPOOps(AbsTrainOps):
                                                                 maxiter=25)
         self.set_flat_params_to(self._v_critic_net, torch.Tensor(flat_params))
         advantages = (advantages - advantages.mean()) / advantages.std()
+
         grad_states_ = torch.tanh(self.affine1(states))
         grad_states_ = torch.tanh(self.affine2(grad_states_))
         action_means = self.action_mean(grad_states_)
@@ -304,20 +300,21 @@ class TRPOOps(AbsTrainOps):
         self.fixed_log_prob = self.normal_log_density(Variable(actions), action_means, action_log_stds,
                                                       action_stds).data.clone()
         loss = get_loss()
+
         # grads = torch.autograd.grad(loss, self.policy_net.parameters())
         # loss_grad = torch.cat([grad.view(-1) for grad in grads]).data
         #
-        # def Fvp(v):
-        #     kl = get_kl()
-        #     kl = kl.mean()
-        #     grads = torch.autograd.grad(kl, self.policy_net.parameters(), create_graph=True)
-        #     flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
-        #
-        #     kl_v = (flat_grad_kl * Variable(v)).sum()
-        #     grads = torch.autograd.grad(kl_v, self.policy_net.parameters())
-        #     flat_grad_grad_kl = torch.cat([grad.contiguous().view(-1) for grad in grads]).data
-        #
-        #     return flat_grad_grad_kl + v * self.args.damping
+        def Fvp(v):
+            kl = get_kl()
+            kl = kl.mean()
+            grads = torch.autograd.grad(kl, self.policy_net.parameters(), create_graph=True)
+            flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
+
+            kl_v = (flat_grad_kl * Variable(v)).sum()
+            grads = torch.autograd.grad(kl_v, self.policy_net.parameters())
+            flat_grad_grad_kl = torch.cat([grad.contiguous().view(-1) for grad in grads]).data
+
+            return flat_grad_grad_kl + v * self.args.damping
         #
         # stepdir = self.conjugate_gradients(Fvp, -loss_grad, 10)
         #
@@ -336,7 +333,9 @@ class TRPOOps(AbsTrainOps):
         #
         # self.set_flat_params_to(self.policy_net, new_params)
 
+
         return loss
+
 
     def update_actor(self, batch: TransitionBatch) -> bool:
         """Update the actor network using a batch.
@@ -348,6 +347,7 @@ class TRPOOps(AbsTrainOps):
         loss = self._get_actor_loss(batch)
 
         self._policy.train_step(loss)
+
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -460,6 +460,7 @@ class TRPOTrainer(SingleAgentTrainer):
 
         for _ in range(self._params.grad_iters):
             self._ops.update_actor(batch)
+
 
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
