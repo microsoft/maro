@@ -274,7 +274,7 @@ class TRPOOps(AbsTrainOps):
             mean1 = self.action_mean(b)
             log_std1 = self.action_log_std.expand_as(mean1)
             std1 = torch.exp(log_std1)
-            mean1, log_std1, std1 = self.policy_net(Variable(states))
+            # mean1, log_std1, std1 = self.policy_net(Variable(states))
 
             mean0 = Variable(mean1.data)
             log_std0 = Variable(log_std1.data)
@@ -304,18 +304,18 @@ class TRPOOps(AbsTrainOps):
         # grads = torch.autograd.grad(loss, self.policy_net.parameters())
         # loss_grad = torch.cat([grad.view(-1) for grad in grads]).data
         #
-        def Fvp(v):
-            kl = get_kl()
-            kl = kl.mean()
-            grads = torch.autograd.grad(kl, self.policy_net.parameters(), create_graph=True)
-            flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
-
-            kl_v = (flat_grad_kl * Variable(v)).sum()
-            grads = torch.autograd.grad(kl_v, self.policy_net.parameters())
-            flat_grad_grad_kl = torch.cat([grad.contiguous().view(-1) for grad in grads]).data
-
-            return flat_grad_grad_kl + v * self.args.damping
+        # def Fvp(v):
+        #     kl = get_kl()
+        #     kl = kl.mean()
+        #     grads = torch.autograd.grad(kl, self.policy_net.parameters(), create_graph=True)
+        #     flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
         #
+        #     kl_v = (flat_grad_kl * Variable(v)).sum()
+        #     grads = torch.autograd.grad(kl_v, self.policy_net.parameters())
+        #     flat_grad_grad_kl = torch.cat([grad.contiguous().view(-1) for grad in grads]).data
+        #
+        #     return flat_grad_grad_kl + v * self.args.damping
+
         # stepdir = self.conjugate_gradients(Fvp, -loss_grad, 10)
         #
         # shs = 0.5 * (stepdir * Fvp(stepdir)).sum(0, keepdim=True)
