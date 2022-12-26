@@ -279,7 +279,7 @@ class TRPOOps(AbsTrainOps):
             mean1 = self.action_mean(b)
             log_std1 = self.action_log_std.expand_as(mean1)
             std1 = torch.exp(log_std1)
-            mean1, log_std1, std1 = self.policy_net(Variable(states))
+            # mean1, log_std1, std1 = self.policy_net(Variable(states))
 
             mean0 = Variable(mean1.data)
             log_std0 = Variable(log_std1.data)

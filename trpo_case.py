@@ -11,6 +11,7 @@ from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.rollout import AbsEnvSampler, CacheElement, ExpElement
 from maro.rl.training import TrainingManager
 from maro.rl.training.algorithms.trpo import TRPOTrainer, TRPOParams
+from maro.rl.training.algorithms.test import TestTrainer, TestParams
 from maro.rl.training.algorithms.ppo import PPOTrainer, PPOParams
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
@@ -130,6 +131,17 @@ def get_trpo_trainer(state_dim: int, name: str) -> TRPOTrainer:
         ),
     )
 
+def get_test_trainer(state_dim: int, name: str) -> TestTrainer:
+    return TestTrainer(
+        name=name,
+        reward_discount=.0,
+        params=TestParams(
+            get_v_critic_net_func=lambda: MyCriticNet(state_dim),
+            grad_iters=10,
+            critic_loss_cls=torch.nn.SmoothL1Loss,
+            lam=0.97,
+        ),
+    )
 
 def get_ppo_trainer(state_dim: int, name: str) -> PPOTrainer:
     return PPOTrainer(
@@ -195,7 +207,7 @@ num_agents = len(learn_env.agent_idx_list)
 agent2policy = {agent: f"ppo_{agent}.policy" for agent in learn_env.agent_idx_list}
 policies = [DiscretePolicyGradient(name=f"ppo_{i}.policy", policy_net=MyActorNet(state_dim, action_num)) for i in
             range(num_agents)]
-trainers = [get_trpo_trainer(state_dim, f"ppo_{i}") for i in range(num_agents)]
+trainers = [get_test_trainer(state_dim, f"ppo_{i}") for i in range(num_agents)]
 
 rl_component_bundle = RLComponentBundle(
     env_sampler=CIMEnvSampler(
