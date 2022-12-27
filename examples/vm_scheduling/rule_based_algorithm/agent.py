@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionEvent, PostponeAction
 from maro.simulator.scenarios.vm_scheduling.common import Action
 
 
@@ -10,7 +10,7 @@ class VMSchedulingAgent(object):
     def __init__(self, algorithm):
         self._algorithm = algorithm
 
-    def choose_action(self, decision_event: DecisionPayload, env: Env) -> Action:
+    def choose_action(self, decision_event: DecisionEvent, env: Env) -> Action:
         """This method will determine whether to postpone the current VM or allocate a PM to the current VM."""
         valid_pm_num: int = len(decision_event.valid_pms)
 

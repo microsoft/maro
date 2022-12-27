@@ -7,7 +7,7 @@ import numpy as np
 from rule_based_algorithm import RuleBasedAlgorithm
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionEvent
 
 
 class BinPacking(RuleBasedAlgorithm):
@@ -24,7 +24,7 @@ class BinPacking(RuleBasedAlgorithm):
         self._bins = [[] for _ in range(self._pm_cpu_core_num + 1)]
         self._bin_size = [0] * (self._pm_cpu_core_num + 1)
 
-    def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
+    def allocate_vm(self, decision_event: DecisionEvent, env: Env) -> AllocateAction:
         # Initialize the bin.
         self._init_bin()
 

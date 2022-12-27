@@ -5,7 +5,7 @@ import numpy as np
 from rule_based_algorithm import RuleBasedAlgorithm
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionEvent
 
 
 class BestFit(RuleBasedAlgorithm):
@@ -13,7 +13,7 @@ class BestFit(RuleBasedAlgorithm):
         super().__init__()
         self._metric_type: str = kwargs["metric_type"]
 
-    def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
+    def allocate_vm(self, decision_event: DecisionEvent, env: Env) -> AllocateAction:
         # Use a rule to choose a valid PM.
         chosen_idx: int = self._pick_pm_func(decision_event, env)
         # Take action to allocate on the chose PM.

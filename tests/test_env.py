@@ -8,7 +8,7 @@ from maro.simulator.core import Env
 from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
 from maro.simulator.utils.common import frame_index_to_ticks, tick_to_frame_index
 
-from .dummy.dummy_business_engine import DummyEngine
+from tests.dummy.dummy_business_engine import DummyEngine
 from tests.utils import backends_to_test
 
 
@@ -377,23 +377,16 @@ class TestEnv(unittest.TestCase):
             Env("cim", "None", 100)
 
     def test_get_available_envs(self):
-        scenario_names = get_scenarios()
+        scenario_names = sorted(get_scenarios())
 
         # we have 3 built-in scenarios
-        self.assertEqual(3, len(scenario_names))
-
-        self.assertTrue("cim" in scenario_names)
-        self.assertTrue("citi_bike" in scenario_names)
-
-        get_topologies("cim")
-        citi_bike_topologies = get_topologies("citi_bike")
-        get_topologies("vm_scheduling")
+        self.assertListEqual(scenario_names, ["cim", "citi_bike", "vm_scheduling"])
 
         env_list = get_available_envs()
 
         self.assertEqual(
             len(env_list),
-            len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties) + len(get_topologies("supply_chain")),
+            sum(len(get_topologies(s)) for s in scenario_names),
         )
 
     def test_frame_index_to_ticks(self):
