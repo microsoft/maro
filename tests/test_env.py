@@ -326,7 +326,7 @@ class TestEnv(unittest.TestCase):
                 msg=f"env should stop at tick 6, but {env.tick}",
             )
 
-            # avaiable snapshot should be 7 (0-6)
+            # available snapshot should be 7 (0-6)
             states = env.snapshot_list["dummies"][::"val"].reshape(-1, 10)
 
             self.assertEqual(

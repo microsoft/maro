@@ -62,12 +62,10 @@ class ContinuousRLPolicy(RLPolicy):
         )
 
         self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)
-        assert self._lbounds is not None and self._ubounds is not None
-
         self._policy_net = policy_net
 
     @property
-    def action_bounds(self) -> Tuple[List[float], List[float]]:
+    def action_bounds(self) -> Tuple[Optional[List[float]], Optional[List[float]]]:
         return self._lbounds, self._ubounds
 
     @property
@@ -118,7 +116,7 @@ class ContinuousRLPolicy(RLPolicy):
     def train(self) -> None:
         self._policy_net.train()
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         return self._policy_net.get_state()
 
     def set_state(self, policy_state: dict) -> None:

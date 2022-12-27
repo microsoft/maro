@@ -72,7 +72,7 @@ class AbsEnv(ABC):
         return self._business_engine
 
     @abstractmethod
-    def step(self, action) -> Tuple[Optional[dict], Optional[List[object]], Optional[bool]]:
+    def step(self, action) -> Tuple[Optional[dict], Optional[list], bool]:
         """Push the environment to next step with action.
 
         Args:

@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -27,14 +27,14 @@ class AbsPolicy(object, metaclass=ABCMeta):
         self._trainable = trainable
 
     @abstractmethod
-    def get_actions(self, states: object) -> object:
+    def get_actions(self, states: Union[list, np.ndarray]) -> Any:
         """Get actions according to states.
 
         Args:
-            states (object): States.
+            states (Union[list, np.ndarray]): States.
 
         Returns:
-            actions (object): Actions.
+            actions (Any): Actions.
         """
         raise NotImplementedError
 
@@ -79,7 +79,7 @@ class DummyPolicy(AbsPolicy):
     def __init__(self) -> None:
         super(DummyPolicy, self).__init__(name="DUMMY_POLICY", trainable=False)
 
-    def get_actions(self, states: object) -> None:
+    def get_actions(self, states: Union[list, np.ndarray]) -> None:
         return None
 
     def explore(self) -> None:
@@ -101,11 +101,11 @@ class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
     def __init__(self, name: str) -> None:
         super(RuleBasedPolicy, self).__init__(name=name, trainable=False)
 
-    def get_actions(self, states: List[object]) -> List[object]:
+    def get_actions(self, states: list) -> list:
         return self._rule(states)
 
     @abstractmethod
-    def _rule(self, states: List[object]) -> List[object]:
+    def _rule(self, states: list) -> list:
         raise NotImplementedError
 
     def explore(self) -> None:
@@ -304,7 +304,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         """Get the state of the policy."""
         raise NotImplementedError
 

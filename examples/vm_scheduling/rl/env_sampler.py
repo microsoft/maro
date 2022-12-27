@@ -5,12 +5,13 @@ import time
 from collections import defaultdict
 from os import makedirs
 from os.path import dirname, join, realpath
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
 from matplotlib import pyplot as plt
 
-from maro.rl.rollout import AbsEnvSampler, CacheElement
+from maro.rl.policy import AbsPolicy
+from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionEvent, PostponeAction
 
@@ -30,8 +31,25 @@ makedirs(plt_path, exist_ok=True)
 
 
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(self, learn_env: Env, test_env: Env) -> None:
-        super(VMEnvSampler, self).__init__(learn_env, test_env)
+    def __init__(
+        self,
+        learn_env: Env,
+        test_env: Env,
+        policies: List[AbsPolicy],
+        agent2policy: Dict[Any, str],
+        trainable_policies: List[str] = None,
+        agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
+        reward_eval_delay: int = None,
+    ) -> None:
+        super(VMEnvSampler, self).__init__(
+            learn_env,
+            test_env,
+            policies,
+            agent2policy,
+            trainable_policies,
+            agent_wrapper_cls,
+            reward_eval_delay,
+        )
 
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
