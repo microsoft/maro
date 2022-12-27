@@ -3,19 +3,19 @@
 
 from abc import ABCMeta
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple, cast
 
 import numpy as np
 import torch
 
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
-from maro.rl.training import AbsTrainOps, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, discount_cumsum, get_torch_device, ndarray_to_tensor
 
 
 @dataclass
-class ACBasedParams(TrainerParams, metaclass=ABCMeta):
+class ACBasedParams(BaseTrainerParams, metaclass=ABCMeta):
     """
     Parameter bundle for Actor-Critic based algorithms (Actor-Critic & PPO)
 
@@ -23,18 +23,16 @@ class ACBasedParams(TrainerParams, metaclass=ABCMeta):
     grad_iters (int, default=1): Number of iterations to calculate gradients.
     critic_loss_cls (Callable, default=None): Critic loss function. If it is None, use MSE.
     lam (float, default=0.9): Lambda value for generalized advantage estimation (TD-Lambda).
-    min_logp (float, default=None): Lower bound for clamping logP values during learning.
+    min_logp (float, default=float("-inf")): Lower bound for clamping logP values during learning.
         This is to prevent logP from becoming very large in magnitude and causing stability issues.
-        If it is None, it means no lower bound.
-    is_discrete_action (bool, default=True): Indicator of continuous or discrete action policy.
     """
 
-    get_v_critic_net_func: Callable[[], VNet] = None
+    get_v_critic_net_func: Callable[[], VNet]
     grad_iters: int = 1
-    critic_loss_cls: Callable = None
+    critic_loss_cls: Optional[Callable] = None
     lam: float = 0.9
-    min_logp: Optional[float] = None
-    is_discrete_action: bool = True
+    min_logp: float = float("-inf")
+    clip_ratio: Optional[float] = None
 
 
 class ACBasedOps(AbsTrainOps):
@@ -43,33 +41,26 @@ class ACBasedOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[], RLPolicy],
-        get_v_critic_net_func: Callable[[], VNet],
-        parallelism: int = 1,
+        policy: RLPolicy,
+        params: ACBasedParams,
         reward_discount: float = 0.9,
-        critic_loss_cls: Callable = None,
-        clip_ratio: float = None,
-        lam: float = 0.9,
-        min_logp: float = None,
-        is_discrete_action: bool = True,
+        parallelism: int = 1,
     ) -> None:
         super(ACBasedOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             parallelism=parallelism,
         )
 
-        assert isinstance(self._policy, DiscretePolicyGradient) or isinstance(self._policy, ContinuousRLPolicy)
+        assert isinstance(self._policy, (ContinuousRLPolicy, DiscretePolicyGradient))
 
         self._reward_discount = reward_discount
-        self._critic_loss_func = critic_loss_cls() if critic_loss_cls is not None else torch.nn.MSELoss()
-        self._clip_ratio = clip_ratio
-        self._lam = lam
-        self._min_logp = min_logp
-        self._v_critic_net = get_v_critic_net_func()
-        self._is_discrete_action = is_discrete_action
-
-        self._device = None
+        self._critic_loss_func = params.critic_loss_cls() if params.critic_loss_cls is not None else torch.nn.MSELoss()
+        self._clip_ratio = params.clip_ratio
+        self._lam = params.lam
+        self._min_logp = params.min_logp
+        self._v_critic_net = params.get_v_critic_net_func()
+        self._is_discrete_action = isinstance(self._policy, DiscretePolicyGradient)
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
@@ -249,14 +240,32 @@ class ACBasedTrainer(SingleAgentTrainer):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
     """
 
-    def __init__(self, name: str, params: ACBasedParams) -> None:
-        super(ACBasedTrainer, self).__init__(name, params)
+    def __init__(
+        self,
+        name: str,
+        params: ACBasedParams,
+        replay_memory_capacity: int = 10000,
+        batch_size: int = 128,
+        data_parallelism: int = 1,
+        reward_discount: float = 0.9,
+    ) -> None:
+        super(ACBasedTrainer, self).__init__(
+            name,
+            replay_memory_capacity,
+            batch_size,
+            data_parallelism,
+            reward_discount,
+        )
         self._params = params
 
+    def _register_policy(self, policy: RLPolicy) -> None:
+        assert isinstance(policy, (ContinuousRLPolicy, DiscretePolicyGradient))
+        self._policy = policy
+
     def build(self) -> None:
-        self._ops = self.get_ops()
+        self._ops = cast(ACBasedOps, self.get_ops())
         self._replay_memory = FIFOReplayMemory(
-            capacity=self._params.replay_memory_capacity,
+            capacity=self._replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
         )
@@ -266,10 +275,11 @@ class ACBasedTrainer(SingleAgentTrainer):
 
     def get_local_ops(self) -> AbsTrainOps:
         return ACBasedOps(
-            name=self._policy_name,
-            policy_creator=self._policy_creator,
-            parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params(),
+            name=self._policy.name,
+            policy=self._policy,
+            parallelism=self._data_parallelism,
+            reward_discount=self._reward_discount,
+            params=self._params,
         )
 
     def _get_batch(self) -> TransitionBatch:

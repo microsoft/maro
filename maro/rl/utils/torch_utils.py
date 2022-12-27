@@ -55,5 +55,5 @@ def average_grads(grad_list: List[dict]) -> dict:
     }
 
 
-def get_torch_device(device: str = None):
+def get_torch_device(device: str = None) -> torch.device:
     return torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))

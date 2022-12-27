@@ -121,14 +121,16 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
     ```sh
     # Install MARO from source.
-    bash scripts/install_maro.sh
+    bash scripts/install_maro.sh;
+    pip install -r ./requirements.dev.txt;
     ```
 
   - Windows
 
     ```powershell
     # Install MARO from source.
-    .\scripts\install_maro.bat
+    .\scripts\install_maro.bat;
+    pip install -r ./requirements.dev.txt;
     ```
 
 - *Notes: If your package is not found, remember to set your PYTHONPATH*

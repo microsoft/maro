@@ -28,7 +28,7 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
     -input_file_folder_path
         --epoch_0 : Data of current epoch.
             --holder_info.csv: Attributes of current epoch.
-        ………………
+        ......
         --epoch_{epoch_num-1}
         --manifest.yml: Record basic info like scenario name, name of index_name_mapping file.
         --index_name_mapping file: Record the relationship between an index and its name.

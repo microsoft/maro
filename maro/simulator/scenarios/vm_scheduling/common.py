@@ -3,10 +3,12 @@
 
 from typing import List
 
+from maro.common import BaseAction, BaseDecisionEvent
+
 from .virtual_machine import VirtualMachine
 
 
-class Action:
+class Action(BaseAction):
     """VM Scheduling scenario action object, which was used to pass action from agent to business engine.
 
     Args:
@@ -74,7 +76,7 @@ class VmRequestPayload:
         )
 
 
-class DecisionPayload:
+class DecisionEvent(BaseDecisionEvent):
     """Decision event in VM Scheduling scenario that contains information for agent to choose action.
 
     Args:

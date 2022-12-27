@@ -24,7 +24,7 @@ def start_citi_bike_dashboard(source_path: str, epoch_num: int, prefix: str):
             --stations.csv: Record stations' attributes in this file.
             --matrices.csv: Record transfer volume information in this file.
             --stations_summary.csv: Record the summary data of current epoch.
-        ………………
+        ......
         --epoch_{epoch_num-1}
         --manifest.yml: Record basic info like scenario name, name of index_name_mapping file.
         --full_stations.json: Record the relationship between ports' index and name.

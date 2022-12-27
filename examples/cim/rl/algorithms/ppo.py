@@ -16,12 +16,11 @@ def get_ppo_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicy
 def get_ppo(state_dim: int, name: str) -> PPOTrainer:
     return PPOTrainer(
         name=name,
+        reward_discount=0.0,
         params=PPOParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
-            reward_discount=0.0,
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
-            min_logp=None,
             lam=0.0,
             clip_ratio=0.1,
         ),

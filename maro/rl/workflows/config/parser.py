@@ -207,7 +207,7 @@ class ConfigParser:
                     f"{self._validation_err_pfx}: 'training.checkpointing.interval' must be an int",
                 )
 
-    def _validate_logging_section(self, component, level_dict: dict) -> None:
+    def _validate_logging_section(self, component: str, level_dict: dict) -> None:
         if any(key not in {"stdout", "file"} for key in level_dict):
             raise KeyError(
                 f"{self._validation_err_pfx}: fields under section '{component}.logging' must be 'stdout' or 'file'",
@@ -261,7 +261,7 @@ class ConfigParser:
         num_episodes = self._config["main"]["num_episodes"]
         main_proc = f"{self._config['job']}.main"
         min_n_sample = self._config["main"].get("min_n_sample", 1)
-        env = {
+        env: dict = {
             main_proc: (
                 os.path.join(self._get_workflow_path(containerize=containerize), "main.py"),
                 {

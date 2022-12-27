@@ -4,14 +4,14 @@
 from rule_based_algorithm import RuleBasedAlgorithm
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionEvent
 
 
 class FirstFit(RuleBasedAlgorithm):
     def __init__(self, **kwargs):
         super().__init__()
 
-    def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
+    def allocate_vm(self, decision_event: DecisionEvent, env: Env) -> AllocateAction:
         # Use a valid PM based on its order.
         chosen_idx: int = decision_event.valid_pms[0]
         # Take action to allocate on the chose PM.

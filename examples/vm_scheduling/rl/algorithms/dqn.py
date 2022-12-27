@@ -77,15 +77,15 @@ def get_dqn_policy(state_dim: int, action_num: int, num_features: int, name: str
 def get_dqn(name: str) -> DQNTrainer:
     return DQNTrainer(
         name=name,
+        reward_discount=0.9,
+        replay_memory_capacity=10000,
+        batch_size=32,
+        data_parallelism=2,
         params=DQNParams(
-            reward_discount=0.9,
             update_target_every=5,
             num_epochs=100,
             soft_update_coef=0.1,
             double=False,
-            replay_memory_capacity=10000,
             random_overwrite=False,
-            batch_size=32,
-            data_parallelism=2,
         ),
     )

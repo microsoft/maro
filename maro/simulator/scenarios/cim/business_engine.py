@@ -714,38 +714,38 @@ class CimBusinessEngine(AbsBusinessEngine):
         actions = event.payload
         assert isinstance(actions, list)
 
-        if actions:
-            for action in actions:
-                vessel_idx = action.vessel_idx
-                port_idx = action.port_idx
-                move_num = action.quantity
-                vessel = self._vessels[vessel_idx]
-                port = self._ports[port_idx]
-                port_empty = port.empty
-                vessel_empty = vessel.empty
+        for action in actions:
+            assert isinstance(action, Action)
 
-                assert isinstance(action, Action)
-                action_type = action.action_type
+            vessel_idx = action.vessel_idx
+            port_idx = action.port_idx
+            move_num = action.quantity
+            vessel = self._vessels[vessel_idx]
+            port = self._ports[port_idx]
+            port_empty = port.empty
+            vessel_empty = vessel.empty
 
-                if action_type == ActionType.DISCHARGE:
-                    assert move_num <= vessel_empty
+            action_type = action.action_type
 
-                    port.empty = port_empty + move_num
-                    vessel.empty = vessel_empty - move_num
-                else:
-                    assert move_num <= min(port_empty, vessel.remaining_space)
+            if action_type == ActionType.DISCHARGE:
+                assert move_num <= vessel_empty
 
-                    port.empty = port_empty - move_num
-                    vessel.empty = vessel_empty + move_num
+                port.empty = port_empty + move_num
+                vessel.empty = vessel_empty - move_num
+            else:
+                assert move_num <= min(port_empty, vessel.remaining_space)
 
-                # Align the event type to make the output readable.
-                event.event_type = Events.DISCHARGE_EMPTY if action_type == ActionType.DISCHARGE else Events.LOAD_EMPTY
+                port.empty = port_empty - move_num
+                vessel.empty = vessel_empty + move_num
 
-                # Update transfer cost for port and metrics.
-                self._total_operate_num += move_num
-                port.transfer_cost += move_num
+            # Align the event type to make the output readable.
+            event.event_type = Events.DISCHARGE_EMPTY if action_type == ActionType.DISCHARGE else Events.LOAD_EMPTY
 
-                self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]
+            # Update transfer cost for port and metrics.
+            self._total_operate_num += move_num
+            port.transfer_cost += move_num
+
+            self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]
 
     def _stream_base_info(self):
         if streamit:
