@@ -66,7 +66,7 @@ def render_inter_view(source_path: str, epoch_num: int):
     # Get epoch sample number.
     down_pooling_range = helper._get_sampled_epoch_range(epoch_num, sample_ratio)
     attribute_option_candidates = (
-        CITIBIKEItemOption.quick_info + CITIBIKEItemOption.requirement_info + CITIBIKEItemOption.station_info
+        CITIBIKEItemOption.quick_info + CITIBIKEItemOption.requirement_info + ["bikes", "capacity"]
     )
     # Generate data.
     data_summary = helper.read_detail_csv(
