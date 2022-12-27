@@ -21,7 +21,6 @@ def get_ppo(state_dim: int, name: str) -> PPOTrainer:
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
-            min_logp=None,
             lam=0.0,
             clip_ratio=0.1,
         ),
