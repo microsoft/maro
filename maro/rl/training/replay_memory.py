@@ -204,7 +204,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._actions = np.zeros((self._capacity, self._action_dim), dtype=np.float32)
         self._rewards = np.zeros(self._capacity, dtype=np.float32)
-        self._terminals = np.zeros(self._capacity, dtype=np.bool)
+        self._terminals = np.zeros(self._capacity, dtype=bool)
         self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._returns = np.zeros(self._capacity, dtype=np.float32)
         self._advantages = np.zeros(self._capacity, dtype=np.float32)
@@ -373,7 +373,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._actions = [np.zeros((self._capacity, action_dim), dtype=np.float32) for action_dim in self._action_dims]
         self._rewards = [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
         self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
-        self._terminals = np.zeros(self._capacity, dtype=np.bool)
+        self._terminals = np.zeros(self._capacity, dtype=bool)
 
         assert len(agent_states_dims) == self.agent_num
         self._agent_states_dims = agent_states_dims

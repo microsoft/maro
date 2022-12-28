@@ -311,7 +311,7 @@ class TestFrame(unittest.TestCase):
         self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states)[0:5])
 
         # 2 padding (NAN) in the end
-        self.assertTrue((states[-2:].astype(np.int) == 0).all())
+        self.assertTrue((states[-2:].astype(int) == 0).all())
 
         states = static_snapshot[1::"a3"]
 

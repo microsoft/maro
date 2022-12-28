@@ -320,7 +320,7 @@ class CitiBikePipeline(DataPipeline):
             0,
             index=station_info["station_index"],
             columns=station_info["station_index"],
-            dtype=np.float,
+            dtype=float,
         )
         look_up_df = station_info[["latitude", "longitude"]]
         return distance_adj.apply(
@@ -617,7 +617,7 @@ class CitiBikeToyPipeline(DataPipeline):
             0,
             index=station_init["station_index"],
             columns=station_init["station_index"],
-            dtype=np.float,
+            dtype=float,
         )
         look_up_df = station_init[["latitude", "longitude"]]
         distance_df = distance_adj.apply(
