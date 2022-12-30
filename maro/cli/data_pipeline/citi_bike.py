@@ -8,7 +8,6 @@ import zipfile
 from enum import Enum
 
 import geopy.distance
-import numpy as np
 import pandas as pd
 from yaml import safe_load
 
