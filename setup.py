@@ -147,7 +147,7 @@ setup(
         "requests>=2.25.1",
         "scipy>=1.7.0",
         "tabulate>=0.8.5",
-        "torch>=1.6.0, <1.8.0",
+        "torch>=1.6.0, <1.14.0",
         "tornado>=6.1",
     ]
     + specific_requires,
