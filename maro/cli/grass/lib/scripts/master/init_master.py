@@ -106,7 +106,7 @@ class MasterInitializer:
             master_redis_port=self.master_details["redis"]["port"],
             cluster_name=cluster_details["name"],
             master_fluentd_port=self.master_details["fluentd"]["port"],
-            steps=5
+            steps=5,
         )
         Subprocess.interactive_run(command=command)
 
@@ -115,7 +115,7 @@ class MasterInitializer:
         # Rewrite data in .service and write it to systemd folder
         with open(
             file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/master_agent/maro-master-agent.service",
-            mode="r"
+            mode="r",
         ) as fr:
             service_file = fr.read()
         service_file = service_file.format(maro_shared_path=Paths.ABS_MARO_SHARED)
@@ -131,13 +131,13 @@ class MasterInitializer:
         # Rewrite data in .service and write it to systemd folder
         with open(
             file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/master_api_server/maro-master-api-server.service",
-            mode="r"
+            mode="r",
         ) as fr:
             service_file = fr.read()
         service_file = service_file.format(
             home_path=str(pathlib.Path.home()),
             maro_shared_path=Paths.ABS_MARO_SHARED,
-            master_api_server_port=self.master_details["api_server"]["port"]
+            master_api_server_port=self.master_details["api_server"]["port"],
         )
         os.makedirs(name=os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)
         with open(file=os.path.expanduser("~/.config/systemd/user/maro-master-api-server.service"), mode="w") as fw:
@@ -152,7 +152,7 @@ class MasterInitializer:
         os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/scripts", exist_ok=True)
         shutil.copy2(
             src=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/master/delete_master.py",
-            dst=f"{Paths.ABS_MARO_LOCAL}/scripts"
+            dst=f"{Paths.ABS_MARO_LOCAL}/scripts",
         )
 
 

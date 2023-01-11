@@ -7,8 +7,7 @@ import sys
 
 
 class Subprocess:
-    """Wrapper class of subprocess, with CliException integrated.
-    """
+    """Wrapper class of subprocess, with CliException integrated."""
 
     @staticmethod
     def run(command: str, timeout: int = None) -> str:
@@ -29,7 +28,7 @@ class Subprocess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            timeout=timeout
+            timeout=timeout,
         )
         if completed_process.returncode != 0:
             raise Exception(completed_process.stderr)
@@ -52,7 +51,7 @@ class Subprocess:
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
         )
         while True:
             next_line = process.stdout.readline()

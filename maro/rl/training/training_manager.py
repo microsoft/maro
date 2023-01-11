@@ -1,20 +1,23 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
 import asyncio
 import collections
 import os
-from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+import typing
+from typing import Any, Dict, Iterable, List, Tuple
 
-from maro.rl.policy import AbsPolicy
 from maro.rl.rollout import ExpElement
 from maro.rl.training import SingleAgentTrainer
 from maro.utils import LoggerV2
 from maro.utils.exception.rl_toolkit_exception import MissingTrainer
 
 from .trainer import AbsTrainer, MultiAgentTrainer
-from .utils import extract_trainer_name
+
+if typing.TYPE_CHECKING:
+    from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 
 
 class TrainingManager(object):
@@ -22,11 +25,8 @@ class TrainingManager(object):
     Training manager. Manage and schedule all trainers to train policies.
 
     Args:
-        policy_creator (Dict[str, Callable[[str], AbsPolicy]]): Dict of functions to create policies.
-        trainer_creator (Dict[str, Callable[[str], AbsTrainer]]): Dict of functions to create trainers.
-        agent2policy (Dict[Any, str]): Agent name to policy name mapping.
-        device_mapping (Dict[str, str], default={}): User-defined device mapping from policy name to pytorch
-            device name.
+        rl_component_bundle (RLComponentBundle): Resources to launch the RL workflow.
+        explicit_assign_device (bool, default=False): Whether to assign policy to its device in the training manager.
         proxy_address (Tuple[str, int], default=None): Address of the training proxy. If it is not None,
             it is registered to all trainers, which in turn create `RemoteOps` for distributed training.
         logger (LoggerV2, default=None): A logger for logging key events.
@@ -34,32 +34,35 @@ class TrainingManager(object):
 
     def __init__(
         self,
-        policy_creator: Dict[str, Callable[[str], AbsPolicy]],
-        trainer_creator: Dict[str, Callable[[str], AbsTrainer]],
-        agent2policy: Dict[Any, str],  # {agent_name: policy_name}
-        device_mapping: Dict[str, str] = None,
+        rl_component_bundle: RLComponentBundle,
+        explicit_assign_device: bool = False,
         proxy_address: Tuple[str, int] = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(TrainingManager, self).__init__()
 
-        self._trainer_dict: Dict[str, AbsTrainer] = {}
-        self._agent2policy = agent2policy
         self._proxy_address = proxy_address
-        for trainer_name, func in trainer_creator.items():
-            trainer = func(trainer_name)
+
+        self._trainer_dict: Dict[str, AbsTrainer] = {}
+        for trainer in rl_component_bundle.trainers:
             if self._proxy_address:
                 trainer.set_proxy_address(self._proxy_address)
-            trainer.register_agent2policy(self._agent2policy)
-            trainer.register_policy_creator(policy_creator)
+            trainer.register_agent2policy(
+                agent2policy=rl_component_bundle.trainable_agent2policy,
+                policy_trainer_mapping=rl_component_bundle.policy_trainer_mapping,
+            )
+            trainer.register_policies(
+                policies=rl_component_bundle.policies,
+                policy_trainer_mapping=rl_component_bundle.policy_trainer_mapping,
+            )
             trainer.register_logger(logger)
-            trainer.build()  # `build()` must be called after `register_policy_creator()`
-            self._trainer_dict[trainer_name] = trainer
+            trainer.build()  # `build()` must be called after `register_policies()`
+            self._trainer_dict[trainer.name] = trainer
 
         # User-defined allocation of compute devices, i.e., GPU's to the trainer ops
-        if device_mapping is not None:
-            for policy_name, device_name in device_mapping.items():
-                trainer = self._trainer_dict[extract_trainer_name(policy_name)]
+        if explicit_assign_device:
+            for policy_name, device_name in rl_component_bundle.device_mapping.items():
+                trainer = self._trainer_dict[rl_component_bundle.policy_trainer_mapping[policy_name]]
 
                 if isinstance(trainer, SingleAgentTrainer):
                     ops = trainer.ops
@@ -69,14 +72,15 @@ class TrainingManager(object):
                 ops.to_device(device_name)
 
         self._agent2trainer: Dict[Any, str] = {}
-        for agent_name, policy_name in self._agent2policy.items():
-            trainer_name = extract_trainer_name(policy_name)
+        for agent_name, policy_name in rl_component_bundle.trainable_agent2policy.items():
+            trainer_name = rl_component_bundle.policy_trainer_mapping[policy_name]
             if trainer_name not in self._trainer_dict:
                 raise MissingTrainer(f"trainer {trainer_name} does not exist")
             self._agent2trainer[agent_name] = trainer_name
 
     def train_step(self) -> None:
         if self._proxy_address:
+
             async def train_step() -> Iterable:
                 return await asyncio.gather(
                     *[trainer_.train_step_as_task() for trainer_ in self._trainer_dict.values()]
@@ -87,13 +91,16 @@ class TrainingManager(object):
             for trainer in self._trainer_dict.values():
                 trainer.train_step()
 
-    def get_policy_state(self) -> Dict[str, Dict[str, object]]:
+    def get_policy_state(self) -> Dict[str, dict]:
         """Get policies' states.
 
         Returns:
             A double-deck dict with format: {trainer_name: {policy_name: policy_state}}
         """
-        return dict(chain(*[trainer.get_policy_state().items() for trainer in self._trainer_dict.values()]))
+        policy_states: Dict[str, dict] = {}
+        for trainer in self._trainer_dict.values():
+            policy_states.update(trainer.get_policy_state())
+        return policy_states
 
     def record_experiences(self, experiences: List[List[ExpElement]]) -> None:
         """Record experiences collected from external modules (for example, EnvSampler).
@@ -105,7 +112,7 @@ class TrainingManager(object):
         for env_idx, env_experience in enumerate(experiences):
             trainer_exp_pool = collections.defaultdict(list)
             for exp_element in env_experience:  # Dispatch experiences to trainers tick by tick.
-                exp_dict = exp_element.split_contents(self._agent2trainer)
+                exp_dict = exp_element.split_contents_by_trainer(self._agent2trainer)
                 for trainer_name, exp_elem in exp_dict.items():
                     trainer_exp_pool[trainer_name].append(exp_elem)
 
@@ -127,6 +134,7 @@ class TrainingManager(object):
 
     def exit(self) -> None:
         if self._proxy_address:
+
             async def exit_all() -> Iterable:
                 return await asyncio.gather(*[trainer.exit() for trainer in self._trainer_dict.values()])
 

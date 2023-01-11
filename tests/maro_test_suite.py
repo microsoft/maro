@@ -1,16 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import importlib
 import os
 import re
-import subprocess
 import sys
 import unittest
-from inspect import getmembers, isclass
 
-test_file_re = re.compile(r'^test_.*.py$')
-
+test_file_re = re.compile(r"^test_.*.py$")
 
 
 if __name__ == "__main__":
@@ -20,7 +16,7 @@ if __name__ == "__main__":
     # set working dir to tests folder
     os.chdir(script_folder)
 
-    test_case_list=[]
+    test_case_list = []
 
     for path, _, file_names in os.walk("."):
         for fn in file_names:

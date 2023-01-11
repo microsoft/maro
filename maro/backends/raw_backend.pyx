@@ -5,22 +5,40 @@
 #distutils: language = c++
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 
-import numpy as np
-cimport numpy as np
-cimport cython
+import warnings
 
+import numpy as np
+
+cimport cython
+cimport numpy as np
+from cpython cimport bool
 from cython cimport view
 from cython.operator cimport dereference as deref
-
-from cpython cimport bool
 from libcpp cimport bool as cppbool
 from libcpp.map cimport map
 
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
-    INT, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX,
-    ATTR_CHAR, ATTR_UCHAR, ATTR_SHORT, ATTR_USHORT, ATTR_INT, ATTR_UINT,
-    ATTR_LONG, ATTR_ULONG, ATTR_FLOAT, ATTR_DOUBLE)
-
+from maro.backends.backend cimport (
+    ATTR_CHAR,
+    ATTR_DOUBLE,
+    ATTR_FLOAT,
+    ATTR_INT,
+    ATTR_LONG,
+    ATTR_SHORT,
+    ATTR_TYPE,
+    ATTR_UCHAR,
+    ATTR_UINT,
+    ATTR_ULONG,
+    ATTR_USHORT,
+    INT,
+    NODE_INDEX,
+    NODE_TYPE,
+    SLOT_INDEX,
+    UINT,
+    ULONG,
+    AttributeType,
+    BackendAbc,
+    SnapshotListAbc,
+)
 
 # Ensure numpy will not crash, as we use numpy as query result
 np.import_array()
@@ -288,7 +306,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
             return None
 
         # Result holder
-        cdef QUERY_FLOAT[:, :, :, :] result = view.array(shape=(shape.tick_number, shape.max_node_number, shape.attr_number, shape.max_slot_number), itemsize=sizeof(QUERY_FLOAT), format="f")
+        cdef QUERY_FLOAT[:, :, :, :] result = view.array(shape=(shape.tick_number, shape.max_node_number, shape.attr_number, shape.max_slot_number), itemsize=sizeof(QUERY_FLOAT), format="d")
 
         # Default result value
         result[:, :, :, :] = 0
@@ -331,139 +349,217 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
 cdef class AttributeCharAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -128 and value <= 127, f"Value {value} out of range (AttributeType.Byte: [-127, 128])"
         self._backend._frame.set_value[ATTR_CHAR](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_CHAR](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= -128 and value <= 127, f"Value {value} out of range (AttributeType.Byte: [-127, 128])"
         self._backend._frame.append_to_list[ATTR_CHAR](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -128 and value <= 127, f"Value {value} out of range (AttributeType.Byte: [-127, 128])"
         self._backend._frame.insert_to_list[ATTR_CHAR](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeUCharAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 255, f"Value {value} out of range (AttributeType.UByte: [0, 255])"
         self._backend._frame.set_value[ATTR_UCHAR](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_UCHAR](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= 0 and value <= 255, f"Value {value} out of range (AttributeType.UByte: [0, 255])"
         self._backend._frame.append_to_list[ATTR_UCHAR](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 255, f"Value {value} out of range (AttributeType.UByte: [0, 255])"
         self._backend._frame.insert_to_list[ATTR_UCHAR](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeShortAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -32768 and value <= 32767, (
+            f"Value {value} out of range (AttributeType.Short: [-32,768, 32,767])"
+        )
         self._backend._frame.set_value[ATTR_SHORT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_SHORT](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= -32768 and value <= 32767, (
+            f"Value {value} out of range (AttributeType.Short: [-32,768, 32,767])"
+        )
         self._backend._frame.append_to_list[ATTR_SHORT](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -32768 and value <= 32767, (
+            f"Value {value} out of range (AttributeType.Short: [-32,768, 32,767])"
+        )
         self._backend._frame.insert_to_list[ATTR_SHORT](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeUShortAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 65535, f"Value {value} out of range (AttributeType.UShort: [0, 65,535])"
         self._backend._frame.set_value[ATTR_USHORT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_USHORT](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= 0 and value <= 65535, f"Value {value} out of range (AttributeType.UShort: [0, 65,535])"
         self._backend._frame.append_to_list[ATTR_USHORT](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 65535, f"Value {value} out of range (AttributeType.UShort: [0, 65,535])"
         self._backend._frame.insert_to_list[ATTR_USHORT](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeIntAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -2147483648 and value <= 2147483647, (
+            f"Value {value} out of range (AttributeType.Int: [-2,147,483,648, 2,147,483,647])"
+        )
         self._backend._frame.set_value[ATTR_INT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_INT](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= -2147483648 and value <= 2147483647, (
+            f"Value {value} out of range (AttributeType.Int: [-2,147,483,648, 2,147,483,647])"
+        )
         self._backend._frame.append_to_list[ATTR_INT](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -2147483648 and value <= 2147483647, (
+            f"Value {value} out of range (AttributeType.Int: [-2,147,483,648, 2,147,483,647])"
+        )
         self._backend._frame.insert_to_list[ATTR_INT](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeUIntAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 4294967295, (
+            f"Value {value} out of range (AttributeType.UInt: [0, 4,294,967,295])"
+        )
         self._backend._frame.set_value[ATTR_UINT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_UINT](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= 0 and value <= 4294967295, (
+            f"Value {value} out of range (AttributeType.UInt: [0, 4,294,967,295])"
+        )
         self._backend._frame.append_to_list[ATTR_UINT](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 4294967295, (
+            f"Value {value} out of range (AttributeType.UInt: [0, 4,294,967,295])"
+        )
         self._backend._frame.insert_to_list[ATTR_UINT](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeLongAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -9223372036854775808 and value <= 9223372036854775807, (
+            f"Value {value} out of range (AttributeType.Long: [-9,223,372,036,854,775,808, 9,223,372,036,854,775,807])"
+        )
         self._backend._frame.set_value[ATTR_LONG](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_LONG](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= -9223372036854775808 and value <= 9223372036854775807, (
+            f"Value {value} out of range (AttributeType.Long: [-9,223,372,036,854,775,808, 9,223,372,036,854,775,807])"
+        )
         self._backend._frame.append_to_list[ATTR_LONG](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= -9223372036854775808 and value <= 9223372036854775807, (
+            f"Value {value} out of range (AttributeType.Long: [-9,223,372,036,854,775,808, 9,223,372,036,854,775,807])"
+        )
         self._backend._frame.insert_to_list[ATTR_LONG](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeULongAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 18446744073709551615, (
+            f"Value {value} out of range (AttributeType.ULong: [0, 18,446,744,073,709,551,615])"
+        )
         self._backend._frame.set_value[ATTR_ULONG](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_ULONG](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        assert value >= 0 and value <= 18446744073709551615, (
+            f"Value {value} out of range (AttributeType.ULong: [0, 18,446,744,073,709,551,615])"
+        )
         self._backend._frame.append_to_list[ATTR_ULONG](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        assert value >= 0 and value <= 18446744073709551615, (
+            f"Value {value} out of range (AttributeType.ULong: [0, 18,446,744,073,709,551,615])"
+        )
         self._backend._frame.insert_to_list[ATTR_ULONG](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeFloatAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        n_val = float(f"{value:e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
+        if abs(n_val - value) > 0.00001:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.set_value[ATTR_FLOAT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_FLOAT](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        n_val = float(f"{value:e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
+        if abs(n_val - value) > 0.00001:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.append_to_list[ATTR_FLOAT](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        n_val = float(f"{value:e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Float)"
+        if abs(n_val - value) > 0.00001:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.insert_to_list[ATTR_FLOAT](node_index, self._attr_type, slot_index, value)
 
 
 cdef class AttributeDoubleAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        n_val = float(f"{value:.15e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
+        if abs(n_val - value) > 0.00001:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.set_value[ATTR_DOUBLE](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_DOUBLE](node_index, self._attr_type, slot_index)
 
     cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        n_val = float(f"{value:.15e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
+        if abs(n_val - value) > 0.00001:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.append_to_list[ATTR_DOUBLE](node_index, self._attr_type, value)
 
     cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        n_val = float(f"{value:.15e}")
+        assert abs(n_val - value) < 1, f"Value {value} out of range (AttributeType.Double)"
+        if abs(n_val - value) > 0.00001:
+            warnings.warn(f"[Precision lost] Value {value} would be converted to {n_val}")
         self._backend._frame.insert_to_list[ATTR_DOUBLE](node_index, self._attr_type, slot_index, value)

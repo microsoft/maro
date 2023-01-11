@@ -4,7 +4,6 @@
 from maro.event_buffer import EventBuffer, EventState
 from maro.simulator.scenarios import AbsBusinessEngine
 
-
 backends_to_test = ["static", "dynamic"]
 
 

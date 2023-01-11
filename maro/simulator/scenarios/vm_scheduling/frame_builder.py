@@ -12,8 +12,13 @@ from .zone import Zone
 
 
 def build_frame(
-    snapshots_num: int, region_amount: int, zone_amount: int, data_center_amount: int, cluster_amount: int,
-    rack_amount: int, pm_amount: int
+    snapshots_num: int,
+    region_amount: int,
+    zone_amount: int,
+    data_center_amount: int,
+    cluster_amount: int,
+    rack_amount: int,
+    pm_amount: int,
 ):
     """Function to build vm_scheduling Frame.
 
@@ -27,6 +32,7 @@ def build_frame(
     Returns:
         VmSchedulingFrame: Frame instance for vm_scheduling scenario.
     """
+
     class VmSchedulingFrame(FrameBase):
         regions = FrameNode(Region, region_amount)
         zones = FrameNode(Zone, zone_amount)

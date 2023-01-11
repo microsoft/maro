@@ -17,8 +17,14 @@ For getting dump data, please uncomment below line and specify dump destination 
 """
 # opts['enable-dump-snapshot'] = ''
 
-env = Env(scenario="citi_bike", topology="toy.4s_4t", start_tick=start_tick,
-          durations=durations, snapshot_resolution=60, options=opts)
+env = Env(
+    scenario="citi_bike",
+    topology="toy.4s_4t",
+    start_tick=start_tick,
+    durations=durations,
+    snapshot_resolution=60,
+    options=opts,
+)
 
 print(env.summary)
 
@@ -35,11 +41,11 @@ for ep in range(max_ep):
         if decision_evt is not None:
             action = Action(decision_evt.station_idx, 0, 10)
 
-    station_ss = env.snapshot_list['stations']
-    shortage_states = station_ss[::'shortage']
+    station_ss = env.snapshot_list["stations"]
+    shortage_states = station_ss[::"shortage"]
     print("total shortage", shortage_states.sum())
 
-    trips_states = station_ss[::'trip_requirement']
+    trips_states = station_ss[::"trip_requirement"]
     print("total trip", trips_states.sum())
 
     cost_states = station_ss[::["extra_cost", "transfer_cost"]]
@@ -54,7 +60,7 @@ for ep in range(max_ep):
 
     # NOTE: We have not clear the trip adj at each tick so it is an accumulative value,
     # then we can just query last snapshot to calc total trips.
-    trips_adj = matrix_ss[last_snapshot_index::'trips_adj']
+    trips_adj = matrix_ss[last_snapshot_index::"trips_adj"]
 
     # Reshape it we need an easy way to access.
     # trips_adj = trips_adj.reshape((-1, len(station_ss)))

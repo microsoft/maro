@@ -1,38 +1,69 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
+import time
 from collections import defaultdict
-from os.path import dirname, realpath
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from os import makedirs
+from os.path import dirname, join, realpath
+from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
+from matplotlib import pyplot as plt
 
-from maro.rl.policy import RLPolicy
-from maro.rl.rollout import AbsEnvSampler, CacheElement
+from maro.rl.policy import AbsPolicy
+from maro.rl.rollout import AbsAgentWrapper, AbsEnvSampler, CacheElement, SimpleAgentWrapper
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionEvent, PostponeAction
 
 from .config import (
-    algorithm, env_conf, num_features, pm_attributes, pm_window_size, reward_shaping_conf, seed, test_env_conf,
-    test_reward_shaping_conf, test_seed
+    num_features,
+    pm_attributes,
+    pm_window_size,
+    reward_shaping_conf,
+    seed,
+    test_reward_shaping_conf,
+    test_seed,
 )
+
+timestamp = str(time.time())
+plt_path = join(dirname(realpath(__file__)), "plots", timestamp)
+makedirs(plt_path, exist_ok=True)
 
 
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, policy_creator, agent2policy, get_test_env=None):
-        super().__init__(get_env, policy_creator, agent2policy, get_test_env=get_test_env)
+    def __init__(
+        self,
+        learn_env: Env,
+        test_env: Env,
+        policies: List[AbsPolicy],
+        agent2policy: Dict[Any, str],
+        trainable_policies: List[str] = None,
+        agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
+        reward_eval_delay: int = None,
+    ) -> None:
+        super(VMEnvSampler, self).__init__(
+            learn_env,
+            test_env,
+            policies,
+            agent2policy,
+            trainable_policies,
+            agent_wrapper_cls,
+            reward_eval_delay,
+        )
+
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
 
         # adjust the ratio of the success allocation and the total income when computing the reward
-        self.num_pms = self._learn_env.business_engine._pm_amount # the number of pms
+        self.num_pms = self._learn_env.business_engine._pm_amount  # the number of pms
         self._durations = self._learn_env.business_engine._max_tick
         self._pm_state_history = np.zeros((pm_window_size - 1, self.num_pms, 2))
         self._legal_pm_mask = None
 
     def _get_global_and_agent_state_impl(
-        self, event: DecisionPayload, tick: int = None,
+        self,
+        event: DecisionEvent,
+        tick: int = None,
     ) -> Tuple[Union[None, np.ndarray, List[object]], Dict[Any, Union[np.ndarray, List[object]]]]:
         pm_state, vm_state = self._get_pm_state(), self._get_vm_state(event)
         # get the legal number of PM.
@@ -56,27 +87,29 @@ class VMEnvSampler(AbsEnvSampler):
         return None, {"AGENT": state}
 
     def _translate_to_env_action(
-        self, action_dict: Dict[Any, Union[np.ndarray, List[object]]], event: DecisionPayload,
+        self,
+        action_dict: Dict[Any, Union[np.ndarray, List[object]]],
+        event: DecisionEvent,
     ) -> Dict[Any, object]:
         if action_dict["AGENT"] == self.num_pms:
             return {"AGENT": PostponeAction(vm_id=event.vm_id, postpone_step=1)}
         else:
             return {"AGENT": AllocateAction(vm_id=event.vm_id, pm_id=action_dict["AGENT"][0])}
 
-    def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionPayload, tick: int) -> Dict[Any, float]:
+    def _get_reward(self, env_action_dict: Dict[Any, object], event: DecisionEvent, tick: int) -> Dict[Any, float]:
         action = env_action_dict["AGENT"]
         conf = reward_shaping_conf if self._env == self._learn_env else test_reward_shaping_conf
-        if isinstance(action, PostponeAction):   # postponement
+        if isinstance(action, PostponeAction):  # postponement
             if np.sum(self._legal_pm_mask) != 1:
                 reward = -0.1 * conf["alpha"] + 0.0 * conf["beta"]
             else:
                 reward = 0.0 * conf["alpha"] + 0.0 * conf["beta"]
         else:
-            reward = self._get_allocation_reward(event, conf["alpha"], conf["beta"]) if event else .0
+            reward = self._get_allocation_reward(event, conf["alpha"], conf["beta"]) if event else 0.0
         return {"AGENT": np.float32(reward)}
 
     def _get_pm_state(self):
-        total_pm_info = self._env.snapshot_list["pms"][self._env.frame_index::pm_attributes]
+        total_pm_info = self._env.snapshot_list["pms"][self._env.frame_index :: pm_attributes]
         total_pm_info = total_pm_info.reshape(self.num_pms, len(pm_attributes))
 
         # normalize the attributes of pms' cpu and memory
@@ -94,23 +127,26 @@ class VMEnvSampler(AbsEnvSampler):
 
         # get the sequence pms' information
         self._pm_state_history = np.concatenate((self._pm_state_history, total_pm_info), axis=0)
-        return self._pm_state_history[-pm_window_size:, :, :] # (win_size, num_pms, 2)
+        return self._pm_state_history[-pm_window_size:, :, :]  # (win_size, num_pms, 2)
 
     def _get_vm_state(self, event):
-        return np.array([
-            event.vm_cpu_cores_requirement / self._max_cpu_capacity,
-            event.vm_memory_requirement / self._max_memory_capacity,
-            (self._durations - self._env.tick) * 1.0 / 200,   # TODO: CHANGE 200 TO SOMETHING CONFIGURABLE
-            self._env.business_engine._get_unit_price(event.vm_cpu_cores_requirement, event.vm_memory_requirement)
-        ])
-
-    def _get_allocation_reward(self, event: DecisionPayload, alpha: float, beta: float):
-        vm_unit_price = self._env.business_engine._get_unit_price(
-            event.vm_cpu_cores_requirement, event.vm_memory_requirement
+        return np.array(
+            [
+                event.vm_cpu_cores_requirement / self._max_cpu_capacity,
+                event.vm_memory_requirement / self._max_memory_capacity,
+                (self._durations - self._env.tick) * 1.0 / 200,  # TODO: CHANGE 200 TO SOMETHING CONFIGURABLE
+                self._env.business_engine._get_unit_price(event.vm_cpu_cores_requirement, event.vm_memory_requirement),
+            ],
         )
-        return (alpha + beta * vm_unit_price * min(self._durations - event.frame_index, event.remaining_buffer_time))
 
-    def _post_step(self, cache_element: CacheElement, reward: Dict[Any, float]):
+    def _get_allocation_reward(self, event: DecisionEvent, alpha: float, beta: float):
+        vm_unit_price = self._env.business_engine._get_unit_price(
+            event.vm_cpu_cores_requirement,
+            event.vm_memory_requirement,
+        )
+        return alpha + beta * vm_unit_price * min(self._durations - event.frame_index, event.remaining_buffer_time)
+
+    def _post_step(self, cache_element: CacheElement) -> None:
         self._info["env_metric"] = {k: v for k, v in self._env.metrics.items() if k != "total_latency"}
         self._info["env_metric"]["latency_due_to_agent"] = self._env.metrics["total_latency"].due_to_agent
         self._info["env_metric"]["latency_due_to_resource"] = self._env.metrics["total_latency"].due_to_resource
@@ -122,19 +158,76 @@ class VMEnvSampler(AbsEnvSampler):
         action = cache_element.action_dict["AGENT"]
         if cache_element.state:
             mask = cache_element.state[num_features:]
-            self._info["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append([action, mask])
+            self._info["actions_by_core_requirement"][cache_element.event.vm_cpu_cores_requirement].append(
+                [action, mask],
+            )
         self._info["action_sequence"].append(action)
 
-    def _post_eval_step(self, cache_element: CacheElement, reward: Dict[Any, float]) -> None:
-        self._post_step(cache_element, reward)
+    def _post_eval_step(self, cache_element: CacheElement) -> None:
+        self._post_step(cache_element)
 
+    def post_collect(self, info_list: list, ep: int) -> None:
+        # print the env metric from each rollout worker
+        for info in info_list:
+            print(f"env summary (episode {ep}): {info['env_metric']}")
 
-agent2policy = {"AGENT": f"{algorithm}.policy"}
+        # print the average env metric
+        if len(info_list) > 1:
+            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
+            print(f"average env metric (episode {ep}): {avg_metric}")
 
-def env_sampler_creator(policy_creator: Dict[str, Callable[[str], RLPolicy]]) -> VMEnvSampler:
-    return VMEnvSampler(
-        get_env=lambda: Env(**env_conf),
-        policy_creator=policy_creator,
-        agent2policy=agent2policy,
-        get_test_env=lambda: Env(**test_env_conf),
-    )
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        # print the env metric from each rollout worker
+        for info in info_list:
+            print(f"env summary (evaluation episode {ep}): {info['env_metric']}")
+
+        # print the average env metric
+        if len(info_list) > 1:
+            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
+            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
+            print(f"average env metric (evaluation episode {ep}): {avg_metric}")
+
+        for info in info_list:
+            core_requirement = info["actions_by_core_requirement"]
+            action_sequence = info["action_sequence"]
+            # plot action sequence
+            fig = plt.figure(figsize=(40, 32))
+            ax = fig.add_subplot(1, 1, 1)
+            ax.plot(action_sequence)
+            fig.savefig(f"{plt_path}/action_sequence_{ep}")
+            plt.cla()
+            plt.close("all")
+
+            # plot with legal action mask
+            fig = plt.figure(figsize=(40, 32))
+            for idx, key in enumerate(core_requirement.keys()):
+                ax = fig.add_subplot(len(core_requirement.keys()), 1, idx + 1)
+                for i in range(len(core_requirement[key])):
+                    if i == 0:
+                        ax.plot(core_requirement[key][i][0] * core_requirement[key][i][1], label=str(key))
+                        ax.legend()
+                    else:
+                        ax.plot(core_requirement[key][i][0] * core_requirement[key][i][1])
+
+            fig.savefig(f"{plt_path}/values_with_legal_action_{ep}")
+
+            plt.cla()
+            plt.close("all")
+
+            # plot without legal actin mask
+            fig = plt.figure(figsize=(40, 32))
+
+            for idx, key in enumerate(core_requirement.keys()):
+                ax = fig.add_subplot(len(core_requirement.keys()), 1, idx + 1)
+                for i in range(len(core_requirement[key])):
+                    if i == 0:
+                        ax.plot(core_requirement[key][i][0], label=str(key))
+                        ax.legend()
+                    else:
+                        ax.plot(core_requirement[key][i][0])
+
+            fig.savefig(f"{plt_path}/values_without_legal_action_{ep}")
+
+            plt.cla()
+            plt.close("all")

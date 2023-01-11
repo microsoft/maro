@@ -74,6 +74,7 @@ class OrderGenerateMode(Enum):
     2. unfixed: order is generated with configured ratio, and considering available empty containers
 
     """
+
     FIXED = "fixed"
     UNFIXED = "unfixed"
 
@@ -83,6 +84,7 @@ class Order:
     """
     Used to hold order information, this is for order generation.
     """
+
     summary_key = ["tick", "src_port_idx", "dest_port_idx", "quantity"]
 
     def __init__(self, tick: int, src_port_idx: int, dest_port_idx: int, quantity: int):
@@ -101,8 +103,13 @@ class Order:
         self.dest_port_idx = dest_port_idx
 
     def __repr__(self):
-        return "%s {tick: %r, src_port_idx: %r, dest_port_idx: %r, quantity: %r}" % \
-            (self.__class__.__name__, self.tick, self.src_port_idx, self.dest_port_idx, self.quantity)
+        return "%s {tick: %r, src_port_idx: %r, dest_port_idx: %r, quantity: %r}" % (
+            self.__class__.__name__,
+            self.tick,
+            self.src_port_idx,
+            self.dest_port_idx,
+            self.quantity,
+        )
 
 
 @dataclass(frozen=True)

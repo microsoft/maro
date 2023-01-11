@@ -9,4 +9,5 @@ class DriverType(Enum):
 
     - ZMQ: The communication driver mode based on ``ZMQ``.
     """
+
     ZMQ = "zmq_driver"

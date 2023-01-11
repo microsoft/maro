@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
+from typing import Union
 
 import zmq
 from tornado.ioloop import IOLoop
@@ -33,7 +34,7 @@ class AbsWorker(object):
         super(AbsWorker, self).__init__()
 
         self._id = f"worker.{idx}"
-        self._logger = logger if logger else DummyLogger()
+        self._logger: Union[LoggerV2, DummyLogger] = logger if logger else DummyLogger()
 
         # ZMQ sockets and streams
         self._context = Context.instance()
@@ -70,6 +71,5 @@ class AbsWorker(object):
         self._event_loop.start()
 
     def stop(self) -> None:
-        """Stop the currently running event loop.
-        """
+        """Stop the currently running event loop."""
         self._event_loop.stop()

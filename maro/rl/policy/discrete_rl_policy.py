@@ -35,7 +35,11 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         assert action_num >= 1
 
         super(DiscreteRLPolicy, self).__init__(
-            name=name, state_dim=state_dim, action_dim=1, trainable=trainable,
+            name=name,
+            state_dim=state_dim,
+            action_dim=1,
+            trainable=trainable,
+            is_discrete_action=True,
         )
 
         self._action_num = action_num
@@ -72,15 +76,20 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         assert isinstance(q_net, DiscreteQNet)
 
         super(ValueBasedPolicy, self).__init__(
-            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, trainable=trainable,
+            name=name,
+            state_dim=q_net.state_dim,
+            action_num=q_net.action_num,
+            trainable=trainable,
         )
         self._q_net = q_net
 
         self._exploration_func = exploration_strategy[0]
         self._exploration_params = clone(exploration_strategy[1])  # deep copy is needed to avoid unwanted sharing
-        self._exploration_schedulers = [
-            opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options
-        ]
+        self._exploration_schedulers = (
+            [opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options]
+            if exploration_scheduling_options is not None
+            else []
+        )
 
         self._call_cnt = 0
         self._warmup = warmup
@@ -126,10 +135,14 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         Returns:
             q_values (np.ndarray): Q-values.
         """
-        return self.q_values_tensor(
-            ndarray_to_tensor(states, device=self._device),
-            ndarray_to_tensor(actions, device=self._device)
-        ).cpu().numpy()
+        return (
+            self.q_values_tensor(
+                ndarray_to_tensor(states, device=self._device),
+                ndarray_to_tensor(actions, device=self._device),
+            )
+            .cpu()
+            .numpy()
+        )
 
     def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         """Generate the Q values for given state-action pairs.
@@ -208,7 +221,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def train(self) -> None:
         self._q_net.train()
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         return self._q_net.get_state()
 
     def set_state(self, policy_state: dict) -> None:
@@ -240,7 +253,9 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         assert isinstance(policy_net, DiscretePolicyNet)
 
         super(DiscretePolicyGradient, self).__init__(
-            name=name, state_dim=policy_net.state_dim, action_num=policy_net.action_num,
+            name=name,
+            state_dim=policy_net.state_dim,
+            action_num=policy_net.action_num,
             trainable=trainable,
         )
 
@@ -286,7 +301,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def train(self) -> None:
         self._policy_net.train()
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         return self._policy_net.get_state()
 
     def set_state(self, policy_state: dict) -> None:
@@ -305,12 +320,14 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         Returns:
             action_probs (torch.Tensor): Action probabilities with shape [batch_size, action_num].
         """
-        assert self._shape_check(states=states), \
-            f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
+        assert self._shape_check(
+            states=states,
+        ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
         action_probs = self._policy_net.get_action_probs(states)
-        assert match_shape(action_probs, (states.shape[0], self.action_num)), \
-            f"Action probabilities shape check failed. Expecting: {(states.shape[0], self.action_num)}, " \
+        assert match_shape(action_probs, (states.shape[0], self.action_num)), (
+            f"Action probabilities shape check failed. Expecting: {(states.shape[0], self.action_num)}, "
             f"actual: {action_probs.shape}."
+        )
         return action_probs
 
     def get_action_logps(self, states: torch.Tensor) -> torch.Tensor:

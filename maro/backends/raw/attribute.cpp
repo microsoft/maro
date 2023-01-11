@@ -61,7 +61,8 @@ namespace maro
 
       bool Attribute::is_nan() const noexcept
       {
-        return _type == AttrDataType::AFLOAT && isnan(get_value<ATTR_FLOAT>());
+        return (_type == AttrDataType::AFLOAT && isnan(get_value<ATTR_FLOAT>()))
+            || (_type == AttrDataType::ADOUBLE && isnan(get_value<ATTR_DOUBLE>()));
       }
 
       template<typename T>

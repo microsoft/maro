@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from .business_engine import VmSchedulingBusinessEngine
-from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, VmRequestPayload
+from .common import AllocateAction, DecisionEvent, Latency, PostponeAction, VmRequestPayload
 from .cpu_reader import CpuReader
 from .enums import Events, PmState, PostponeType, VmCategory
 from .physical_machine import PhysicalMachine
@@ -10,9 +10,16 @@ from .virtual_machine import VirtualMachine
 
 __all__ = [
     "VmSchedulingBusinessEngine",
-    "AllocateAction", "PostponeAction", "DecisionPayload", "Latency", "VmRequestPayload",
+    "AllocateAction",
+    "PostponeAction",
+    "DecisionEvent",
+    "Latency",
+    "VmRequestPayload",
     "CpuReader",
-    "Events", "PmState", "PostponeType", "VmCategory",
+    "Events",
+    "PmState",
+    "PostponeType",
+    "VmCategory",
     "PhysicalMachine",
-    "VirtualMachine"
+    "VirtualMachine",
 ]

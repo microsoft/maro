@@ -18,14 +18,14 @@ def proxy_generator(component_type, redis_port):
     proxy_parameters = {
         "group_name": "communication_unit_test",
         "redis_address": ("localhost", redis_port),
-        "log_enable": False
+        "log_enable": False,
     }
 
     component_type_expected_peers_map = {
         "receiver": {"sender": 1},
         "sender": {"receiver": 1},
         "master": {"worker": 5},
-        "worker": {"master": 1}
+        "worker": {"master": 1},
     }
 
     proxy = Proxy(

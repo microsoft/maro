@@ -3,8 +3,9 @@
 
 import inspect
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Tuple
+from typing import Any, Callable, Optional, Tuple, Union
 
+import torch
 import zmq
 from zmq.asyncio import Context, Poller
 
@@ -19,24 +20,21 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 
     Args:
         name (str): Name of the ops. This is usually a policy name.
-        policy_creator (Callable[[str], RLPolicy]): Function to create a policy instance.
+        policy (RLPolicy): Policy instance.
         parallelism (int, default=1): Desired degree of data parallelism.
     """
 
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], RLPolicy],
+        policy: RLPolicy,
         parallelism: int = 1,
     ) -> None:
         super(AbsTrainOps, self).__init__()
         self._name = name
-        self._policy_creator = policy_creator
-        # Create the policy.
-        if self._policy_creator:
-            self._policy = self._policy_creator(self._name)
-
+        self._policy = policy
         self._parallelism = parallelism
+        self._device: Optional[torch.device] = None
 
     @property
     def name(self) -> str:
@@ -44,11 +42,11 @@ class AbsTrainOps(object, metaclass=ABCMeta):
 
     @property
     def policy_state_dim(self) -> int:
-        return self._policy.state_dim if self._policy_creator else None
+        return self._policy.state_dim
 
     @property
     def policy_action_dim(self) -> int:
-        return self._policy.action_dim if self._policy_creator else None
+        return self._policy.action_dim
 
     @property
     def parallelism(self) -> int:
@@ -75,20 +73,20 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         self.set_policy_state(ops_state_dict["policy"][1])
         self.set_non_policy_state(ops_state_dict["non_policy"])
 
-    def get_policy_state(self) -> Tuple[str, object]:
+    def get_policy_state(self) -> Tuple[str, dict]:
         """Get the policy's state.
 
         Returns:
             policy_name (str)
-            policy_state (object)
+            policy_state (Any)
         """
         return self._policy.name, self._policy.get_state()
 
-    def set_policy_state(self, policy_state: object) -> None:
+    def set_policy_state(self, policy_state: dict) -> None:
         """Update the policy's state.
 
         Args:
-            policy_state (object): The policy state.
+            policy_state (dict): The policy state.
         """
         self._policy.set_state(policy_state)
 
@@ -111,17 +109,17 @@ class AbsTrainOps(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def to_device(self, device: str):
+    def to_device(self, device: str = None) -> None:
         raise NotImplementedError
 
 
-def remote(func) -> Callable:
+def remote(func: Callable) -> Callable:
     """Annotation to indicate that a function / method can be called remotely.
 
     This annotation takes effect only when an ``AbsTrainOps`` object is wrapped by a ``RemoteOps``.
     """
 
-    def remote_annotate(*args, **kwargs) -> object:
+    def remote_annotate(*args: Any, **kwargs: Any) -> Any:
         return func(*args, **kwargs)
 
     return remote_annotate
@@ -137,7 +135,7 @@ class AsyncClient(object):
     """
 
     def __init__(self, name: str, address: Tuple[str, int], logger: LoggerV2 = None) -> None:
-        self._logger = DummyLogger() if logger is None else logger
+        self._logger: Union[LoggerV2, DummyLogger] = logger if logger is not None else DummyLogger()
         self._name = name
         host, port = address
         self._proxy_ip = get_ip_address_by_hostname(host)
@@ -155,7 +153,7 @@ class AsyncClient(object):
         await self._socket.send(pyobj_to_bytes(req))
         self._logger.debug(f"{self._name} sent request {req['func']}")
 
-    async def get_response(self) -> object:
+    async def get_response(self) -> Any:
         """Waits for a result in asynchronous fashion.
 
         This is a coroutine and is executed asynchronously with calls to other AsyncClients' ``get_response`` calls.
@@ -169,15 +167,13 @@ class AsyncClient(object):
                 return bytes_to_pyobj(result[0])
 
     def close(self) -> None:
-        """Close the connection to the proxy.
-        """
+        """Close the connection to the proxy."""
         self._poller.unregister(self._socket)
         self._socket.disconnect(self._address)
         self._socket.close()
 
     def connect(self) -> None:
-        """Establish the connection to the proxy.
-        """
+        """Establish the connection to the proxy."""
         self._socket = Context.instance().socket(zmq.DEALER)
         self._socket.setsockopt_string(zmq.IDENTITY, self._name)
         self._socket.setsockopt(zmq.LINGER, 0)
@@ -187,8 +183,7 @@ class AsyncClient(object):
         self._poller.register(self._socket, zmq.POLLIN)
 
     async def exit(self) -> None:
-        """Send EXIT signals to the proxy indicating no more tasks.
-        """
+        """Send EXIT signals to the proxy indicating no more tasks."""
         await self._socket.send(b"EXIT")
 
 
@@ -212,15 +207,15 @@ class RemoteOps(object):
         self._client = AsyncClient(self._ops.name, address, logger=logger)
         self._client.connect()
 
-    def __getattribute__(self, attr_name: str) -> object:
+    def __getattribute__(self, attr_name: str) -> Any:
         # Ignore methods that belong to the parent class
         try:
             return super().__getattribute__(attr_name)
         except AttributeError:
             pass
 
-        def remote_method(ops_state, func_name: str, desired_parallelism: int, client: AsyncClient) -> Callable:
-            async def remote_call(*args, **kwargs) -> object:
+        def remote_method(ops_state: Any, func_name: str, desired_parallelism: int, client: AsyncClient) -> Callable:
+            async def remote_call(*args: Any, **kwargs: Any) -> Any:
                 req = {
                     "state": ops_state,
                     "func": func_name,
@@ -241,6 +236,5 @@ class RemoteOps(object):
         return attr
 
     async def exit(self) -> None:
-        """Close the internal task client.
-        """
+        """Close the internal task client."""
         await self._client.exit()

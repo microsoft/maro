@@ -84,7 +84,7 @@ class CimDataDumpUtil:
                         port_idx2name_dict[stop.port_idx],
                         stop.port_idx,
                         stop.arrival_tick,
-                        stop.leave_tick
+                        stop.leave_tick,
                     ]
 
         _dump_csv_file(stops_file_path, headers, stop_generator)
@@ -97,8 +97,16 @@ class CimDataDumpUtil:
 
         ports_file_path = os.path.join(output_folder, "ports.csv")
         headers = [
-            "index", "name", "capacity", "empty", "order_proportion", "order_proportion_noise",
-            "empty_return_buffer", "empty_return_buffer_noise", "full_return_buffer", "full_return_buffer_noise"
+            "index",
+            "name",
+            "capacity",
+            "empty",
+            "order_proportion",
+            "order_proportion_noise",
+            "empty_return_buffer",
+            "empty_return_buffer_noise",
+            "full_return_buffer",
+            "full_return_buffer_noise",
         ]
 
         def port_generator():
@@ -114,7 +122,7 @@ class CimDataDumpUtil:
                     port.empty_return_buffer.base,
                     port.empty_return_buffer.noise,
                     port.full_return_buffer.base,
-                    port.full_return_buffer.noise
+                    port.full_return_buffer.noise,
                 ]
 
         _dump_csv_file(ports_file_path, headers, port_generator)
@@ -128,8 +136,19 @@ class CimDataDumpUtil:
         """
         vessels_file_path = os.path.join(output_folder, "vessels.csv")
         headers = [
-            "index", "name", "capacity", "route_name", "route_index", "start_port_name", "start_port_index",
-            "sailing_speed", "sailing_speed_noise", "parking_duration", "parking_noise", "period", "empty"
+            "index",
+            "name",
+            "capacity",
+            "route_name",
+            "route_index",
+            "start_port_name",
+            "start_port_index",
+            "sailing_speed",
+            "sailing_speed_noise",
+            "parking_duration",
+            "parking_noise",
+            "period",
+            "empty",
         ]
 
         route_mapping = self._data_collection.route_mapping
@@ -152,7 +171,7 @@ class CimDataDumpUtil:
                     vessel.parking_duration,
                     vessel.parking_noise,
                     vessel_period[vessel.index],
-                    vessel.empty
+                    vessel.empty,
                 ]
 
         _dump_csv_file(vessels_file_path, headers, vessel_generator)
@@ -176,7 +195,7 @@ class CimDataDumpUtil:
                         route_idx2name_dict[point.index],
                         point.port_name,
                         port_mapping[point.port_name],
-                        point.distance_to_next_port
+                        point.distance_to_next_port,
                     ]
 
         _dump_csv_file(routes_file_path, headers, route_generator)
@@ -189,8 +208,12 @@ class CimDataDumpUtil:
 
         proportion_file_path = os.path.join(output_folder, "order_proportion.csv")
         headers = [
-            "source_port_name", "source_port_index", "dest_port_name",
-            "dest_port_index", "proportion", "proportion_noise"
+            "source_port_name",
+            "source_port_index",
+            "dest_port_name",
+            "dest_port_index",
+            "proportion",
+            "proportion_noise",
         ]
 
         ports = self._data_collection.port_settings
@@ -205,7 +228,7 @@ class CimDataDumpUtil:
                         port_idx2name_dict[prop.index],
                         prop.index,
                         prop.base,
-                        prop.noise
+                        prop.noise,
                     ]
 
         _dump_csv_file(proportion_file_path, headers, order_prop_generator)
@@ -224,7 +247,7 @@ class CimDataDumpUtil:
             "dsch_cost_factor": self._data_collection.dsch_cost_factor,
             "max_tick": self._data_collection.max_tick,
             "seed": self._data_collection.seed,
-            "version": self._data_collection.version
+            "version": self._data_collection.version,
         }
 
         misc_file_path = os.path.join(output_folder, "misc.yml")

@@ -52,14 +52,12 @@ class Port(NodeBase):
 
     @property
     def idx(self) -> int:
-        """int: Index of this port.
-        """
+        """int: Index of this port."""
         return self.index
 
     @property
     def name(self) -> str:
-        """str: Name of this port.
-        """
+        """str: Name of this port."""
         return self._name
 
     def set_init_state(self, name: str, capacity: int, empty: int):

@@ -2,8 +2,9 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict, deque
+from typing import Deque
 
-from maro.rl.distributed import AbsProxy
+from maro.rl.distributed import DEFAULT_TRAINING_BACKEND_PORT, DEFAULT_TRAINING_FRONTEND_PORT, AbsProxy
 from maro.rl.utils.common import bytes_to_pyobj, pyobj_to_bytes
 from maro.rl.utils.torch_utils import average_grads
 from maro.utils import LoggerV2
@@ -20,13 +21,16 @@ class TrainingProxy(AbsProxy):
         backend_port (int, default=10001): Network port for communicating with back-end workers (task consumers).
     """
 
-    def __init__(self, frontend_port: int = 10000, backend_port: int = 10001) -> None:
-        super(TrainingProxy, self).__init__(frontend_port=frontend_port, backend_port=backend_port)
-        self._available_workers = deque()
-        self._worker_ready = False
-        self._connected_ops = set()
-        self._result_cache = defaultdict(list)
-        self._expected_num_results = {}
+    def __init__(self, frontend_port: int = None, backend_port: int = None) -> None:
+        super(TrainingProxy, self).__init__(
+            frontend_port=frontend_port if frontend_port is not None else DEFAULT_TRAINING_FRONTEND_PORT,
+            backend_port=backend_port if backend_port is not None else DEFAULT_TRAINING_BACKEND_PORT,
+        )
+        self._available_workers: Deque = deque()
+        self._worker_ready: bool = False
+        self._connected_ops: set = set()
+        self._result_cache: dict = defaultdict(list)
+        self._expected_num_results: dict = {}
         self._logger = LoggerV2("TRAIN-PROXY")
 
     def _route_request_to_compute_node(self, msg: list) -> None:
@@ -48,10 +52,12 @@ class TrainingProxy(AbsProxy):
 
         self._connected_ops.add(msg[0])
         req = bytes_to_pyobj(msg[-1])
+        assert isinstance(req, dict)
+
         desired_parallelism = req["desired_parallelism"]
         req["args"] = list(req["args"])
         batch = req["args"][0]
-        workers = []
+        workers: list = []
         while len(workers) < desired_parallelism and self._available_workers:
             workers.append(self._available_workers.popleft())
 

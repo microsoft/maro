@@ -26,7 +26,7 @@ class EnvProcess(Process):
     def run(self):
         """Initialize environment and process commands."""
         metrics = None
-        decision_event = None,
+        decision_event = None
         is_done = False
 
         env = Env(*self._args, **self._kwargs)

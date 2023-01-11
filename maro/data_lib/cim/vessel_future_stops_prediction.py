@@ -47,8 +47,7 @@ class VesselFutureStopsPrediction:
         return vessel_start_port_offsets
 
     def _predict_future_stops(self, vessel_idx: int, last_stop_idx: int, stop_number: int) -> List[Stop]:
-        """Do predict future stops.
-        """
+        """Do predict future stops."""
         vessel = self._vessels[vessel_idx]
         speed, duration = vessel.sailing_speed, vessel.parking_duration
         route_points = self._routes[self._route_mapping[vessel.route_name]]
@@ -79,8 +78,8 @@ class VesselFutureStopsPrediction:
                     arrival_tick,
                     arrival_tick + duration,
                     port_idx,
-                    vessel_idx
-                )
+                    vessel_idx,
+                ),
             )
 
         return predicted_future_stops

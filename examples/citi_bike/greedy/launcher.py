@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import heapq
 import io
 import os
@@ -63,8 +66,13 @@ class GreedyPolicy:
 
 
 if __name__ == "__main__":
-    env = Env(scenario=config.env.scenario, topology=config.env.topology, start_tick=config.env.start_tick,
-              durations=config.env.durations, snapshot_resolution=config.env.resolution)
+    env = Env(
+        scenario=config.env.scenario,
+        topology=config.env.topology,
+        start_tick=config.env.start_tick,
+        durations=config.env.durations,
+        snapshot_resolution=config.env.resolution,
+    )
 
     if config.env.seed is not None:
         env.set_seed(config.env.seed)

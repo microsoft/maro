@@ -13,7 +13,7 @@ from .sender import StreamitSender
 
 def ensure_state(func):
     """Decorator that used to make sure sender process already started or not paused,
-        or ignore current function call."""
+    or ignore current function call."""
 
     def _wrapper(*args, **kwargs):
         client_instance: StreamitClient = args[0]
@@ -75,7 +75,7 @@ class StreamitClient:
 
         Args:
             tick (int): Current tick.
-            """
+        """
         self._cur_tick = tick
 
         self._put(MessageType.Tick, tick)
@@ -130,24 +130,30 @@ class StreamitClient:
             if cur_item_type is dict:
                 for k, v in cur_item.items():
                     stack.append((cur_path + f".{k}", v))
-            elif cur_item_type is list \
-                    or cur_item_type is tuple \
-                    or (cur_item_type is torch.Tensor and cur_item.dim() > 1) \
-                    or (cur_item_type is numpy.ndarray and len(cur_item.shape) > 1):
+            elif (
+                cur_item_type is list
+                or cur_item_type is tuple
+                or (cur_item_type is torch.Tensor and cur_item.dim() > 1)
+                or (cur_item_type is numpy.ndarray and len(cur_item.shape) > 1)
+            ):
 
                 for sub_index, sub_item in enumerate(cur_item):
                     stack.append((cur_path + f"[{sub_index}]", sub_item))
             elif cur_item_type is torch.Tensor:
                 # We only accept 1 dim to json string.
-                items.append({
-                    "path": cur_path,
-                    "value": json.dumps(cur_item.tolist())
-                })
+                items.append(
+                    {
+                        "path": cur_path,
+                        "value": json.dumps(cur_item.tolist()),
+                    },
+                )
             else:
-                items.append({
-                    "path": cur_path,
-                    "value": str(cur_item)
-                })
+                items.append(
+                    {
+                        "path": cur_path,
+                        "value": str(cur_item),
+                    },
+                )
 
         for item in items:
             self._put(MessageType.Data, (category, item))
@@ -199,4 +205,4 @@ class StreamitClient:
         self.close()
 
 
-__all__ = ['StreamitClient']
+__all__ = ["StreamitClient"]

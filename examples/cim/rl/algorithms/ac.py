@@ -1,14 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict
-
 import torch
 from torch.optim import Adam, RMSprop
 
 from maro.rl.model import DiscreteACBasedNet, FullyConnected, VNet
 from maro.rl.policy import DiscretePolicyGradient
-from maro.rl.training.algorithms import ActorCriticTrainer, ActorCriticParams
+from maro.rl.training.algorithms import ActorCriticParams, ActorCriticTrainer
 
 actor_net_conf = {
     "hidden_dims": [256, 128, 64],
@@ -49,19 +47,19 @@ class MyCriticNet(VNet):
         return self._critic(states).squeeze(-1)
 
 
-def get_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
+def get_ac_policy(state_dim: int, action_num: int, name: str) -> DiscretePolicyGradient:
     return DiscretePolicyGradient(name=name, policy_net=MyActorNet(state_dim, action_num))
 
 
 def get_ac(state_dim: int, name: str) -> ActorCriticTrainer:
     return ActorCriticTrainer(
         name=name,
+        reward_discount=0.0,
         params=ActorCriticParams(
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
-            reward_discount=.0,
             grad_iters=10,
             critic_loss_cls=torch.nn.SmoothL1Loss,
             min_logp=None,
-            lam=.0,
+            lam=0.0,
         ),
     )

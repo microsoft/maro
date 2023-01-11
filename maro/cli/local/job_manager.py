@@ -72,23 +72,22 @@ if __name__ == "__main__":
                 elif details["status"] == JobStatus.PENDING:
                     pending.append((job_name, json.loads(redis_conn.hget(RedisHashKey.JOB_CONF, job_name))))
 
-            for job_name, conf in pending[:max(0, max_running - num_running)]:
+            for job_name, conf in pending[: max(0, max_running - num_running)]:
                 if containerize and not image_exists(docker_image_name):
                     redis_conn.hset(
-                        RedisHashKey.JOB_DETAILS, job_name, json.dumps({"status": JobStatus.IMAGE_BUILDING})
+                        RedisHashKey.JOB_DETAILS,
+                        job_name,
+                        json.dumps({"status": JobStatus.IMAGE_BUILDING}),
                     )
                     build_image(local_maro_root, docker_file_path, docker_image_name)
 
                 parser = ConfigParser(conf)
-                env_by_component = parser.as_env(containerize=containerize)
                 if containerize:
                     path_mapping = parser.get_path_mapping(containerize=True)
-                    started[job_name] = start_rl_job_in_containers(
-                        conf, docker_image_name, env_by_component, path_mapping
-                    )
+                    started[job_name] = start_rl_job_in_containers(parser, docker_image_name)
                     details["containers"] = started[job_name]
                 else:
-                    started[job_name] = start_rl_job(env_by_component, local_maro_root, background=True)
+                    started[job_name] = start_rl_job(parser, local_maro_root, background=True)
                     details["pids"] = [proc.pid for proc in started[job_name]]
                 details = {"status": JobStatus.RUNNING, "start_time": time.time()}
                 redis_conn.hset(RedisHashKey.JOB_DETAILS, job_name, json.dumps(details))

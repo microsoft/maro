@@ -22,6 +22,7 @@ def gen_cim_frame(port_num: int, vessel_num: int, stop_nums: tuple, snapshots_nu
 
     class CimFrame(FrameBase):
         """Our cim frame that contains vessels, ports, and a general matrix."""
+
         vessels = FrameNode(vessel_cls, vessel_num)
         ports = FrameNode(Port, port_num)
         matrix = FrameNode(matrix_cls, 1)

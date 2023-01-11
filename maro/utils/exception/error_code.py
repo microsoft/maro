@@ -19,11 +19,9 @@ ERROR_CODE = {
     1011: "Peers Disconnection Error",
     1012: "MARO Send Again Error",
     1013: "Peers Rejoin Timeout",
-
     # data lib
     2000: "Meta does not contain timestamp field",
     2001: "Invalid vessel parking duration time, it must large than 0, please check",
-
     # backends
     2100: "Invalid parameter to get attribute value, please use tuple, list or slice instead",
     2101: "Invalid parameter to set attribute value",
@@ -36,16 +34,13 @@ ERROR_CODE = {
     2108: "Node already been deleted.",
     2109: "Node not exist.",
     2110: "Invalid attribute.",
-
     # simulator
     2200: "Cannot find specified business engine",
-
     # 3000-3999: Error code for CLI
     3000: "CLI Internal Error",
     3001: "Command Error",
     3002: "Parsing Error",
     3003: "Deployment Error",
-
     # 4000-4999: Error codes for RL toolkit
     4000: "Missing Trainer",
 }
