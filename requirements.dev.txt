@@ -41,7 +41,7 @@ pyzmq>=19.0.2
 recommonmark~=0.6.0
 requests>=2.25.1
 scipy>=1.7.0
-setuptools==58.0.4
+setuptools==65.5.1
 six==1.13.0
 sphinx==1.8.6
 sphinx_rtd_theme==1.0.0
