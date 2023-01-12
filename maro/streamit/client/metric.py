@@ -61,7 +61,7 @@ def is_float_type(v_type: type):
     Returns:
         bool: True if an float type.
     """
-    return v_type is float or v_type is np.float or v_type is np.float32 or v_type is np.float64
+    return v_type is float or v_type is np.float16 or v_type is np.float32 or v_type is np.float64
 
 
 def parse_value(value: object):
