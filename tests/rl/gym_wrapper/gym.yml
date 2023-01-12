@@ -5,8 +5,8 @@
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
 # Run this workflow by executing one of the following commands:
-# - python .\examples\rl\run_rl_example.py .\examples\rl\gym.yml
-# - (Requires installing MARO from source) maro local run .\examples\rl\gym.yml
+# - python ./tests/rl/run.py ./tests/rl/gym_wrapper/gym.yml
+# - (Requires installing MARO from source) maro local run ./tests/rl/gym_wrapper/gym.yml
 
 job: gym_rl_workflow
 scenario_path: "tests/rl/gym_wrapper"

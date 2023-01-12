@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from maro.simulator import Env
 
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine

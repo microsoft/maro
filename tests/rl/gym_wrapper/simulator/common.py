@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 from maro.common import BaseAction, BaseDecisionEvent
 
 
