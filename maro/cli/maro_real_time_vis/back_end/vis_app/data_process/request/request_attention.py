@@ -22,12 +22,12 @@ def get_attention_data(experiment_name: str, episode: str, tick: str) -> pd.Data
     """
     get_attention_value_params = {
         "query": f"select * from {experiment_name}.attentions where episode='{episode}' and tick='{tick}'",
-        "count": "true"
+        "count": "true",
     }
     attention_value = requests.get(
         url=request_settings.request_url.value,
         headers=request_settings.request_header.value,
-        params=get_attention_value_params
+        params=get_attention_value_params,
     ).json()
     attention_value = get_data_in_format(attention_value)
     return attention_value

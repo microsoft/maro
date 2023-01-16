@@ -28,7 +28,7 @@ class DeploymentValidator:
         """
         deep_diff = DeepDiff(template_dict, actual_dict).to_dict()
 
-        missing_key_strs = deep_diff.get('dictionary_item_removed', [])
+        missing_key_strs = deep_diff.get("dictionary_item_removed", [])
         for missing_key_str in missing_key_strs:
             if missing_key_str not in optional_key_to_value:
                 raise InvalidDeploymentTemplateError(f"Key '{missing_key_str}' not found.")
@@ -36,7 +36,7 @@ class DeploymentValidator:
                 DeploymentValidator._set_value(
                     original_dict=actual_dict,
                     key_list=DeploymentValidator._get_parent_to_child_key_list(deep_diff_str=missing_key_str),
-                    value=optional_key_to_value[missing_key_str]
+                    value=optional_key_to_value[missing_key_str],
                 )
 
     @staticmethod

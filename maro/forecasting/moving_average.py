@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from abc import ABC, abstractmethod
 from collections import deque
 from typing import Iterable
@@ -14,7 +17,7 @@ class AbsMovingAverage(ABC):
         Args:
             data (object): The historical data to record. The type is determined by the need.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def forecast(self) -> object:
@@ -23,11 +26,11 @@ class AbsMovingAverage(ABC):
         Returns:
             object: The forecating results. The type is determined by the need.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def reset(self):
-        pass
+        raise NotImplementedError
 
 
 class OneStepFixWindowMA(AbsMovingAverage):

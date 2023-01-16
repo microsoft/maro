@@ -10,8 +10,7 @@ from .params import Paths
 
 
 class DetailsWriter:
-    """Writer class for details.
-    """
+    """Writer class for details."""
 
     @staticmethod
     def save_local_cluster_details(cluster_details: dict) -> None:

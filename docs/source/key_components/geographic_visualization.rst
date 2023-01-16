@@ -12,7 +12,7 @@ local mode for the finished epoch under real-time mode.
 Dependency
 ----------
 
-Env-geographic's startup depends on **docker** and **docker-compose**. 
+Env-geographic's startup depends on **docker** and **docker-compose**.
 Therefore, users need to install docker on the machine and ensure that it can run normally.
 User could get docker through `Docker installation <https://docs.docker.com/get-docker/>`_.
 
@@ -44,7 +44,7 @@ Firstly, user need to start the local database with command:
 ----
 
 After the command is executed successfully, user
-could view the local data with localhost:9000 by default. 
+could view the local data with localhost:9000 by default.
 If the default port is occupied, user could obtain the access port of each container
 through the following command:
 
@@ -91,7 +91,7 @@ To send data to database, there are 2 compulsory steps:
 
 User needs to set the value of the environment variable
 "MARO_STREAMIT_ENABLED" to "true". If user wants to specify the experiment name,
-set the environment variable "MARO_STREAMIT_EXPERIMENT_NAME". If user does not 
+set the environment variable "MARO_STREAMIT_EXPERIMENT_NAME". If user does not
 set this value, a unique experiment name would be processed automatically. User
 could check the experiment name through database. It should be noted that when
 selecting a topology, user must select a topology with specific geographic
@@ -118,7 +118,7 @@ package **streamit** with following code before environment initialization:
       # Initialize environment and send basic information of experiment to database.
       env = Env(scenario="cim", topology="global_trade.22p_l0.1",
                start_tick=0, durations=100)
-      
+
       for ep in range(EPISODE_NUMBER):
             # Send experimental data to database by episode.
             streamit.episode(ep)
@@ -144,8 +144,8 @@ command:
 
 ----
 
-Generally, the backend service runs on a local machine, occupying port 5000. 
-If port 5000 is already occupied, the program would find another free port starting from 5000. 
+Generally, the backend service runs on a local machine, occupying port 5000.
+If port 5000 is already occupied, the program would find another free port starting from 5000.
 
 To be specific, if user would like to run the backend service in docker rather on a local machine, please
 run the shell script run_docker.sh under the folder maro\maro\cli\maro_real_time_vis. It should be noted that

@@ -1,0 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+DEFAULT_ROLLOUT_PRODUCER_PORT = 20000
+DEFAULT_TRAINING_FRONTEND_PORT = 10000
+DEFAULT_TRAINING_BACKEND_PORT = 10001

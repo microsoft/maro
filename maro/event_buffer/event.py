@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 import abc
 from typing import Optional
 
@@ -40,7 +41,12 @@ class AbsEvent(metaclass=abc.ABCMeta):
         self.next_event: Optional[ActualEvent] = None
 
     def reset_value(
-        self, id: Optional[int], tick: Optional[int], event_type: object, payload: object, state: EventState
+        self,
+        id: Optional[int],
+        tick: Optional[int],
+        event_type: object,
+        payload: object,
+        state: EventState,
     ) -> None:
         self.id: Optional[int] = id
         self.tick: Optional[int] = tick
@@ -61,8 +67,8 @@ class ActualEvent(AbsEvent, metaclass=abc.ABCMeta):
 
 
 class AtomEvent(ActualEvent):
-    """Basic atom event without any additional functions or attributes.
-    """
+    """Basic atom event without any additional functions or attributes."""
+
     def __init__(self, id: Optional[int], tick: Optional[int], event_type: object, payload: object) -> None:
         super().__init__(id, tick, event_type, payload)
 
@@ -126,7 +132,7 @@ class CascadeEvent(ActualEvent):
             # In this case, inserting at the head is identical with appending to the end.
             self._immediate_event_head.next_event = self._immediate_event_tail = event
         elif is_head:
-            assert event.next_event is None, 'Follow-up events are unacceptable when inserting the event into the head'
+            assert event.next_event is None, "Follow-up events are unacceptable when inserting the event into the head"
             event.next_event = self._immediate_event_head.next_event
             self._immediate_event_head.next_event = event
         else:

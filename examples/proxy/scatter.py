@@ -16,9 +16,11 @@ def summation_worker(group_name):
     Args:
         group_name (str): Identifier for the group of all communication components.
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="sum_worker",
-                  expected_peers={"master": 1})
+    proxy = Proxy(
+        group_name=group_name,
+        component_type="sum_worker",
+        expected_peers={"master": 1},
+    )
 
     # Nonrecurring receive the message from the proxy.
     msg = proxy.receive_once()
@@ -36,9 +38,11 @@ def multiplication_worker(group_name):
     Args:
         group_name (str): Identifier for the group of all communication components.
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="multiply_worker",
-                  expected_peers={"master": 1})
+    proxy = Proxy(
+        group_name=group_name,
+        component_type="multiply_worker",
+        expected_peers={"master": 1},
+    )
 
     # Nonrecurring receive the message from the proxy.
     msg = proxy.receive_once()
@@ -62,10 +66,14 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
                         you can do something with high priority before receiving replied messages from peers.
             Sync Mode: It will block until the proxy returns all the replied messages.
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="master",
-                  expected_peers={"sum_worker": sum_worker_number,
-                                  "multiply_worker": multiply_worker_number})
+    proxy = Proxy(
+        group_name=group_name,
+        component_type="master",
+        expected_peers={
+            "sum_worker": sum_worker_number,
+            "multiply_worker": multiply_worker_number,
+        },
+    )
 
     sum_list = np.random.randint(0, 10, 100)
     multiple_list = np.random.randint(1, 10, 20)
@@ -75,25 +83,30 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
     destination_payload_list = []
     for idx, peer in enumerate(proxy.peers["sum_worker"]):
         data_length_per_peer = int(len(sum_list) / len(proxy.peers["sum_worker"]))
-        destination_payload_list.append((peer, sum_list[idx * data_length_per_peer:(idx + 1) * data_length_per_peer]))
+        destination_payload_list.append((peer, sum_list[idx * data_length_per_peer : (idx + 1) * data_length_per_peer]))
 
     # Assign multiply tasks for multiplication workers.
     for idx, peer in enumerate(proxy.peers["multiply_worker"]):
         data_length_per_peer = int(len(multiple_list) / len(proxy.peers["multiply_worker"]))
         destination_payload_list.append(
-            (peer, multiple_list[idx * data_length_per_peer:(idx + 1) * data_length_per_peer]))
+            (peer, multiple_list[idx * data_length_per_peer : (idx + 1) * data_length_per_peer]),
+        )
 
     if is_immediate:
-        session_ids = proxy.iscatter(tag="job",
-                                     session_type=SessionType.TASK,
-                                     destination_payload_list=destination_payload_list)
+        session_ids = proxy.iscatter(
+            tag="job",
+            session_type=SessionType.TASK,
+            destination_payload_list=destination_payload_list,
+        )
         # Do some tasks with higher priority here.
         replied_msgs = proxy.receive_by_id(session_ids, timeout=-1)
     else:
-        replied_msgs = proxy.scatter(tag="job",
-                                     session_type=SessionType.TASK,
-                                     destination_payload_list=destination_payload_list,
-                                     timeout=-1)
+        replied_msgs = proxy.scatter(
+            tag="job",
+            session_type=SessionType.TASK,
+            destination_payload_list=destination_payload_list,
+            timeout=-1,
+        )
 
     sum_result, multiply_result = 0, 1
     for msg in replied_msgs:
@@ -105,8 +118,8 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
             multiply_result *= msg.body
 
     # Check task result correction.
-    assert(sum(sum_list) == sum_result)
-    assert(np.prod(multiple_list) == multiply_result)
+    assert sum(sum_list) == sum_result
+    assert np.prod(multiple_list) == multiply_result
 
 
 if __name__ == "__main__":
@@ -124,8 +137,10 @@ if __name__ == "__main__":
     # Worker's pool for sum_worker and prod_worker.
     workers = mp.Pool(sum_worker_number + multiply_worker_number)
 
-    master_process = mp.Process(target=master,
-                                args=(group_name, sum_worker_number, multiply_worker_number, is_immediate,))
+    master_process = mp.Process(
+        target=master,
+        args=(group_name, sum_worker_number, multiply_worker_number, is_immediate),
+    )
     master_process.start()
 
     for s in range(sum_worker_number):

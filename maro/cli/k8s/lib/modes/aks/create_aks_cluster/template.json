@@ -95,7 +95,7 @@
     {
       "name": "[parameters('clusterName')]",
       "type": "Microsoft.ContainerService/managedClusters",
-      "apiVersion": "2020-03-01",
+      "apiVersion": "2021-10-01",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[variables('vnetId')]"
@@ -141,7 +141,7 @@
     {
       "name": "[parameters('virtualNetworkName')]",
       "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2020-04-01",
+      "apiVersion": "2020-11-01",
       "location": "[parameters('location')]",
       "properties": {
         "addressSpace": {

@@ -2,12 +2,15 @@
 # Licensed under the MIT license.
 
 from enum import Enum
+
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 from maro.vector_env import VectorEnv
+
 
 class VectorEnvUsage(Enum):
     PUSH_ONE_FORWARD = "push the first environment forward and left others behind"
     PUSH_ALL_FORWARD = "push all environments forward together"
+
 
 USAGE = VectorEnvUsage.PUSH_ONE_FORWARD
 
@@ -28,7 +31,7 @@ if __name__ == "__main__":
 
                     # Showcase: how to access information from snapshot list in vector env.
                     if env0_dec:
-                        ss0 = env.snapshot_list["vessels"][env0_dec.tick:env0_dec.vessel_idx:"remaining_space"]
+                        ss0 = env.snapshot_list["vessels"][env0_dec.tick : env0_dec.vessel_idx : "remaining_space"]
 
                     # 1. Only push specified (1st for this example) environment, leave others behind.
                     if USAGE == VectorEnvUsage.PUSH_ONE_FORWARD and env0_dec:
@@ -38,8 +41,8 @@ if __name__ == "__main__":
                                 vessel_idx=env0_dec.vessel_idx,
                                 port_idx=env0_dec.port_idx,
                                 quantity=env0_dec.action_scope.load,
-                                action_type=ActionType.LOAD
-                            )
+                                action_type=ActionType.LOAD,
+                            ),
                         }
 
                     # 2. Only pass action to 1st environment (give None to other environments),
@@ -51,7 +54,7 @@ if __name__ == "__main__":
                             vessel_idx=env0_dec.vessel_idx,
                             port_idx=env0_dec.port_idx,
                             quantity=env0_dec.action_scope.load,
-                            action_type=ActionType.LOAD
+                            action_type=ActionType.LOAD,
                         )
 
                 metrics, decision_event, is_done = env.step(action)

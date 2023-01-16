@@ -48,15 +48,17 @@ class VNet(AbsNet, metaclass=ABCMeta):
         Returns:
             v (torch.Tensor): V-values with shape [batch_size].
         """
-        assert self._shape_check(states), \
-            f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
+        assert self._shape_check(
+            states,
+        ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
         v = self._get_v_values(states)
-        assert match_shape(v, (states.shape[0],)), \
-            f"V-value shape check failed. Expecting: {(states.shape[0],)}, actual: {v.shape}."  # [B]
+        assert match_shape(
+            v,
+            (states.shape[0],),
+        ), f"V-value shape check failed. Expecting: {(states.shape[0],)}, actual: {v.shape}."  # [B]
         return v
 
     @abstractmethod
     def _get_v_values(self, states: torch.Tensor) -> torch.Tensor:
-        """Implementation of `v_values`.
-        """
+        """Implementation of `v_values`."""
         raise NotImplementedError

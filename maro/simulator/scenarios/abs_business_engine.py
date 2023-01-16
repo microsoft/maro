@@ -36,9 +36,15 @@ class AbsBusinessEngine(ABC):
     """
 
     def __init__(
-        self, scenario_name: str, event_buffer: EventBuffer, topology: Optional[str],
-        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: Optional[int],
-        additional_options: dict = None
+        self,
+        scenario_name: str,
+        event_buffer: EventBuffer,
+        topology: Optional[str],
+        start_tick: int,
+        max_tick: int,
+        snapshot_resolution: int,
+        max_snapshots: Optional[int],
+        additional_options: dict = None,
     ):
         self._scenario_name: str = scenario_name
         self._topology: str = topology
@@ -58,21 +64,22 @@ class AbsBusinessEngine(ABC):
     @abstractmethod
     def frame(self) -> FrameBase:
         """FrameBase: Frame instance of current business engine."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def snapshots(self) -> SnapshotList:
         """SnapshotList: Snapshot list of current frame, this is used to expose querying interface for outside."""
-        pass
+        raise NotImplementedError
 
     @property
     def scenario_name(self) -> str:
         return self._scenario_name
 
+    @abstractmethod
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index."""
-        pass
+        raise NotImplementedError
 
     def frame_index(self, tick: int) -> int:
         """Helper method for child class, used to get index of frame in snapshot list for specified tick.
@@ -85,6 +92,26 @@ class AbsBusinessEngine(ABC):
         """
         return tick_to_frame_index(self._start_tick, tick, self._snapshot_resolution)
 
+    def get_ticks_frame_index_mapping(self) -> dict:
+        """Helper method to get current available ticks to related frame index mapping.
+
+        Returns:
+            dict: Dictionary of avaliable tick to frame index, it would be 1 to N mapping if the resolution is not 1.
+        """
+        mapping = {}
+
+        if self.snapshots is not None:
+            frame_index_list = self.snapshots.get_frame_index_list()
+
+            for frame_index in frame_index_list:
+                frame_start_tick = self._start_tick + frame_index * self._snapshot_resolution
+                frame_end_tick = min(self._max_tick, frame_start_tick + self._snapshot_resolution)
+
+                for tick in range(frame_start_tick, frame_end_tick):
+                    mapping[tick] = frame_index
+
+        return mapping
+
     def calc_max_snapshots(self) -> int:
         """Helper method to calculate total snapshot should be in snapshot list with parameters passed via constructor.
 
@@ -95,8 +122,11 @@ class AbsBusinessEngine(ABC):
         Returns:
             int: Max snapshot number for current configuration.
         """
-        return self._max_snapshots if self._max_snapshots is not None \
+        return (
+            self._max_snapshots
+            if self._max_snapshots is not None
             else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
+        )
 
     def update_config_root_path(self, business_engine_file_path: str) -> None:
         """Helper method used to update the config path with business engine path if you
@@ -140,22 +170,22 @@ class AbsBusinessEngine(ABC):
         Args:
             tick (int): Current tick from simulator.
         """
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def configs(self) -> dict:
         """dict: Configurations of this business engine."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def reset(self, keep_seed: bool = False) -> None:
         """Reset states business engine."""
-        pass
+        raise NotImplementedError
 
-    # @abstractmethod
-    # def set_seed(self, seed: int) -> None:
-    #     raise NotImplementedError
+    @abstractmethod
+    def set_seed(self, seed: int) -> None:
+        raise NotImplementedError
 
     def post_step(self, tick: int) -> bool:
         """This method will be called at the end of each tick, used to post-process for each tick,
@@ -203,4 +233,3 @@ class AbsBusinessEngine(ABC):
         Args:
             folder (str): Folder to place dumped files.
         """
-        pass

@@ -8,8 +8,7 @@ from maro.cli.utils.subprocess import Subprocess
 
 
 class DockerController:
-    """Controller class for docker.
-    """
+    """Controller class for docker."""
 
     @staticmethod
     def save_image(image_name: str, abs_export_path: str):

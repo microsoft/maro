@@ -73,12 +73,13 @@ class MultiQNet(AbsNet, metaclass=ABCMeta):
         """
         assert self._shape_check(states, actions)
         q = self._get_q_values(states, actions)
-        assert match_shape(q, (states.shape[0],)), \
-            f"Q-value shape check failed. Expecting: {(states.shape[0],)}, actual: {q.shape}."  # [B]
+        assert match_shape(
+            q,
+            (states.shape[0],),
+        ), f"Q-value shape check failed. Expecting: {(states.shape[0],)}, actual: {q.shape}."  # [B]
         return q
 
     @abstractmethod
     def _get_q_values(self, states: torch.Tensor, actions: List[torch.Tensor]) -> torch.Tensor:
-        """Implementation of `q_values`.
-        """
+        """Implementation of `q_values`."""
         raise NotImplementedError

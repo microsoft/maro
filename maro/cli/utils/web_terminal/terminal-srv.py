@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import argparse
 import fcntl
 import json
@@ -28,7 +31,7 @@ app.config["local_executor"] = {}
 socketio = SocketIO(app)
 
 
-class DashboardType():
+class DashboardType:
     PROCESS = "process"
     LOCAL = "local"
     AZURE = "azure"
@@ -47,11 +50,18 @@ def read_and_forward_pty_output():
         if app.config["fd"]:
             timeout_sec = 0
             (data_ready, _, _) = select.select(
-                [app.config["fd"]], [], [], timeout_sec)
+                [app.config["fd"]],
+                [],
+                [],
+                timeout_sec,
+            )
             if data_ready:
                 output = os.read(app.config["fd"], max_read_bytes).decode()
                 socketio.emit(
-                    "pty-output", {"output": output}, namespace="/pty")
+                    "pty-output",
+                    {"output": output},
+                    namespace="/pty",
+                )
 
 
 @app.route("/")
@@ -104,8 +114,7 @@ def connect():
         cmd = " ".join(shlex.quote(c) for c in app.config["cmd"])
         print("child pid is", child_pid)
         print(
-            f"starting background task with command `{cmd}` to continuously read "
-            "and forward pty output to client"
+            f"starting background task with command `{cmd}` to continuously read " "and forward pty output to client",
         )
         socketio.start_background_task(target=read_and_forward_pty_output)
         socketio.start_background_task(target=update_cluster_list)
@@ -114,25 +123,32 @@ def connect():
 
 # Admin data support
 
+
 def load_executor(cluster_name):
     if cluster_name == "process":
         from maro.cli.process.executor import ProcessExecutor
+
         executor = ProcessExecutor()
         cluster_type = DashboardType.PROCESS
     else:
         from maro.cli.utils.details_reader import DetailsReader
+
         cluster_details = DetailsReader.load_cluster_details(
-            cluster_name=cluster_name)
+            cluster_name=cluster_name,
+        )
         if cluster_details["mode"] == "grass/azure":
             from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+
             executor = GrassAzureExecutor(cluster_name=cluster_name)
             cluster_type = DashboardType.AZURE
         elif cluster_details["mode"] == "grass/on-premises":
             from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+
             executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
             cluster_type = DashboardType.ONPREMISES
         elif cluster_details["mode"] == "grass/local":
             from maro.cli.grass.executors.grass_local_executor import GrassLocalExecutor
+
             executor = GrassLocalExecutor(cluster_name=cluster_name)
             cluster_type = DashboardType.LOCAL
     return executor, cluster_type
@@ -144,7 +160,7 @@ def update_resource_dynamic(org_data, local_executor, dashboard_type):
         for data_key in org_data.keys():
             org_data[data_key] = [new_data[data_key]]
     else:
-        data_len = len(org_data['cpu'])
+        data_len = len(org_data["cpu"])
         new_data = local_executor.get_resource_usage(data_len)
         for data_key in org_data.keys():
             attr_data = new_data[data_key]
@@ -166,6 +182,7 @@ def update_cluster_list():
         time.sleep(2)
         clusters = []
         from maro.cli.utils.params import GlobalPaths
+
         for root, _, files in os.walk(GlobalPaths.ABS_MARO_CLUSTERS, topdown=False):
             for name in files:
                 if os.path.basename(name) == "cluster_details.yml":
@@ -183,19 +200,23 @@ def update_cluster_list():
             if cluster_name not in app.config["cluster_status"].keys():
                 try:
                     app.config["cluster_status"][cluster_name] = {}
-                    app.config["local_executor"][cluster_name],\
-                        app.config["cluster_status"][cluster_name]["dashboard_type"] = load_executor(cluster_name)
+                    (
+                        app.config["local_executor"][cluster_name],
+                        app.config["cluster_status"][cluster_name]["dashboard_type"],
+                    ) = load_executor(cluster_name)
                     app.config["cluster_status"][cluster_name]["cluster_name"] = cluster_name
                     local_executor = app.config["local_executor"][cluster_name]
                     app.config["cluster_status"][cluster_name]["resource_static"] = local_executor.get_resource()
                     app.config["cluster_status"][cluster_name]["resource_dynamic"] = {
                         "cpu": [],
                         "memory": [],
-                        "gpu": []
+                        "gpu": [],
                     }
-                    update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
-                                            local_executor,
-                                            app.config["cluster_status"][cluster_name]["dashboard_type"])
+                    update_resource_dynamic(
+                        app.config["cluster_status"][cluster_name]["resource_dynamic"],
+                        local_executor,
+                        app.config["cluster_status"][cluster_name]["dashboard_type"],
+                    )
                     app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
                 except Exception as e:
                     print(f"Failed to collect status for cluster {cluster_name}, error:{e}  {traceback.format_exc()}")
@@ -204,9 +225,11 @@ def update_cluster_list():
             else:
                 try:
                     local_executor = app.config["local_executor"][cluster_name]
-                    update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
-                                            local_executor,
-                                            app.config["cluster_status"][cluster_name]["dashboard_type"])
+                    update_resource_dynamic(
+                        app.config["cluster_status"][cluster_name]["resource_dynamic"],
+                        local_executor,
+                        app.config["cluster_status"][cluster_name]["dashboard_type"],
+                    )
                     app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
                 except Exception as e:
                     print(f"Failed to collect status for cluster {cluster_name}, error:{e}  {traceback.format_exc()}")
@@ -253,19 +276,31 @@ def main():
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("-p", "--port", default=port,
-                        help="port to run server on")
+    parser.add_argument(
+        "-p",
+        "--port",
+        default=port,
+        help="port to run server on",
+    )
     parser.add_argument(
         "--host",
         default="127.0.0.1",
         help="host to run server on (use 0.0.0.0 to allow access from other hosts)",
     )
-    parser.add_argument("--debug", action="store_true",
-                        help="debug the server")
-    parser.add_argument("--version", action="store_true",
-                        help="print version and exit")
     parser.add_argument(
-        "--command", default=shell_cmd(), help="Command to run in the terminal"
+        "--debug",
+        action="store_true",
+        help="debug the server",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="print version and exit",
+    )
+    parser.add_argument(
+        "--command",
+        default=shell_cmd(),
+        help="Command to run in the terminal",
     )
     parser.add_argument(
         "--cmd-args",

@@ -24,7 +24,7 @@ class Subprocess:
             str: return stdout of the command.
         """
         if platform.system() == "Windows":
-            command = f"powershell.exe -Command \"{command}\""
+            command = f'powershell.exe -Command "{command}"'
         logger.debug(command)
         completed_process = subprocess.run(
             command,
@@ -32,7 +32,7 @@ class Subprocess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            timeout=timeout
+            timeout=timeout,
         )
         if completed_process.returncode != 0:
             raise CommandExecutionError(message=completed_process.stderr, command=command)
@@ -56,7 +56,7 @@ class Subprocess:
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
         )
         while True:
             next_line = process.stdout.readline()

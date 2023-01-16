@@ -1,14 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 import os
 import time
 from itertools import chain
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 import zmq
 from zmq import Context, Poller
 
+from maro.rl.distributed import DEFAULT_ROLLOUT_PRODUCER_PORT
 from maro.rl.utils.common import bytes_to_pyobj, get_own_ip_address, pyobj_to_bytes
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import DummyLogger, LoggerV2
@@ -36,19 +38,19 @@ class ParallelTaskController(object):
         self._poller = Poller()
         self._poller.register(self._task_endpoint, zmq.POLLIN)
 
-        self._workers = set()
-        self._logger = logger
+        self._workers: set = set()
+        self._logger: Union[DummyLogger, LoggerV2] = logger if logger is not None else DummyLogger()
 
     def _wait_for_workers_ready(self, k: int) -> None:
         while len(self._workers) < k:
             self._workers.add(self._task_endpoint.recv_multipart()[0])
 
-    def _recv_result_for_target_index(self, index: Tuple[int, int]) -> object:
+    def _recv_result_for_target_index(self, index: int) -> Any:
         rep = bytes_to_pyobj(self._task_endpoint.recv_multipart()[-1])
         assert isinstance(rep, dict)
         return rep["result"] if rep["index"] == index else None
 
-    def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: int = None) -> List[dict]:
+    def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: float = None) -> List[dict]:
         """Send a task request to a set of remote workers and collect the results.
 
         Args:
@@ -69,7 +71,7 @@ class ParallelTaskController(object):
             min_replies = parallelism
 
         start_time = time.time()
-        results = []
+        results: list = []
         for worker_id in list(self._workers)[:parallelism]:
             self._task_endpoint.send_multipart([worker_id, pyobj_to_bytes(req)])
         self._logger.debug(f"Sent {parallelism} roll-out requests...")
@@ -80,7 +82,7 @@ class ParallelTaskController(object):
                 results.append(result)
 
         if grace_factor is not None:
-            countdown = int((time.time() - start_time) * grace_factor) * 1000  # milliseconds
+            countdown = int((time.time() - start_time) * grace_factor) * 1000.0  # milliseconds
             self._logger.debug(f"allowing {countdown / 1000} seconds for remaining results")
             while len(results) < parallelism and countdown > 0:
                 start = time.time()
@@ -95,8 +97,7 @@ class ParallelTaskController(object):
         return results
 
     def exit(self) -> None:
-        """Signal the remote workers to exit and terminate the connections.
-        """
+        """Signal the remote workers to exit and terminate the connections."""
         for worker_id in self._workers:
             self._task_endpoint.send_multipart([worker_id, b"EXIT"])
         self._task_endpoint.close()
@@ -125,15 +126,18 @@ class BatchEnvSampler:
     def __init__(
         self,
         sampling_parallelism: int,
-        port: int = 20000,
+        port: int = None,
         min_env_samples: int = None,
         grace_factor: float = None,
         eval_parallelism: int = None,
         logger: LoggerV2 = None,
     ) -> None:
         super(BatchEnvSampler, self).__init__()
-        self._logger = logger if logger else DummyLogger()
-        self._controller = ParallelTaskController(port=port, logger=logger)
+        self._logger: Union[LoggerV2, DummyLogger] = logger if logger is not None else DummyLogger()
+        self._controller = ParallelTaskController(
+            port=port if port is not None else DEFAULT_ROLLOUT_PRODUCER_PORT,
+            logger=logger,
+        )
 
         self._sampling_parallelism = 1 if sampling_parallelism is None else sampling_parallelism
         self._min_env_samples = min_env_samples if min_env_samples is not None else self._sampling_parallelism
@@ -141,14 +145,17 @@ class BatchEnvSampler:
         self._eval_parallelism = 1 if eval_parallelism is None else eval_parallelism
 
         self._ep = 0
-        self._segment = 0
         self._end_of_episode = True
 
-    def sample(self, policy_state: Optional[Dict[str, object]] = None, num_steps: Optional[int] = None) -> dict:
+    def sample(
+        self,
+        policy_state: Optional[Dict[str, Dict[str, Any]]] = None,
+        num_steps: Optional[int] = None,
+    ) -> dict:
         """Collect experiences from a set of remote roll-out workers.
 
         Args:
-            policy_state (Dict[str, object]): Policy state dict. If it is not None, then we need to update all
+            policy_state (Dict[str, Any]): Policy state dict. If it is not None, then we need to update all
                 policies according to the latest policy states, then start the experience collection.
             num_steps (Optional[int], default=None): Number of environment steps to collect experiences for. If
                 it is None, interactions with the (remote) environments will continue until the terminal state is
@@ -157,22 +164,20 @@ class BatchEnvSampler:
         Returns:
             A dict that contains the collected experiences and additional information.
         """
-        # increment episode or segment depending on whether the last episode has concluded
+        # increment episode depending on whether the last episode has concluded
         if self._end_of_episode:
             self._ep += 1
-            self._segment = 1
-        else:
-            self._segment += 1
 
-        self._logger.info(f"Collecting roll-out data for episode {self._ep}, segment {self._segment}")
+        self._logger.info(f"Collecting roll-out data for episode {self._ep}")
         req = {
             "type": "sample",
             "policy_state": policy_state,
             "num_steps": num_steps,
-            "index": (self._ep, self._segment),
+            "index": self._ep,
         }
         results = self._controller.collect(
-            req, self._sampling_parallelism,
+            req,
+            self._sampling_parallelism,
             min_replies=self._min_env_samples,
             grace_factor=self._grace_factor,
         )
@@ -184,8 +189,8 @@ class BatchEnvSampler:
             "info": [res["info"][0] for res in results],
         }
 
-    def eval(self, policy_state: Dict[str, object] = None) -> dict:
-        req = {"type": "eval", "policy_state": policy_state, "index": (self._ep, -1)}  # -1 signals test
+    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None) -> dict:
+        req = {"type": "eval", "policy_state": policy_state, "index": self._ep}  # -1 signals test
         results = self._controller.collect(req, self._eval_parallelism)
         return {
             "info": [res["info"][0] for res in results],
@@ -205,10 +210,18 @@ class BatchEnvSampler:
         req = {
             "type": "set_policy_state",
             "policy_state": policy_state_dict,
-            "index": (self._ep, -1),
+            "index": self._ep,
         }
         self._controller.collect(req, self._sampling_parallelism)
         return loaded
 
     def exit(self) -> None:
         self._controller.exit()
+
+    def post_collect(self, info_list: list, ep: int) -> None:
+        req = {"type": "post_collect", "info_list": info_list, "index": ep}
+        self._controller.collect(req, 1)
+
+    def post_evaluate(self, info_list: list, ep: int) -> None:
+        req = {"type": "post_evaluate", "info_list": info_list, "index": ep}
+        self._controller.collect(req, 1)

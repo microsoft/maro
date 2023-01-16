@@ -49,7 +49,7 @@ class ArgumentParser(argparse.ArgumentParser):
         args = sys.argv
 
         # if get 'help', print help without printing errors
-        if '--help' in args or '-h' in args:
+        if "--help" in args or "-h" in args:
             self.print_help()
             # Otherwise it will print traceback here.
             sys.exit(0)
@@ -61,5 +61,5 @@ class ArgumentParser(argparse.ArgumentParser):
 class HelpFormatter(argparse.RawTextHelpFormatter):
     def add_usage(self, usage, actions, groups, prefix=None):
         if prefix is None:
-            prefix = 'Usage: '  # Capitalized
+            prefix = "Usage: "  # Capitalized
         return super(HelpFormatter, self).add_usage(usage, actions, groups, prefix)

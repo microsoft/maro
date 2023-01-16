@@ -12,7 +12,13 @@ AbsTransitionBatch = Union[TransitionBatch, MultiTransitionBatch]
 
 __all__ = [
     "SHAPE_CHECK_FLAG",
-    "average_grads", "get_torch_device", "match_shape", "ndarray_to_tensor",
+    "average_grads",
+    "get_torch_device",
+    "match_shape",
+    "ndarray_to_tensor",
     "discount_cumsum",
-    "AbsTransitionBatch", "MultiTransitionBatch", "TransitionBatch", "merge_transition_batches",
+    "AbsTransitionBatch",
+    "MultiTransitionBatch",
+    "TransitionBatch",
+    "merge_transition_batches",
 ]

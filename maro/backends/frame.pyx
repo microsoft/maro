@@ -8,31 +8,42 @@
 import os
 
 cimport cython
-
 cimport numpy as np
+
 import numpy as np
 
 from cpython cimport bool
+
 from typing import Union
 
+from maro.backends.backend cimport (
+    ATTR_TYPE,
+    INT,
+    NODE_INDEX,
+    NODE_TYPE,
+    SLOT_INDEX,
+    UINT,
+    ULONG,
+    USHORT,
+    AttributeType,
+    BackendAbc,
+    SnapshotListAbc,
+)
 from maro.backends.np_backend cimport NumpyBackend
 from maro.backends.raw_backend cimport RawBackend
 
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
-    INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
-
 from maro.utils.exception.backends_exception import (
-    BackendsGetItemInvalidException,
-    BackendsSetItemInvalidException,
-    BackendsArrayAttributeAccessException,
-    BackendsAppendToNonListAttributeException,
-    BackendsResizeNonListAttributeException,
-    BackendsClearNonListAttributeException,
-    BackendsInsertNonListAttributeException,
-    BackendsRemoveFromNonListAttributeException,
     BackendsAccessDeletedNodeException,
+    BackendsAppendToNonListAttributeException,
+    BackendsArrayAttributeAccessException,
+    BackendsClearNonListAttributeException,
+    BackendsGetItemInvalidException,
+    BackendsInsertNonListAttributeException,
+    BackendsInvalidAttributeException,
     BackendsInvalidNodeException,
-    BackendsInvalidAttributeException
+    BackendsRemoveFromNonListAttributeException,
+    BackendsResizeNonListAttributeException,
+    BackendsSetItemInvalidException,
 )
 
 # Old type definition mapping.

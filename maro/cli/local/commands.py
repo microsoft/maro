@@ -18,8 +18,13 @@ from maro.utils.logger import CliLogger
 from maro.utils.utils import LOCAL_MARO_ROOT
 
 from .utils import (
-    JobStatus, RedisHashKey, start_redis, start_rl_job, start_rl_job_with_docker_compose, stop_redis,
-    stop_rl_job_with_docker_compose
+    JobStatus,
+    RedisHashKey,
+    start_redis,
+    start_rl_job,
+    start_rl_job_with_docker_compose,
+    stop_redis,
+    stop_rl_job_with_docker_compose,
 )
 
 # metadata
@@ -59,23 +64,20 @@ def get_redis_conn(port=None):
 def run(conf_path: str, containerize: bool = False, evaluate_only: bool = False, **kwargs):
     # Load job configuration file
     parser = ConfigParser(conf_path)
-    env_by_component = parser.as_env(containerize=containerize)
     if containerize:
-        path_mapping = parser.get_path_mapping(containerize=True)
         try:
             start_rl_job_with_docker_compose(
-                parser.config, LOCAL_MARO_ROOT, DOCKERFILE_PATH,
-                DOCKER_IMAGE_NAME, env_by_component, path_mapping, evaluate_only,
+                parser,
+                LOCAL_MARO_ROOT,
+                DOCKERFILE_PATH,
+                DOCKER_IMAGE_NAME,
+                evaluate_only=evaluate_only,
             )
         except KeyboardInterrupt:
             stop_rl_job_with_docker_compose(parser.config["job"], LOCAL_MARO_ROOT)
     else:
         try:
-            start_rl_job(
-                env_by_component=parser.as_env(),
-                maro_root=LOCAL_MARO_ROOT,
-                evaluate_only=evaluate_only,
-            )
+            start_rl_job(parser, LOCAL_MARO_ROOT, evaluate_only=evaluate_only)
         except KeyboardInterrupt:
             sys.exit(1)
 
@@ -86,21 +88,21 @@ def init(
     query_every: int = 5,
     timeout: int = 3,
     containerize: bool = False,
-    **kwargs
+    **kwargs,
 ):
     if exists(SESSION_STATE_PATH):
         with open(SESSION_STATE_PATH, "r") as fp:
             session_state = json.load(fp)
         logger.warning(
             f"Local job manager is already running at port {session_state['port']}. "
-            f"Run 'maro local job add/rm' to add / remove jobs."
+            f"Run 'maro local job add/rm' to add / remove jobs.",
         )
         return
 
     start_redis(port)
 
     # Start job manager
-    command = ["python", join(dirname(abspath(__file__)), 'job_manager.py')]
+    command = ["python", join(dirname(abspath(__file__)), "job_manager.py")]
     job_manager = subprocess.Popen(
         command,
         env={
@@ -112,8 +114,8 @@ def init(
             "REDIS_PORT": str(port),
             "LOCAL_MARO_ROOT": LOCAL_MARO_ROOT,
             "DOCKER_IMAGE_NAME": DOCKER_IMAGE_NAME,
-            "DOCKERFILE_PATH": DOCKERFILE_PATH
-        }
+            "DOCKERFILE_PATH": DOCKERFILE_PATH,
+        },
     )
 
     # Dump environment setting
@@ -174,7 +176,7 @@ def add_job(conf_path: str, **kwargs):
     redis_conn.hset(RedisHashKey.JOB_CONF, job_name, json.dumps(conf))
     details = {
         "status": JobStatus.PENDING,
-        "added": time.time()
+        "added": time.time(),
     }
     redis_conn.hset(RedisHashKey.JOB_DETAILS, job_name, json.dumps(details))
 
@@ -208,7 +210,7 @@ def describe_job(job_name, **kwargs):
     details = json.loads(details)
     err = "error_message" in details
     if err:
-        err_msg = details["error_message"].split('\n')
+        err_msg = details["error_message"].split("\n")
         del details["error_message"]
 
     logger.info(details)

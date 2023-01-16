@@ -3,6 +3,8 @@
 
 from enum import Enum
 
+from maro.common import BaseAction, BaseDecisionEvent
+
 
 class BikeTransferPayload:
     """Payload for bike transfer event.
@@ -21,8 +23,12 @@ class BikeTransferPayload:
         self.number = number
 
     def __repr__(self):
-        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % \
-            (self.__class__.__name__, self.from_station_idx, self.to_station_idx, self.number)
+        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % (
+            self.__class__.__name__,
+            self.from_station_idx,
+            self.to_station_idx,
+            self.number,
+        )
 
 
 class BikeReturnPayload:
@@ -42,19 +48,24 @@ class BikeReturnPayload:
         self.number = number
 
     def __repr__(self):
-        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % \
-            (self.__class__.__name__, self.from_station_idx, self.to_station_idx, self.number)
+        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % (
+            self.__class__.__name__,
+            self.from_station_idx,
+            self.to_station_idx,
+            self.number,
+        )
 
 
 class DecisionType(Enum):
     """Station decision type."""
+
     # current cell has too more bikes, need transfer to others
-    Supply = 'supply'
+    Supply = "supply"
     # current cell has no enough bikes, need neighbors transfer bikes to it
-    Demand = 'demand'
+    Demand = "demand"
 
 
-class DecisionEvent:
+class DecisionEvent(BaseDecisionEvent):
     """Citi bike scenario decision event that contains station information for agent to choose action.
 
     Args:
@@ -68,7 +79,12 @@ class DecisionEvent:
     summary_key = ["station_idx", "tick", "frame_index", "type", "action_scope"]
 
     def __init__(
-        self, station_idx: int, tick: int, frame_index: int, action_scope_func: callable, decision_type: DecisionType
+        self,
+        station_idx: int,
+        tick: int,
+        frame_index: int,
+        action_scope_func: callable,
+        decision_type: DecisionType,
     ):
         self.station_idx = station_idx
         self.tick = tick
@@ -80,7 +96,7 @@ class DecisionEvent:
     @property
     def action_scope(self) -> dict:
         """dict: A dictionary that contains requirements of current and neighbor stations,
-                key is the station index, value is the max demand or supply number.
+        key is the station index, value is the max demand or supply number.
         """
         if self._action_scope is None:
             self._action_scope = self._action_scope_func(self.station_idx, self.type)
@@ -94,7 +110,8 @@ class DecisionEvent:
             "tick": self.tick,
             "frame_index": self.frame_index,
             "type": self.type,
-            "action_scope": self.action_scope}
+            "action_scope": self.action_scope,
+        }
 
     def __setstate__(self, state):
         self.station_idx = state["station_idx"]
@@ -104,11 +121,15 @@ class DecisionEvent:
         self._action_scope = state["action_scope"]
 
     def __repr__(self):
-        return "%s {station_idx: %r, type: %r, action_scope:%r}" % \
-            (self.__class__.__name__, self.station_idx, str(self.type), self.action_scope)
+        return "%s {station_idx: %r, type: %r, action_scope:%r}" % (
+            self.__class__.__name__,
+            self.station_idx,
+            str(self.type),
+            self.action_scope,
+        )
 
 
-class Action:
+class Action(BaseAction):
     """Citi bike scenario action object, that used to pass action from agent to business engine.
 
     Args:
@@ -123,12 +144,17 @@ class Action:
         self.number = number
 
     def __repr__(self):
-        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % \
-            (self.__class__.__name__, self.from_station_idx, str(self.to_station_idx), self.number)
+        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % (
+            self.__class__.__name__,
+            self.from_station_idx,
+            str(self.to_station_idx),
+            self.number,
+        )
 
 
 class ExtraCostMode(Enum):
     """The mode to process extra cost."""
+
     Source = "source"
     Target = "target"
     # TargetNeighbors = "target_neighbors"

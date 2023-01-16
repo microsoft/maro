@@ -5,7 +5,9 @@
 #distutils: language = c++
 
 from enum import Enum
+
 from cpython cimport bool
+
 
 cdef class AttributeType:
     Byte = b"byte"

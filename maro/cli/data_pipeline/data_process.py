@@ -1,5 +1,5 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
 from maro.cli.data_pipeline.vm_scheduling import VmSchedulingProcess
@@ -16,7 +16,7 @@ scenario_map["vm_scheduling"] = VmSchedulingProcess
 def generate(scenario: str, topology: str = "", forced: bool = False, **kwargs):
     logger.info_green(
         f"Generating data files for scenario {scenario} topology {topology}"
-        f" {'forced redownload.' if forced else ', not forced redownload.'}"
+        f" {'forced redownload.' if forced else ', not forced redownload.'}",
     )
     if scenario in scenario_map:
         process = scenario_map[scenario]()

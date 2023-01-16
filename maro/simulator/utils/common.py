@@ -22,9 +22,14 @@ def get_available_envs():
 
     for scenario in scenarios:
         for topology in get_topologies(scenario):
-            envs.append({'scenario': scenario, 'topology': topology})
+            envs.append({"scenario": scenario, "topology": topology})
 
     return envs
+
+
+def scenario_not_empty(scenario_path: str) -> bool:
+    _, _, files = next(os.walk(scenario_path))
+    return "business_engine.py" in files
 
 
 def get_scenarios() -> List[str]:
@@ -35,7 +40,13 @@ def get_scenarios() -> List[str]:
     """
     try:
         _, scenarios, _ = next(os.walk(scenarios_root_folder))
-        scenarios = sorted([s for s in scenarios if not s.startswith("__")])
+        scenarios = sorted(
+            [
+                s
+                for s in scenarios
+                if not s.startswith("__") and scenario_not_empty(os.path.join(scenarios_root_folder, s))
+            ],
+        )
 
     except StopIteration:
         return []
@@ -52,7 +63,7 @@ def get_topologies(scenario: str) -> List[str]:
     Return:
         List[str]: List of topology name.
     """
-    scenario_topology_root = f'{scenarios_root_folder}/{scenario}/{topologies_folder}'
+    scenario_topology_root = f"{scenarios_root_folder}/{scenario}/{topologies_folder}"
 
     if not os.path.exists(scenario_topology_root):
         return []
@@ -124,5 +135,11 @@ def total_frames(start_tick: int, max_tick: int, resolution: int) -> int:
     return ceil((max_tick - start_tick) / resolution)
 
 
-__all__ = ['get_available_envs', 'get_scenarios', 'get_topologies',
-           'tick_to_frame_index', 'frame_index_to_ticks', 'total_frames']
+__all__ = [
+    "get_available_envs",
+    "get_scenarios",
+    "get_topologies",
+    "tick_to_frame_index",
+    "frame_index_to_ticks",
+    "total_frames",
+]

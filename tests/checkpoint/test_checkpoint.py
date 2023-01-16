@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import json
 import logging
 import os
@@ -45,7 +48,8 @@ class TestCheckPoint(unittest.TestCase):
         template_file_location = f"{cls.test_dir_path}/test_checkpoint_template.json"
         base_parameters_file_location = f"{cls.test_dir_path}/test_checkpoint_parameters.json"
         parameters_file_location = os.path.expanduser(
-            f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_checkpoint_parameters.json")
+            f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_checkpoint_parameters.json",
+        )
         with open(base_parameters_file_location, "r") as f:
             base_parameters = json.load(f)
         with open(parameters_file_location, "w") as fw:
@@ -67,7 +71,7 @@ class TestCheckPoint(unittest.TestCase):
             resource_group=cls.resource_group,
             deployment_name=cls.test_id,
             template_file=template_file_location,
-            parameters_file=parameters_file_location
+            parameters_file=parameters_file_location,
         )
         cls._gracefully_wait(15)
 
@@ -102,7 +106,7 @@ class TestCheckPoint(unittest.TestCase):
         checkpoint = ServerCheckpoint(
             remote_dir=f"/home/{self.admin_username}/test-dir",
             admin_username=self.admin_username,
-            ip_address=self.ip_address
+            ip_address=self.ip_address,
         )
         self.assertFalse(checkpoint.exists("key1"))
         checkpoint.set("key1", b"b1234")
