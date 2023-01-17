@@ -1,10 +1,11 @@
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import gym
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
+from maro.simulator.scenarios.gym.common import Action, DecisionEvent
 
 
 class GymBusinessEngine(AbsBusinessEngine):
@@ -59,7 +60,7 @@ class GymBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
 
     def _on_action_received(self, event: CascadeEvent) -> None:
-        actions = event.payload
+        actions = cast(Action, event.payload).action
         assert isinstance(actions, list)
         action = actions[0]
 
@@ -68,7 +69,7 @@ class GymBusinessEngine(AbsBusinessEngine):
         self._info_record[event.tick] = info
 
     def step(self, tick: int) -> None:
-        self._event_buffer.insert_event(self._event_buffer.gen_decision_event(tick, self._last_obs))
+        self._event_buffer.insert_event(self._event_buffer.gen_decision_event(tick, DecisionEvent(self._last_obs)))
 
     @property
     def configs(self) -> dict:
