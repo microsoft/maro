@@ -96,3 +96,6 @@ class GymBusinessEngine(AbsBusinessEngine):
         return {
             "reward_record": {k: v for k, v in self._reward_record.items()},
         }
+
+    def set_seed(self, seed: int) -> None:
+        pass
