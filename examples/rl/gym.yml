@@ -9,7 +9,7 @@
 # - (Requires installing MARO from source) maro local run .\examples\rl\gym.yml
 
 job: gym_rl_workflow
-scenario_path: "examples/gym/rl"
+scenario_path: "examples/gym_new/rl"
 log_path: "log/rl_job/gym.txt"
 main:
   num_episodes: 600
