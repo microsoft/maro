@@ -19,12 +19,11 @@ class GymBusinessEngine(AbsBusinessEngine):
             additional_options=additional_options,
         )
 
-        self._gym_scenario_name = "Walker2d-v2"
+        self._gym_scenario_name = "Walker2d-v4"
         self._gym_env = gym.make(self._gym_scenario_name)
         self._seed = additional_options.get("random_seed", None)
 
-        self._gym_env.seed(self._seed)
-        self._last_obs = self._gym_env.reset()
+        self._last_obs = self._gym_env.reset()[0]
         self._is_done = False
         self._reward_record = {}
         self._info_record = {}
@@ -54,7 +53,7 @@ class GymBusinessEngine(AbsBusinessEngine):
         assert isinstance(actions, list)
         action = actions[0]
 
-        self._last_obs, reward, self._is_done, info = self._gym_env.step(action)
+        self._last_obs, reward, self._is_done, _, info = self._gym_env.step(action)
         self._reward_record[event.tick] = reward
         self._info_record[event.tick] = info
 
@@ -72,8 +71,7 @@ class GymBusinessEngine(AbsBusinessEngine):
         return self._info_record[tick]
 
     def reset(self, keep_seed: bool = False) -> None:
-        self._gym_env.seed(self._seed)
-        self._last_obs = self._gym_env.reset()
+        self._last_obs = self._gym_env.reset()[0]
         self._is_done = False
         self._reward_record = {}
         self._info_record = {}
