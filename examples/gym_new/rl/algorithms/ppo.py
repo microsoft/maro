@@ -8,10 +8,10 @@ import torch
 from torch.distributions import Normal
 from torch.optim import Adam
 
-from examples.gym_new.rl.algorithms.utils import mlp
 from maro.rl.model import ContinuousACBasedNet, VNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.training.algorithms import PPOParams, PPOTrainer
+from .utils import mlp
 
 actor_net_conf = {
     "hidden_dims": [64, 64],
