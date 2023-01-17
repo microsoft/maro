@@ -1,21 +1,31 @@
-from copy import deepcopy
 from typing import List, Optional
 
 import gym
-from maro.backends.frame import FrameBase, SnapshotList
 
+from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 
 
 class GymBusinessEngine(AbsBusinessEngine):
     def __init__(
-        self, event_buffer: EventBuffer, topology: Optional[str], start_tick: int,
-        max_tick: int, snapshot_resolution: int, max_snapshots: Optional[int], additional_options: dict = None,
+        self,
+        event_buffer: EventBuffer,
+        topology: Optional[str],
+        start_tick: int,
+        max_tick: int,
+        snapshot_resolution: int,
+        max_snapshots: Optional[int],
+        additional_options: dict = None,
     ) -> None:
         super(GymBusinessEngine, self).__init__(
-            scenario_name="gym", event_buffer=event_buffer, topology=topology, start_tick=start_tick,
-            max_tick=max_tick, snapshot_resolution=snapshot_resolution, max_snapshots=max_snapshots,
+            scenario_name="gym",
+            event_buffer=event_buffer,
+            topology=topology,
+            start_tick=start_tick,
+            max_tick=max_tick,
+            snapshot_resolution=snapshot_resolution,
+            max_snapshots=max_snapshots,
             additional_options=additional_options,
         )
 

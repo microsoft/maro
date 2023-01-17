@@ -4,7 +4,9 @@ import torch
 
 
 def mlp(
-    sizes: List[int], activation: Type[torch.nn.Module], output_activation: Type[torch.nn.Module] = torch.nn.Identity
+    sizes: List[int],
+    activation: Type[torch.nn.Module],
+    output_activation: Type[torch.nn.Module] = torch.nn.Identity,
 ) -> torch.nn.Sequential:
     layers = []
     for j in range(len(sizes) - 1):

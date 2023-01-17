@@ -19,5 +19,5 @@ gym_state_dim = gym_env.observation_space.shape[0]
 gym_action_dim = gym_env.action_space.shape[0]
 # action_lower_bound = gym_env.action_space.low.tolist()
 # action_upper_bound = gym_env.action_space.high.tolist()
-action_lower_bound = [float('-inf') for _ in range(gym_env.action_space.shape[0])]  # TODO
-action_upper_bound = [float('inf') for _ in range(gym_env.action_space.shape[0])]  # TODO
+action_lower_bound = [float("-inf") for _ in range(gym_env.action_space.shape[0])]  # TODO
+action_upper_bound = [float("inf") for _ in range(gym_env.action_space.shape[0])]  # TODO

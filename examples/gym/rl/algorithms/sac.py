@@ -6,11 +6,12 @@ import torch.nn.functional as F
 from torch.distributions import Normal
 from torch.optim import Adam
 
-from examples.gym.rl.algorithms.utils import mlp
-from examples.gym.rl.env_helper import action_lower_bound, action_upper_bound, gym_action_dim, gym_env, gym_state_dim
 from maro.rl.model import ContinuousQNet, ContinuousSACNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.training.algorithms import SoftActorCriticParams, SoftActorCriticTrainer
+
+from examples.gym.rl.algorithms.utils import mlp
+from examples.gym.rl.env_helper import action_lower_bound, action_upper_bound, gym_action_dim, gym_env, gym_state_dim
 
 actor_net_conf = {
     "hidden_dims": [256, 256],
@@ -93,5 +94,5 @@ def get_sac(name: str) -> SoftActorCriticTrainer:
             entropy_coef=0.2,
             num_epochs=100,
             n_start_train=10000,
-        )
+        ),
     )
