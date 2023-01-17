@@ -9,6 +9,7 @@ from maro.backends.frame import NodeAttribute, NodeBase, node
 @node("racks")
 class Rack(NodeBase):
     """Rack node definition in frame."""
+
     id = NodeAttribute("i")
 
     region_id = NodeAttribute("i2")
@@ -37,7 +38,7 @@ class Rack(NodeBase):
         zone_id: int,
         data_center_id: int,
         cluster_id: int,
-        total_machine_num: int
+        total_machine_num: int,
     ):
         """Set initialize state, that will be used after frame reset.
 

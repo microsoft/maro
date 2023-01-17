@@ -69,6 +69,5 @@ class AbsProxy(object):
         self._event_loop.start()
 
     def stop(self) -> None:
-        """Stop the currently running event loop.
-        """
+        """Stop the currently running event loop."""
         self._event_loop.stop()

@@ -15,6 +15,7 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
     A decorator used to inject a ``communication module`` and ``message handlers``
     to a local class so that it can be run in distributed mode.
     """
+
     def dist_decorator(cls):
         class Wrapper:
             """A wrapper class for ``cls``, the class to be decorated.
@@ -22,6 +23,7 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
             It contains a reference to the ``proxy`` and a ``message handler`` lookup table and defines a launch method
             as the universal entry point for running a ``cls`` instance in distributed mode.
             """
+
             def __init__(self, *args, **kwargs):
                 self.local_instance = cls(*args, **kwargs)
                 self.proxy = proxy

@@ -6,6 +6,7 @@ from enum import Enum
 
 class Events(Enum):
     """Event type for CIM problem."""
+
     # RELEASE_EMPTY = 10
     RETURN_FULL = "return_full"
     LOAD_FULL = "load_full"

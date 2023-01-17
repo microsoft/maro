@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# isort: skip_file
+
 import io
 import os
 import sys
@@ -15,10 +17,10 @@ from distutils.extension import Extension
 
 from maro import __version__
 
-compile_flag = '-std=c++11'
+compile_flag = "-std=c++11"
 
 if sys.platform == "win32":
-    compile_flag = '/std:c++14'
+    compile_flag = "/std:c++14"
 
 # Set environment variable to skip deployment process of MARO
 os.environ["SKIP_DEPLOYMENT"] = "TRUE"
@@ -45,7 +47,8 @@ extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
         sources=[f"{BASE_SRC_PATH}/backend.cpp"],
-        extra_compile_args=[compile_flag])
+        extra_compile_args=[compile_flag],
+    ),
 )
 
 
@@ -56,7 +59,8 @@ extensions.append(
         f"{BASE_MODULE_NAME}.np_backend",
         sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=[compile_flag],
+    ),
 )
 
 # raw implementation
@@ -66,7 +70,8 @@ extensions.append(
         f"{BASE_MODULE_NAME}.raw_backend",
         sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=[compile_flag],
+    ),
 )
 
 # frame
@@ -75,7 +80,8 @@ extensions.append(
         f"{BASE_MODULE_NAME}.frame",
         sources=[f"{BASE_SRC_PATH}/frame.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=[compile_flag],
+    ),
 )
 
 specific_requires = []
@@ -96,7 +102,7 @@ setup(
     project_urls={
         "Code": "https://github.com/microsoft/maro",
         "Issues": "https://github.com/microsoft/maro/issues",
-        "Documents": "https://maro.readthedocs.io/en/latest"
+        "Documents": "https://maro.readthedocs.io/en/latest",
     },
     license="MIT License",
     platforms=["Windows", "Linux", "macOS"],
@@ -106,52 +112,49 @@ setup(
         "operations-research",
         "reinforcement-learning",
         "resource-optimization",
-        "simulator"],
+        "simulator",
+    ],
     classifiers=[
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence"],
-    python_requires=">=3.6",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    ],
+    python_requires=">=3.7",
     setup_requires=[
         "numpy<1.20.0",
     ],
     install_requires=[
         # TODO: use a helper function to collect these
-        "numpy<1.20.0",
-        "scipy<=1.7.0",
-        "torch<1.8.0",
         "holidays>=0.10.3",
-        "pyaml>=20.4.0",
+        "numpy>=1.19.5",
+        "pandas>=0.25.3",
+        "paramiko>=2.9.2",
+        "ptvsd>=4.3.2",
+        "python_dateutil>=2.8.1",
+        "PyYAML>=5.4.1",
+        "pyzmq>=19.0.2",
         "redis>=3.5.3",
-        "pyzmq<22.1.0",
-        "requests<=2.26.0",
-        "psutil<5.9.0",
-        "deepdiff>=5.2.2",
-        "azure-storage-blob<12.9.0",
-        "azure-storage-common",
-        "geopy>=2.0.0",
-        "pandas<1.2",
-        "PyYAML<5.5.0",
-        "paramiko>=2.7.2",
-        "kubernetes>=12.0.1",
-        "prompt_toolkit<3.1.0",
-        "stringcase>=1.2.0",
-    ] + specific_requires,
+        "requests>=2.25.1",
+        "scipy>=1.7.0",
+        "tabulate>=0.8.5",
+        "torch>=1.6.0, <1.8.0",
+        "tornado>=6.1",
+    ]
+    + specific_requires,
     entry_points={
         "console_scripts": [
             "maro=maro.cli.maro:main",
-        ]
+        ],
     },
     packages=find_packages(exclude=["tests", "tests.*", "examples", "examples.*"]),
     include_package_data=True,

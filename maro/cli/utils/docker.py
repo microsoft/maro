@@ -22,7 +22,7 @@ def build_image(context: str, docker_file_path: str, image_name: str):
             quiet=False,
             rm=True,
             custom_context=False,
-            dockerfile=docker_file_path
+            dockerfile=docker_file_path,
         )
 
 

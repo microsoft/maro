@@ -32,7 +32,8 @@ def gen_matrix(port_num: int, vessel_num: int):
             self._acc_dict = {
                 "full_on_ports": MatrixAttributeAccessor(self, "full_on_ports", port_num, port_num),
                 "full_on_vessels": MatrixAttributeAccessor(self, "full_on_vessels", vessel_num, port_num),
-                "vessel_plans": MatrixAttributeAccessor(self, "vessel_plans", vessel_num, port_num)}
+                "vessel_plans": MatrixAttributeAccessor(self, "vessel_plans", vessel_num, port_num),
+            }
 
         def __getitem__(self, key):
             return self._acc_dict.get(key, None)

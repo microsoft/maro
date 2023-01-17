@@ -14,7 +14,7 @@ import yaml
 
 
 class DumpConverter:
-    """ This class is used for convert binary snapshot dump content to CSV format. """
+    """This class is used for convert binary snapshot dump content to CSV format."""
 
     def __init__(self, parent_path="", scenario_name="", prefix="epoch_", serial=0):
         super().__init__()

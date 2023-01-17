@@ -43,7 +43,6 @@ ports:
 
 
 class TestPortParser(unittest.TestCase):
-
     def test_port_parser(self):
         total_cntr = 100
 

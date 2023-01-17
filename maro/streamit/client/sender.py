@@ -27,6 +27,7 @@ class StreamitSender(Process):
         experiment_name (str): Name of current experiment.
         address (str): IP address of data service.
     """
+
     def __init__(self, data_queue: Queue, experiment_name: str, address: str):
         super().__init__()
 

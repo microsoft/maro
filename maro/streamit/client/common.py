@@ -6,6 +6,7 @@ from enum import IntEnum
 
 class MessageType(IntEnum):
     """Message types, used to identify type of message."""
+
     Experiment = 0
     Episode = 1
     Tick = 2

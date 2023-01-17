@@ -39,6 +39,14 @@ maro.rl.exploration.strategies
 Model
 ================================================================================
 
+maro.rl.model.algorithm_nets
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.model.algorithm_nets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 maro.rl.model.abs_net
 --------------------------------------------------------------------------------
 
@@ -110,6 +118,17 @@ maro.rl.policy.discrete_rl_policy
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.rl.policy.discrete_rl_policy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+RL Component
+================================================================================
+
+maro.rl.rl_component.rl_component_bundle
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.rl_component.rl_component_bundle
    :members:
    :undoc-members:
    :show-inheritance:

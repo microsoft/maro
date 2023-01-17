@@ -72,7 +72,7 @@ if __name__ == "__main__":
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        universal_newlines=True
+        universal_newlines=True,
     )
     while True:
         next_line = process.stdout.readline()

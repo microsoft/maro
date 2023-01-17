@@ -5,8 +5,7 @@
 #distutils: language = c++
 
 from cpython cimport bool
-
-from libc.stdint cimport int32_t, int64_t, int16_t, int8_t, uint32_t, uint64_t
+from libc.stdint cimport int8_t, int16_t, int32_t, int64_t, uint32_t, uint64_t
 
 # common types
 
@@ -27,7 +26,7 @@ ctypedef float ATTR_FLOAT
 ctypedef double ATTR_DOUBLE
 
 # Type for snapshot querying.
-ctypedef float QUERY_FLOAT
+ctypedef double QUERY_FLOAT
 
 # TYPE of node and attribute
 ctypedef unsigned short NODE_TYPE

@@ -1,23 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import collections
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
 
-import numpy as np
+from dataclasses import dataclass
+from typing import Dict, cast
+
 import torch
 
 from maro.rl.policy import RLPolicy, ValueBasedPolicy
-from maro.rl.rollout import ExpElement
-from maro.rl.training import AbsTrainOps, RandomReplayMemory, RemoteOps, SingleAgentTrainer, TrainerParams, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, RandomReplayMemory, RemoteOps, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
 
 @dataclass
-class DQNParams(TrainerParams):
+class DQNParams(BaseTrainerParams):
     """
-    reward_discount (float, default=0.9): Reward decay as defined in standard RL terminology.
     num_epochs (int, default=1): Number of training epochs.
     update_target_every (int, default=5): Number of gradient steps between target model updates.
     soft_update_coef (float, default=0.1): Soft update coefficient, e.g.,
@@ -29,49 +26,41 @@ class DQNParams(TrainerParams):
         is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
         sequentially with wrap-around.
     """
-    reward_discount: float = 0.9
+
     num_epochs: int = 1
     update_target_every: int = 5
     soft_update_coef: float = 0.1
     double: bool = False
     random_overwrite: bool = False
 
-    def extract_ops_params(self) -> Dict[str, object]:
-        return {
-            "reward_discount": self.reward_discount,
-            "soft_update_coef": self.soft_update_coef,
-            "double": self.double,
-        }
-
 
 class DQNOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy_creator: Callable[[str], RLPolicy],
-        parallelism: int = 1,
+        policy: RLPolicy,
+        params: DQNParams,
         reward_discount: float = 0.9,
-        soft_update_coef: float = 0.1,
-        double: bool = False,
+        parallelism: int = 1,
     ) -> None:
         super(DQNOps, self).__init__(
             name=name,
-            policy_creator=policy_creator,
+            policy=policy,
             parallelism=parallelism,
         )
 
         assert isinstance(self._policy, ValueBasedPolicy)
 
         self._reward_discount = reward_discount
-        self._soft_update_coef = soft_update_coef
-        self._double = double
+        self._soft_update_coef = params.soft_update_coef
+        self._double = params.double
         self._loss_func = torch.nn.MSELoss()
 
         self._target_policy: ValueBasedPolicy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
 
-    def _get_batch_loss(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+    def _get_batch_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the loss of the batch.
 
         Args:
@@ -81,6 +70,8 @@ class DQNOps(AbsTrainOps):
             loss (torch.Tensor): The loss of the batch.
         """
         assert isinstance(batch, TransitionBatch)
+        assert isinstance(self._policy, ValueBasedPolicy)
+
         self._policy.train()
         states = ndarray_to_tensor(batch.states, device=self._device)
         next_states = ndarray_to_tensor(batch.next_states, device=self._device)
@@ -103,7 +94,7 @@ class DQNOps(AbsTrainOps):
         return self._loss_func(q_values, target_q_values)
 
     @remote
-    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, Dict[str, torch.Tensor]]:
+    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
         """Compute the network's gradients of a batch.
 
         Args:
@@ -141,11 +132,10 @@ class DQNOps(AbsTrainOps):
         self._target_policy.set_state(state["target_q_net"])
 
     def soft_update_target(self) -> None:
-        """Soft update the target policy.
-        """
+        """Soft update the target policy."""
         self._target_policy.soft_update(self._policy, self._soft_update_coef)
 
-    def to_device(self, device: str) -> None:
+    def to_device(self, device: str = None) -> None:
         self._device = get_torch_device(device)
         self._policy.to_device(self._device)
         self._target_policy.to_device(self._device)
@@ -157,29 +147,48 @@ class DQNTrainer(SingleAgentTrainer):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
     """
 
-    def __init__(self, name: str, params: DQNParams) -> None:
-        super(DQNTrainer, self).__init__(name, params)
+    def __init__(
+        self,
+        name: str,
+        params: DQNParams,
+        replay_memory_capacity: int = 10000,
+        batch_size: int = 128,
+        data_parallelism: int = 1,
+        reward_discount: float = 0.9,
+    ) -> None:
+        super(DQNTrainer, self).__init__(
+            name,
+            replay_memory_capacity,
+            batch_size,
+            data_parallelism,
+            reward_discount,
+        )
         self._params = params
         self._q_net_version = self._target_q_net_version = 0
 
     def build(self) -> None:
-        self._ops = self.get_ops()
+        self._ops = cast(DQNOps, self.get_ops())
         self._replay_memory = RandomReplayMemory(
-            capacity=self._params.replay_memory_capacity,
+            capacity=self._replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
             random_overwrite=self._params.random_overwrite,
         )
+
+    def _register_policy(self, policy: RLPolicy) -> None:
+        assert isinstance(policy, ValueBasedPolicy)
+        self._policy = policy
 
     def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
         return transition_batch
 
     def get_local_ops(self) -> AbsTrainOps:
         return DQNOps(
-            name=self._policy_name,
-            policy_creator=self._policy_creator,
-            parallelism=self._params.data_parallelism,
-            **self._params.extract_ops_params(),
+            name=self._policy.name,
+            policy=self._policy,
+            parallelism=self._data_parallelism,
+            reward_discount=self._reward_discount,
+            params=self._params,
         )
 
     def _get_batch(self, batch_size: int = None) -> TransitionBatch:
@@ -201,8 +210,7 @@ class DQNTrainer(SingleAgentTrainer):
         self._try_soft_update_target()
 
     def _try_soft_update_target(self) -> None:
-        """Soft update the target policy and target critic.
-        """
+        """Soft update the target policy and target critic."""
         self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self._params.update_target_every:
             self._ops.soft_update_target()

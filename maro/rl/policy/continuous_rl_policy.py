@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.model import ContinuousPolicyNet
+
 from .abs_policy import RLPolicy
 
 
@@ -53,17 +54,18 @@ class ContinuousRLPolicy(RLPolicy):
         assert isinstance(policy_net, ContinuousPolicyNet)
 
         super(ContinuousRLPolicy, self).__init__(
-            name=name, state_dim=policy_net.state_dim, action_dim=policy_net.action_dim,
+            name=name,
+            state_dim=policy_net.state_dim,
+            action_dim=policy_net.action_dim,
             trainable=trainable,
+            is_discrete_action=False,
         )
 
         self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)
-        assert self._lbounds is not None and self._ubounds is not None
-
         self._policy_net = policy_net
 
     @property
-    def action_bounds(self) -> Tuple[List[float], List[float]]:
+    def action_bounds(self) -> Tuple[Optional[List[float]], Optional[List[float]]]:
         return self._lbounds, self._ubounds
 
     @property
@@ -71,10 +73,12 @@ class ContinuousRLPolicy(RLPolicy):
         return self._policy_net
 
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
-        return all([
-            (np.array(self._lbounds) <= actions.detach().cpu().numpy()).all(),
-            (actions.detach().cpu().numpy() < np.array(self._ubounds)).all()
-        ])
+        return all(
+            [
+                (np.array(self._lbounds) <= actions.detach().cpu().numpy()).all(),
+                (actions.detach().cpu().numpy() < np.array(self._ubounds)).all(),
+            ],
+        )
 
     def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
         return self._policy_net.get_actions(states, self._is_exploring)
@@ -112,7 +116,7 @@ class ContinuousRLPolicy(RLPolicy):
     def train(self) -> None:
         self._policy_net.train()
 
-    def get_state(self) -> object:
+    def get_state(self) -> dict:
         return self._policy_net.get_state()
 
     def set_state(self, policy_state: dict) -> None:

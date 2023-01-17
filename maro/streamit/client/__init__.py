@@ -27,6 +27,7 @@ if streamit is None:
         class DummyClient:
             """Dummy client that hold call function call when disable streamit,
             to user do not need if-else for switching."""
+
             def __getattr__(self, name: str):
                 return dummy
 

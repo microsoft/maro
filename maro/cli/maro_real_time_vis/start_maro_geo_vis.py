@@ -18,26 +18,26 @@ DEFAULT_FRONT_END_PORT = 8080
 
 def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwargs: dict):
     grader_path = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-    if start == 'database':
+    if start == "database":
 
         # Start the database container.
         database_start_path = f"{grader_path}/streamit/server"
         subprocess.check_call(
-            'sh run_docker.sh',
+            "sh run_docker.sh",
             cwd=database_start_path,
-            shell=True
+            shell=True,
         )
-    elif start == 'service':
+    elif start == "service":
         if experiment_name is None:
             raise CliError("Please input experiment name.")
         find_exp_name_params = {
             "query": f"select * from maro.experiments where name='{experiment_name}'",
-            "count": "true"
+            "count": "true",
         }
         find_exp_name = requests.get(
             url=request_settings.request_url.value,
             headers=request_settings.request_header.value,
-            params=find_exp_name_params
+            params=find_exp_name_params,
         ).json()
         if find_exp_name["dataset"] == []:
             raise CliError("Please input a valid experiment name.")
@@ -45,13 +45,13 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
         no_table_error = False
         params = {
             "query": "select * from pending_experiments",
-            "count": "true"
+            "count": "true",
         }
         try:
             requests.get(
                 url=request_settings.request_url.value,
                 headers=request_settings.request_header.value,
-                params=params
+                params=params,
             ).json()
         except ConnectionError:
             no_table_error = True
@@ -65,7 +65,7 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
             requests.get(
                 url=request_settings.request_url.value,
                 headers=request_settings.request_header.value,
-                params=create_params
+                params=create_params,
             ).json()
 
         current_time = int(time.time())
@@ -75,7 +75,7 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
         requests.get(
             url=request_settings.request_url.value,
             headers=request_settings.request_header.value,
-            params=next_exp_params
+            params=next_exp_params,
         ).json()
 
         # Start front-end docker container.
@@ -85,7 +85,7 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
         os.system("docker rm geo-vis")
         os.system(
             f"docker run -d -p {front_end_port if front_end_port is not None else DEFAULT_FRONT_END_PORT}:8080 "
-            f"--name geo-vis {GEO_FRONT_SERVICE_DOCKER_IMAGE}"
+            f"--name geo-vis {GEO_FRONT_SERVICE_DOCKER_IMAGE}",
         )
         back_end_path = f"{exec_path}/back_end/vis_app/app.py"
         os.system(f"python {back_end_path}")

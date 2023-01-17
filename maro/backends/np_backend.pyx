@@ -8,13 +8,24 @@
 import os
 
 import numpy as np
-cimport numpy as np
+
 cimport cython
-
+cimport numpy as np
 from cpython cimport bool
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
-    INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
 
+from maro.backends.backend cimport (
+    ATTR_TYPE,
+    INT,
+    NODE_INDEX,
+    NODE_TYPE,
+    SLOT_INDEX,
+    UINT,
+    ULONG,
+    USHORT,
+    AttributeType,
+    BackendAbc,
+    SnapshotListAbc,
+)
 
 # Attribute data type mapping.
 attribute_type_mapping = {
@@ -30,13 +41,23 @@ attribute_type_mapping = {
     AttributeType.Double: "d"
 }
 
+attribute_type_range = {
+    "b": ("AttributeType.Byte", -128, 127),
+    "B": ("AttributeType.UByte", 0, 255),
+    "h": ("AttributeType.Short", -32768, 32767),
+    "H": ("AttributeType.UShort", 0, 65535),
+    "i": ("AttributeType.Int", -2147483648, 2147483647),
+    "I": ("AttributeType.UInt", 0, 4294967295),
+    "q": ("AttributeType.Long", -9223372036854775808, 9223372036854775807),
+    "Q": ("AttributeType.ULong", 0, 18446744073709551615),
+}
+
 
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
     # with this flag, we will allocate a big enough memory for all node types, then use this block construct numpy array
+    from cpython cimport Py_INCREF, PyObject, PyTypeObject
+    from cpython.mem cimport PyMem_Free, PyMem_Malloc
     from libc.string cimport memset
-
-    from cpython cimport PyObject, Py_INCREF, PyTypeObject
-    from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
     # we need this to avoid seg fault
     np.import_array()
@@ -167,6 +188,13 @@ cdef class NumpyBackend(BackendAbc):
 
         cdef AttrInfo attr = self._attrs_list[attr_type]
 
+        cdef bytes dtype = attr.dtype.encode()
+        if dtype in attribute_type_range:
+            assert value >= attribute_type_range[dtype][1] and value <= attribute_type_range[dtype][2], (
+                f"Value {value} out of range ({attribute_type_range[dtype][0]}: "
+                f"[{attribute_type_range[dtype][1]}, {attribute_type_range[dtype][2]}])"
+            )
+
         if attr.node_type >= len(self._nodes_list):
             raise Exception("Invalid node type.")
 
@@ -208,9 +236,22 @@ cdef class NumpyBackend(BackendAbc):
         cdef AttrInfo attr = self._attrs_list[attr_type]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
+        cdef bytes dtype = attr.dtype.encode()
+
         if attr.slot_number == 1:
+            if dtype in attribute_type_range:
+                assert value[0] >= attribute_type_range[dtype][1] and value[0] <= attribute_type_range[dtype][2], (
+                    f"Value {value[0]} out of range ({attribute_type_range[dtype][0]}: "
+                    f"[{attribute_type_range[dtype][1]}, {attribute_type_range[dtype][2]}])"
+                )
             attr_array[0][node_index, slot_index[0]] = value[0]
         else:
+            if dtype in attribute_type_range:
+                for val in value:
+                    assert val >= attribute_type_range[dtype][1] and val <= attribute_type_range[dtype][2], (
+                        f"Value {val} out of range ({attribute_type_range[dtype][0]}: "
+                        f"[{attribute_type_range[dtype][1]}, {attribute_type_range[dtype][2]}])"
+                    )
             attr_array[0][node_index, slot_index] = value
 
     cdef list get_attr_values(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX[:] slot_indices) except +:
@@ -500,10 +541,10 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
                     # since we have a clear tick to index mapping, do not need additional checking here
                     if tick in self._tick2index_dict:
-                        retq.append(data_arr[attr.name][self._tick2index_dict[tick], node_index].astype("f").flatten())
+                        retq.append(data_arr[attr.name][self._tick2index_dict[tick], node_index].astype(np.double).flatten())
                     else:
                         # padding for tick which not exist
-                        retq.append(np.zeros(attr.slot_number, dtype='f'))
+                        retq.append(np.zeros(attr.slot_number, dtype=np.double))
 
         return np.concatenate(retq)
 

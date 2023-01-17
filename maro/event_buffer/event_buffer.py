@@ -4,8 +4,9 @@
 
 import csv
 from collections import defaultdict
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, cast
 
+from ..common import BaseAction, BaseDecisionEvent
 from .event import ActualEvent, AtomEvent, CascadeEvent
 from .event_linked_list import EventLinkedList
 from .event_pool import EventPool
@@ -15,10 +16,11 @@ from .maro_events import MaroEvents
 
 class EventRecorder:
     """Recorder used to record events to csv file."""
+
     def __init__(self, path: str) -> None:
-        self._fp = open(path, "wt+", newline='')
+        self._fp = open(path, "wt+", newline="")
         self._writer = csv.writer(self._fp)
-        self._writer.writerow(['episode', 'tick', 'event_type', 'payload'])
+        self._writer.writerow(["episode", "tick", "event_type", "payload"])
 
     def record(self, o: dict) -> None:
         # yaml.dump(o, self._fp, sort_keys=False)
@@ -121,9 +123,7 @@ class EventBuffer:
         Returns:
             AtomEvent: Atom event object
         """
-        event = self._event_pool.gen(tick, event_type, payload, False)
-        assert isinstance(event, AtomEvent)
-        return event
+        return cast(AtomEvent, self._event_pool.gen(tick, event_type, payload, is_cascade=False))
 
     def gen_cascade_event(self, tick: int, event_type: object, payload: object) -> CascadeEvent:
         """Generate an cascade event that used to hold immediate events that
@@ -137,31 +137,32 @@ class EventBuffer:
         Returns:
             CascadeEvent: Cascade event object.
         """
-        event = self._event_pool.gen(tick, event_type, payload, True)
-        assert isinstance(event, CascadeEvent)
-        return event
+        return cast(CascadeEvent, self._event_pool.gen(tick, event_type, payload, is_cascade=True))
 
-    def gen_decision_event(self, tick: int, payload: object) -> CascadeEvent:
+    def gen_decision_event(self, tick: int, payload: BaseDecisionEvent) -> CascadeEvent:
         """Generate a decision event that will stop current simulation, and ask agent for action.
 
         Args:
             tick (int): Tick that the event will be processed.
-            payload (object): Payload of event, used to pass data to handlers.
+            payload (BaseDecisionEvent): Payload of event, used to pass data to handlers.
         Returns:
             CascadeEvent: Event object
         """
+        assert isinstance(payload, BaseDecisionEvent)
         return self.gen_cascade_event(tick, MaroEvents.PENDING_DECISION, payload)
 
-    def gen_action_event(self, tick: int, payload: object) -> CascadeEvent:
+    def gen_action_event(self, tick: int, payloads: List[BaseAction]) -> CascadeEvent:
         """Generate an event that used to dispatch action to business engine.
 
         Args:
             tick (int): Tick that the event will be processed.
-            payload (object): Payload of event, used to pass data to handlers.
+            payloads (List[BaseAction]): Payloads of event, used to pass data to handlers.
         Returns:
             CascadeEvent: Event object
         """
-        return self.gen_cascade_event(tick, MaroEvents.TAKE_ACTION, payload)
+        assert isinstance(payloads, list)
+        assert all(isinstance(p, BaseAction) for p in payloads)
+        return self.gen_cascade_event(tick, MaroEvents.TAKE_ACTION, payloads)
 
     def register_event_handler(self, event_type: object, handler: Callable) -> None:
         """Register an event with handler, when there is an event need to be processed,
@@ -234,10 +235,13 @@ class EventBuffer:
                     self._finished_events.append(next_events)
 
                 if self._record_events:
-                    self._recorder.record({
-                        "episode": self._recorder_ep,
-                        "tick": next_events.tick,
-                        "type": str(next_events.event_type),
-                        "payload": next_events.payload})
+                    self._recorder.record(
+                        {
+                            "episode": self._recorder_ep,
+                            "tick": next_events.tick,
+                            "type": str(next_events.event_type),
+                            "payload": next_events.payload,
+                        },
+                    )
 
         return []

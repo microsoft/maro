@@ -1,9 +1,12 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from abc import ABCMeta
 from typing import Tuple
 
 import torch
 
-from maro.rl.model import ContinuousPolicyNet
+from maro.rl.model.policy_net import ContinuousPolicyNet
 
 
 class ContinuousSACNet(ContinuousPolicyNet, metaclass=ABCMeta):
@@ -21,6 +24,7 @@ class ContinuousSACNet(ContinuousPolicyNet, metaclass=ABCMeta):
     - get_state(self) -> dict:
     - set_state(self, net_state: dict) -> None:
     """
+
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         actions, _ = self._get_actions_with_logps_impl(states, exploring)
         return actions

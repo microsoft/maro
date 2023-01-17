@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import copy
 import math
 from typing import List
 
@@ -95,9 +96,11 @@ def get_sample_index_list(data_num: int, sample_ratio: float) -> List[float]:
 
 
 def get_filtered_formula_and_data(
-    scenario: GlobalScenarios, data: pd.DataFrame, attribute_option_candidates: List[str]
+    scenario: GlobalScenarios,
+    data: pd.DataFrame,
+    attribute_option_candidates: List[str],
 ) -> dict:
-    """ Get calculated formula and whole data.
+    """Get calculated formula and whole data.
 
     Args:
         scenario (GlobalScenarios): Type of input scenario detail.
@@ -116,7 +119,7 @@ def get_filtered_formula_and_data(
     attribute_option = st.multiselect(
         label=" ",
         options=attribute_option_candidates,
-        default=attribute_option_candidates
+        default=attribute_option_candidates,
     )
     attribute_option = _get_attribute_option(scenario, attribute_option, attribute_option_candidates)
     return {"data": data, "attribute_option": attribute_option}
@@ -137,10 +140,13 @@ def read_detail_csv(path: str) -> pd.DataFrame:
 
 
 def generate_by_snapshot_top_summary(
-    attr_name: str, data: pd.DataFrame, top_number: int,
-    attribute: str, snapshot_index: int = -1
+    attr_name: str,
+    data: pd.DataFrame,
+    top_number: int,
+    attribute: str,
+    snapshot_index: int = -1,
 ):
-    """ Generate top-k resource holders and their according summary data.
+    """Generate top-k resource holders and their according summary data.
 
     Args:
         attr_name (str): Name of attributes needed to be summarized.
@@ -159,28 +165,31 @@ def generate_by_snapshot_top_summary(
         map(
             lambda x, y: f"{x+1}-{y}",
             data["counter"],
-            data[attr_name]
+            data[attr_name],
+        ),
+    )
+    bars = (
+        alt.Chart(data)
+        .mark_bar()
+        .encode(
+            x=f"{attribute}:Q",
+            y=f"{attr_name}:O",
+        )
+        .properties(
+            width=700,
+            height=240,
         )
     )
-    bars = alt.Chart(data).mark_bar().encode(
-        x=f"{attribute}:Q",
-        y=f"{attr_name}:O",
-    ).properties(
-        width=700,
-        height=240
-    )
-    text = bars.mark_text(
-        align="left",
-        baseline="middle",
-        dx=3
-    ).encode(
-        text=f"{attribute}:Q"
+    text = bars.mark_text(align="left", baseline="middle", dx=3).encode(
+        text=f"{attribute}:Q",
     )
     st.altair_chart(bars + text)
 
 
 def _get_attribute_option(
-    scenario: GlobalScenarios, attribute_option: List[str], attribute_option_candidates: List[str]
+    scenario: GlobalScenarios,
+    attribute_option: List[str],
+    attribute_option_candidates: List[str],
 ) -> List[str]:
     """Convert selected attribute options into column.
 
@@ -198,10 +207,10 @@ def _get_attribute_option(
     if scenario == GlobalScenarios.CITI_BIKE:
         for item in attribute_option:
             if item == "All":
-                attribute_option_candidates.remove("All")
-                attribute_option_candidates.remove("Requirement Info")
-                attribute_option_candidates.remove("Station Info")
-                attribute_option_res = attribute_option_candidates
+                attribute_option_res = copy.deepcopy(attribute_option_candidates)
+                attribute_option_res.remove("All")
+                attribute_option_res.remove("Requirement Info")
+                attribute_option_res.remove("Station Info")
                 break
             elif item == "Requirement Info":
                 attribute_option_res = attribute_option_res + CITIBIKEItemOption.requirement_info
@@ -214,10 +223,10 @@ def _get_attribute_option(
     if scenario == GlobalScenarios.CIM:
         for item in attribute_option:
             if item == "All":
-                attribute_option_candidates.remove("All")
-                attribute_option_candidates.remove("Booking Info")
-                attribute_option_candidates.remove("Port Info")
-                attribute_option_res = attribute_option_candidates
+                attribute_option_res = copy.deepcopy(attribute_option_candidates)
+                attribute_option_res.remove("All")
+                attribute_option_res.remove("Booking Info")
+                attribute_option_res.remove("Port Info")
                 break
             elif item == "Booking Info":
                 attribute_option_res = attribute_option_res + CIMItemOption.booking_info
@@ -241,7 +250,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
     st.sidebar.markdown("***")
     formula_select = st.sidebar.selectbox(
         label="formula:",
-        options=["a+b", "a-b", "a/b", "a*b", "sqrt(a)"]
+        options=["a+b", "a-b", "a/b", "a*b", "sqrt(a)"],
     )
     paras = st.sidebar.text_input("parameters separated by ;")
     res = paras.split(";")
@@ -256,8 +265,8 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
                     map(
                         lambda x, y: x + y,
                         data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                        data_original[res[1]],
+                    ),
                 )
             else:
                 return
@@ -274,8 +283,8 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
                     map(
                         lambda x, y: x - y,
                         data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                        data_original[res[1]],
+                    ),
                 )
             else:
                 return
@@ -292,8 +301,8 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
                     map(
                         lambda x, y: x * y,
                         data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                        data_original[res[1]],
+                    ),
                 )
             else:
                 return
@@ -310,8 +319,8 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
                     map(
                         lambda x, y: x + y,
                         data_original[res[0]],
-                        data_original[res[1]]
-                    )
+                        data_original[res[1]],
+                    ),
                 )
             else:
                 return
@@ -327,8 +336,8 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
                 data_original[f"sqrt({res[0]})"] = list(
                     map(
                         lambda x: math.sqrt(x),
-                        data_original[res[0]]
-                    )
+                        data_original[res[0]],
+                    ),
                 )
             else:
                 return
@@ -394,18 +403,18 @@ def _get_sampled_epoch_range(epoch_num: int, sample_ratio: float) -> List[float]
         label="Start Epoch",
         min_value=0,
         max_value=epoch_num - 1,
-        value=0
+        value=0,
     )
     end_epoch = st.sidebar.number_input(
         label="End Epoch",
         min_value=0,
         max_value=epoch_num - 1,
-        value=epoch_num - 1
+        value=epoch_num - 1,
     )
     down_pooling_num = st.sidebar.select_slider(
         label="Epoch Sampling Ratio",
         options=sample_ratio,
-        value=1
+        value=1,
     )
     if down_pooling_num == 0:
         return []

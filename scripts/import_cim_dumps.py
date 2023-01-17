@@ -50,7 +50,7 @@ def import_from_snapshot_dump(streamit, folder: str, npy_name: str, meta_name: s
                     field_dict[field_name] = instance_list[tick][instance_index][field_name].item()
                 else:
                     field_dict[field_name] = list(
-                        [v.item() for v in instance_list[tick][instance_index][field_name]]
+                        [v.item() for v in instance_list[tick][instance_index][field_name]],
                     )
 
                 field_slot_index += field_length
@@ -109,7 +109,7 @@ def import_full_on_ports(streamit, data: np.ndarray, port_number: int):
                 "full_on_ports",
                 from_port_index=from_port_index,
                 dest_port_index=to_port_index,
-                quantity=m[from_port_index, to_port_index]
+                quantity=m[from_port_index, to_port_index],
             )
 
 
@@ -134,7 +134,7 @@ def import_full_on_vessels(streamit, data: np.ndarray, port_number: int, vessel_
                 "full_on_vessels",
                 vessel_index=vessel_index,
                 port_index=port_index,
-                quantity=m[vessel_index, port_index]
+                quantity=m[vessel_index, port_index],
             )
 
 
@@ -159,7 +159,7 @@ def import_vessel_plans(streamit, data: np.ndarray, port_number: int, vessel_num
                 "vessel_plans",
                 vessel_index=vessel_index,
                 port_index=port_index,
-                planed_arrival_tick=m[vessel_index, port_index]
+                planed_arrival_tick=m[vessel_index, port_index],
             )
 
 
@@ -207,29 +207,54 @@ def import_attention(streamit, atts_path: str):
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument("--name", required=True,
-                        help="Experiment name show in database")
-    parser.add_argument("--scenario", required=True,
-                        help="Scenario name of import experiment")
-    parser.add_argument("--topology", required=True,
-                        help="Topology of target scenario")
-    parser.add_argument("--durations", required=True,
-                        type=int, help="Durations of each episode")
-    parser.add_argument("--episodes", required=True, type=int,
-                        help="Total episode of this experiment")
-
-    parser.add_argument("--dir", required=True,
-                        help="Root folder of dump files")
     parser.add_argument(
-        "--ssdir", help="Folder that contains snapshots data that with epoch_x sub-folders")
+        "--name",
+        required=True,
+        help="Experiment name show in database",
+    )
+    parser.add_argument(
+        "--scenario",
+        required=True,
+        help="Scenario name of import experiment",
+    )
+    parser.add_argument(
+        "--topology",
+        required=True,
+        help="Topology of target scenario",
+    )
+    parser.add_argument(
+        "--durations",
+        required=True,
+        type=int,
+        help="Durations of each episode",
+    )
+    parser.add_argument(
+        "--episodes",
+        required=True,
+        type=int,
+        help="Total episode of this experiment",
+    )
 
-    parser.add_argument("--host", default="127.0.0.1",
-                        help="Host of questdb server")
+    parser.add_argument(
+        "--dir",
+        required=True,
+        help="Root folder of dump files",
+    )
+    parser.add_argument(
+        "--ssdir",
+        help="Folder that contains snapshots data that with epoch_x sub-folders",
+    )
+
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host of questdb server",
+    )
 
     args = parser.parse_args()
 
-    assert (os.path.exists(args.dir))
-    assert (os.path.exists(args.ssdir))
+    assert os.path.exists(args.dir)
+    assert os.path.exists(args.ssdir)
 
     # Force enable streamit.
     os.environ["MARO_STREAMIT_ENABLED"] = "true"

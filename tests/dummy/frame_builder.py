@@ -6,7 +6,7 @@ from maro.backends.frame import FrameBase, FrameNode
 from .dummy_node import DummyNode
 
 
-def build_frame(total_snapshots:int):
+def build_frame(total_snapshots: int):
     class DummyFrame(FrameBase):
         dummies = FrameNode(DummyNode, 10)
 
