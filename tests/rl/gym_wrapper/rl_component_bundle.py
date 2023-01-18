@@ -3,13 +3,15 @@
 
 from typing import cast
 
-from examples.gym_new.rl.env_sampler import GymEnvSampler
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.simulator import Env
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
 
+from .env_sampler import GymEnvSampler
+
 env_conf = {
-    "scenario": "gym",
+    # "scenario": "gym",
+    "business_engine_cls": GymBusinessEngine,
     "start_tick": 0,
     "durations": 5000,
     "options": {
