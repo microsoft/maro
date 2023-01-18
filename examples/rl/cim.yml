@@ -5,7 +5,7 @@
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
 # Run this workflow by executing one of the following commands:
-# - python .\examples\rl\run_rl_example.py .\examples\rl\cim.yml
+# - python .\examples\rl\run.py .\examples\rl\cim.yml
 # - (Requires installing MARO from source) maro local run .\examples\rl\cim.yml
 
 job: cim_rl_workflow

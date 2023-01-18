@@ -5,14 +5,13 @@
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
 # Run this workflow by executing one of the following commands:
-# - python .\examples\rl\run.py .\examples\rl\config.yml
-# - (Requires installing MARO from source) maro local run .\examples\rl\config.yml
+# - python tests/rl/run.py tests/rl/config.yml
 
 job: gym_rl_workflow
-scenario_path: "examples/gym_new/rl"
-log_path: "log/rl_job/gym.txt"
+scenario_path: "tests/rl/gym_wrapper"
+log_path: "tests/rl/log/gym.txt"
 main:
-  num_episodes: 600
+  num_episodes: 1000
   num_steps: null
   eval_schedule: 5
   min_n_sample: 5000
@@ -28,7 +27,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "checkpoint/rl_job/gym"
+    path: "tests/rl/checkpoint/gym"
     interval: 5
   logging:
     stdout: INFO
