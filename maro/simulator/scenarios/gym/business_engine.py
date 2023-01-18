@@ -60,9 +60,7 @@ class GymBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
 
     def _on_action_received(self, event: CascadeEvent) -> None:
-        actions = cast(Action, event.payload).action
-        assert isinstance(actions, list)
-        action = actions[0]
+        action = cast(Action, event.payload[0]).action
 
         self._last_obs, reward, self._is_done, _, info = self._gym_env.step(action)
         self._reward_record[event.tick] = reward

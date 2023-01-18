@@ -6,6 +6,7 @@ import numpy as np
 
 from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.simulator.scenarios.gym.business_engine import GymBusinessEngine
+from maro.simulator.scenarios.gym.common import Action
 
 
 def _show_info(rewards: list, tag: str) -> None:
@@ -25,10 +26,10 @@ class GymEnvSampler(AbsEnvSampler):
         event: np.ndarray,
         tick: int = None,
     ) -> Tuple[Union[None, np.ndarray, list], Dict[Any, Union[np.ndarray, list]]]:
-        return None, {0: event}
+        return None, {0: event.state}
 
-    def _translate_to_env_action(self, action_dict: Dict[Any, Union[np.ndarray, list]], event: Any) -> dict:
-        return action_dict
+    def _translate_to_env_action(self, action_dict: dict, event: Any) -> dict:
+        return {k: Action(v) for k, v in action_dict.items()}
 
     def _get_reward(self, env_action_dict: dict, event: Any, tick: int) -> Dict[Any, float]:
         be = self._env.business_engine

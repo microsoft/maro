@@ -12,7 +12,7 @@ job: gym_rl_workflow
 scenario_path: "examples/gym_new/rl"
 log_path: "log/rl_job/gym.txt"
 main:
-  num_episodes: 600
+  num_episodes: 1000
   num_steps: null
   eval_schedule: 5
   min_n_sample: 5000
