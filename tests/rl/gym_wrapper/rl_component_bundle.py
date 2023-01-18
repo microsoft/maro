@@ -33,19 +33,32 @@ action_upper_bound = [float("inf") for _ in range(gym_env.action_space.shape[0])
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}
 
 if algorithm == "ac":
-    from tests.rl.algorithms.ac import get_ac_policy as get_policy
-    from tests.rl.algorithms.ac import get_ac_trainer as get_trainer
+    from tests.rl.algorithms.ac import get_ac_policy, get_ac_trainer
+
+    policies = [
+        get_ac_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim)
+        for i in range(num_agents)
+    ]
+    trainers = [get_ac_trainer(f"{algorithm}_{i}", gym_state_dim) for i in range(num_agents)]
 elif algorithm == "ppo":
-    from tests.rl.algorithms.ppo import get_ppo_policy as get_policy
-    from tests.rl.algorithms.ppo import get_ppo_trainer as get_trainer
+    from tests.rl.algorithms.ppo import get_ppo_policy, get_ppo_trainer
+
+    policies = [
+        get_ppo_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim)
+        for i in range(num_agents)
+    ]
+    trainers = [get_ppo_trainer(f"{algorithm}_{i}", gym_state_dim) for i in range(num_agents)]
+elif algorithm == "sac":
+    from tests.rl.algorithms.sac import get_sac_policy, get_sac_trainer
+
+    policies = [
+        get_sac_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim)
+        for i in range(num_agents)
+    ]
+    trainers = [get_sac_trainer(f"{algorithm}_{i}", gym_state_dim, gym_action_dim) for i in range(num_agents)]
 else:
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
-policies = [
-    get_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim)
-    for i in range(num_agents)
-]
-trainers = [get_trainer(f"{algorithm}_{i}", gym_state_dim) for i in range(num_agents)]
 
 rl_component_bundle = RLComponentBundle(
     env_sampler=GymEnvSampler(
