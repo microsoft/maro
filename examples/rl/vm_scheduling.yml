@@ -5,8 +5,8 @@
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
 # Run this workflow by executing one of the following commands:
-# - python .\examples\rl\run.py .\examples\rl\vm_scheduling.yml
-# - (Requires installing MARO from source) maro local run .\examples\rl\vm_scheduling.yml
+# - python ./examples/rl/run.py ./examples/rl/vm_scheduling.yml
+# - (Requires installing MARO from source) maro local run ./examples/rl/vm_scheduling.yml
 
 job: vm_scheduling_rl_workflow
 scenario_path: "examples/vm_scheduling/rl"

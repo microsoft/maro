@@ -33,14 +33,11 @@ class GymBusinessEngine(AbsBusinessEngine):
             additional_options=additional_options,
         )
 
-        self._gym_scenario_name = "Walker2d-v4"
+        self._gym_scenario_name = topology
         self._gym_env = gym.make(self._gym_scenario_name)
         self._seed = additional_options.get("random_seed", None)
 
-        self._last_obs = self._gym_env.reset()[0]
-        self._is_done = False
-        self._reward_record = {}
-        self._info_record = {}
+        self.reset()
 
         self._frame: FrameBase = FrameBase()
         self._snapshots: SnapshotList = self._frame.snapshots
@@ -63,7 +60,7 @@ class GymBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
 
     def _on_action_received(self, event: CascadeEvent) -> None:
-        action = cast(Action, event.payload[0]).action
+        action = cast(Action, cast(list, event.payload)[0]).action
 
         self._last_obs, reward, self._is_done, _, info = self._gym_env.step(action)
         self._reward_record[event.tick] = reward
