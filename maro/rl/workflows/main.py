@@ -14,6 +14,7 @@ from maro.rl.training import TrainingManager
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.utils.training import get_latest_ep
+from maro.rl.workflows.callback import CallbackManager, Checkpoint, MetricsRecorder
 from maro.utils import LoggerV2
 
 
@@ -73,7 +74,7 @@ class WorkflowEnvAttributes:
 
         self.logger = LoggerV2(
             "MAIN",
-            dump_path=self.log_path,
+            dump_path=os.path.join(self.log_path, "log.txt"),
             dump_mode="a",
             stdout_level=self.log_level_stdout,
             file_level=self.log_level_file,
@@ -131,6 +132,17 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
         logger=env_attr.logger,
     )
 
+    callbacks = []
+    if env_attr.checkpoint_path is not None:
+        callbacks.append(
+            Checkpoint(
+                path=env_attr.checkpoint_path,
+                interval=1 if env_attr.checkpoint_interval is None else env_attr.checkpoint_interval,
+            )
+        )
+    callbacks.append(MetricsRecorder(path=env_attr.log_path))
+    cbm = CallbackManager(callbacks)
+
     if env_attr.load_path:
         assert isinstance(env_attr.load_path, str)
 
@@ -148,6 +160,8 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
 
     # main loop
     for ep in range(start_ep, env_attr.num_episodes + 1):
+        cbm.call("on_episode_start", env_sampler, training_manager, env_attr.logger, ep)
+
         collect_time = training_time = 0.0
         total_experiences: List[List[ExpElement]] = []
         total_info_list: List[dict] = []
@@ -169,15 +183,12 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
 
         env_sampler.post_collect(total_info_list, ep)
 
-        env_attr.logger.info(f"Roll-out completed for episode {ep}. Training started...")
         tu0 = time.time()
+        env_attr.logger.info(f"Roll-out completed for episode {ep}. Training started...")
+        cbm.call("on_training_start", env_sampler, training_manager, env_attr.logger, ep)
         training_manager.record_experiences(total_experiences)
         training_manager.train_step()
-        if env_attr.checkpoint_path and (not env_attr.checkpoint_interval or ep % env_attr.checkpoint_interval == 0):
-            assert isinstance(env_attr.checkpoint_path, str)
-            pth = os.path.join(env_attr.checkpoint_path, str(ep))
-            training_manager.save(pth)
-            env_attr.logger.info(f"All trainer states saved under {pth}")
+        cbm.call("on_training_end", env_sampler, training_manager, env_attr.logger, ep)
         training_time += time.time() - tu0
 
         # performance details
@@ -185,12 +196,18 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
             f"ep {ep} - roll-out time: {collect_time:.2f} seconds, training time: {training_time:.2f} seconds",
         )
         if env_attr.eval_schedule and ep == env_attr.eval_schedule[eval_point_index]:
+            cbm.call("on_validation_start", env_sampler, training_manager, env_attr.logger, ep)
+
             eval_point_index += 1
             result = env_sampler.eval(
                 policy_state=training_manager.get_policy_state() if not env_attr.is_single_thread else None,
                 num_episodes=env_attr.num_eval_episodes
             )
             env_sampler.post_evaluate(result["info"], ep)
+
+            cbm.call("on_validation_end", env_sampler, training_manager, env_attr.logger, ep)
+
+        cbm.call("on_episode_end", env_sampler, training_manager, env_attr.logger, ep)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()

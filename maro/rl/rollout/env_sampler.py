@@ -267,6 +267,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._reward_eval_delay = reward_eval_delay
 
         self._info: dict = {}
+        self.metrics: dict = {}
 
         assert self._reward_eval_delay is None or self._reward_eval_delay >= 0
 
@@ -407,6 +408,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _reset(self) -> None:
         self.env.reset()
         self._info.clear()
+        self.metrics.clear()
         self._trans_cache.clear()
         self._agent_last_index.clear()
         self._step(None)

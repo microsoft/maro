@@ -10,7 +10,7 @@
 
 job: vm_scheduling_rl_workflow
 scenario_path: "examples/vm_scheduling/rl"
-log_path: "log/rl_job/vm_scheduling.txt"
+log_path: "outputs/vm_rl/"
 main:
   num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_steps: null
@@ -27,7 +27,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "checkpoint/rl_job/vm_scheduling"
+    path: "outputs/vm_rl/checkpoints"
     interval: 5
   logging:
     stdout: INFO
