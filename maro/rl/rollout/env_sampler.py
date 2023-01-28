@@ -514,50 +514,55 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         return loaded
 
-    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None) -> dict:
+    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None, num_episodes: int = 1) -> dict:
         self._switch_env(self._test_env)
-        self._reset()
-        if policy_state is not None:
-            self.set_policy_state(policy_state)
+        info_list = []
 
-        self._agent_wrapper.exploit()
-        while not self._end_of_episode:
-            action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+        for _ in range(num_episodes):
+            self._reset()
+            if policy_state is not None:
+                self.set_policy_state(policy_state)
 
-            # Store experiences in the cache
-            cache_element = CacheElement(
-                tick=self.env.tick,
-                event=self._event,
-                state=self._state,
-                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
-                action_dict=self._select_trainable_agents(action_dict),
-                env_action_dict=self._select_trainable_agents(env_action_dict),
-                # The following will be generated later
-                reward_dict={},
-                terminal_dict={},
-                next_state=None,
-                next_agent_state_dict={},
-            )
+            self._agent_wrapper.exploit()
+            while not self._end_of_episode:
+                action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
+                env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
-            # Update env and get new states (global & agent)
-            self._step(list(env_action_dict.values()))
+                # Store experiences in the cache
+                cache_element = CacheElement(
+                    tick=self.env.tick,
+                    event=self._event,
+                    state=self._state,
+                    agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                    action_dict=self._select_trainable_agents(action_dict),
+                    env_action_dict=self._select_trainable_agents(env_action_dict),
+                    # The following will be generated later
+                    reward_dict={},
+                    terminal_dict={},
+                    next_state=None,
+                    next_agent_state_dict={},
+                )
 
-            if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
-                self._calc_reward(cache_element)
-                self._post_eval_step(cache_element)
+                # Update env and get new states (global & agent)
+                self._step(list(env_action_dict.values()))
 
-            self._append_cache_element(cache_element)
-        self._append_cache_element(None)
+                if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
+                    self._calc_reward(cache_element)
+                    self._post_eval_step(cache_element)
 
-        tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
-        while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-            cache_element = self._trans_cache.pop(0)
-            if self._reward_eval_delay is not None:
-                self._calc_reward(cache_element)
-                self._post_eval_step(cache_element)
+                self._append_cache_element(cache_element)
+            self._append_cache_element(None)
 
-        return {"info": [self._info]}
+            tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
+            while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
+                cache_element = self._trans_cache.pop(0)
+                if self._reward_eval_delay is not None:
+                    self._calc_reward(cache_element)
+                    self._post_eval_step(cache_element)
+
+            info_list.append(self._info)
+
+        return {"info": info_list}
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement) -> None:

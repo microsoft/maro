@@ -286,6 +286,8 @@ class ConfigParser:
             else:
                 main_proc_env["EVAL_SCHEDULE"] = " ".join([str(val) for val in sorted(sch)])
 
+            main_proc_env["NUM_EVAL_EPISODES"] = str(self._config["main"].get("num_eval_episodes", 1))
+
         load_path = self._config["training"].get("load_path", None)
         if load_path is not None:
             env["main"]["LOAD_PATH"] = path_mapping[load_path]

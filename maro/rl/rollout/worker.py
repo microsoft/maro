@@ -59,7 +59,7 @@ class RolloutWorker(AbsWorker):
                 result = (
                     self._env_sampler.sample(policy_state=req["policy_state"], num_steps=req["num_steps"])
                     if req["type"] == "sample"
-                    else self._env_sampler.eval(policy_state=req["policy_state"])
+                    else self._env_sampler.eval(policy_state=req["policy_state"], num_episodes=req["num_eval_episodes"])
                 )
                 self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))
             else:
