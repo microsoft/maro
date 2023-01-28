@@ -29,6 +29,7 @@ gym_state_dim = gym_env.observation_space.shape[0]
 gym_action_dim = gym_env.action_space.shape[0]
 action_lower_bound = [float("-inf") for _ in range(gym_env.action_space.shape[0])]
 action_upper_bound = [float("inf") for _ in range(gym_env.action_space.shape[0])]
+action_limit = gym_env.action_space.high[0]
 
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}
 
@@ -52,7 +53,7 @@ elif algorithm == "sac":
     from tests.rl.algorithms.sac import get_sac_policy, get_sac_trainer
 
     policies = [
-        get_sac_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim)
+        get_sac_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim, action_limit)
         for i in range(num_agents)
     ]
     trainers = [get_sac_trainer(f"{algorithm}_{i}", gym_state_dim, gym_action_dim) for i in range(num_agents)]
