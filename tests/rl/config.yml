@@ -14,6 +14,7 @@ main:
   num_episodes: 1000
   num_steps: null
   eval_schedule: 5
+  num_eval_episodes: 10
   min_n_sample: 5000
   logging:
     stdout: INFO
