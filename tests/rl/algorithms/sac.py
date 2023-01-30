@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 from typing import Tuple
 
 import numpy as np
@@ -11,6 +12,7 @@ from torch.optim import Adam
 from maro.rl.model import ContinuousSACNet, QNet
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.training.algorithms import SoftActorCriticParams, SoftActorCriticTrainer
+
 from tests.rl.algorithms.utils import mlp
 
 actor_net_conf = {

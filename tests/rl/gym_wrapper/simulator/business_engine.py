@@ -4,10 +4,11 @@
 from typing import List, Optional, cast
 
 import gym
-from maro.backends.frame import FrameBase, SnapshotList
 
+from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
+
 from .common import Action, DecisionEvent
 
 
@@ -62,7 +63,7 @@ class GymBusinessEngine(AbsBusinessEngine):
     def _on_action_received(self, event: CascadeEvent) -> None:
         action = cast(Action, cast(list, event.payload)[0]).action
 
-        self._last_obs, reward, self._is_done, _, info = self._gym_env.step(action)
+        self._last_obs, reward, self._is_done, self._truncated, info = self._gym_env.step(action)
         self._reward_record[event.tick] = reward
         self._info_record[event.tick] = info
 
@@ -82,11 +83,12 @@ class GymBusinessEngine(AbsBusinessEngine):
     def reset(self, keep_seed: bool = False) -> None:
         self._last_obs = self._gym_env.reset()[0]
         self._is_done = False
+        self._truncated = False
         self._reward_record = {}
         self._info_record = {}
 
     def post_step(self, tick: int) -> bool:
-        return self._is_done or tick + 1 == self._max_tick
+        return self._is_done or self._truncated or tick + 1 == self._max_tick
 
     def get_agent_idx_list(self) -> List[int]:
         return [0]
