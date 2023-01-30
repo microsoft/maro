@@ -30,3 +30,4 @@ htmlcov/
 .tmp/
 .xmake/
 outputs/
+tests/rl_log/

@@ -10,15 +10,15 @@ from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
 from tests.rl.gym_wrapper.simulator.common import Action, DecisionEvent
 
 
-def _show_info(rewards: list, tag: str) -> None:
-    print(
-        f"[{tag}] Total N-steps = {sum([len(e) for e in rewards])}, "
-        f"N segments = {len(rewards)}, "
-        f"Average reward = {np.mean([sum(e) for e in rewards]):.4f}, "
-        f"Max reward = {np.max([sum(e) for e in rewards]):.4f}, "
-        f"Min reward = {np.min([sum(e) for e in rewards]):.4f}, "
-        f"Average N-steps = {np.mean([len(e) for e in rewards]):.1f}\n",
-    )
+def _calc_metrics(rewards: list) -> dict:
+    return {
+        "n_step": sum([len(e) for e in rewards]),
+        "n_segment": len(rewards),
+        "avg_reward": np.mean([sum(e) for e in rewards]),
+        "max_reward": np.max([sum(e) for e in rewards]),
+        "min_reward": np.min([sum(e) for e in rewards]),
+        "avg_n_step": np.mean([len(e) for e in rewards]),
+    }
 
 
 class GymEnvSampler(AbsEnvSampler):
@@ -45,8 +45,10 @@ class GymEnvSampler(AbsEnvSampler):
 
     def post_collect(self, info_list: list, ep: int) -> None:
         rewards = [list(e["env_metric"]["reward_record"].values()) for e in info_list]
-        _show_info(rewards, "Collect")
+        metrics = _calc_metrics(rewards)
+        self.metrics.update(metrics)
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
         rewards = [list(e["env_metric"]["reward_record"].values()) for e in info_list]
-        _show_info(rewards, "Evaluate")
+        metrics = _calc_metrics(rewards)
+        self.metrics.update({"val/" + k: v for k, v in metrics.items()})

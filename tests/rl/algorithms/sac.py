@@ -14,12 +14,12 @@ from maro.rl.training.algorithms import SoftActorCriticParams, SoftActorCriticTr
 from tests.rl.algorithms.utils import mlp
 
 actor_net_conf = {
-    "hidden_dims": [64, 64],
-    "activation": torch.nn.Tanh,
+    "hidden_dims": [256, 256],
+    "activation": torch.nn.ReLU,
 }
 critic_net_conf = {
-    "hidden_dims": [64, 64],
-    "activation": torch.nn.Tanh,
+    "hidden_dims": [256, 256],
+    "activation": torch.nn.ReLU,
 }
 actor_learning_rate = 3e-4
 critic_learning_rate = 1e-3
@@ -93,7 +93,8 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
         reward_discount=0.99,
         params=SoftActorCriticParams(
             get_q_critic_net_func=lambda: MyQCriticNet(state_dim, action_dim),
-            num_epochs=10,
+            num_epochs=50,
             n_start_train=10000,
+            soft_update_coef=0.01,
         ),
     )

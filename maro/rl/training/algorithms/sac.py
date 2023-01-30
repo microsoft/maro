@@ -22,7 +22,7 @@ class SoftActorCriticParams(BaseTrainerParams):
     num_epochs: int = 1
     n_start_train: int = 0
     q_value_loss_cls: Optional[Callable] = None
-    soft_update_coef: float = 1.0
+    soft_update_coef: float = 0.05
 
 
 class SoftActorCriticOps(AbsTrainOps):
@@ -58,6 +58,7 @@ class SoftActorCriticOps(AbsTrainOps):
 
     def _get_critic_loss(self, batch: TransitionBatch) -> Tuple[torch.Tensor, torch.Tensor]:
         self._q_net1.train()
+        self._q_net2.train()
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
         next_states = ndarray_to_tensor(batch.next_states, device=self._device)  # s'
         actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
