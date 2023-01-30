@@ -68,11 +68,11 @@ class SoftActorCriticOps(AbsTrainOps):
         assert isinstance(self._policy, ContinuousRLPolicy)
 
         with torch.no_grad():
-            next_actions, next_logps = self._policy.get_actions_with_logps(states)
-            q1 = self._target_q_net1.q_values(next_states, next_actions)
-            q2 = self._target_q_net2.q_values(next_states, next_actions)
-            q = torch.min(q1, q2)
-            y = rewards + self._reward_discount * (1.0 - terminals.float()) * (q - self._entropy_coef * next_logps)
+            next_actions, next_logps = self._policy.get_actions_with_logps(next_states)
+            target_q1 = self._target_q_net1.q_values(next_states, next_actions)
+            target_q2 = self._target_q_net2.q_values(next_states, next_actions)
+            target_q = torch.min(target_q1, target_q2)
+            y = rewards + self._reward_discount * (1.0 - terminals.float()) * (target_q - self._entropy_coef * next_logps)
 
         q1 = self._q_net1.q_values(states, actions)
         q2 = self._q_net2.q_values(states, actions)
@@ -101,6 +101,9 @@ class SoftActorCriticOps(AbsTrainOps):
         self._q_net2.step(loss_q2)
 
     def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
+        self._q_net1.freeze()
+        self._q_net2.freeze()
+
         self._policy.train()
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
         actions, logps = self._policy.get_actions_with_logps(states)
@@ -109,6 +112,10 @@ class SoftActorCriticOps(AbsTrainOps):
         q = torch.min(q1, q2)
 
         loss = (self._entropy_coef * logps - q).mean()
+
+        self._q_net1.unfreeze()
+        self._q_net2.unfreeze()
+
         return loss
 
     @remote
