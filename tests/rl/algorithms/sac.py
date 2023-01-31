@@ -10,10 +10,9 @@ from torch.distributions import Normal
 from torch.optim import Adam
 
 from maro.rl.model import ContinuousSACNet, QNet
+from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.training.algorithms import SoftActorCriticParams, SoftActorCriticTrainer
-
-from tests.rl.algorithms.utils import mlp
 
 actor_net_conf = {
     "hidden_dims": [64, 64],
@@ -34,8 +33,10 @@ class MyContinuousSACNet(ContinuousSACNet):
     def __init__(self, state_dim: int, action_dim: int, action_limit: float) -> None:
         super(MyContinuousSACNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
 
-        self._net = mlp(
-            [state_dim] + actor_net_conf["hidden_dims"],
+        self._net = FullyConnected(
+            input_dim=state_dim,
+            output_dim=actor_net_conf["hidden_dims"][-1],
+            hidden_dims=actor_net_conf["hidden_dims"][:-1],
             activation=actor_net_conf["activation"],
             output_activation=actor_net_conf["activation"],
         )
@@ -64,8 +65,10 @@ class MyContinuousSACNet(ContinuousSACNet):
 class MyQCriticNet(QNet):
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(MyQCriticNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
-        self._critic = mlp(
-            [state_dim + action_dim] + critic_net_conf["hidden_dims"] + [1],
+        self._critic = FullyConnected(
+            input_dim=state_dim + action_dim,
+            output_dim=1,
+            hidden_dims=critic_net_conf["hidden_dims"],
             activation=critic_net_conf["activation"],
         )
         self._optim = Adam(self._critic.parameters(), lr=critic_learning_rate)
