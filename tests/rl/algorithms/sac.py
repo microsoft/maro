@@ -29,9 +29,9 @@ LOG_STD_MAX = 2
 LOG_STD_MIN = -20
 
 
-class MyContinuousSACNetOld(ContinuousSACNet):
+class MyContinuousSACNet(ContinuousSACNet):
     def __init__(self, state_dim: int, action_dim: int, action_limit: float) -> None:
-        super(MyContinuousSACNetOld, self).__init__(state_dim=state_dim, action_dim=action_dim)
+        super(MyContinuousSACNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
 
         self._net = FullyConnected(
             input_dim=state_dim,
@@ -51,40 +51,15 @@ class MyContinuousSACNetOld(ContinuousSACNet):
         log_std = torch.clamp(self._log_std(net_out), LOG_STD_MIN, LOG_STD_MAX)
         std = torch.exp(log_std)
 
-        pi_distribution = Independent(Normal(mu, std), 1)
+        pi_distribution = Normal(mu, std)
         pi_action = pi_distribution.rsample() if exploring else mu
 
-        logp_pi = pi_distribution.log_prob(pi_action)
+        logp_pi = pi_distribution.log_prob(pi_action).sum(axis=-1)
         logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(axis=1)
 
-        return torch.tanh(pi_action) * self._action_limit, logp_pi
+        pi_action = torch.tanh(pi_action) * self._action_limit
 
-class MyContinuousSACNet(ContinuousSACNet):
-    def __init__(self, state_dim: int, action_dim: int, action_limit: float) -> None:
-        super(MyContinuousSACNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
-
-        log_std = -0.5 * np.ones(action_dim, dtype=np.float32)
-        self._log_std = torch.nn.Parameter(torch.as_tensor(log_std))
-        self._mu_net = mlp(
-            [state_dim] + actor_net_conf["hidden_dims"] + [action_dim],
-            activation=actor_net_conf["activation"],
-        )
-        self._optim = Adam(self.parameters(), lr=actor_learning_rate)
-
-        self._action_limit = action_limit
-
-    def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
-        mu = self._mu_net(states.float())
-        std = torch.exp(torch.clamp(self._log_std, LOG_STD_MIN, LOG_STD_MAX))  # 1
-        distribution = Normal(mu, std)
-
-        actions = distribution.rsample() if exploring else mu
-        logps = distribution.log_prob(actions).sum(axis=-1)
-
-        logps -= (2 * (np.log(2) - actions - F.softplus(-2 * actions))).sum(axis=1)  # 2
-        actions = torch.tanh(actions) * self._action_limit  # 3
-
-        return actions, logps
+        return pi_action, logp_pi
 
 
 class MyQCriticNet(QNet):
@@ -121,9 +96,10 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
     return SoftActorCriticTrainer(
         name=name,
         reward_discount=0.99,
+        # replay_memory_capacity=100000,
         params=SoftActorCriticParams(
             get_q_critic_net_func=lambda: MyQCriticNet(state_dim, action_dim),
-            num_epochs=50,
+            num_epochs=20,
             n_start_train=10000,
             soft_update_coef=0.01,
         ),
