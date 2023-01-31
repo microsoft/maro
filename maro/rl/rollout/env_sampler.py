@@ -408,7 +408,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _reset(self) -> None:
         self.env.reset()
         self._info.clear()
-        self.metrics.clear()
         self._trans_cache.clear()
         self._agent_last_index.clear()
         self._step(None)

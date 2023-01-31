@@ -13,7 +13,7 @@ from .env_sampler import GymEnvSampler
 
 
 learn_env = Env(business_engine_cls=GymBusinessEngine, **env_conf)
-test_env = learn_env
+test_env = Env(business_engine_cls=GymBusinessEngine, **env_conf)
 num_agents = len(learn_env.agent_idx_list)
 
 gym_env = cast(GymBusinessEngine, learn_env.business_engine).gym_env

@@ -1,28 +1,43 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
+from maro.rl.policy.abs_policy import AbsPolicy
 
 from maro.rl.rollout import AbsEnvSampler, CacheElement
+from maro.rl.rollout.env_sampler import AbsAgentWrapper, SimpleAgentWrapper
+from maro.simulator.core import Env
 
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
 from tests.rl.gym_wrapper.simulator.common import Action, DecisionEvent
 
 
-def _calc_metrics(rewards: list) -> dict:
-    return {
-        "n_step": sum([len(e) for e in rewards]),
-        "n_segment": len(rewards),
-        "avg_reward": np.mean([sum(e) for e in rewards]),
-        "max_reward": np.max([sum(e) for e in rewards]),
-        "min_reward": np.min([sum(e) for e in rewards]),
-        "avg_n_step": np.mean([len(e) for e in rewards]),
-    }
-
-
 class GymEnvSampler(AbsEnvSampler):
+    def __init__(
+        self,
+        learn_env: Env,
+        test_env: Env,
+        policies: List[AbsPolicy],
+        agent2policy: Dict[Any, str],
+        trainable_policies: List[str] = None,
+        agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
+        reward_eval_delay: int = None,
+    ) -> None:
+        super(GymEnvSampler, self).__init__(
+            learn_env=learn_env,
+            test_env=test_env,
+            policies=policies,
+            agent2policy=agent2policy,
+            trainable_policies=trainable_policies,
+            agent_wrapper_cls=agent_wrapper_cls,
+            reward_eval_delay=reward_eval_delay,
+        )
+
+        self._sample_rewards = []
+        self._eval_rewards = []
+
     def _get_global_and_agent_state_impl(
         self,
         event: DecisionEvent,
@@ -39,17 +54,33 @@ class GymEnvSampler(AbsEnvSampler):
         return {0: be.get_reward_at_tick(tick)}
 
     def _post_step(self, cache_element: CacheElement) -> None:
-        self._info["env_metric"] = self._env.metrics
+        if not self._end_of_episode:
+            return
+        rewards = list(self._env.metrics["reward_record"].values())
+        self._sample_rewards.append((len(rewards), np.sum(rewards)))
 
     def _post_eval_step(self, cache_element: CacheElement) -> None:
-        self._post_step(cache_element)
+        if not self._end_of_episode:
+            return
+        rewards = list(self._env.metrics["reward_record"].values())
+        self._eval_rewards.append((len(rewards), np.sum(rewards)))
 
     def post_collect(self, info_list: list, ep: int) -> None:
-        rewards = [list(e["env_metric"]["reward_record"].values()) for e in info_list]
-        metrics = _calc_metrics(rewards)
-        self.metrics.update(metrics)
+        cur = {
+            "n_steps": sum([n for n, _ in self._sample_rewards]),
+            "n_segment": len(self._sample_rewards),
+            "avg_reward": np.mean([r for _, r in self._sample_rewards]),
+            "avg_n_steps": np.mean([n for n, _ in self._sample_rewards]),
+        }
+        self.metrics.update(cur)
+        # clear validation metrics
+        self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
-        rewards = [list(e["env_metric"]["reward_record"].values()) for e in info_list]
-        metrics = _calc_metrics(rewards)
-        self.metrics.update({"val/" + k: v for k, v in metrics.items()})
+        cur = {
+            "val/n_steps": sum([n for n, _ in self._eval_rewards]),
+            "val/n_segment": len(self._eval_rewards),
+            "val/avg_reward": np.mean([r for _, r in self._eval_rewards]),
+            "val/avg_n_steps": np.mean([n for n, _ in self._eval_rewards]),
+        }
+        self.metrics.update(cur)
