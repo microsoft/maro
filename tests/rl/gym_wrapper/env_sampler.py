@@ -6,6 +6,7 @@ from typing import Any, Dict, Tuple, Union
 import numpy as np
 
 from maro.rl.rollout import AbsEnvSampler, CacheElement
+
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
 from tests.rl.gym_wrapper.simulator.common import Action, DecisionEvent
 

@@ -11,6 +11,7 @@ from maro.rl.training.algorithms import ActorCriticParams, ActorCriticTrainer
 actor_net_conf = {
     "hidden_dims": [64, 32, 32],
     "activation": torch.nn.LeakyReLU,
+    "output_activation": torch.nn.LeakyReLU,
     "softmax": True,
     "batch_norm": False,
     "head": True,
@@ -19,6 +20,7 @@ actor_net_conf = {
 critic_net_conf = {
     "hidden_dims": [256, 128, 64],
     "activation": torch.nn.LeakyReLU,
+    "output_activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": False,
     "head": True,

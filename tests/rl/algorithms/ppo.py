@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.rl.training.algorithms import PPOParams, PPOTrainer
+
 from .ac import MyVCriticNet, get_ac_policy
 
 get_ppo_policy = get_ac_policy

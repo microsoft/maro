@@ -9,9 +9,9 @@ from torch.distributions import Normal
 from torch.optim import Adam
 
 from maro.rl.model import ContinuousACBasedNet, VNet
+from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.training.algorithms import ActorCriticParams, ActorCriticTrainer
-from .utils import mlp
 
 actor_net_conf = {
     "hidden_dims": [64, 64],
@@ -31,8 +31,10 @@ class MyContinuousACBasedNet(ContinuousACBasedNet):
 
         log_std = -0.5 * np.ones(action_dim, dtype=np.float32)
         self._log_std = torch.nn.Parameter(torch.as_tensor(log_std))
-        self._mu_net = mlp(
-            [state_dim] + actor_net_conf["hidden_dims"] + [action_dim],
+        self._mu_net = FullyConnected(
+            input_dim=state_dim,
+            hidden_dims=actor_net_conf["hidden_dims"],
+            output_dim=action_dim,
             activation=actor_net_conf["activation"],
         )
         self._optim = Adam(self.parameters(), lr=actor_learning_rate)
@@ -57,8 +59,10 @@ class MyContinuousACBasedNet(ContinuousACBasedNet):
 class MyVCriticNet(VNet):
     def __init__(self, state_dim: int) -> None:
         super(MyVCriticNet, self).__init__(state_dim=state_dim)
-        self._critic = mlp(
-            [state_dim] + critic_net_conf["hidden_dims"] + [1],
+        self._critic = FullyConnected(
+            input_dim=state_dim,
+            output_dim=1,
+            hidden_dims=critic_net_conf["hidden_dims"],
             activation=critic_net_conf["activation"],
         )
         self._optim = Adam(self._critic.parameters(), lr=critic_learning_rate)
