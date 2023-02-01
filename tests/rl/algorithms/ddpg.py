@@ -34,6 +34,7 @@ class MyContinuousDDPGNet(ContinuousDDPGNet):
             activation=actor_net_conf["activation"],
             output_activation=actor_net_conf["output_activation"],
         )
+        self._optim = Adam(self._net.parameters(), lr=critic_learning_rate)
         self._action_limit = action_limit
 
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
