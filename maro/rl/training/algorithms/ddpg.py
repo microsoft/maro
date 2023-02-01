@@ -8,7 +8,7 @@ import torch
 
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy, RLPolicy
-from maro.rl.training import AbsTrainOps, BaseTrainerParams, RandomReplayMemory, RemoteOps, SingleAgentTrainer, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
@@ -93,9 +93,9 @@ class DDPGOps(AbsTrainOps):
                 states=next_states,  # s'
                 actions=self._target_policy.get_actions_tensor(next_states),  # miu_targ(s')
             )  # Q_targ(s', miu_targ(s'))
-
-        # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
-        target_q_values = (rewards + self._reward_discount * (1 - terminals.long()) * next_q_values).detach()
+            # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
+            target_q_values = (rewards + self._reward_discount * (1.0 - terminals.float()) * next_q_values).detach()
+        
         q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
         return self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
 
@@ -234,7 +234,7 @@ class DDPGTrainer(SingleAgentTrainer):
 
     def build(self) -> None:
         self._ops = cast(DDPGOps, self.get_ops())
-        self._replay_memory = RandomReplayMemory(
+        self._replay_memory = FIFOReplayMemory(
             capacity=self._replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,

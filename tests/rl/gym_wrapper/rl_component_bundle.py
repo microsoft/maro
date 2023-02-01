@@ -48,6 +48,14 @@ elif algorithm == "sac":
         for i in range(num_agents)
     ]
     trainers = [get_sac_trainer(f"{algorithm}_{i}", gym_state_dim, gym_action_dim) for i in range(num_agents)]
+elif algorithm == "ddpg":
+    from tests.rl.algorithms.ddpg import get_ddpg_policy, get_ddpg_trainer
+
+    policies = [
+        get_ddpg_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim, action_limit)
+        for i in range(num_agents)
+    ]
+    trainers = [get_ddpg_trainer(f"{algorithm}_{i}", gym_state_dim, gym_action_dim) for i in range(num_agents)]
 else:
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
