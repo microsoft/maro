@@ -83,4 +83,5 @@ class GymEnvSampler(AbsEnvSampler):
             "val/avg_reward": np.mean([r for _, r in self._eval_rewards]),
             "val/avg_n_steps": np.mean([n for n, _ in self._eval_rewards]),
         }
+        self._eval_rewards.clear()
         self.metrics.update(cur)

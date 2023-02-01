@@ -252,6 +252,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = None,
     ) -> None:
+        assert learn_env is not test_env, "Please use different envs for training and testing."
+
         self._learn_env = learn_env
         self._test_env = test_env
 
@@ -431,65 +433,71 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         Returns:
             A dict that contains the collected experiences and additional information.
         """
-        # Init the env
-        self._switch_env(self._learn_env)
+        steps_to_go = num_steps
+        if policy_state is not None:  # Update policy state if necessary
+            self.set_policy_state(policy_state)
+        self._switch_env(self._learn_env)  # Init the env
+        self._agent_wrapper.explore()  # Collect experience
+
         if self._end_of_episode:
             self._reset()
 
-        # Update policy state if necessary
-        if policy_state is not None:
-            self.set_policy_state(policy_state)
+        total_experiences = []
+        # If steps_to_go is None, run until the end of episode
+        # If steps_to_go is not None, run until we collect required number of steps
+        while (steps_to_go is None and not self._end_of_episode) or (steps_to_go is not None and steps_to_go > 0):
+            if self._end_of_episode:
+                self._reset()
 
-        # Collect experience
-        self._agent_wrapper.explore()
-        steps_to_go = float("inf") if num_steps is None else num_steps
-        while not self._end_of_episode and steps_to_go > 0:
-            # Get agent actions and translate them to env actions
-            action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+            while not self._end_of_episode and (steps_to_go is None or steps_to_go > 0):
+                # Get agent actions and translate them to env actions
+                action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
+                env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
-            # Store experiences in the cache
-            cache_element = CacheElement(
-                tick=self.env.tick,
-                event=self._event,
-                state=self._state,
-                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
-                action_dict=self._select_trainable_agents(action_dict),
-                env_action_dict=self._select_trainable_agents(env_action_dict),
-                # The following will be generated later
-                reward_dict={},
-                terminal_dict={},
-                next_state=None,
-                next_agent_state_dict={},
-            )
+                # Store experiences in the cache
+                cache_element = CacheElement(
+                    tick=self.env.tick,
+                    event=self._event,
+                    state=self._state,
+                    agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                    action_dict=self._select_trainable_agents(action_dict),
+                    env_action_dict=self._select_trainable_agents(env_action_dict),
+                    # The following will be generated later
+                    reward_dict={},
+                    terminal_dict={},
+                    next_state=None,
+                    next_agent_state_dict={},
+                )
 
-            # Update env and get new states (global & agent)
-            self._step(list(env_action_dict.values()))
+                # Update env and get new states (global & agent)
+                self._step(list(env_action_dict.values()))
 
-            if self._reward_eval_delay is None:
-                self._calc_reward(cache_element)
-                self._post_step(cache_element)
-            self._append_cache_element(cache_element)
-            steps_to_go -= 1
-        self._append_cache_element(None)
+                if self._reward_eval_delay is None:
+                    self._calc_reward(cache_element)
+                    self._post_step(cache_element)
+                self._append_cache_element(cache_element)
+                if steps_to_go is not None:
+                    steps_to_go -= 1
+            self._append_cache_element(None)
 
-        tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
-        experiences: List[ExpElement] = []
-        while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-            cache_element = self._trans_cache.pop(0)
-            # !: Here the reward calculation method requires the given tick is enough and must be used then.
-            if self._reward_eval_delay is not None:
-                self._calc_reward(cache_element)
-                self._post_step(cache_element)
-            experiences.append(cache_element.make_exp_element())
+            tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
+            experiences: List[ExpElement] = []
+            while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
+                cache_element = self._trans_cache.pop(0)
+                # !: Here the reward calculation method requires the given tick is enough and must be used then.
+                if self._reward_eval_delay is not None:
+                    self._calc_reward(cache_element)
+                    self._post_step(cache_element)
+                experiences.append(cache_element.make_exp_element())
 
-        self._agent_last_index = {
-            k: v - len(experiences) for k, v in self._agent_last_index.items() if v >= len(experiences)
-        }
+            self._agent_last_index = {
+                k: v - len(experiences) for k, v in self._agent_last_index.items() if v >= len(experiences)
+            }
+
+            total_experiences += experiences
 
         return {
-            "end_of_episode": self._end_of_episode,
-            "experiences": [experiences],
+            "experiences": [total_experiences],
             "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
         }
 
