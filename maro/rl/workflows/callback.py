@@ -110,16 +110,19 @@ class MetricsRecorder(Callback):
     def __init__(self, path: str) -> None:
         super(MetricsRecorder, self).__init__()
 
-        self._metrics: Dict[int, dict] = {}
+        self._full_metrics: Dict[int, dict] = {}
+        self._valid_metrics: Dict[int, dict] = {}
         self._path = path
 
     def _dump_metric_history(self) -> None:
-        if len(self._metrics) == 0:
-            return
-
-        metric_list = [self._metrics[ep] for ep in sorted(self._metrics.keys())]
-        df = pd.DataFrame.from_records(metric_list)
-        df.to_csv(os.path.join(self._path, "metrics.csv"), index=True)
+        if len(self._full_metrics) > 0:
+            metric_list = [self._full_metrics[ep] for ep in sorted(self._full_metrics.keys())]
+            df = pd.DataFrame.from_records(metric_list)
+            df.to_csv(os.path.join(self._path, "metrics_full.csv"), index=True)
+        if len(self._valid_metrics) > 0:
+            metric_list = [self._valid_metrics[ep] for ep in sorted(self._valid_metrics.keys())]
+            df = pd.DataFrame.from_records(metric_list)
+            df.to_csv(os.path.join(self._path, "metrics_valid.csv"), index=True)
 
     def on_training_end(
         self,
@@ -128,15 +131,14 @@ class MetricsRecorder(Callback):
         logger: LoggerV2,
         ep: int,
     ) -> None:
-        pass
-        # if len(env_sampler.metrics) > 0:
-        #     metrics = copy.deepcopy(env_sampler.metrics)
-        #     metrics["ep"] = ep
-        #     if ep in self._metrics:
-        #         self._metrics[ep].update(metrics)
-        #     else:
-        #         self._metrics[ep] = metrics
-        # self._dump_metric_history()
+        if len(env_sampler.metrics) > 0:
+            metrics = copy.deepcopy(env_sampler.metrics)
+            metrics["ep"] = ep
+            if ep in self._full_metrics:
+                self._full_metrics[ep].update(metrics)
+            else:
+                self._full_metrics[ep] = metrics
+        self._dump_metric_history()
 
     def on_validation_end(
         self,
@@ -148,10 +150,14 @@ class MetricsRecorder(Callback):
         if len(env_sampler.metrics) > 0:
             metrics = copy.deepcopy(env_sampler.metrics)
             metrics["ep"] = ep
-            if ep in self._metrics:
-                self._metrics[ep].update(metrics)
+            if ep in self._full_metrics:
+                self._full_metrics[ep].update(metrics)
             else:
-                self._metrics[ep] = metrics
+                self._full_metrics[ep] = metrics
+            if ep in self._valid_metrics:
+                self._valid_metrics[ep].update(metrics)
+            else:
+                self._valid_metrics[ep] = metrics
         self._dump_metric_history()
 
 
