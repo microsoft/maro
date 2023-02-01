@@ -4,11 +4,8 @@
 # Example RL config file for GYM scenario.
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
-# Run this workflow by executing one of the following commands:
-# - python tests/rl/run.py tests/rl/config.yml
-
 job: gym_rl_workflow
-scenario_path: "tests/rl/gym_wrapper/tasks/ac"
+scenario_path: "tests/rl/tasks/ac"
 log_path: "tests/rl_log/ac"
 main:
   num_episodes: 1000

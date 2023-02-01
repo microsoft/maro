@@ -8,7 +8,7 @@
 # - python tests/rl/run.py tests/rl/config.yml
 
 job: gym_rl_workflow
-scenario_path: "tests/rl/gym_wrapper/tasks/ddpg"
+scenario_path: "tests/rl/tasks/ddpg"
 log_path: "tests/rl_log/ddpg"
 main:
   num_episodes: 25000
