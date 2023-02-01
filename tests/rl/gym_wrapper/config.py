@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-algorithm = "ppo"
+algorithm = "sac"
 
 env_conf = {
     "topology": "Walker2d-v4",

@@ -96,10 +96,10 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
     return SoftActorCriticTrainer(
         name=name,
         reward_discount=0.99,
-        # replay_memory_capacity=100000,
+        replay_memory_capacity=200000,
         params=SoftActorCriticParams(
             get_q_critic_net_func=lambda: MyQCriticNet(state_dim, action_dim),
-            num_epochs=20,
+            num_epochs=10,
             n_start_train=10000,
             soft_update_coef=0.01,
         ),

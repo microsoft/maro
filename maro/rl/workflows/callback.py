@@ -128,14 +128,15 @@ class MetricsRecorder(Callback):
         logger: LoggerV2,
         ep: int,
     ) -> None:
-        if len(env_sampler.metrics) > 0:
-            metrics = copy.deepcopy(env_sampler.metrics)
-            metrics["ep"] = ep
-            if ep in self._metrics:
-                self._metrics[ep].update(metrics)
-            else:
-                self._metrics[ep] = metrics
-        self._dump_metric_history()
+        pass
+        # if len(env_sampler.metrics) > 0:
+        #     metrics = copy.deepcopy(env_sampler.metrics)
+        #     metrics["ep"] = ep
+        #     if ep in self._metrics:
+        #         self._metrics[ep].update(metrics)
+        #     else:
+        #         self._metrics[ep] = metrics
+        # self._dump_metric_history()
 
     def on_validation_end(
         self,
@@ -144,7 +145,14 @@ class MetricsRecorder(Callback):
         logger: LoggerV2,
         ep: int,
     ) -> None:
-        self.on_training_end(env_sampler, training_manager, logger, ep)
+        if len(env_sampler.metrics) > 0:
+            metrics = copy.deepcopy(env_sampler.metrics)
+            metrics["ep"] = ep
+            if ep in self._metrics:
+                self._metrics[ep].update(metrics)
+            else:
+                self._metrics[ep] = metrics
+        self._dump_metric_history()
 
 
 SUPPORTED_CALLBACK_FUNC = {
