@@ -3,19 +3,27 @@
 
 from abc import ABCMeta
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Tuple, cast
+from typing import Callable, Dict, Optional, Tuple, cast, Union, Any
 
 import numpy as np
-import torch
 
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
 from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, discount_cumsum, get_torch_device, ndarray_to_tensor
+from maro.rl.training.algorithms.base.trpo_base import Policy
+import warnings
+from typing import Any, Dict, List, Optional, Type, Union
+from torch.distributions import Independent, Normal, Distribution
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+from torch import nn
+from torch.distributions import kl_divergence
 
 
 @dataclass
-class ACBasedParams(BaseTrainerParams, metaclass=ABCMeta):
+class TRPOParams(BaseTrainerParams, metaclass=ABCMeta):
     """
     Parameter bundle for Actor-Critic based algorithms (Actor-Critic & PPO)
 
@@ -30,23 +38,28 @@ class ACBasedParams(BaseTrainerParams, metaclass=ABCMeta):
     get_v_critic_net_func: Callable[[], VNet]
     grad_iters: int = 1
     critic_loss_cls: Optional[Callable] = None
-    lam: float = 0.9
-    min_logp: float = float("-inf")
+
     clip_ratio: Optional[float] = None
+    max_kl: float = 0.01,
+    backtrack_coeff: float = 0.8,
+    max_backtracks: int = 10,
 
 
-class ACBasedOps(AbsTrainOps):
+class TRPOOps(AbsTrainOps):
     """Base class of Actor-Critic algorithm implementation. Reference: https://tinyurl.com/2ezte4cr"""
 
     def __init__(
         self,
         name: str,
         policy: RLPolicy,
-        params: ACBasedParams,
+        params: TRPOParams,
+        dist_fn: Type[torch.distributions.Distribution],
         reward_discount: float = 0.9,
         parallelism: int = 1,
+        deterministic_eval: bool = False,
+
     ) -> None:
-        super(ACBasedOps, self).__init__(
+        super(TRPOOps, self).__init__(
             name=name,
             policy=policy,
             parallelism=parallelism,
@@ -57,10 +70,13 @@ class ACBasedOps(AbsTrainOps):
         self._reward_discount = reward_discount
         self._critic_loss_func = params.critic_loss_cls() if params.critic_loss_cls is not None else torch.nn.MSELoss()
         self._clip_ratio = params.clip_ratio
-        self._lam = params.lam
-        self._min_logp = params.min_logp
         self._v_critic_net = params.get_v_critic_net_func()
         self._is_discrete_action = isinstance(self._policy, DiscretePolicyGradient)
+
+        self._deterministic_eval = deterministic_eval
+        self.dist_fn = dist_fn
+        self.policy_net = Policy(self.policy_state_dim, self.policy_action_dim)
+        self._delta = 0.005
 
     def _get_critic_loss(self, batch: TransitionBatch) -> torch.Tensor:
         """Compute the critic loss of the batch.
@@ -76,6 +92,7 @@ class ACBasedOps(AbsTrainOps):
 
         self._v_critic_net.train()
         state_values = self._v_critic_net.v_values(states)
+
         return self._critic_loss_func(state_values, returns)
 
     @remote
@@ -107,6 +124,44 @@ class ACBasedOps(AbsTrainOps):
         self._v_critic_net.train()
         self._v_critic_net.apply_gradients(grad_dict)
 
+
+
+    def _MVP(self, v: torch.Tensor, flat_kl_grad: torch.Tensor) -> torch.Tensor:
+        """Matrix vector product."""
+        # caculate second order gradient of kl with respect to theta
+        kl_v = (flat_kl_grad * v).sum()
+        kl_v = torch.zeros(1, requires_grad=True)
+        flat_grads = self._v_critic_net.get_gradients(kl_v)
+        flat_grad_list = [y for x, y in flat_grads.items()]
+        flat_kl_grad_grad = torch.cat([grad.reshape(-1) for grad in flat_grad_list]).detach()
+        return flat_kl_grad_grad + v * 0.1
+
+
+
+    def _conjugate_gradients(
+        self,
+        minibatch: torch.Tensor,
+        flat_kl_grad: torch.Tensor,
+        nsteps: int = 10,
+        residual_tol: float = 1e-10
+    ) -> torch.Tensor:
+        x = torch.zeros_like(minibatch)
+        r, p = minibatch.clone(), minibatch.clone()
+        # Note: should be 'r, p = minibatch - MVP(x)', but for x=0, MVP(x)=0.
+        # Change if doing warm start.
+        rdotr = r.dot(r)
+        for _ in range(nsteps):
+            z = self._MVP(p, flat_kl_grad)
+            alpha = rdotr / p.dot(z)
+            x += alpha * p
+            r -= alpha * z
+            new_rdotr = r.dot(r)
+            if new_rdotr < residual_tol:
+                break
+            p = r + new_rdotr / rdotr * p
+            rdotr = new_rdotr
+        return x
+
     def _get_actor_loss(self, batch: TransitionBatch) -> Tuple[torch.Tensor, bool]:
         """Compute the actor loss of the batch.
 
@@ -119,26 +174,81 @@ class ACBasedOps(AbsTrainOps):
         """
         assert isinstance(self._policy, DiscretePolicyGradient) or isinstance(self._policy, ContinuousRLPolicy)
         self._policy.train()
-
         states = ndarray_to_tensor(batch.states, device=self._device)
         actions = ndarray_to_tensor(batch.actions, device=self._device)
         advantages = ndarray_to_tensor(batch.advantages, device=self._device)
         logps_old = ndarray_to_tensor(batch.old_logps, device=self._device)
+
         if self._is_discrete_action:
             actions = actions.long()
-
         logps = self._policy.get_states_actions_logps(states, actions)
-        if self._clip_ratio is not None:
-            ratio = torch.exp(logps - logps_old)
-            kl = (logps_old - logps).mean().item()
-            early_stop = kl >= 0.01 * 1.5  # TODO
-            clipped_ratio = torch.clamp(ratio, 1 - self._clip_ratio, 1 + self._clip_ratio)
-            actor_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
-        else:
-            actor_loss = -(logps * advantages).mean()  # I * delta * log pi(a|s)
-            early_stop = False
+        ratio = torch.exp(logps - logps_old)
+        ratio = ratio.reshape(ratio.size(0), -1).transpose(0, 1)
+        actor_loss = -(ratio * advantages).mean()
+        # 梯度
+        flat_grads = self._v_critic_net.get_gradients(actor_loss)
+        flat_grad_list = [y for x, y in flat_grads.items()]
+        flat_grads = torch.cat([grad.reshape(-1) for grad in flat_grad_list])
 
-        return actor_loss, early_stop
+        # kl梯度
+        with torch.no_grad():
+            self._v_critic_net.train()
+            old_logps = ndarray_to_tensor(batch.old_logps, device=self._device)
+
+        kl = kl_divergence(old_logps, logps).mean()
+
+        flat_kl_grad = self._v_critic_net.get_gradients(kl)
+        flat_kl_grad_list = [y for x, y in flat_kl_grad.items()]
+        flat_kl_grad = torch.cat([grad.reshape(-1) for grad in flat_kl_grad_list])
+
+
+        search_direction = -self._conjugate_gradients(
+            flat_grads,
+            flat_kl_grad,
+            nsteps=10
+        )
+
+        # stepsize: calculate max stepsize constrained by kl bound
+        step_size = torch.sqrt(
+            2 * self._delta /
+            (search_direction *
+             self._MVP(search_direction, flat_kl_grad)).sum(0, keepdim=True)
+        )
+
+        # stepsize: linesearch stepsize
+        with torch.no_grad():
+            flat_params = torch.cat(
+                [param.data.view(-1) for param in self.actor.parameters()]
+            )
+            for i in range(self._max_backtracks):
+                new_flat_params = flat_params + step_size * search_direction
+                self._set_from_flat_params(self.actor, new_flat_params)
+                # calculate kl and if in bound, loss actually down
+                new_dist = self(minibatch).dist
+
+                new_dratio = (
+                    new_dist.log_prob(actions) - logps_old
+                ).exp().float()
+                new_dratio = new_dratio.reshape(new_dratio.size(0),
+                                                -1).transpose(0, 1)
+                new_actor_loss = -(new_dratio * advantages).mean()
+                kl = kl_divergence(old_dist, new_dist).mean()
+
+                if kl < self._delta and new_actor_loss < actor_loss:
+                    if i > 0:
+                        warnings.warn(f"Backtracking to step {i}.")
+                    break
+                elif i < self._max_backtracks - 1:
+                    step_size = step_size * self._backtrack_coeff
+                else:
+                    self._set_from_flat_params(self.actor, new_flat_params)
+                    step_size = torch.tensor([0.0])
+                    warnings.warn(
+                        "Line search failed! It seems hyperparamters"
+                        " are poor and need to be changed."
+                    )
+
+        return actor_loss
 
     @remote
     def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
@@ -151,8 +261,8 @@ class ACBasedOps(AbsTrainOps):
             grad (torch.Tensor): The actor gradient of the batch.
             early_stop (bool): Early stop indicator.
         """
-        loss, early_stop = self._get_actor_loss(batch)
-        return self._policy.get_gradients(loss), early_stop
+        loss = self._get_actor_loss(batch)
+        return self._policy.get_gradients(loss)
 
     def update_actor(self, batch: TransitionBatch) -> bool:
         """Update the actor network using a batch.
@@ -163,9 +273,8 @@ class ACBasedOps(AbsTrainOps):
         Returns:
             early_stop (bool): Early stop indicator.
         """
-        loss, early_stop = self._get_actor_loss(batch)
+        loss = self._get_actor_loss(batch)
         self._policy.train_step(loss)
-        return early_stop
 
     def update_actor_with_grad(self, grad_dict_and_early_stop: Tuple[dict, bool]) -> bool:
         """Update the actor network with remotely computed gradients.
@@ -213,7 +322,6 @@ class ACBasedOps(AbsTrainOps):
             rewards = np.concatenate([batch.rewards, np.zeros(1)])
             deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
             batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
-            batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
 
             if self._clip_ratio is not None:
                 batch.old_logps = self._policy.get_states_actions_logps(states, actions).detach().cpu().numpy()
@@ -232,7 +340,7 @@ class ACBasedOps(AbsTrainOps):
         self._v_critic_net.to(self._device)
 
 
-class ACBasedTrainer(SingleAgentTrainer):
+class TRPOTrainer(SingleAgentTrainer):
     """Base class of Actor-Critic algorithm implementation.
 
     References:
@@ -243,13 +351,13 @@ class ACBasedTrainer(SingleAgentTrainer):
     def __init__(
         self,
         name: str,
-        params: ACBasedParams,
+        params: TRPOParams,
         replay_memory_capacity: int = 10000,
         batch_size: int = 128,
         data_parallelism: int = 1,
         reward_discount: float = 0.9,
     ) -> None:
-        super(ACBasedTrainer, self).__init__(
+        super(TRPOTrainer, self).__init__(
             name,
             replay_memory_capacity,
             batch_size,
@@ -263,7 +371,7 @@ class ACBasedTrainer(SingleAgentTrainer):
         self._policy = policy
 
     def build(self) -> None:
-        self._ops = cast(ACBasedOps, self.get_ops())
+        self._ops = cast(TRPOOps, self.get_ops())
         self._replay_memory = FIFOReplayMemory(
             capacity=self._replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
@@ -274,30 +382,29 @@ class ACBasedTrainer(SingleAgentTrainer):
         return self._ops.preprocess_batch(transition_batch)
 
     def get_local_ops(self) -> AbsTrainOps:
-        return ACBasedOps(
+        return TRPOOps(
             name=self._policy.name,
             policy=self._policy,
             parallelism=self._data_parallelism,
             reward_discount=self._reward_discount,
             params=self._params,
+            dist_fn=Type[torch.distributions.Distribution],
         )
 
     def _get_batch(self) -> TransitionBatch:
         batch = self._replay_memory.sample(-1)
+        # RuntimeError: gather_out_cpu(): Expected dtype int64 for index
+        np.seterr(divide='ignore', invalid='ignore')
         batch.advantages = (batch.advantages - batch.advantages.mean()) / batch.advantages.std()
         return batch
 
     def train_step(self) -> None:
-        assert isinstance(self._ops, ACBasedOps)
-
+        assert isinstance(self._ops, TRPOOps)
         batch = self._get_batch()
+
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
-
-        for _ in range(self._params.grad_iters):
-            early_stop = self._ops.update_actor(batch)
-            if early_stop:
-                break
+            self._ops.update_actor(batch)
 
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
@@ -309,7 +416,3 @@ class ACBasedTrainer(SingleAgentTrainer):
         for _ in range(self._params.grad_iters):
             if self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch)):  # early stop
                 break
-
-
-
-
