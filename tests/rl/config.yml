@@ -1,0 +1,34 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# Example RL config file for GYM scenario.
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
+# Run this workflow by executing one of the following commands:
+# - python tests/rl/run.py tests/rl/config.yml
+
+job: gym_rl_workflow
+scenario_path: "tests/rl/gym_wrapper"
+log_path: "tests/rl/log/gym.txt"
+main:
+  num_episodes: 1000
+  num_steps: null
+  eval_schedule: 5
+  min_n_sample: 5000
+  logging:
+    stdout: INFO
+    file: DEBUG
+rollout:
+  logging:
+    stdout: INFO
+    file: DEBUG
+training:
+  mode: simple
+  load_path: null
+  load_episode: null
+  checkpointing:
+    path: "tests/rl/checkpoint/gym"
+    interval: 5
+  logging:
+    stdout: INFO
+    file: DEBUG
