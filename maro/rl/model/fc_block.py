@@ -72,9 +72,13 @@ class FullyConnected(nn.Module):
 
         # build the net
         dims = [self._input_dim] + self._hidden_dims
-        layers = [self._build_layer(in_dim, out_dim, activation=self._activation) for in_dim, out_dim in zip(dims, dims[1:])]
+        layers = [
+            self._build_layer(in_dim, out_dim, activation=self._activation) for in_dim, out_dim in zip(dims, dims[1:])
+        ]
         # top layer
-        layers.append(self._build_layer(dims[-1], self._output_dim, head=self._head, activation=self._output_activation))
+        layers.append(
+            self._build_layer(dims[-1], self._output_dim, head=self._head, activation=self._output_activation),
+        )
 
         self._net = nn.Sequential(*layers)
 
@@ -103,7 +107,13 @@ class FullyConnected(nn.Module):
     def output_dim(self) -> int:
         return self._output_dim
 
-    def _build_layer(self, input_dim: int, output_dim: int, head: bool = False, activation: Type[torch.nn.Module] = None) -> nn.Module:
+    def _build_layer(
+        self,
+        input_dim: int,
+        output_dim: int,
+        head: bool = False,
+        activation: Type[torch.nn.Module] = None,
+    ) -> nn.Module:
         """Build a basic layer.
 
         BN -> Linear -> Activation -> Dropout
