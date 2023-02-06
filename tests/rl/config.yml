@@ -1,20 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# Example RL config file for VM scheduling scenario.
+# Example RL config file for GYM scenario.
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
 # Run this workflow by executing one of the following commands:
-# - python ./examples/rl/run.py ./examples/rl/vm_scheduling.yml
-# - (Requires installing MARO from source) maro local run ./examples/rl/vm_scheduling.yml
+# - python tests/rl/run.py tests/rl/config.yml
 
-job: vm_scheduling_rl_workflow
-scenario_path: "examples/vm_scheduling/rl"
-log_path: "log/rl_job/vm_scheduling.txt"
+job: gym_rl_workflow
+scenario_path: "tests/rl/gym_wrapper"
+log_path: "tests/rl/log/gym.txt"
 main:
-  num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  num_episodes: 1000
   num_steps: null
   eval_schedule: 5
+  min_n_sample: 5000
   logging:
     stdout: INFO
     file: DEBUG
@@ -27,7 +27,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "checkpoint/rl_job/vm_scheduling"
+    path: "tests/rl/checkpoint/gym"
     interval: 5
   logging:
     stdout: INFO
