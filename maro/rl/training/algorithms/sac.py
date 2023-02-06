@@ -72,7 +72,9 @@ class SoftActorCriticOps(AbsTrainOps):
             target_q1 = self._target_q_net1.q_values(next_states, next_actions)
             target_q2 = self._target_q_net2.q_values(next_states, next_actions)
             target_q = torch.min(target_q1, target_q2)
-            y = rewards + self._reward_discount * (1.0 - terminals.float()) * (target_q - self._entropy_coef * next_logps)
+            y = rewards + self._reward_discount * (1.0 - terminals.float()) * (
+                target_q - self._entropy_coef * next_logps
+            )
 
         q1 = self._q_net1.q_values(states, actions)
         q2 = self._q_net2.q_values(states, actions)

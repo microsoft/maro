@@ -8,18 +8,18 @@ from maro.rl.model import QNet
 from maro.rl.model.algorithm_nets.ddpg import ContinuousDDPGNet
 from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
+from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms import DDPGParams, DDPGTrainer
 
-from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from tests.rl.gym_wrapper.common import (
     action_limit,
-    action_lower_bound, 
-    action_upper_bound, 
-    gym_state_dim, 
-    gym_action_dim, 
-    learn_env, 
+    action_lower_bound,
+    action_upper_bound,
+    gym_action_dim,
+    gym_state_dim,
+    learn_env,
     num_agents,
-    test_env, 
+    test_env,
 )
 from tests.rl.gym_wrapper.env_sampler import GymEnvSampler
 
@@ -103,10 +103,18 @@ def get_ddpg_trainer(name: str, state_dim: int, action_dim: int) -> DDPGTrainer:
         ),
     )
 
+
 algorithm = "ddpg"
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}
 policies = [
-    get_ddpg_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim, action_limit)
+    get_ddpg_policy(
+        f"{algorithm}_{i}.policy",
+        action_lower_bound,
+        action_upper_bound,
+        gym_state_dim,
+        gym_action_dim,
+        action_limit,
+    )
     for i in range(num_agents)
 ]
 trainers = [get_ddpg_trainer(f"{algorithm}_{i}", gym_state_dim, gym_action_dim) for i in range(num_agents)]

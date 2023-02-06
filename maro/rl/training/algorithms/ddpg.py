@@ -95,7 +95,7 @@ class DDPGOps(AbsTrainOps):
             )  # Q_targ(s', miu_targ(s'))
             # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
             target_q_values = (rewards + self._reward_discount * (1.0 - terminals.float()) * next_q_values).detach()
-        
+
         q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
         return self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
 

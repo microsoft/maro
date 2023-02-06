@@ -3,18 +3,18 @@
 
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms.ppo import PPOParams, PPOTrainer
+
 from tests.rl.gym_wrapper.common import (
-    action_lower_bound, 
-    action_upper_bound, 
-    gym_state_dim, 
-    gym_action_dim, 
-    learn_env, 
+    action_lower_bound,
+    action_upper_bound,
+    gym_action_dim,
+    gym_state_dim,
+    learn_env,
     num_agents,
-    test_env, 
+    test_env,
 )
 from tests.rl.gym_wrapper.env_sampler import GymEnvSampler
 from tests.rl.tasks.ac import MyVCriticNet, get_ac_policy
-
 
 get_ppo_policy = get_ac_policy
 
@@ -30,6 +30,7 @@ def get_ppo_trainer(name: str, state_dim: int) -> PPOTrainer:
             clip_ratio=0.2,
         ),
     )
+
 
 algorithm = "ppo"
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}

@@ -13,14 +13,15 @@ from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms import ActorCriticParams, ActorCriticTrainer
+
 from tests.rl.gym_wrapper.common import (
-    action_lower_bound, 
-    action_upper_bound, 
-    gym_state_dim, 
-    gym_action_dim, 
-    learn_env, 
+    action_lower_bound,
+    action_upper_bound,
+    gym_action_dim,
+    gym_state_dim,
+    learn_env,
     num_agents,
-    test_env, 
+    test_env,
 )
 from tests.rl.gym_wrapper.env_sampler import GymEnvSampler
 

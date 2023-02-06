@@ -138,7 +138,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
             Checkpoint(
                 path=env_attr.checkpoint_path,
                 interval=1 if env_attr.checkpoint_interval is None else env_attr.checkpoint_interval,
-            )
+            ),
         )
     callbacks.append(MetricsRecorder(path=env_attr.log_path))
     cbm = CallbackManager(callbacks)
@@ -201,7 +201,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
             eval_point_index += 1
             result = env_sampler.eval(
                 policy_state=training_manager.get_policy_state() if not env_attr.is_single_thread else None,
-                num_episodes=env_attr.num_eval_episodes
+                num_episodes=env_attr.num_eval_episodes,
             )
             env_sampler.post_evaluate(result["info"], ep)
 

@@ -4,8 +4,8 @@
 from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
-from maro.rl.policy.abs_policy import AbsPolicy
 
+from maro.rl.policy.abs_policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler, CacheElement
 from maro.rl.rollout.env_sampler import AbsAgentWrapper, SimpleAgentWrapper
 from maro.simulator.core import Env
