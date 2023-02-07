@@ -117,6 +117,10 @@ policies = [
 ]
 trainers = [get_ac_trainer(f"{algorithm}_{i}", gym_state_dim) for i in range(num_agents)]
 
+device_mapping = None
+if torch.cuda.is_available():
+    device_mapping = {f"{algorithm}_{i}.policy": "cuda:0" for i in range(num_agents)}
+
 
 rl_component_bundle = RLComponentBundle(
     env_sampler=GymEnvSampler(
@@ -128,6 +132,7 @@ rl_component_bundle = RLComponentBundle(
     agent2policy=agent2policy,
     policies=policies,
     trainers=trainers,
+    device_mapping=device_mapping,
 )
 
 __all__ = ["rl_component_bundle"]
