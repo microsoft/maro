@@ -31,22 +31,46 @@ The hyper-parameters are set to align with those used in [Spinning Up](https://s
 Five environments from the MuJoCo Gym task suite are reported in Spinning Up, they are: HalfCheetah, Hopper, Walker2d, Swimmer, and Ant.
 
 **HalfCheetah-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/half_cheetah/).
+
 ![HalfCheetah: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_halfcheetah_performance.svg)
 
 **Hopper-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/hopper/).
+
 ![Hooper: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_hopper_performance.svg)
 
 **Walker2d-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/walker2d/).
+
 ![Walker2d: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_walker2d_performance.svg)
 
 **Swimmer-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/swimmer/).
+
 ![Swimmer-v3: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_swimmer_performance.svg)
 
 **Ant-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/ant/).
+
 ![Ant-v3: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_ant_performance.svg)
 
 ## Performance with MARO RL Toolkit
 
-- Environment version: Walker2d-v4
-- Training Mode: simple
-- Rollout Mode: single
+|     **Env**     | **Algorithm** | **1M** | **1M/baseline** | **2M** | **2M/baseline** | **3M** | **3M/baseline** |
+|:---------------:|:-------------:|:------:|:---------------:|:------:|:---------------:|:------:|:---------------:|
+| **HalfCheetah** |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|    **Hopper**   |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|   **Walker2d**  |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|   **Swimmer**   |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|     **Ant**     |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
