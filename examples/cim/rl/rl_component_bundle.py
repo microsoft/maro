@@ -13,7 +13,7 @@ from examples.cim.rl.env_sampler import CIMEnvSampler
 
 # Environments
 learn_env = Env(**env_conf)
-test_env = learn_env
+test_env = Env(**env_conf)
 
 # Agent, policy, and trainers
 num_agents = len(learn_env.agent_idx_list)

@@ -96,6 +96,7 @@ class CIMEnvSampler(AbsEnvSampler):
         print(f"average env summary (episode {ep}): {avg_metric}")
 
         self.metrics.update(avg_metric)
+        self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
         # print the env metric from each rollout worker
