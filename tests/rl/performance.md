@@ -5,26 +5,72 @@ Some are compared to the benchmarks in [OpenAI Spinning Up](https://spinningup.o
 Limited by the environment version difference<!-- and some others?-->,
 there may be some gaps between the performance here and that in Spinning Up benchmarks.
 
+## Experimental Setting
+
 The hyper-parameters are set to align with those used in [Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#experiment-details):
 
-- Network of on-policy algorithms: size (64, 32) with tanh units for both policy and value function;
-- Network of off-policy algorithms: size (256, 256) with relu units;
-- Batch size for on-policy algorithms: 4000 steps of interaction per batch update;
-- Batch size for off-policy algorithms: size 100 for each gradient descent step;
+**Batch Size**:
 
-## Walker2d
+- For on-policy algorithms: 4000 steps of interaction per batch update;
+- For off-policy algorithms: size 100 for each gradient descent step;
 
-### Benchmark in Spinning Up - PyTorch Version
+**Network**:
 
-- Environment version: Walker2d-v3
-- 3M timesteps
+- For on-policy algorithms: size (64, 32) with tanh units for both policy and value function;
+- For off-policy algorithms: size (256, 256) with relu units;
+
+**Performance metric**:
+
+- For on-policy algorithms: measured as the average trajectory return across the batch collected at each epoch;
+- For off-policy algorithms: measured once every 10,000 steps by running the deterministic policy (or, in the case of SAC, the mean policy) without action noise for ten trajectories, and reporting the average return over those test trajectories;
+
+**Total timesteps**: set to 3M for all task suites and algorithms.
+
+## Benchmark in Spinning Up - PyTorch Version
+
+Five environments from the MuJoCo Gym task suite are reported in Spinning Up, they are: HalfCheetah, Hopper, Walker2d, Swimmer, and Ant.
+
+**HalfCheetah-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/half_cheetah/).
+
+![HalfCheetah: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_halfcheetah_performance.svg)
+
+**Hopper-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/hopper/).
+
+![Hooper: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_hopper_performance.svg)
+
+**Walker2d-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/walker2d/).
 
 ![Walker2d: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_walker2d_performance.svg)
 
-### Performance with MARO RL Toolkit
+**Swimmer-v3**:
 
-- Environment version: Walker2d-v4
-- Training Mode: simple
-- Rollout Mode: single
-- Environment duration: 5000 ticks
-- Num of episodes: 600
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/swimmer/).
+
+![Swimmer-v3: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_swimmer_performance.svg)
+
+**Ant-v3**:
+
+The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/ant/).
+
+![Ant-v3: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_ant_performance.svg)
+
+## Performance with MARO RL Toolkit
+
+|     **Env**     | **Algorithm** | **1M** | **1M/baseline** | **2M** | **2M/baseline** | **3M** | **3M/baseline** |
+|:---------------:|:-------------:|:------:|:---------------:|:------:|:---------------:|:------:|:---------------:|
+| **HalfCheetah** |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|    **Hopper**   |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|   **Walker2d**  |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|   **Swimmer**   |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |
+|     **Ant**     |    **PPO**    |        |                 |        |                 |        |                 |
+|                 |    **SAC**    |        |                 |        |                 |        |                 |

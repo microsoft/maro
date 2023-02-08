@@ -8,7 +8,7 @@ from maro.simulator import Env
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
 
 env_conf = {
-    "topology": "Walker2d-v4",
+    "topology": "Walker2d-v4",  # HalfCheetah-v4, Hopper-v4, Walker2d-v4, Swimmer-v4, Ant-v4
     "start_tick": 0,
     "durations": 5000,
     "options": {

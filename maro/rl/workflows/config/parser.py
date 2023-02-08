@@ -196,9 +196,10 @@ class ConfigParser:
             raise TypeError(f"{self._validation_err_pfx}: 'training.proxy.backend' must be an int")
 
     def _validate_checkpointing_section(self, section: dict) -> None:
-        if "path" not in section:
-            raise KeyError(f"{self._validation_err_pfx}: missing field 'path' under section 'checkpointing'")
-        if not isinstance(section["path"], str):
+        ckpt_path = section.get("path", None)
+        if ckpt_path is None:
+            section["path"] = os.path.join(self._config["log_path"], "checkpoints")
+        elif not isinstance(section["path"], str):
             raise TypeError(f"{self._validation_err_pfx}: 'training.checkpointing.path' must be a string")
 
         if "interval" in section:

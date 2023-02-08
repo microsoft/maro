@@ -9,7 +9,7 @@
 
 job: gym_rl_workflow
 scenario_path: "tests/rl/tasks/ddpg"
-log_path: "tests/rl_log/ddpg"
+log_path: "tests/rl/log/ddpg"
 main:
   num_episodes: 25000
   num_steps: 200
@@ -28,7 +28,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "tests/rl_log/ddpg/checkpoints"
+    path: null
     interval: 25
   logging:
     stdout: INFO

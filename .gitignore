@@ -29,5 +29,3 @@ htmlcov/
 .coveragerc
 .tmp/
 .xmake/
-outputs/
-tests/rl_log/
