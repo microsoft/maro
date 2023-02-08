@@ -6,7 +6,7 @@
 
 job: gym_rl_workflow
 scenario_path: "tests/rl/tasks/sac"
-log_path: "tests/rl_log/sac"
+log_path: "tests/rl/log/sac"
 main:
   num_episodes: 25000
   num_steps: 200
@@ -25,7 +25,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "tests/rl_log/sac/checkpoints"
+    path: null
     interval: 25
   logging:
     stdout: INFO

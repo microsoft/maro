@@ -21,7 +21,7 @@ if __name__ == "__main__":
     worker_idx = int(get_env("ID"))
     logger = LoggerV2(
         f"ROLLOUT-WORKER.{worker_idx}",
-        dump_path=get_env("LOG_PATH"),
+        dump_path=os.path.join(get_env("LOG_PATH"), f"ROLLOUT-WORKER.{worker_idx}.txt"),
         dump_mode="a",
         stdout_level=get_env("LOG_LEVEL_STDOUT", required=False, default="CRITICAL"),
         file_level=get_env("LOG_LEVEL_FILE", required=False, default="CRITICAL"),

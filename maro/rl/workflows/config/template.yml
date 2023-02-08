@@ -69,8 +69,9 @@ training:
   checkpointing:
     # Directory to save trainer snapshots under. Snapshot files created at different episodes will be saved under
     # separate folders named using episode numbers. For example, if a snapshot is created for a trainer named "dqn"
-    # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
-    path: "/path/to/your/checkpoint/folder"
+    # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt". If null, the
+    # default checkpoint folder would be created under `log_path`.
+    path: "/path/to/your/checkpoint/folder"  # or `null`
     interval: 10  # Interval at which trained policies / models are persisted to disk.
   proxy:  # Proxy settings. Ignored if training.mode is "simple".
     host: "127.0.0.1"  # Proxy service host's IP address. Ignored if run in containerized environments.
