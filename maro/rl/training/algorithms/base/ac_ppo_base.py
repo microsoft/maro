@@ -291,6 +291,12 @@ class ACBasedTrainer(SingleAgentTrainer):
         assert isinstance(self._ops, ACBasedOps)
 
         batch = self._get_batch()
+        # for _ in range(self._params.grad_iters):
+        #     for minibatch in batch.make_minibatches(self._batch_size):
+        #         early_stop = self._ops.update_actor(minibatch)
+        #         if early_stop:
+        #             break
+        #         self._ops.update_critic(minibatch)
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
 
@@ -304,8 +310,7 @@ class ACBasedTrainer(SingleAgentTrainer):
 
         batch = self._get_batch()
         for _ in range(self._params.grad_iters):
-            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
-
-        for _ in range(self._params.grad_iters):
-            if self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch)):  # early stop
-                break
+            for minibatch in batch.make_minibatches(self._batch_size):
+                if self._ops.update_actor_with_grad(await self._ops.get_actor_grad(minibatch)):  # early stop
+                    break
+                self._ops.update_critic_with_grad(await self._ops.get_critic_grad(minibatch))

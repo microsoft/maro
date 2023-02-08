@@ -6,10 +6,10 @@ scenario_path: "tests/rl/tasks/ppo"
 log_path: "tests/rl/log/ppo"
 main:
   num_episodes: 1000
-  num_steps: null
+  num_steps: 4000
   eval_schedule: 5
   num_eval_episodes: 10
-  min_n_sample: 5000
+  min_n_sample: 1
   logging:
     stdout: INFO
     file: DEBUG

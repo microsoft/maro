@@ -25,6 +25,8 @@ def get_ppo_trainer(name: str, state_dim: int) -> PPOTrainer:
     return PPOTrainer(
         name=name,
         reward_discount=0.99,
+        replay_memory_capacity=4000,
+        batch_size=4000,
         params=PPOParams(
             get_v_critic_net_func=lambda: MyVCriticNet(state_dim),
             grad_iters=80,

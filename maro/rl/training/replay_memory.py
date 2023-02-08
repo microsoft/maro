@@ -273,7 +273,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         Returns:
             batch (TransitionBatch): The sampled batch.
         """
-        indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
+        indexes = self._get_sample_indexes(batch_size, False)  # FIXME: check 'forbid_last' logic
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
