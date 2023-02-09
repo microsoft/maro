@@ -264,8 +264,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
 
-        self._trans_cache: List[CacheElement] = []
-        self._agent_last_index: Dict[Any, int] = {}  # Index of last occurrence of agent in self._trans_cache
+        self._transition_cache: List[CacheElement] = []
+        self._agent_last_index: Dict[Any, int] = {}  # Index of last occurrence of agent in self._transition_cache
         self._reward_eval_delay = reward_eval_delay
 
         self._info: dict = {}
@@ -386,31 +386,26 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _append_cache_element(self, cache_element: Optional[CacheElement]) -> None:
         """`cache_element` == None means we are processing the last element in trans_cache"""
         if cache_element is None:
-            if len(self._trans_cache) > 0:
-                self._trans_cache[-1].next_state = self._trans_cache[-1].state
-
             for agent_name, i in self._agent_last_index.items():
-                e = self._trans_cache[i]
+                e = self._transition_cache[i]
                 e.terminal_dict[agent_name] = self._end_of_episode
                 e.next_agent_state_dict[agent_name] = e.agent_state_dict[agent_name]
         else:
-            self._trans_cache.append(cache_element)
+            self._transition_cache.append(cache_element)
 
-            if len(self._trans_cache) > 0:
-                self._trans_cache[-1].next_state = cache_element.state
-
-            cur_index = len(self._trans_cache) - 1
+            cur_index = len(self._transition_cache) - 1
             for agent_name in cache_element.agent_names:
                 if agent_name in self._agent_last_index:
                     i = self._agent_last_index[agent_name]
-                    self._trans_cache[i].terminal_dict[agent_name] = False
-                    self._trans_cache[i].next_agent_state_dict[agent_name] = cache_element.agent_state_dict[agent_name]
+                    e = self._transition_cache[i]
+                    e.terminal_dict[agent_name] = False
+                    e.next_agent_state_dict[agent_name] = cache_element.agent_state_dict[agent_name]
                 self._agent_last_index[agent_name] = cur_index
 
     def _reset(self) -> None:
         self.env.reset()
         self._info.clear()
-        self._trans_cache.clear()
+        self._transition_cache.clear()
         self._agent_last_index.clear()
         self._step(None)
 
@@ -471,6 +466,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
                 # Update env and get new states (global & agent)
                 self._step(list(env_action_dict.values()))
+                cache_element.next_state = self._state
 
                 if self._reward_eval_delay is None:
                     self._calc_reward(cache_element)
@@ -482,8 +478,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
             tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
             experiences: List[ExpElement] = []
-            while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-                cache_element = self._trans_cache.pop(0)
+            while len(self._transition_cache) > 0 and self._transition_cache[0].tick <= tick_bound:
+                cache_element = self._transition_cache.pop(0)
                 # !: Here the reward calculation method requires the given tick is enough and must be used then.
                 if self._reward_eval_delay is not None:
                     self._calc_reward(cache_element)
@@ -554,6 +550,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
                 # Update env and get new states (global & agent)
                 self._step(list(env_action_dict.values()))
+                cache_element.next_state = self._state
 
                 if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
                     self._calc_reward(cache_element)
@@ -563,8 +560,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             self._append_cache_element(None)
 
             tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
-            while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-                cache_element = self._trans_cache.pop(0)
+            while len(self._transition_cache) > 0 and self._transition_cache[0].tick <= tick_bound:
+                cache_element = self._transition_cache.pop(0)
                 if self._reward_eval_delay is not None:
                     self._calc_reward(cache_element)
                     self._post_eval_step(cache_element)

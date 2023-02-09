@@ -14,7 +14,7 @@ from maro.rl.training import TrainingManager
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.utils.training import get_latest_ep
-from maro.rl.workflows.callback import CallbackManager, Checkpoint, MetricsRecorder
+from maro.rl.workflows.callback import CallbackManager, Checkpoint, MetricsRecorder, SupportedCallbackFunc
 from maro.utils import LoggerV2
 
 
@@ -160,7 +160,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
 
     # main loop
     for ep in range(start_ep, env_attr.num_episodes + 1):
-        cbm.call("on_episode_start", env_sampler, training_manager, env_attr.logger, ep)
+        cbm.call(SupportedCallbackFunc.ON_EPISODE_START, env_sampler, training_manager, env_attr.logger, ep)
 
         collect_time = training_time = 0.0
         total_experiences: List[List[ExpElement]] = []
@@ -185,10 +185,10 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
 
         tu0 = time.time()
         env_attr.logger.info(f"Roll-out completed for episode {ep}. Training started...")
-        cbm.call("on_training_start", env_sampler, training_manager, env_attr.logger, ep)
+        cbm.call(SupportedCallbackFunc.ON_TRAINING_START, env_sampler, training_manager, env_attr.logger, ep)
         training_manager.record_experiences(total_experiences)
         training_manager.train_step()
-        cbm.call("on_training_end", env_sampler, training_manager, env_attr.logger, ep)
+        cbm.call(SupportedCallbackFunc.ON_TRAINING_END, env_sampler, training_manager, env_attr.logger, ep)
         training_time += time.time() - tu0
 
         # performance details
@@ -196,7 +196,7 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
             f"ep {ep} - roll-out time: {collect_time:.2f} seconds, training time: {training_time:.2f} seconds",
         )
         if env_attr.eval_schedule and ep == env_attr.eval_schedule[eval_point_index]:
-            cbm.call("on_validation_start", env_sampler, training_manager, env_attr.logger, ep)
+            cbm.call(SupportedCallbackFunc.ON_VALIDATION_START, env_sampler, training_manager, env_attr.logger, ep)
 
             eval_point_index += 1
             result = env_sampler.eval(
@@ -205,9 +205,9 @@ def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: Workflow
             )
             env_sampler.post_evaluate(result["info"], ep)
 
-            cbm.call("on_validation_end", env_sampler, training_manager, env_attr.logger, ep)
+            cbm.call(SupportedCallbackFunc.ON_VALIDATION_END, env_sampler, training_manager, env_attr.logger, ep)
 
-        cbm.call("on_episode_end", env_sampler, training_manager, env_attr.logger, ep)
+        cbm.call(SupportedCallbackFunc.ON_EPISODE_END, env_sampler, training_manager, env_attr.logger, ep)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()

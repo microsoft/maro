@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 import copy
 import os
+from enum import Enum
 from typing import Dict, List, Union
 
 import pandas as pd
@@ -173,6 +174,17 @@ SUPPORTED_CALLBACK_FUNC = {
 }
 
 
+class SupportedCallbackFunc(Enum):
+    ON_EPISODE_START = "on_episode_start"
+    ON_EPISODE_END = "on_episode_end"
+    ON_TRAINING_START = "on_training_start"
+    ON_TRAINING_END = "on_training_end"
+    ON_VALIDATION_START = "on_validation_start"
+    ON_VALIDATION_END = "on_validation_end"
+    ON_TEST_START = "on_test_start"
+    ON_TEST_END = "on_test_end"
+
+
 class CallbackManager(object):
     def __init__(self, callbacks: List[Callback]) -> None:
         super(CallbackManager, self).__init__()
@@ -181,7 +193,7 @@ class CallbackManager(object):
 
     def call(
         self,
-        func_name: str,
+        func_name: SupportedCallbackFunc,
         env_sampler: EnvSampler,
         training_manager: TrainingManager,
         logger: LoggerV2,
@@ -190,5 +202,5 @@ class CallbackManager(object):
         assert func_name in SUPPORTED_CALLBACK_FUNC
 
         for callback in self._callbacks:
-            func = getattr(callback, func_name)
+            func = getattr(callback, func_name.value)
             func(env_sampler, training_manager, logger, ep)
