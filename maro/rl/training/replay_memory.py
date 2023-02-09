@@ -47,15 +47,6 @@ class AbsIndexScheduler(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def get_last_index(self) -> int:
-        """Get the index of the latest element in the memory.
-
-        Returns:
-            index (int): The index of the latest element in the memory.
-        """
-        raise NotImplementedError
-
 
 class RandomIndexScheduler(AbsIndexScheduler):
     """Index scheduler that returns random indexes when sampling.
@@ -95,9 +86,6 @@ class RandomIndexScheduler(AbsIndexScheduler):
         assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
         assert self._size > 0, "Cannot sample from an empty memory."
         return np.random.choice(self._size, size=batch_size, replace=True)
-
-    def get_last_index(self) -> int:
-        raise NotImplementedError
 
 
 class FIFOIndexScheduler(AbsIndexScheduler):
@@ -141,9 +129,6 @@ class FIFOIndexScheduler(AbsIndexScheduler):
         )
         self._head = self._tail
         return indexes
-
-    def get_last_index(self) -> int:
-        return (self._tail - 1) % self._capacity
 
 
 class AbsReplayMemory(object, metaclass=ABCMeta):
@@ -311,7 +296,6 @@ class RandomReplayMemory(ReplayMemory):
             RandomIndexScheduler(capacity, random_overwrite),
         )
         self._random_overwrite = random_overwrite
-        self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
 
     @property
     def random_overwrite(self) -> bool:
@@ -475,7 +459,6 @@ class RandomMultiReplayMemory(MultiReplayMemory):
             agent_states_dims,
         )
         self._random_overwrite = random_overwrite
-        self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
 
     @property
     def random_overwrite(self) -> bool:
