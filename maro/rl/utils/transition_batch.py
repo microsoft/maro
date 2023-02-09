@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Generator, List, Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -49,22 +49,6 @@ class TransitionBatch:
 
     def split(self, k: int) -> List[TransitionBatch]:
         return [self.make_kth_sub_batch(i, k) for i in range(k)]
-    
-    def make_minibatches(self, minibatch_size: int) -> Generator[TransitionBatch, None, None]:
-        i = 0
-        while i < self.size:
-            j = min(self.size, i + minibatch_size)
-            yield TransitionBatch(
-                states=self.states[i:j],
-                actions=self.actions[i:j],
-                rewards=self.rewards[i:j],
-                next_states=self.next_states[i:j],
-                terminals=self.terminals[i:j],
-                returns=self.returns[i:j] if self.returns is not None else None,
-                advantages=self.advantages[i:j] if self.advantages is not None else None,
-                old_logps=self.old_logps[i:j] if self.old_logps is not None else None,
-            )
-            i = j
 
 
 @dataclass

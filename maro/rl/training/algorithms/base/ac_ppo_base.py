@@ -211,25 +211,33 @@ class ACBasedOps(AbsTrainOps):
             self._v_critic_net.eval()
             self._policy.eval()
             values = self._v_critic_net.v_values(states).detach().cpu().numpy()
-            
+
             batch.returns = np.zeros(batch.size, dtype=np.float32)
             batch.advantages = np.zeros(batch.size, dtype=np.float32)
             i = 0
             while i < batch.size:
                 j = i
-                while j < batch.size - 1 and terminals[j] == False:
+                while j < batch.size - 1 and not terminals[j]:
                     j += 1
-                last_val = 0.0 if terminals[j] else self._v_critic_net.v_values(
-                    next_states[j].unsqueeze(dim=0)
-                ).detach().cpu().numpy().item()
-                
-                cur_values = np.append(values[i:j + 1], last_val)
-                cur_rewards = np.append(batch.rewards[i:j + 1], last_val)
+                last_val = (
+                    0.0
+                    if terminals[j]
+                    else self._v_critic_net.v_values(
+                        next_states[j].unsqueeze(dim=0),
+                    )
+                    .detach()
+                    .cpu()
+                    .numpy()
+                    .item()
+                )
+
+                cur_values = np.append(values[i : j + 1], last_val)
+                cur_rewards = np.append(batch.rewards[i : j + 1], last_val)
                 # delta = r + gamma * v(s') - v(s)
                 cur_deltas = cur_rewards[:-1] + self._reward_discount * cur_values[1:] - cur_values[:-1]
-                batch.returns[i:j + 1] = discount_cumsum(cur_rewards, self._reward_discount)[:-1]
-                batch.advantages[i:j + 1] = discount_cumsum(cur_deltas, self._reward_discount * self._lam)
-                
+                batch.returns[i : j + 1] = discount_cumsum(cur_rewards, self._reward_discount)[:-1]
+                batch.advantages[i : j + 1] = discount_cumsum(cur_deltas, self._reward_discount * self._lam)
+
                 i = j + 1
 
             if self._clip_ratio is not None:
@@ -308,12 +316,12 @@ class ACBasedTrainer(SingleAgentTrainer):
         assert isinstance(self._ops, ACBasedOps)
 
         batch = self._get_batch()
-            
+
         for _ in range(self._params.grad_iters):
             early_stop = self._ops.update_actor(batch)
             if early_stop:
                 break
-        
+
         for _ in range(self._params.grad_iters):
             self._ops.update_critic(batch)
 
@@ -321,10 +329,10 @@ class ACBasedTrainer(SingleAgentTrainer):
         assert isinstance(self._ops, RemoteOps)
 
         batch = self._get_batch()
-            
+
         for _ in range(self._params.grad_iters):
             if self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch)):  # early stop
                 break
-        
+
         for _ in range(self._params.grad_iters):
             self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
