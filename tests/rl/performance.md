@@ -62,15 +62,15 @@ The introduction of this task can be found [here](https://gymnasium.farama.org/e
 
 ## Performance with MARO RL Toolkit
 
-|     **Env**     | **Algorithm** | **1M** | **1M/baseline** | **2M** | **2M/baseline** | **3M** | **3M/baseline** |
-|:---------------:|:-------------:|:------:|:---------------:|:------:|:---------------:|:------:|:---------------:|
-| **HalfCheetah** |    **PPO**    |        |                 |        |                 |        |                 |
-|                 |    **SAC**    |        |                 |        |                 |        |                 |
-|    **Hopper**   |    **PPO**    |        |                 |        |                 |        |                 |
-|                 |    **SAC**    |        |                 |        |                 |        |                 |
-|   **Walker2d**  |    **PPO**    |        |                 |        |                 |        |                 |
-|                 |    **SAC**    |        |                 |        |                 |        |                 |
-|   **Swimmer**   |    **PPO**    |        |                 |        |                 |        |                 |
-|                 |    **SAC**    |        |                 |        |                 |        |                 |
-|     **Ant**     |    **PPO**    |        |                 |        |                 |        |                 |
-|                 |    **SAC**    |        |                 |        |                 |        |                 |
+| **Algorithm** |     **Env**     | **1.5M** | **1.5M/baseline** | **3M** | **3M/baseline** | **gap in 10%?** |
+|:-------------:|:---------------:|:--------:|:-----------------:|:------:|:---------------:|:---------------:|
+|    **PPO**    | **HalfCheetah** |          |            ~ 2.5K |        |            ~ 4K |                 |
+|               |    **Hopper**   |          |            ~ 2.3K |        |          ~ 2.5K |                 |
+|               |   **Walker2d**  |          |            ~ 1.5K |        |          ~ 2.6K |                 |
+|               |   **Swimmer**   |          |             ~ 113 |        |           ~ 118 |                 |
+|               |     **Ant**     |          |            ~ 1.2K |        |            ~ 3K |                 |
+|    **SAC**    | **HalfCheetah** |          |             ~ 12K |        |         ~ 13.7K |                 |
+|               |    **Hopper**   |          |            ~ 3.5K |        |          ~ 3.5K |                 |
+|               |   **Walker2d**  |          |            ~ 4.7K |        |            ~ 5K |                 |
+|               |   **Swimmer**   |          |              ~ 43 |        |            ~ 43 |                 |
+|               |     **Ant**     |          |           ~ 4.05K |        |            ~ 5K |                 |

@@ -28,14 +28,14 @@ from tests.rl.gym_wrapper.common import (
 from tests.rl.gym_wrapper.env_sampler import GymEnvSampler
 
 actor_net_conf = {
-    "hidden_dims": [64, 64],
-    "activation": torch.nn.Tanh,
+    "hidden_dims": [256, 256],
+    "activation": torch.nn.ReLU,
 }
 critic_net_conf = {
-    "hidden_dims": [64, 64],
-    "activation": torch.nn.Tanh,
+    "hidden_dims": [256, 256],
+    "activation": torch.nn.ReLU,
 }
-actor_learning_rate = 3e-4
+actor_learning_rate = 1e-3
 critic_learning_rate = 1e-3
 
 LOG_STD_MAX = 2
@@ -109,15 +109,22 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
     return SoftActorCriticTrainer(
         name=name,
         reward_discount=0.99,
-        replay_memory_capacity=200000,
+        replay_memory_capacity=1000000,
+        batch_size=100,
         params=SoftActorCriticParams(
             get_q_critic_net_func=lambda: MyQCriticNet(state_dim, action_dim),
-            num_epochs=10,
-            n_start_train=10000,
-            soft_update_coef=0.01,
+            update_target_every=1,
+            entropy_coef=0.2,
+            num_epochs=50,
+            n_start_train=1000,
+            soft_update_coef=0.005,
         ),
     )
 
+# TODO:
+#   1. random seed
+#   2. exploration with random sampled action # start_steps=10000,  Number of steps for uniform-random action selection, before running real policy. Helps exploration.
+#   3. confirm the effect of (max_ep_len=1000)?
 
 algorithm = "sac"
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}

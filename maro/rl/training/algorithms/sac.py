@@ -152,6 +152,9 @@ class SoftActorCriticOps(AbsTrainOps):
 
     def to_device(self, device: str = None) -> None:
         self._device = get_torch_device(device=device)
+
+        self._policy.to_device(self._device)
+
         self._q_net1.to(self._device)
         self._q_net2.to(self._device)
         self._target_q_net1.to(self._device)
