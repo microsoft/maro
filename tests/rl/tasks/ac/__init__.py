@@ -26,11 +26,11 @@ from tests.rl.gym_wrapper.common import (
 from tests.rl.gym_wrapper.env_sampler import GymEnvSampler
 
 actor_net_conf = {
-    "hidden_dims": [64, 64],
+    "hidden_dims": [64, 32],
     "activation": torch.nn.Tanh,
 }
 critic_net_conf = {
-    "hidden_dims": [64, 64],
+    "hidden_dims": [64, 32],
     "activation": torch.nn.Tanh,
 }
 actor_learning_rate = 3e-4

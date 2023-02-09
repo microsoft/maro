@@ -75,6 +75,7 @@ class GymEnvSampler(AbsEnvSampler):
         self.metrics.update(cur)
         # clear validation metrics
         self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
+        self._sample_rewards.clear()
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
         cur = {
@@ -83,5 +84,5 @@ class GymEnvSampler(AbsEnvSampler):
             "val/avg_reward": np.mean([r for _, r in self._eval_rewards]),
             "val/avg_n_steps": np.mean([n for n, _ in self._eval_rewards]),
         }
-        self._eval_rewards.clear()
         self.metrics.update(cur)
+        self._eval_rewards.clear()

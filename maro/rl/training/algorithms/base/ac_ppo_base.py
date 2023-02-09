@@ -202,6 +202,8 @@ class ACBasedOps(AbsTrainOps):
         # Preprocess advantages
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
         actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
+        terminals = ndarray_to_tensor(batch.terminals, device=self._device)
+        next_states = ndarray_to_tensor(batch.next_states, device=self._device)
         if self._is_discrete_action:
             actions = actions.long()
 
@@ -209,11 +211,34 @@ class ACBasedOps(AbsTrainOps):
             self._v_critic_net.eval()
             self._policy.eval()
             values = self._v_critic_net.v_values(states).detach().cpu().numpy()
-            values = np.concatenate([values, np.zeros(1)])
-            rewards = np.concatenate([batch.rewards, np.zeros(1)])
-            deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
-            batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
-            batch.advantages = discount_cumsum(deltas, self._reward_discount * self._lam)
+
+            batch.returns = np.zeros(batch.size, dtype=np.float32)
+            batch.advantages = np.zeros(batch.size, dtype=np.float32)
+            i = 0
+            while i < batch.size:
+                j = i
+                while j < batch.size - 1 and not terminals[j]:
+                    j += 1
+                last_val = (
+                    0.0
+                    if terminals[j]
+                    else self._v_critic_net.v_values(
+                        next_states[j].unsqueeze(dim=0),
+                    )
+                    .detach()
+                    .cpu()
+                    .numpy()
+                    .item()
+                )
+
+                cur_values = np.append(values[i : j + 1], last_val)
+                cur_rewards = np.append(batch.rewards[i : j + 1], last_val)
+                # delta = r + gamma * v(s') - v(s)
+                cur_deltas = cur_rewards[:-1] + self._reward_discount * cur_values[1:] - cur_values[:-1]
+                batch.returns[i : j + 1] = discount_cumsum(cur_rewards, self._reward_discount)[:-1]
+                batch.advantages[i : j + 1] = discount_cumsum(cur_deltas, self._reward_discount * self._lam)
+
+                i = j + 1
 
             if self._clip_ratio is not None:
                 batch.old_logps = self._policy.get_states_actions_logps(states, actions).detach().cpu().numpy()
@@ -291,21 +316,23 @@ class ACBasedTrainer(SingleAgentTrainer):
         assert isinstance(self._ops, ACBasedOps)
 
         batch = self._get_batch()
-        for _ in range(self._params.grad_iters):
-            self._ops.update_critic(batch)
 
         for _ in range(self._params.grad_iters):
             early_stop = self._ops.update_actor(batch)
             if early_stop:
                 break
 
+        for _ in range(self._params.grad_iters):
+            self._ops.update_critic(batch)
+
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
 
         batch = self._get_batch()
-        for _ in range(self._params.grad_iters):
-            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
 
         for _ in range(self._params.grad_iters):
             if self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch)):  # early stop
                 break
+
+        for _ in range(self._params.grad_iters):
+            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))

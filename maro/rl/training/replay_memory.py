@@ -35,26 +35,15 @@ class AbsIndexScheduler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         """Generate a list of indexes that can be used to retrieve items from the replay memory.
 
         Args:
             batch_size (int, default=None): The required batch size. If it is None, all indexes where an experience
                 item is present are returned.
-            forbid_last (bool, default=False): Whether the latest element is allowed to be sampled.
-                If this is true, the last index will always be excluded from the result.
 
         Returns:
             indexes (np.ndarray): The list of indexes.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_last_index(self) -> int:
-        """Get the index of the latest element in the memory.
-
-        Returns:
-            index (int): The index of the latest element in the memory.
         """
         raise NotImplementedError
 
@@ -93,13 +82,10 @@ class RandomIndexScheduler(AbsIndexScheduler):
         self._size = min(self._size + batch_size, self._capacity)
         return indexes
 
-    def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
         assert self._size > 0, "Cannot sample from an empty memory."
         return np.random.choice(self._size, size=batch_size, replace=True)
-
-    def get_last_index(self) -> int:
-        raise NotImplementedError
 
 
 class FIFOIndexScheduler(AbsIndexScheduler):
@@ -135,18 +121,14 @@ class FIFOIndexScheduler(AbsIndexScheduler):
             self._head = (self._head + overwrite) % self._capacity
             return self.get_put_indexes(batch_size)
 
-    def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
-        tmp = self._tail if not forbid_last else (self._tail - 1) % self._capacity
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         indexes = (
-            np.arange(self._head, tmp)
-            if tmp > self._head
-            else np.concatenate([np.arange(self._head, self._capacity), np.arange(tmp)])
+            np.arange(self._head, self._tail)
+            if self._tail > self._head
+            else np.concatenate([np.arange(self._head, self._capacity), np.arange(self._tail)])
         )
-        self._head = tmp
+        self._head = self._tail
         return indexes
-
-    def get_last_index(self) -> int:
-        return (self._tail - 1) % self._capacity
 
 
 class AbsReplayMemory(object, metaclass=ABCMeta):
@@ -176,9 +158,9 @@ class AbsReplayMemory(object, metaclass=ABCMeta):
         """Please refer to the doc string in AbsIndexScheduler."""
         return self._idx_scheduler.get_put_indexes(batch_size)
 
-    def _get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+    def _get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         """Please refer to the doc string in AbsIndexScheduler."""
-        return self._idx_scheduler.get_sample_indexes(batch_size, forbid_last)
+        return self._idx_scheduler.get_sample_indexes(batch_size)
 
 
 class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
@@ -273,7 +255,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         Returns:
             batch (TransitionBatch): The sampled batch.
         """
-        indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
+        indexes = self._get_sample_indexes(batch_size)
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
@@ -298,10 +280,6 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             old_logps=self._old_logps[indexes],
         )
 
-    @abstractmethod
-    def _get_forbid_last(self) -> bool:
-        raise NotImplementedError
-
 
 class RandomReplayMemory(ReplayMemory):
     def __init__(
@@ -318,14 +296,10 @@ class RandomReplayMemory(ReplayMemory):
             RandomIndexScheduler(capacity, random_overwrite),
         )
         self._random_overwrite = random_overwrite
-        self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
 
     @property
     def random_overwrite(self) -> bool:
         return self._random_overwrite
-
-    def _get_forbid_last(self) -> bool:
-        return False
 
 
 class FIFOReplayMemory(ReplayMemory):
@@ -341,9 +315,6 @@ class FIFOReplayMemory(ReplayMemory):
             action_dim,
             FIFOIndexScheduler(capacity),
         )
-
-    def _get_forbid_last(self) -> bool:
-        return not self._terminals[self._idx_scheduler.get_last_index()]
 
 
 class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
@@ -446,7 +417,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         Returns:
             batch (MultiTransitionBatch): The sampled batch.
         """
-        indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
+        indexes = self._get_sample_indexes(batch_size)
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> MultiTransitionBatch:
@@ -470,10 +441,6 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             next_agent_states=[state[indexes] for state in self._next_agent_states],
         )
 
-    @abstractmethod
-    def _get_forbid_last(self) -> bool:
-        raise NotImplementedError
-
 
 class RandomMultiReplayMemory(MultiReplayMemory):
     def __init__(
@@ -492,14 +459,10 @@ class RandomMultiReplayMemory(MultiReplayMemory):
             agent_states_dims,
         )
         self._random_overwrite = random_overwrite
-        self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
 
     @property
     def random_overwrite(self) -> bool:
         return self._random_overwrite
-
-    def _get_forbid_last(self) -> bool:
-        return False
 
 
 class FIFOMultiReplayMemory(MultiReplayMemory):
@@ -517,6 +480,3 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
             FIFOIndexScheduler(capacity),
             agent_states_dims,
         )
-
-    def _get_forbid_last(self) -> bool:
-        return not self._terminals[self._idx_scheduler.get_last_index()]
