@@ -37,10 +37,15 @@ def get_off_policy_data(log_dir: str):
     file_path = os.path.join(log_dir, "metrics_valid.csv")
     df = pd.read_csv(file_path)
     x, y = df["n_steps"], df["val/avg_reward"]
+    x = np.cumsum(x)
     return x, y
 
 def get_on_policy_data(log_dir: str):
-    pass
+    file_path = os.path.join(log_dir, "metrics_full.csv")
+    df = pd.read_csv(file_path)
+    x, y = df["n_steps"], df["avg_reward"]
+    x = np.cumsum(x)
+    return x, y
 
 def plot_performance_curves(title: str, dir_names: List[str], smooth_window_size: int=SMOOTH_WINDOW_SIZE):
     for name in dir_names:
@@ -65,7 +70,7 @@ def plot_performance_curves(title: str, dir_names: List[str], smooth_window_size
     plt.title(title)
     plt.xlabel("Total Env Interactions")
     plt.ylabel("Average Trajectory Return")
-    plt.savefig(os.path.join(LOG_DIR, f"{title}.png"))
+    plt.savefig(os.path.join(LOG_DIR, f"{title}_{smooth_window_size}.png"))
     plt.close()
 
 
