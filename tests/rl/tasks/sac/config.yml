@@ -6,7 +6,7 @@
 
 job: gym_rl_workflow
 scenario_path: "tests/rl/tasks/sac"
-log_path: "tests/rl/log/sac_walker"
+log_path: "tests/rl/log/sac_walker2d"
 main:
   num_episodes: 80000
   num_steps: 50

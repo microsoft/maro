@@ -200,7 +200,7 @@ class CallbackManager(object):
         logger: LoggerV2,
         ep: int,
     ) -> None:
-        assert func_name in SUPPORTED_CALLBACK_FUNC
+        assert func_name.value in SUPPORTED_CALLBACK_FUNC
 
         for callback in self._callbacks:
             func = getattr(callback, func_name.value)
