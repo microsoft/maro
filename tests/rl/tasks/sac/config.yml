@@ -26,7 +26,7 @@ training:
   load_episode: null
   checkpointing:
     path: null
-    interval: 80
+    interval: 200
   logging:
     stdout: INFO
     file: DEBUG
