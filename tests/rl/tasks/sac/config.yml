@@ -10,7 +10,7 @@ log_path: "tests/rl/log/sac_walker"
 main:
   num_episodes: 80000
   num_steps: 50
-  eval_schedule: 80
+  eval_schedule: 200
   num_eval_episodes: 10
   min_n_sample: 1
   logging:
