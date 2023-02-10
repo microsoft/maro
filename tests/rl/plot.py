@@ -34,10 +34,12 @@ def smooth(data, window_size: int):
     return data
 
 def get_off_policy_data(log_dir: str):
-    file_path = os.path.join(log_dir, "metrics_valid.csv")
+    file_path = os.path.join(log_dir, "metrics_full.csv")
     df = pd.read_csv(file_path)
     x, y = df["n_steps"], df["val/avg_reward"]
     x = np.cumsum(x)
+    mask = ~np.isnan(y)
+    x, y = x[mask], y[mask]
     return x, y
 
 def get_on_policy_data(log_dir: str):
