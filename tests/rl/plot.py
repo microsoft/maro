@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import argparse
 import os
 from typing import List
 
@@ -8,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-SMOOTH_WINDOW_SIZE = 11
 LOG_DIR = "tests/rl/log"
 
 color_map = {
@@ -47,7 +47,7 @@ def get_on_policy_data(log_dir: str):
     x = np.cumsum(x)
     return x, y
 
-def plot_performance_curves(title: str, dir_names: List[str], smooth_window_size: int=SMOOTH_WINDOW_SIZE):
+def plot_performance_curves(title: str, dir_names: List[str], smooth_window_size: int):
     for name in dir_names:
         log_dir = os.path.join(LOG_DIR, name)
         if not os.path.exists(log_dir):
@@ -75,8 +75,13 @@ def plot_performance_curves(title: str, dir_names: List[str], smooth_window_size
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--smooth", "-s", type=int, default=11, help="smooth window size")
+    args = parser.parse_args()
+
     for env_name in ["HalfCheetah", "Hopper", "Walker2d", "Swimmer", "Ant"]:
         plot_performance_curves(
             title=env_name,
             dir_names=[f"{algorithm}_{env_name.lower()}" for algorithm in ["ppo", "sac"]],
+            smooth_window_size=args.smooth,
         )
