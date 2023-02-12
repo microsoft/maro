@@ -26,51 +26,16 @@ The hyper-parameters are set to align with those used in [Spinning Up](https://s
 
 **Total timesteps**: set to 3M for all task suites and algorithms.
 
-## Benchmark in Spinning Up - PyTorch Version
+Other parameters are set to the values in *tests/rl/tasks/*.
+
+## Performance Comparison
 
 Five environments from the MuJoCo Gym task suite are reported in Spinning Up, they are: HalfCheetah, Hopper, Walker2d, Swimmer, and Ant.
 
-**HalfCheetah-v3**:
-
-The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/half_cheetah/).
-
-![HalfCheetah: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_halfcheetah_performance.svg)
-
-**Hopper-v3**:
-
-The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/hopper/).
-
-![Hooper: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_hopper_performance.svg)
-
-**Walker2d-v3**:
-
-The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/walker2d/).
-
-![Walker2d: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_walker2d_performance.svg)
-
-**Swimmer-v3**:
-
-The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/swimmer/).
-
-![Swimmer-v3: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_swimmer_performance.svg)
-
-**Ant-v3**:
-
-The introduction of this task can be found [here](https://gymnasium.farama.org/environments/mujoco/ant/).
-
-![Ant-v3: PyTorch Version](https://spinningup.openai.com/en/latest/_images/pytorch_ant_performance.svg)
-
-## Performance with MARO RL Toolkit
-
-| **Algorithm** |     **Env**     | **1.5M** | **1.5M/baseline** | **3M** | **3M/baseline** | **gap in 10%?** |
-|:-------------:|:---------------:|:--------:|:-----------------:|:------:|:---------------:|:---------------:|
-|    **PPO**    | **HalfCheetah** |          |            ~ 2.5K |        |            ~ 4K |                 |
-|               |    **Hopper**   |          |            ~ 2.3K |        |          ~ 2.5K |                 |
-|               |   **Walker2d**  |          |            ~ 1.5K |        |          ~ 2.6K |                 |
-|               |   **Swimmer**   |          |             ~ 113 |        |           ~ 118 |                 |
-|               |     **Ant**     |          |            ~ 1.2K |        |            ~ 3K |                 |
-|    **SAC**    | **HalfCheetah** |          |             ~ 12K |        |         ~ 13.7K |                 |
-|               |    **Hopper**   |          |            ~ 3.5K |        |          ~ 3.5K |                 |
-|               |   **Walker2d**  |          |            ~ 4.7K |        |            ~ 5K |                 |
-|               |   **Swimmer**   |          |              ~ 43 |        |            ~ 43 |                 |
-|               |     **Ant**     |          |           ~ 4.05K |        |            ~ 5K |                 |
+|     **Env**     | **Spinning Up** | **MARO RL w/o Smooth** | **MARO RL w/ Smooth** |
+|:---------------:|:---------------:|:----------------------:|:---------------------:|
+| [**HalfCheetah**](https://gymnasium.farama.org/environments/mujoco/half_cheetah/) | ![Hab](https://spinningup.openai.com/en/latest/_images/pytorch_halfcheetah_performance.svg) | ![Ha1](./log/HalfCheetah_1.png) | ![Ha11](./log/HalfCheetah_11.png) |
+| [**Hopper**](https://gymnasium.farama.org/environments/mujoco/hopper/) | ![Hob](https://spinningup.openai.com/en/latest/_images/pytorch_hopper_performance.svg) | ![Ho1](./log/Hopper_1.png) | ![Ho11](./log/Hopper_11.png) |
+| [**Walker2d**](https://gymnasium.farama.org/environments/mujoco/walker2d/) | ![Wab](https://spinningup.openai.com/en/latest/_images/pytorch_walker2d_performance.svg) | ![Wa1](./log/Walker2d_1.png) | ![Wa11](./log/Walker2d_11.png) |
+| [**Swimmer**](https://gymnasium.farama.org/environments/mujoco/swimmer/) | ![Swb](https://spinningup.openai.com/en/latest/_images/pytorch_swimmer_performance.svg) | ![Sw1](./log/Swimmer_1.png) | ![Sw11](./log/Swimmer_11.png) |
+| [**Ant**](https://gymnasium.farama.org/environments/mujoco/ant/) | ![Anb](https://spinningup.openai.com/en/latest/_images/pytorch_ant_performance.svg) | ![An1](./log/Ant_1.png) | ![An11](./log/Ant_11.png) |
