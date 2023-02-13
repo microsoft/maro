@@ -6,11 +6,11 @@
 
 job: gym_rl_workflow
 scenario_path: "tests/rl/tasks/sac"
-log_path: "tests/rl/log/sac"
+log_path: "tests/rl/log/sac_walker2d"
 main:
-  num_episodes: 25000
-  num_steps: 200
-  eval_schedule: 25
+  num_episodes: 80000
+  num_steps: 50
+  eval_schedule: 200
   num_eval_episodes: 10
   min_n_sample: 1
   logging:
@@ -26,7 +26,7 @@ training:
   load_episode: null
   checkpointing:
     path: null
-    interval: 25
+    interval: 200
   logging:
     stdout: INFO
     file: DEBUG

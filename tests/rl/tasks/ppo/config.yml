@@ -1,9 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# Example RL config file for GYM scenario.
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
 job: gym_rl_workflow
 scenario_path: "tests/rl/tasks/ppo"
-log_path: "tests/rl/log/ppo"
+log_path: "tests/rl/log/ppo_walker2d"
 main:
   num_episodes: 1000
   num_steps: 4000

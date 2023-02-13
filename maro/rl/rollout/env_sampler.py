@@ -294,6 +294,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             [policy_name in self._rl_policy_dict for policy_name in self._trainable_policies],
         ), "All trainable policies must be RL policies!"
 
+        self._total_number_interactions = 0
+
     @property
     def env(self) -> Env:
         assert self._env is not None
@@ -466,6 +468,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
                 # Update env and get new states (global & agent)
                 self._step(list(env_action_dict.values()))
+                self._total_number_interactions += 1
                 cache_element.next_state = self._state
 
                 if self._reward_eval_delay is None:

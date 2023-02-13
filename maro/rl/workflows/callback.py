@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
 import copy
 import os
 from enum import Enum
@@ -162,18 +163,6 @@ class MetricsRecorder(Callback):
         self._dump_metric_history()
 
 
-SUPPORTED_CALLBACK_FUNC = {
-    "on_episode_start",
-    "on_episode_end",
-    "on_training_start",
-    "on_training_end",
-    "on_validation_start",
-    "on_validation_end",
-    "on_test_start",
-    "on_test_end",
-}
-
-
 class SupportedCallbackFunc(Enum):
     ON_EPISODE_START = "on_episode_start"
     ON_EPISODE_END = "on_episode_end"
@@ -199,8 +188,6 @@ class CallbackManager(object):
         logger: LoggerV2,
         ep: int,
     ) -> None:
-        assert func_name in SUPPORTED_CALLBACK_FUNC
-
         for callback in self._callbacks:
             func = getattr(callback, func_name.value)
             func(env_sampler, training_manager, logger, ep)
