@@ -293,7 +293,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         assert all(
             [policy_name in self._rl_policy_dict for policy_name in self._trainable_policies],
         ), "All trainable policies must be RL policies!"
-        
+
         self._total_number_interactions = 0
 
     @property
