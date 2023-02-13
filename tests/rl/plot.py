@@ -37,8 +37,7 @@ def smooth(data: np.ndarray, window_size: int) -> np.ndarray:
 def get_off_policy_data(log_dir: str) -> Tuple[np.ndarray, np.ndarray]:
     file_path = os.path.join(log_dir, "metrics_full.csv")
     df = pd.read_csv(file_path)
-    x, y = df["n_steps"], df["val/avg_reward"]
-    x = np.cumsum(x)
+    x, y = df["n_interactions"], df["val/avg_reward"]
     mask = ~np.isnan(y)
     x, y = x[mask], y[mask]
     return x, y
@@ -47,8 +46,7 @@ def get_off_policy_data(log_dir: str) -> Tuple[np.ndarray, np.ndarray]:
 def get_on_policy_data(log_dir: str) -> Tuple[np.ndarray, np.ndarray]:
     file_path = os.path.join(log_dir, "metrics_full.csv")
     df = pd.read_csv(file_path)
-    x, y = df["n_steps"], df["avg_reward"]
-    x = np.cumsum(x)
+    x, y = df["n_interactions"], df["avg_reward"]
     return x, y
 
 

@@ -71,6 +71,7 @@ class GymEnvSampler(AbsEnvSampler):
             "n_segment": len(self._sample_rewards),
             "avg_reward": np.mean([r for _, r in self._sample_rewards]),
             "avg_n_steps": np.mean([n for n, _ in self._sample_rewards]),
+            "n_interactions": self._total_number_interactions,
         }
         self.metrics.update(cur)
         # clear validation metrics
