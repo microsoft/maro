@@ -24,6 +24,7 @@ main:
   # A list indicates the episodes at the end of which policies are to be evaluated. Note that episode indexes are
   # 1-based.
   eval_schedule: 10
+  early_stop_patience: 10  # Number of epochs waiting for a better validation metrics. Could be `null`.
   num_eval_episodes: 10  # Number of Episodes to run in evaluation.
   # Minimum number of samples to start training in one epoch. The workflow will re-run experience collection
   # until we have at least `min_n_sample` of experiences.

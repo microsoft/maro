@@ -310,6 +310,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         assert self._env is not None
         return self._env
 
+    def monitor_metrics(self) -> float:
+        """Metrics watched by early stopping."""
+        return float(self._total_number_interactions)
+
     def _switch_env(self, env: Env) -> None:
         self._env = env
 

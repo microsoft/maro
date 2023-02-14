@@ -3,8 +3,8 @@
 
 import copy
 import os
-from enum import Enum
-from typing import Dict, List, Union
+import typing
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -12,81 +12,65 @@ from maro.rl.rollout import AbsEnvSampler, BatchEnvSampler
 from maro.rl.training import TrainingManager
 from maro.utils import LoggerV2
 
+if typing.TYPE_CHECKING:
+    from maro.rl.workflows.main import TrainingWorkflow
+
 EnvSampler = Union[AbsEnvSampler, BatchEnvSampler]
 
 
 class Callback(object):
-    def on_episode_start(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def __init__(self) -> None:
+        self.workflow: Optional[TrainingWorkflow] = None
+        self.env_sampler: Optional[EnvSampler] = None
+        self.training_manager: Optional[TrainingManager] = None
+        self.logger: Optional[LoggerV2] = None
+
+    def on_episode_start(self, ep: int) -> None:
         pass
 
-    def on_episode_end(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_episode_end(self, ep: int) -> None:
         pass
 
-    def on_training_start(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_training_start(self, ep: int) -> None:
         pass
 
-    def on_training_end(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_training_end(self, ep: int) -> None:
         pass
 
-    def on_validation_start(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_validation_start(self, ep: int) -> None:
         pass
 
-    def on_validation_end(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_validation_end(self, ep: int) -> None:
         pass
 
-    def on_test_start(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_test_start(self, ep: int) -> None:
         pass
 
-    def on_test_end(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_test_end(self, ep: int) -> None:
         pass
+
+
+class EarlyStopping(Callback):
+    def __init__(self, patience: int) -> None:
+        super(EarlyStopping, self).__init__()
+
+        self._patience = patience
+        self._best_ep: int = -1
+        self._best: float = float("-inf")
+
+    def on_validation_end(self, ep: int) -> None:
+        cur = self.env_sampler.monitor_metrics()
+        if cur > self._best:
+            self._best_ep = ep
+            self._best = cur
+        self.logger.info(f"Current metric: {cur} @ ep {ep}. Best metric: {self._best} @ ep {self._best_ep}")
+
+        if ep - self._best_ep > self._patience:
+            self.workflow.early_stop = True
+            self.logger.info(
+                f"Validation metric has not been updated for {ep - self._best_ep} "
+                f"epochs (patience = {self._patience} epochs). Early stopping.",
+            )
 
 
 class Checkpoint(Callback):
@@ -96,16 +80,10 @@ class Checkpoint(Callback):
         self._path = path
         self._interval = interval
 
-    def on_training_end(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
+    def on_training_end(self, ep: int) -> None:
         if ep % self._interval == 0:
-            training_manager.save(os.path.join(self._path, str(ep)))
-            logger.info(f"[Episode {ep}] All trainer states saved under {self._path}")
+            self.training_manager.save(os.path.join(self._path, str(ep)))
+            self.logger.info(f"[Episode {ep}] All trainer states saved under {self._path}")
 
 
 class MetricsRecorder(Callback):
@@ -126,15 +104,9 @@ class MetricsRecorder(Callback):
             df = pd.DataFrame.from_records(metric_list)
             df.to_csv(os.path.join(self._path, "metrics_valid.csv"), index=True)
 
-    def on_training_end(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
-        if len(env_sampler.metrics) > 0:
-            metrics = copy.deepcopy(env_sampler.metrics)
+    def on_training_end(self, ep: int) -> None:
+        if len(self.env_sampler.metrics) > 0:
+            metrics = copy.deepcopy(self.env_sampler.metrics)
             metrics["ep"] = ep
             if ep in self._full_metrics:
                 self._full_metrics[ep].update(metrics)
@@ -142,15 +114,9 @@ class MetricsRecorder(Callback):
                 self._full_metrics[ep] = metrics
         self._dump_metric_history()
 
-    def on_validation_end(
-        self,
-        env_sampler: EnvSampler,
-        training_manager: TrainingManager,
-        logger: LoggerV2,
-        ep: int,
-    ) -> None:
-        if len(env_sampler.metrics) > 0:
-            metrics = copy.deepcopy(env_sampler.metrics)
+    def on_validation_end(self, ep: int) -> None:
+        if len(self.env_sampler.metrics) > 0:
+            metrics = copy.deepcopy(self.env_sampler.metrics)
             metrics["ep"] = ep
             if ep in self._full_metrics:
                 self._full_metrics[ep].update(metrics)
@@ -163,31 +129,52 @@ class MetricsRecorder(Callback):
         self._dump_metric_history()
 
 
-class SupportedCallbackFunc(Enum):
-    ON_EPISODE_START = "on_episode_start"
-    ON_EPISODE_END = "on_episode_end"
-    ON_TRAINING_START = "on_training_start"
-    ON_TRAINING_END = "on_training_end"
-    ON_VALIDATION_START = "on_validation_start"
-    ON_VALIDATION_END = "on_validation_end"
-    ON_TEST_START = "on_test_start"
-    ON_TEST_END = "on_test_end"
-
-
 class CallbackManager(object):
-    def __init__(self, callbacks: List[Callback]) -> None:
-        super(CallbackManager, self).__init__()
-
-        self._callbacks = callbacks
-
-    def call(
+    def __init__(
         self,
-        func_name: SupportedCallbackFunc,
+        workflow: TrainingWorkflow,
+        callbacks: List[Callback],
         env_sampler: EnvSampler,
         training_manager: TrainingManager,
         logger: LoggerV2,
-        ep: int,
     ) -> None:
+        super(CallbackManager, self).__init__()
+
+        self._callbacks = callbacks
         for callback in self._callbacks:
-            func = getattr(callback, func_name.value)
-            func(env_sampler, training_manager, logger, ep)
+            callback.workflow = workflow
+            callback.env_sampler = env_sampler
+            callback.training_manager = training_manager
+            callback.logger = logger
+
+    def on_episode_start(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_episode_start(ep)
+
+    def on_episode_end(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_episode_end(ep)
+
+    def on_training_start(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_training_start(ep)
+
+    def on_training_end(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_training_end(ep)
+
+    def on_validation_start(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_validation_start(ep)
+
+    def on_validation_end(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_validation_end(ep)
+
+    def on_test_start(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_test_start(ep)
+
+    def on_test_end(self, ep: int) -> None:
+        for callback in self._callbacks:
+            callback.on_test_end(ep)
