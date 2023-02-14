@@ -54,6 +54,8 @@ rl_component_bundle = RLComponentBundle(
         test_env=test_env,
         policies=policies,
         agent2policy=agent2policy,
+        max_episode_length=1000,
+        
     ),
     agent2policy=agent2policy,
     policies=policies,

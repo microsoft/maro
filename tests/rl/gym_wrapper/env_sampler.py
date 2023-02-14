@@ -24,6 +24,7 @@ class GymEnvSampler(AbsEnvSampler):
         trainable_policies: List[str] = None,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = None,
+        max_episode_length: int = None,
     ) -> None:
         super(GymEnvSampler, self).__init__(
             learn_env=learn_env,
@@ -33,6 +34,7 @@ class GymEnvSampler(AbsEnvSampler):
             trainable_policies=trainable_policies,
             agent_wrapper_cls=agent_wrapper_cls,
             reward_eval_delay=reward_eval_delay,
+            max_episode_length=max_episode_length,
         )
 
         self._sample_rewards = []
@@ -54,13 +56,13 @@ class GymEnvSampler(AbsEnvSampler):
         return {0: be.get_reward_at_tick(tick)}
 
     def _post_step(self, cache_element: CacheElement) -> None:
-        if not self._end_of_episode:
+        if not (self._end_of_episode or self.truncated):
             return
         rewards = list(self._env.metrics["reward_record"].values())
         self._sample_rewards.append((len(rewards), np.sum(rewards)))
 
     def _post_eval_step(self, cache_element: CacheElement) -> None:
-        if not self._end_of_episode:
+        if not (self._end_of_episode or self.truncated):
             return
         rewards = list(self._env.metrics["reward_record"].values())
         self._eval_rewards.append((len(rewards), np.sum(rewards)))
@@ -71,6 +73,7 @@ class GymEnvSampler(AbsEnvSampler):
             "n_segment": len(self._sample_rewards),
             "avg_reward": np.mean([r for _, r in self._sample_rewards]),
             "avg_n_steps": np.mean([n for n, _ in self._sample_rewards]),
+            "max_n_steps": np.max([n for n, _ in self._sample_rewards]),
             "n_interactions": self._total_number_interactions,
         }
         self.metrics.update(cur)
@@ -84,6 +87,7 @@ class GymEnvSampler(AbsEnvSampler):
             "val/n_segment": len(self._eval_rewards),
             "val/avg_reward": np.mean([r for _, r in self._eval_rewards]),
             "val/avg_n_steps": np.mean([n for n, _ in self._eval_rewards]),
+            "val/max_n_steps": np.max([n for n, _ in self._eval_rewards]),
         }
         self.metrics.update(cur)
         self._eval_rewards.clear()
