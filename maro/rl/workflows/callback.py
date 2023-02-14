@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
 import copy
 import os
 import typing
@@ -69,7 +71,7 @@ class EarlyStopping(Callback):
             self.workflow.early_stop = True
             self.logger.info(
                 f"Validation metric has not been updated for {ep - self._best_ep} "
-                f"epochs (patience = {self._patience} epochs). Early stopping.",
+                f"epochs (patience = {self._patience} epochs). Early stop.",
             )
 
 

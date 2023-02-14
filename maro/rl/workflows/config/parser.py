@@ -293,7 +293,7 @@ class ConfigParser:
 
             main_proc_env["NUM_EVAL_EPISODES"] = str(self._config["main"].get("num_eval_episodes", 1))
         if "early_stop_patience" in self._config["main"]:
-            main_proc_env["EARLY_STOP_PATIENCE"] = self._config["main"]["early_stop_patience"]
+            main_proc_env["EARLY_STOP_PATIENCE"] = str(self._config["main"]["early_stop_patience"])
 
         load_path = self._config["training"].get("load_path", None)
         if load_path is not None:

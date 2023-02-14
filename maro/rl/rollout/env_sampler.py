@@ -582,6 +582,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     terminal_dict={},
                     next_state=None,
                     next_agent_state_dict={},
+                    truncated=False,  # No truncation in evaluation
                 )
 
                 # Update env and get new states (global & agent)

@@ -109,3 +109,6 @@ class CIMEnvSampler(AbsEnvSampler):
         print(f"average env summary (episode {ep}): {avg_metric}")
 
         self.metrics.update({"val/" + k: v for k, v in avg_metric.items()})
+
+    def monitor_metrics(self) -> float:
+        return -self.metrics["val/container_shortage"]

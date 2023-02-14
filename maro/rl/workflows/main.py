@@ -14,7 +14,7 @@ from maro.rl.training import TrainingManager
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.utils.training import get_latest_ep
-from maro.rl.workflows.callback import CallbackManager, Checkpoint, MetricsRecorder
+from maro.rl.workflows.callback import CallbackManager, Checkpoint, EarlyStopping, MetricsRecorder
 from maro.utils import LoggerV2
 
 
@@ -46,6 +46,7 @@ class WorkflowEnvAttributes:
 
         # Evaluating schedule.
         self.eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
+        self.early_stop_patience = int_or_none(get_env("EARLY_STOP_PATIENCE", required=False))
         self.num_eval_episodes = int_or_none(get_env("NUM_EVAL_EPISODES", required=False))
 
         # Restore configurations.
@@ -133,7 +134,7 @@ class TrainingWorkflow(object):
             logger=env_attr.logger,
         )
 
-        callbacks = []
+        callbacks = [MetricsRecorder(path=env_attr.log_path)]
         if env_attr.checkpoint_path is not None:
             callbacks.append(
                 Checkpoint(
@@ -141,7 +142,8 @@ class TrainingWorkflow(object):
                     interval=1 if env_attr.checkpoint_interval is None else env_attr.checkpoint_interval,
                 ),
             )
-        callbacks.append(MetricsRecorder(path=env_attr.log_path))
+        if env_attr.early_stop_patience is not None:
+            callbacks.append(EarlyStopping(patience=env_attr.early_stop_patience))
         cbm = CallbackManager(self, callbacks, env_sampler, training_manager, env_attr.logger)
 
         if env_attr.load_path:
