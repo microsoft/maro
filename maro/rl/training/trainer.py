@@ -254,6 +254,7 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
                         exp_element.action_dict[agent_name],
                         exp_element.reward_dict[agent_name],
                         exp_element.terminal_dict[agent_name],
+                        exp_element.truncated,
                         exp_element.next_agent_state_dict.get(agent_name, exp_element.agent_state_dict[agent_name]),
                     ),
                 )
@@ -264,7 +265,8 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
                 actions=np.vstack([exp[1] for exp in exps]),
                 rewards=np.array([exp[2] for exp in exps]),
                 terminals=np.array([exp[3] for exp in exps]),
-                next_states=np.vstack([exp[4] for exp in exps]),
+                truncated=np.array([exp[4] for exp in exps]),
+                next_states=np.vstack([exp[5] for exp in exps]),
             )
             transition_batch = self._preprocess_batch(transition_batch)
             self.replay_memory.put(transition_batch)

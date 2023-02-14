@@ -187,6 +187,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._actions = np.zeros((self._capacity, self._action_dim), dtype=np.float32)
         self._rewards = np.zeros(self._capacity, dtype=np.float32)
         self._terminals = np.zeros(self._capacity, dtype=bool)
+        self._truncated = np.zeros(self._capacity, dtype=bool)
         self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._returns = np.zeros(self._capacity, dtype=np.float32)
         self._advantages = np.zeros(self._capacity, dtype=np.float32)
@@ -215,6 +216,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             assert match_shape(transition_batch.actions, (batch_size, self._action_dim))
             assert match_shape(transition_batch.rewards, (batch_size,))
             assert match_shape(transition_batch.terminals, (batch_size,))
+            assert match_shape(transition_batch.truncated, (batch_size,))
             assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
             if transition_batch.returns is not None:
                 match_shape(transition_batch.returns, (batch_size,))
@@ -237,6 +239,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._actions[indexes] = transition_batch.actions
         self._rewards[indexes] = transition_batch.rewards
         self._terminals[indexes] = transition_batch.terminals
+        self._truncated[indexes] = transition_batch.truncated
         self._next_states[indexes] = transition_batch.next_states
         if transition_batch.returns is not None:
             self._returns[indexes] = transition_batch.returns
@@ -274,6 +277,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
             terminals=self._terminals[indexes],
+            truncated=self._truncated[indexes],
             next_states=self._next_states[indexes],
             returns=self._returns[indexes],
             advantages=self._advantages[indexes],
@@ -345,6 +349,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._rewards = [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
         self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._terminals = np.zeros(self._capacity, dtype=bool)
+        self._truncated = np.zeros(self._capacity, dtype=bool)
 
         assert len(agent_states_dims) == self.agent_num
         self._agent_states_dims = agent_states_dims
@@ -379,6 +384,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
                 assert match_shape(transition_batch.rewards[i], (batch_size,))
 
             assert match_shape(transition_batch.terminals, (batch_size,))
+            assert match_shape(transition_batch.truncated, (batch_size,))
             assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
 
             assert len(transition_batch.agent_states) == self.agent_num
@@ -401,6 +407,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             self._actions[i][indexes] = transition_batch.actions[i]
             self._rewards[i][indexes] = transition_batch.rewards[i]
         self._terminals[indexes] = transition_batch.terminals
+        self._truncated[indexes] = transition_batch.truncated
 
         self._next_states[indexes] = transition_batch.next_states
         for i in range(self.agent_num):
@@ -436,6 +443,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],
             terminals=self._terminals[indexes],
+            truncated=self._truncated[indexes],
             next_states=self._next_states[indexes],
             agent_states=[state[indexes] for state in self._agent_states],
             next_agent_states=[state[indexes] for state in self._next_agent_states],

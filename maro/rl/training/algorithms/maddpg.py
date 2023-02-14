@@ -378,6 +378,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             agent_states=agent_states,
             next_agent_states=next_agent_states,
             terminals=np.array(terminal_flags),
+            truncated=np.array([exp_element.truncated for exp_element in exp_elements]),
         )
         self._replay_memory.put(transition_batch)
 
