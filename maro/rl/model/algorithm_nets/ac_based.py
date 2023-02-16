@@ -54,3 +54,7 @@ class ContinuousACBasedNet(ContinuousPolicyNet, metaclass=ABCMeta):
     def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         # Not used in Actor-Critic or PPO
         pass
+
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        # Not used in Actor-Critic or PPO
+        pass

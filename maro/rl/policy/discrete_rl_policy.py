@@ -51,6 +51,12 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
         return all([0 <= action < self.action_num for action in actions.cpu().numpy().flatten()])
 
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return ndarray_to_tensor(
+            np.random.randint(self.action_num, size=(states.shape[0], 1)),
+            device=self._device,
+        )
+
 
 class ValueBasedPolicy(DiscreteRLPolicy):
     """Valued-based policy.
@@ -163,19 +169,9 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         pass  # Overwrite the base method and turn off explore mode.
 
     def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        actions, _ = self._get_actions_with_probs_impl(states)
-        return actions
+        return self._get_actions_with_probs_impl(states)[0]
 
     def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        self._call_cnt += 1
-        if self._call_cnt <= self._warmup:
-            actions = ndarray_to_tensor(
-                np.random.randint(self.action_num, size=(states.shape[0], 1)),
-                device=self._device,
-            )
-            probs = torch.ones(states.shape[0]).float() * (1.0 / self.action_num)
-            return actions, probs
-
         q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
         q_matrix_softmax = self._softmax(q_matrix)
         _, actions = q_matrix.max(dim=1)  # [B], [B]
@@ -222,10 +218,18 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         self._q_net.train()
 
     def get_state(self) -> dict:
-        return self._q_net.get_state()
+        return {
+            "net": self._q_net.get_state(),
+            "policy": {
+                "warmup": self._warmup,
+                "call_count": self._call_count,
+            },
+        }
 
     def set_state(self, policy_state: dict) -> None:
         self._q_net.set_state(policy_state)
+        self._warmup = policy_state["policy"]["warmup"]
+        self._call_count = policy_state["policy"]["call_count"]
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, ValueBasedPolicy)
@@ -302,10 +306,18 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         self._policy_net.train()
 
     def get_state(self) -> dict:
-        return self._policy_net.get_state()
+        return {
+            "net": self._policy_net.get_state(),
+            "policy": {
+                "warmup": self._warmup,
+                "call_count": self._call_count,
+            },
+        }
 
     def set_state(self, policy_state: dict) -> None:
         self._policy_net.set_state(policy_state)
+        self._warmup = policy_state["policy"]["warmup"]
+        self._call_count = policy_state["policy"]["call_count"]
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, DiscretePolicyGradient)

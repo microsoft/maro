@@ -83,6 +83,9 @@ class ContinuousRLPolicy(RLPolicy):
     def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
         return self._policy_net.get_actions(states, self._is_exploring)
 
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_random_actions(states)
+
     def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         return self._policy_net.get_actions_with_probs(states, self._is_exploring)
 
@@ -117,10 +120,18 @@ class ContinuousRLPolicy(RLPolicy):
         self._policy_net.train()
 
     def get_state(self) -> dict:
-        return self._policy_net.get_state()
+        return {
+            "net": self._policy_net.get_state(),
+            "policy": {
+                "warmup": self._warmup,
+                "call_count": self._call_count,
+            },
+        }
 
     def set_state(self, policy_state: dict) -> None:
-        self._policy_net.set_state(policy_state)
+        self._policy_net.set_state(policy_state["net"])
+        self._warmup = policy_state["policy"]["warmup"]
+        self._call_count = policy_state["policy"]["call_count"]
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, ContinuousRLPolicy)
