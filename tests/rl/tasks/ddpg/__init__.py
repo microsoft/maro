@@ -30,14 +30,14 @@ actor_net_conf = {
 }
 critic_net_conf = {
     "hidden_dims": [256, 256],
-    "activation": torch.nn.Tanh,
+    "activation": torch.nn.ReLU,
 }
 actor_learning_rate = 1e-3
 critic_learning_rate = 1e-3
 
 
 class MyContinuousDDPGNet(ContinuousDDPGNet):
-    def __init__(self, state_dim: int, action_dim: int, action_limit: float) -> None:
+    def __init__(self, state_dim: int, action_dim: int, action_limit: float, noise_scale: float = 0.1) -> None:
         super(MyContinuousDDPGNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
 
         self._net = FullyConnected(
@@ -49,7 +49,7 @@ class MyContinuousDDPGNet(ContinuousDDPGNet):
         )
         self._optim = Adam(self._net.parameters(), lr=critic_learning_rate)
         self._action_limit = action_limit
-        self._noise_scale = 0.1  # TODO
+        self._noise_scale = noise_scale
 
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         action = self._net(states) * self._action_limit
@@ -97,9 +97,10 @@ def get_ddpg_trainer(name: str, state_dim: int, action_dim: int) -> DDPGTrainer:
         batch_size=100,
         params=DDPGParams(
             get_q_critic_net_func=lambda: MyQCriticNet(state_dim, action_dim),
-            num_epochs=20,
+            num_epochs=20,  # TODO: 1?
             n_start_train=1000,
             soft_update_coef=0.005,
+            update_target_every=1,
         ),
     )
 
