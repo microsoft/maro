@@ -91,7 +91,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             state_dim=q_net.state_dim,
             action_num=q_net.action_num,
             trainable=trainable,
-            warmup=warmup
+            warmup=warmup,
         )
         self._q_net = q_net
 

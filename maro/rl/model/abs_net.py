@@ -17,7 +17,7 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
 
     def __init__(self) -> None:
         super(AbsNet, self).__init__()
-        
+
         self._device: Optional[torch.device] = None
 
     @property

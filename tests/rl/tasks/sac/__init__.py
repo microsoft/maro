@@ -16,6 +16,7 @@ from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms import SoftActorCriticParams, SoftActorCriticTrainer
 from maro.rl.utils import ndarray_to_tensor
+
 from tests.rl.gym_wrapper.common import (
     action_limit,
     action_lower_bound,
@@ -79,7 +80,9 @@ class MyContinuousSACNet(ContinuousSACNet):
         return pi_action, logp_pi
 
     def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        return torch.stack([ndarray_to_tensor(self._action_space.sample(), device=self._device) for _ in range(states.shape[0])])
+        return torch.stack(
+            [ndarray_to_tensor(self._action_space.sample(), device=self._device) for _ in range(states.shape[0])],
+        )
 
 
 class MyQCriticNet(QNet):
@@ -132,8 +135,6 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
 
 # TODO:
 #   1. random seed
-#   2. exploration with random sampled action # start_steps=10000,  Number of steps for uniform-random action selection, before running real policy. Helps exploration.
-#   3. confirm the effect of (max_ep_len=1000)?
 
 algorithm = "sac"
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}

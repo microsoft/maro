@@ -55,7 +55,6 @@ rl_component_bundle = RLComponentBundle(
         policies=policies,
         agent2policy=agent2policy,
         max_episode_length=1000,
-        
     ),
     agent2policy=agent2policy,
     policies=policies,
