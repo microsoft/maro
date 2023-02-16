@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import torch.nn
 from torch.optim import Optimizer
@@ -17,6 +17,8 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
 
     def __init__(self) -> None:
         super(AbsNet, self).__init__()
+        
+        self._device: Optional[torch.device] = None
 
     @property
     def optim(self) -> Optimizer:
@@ -119,3 +121,7 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         """Unfreeze all parameters."""
         for p in self.parameters():
             p.requires_grad = True
+
+    def to_device(self, device: torch.device) -> None:
+        self._device = device
+        self.to(device)

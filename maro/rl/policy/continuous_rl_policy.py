@@ -42,6 +42,8 @@ class ContinuousRLPolicy(RLPolicy):
             the bound for every dimension. If it is a float, it will be broadcast to all dimensions.
         policy_net (ContinuousPolicyNet): The core net of this policy.
         trainable (bool, default=True): Whether this policy is trainable.
+        warmup (int, default=0): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -50,6 +52,7 @@ class ContinuousRLPolicy(RLPolicy):
         action_range: Tuple[Union[float, List[float]], Union[float, List[float]]],
         policy_net: ContinuousPolicyNet,
         trainable: bool = True,
+        warmup: int = 0,
     ) -> None:
         assert isinstance(policy_net, ContinuousPolicyNet)
 
@@ -59,6 +62,7 @@ class ContinuousRLPolicy(RLPolicy):
             action_dim=policy_net.action_dim,
             trainable=trainable,
             is_discrete_action=False,
+            warmup=warmup,
         )
 
         self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)
@@ -138,4 +142,4 @@ class ContinuousRLPolicy(RLPolicy):
         self._policy_net.soft_update(other_policy.policy_net, tau)
 
     def _to_device_impl(self, device: torch.device) -> None:
-        self._policy_net.to(device)
+        self._policy_net.to_device(device)

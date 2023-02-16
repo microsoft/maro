@@ -23,6 +23,8 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         state_dim (int): Dimension of states.
         action_num (int): Number of actions.
         trainable (bool, default=True): Whether this policy is trainable.
+        warmup (int, default=0): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -31,6 +33,7 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         state_dim: int,
         action_num: int,
         trainable: bool = True,
+        warmup: int = 0,
     ) -> None:
         assert action_num >= 1
 
@@ -40,6 +43,7 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
             action_dim=1,
             trainable=trainable,
             is_discrete_action=True,
+            warmup=warmup,
         )
 
         self._action_num = action_num
@@ -67,7 +71,8 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         trainable (bool, default=True): Whether this policy is trainable.
         exploration_strategy (Tuple[Callable, dict], default=(epsilon_greedy, {"epsilon": 0.1})): Exploration strategy.
         exploration_scheduling_options (List[tuple], default=None): List of exploration scheduler options.
-        warmup (int, default=50000): Minimum number of experiences to warm up this policy.
+        warmup (int, default=50000): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -86,6 +91,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             state_dim=q_net.state_dim,
             action_num=q_net.action_num,
             trainable=trainable,
+            warmup=warmup
         )
         self._q_net = q_net
 
@@ -96,9 +102,6 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             if exploration_scheduling_options is not None
             else []
         )
-
-        self._call_cnt = 0
-        self._warmup = warmup
 
         self._softmax = torch.nn.Softmax(dim=1)
 
@@ -236,7 +239,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         self._q_net.soft_update(other_policy.q_net, tau)
 
     def _to_device_impl(self, device: torch.device) -> None:
-        self._q_net.to(device)
+        self._q_net.to_device(device)
 
 
 class DiscretePolicyGradient(DiscreteRLPolicy):
@@ -246,6 +249,8 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         name (str): Name of the policy.
         policy_net (DiscretePolicyNet): The core net of this policy.
         trainable (bool, default=True): Whether this policy is trainable.
+        warmup (int, default=50000): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -253,6 +258,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         name: str,
         policy_net: DiscretePolicyNet,
         trainable: bool = True,
+        warmup: int = 0,
     ) -> None:
         assert isinstance(policy_net, DiscretePolicyNet)
 
@@ -261,6 +267,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
             state_dim=policy_net.state_dim,
             action_num=policy_net.action_num,
             trainable=trainable,
+            warmup=warmup,
         )
 
         self._policy_net = policy_net
@@ -362,4 +369,4 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         return action_logps.gather(1, actions).squeeze(-1)  # [B]
 
     def _to_device_impl(self, device: torch.device) -> None:
-        self._policy_net.to(device)
+        self._policy_net.to_device(device)

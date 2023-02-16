@@ -15,6 +15,7 @@ from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms import SoftActorCriticParams, SoftActorCriticTrainer
+from maro.rl.utils import ndarray_to_tensor
 from tests.rl.gym_wrapper.common import (
     action_limit,
     action_lower_bound,
@@ -78,7 +79,7 @@ class MyContinuousSACNet(ContinuousSACNet):
         return pi_action, logp_pi
 
     def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        return torch.stack([self._action_space.sample() for _ in range(states.shape[0])])
+        return torch.stack([ndarray_to_tensor(self._action_space.sample(), device=self._device) for _ in range(states.shape[0])])
 
 
 class MyQCriticNet(QNet):
@@ -108,6 +109,7 @@ def get_sac_policy(
         name=name,
         action_range=(action_lower_bound, action_upper_bound),
         policy_net=MyContinuousSACNet(gym_state_dim, gym_action_dim, action_limit, action_space=gym_action_space),
+        warmup=10000,
     )
 
 
