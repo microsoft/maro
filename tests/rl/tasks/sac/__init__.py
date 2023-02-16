@@ -133,9 +133,6 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
     )
 
 
-# TODO:
-#   1. random seed
-
 algorithm = "sac"
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}
 policies = [
