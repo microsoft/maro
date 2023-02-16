@@ -54,7 +54,8 @@ class MyContinuousDDPGNet(ContinuousDDPGNet):
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         action = self._net(states) * self._action_limit
         if exploring:
-            action += torch.randn(self.action_dim) * self._noise_scale
+            noise = torch.randn(self.action_dim) * self._noise_scale
+            action += noise.to(action.device)
             action = torch.clamp(action, -self._action_limit, self._action_limit)
         return action
 
@@ -97,7 +98,7 @@ def get_ddpg_trainer(name: str, state_dim: int, action_dim: int) -> DDPGTrainer:
         batch_size=100,
         params=DDPGParams(
             get_q_critic_net_func=lambda: MyQCriticNet(state_dim, action_dim),
-            num_epochs=20,  # TODO: 1?
+            num_epochs=50,
             n_start_train=1000,
             soft_update_coef=0.005,
             update_target_every=1,

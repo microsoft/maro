@@ -14,6 +14,9 @@ LOG_DIR = "tests/rl/log"
 color_map = {
     "ppo": "green",
     "sac": "goldenrod",
+    "ddpg": "firebrick",
+    "vpg": "cornflowerblue",
+    "td3": "mediumpurple",
 }
 
 
@@ -62,6 +65,9 @@ def plot_performance_curves(title: str, dir_names: List[str], smooth_window_size
         elif "sac" in name:
             algorithm = "sac"
             func = get_off_policy_data
+        elif "ddpg" in name:
+            algorithm = "ddpg"
+            func = get_off_policy_data
         else:
             raise "unknown algorithm name"
 
@@ -85,6 +91,6 @@ if __name__ == "__main__":
     for env_name in ["HalfCheetah", "Hopper", "Walker2d", "Swimmer", "Ant"]:
         plot_performance_curves(
             title=env_name,
-            dir_names=[f"{algorithm}_{env_name.lower()}" for algorithm in ["ppo", "sac"]],
+            dir_names=[f"{algorithm}_{env_name.lower()}" for algorithm in ["ppo", "sac", "ddpg"]],
             smooth_window_size=args.smooth,
         )
