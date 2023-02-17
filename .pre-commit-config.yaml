@@ -17,7 +17,7 @@ repos:
     - id: isort
       args:
         - --settings-path=.github/linters/pyproject.toml
-#        - --check
+        - --check
 - repo: https://github.com/asottile/add-trailing-comma
   rev: v2.2.3
   hooks:
