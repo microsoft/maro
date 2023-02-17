@@ -6,6 +6,7 @@ from typing import Tuple
 import numpy as np
 import torch
 import torch.nn.functional as F
+from gym import spaces
 from torch.distributions import Normal
 from torch.optim import Adam
 
@@ -14,12 +15,14 @@ from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms import SoftActorCriticParams, SoftActorCriticTrainer
+from maro.rl.utils import ndarray_to_tensor
 
 from tests.rl.gym_wrapper.common import (
     action_limit,
     action_lower_bound,
     action_upper_bound,
     gym_action_dim,
+    gym_action_space,
     gym_state_dim,
     learn_env,
     num_agents,
@@ -43,7 +46,7 @@ LOG_STD_MIN = -20
 
 
 class MyContinuousSACNet(ContinuousSACNet):
-    def __init__(self, state_dim: int, action_dim: int, action_limit: float) -> None:
+    def __init__(self, state_dim: int, action_dim: int, action_limit: float, action_space: spaces.Space) -> None:
         super(MyContinuousSACNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
 
         self._net = FullyConnected(
@@ -57,6 +60,8 @@ class MyContinuousSACNet(ContinuousSACNet):
         self._log_std = torch.nn.Linear(actor_net_conf["hidden_dims"][-1], action_dim)
         self._action_limit = action_limit
         self._optim = Adam(self.parameters(), lr=actor_learning_rate)
+
+        self._action_space = action_space
 
     def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
         net_out = self._net(states.float())
@@ -73,6 +78,11 @@ class MyContinuousSACNet(ContinuousSACNet):
         pi_action = torch.tanh(pi_action) * self._action_limit
 
         return pi_action, logp_pi
+
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return torch.stack(
+            [ndarray_to_tensor(self._action_space.sample(), device=self._device) for _ in range(states.shape[0])],
+        )
 
 
 class MyQCriticNet(QNet):
@@ -101,7 +111,8 @@ def get_sac_policy(
     return ContinuousRLPolicy(
         name=name,
         action_range=(action_lower_bound, action_upper_bound),
-        policy_net=MyContinuousSACNet(gym_state_dim, gym_action_dim, action_limit),
+        policy_net=MyContinuousSACNet(gym_state_dim, gym_action_dim, action_limit, action_space=gym_action_space),
+        warmup=10000,
     )
 
 
@@ -122,11 +133,6 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
     )
 
 
-# TODO:
-#   1. random seed
-#   2. exploration with random sampled action # start_steps=10000,  Number of steps for uniform-random action selection, before running real policy. Helps exploration.
-#   3. confirm the effect of (max_ep_len=1000)?
-
 algorithm = "sac"
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}
 policies = [
@@ -145,7 +151,6 @@ trainers = [get_sac_trainer(f"{algorithm}_{i}", gym_state_dim, gym_action_dim) f
 device_mapping = None
 if torch.cuda.is_available():
     device_mapping = {f"{algorithm}_{i}.policy": "cuda:0" for i in range(num_agents)}
-
 
 rl_component_bundle = RLComponentBundle(
     env_sampler=GymEnvSampler(

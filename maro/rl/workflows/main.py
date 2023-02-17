@@ -14,7 +14,7 @@ from maro.rl.training import TrainingManager
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.utils.training import get_latest_ep
-from maro.rl.workflows.callback import CallbackManager, Checkpoint, MetricsRecorder, SupportedCallbackFunc
+from maro.rl.workflows.callback import CallbackManager, Checkpoint, EarlyStopping, MetricsRecorder
 from maro.utils import LoggerV2
 
 
@@ -46,6 +46,7 @@ class WorkflowEnvAttributes:
 
         # Evaluating schedule.
         self.eval_schedule = list_or_none(get_env("EVAL_SCHEDULE", required=False))
+        self.early_stop_patience = int_or_none(get_env("EARLY_STOP_PATIENCE", required=False))
         self.num_eval_episodes = int_or_none(get_env("NUM_EVAL_EPISODES", required=False))
 
         # Restore configurations.
@@ -113,105 +114,111 @@ def main(rl_component_bundle: RLComponentBundle, env_attr: WorkflowEnvAttributes
     if args.evaluate_only:
         evaluate_only_workflow(rl_component_bundle, env_attr)
     else:
-        training_workflow(rl_component_bundle, env_attr)
+        TrainingWorkflow().run(rl_component_bundle, env_attr)
 
 
-def training_workflow(rl_component_bundle: RLComponentBundle, env_attr: WorkflowEnvAttributes) -> None:
-    env_attr.logger.info("Start training workflow.")
+class TrainingWorkflow(object):
+    def run(self, rl_component_bundle: RLComponentBundle, env_attr: WorkflowEnvAttributes) -> None:
+        env_attr.logger.info("Start training workflow.")
 
-    env_sampler = _get_env_sampler(rl_component_bundle, env_attr)
+        env_sampler = _get_env_sampler(rl_component_bundle, env_attr)
 
-    # evaluation schedule
-    env_attr.logger.info(f"Policy will be evaluated at the end of episodes {env_attr.eval_schedule}")
-    eval_point_index = 0
+        # evaluation schedule
+        env_attr.logger.info(f"Policy will be evaluated at the end of episodes {env_attr.eval_schedule}")
+        eval_point_index = 0
 
-    training_manager = TrainingManager(
-        rl_component_bundle=rl_component_bundle,
-        explicit_assign_device=(env_attr.train_mode == "simple"),
-        proxy_address=None if env_attr.train_mode == "simple" else env_attr.proxy_address,
-        logger=env_attr.logger,
-    )
-
-    callbacks = []
-    if env_attr.checkpoint_path is not None:
-        callbacks.append(
-            Checkpoint(
-                path=env_attr.checkpoint_path,
-                interval=1 if env_attr.checkpoint_interval is None else env_attr.checkpoint_interval,
-            ),
+        training_manager = TrainingManager(
+            rl_component_bundle=rl_component_bundle,
+            explicit_assign_device=(env_attr.train_mode == "simple"),
+            proxy_address=None if env_attr.train_mode == "simple" else env_attr.proxy_address,
+            logger=env_attr.logger,
         )
-    callbacks.append(MetricsRecorder(path=env_attr.log_path))
-    cbm = CallbackManager(callbacks)
 
-    if env_attr.load_path:
-        assert isinstance(env_attr.load_path, str)
-
-        ep = env_attr.load_episode if env_attr.load_episode is not None else get_latest_ep(env_attr.load_path)
-        path = os.path.join(env_attr.load_path, str(ep))
-
-        loaded = env_sampler.load_policy_state(path)
-        env_attr.logger.info(f"Loaded policies {loaded} into env sampler from {path}")
-
-        loaded = training_manager.load(path)
-        env_attr.logger.info(f"Loaded trainers {loaded} from {path}")
-        start_ep = ep + 1
-    else:
-        start_ep = 1
-
-    # main loop
-    for ep in range(start_ep, env_attr.num_episodes + 1):
-        cbm.call(SupportedCallbackFunc.ON_EPISODE_START, env_sampler, training_manager, env_attr.logger, ep)
-
-        collect_time = training_time = 0.0
-        total_experiences: List[List[ExpElement]] = []
-        total_info_list: List[dict] = []
-        n_sample = 0
-        while n_sample < env_attr.min_n_sample:
-            tc0 = time.time()
-            result = env_sampler.sample(
-                policy_state=training_manager.get_policy_state() if not env_attr.is_single_thread else None,
-                num_steps=env_attr.num_steps,
+        callbacks = [MetricsRecorder(path=env_attr.log_path)]
+        if env_attr.checkpoint_path is not None:
+            callbacks.append(
+                Checkpoint(
+                    path=env_attr.checkpoint_path,
+                    interval=1 if env_attr.checkpoint_interval is None else env_attr.checkpoint_interval,
+                ),
             )
-            experiences: List[List[ExpElement]] = result["experiences"]
-            info_list: List[dict] = result["info"]
+        if env_attr.early_stop_patience is not None:
+            callbacks.append(EarlyStopping(patience=env_attr.early_stop_patience))
+        cbm = CallbackManager(self, callbacks, env_sampler, training_manager, env_attr.logger)
 
-            n_sample += len(experiences[0])
-            total_experiences.extend(experiences)
-            total_info_list.extend(info_list)
+        if env_attr.load_path:
+            assert isinstance(env_attr.load_path, str)
 
-            collect_time += time.time() - tc0
+            ep = env_attr.load_episode if env_attr.load_episode is not None else get_latest_ep(env_attr.load_path)
+            path = os.path.join(env_attr.load_path, str(ep))
 
-        env_sampler.post_collect(total_info_list, ep)
+            loaded = env_sampler.load_policy_state(path)
+            env_attr.logger.info(f"Loaded policies {loaded} into env sampler from {path}")
 
-        tu0 = time.time()
-        env_attr.logger.info(f"Roll-out completed for episode {ep}. Training started...")
-        cbm.call(SupportedCallbackFunc.ON_TRAINING_START, env_sampler, training_manager, env_attr.logger, ep)
-        training_manager.record_experiences(total_experiences)
-        training_manager.train_step()
-        cbm.call(SupportedCallbackFunc.ON_TRAINING_END, env_sampler, training_manager, env_attr.logger, ep)
-        training_time += time.time() - tu0
+            loaded = training_manager.load(path)
+            env_attr.logger.info(f"Loaded trainers {loaded} from {path}")
+            start_ep = ep + 1
+        else:
+            start_ep = 1
 
-        # performance details
-        env_attr.logger.info(
-            f"ep {ep} - roll-out time: {collect_time:.2f} seconds, training time: {training_time:.2f} seconds",
-        )
-        if env_attr.eval_schedule and ep == env_attr.eval_schedule[eval_point_index]:
-            cbm.call(SupportedCallbackFunc.ON_VALIDATION_START, env_sampler, training_manager, env_attr.logger, ep)
+        # main loop
+        self.early_stop = False
+        for ep in range(start_ep, env_attr.num_episodes + 1):
+            if self.early_stop:  # Might be set in `cbm.on_validation_end()`
+                break
 
-            eval_point_index += 1
-            result = env_sampler.eval(
-                policy_state=training_manager.get_policy_state() if not env_attr.is_single_thread else None,
-                num_episodes=env_attr.num_eval_episodes,
+            cbm.on_episode_start(ep)
+
+            collect_time = training_time = 0.0
+            total_experiences: List[List[ExpElement]] = []
+            total_info_list: List[dict] = []
+            n_sample = 0
+            while n_sample < env_attr.min_n_sample:
+                tc0 = time.time()
+                result = env_sampler.sample(
+                    policy_state=training_manager.get_policy_state() if not env_attr.is_single_thread else None,
+                    num_steps=env_attr.num_steps,
+                )
+                experiences: List[List[ExpElement]] = result["experiences"]
+                info_list: List[dict] = result["info"]
+
+                n_sample += len(experiences[0])
+                total_experiences.extend(experiences)
+                total_info_list.extend(info_list)
+
+                collect_time += time.time() - tc0
+
+            env_sampler.post_collect(total_info_list, ep)
+
+            tu0 = time.time()
+            env_attr.logger.info(f"Roll-out completed for episode {ep}. Training started...")
+            cbm.on_training_start(ep)
+            training_manager.record_experiences(total_experiences)
+            training_manager.train_step()
+            cbm.on_training_end(ep)
+            training_time += time.time() - tu0
+
+            # performance details
+            env_attr.logger.info(
+                f"ep {ep} - roll-out time: {collect_time:.2f} seconds, training time: {training_time:.2f} seconds",
             )
-            env_sampler.post_evaluate(result["info"], ep)
+            if env_attr.eval_schedule and ep == env_attr.eval_schedule[eval_point_index]:
+                cbm.on_validation_start(ep)
 
-            cbm.call(SupportedCallbackFunc.ON_VALIDATION_END, env_sampler, training_manager, env_attr.logger, ep)
+                eval_point_index += 1
+                result = env_sampler.eval(
+                    policy_state=training_manager.get_policy_state() if not env_attr.is_single_thread else None,
+                    num_episodes=env_attr.num_eval_episodes,
+                )
+                env_sampler.post_evaluate(result["info"], ep)
 
-        cbm.call(SupportedCallbackFunc.ON_EPISODE_END, env_sampler, training_manager, env_attr.logger, ep)
+                cbm.on_validation_end(ep)
 
-    if isinstance(env_sampler, BatchEnvSampler):
-        env_sampler.exit()
-    training_manager.exit()
+            cbm.on_episode_end(ep)
+
+        if isinstance(env_sampler, BatchEnvSampler):
+            env_sampler.exit()
+        training_manager.exit()
 
 
 def evaluate_only_workflow(rl_component_bundle: RLComponentBundle, env_attr: WorkflowEnvAttributes) -> None:

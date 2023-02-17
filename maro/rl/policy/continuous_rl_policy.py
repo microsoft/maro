@@ -42,6 +42,8 @@ class ContinuousRLPolicy(RLPolicy):
             the bound for every dimension. If it is a float, it will be broadcast to all dimensions.
         policy_net (ContinuousPolicyNet): The core net of this policy.
         trainable (bool, default=True): Whether this policy is trainable.
+        warmup (int, default=0): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -50,6 +52,7 @@ class ContinuousRLPolicy(RLPolicy):
         action_range: Tuple[Union[float, List[float]], Union[float, List[float]]],
         policy_net: ContinuousPolicyNet,
         trainable: bool = True,
+        warmup: int = 0,
     ) -> None:
         assert isinstance(policy_net, ContinuousPolicyNet)
 
@@ -59,6 +62,7 @@ class ContinuousRLPolicy(RLPolicy):
             action_dim=policy_net.action_dim,
             trainable=trainable,
             is_discrete_action=False,
+            warmup=warmup,
         )
 
         self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)
@@ -82,6 +86,9 @@ class ContinuousRLPolicy(RLPolicy):
 
     def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
         return self._policy_net.get_actions(states, self._is_exploring)
+
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return self._policy_net.get_random_actions(states)
 
     def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         return self._policy_net.get_actions_with_probs(states, self._is_exploring)
@@ -117,14 +124,22 @@ class ContinuousRLPolicy(RLPolicy):
         self._policy_net.train()
 
     def get_state(self) -> dict:
-        return self._policy_net.get_state()
+        return {
+            "net": self._policy_net.get_state(),
+            "policy": {
+                "warmup": self._warmup,
+                "call_count": self._call_count,
+            },
+        }
 
     def set_state(self, policy_state: dict) -> None:
-        self._policy_net.set_state(policy_state)
+        self._policy_net.set_state(policy_state["net"])
+        self._warmup = policy_state["policy"]["warmup"]
+        self._call_count = policy_state["policy"]["call_count"]
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, ContinuousRLPolicy)
         self._policy_net.soft_update(other_policy.policy_net, tau)
 
     def _to_device_impl(self, device: torch.device) -> None:
-        self._policy_net.to(device)
+        self._policy_net.to_device(device)

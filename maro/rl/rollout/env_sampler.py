@@ -146,6 +146,7 @@ class ExpElement:
     terminal_dict: Dict[Any, bool]
     next_state: Optional[np.ndarray]
     next_agent_state_dict: Dict[Any, np.ndarray]
+    truncated: bool
 
     @property
     def agent_names(self) -> list:
@@ -171,6 +172,7 @@ class ExpElement:
                 }
                 if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict
                 else {},
+                truncated=self.truncated,
             )
         return ret
 
@@ -194,6 +196,7 @@ class ExpElement:
                 terminal_dict={},
                 next_state=self.next_state,
                 next_agent_state_dict=None if self.next_agent_state_dict is None else {},
+                truncated=self.truncated,
             ),
         )
         for agent_name, trainer_name in agent2trainer.items():
@@ -225,6 +228,7 @@ class CacheElement(ExpElement):
             terminal_dict=self.terminal_dict,
             next_state=self.next_state,
             next_agent_state_dict=self.next_agent_state_dict,
+            truncated=self.truncated,
         )
 
 
@@ -240,6 +244,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int, default=None): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. If it is None, calculate reward immediately after `step()`.
+        max_episode_length (int, default=None): Maximum number of steps in one episode during sampling.
+            When reach this limit, the environment will be truncated and reset.
     """
 
     def __init__(
@@ -251,6 +257,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         trainable_policies: List[str] = None,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = None,
+        max_episode_length: int = None,
     ) -> None:
         assert learn_env is not test_env, "Please use different envs for training and testing."
 
@@ -267,6 +274,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._transition_cache: List[CacheElement] = []
         self._agent_last_index: Dict[Any, int] = {}  # Index of last occurrence of agent in self._transition_cache
         self._reward_eval_delay = reward_eval_delay
+        self._max_episode_length = max_episode_length
+        self._current_episode_length = 0
 
         self._info: dict = {}
         self.metrics: dict = {}
@@ -300,6 +309,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def env(self) -> Env:
         assert self._env is not None
         return self._env
+
+    def monitor_metrics(self) -> float:
+        """Metrics watched by early stopping."""
+        return float(self._total_number_interactions)
 
     def _switch_env(self, env: Env) -> None:
         self._env = env
@@ -406,6 +419,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     def _reset(self) -> None:
         self.env.reset()
+        self._current_episode_length = 0
         self._info.clear()
         self._transition_cache.clear()
         self._agent_last_index.clear()
@@ -413,6 +427,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     def _select_trainable_agents(self, original_dict: dict) -> dict:
         return {k: v for k, v in original_dict.items() if k in self._trainable_agents}
+
+    @property
+    def truncated(self) -> bool:
+        return self._max_episode_length == self._current_episode_length
 
     def sample(
         self,
@@ -430,7 +448,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         Returns:
             A dict that contains the collected experiences and additional information.
         """
-        steps_to_go = num_steps
+        steps_to_go = num_steps if num_steps is not None else float("inf")
         if policy_state is not None:  # Update policy state if necessary
             self.set_policy_state(policy_state)
         self._switch_env(self._learn_env)  # Init the env
@@ -439,17 +457,33 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         if self._end_of_episode:
             self._reset()
 
+        # If num_steps is None, run until the end of episode or the episode is truncated
+        # If num_steps is not None, run until we collect required number of steps
         total_experiences = []
-        # If steps_to_go is None, run until the end of episode
-        # If steps_to_go is not None, run until we collect required number of steps
-        while (steps_to_go is None and not self._end_of_episode) or (steps_to_go is not None and steps_to_go > 0):
-            if self._end_of_episode:
+
+        while not any(
+            [
+                num_steps is None and (self._end_of_episode or self.truncated),
+                num_steps is not None and steps_to_go == 0,
+            ],
+        ):
+            if self._end_of_episode or self.truncated:
                 self._reset()
 
-            while not self._end_of_episode and (steps_to_go is None or steps_to_go > 0):
+            while not any(
+                [
+                    self._end_of_episode,
+                    self.truncated,
+                    steps_to_go == 0,
+                ],
+            ):
                 # Get agent actions and translate them to env actions
                 action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
                 env_action_dict = self._translate_to_env_action(action_dict, self._event)
+
+                self._total_number_interactions += 1
+                self._current_episode_length += 1
+                steps_to_go -= 1
 
                 # Store experiences in the cache
                 cache_element = CacheElement(
@@ -459,24 +493,23 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
                     action_dict=self._select_trainable_agents(action_dict),
                     env_action_dict=self._select_trainable_agents(env_action_dict),
-                    # The following will be generated later
+                    # The following will be generated/updated later
                     reward_dict={},
                     terminal_dict={},
                     next_state=None,
                     next_agent_state_dict={},
+                    truncated=self.truncated,
                 )
 
                 # Update env and get new states (global & agent)
                 self._step(list(env_action_dict.values()))
-                self._total_number_interactions += 1
                 cache_element.next_state = self._state
 
                 if self._reward_eval_delay is None:
                     self._calc_reward(cache_element)
                     self._post_step(cache_element)
                 self._append_cache_element(cache_element)
-                if steps_to_go is not None:
-                    steps_to_go -= 1
+
             self._append_cache_element(None)
 
             tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
@@ -549,6 +582,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     terminal_dict={},
                     next_state=None,
                     next_agent_state_dict={},
+                    truncated=False,  # No truncation in evaluation
                 )
 
                 # Update env and get new states (global & agent)

@@ -19,6 +19,7 @@ class TransitionBatch:
     rewards: np.ndarray  # 1D
     next_states: np.ndarray  # 2D
     terminals: np.ndarray  # 1D
+    truncated: np.ndarray  # 1D
     returns: np.ndarray = None  # 1D
     advantages: np.ndarray = None  # 1D
     old_logps: np.ndarray = None  # 1D
@@ -34,6 +35,7 @@ class TransitionBatch:
             assert len(self.rewards.shape) == 1 and self.rewards.shape[0] == self.states.shape[0]
             assert self.next_states.shape == self.states.shape
             assert len(self.terminals.shape) == 1 and self.terminals.shape[0] == self.states.shape[0]
+            assert len(self.truncated.shape) == 1 and self.truncated.shape[0] == self.states.shape[0]
 
     def make_kth_sub_batch(self, i: int, k: int) -> TransitionBatch:
         return TransitionBatch(
@@ -42,6 +44,7 @@ class TransitionBatch:
             rewards=self.rewards[i::k],
             next_states=self.next_states[i::k],
             terminals=self.terminals[i::k],
+            truncated=self.truncated[i::k],
             returns=self.returns[i::k] if self.returns is not None else None,
             advantages=self.advantages[i::k] if self.advantages is not None else None,
             old_logps=self.old_logps[i::k] if self.old_logps is not None else None,
@@ -60,7 +63,7 @@ class MultiTransitionBatch:
     agent_states: List[np.ndarray]  # List of 2D
     next_agent_states: List[np.ndarray]  # List of 2D
     terminals: np.ndarray  # 1D
-
+    truncated: np.ndarray  # 1D
     returns: Optional[List[np.ndarray]] = None  # List of 1D
     advantages: Optional[List[np.ndarray]] = None  # List of 1D
 
@@ -81,6 +84,7 @@ class MultiTransitionBatch:
                 assert self.agent_states[i].shape[0] == self.states.shape[0]
 
             assert len(self.terminals.shape) == 1 and self.terminals.shape[0] == self.states.shape[0]
+            assert len(self.truncated.shape) == 1 and self.truncated.shape[0] == self.states.shape[0]
             assert self.next_states.shape == self.states.shape
 
             assert len(self.next_agent_states) == len(self.agent_states)
@@ -98,6 +102,7 @@ class MultiTransitionBatch:
         agent_states = [state[i::k] for state in self.agent_states]
         next_agent_states = [state[i::k] for state in self.next_agent_states]
         terminals = self.terminals[i::k]
+        truncated = self.truncated[i::k]
         returns = None if self.returns is None else [r[i::k] for r in self.returns]
         advantages = None if self.advantages is None else [advantage[i::k] for advantage in self.advantages]
         return MultiTransitionBatch(
@@ -108,6 +113,7 @@ class MultiTransitionBatch:
             agent_states,
             next_agent_states,
             terminals,
+            truncated,
             returns,
             advantages,
         )
@@ -123,6 +129,7 @@ def merge_transition_batches(batch_list: List[TransitionBatch]) -> TransitionBat
         rewards=np.concatenate([batch.rewards for batch in batch_list], axis=0),
         next_states=np.concatenate([batch.next_states for batch in batch_list], axis=0),
         terminals=np.concatenate([batch.terminals for batch in batch_list]),
+        truncated=np.concatenate([batch.truncated for batch in batch_list]),
         returns=np.concatenate([batch.returns for batch in batch_list]),
         advantages=np.concatenate([batch.advantages for batch in batch_list]),
         old_logps=None

@@ -203,6 +203,7 @@ class ACBasedOps(AbsTrainOps):
         states = ndarray_to_tensor(batch.states, device=self._device)  # s
         actions = ndarray_to_tensor(batch.actions, device=self._device)  # a
         terminals = ndarray_to_tensor(batch.terminals, device=self._device)
+        truncated = ndarray_to_tensor(batch.truncated, device=self._device)
         next_states = ndarray_to_tensor(batch.next_states, device=self._device)
         if self._is_discrete_action:
             actions = actions.long()
@@ -217,7 +218,7 @@ class ACBasedOps(AbsTrainOps):
             i = 0
             while i < batch.size:
                 j = i
-                while j < batch.size - 1 and not terminals[j]:
+                while j < batch.size - 1 and not (terminals[j] or truncated[j]):
                     j += 1
                 last_val = (
                     0.0

@@ -15,6 +15,7 @@ main:
   num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_steps: null
   eval_schedule: 5
+  early_stop_patience: 5
   logging:
     stdout: INFO
     file: DEBUG

@@ -76,6 +76,11 @@ class ConfigParser:
                     f"positive ints",
                 )
 
+        early_stop_patience = self._config["main"].get("early_stop_patience", None)
+        if early_stop_patience is not None:
+            if not isinstance(early_stop_patience, int) or early_stop_patience <= 0:
+                raise ValueError(f"Invalid early stop patience: {early_stop_patience}. Should be a positive integer.")
+
         if "logging" in self._config["main"]:
             self._validate_logging_section("main", self._config["main"]["logging"])
 
@@ -287,13 +292,15 @@ class ConfigParser:
                 main_proc_env["EVAL_SCHEDULE"] = " ".join([str(val) for val in sorted(sch)])
 
             main_proc_env["NUM_EVAL_EPISODES"] = str(self._config["main"].get("num_eval_episodes", 1))
+        if "early_stop_patience" in self._config["main"]:
+            main_proc_env["EARLY_STOP_PATIENCE"] = str(self._config["main"]["early_stop_patience"])
 
         load_path = self._config["training"].get("load_path", None)
         if load_path is not None:
-            env["main"]["LOAD_PATH"] = path_mapping[load_path]
+            main_proc_env["LOAD_PATH"] = path_mapping[load_path]
         load_episode = self._config["training"].get("load_episode", None)
         if load_episode is not None:
-            env["main"]["LOAD_EPISODE"] = str(load_episode)
+            main_proc_env["LOAD_EPISODE"] = str(load_episode)
 
         if "checkpointing" in self._config["training"]:
             conf = self._config["training"]["checkpointing"]
