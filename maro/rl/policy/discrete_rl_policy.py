@@ -23,6 +23,8 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         state_dim (int): Dimension of states.
         action_num (int): Number of actions.
         trainable (bool, default=True): Whether this policy is trainable.
+        warmup (int, default=0): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -31,6 +33,7 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         state_dim: int,
         action_num: int,
         trainable: bool = True,
+        warmup: int = 0,
     ) -> None:
         assert action_num >= 1
 
@@ -40,6 +43,7 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
             action_dim=1,
             trainable=trainable,
             is_discrete_action=True,
+            warmup=warmup,
         )
 
         self._action_num = action_num
@@ -51,6 +55,12 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
         return all([0 <= action < self.action_num for action in actions.cpu().numpy().flatten()])
 
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return ndarray_to_tensor(
+            np.random.randint(self.action_num, size=(states.shape[0], 1)),
+            device=self._device,
+        )
+
 
 class ValueBasedPolicy(DiscreteRLPolicy):
     """Valued-based policy.
@@ -61,7 +71,8 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         trainable (bool, default=True): Whether this policy is trainable.
         exploration_strategy (Tuple[Callable, dict], default=(epsilon_greedy, {"epsilon": 0.1})): Exploration strategy.
         exploration_scheduling_options (List[tuple], default=None): List of exploration scheduler options.
-        warmup (int, default=50000): Minimum number of experiences to warm up this policy.
+        warmup (int, default=50000): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -80,6 +91,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             state_dim=q_net.state_dim,
             action_num=q_net.action_num,
             trainable=trainable,
+            warmup=warmup,
         )
         self._q_net = q_net
 
@@ -90,9 +102,6 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             if exploration_scheduling_options is not None
             else []
         )
-
-        self._call_cnt = 0
-        self._warmup = warmup
 
         self._softmax = torch.nn.Softmax(dim=1)
 
@@ -163,19 +172,9 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         pass  # Overwrite the base method and turn off explore mode.
 
     def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        actions, _ = self._get_actions_with_probs_impl(states)
-        return actions
+        return self._get_actions_with_probs_impl(states)[0]
 
     def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        self._call_cnt += 1
-        if self._call_cnt <= self._warmup:
-            actions = ndarray_to_tensor(
-                np.random.randint(self.action_num, size=(states.shape[0], 1)),
-                device=self._device,
-            )
-            probs = torch.ones(states.shape[0]).float() * (1.0 / self.action_num)
-            return actions, probs
-
         q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
         q_matrix_softmax = self._softmax(q_matrix)
         _, actions = q_matrix.max(dim=1)  # [B], [B]
@@ -222,17 +221,25 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         self._q_net.train()
 
     def get_state(self) -> dict:
-        return self._q_net.get_state()
+        return {
+            "net": self._q_net.get_state(),
+            "policy": {
+                "warmup": self._warmup,
+                "call_count": self._call_count,
+            },
+        }
 
     def set_state(self, policy_state: dict) -> None:
         self._q_net.set_state(policy_state)
+        self._warmup = policy_state["policy"]["warmup"]
+        self._call_count = policy_state["policy"]["call_count"]
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, ValueBasedPolicy)
         self._q_net.soft_update(other_policy.q_net, tau)
 
     def _to_device_impl(self, device: torch.device) -> None:
-        self._q_net.to(device)
+        self._q_net.to_device(device)
 
 
 class DiscretePolicyGradient(DiscreteRLPolicy):
@@ -242,6 +249,8 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         name (str): Name of the policy.
         policy_net (DiscretePolicyNet): The core net of this policy.
         trainable (bool, default=True): Whether this policy is trainable.
+        warmup (int, default=50000): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -249,6 +258,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         name: str,
         policy_net: DiscretePolicyNet,
         trainable: bool = True,
+        warmup: int = 0,
     ) -> None:
         assert isinstance(policy_net, DiscretePolicyNet)
 
@@ -257,6 +267,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
             state_dim=policy_net.state_dim,
             action_num=policy_net.action_num,
             trainable=trainable,
+            warmup=warmup,
         )
 
         self._policy_net = policy_net
@@ -302,10 +313,18 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         self._policy_net.train()
 
     def get_state(self) -> dict:
-        return self._policy_net.get_state()
+        return {
+            "net": self._policy_net.get_state(),
+            "policy": {
+                "warmup": self._warmup,
+                "call_count": self._call_count,
+            },
+        }
 
     def set_state(self, policy_state: dict) -> None:
         self._policy_net.set_state(policy_state)
+        self._warmup = policy_state["policy"]["warmup"]
+        self._call_count = policy_state["policy"]["call_count"]
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, DiscretePolicyGradient)
@@ -350,4 +369,4 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         return action_logps.gather(1, actions).squeeze(-1)  # [B]
 
     def _to_device_impl(self, device: torch.device) -> None:
-        self._policy_net.to(device)
+        self._policy_net.to_device(device)

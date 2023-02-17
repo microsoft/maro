@@ -129,6 +129,8 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         state_dim (int): Dimension of states.
         action_dim (int): Dimension of actions.
         trainable (bool, default=True): Whether this policy is trainable.
+        warmup (int, default=0): Number of steps for uniform-random action selection, before running real policy.
+            Helps exploration.
     """
 
     def __init__(
@@ -138,6 +140,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         action_dim: int,
         is_discrete_action: bool,
         trainable: bool = True,
+        warmup: int = 0,
     ) -> None:
         super(RLPolicy, self).__init__(name=name, trainable=trainable)
         self._state_dim = state_dim
@@ -145,6 +148,8 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         self._is_exploring = False
 
         self._device: Optional[torch.device] = None
+        self._warmup = warmup
+        self._call_count = 0
 
         self.is_discrete_action = is_discrete_action
 
@@ -200,7 +205,12 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
-        actions = self.get_actions_tensor(ndarray_to_tensor(states, device=self._device))
+        self._call_count += 1
+
+        if self._call_count <= self._warmup:
+            actions = self.get_random_actions_tensor(ndarray_to_tensor(states, device=self._device))
+        else:
+            actions = self.get_actions_tensor(ndarray_to_tensor(states, device=self._device))
         return actions.detach().cpu().numpy()
 
     def get_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
@@ -209,6 +219,16 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
 
         actions = self._get_actions_impl(states)
+
+        assert self._shape_check(
+            states=states,
+            actions=actions,
+        ), f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
+
+        return actions
+
+    def get_random_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
+        actions = self._get_random_actions_impl(states)
 
         assert self._shape_check(
             states=states,
@@ -271,6 +291,10 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
 
     @abstractmethod
     def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError
 
     @abstractmethod

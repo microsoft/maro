@@ -76,6 +76,11 @@ class ConfigParser:
                     f"positive ints",
                 )
 
+        early_stop_patience = self._config["main"].get("early_stop_patience", None)
+        if early_stop_patience is not None:
+            if not isinstance(early_stop_patience, int) or early_stop_patience <= 0:
+                raise ValueError(f"Invalid early stop patience: {early_stop_patience}. Should be a positive integer.")
+
         if "logging" in self._config["main"]:
             self._validate_logging_section("main", self._config["main"]["logging"])
 
@@ -196,9 +201,10 @@ class ConfigParser:
             raise TypeError(f"{self._validation_err_pfx}: 'training.proxy.backend' must be an int")
 
     def _validate_checkpointing_section(self, section: dict) -> None:
-        if "path" not in section:
-            raise KeyError(f"{self._validation_err_pfx}: missing field 'path' under section 'checkpointing'")
-        if not isinstance(section["path"], str):
+        ckpt_path = section.get("path", None)
+        if ckpt_path is None:
+            section["path"] = os.path.join(self._config["log_path"], "checkpoints")
+        elif not isinstance(section["path"], str):
             raise TypeError(f"{self._validation_err_pfx}: 'training.checkpointing.path' must be a string")
 
         if "interval" in section:
@@ -231,10 +237,9 @@ class ConfigParser:
                     local/log/path -> "/logs"
                 Defaults to False.
         """
-        log_dir = os.path.dirname(self._config["log_path"])
         path_map = {
             self._config["scenario_path"]: "/scenario" if containerize else self._config["scenario_path"],
-            log_dir: "/logs" if containerize else log_dir,
+            self._config["log_path"]: "/logs" if containerize else self._config["log_path"],
         }
 
         load_path = self._config["training"].get("load_path", None)
@@ -286,12 +291,16 @@ class ConfigParser:
             else:
                 main_proc_env["EVAL_SCHEDULE"] = " ".join([str(val) for val in sorted(sch)])
 
+            main_proc_env["NUM_EVAL_EPISODES"] = str(self._config["main"].get("num_eval_episodes", 1))
+        if "early_stop_patience" in self._config["main"]:
+            main_proc_env["EARLY_STOP_PATIENCE"] = str(self._config["main"]["early_stop_patience"])
+
         load_path = self._config["training"].get("load_path", None)
         if load_path is not None:
-            env["main"]["LOAD_PATH"] = path_mapping[load_path]
+            main_proc_env["LOAD_PATH"] = path_mapping[load_path]
         load_episode = self._config["training"].get("load_episode", None)
         if load_episode is not None:
-            env["main"]["LOAD_EPISODE"] = str(load_episode)
+            main_proc_env["LOAD_EPISODE"] = str(load_episode)
 
         if "checkpointing" in self._config["training"]:
             conf = self._config["training"]["checkpointing"]
@@ -385,9 +394,8 @@ class ConfigParser:
                     )
 
         # All components write logs to the same file
-        log_dir, log_file = os.path.split(self._config["log_path"])
         for _, vars in env.values():
-            vars["LOG_PATH"] = os.path.join(path_mapping[log_dir], log_file)
+            vars["LOG_PATH"] = path_mapping[self._config["log_path"]]
 
         return env
 

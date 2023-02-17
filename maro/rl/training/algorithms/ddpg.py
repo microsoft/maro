@@ -27,7 +27,7 @@ class DDPGParams(BaseTrainerParams):
     random_overwrite (bool, default=False): This specifies overwrite behavior when the replay memory capacity
         is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
         sequentially with wrap-around.
-    min_num_to_trigger_training (int, default=0): Minimum number required to start training.
+    n_start_train (int, default=0): Minimum number required to start training.
     """
 
     get_q_critic_net_func: Callable[[], QNet]
@@ -36,7 +36,7 @@ class DDPGParams(BaseTrainerParams):
     q_value_loss_cls: Optional[Callable] = None
     soft_update_coef: float = 1.0
     random_overwrite: bool = False
-    min_num_to_trigger_training: int = 0
+    n_start_train: int = 0
 
 
 class DDPGOps(AbsTrainOps):
@@ -93,9 +93,9 @@ class DDPGOps(AbsTrainOps):
                 states=next_states,  # s'
                 actions=self._target_policy.get_actions_tensor(next_states),  # miu_targ(s')
             )  # Q_targ(s', miu_targ(s'))
+            # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
+            target_q_values = (rewards + self._reward_discount * (1.0 - terminals.float()) * next_q_values).detach()
 
-        # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
-        target_q_values = (rewards + self._reward_discount * (1 - terminals.long()) * next_q_values).detach()
         q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
         return self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
 
@@ -263,10 +263,10 @@ class DDPGTrainer(SingleAgentTrainer):
     def train_step(self) -> None:
         assert isinstance(self._ops, DDPGOps)
 
-        if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
+        if self._replay_memory.n_sample < self._params.n_start_train:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})",
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})",
             )
             return
 
@@ -280,10 +280,10 @@ class DDPGTrainer(SingleAgentTrainer):
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
 
-        if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
+        if self._replay_memory.n_sample < self._params.n_start_train:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})",
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})",
             )
             return
 

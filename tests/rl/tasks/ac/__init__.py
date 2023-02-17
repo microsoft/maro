@@ -11,14 +11,26 @@ from torch.optim import Adam
 from maro.rl.model import ContinuousACBasedNet, VNet
 from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
+from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms import ActorCriticParams, ActorCriticTrainer
 
+from tests.rl.gym_wrapper.common import (
+    action_lower_bound,
+    action_upper_bound,
+    gym_action_dim,
+    gym_state_dim,
+    learn_env,
+    num_agents,
+    test_env,
+)
+from tests.rl.gym_wrapper.env_sampler import GymEnvSampler
+
 actor_net_conf = {
-    "hidden_dims": [64, 64],
+    "hidden_dims": [64, 32],
     "activation": torch.nn.Tanh,
 }
 critic_net_conf = {
-    "hidden_dims": [64, 64],
+    "hidden_dims": [64, 32],
     "activation": torch.nn.Tanh,
 }
 actor_learning_rate = 3e-4
@@ -95,3 +107,32 @@ def get_ac_trainer(name: str, state_dim: int) -> ActorCriticTrainer:
             lam=0.97,
         ),
     )
+
+
+algorithm = "ac"
+agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}
+policies = [
+    get_ac_policy(f"{algorithm}_{i}.policy", action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim)
+    for i in range(num_agents)
+]
+trainers = [get_ac_trainer(f"{algorithm}_{i}", gym_state_dim) for i in range(num_agents)]
+
+device_mapping = None
+if torch.cuda.is_available():
+    device_mapping = {f"{algorithm}_{i}.policy": "cuda:0" for i in range(num_agents)}
+
+
+rl_component_bundle = RLComponentBundle(
+    env_sampler=GymEnvSampler(
+        learn_env=learn_env,
+        test_env=test_env,
+        policies=policies,
+        agent2policy=agent2policy,
+    ),
+    agent2policy=agent2policy,
+    policies=policies,
+    trainers=trainers,
+    device_mapping=device_mapping,
+)
+
+__all__ = ["rl_component_bundle"]

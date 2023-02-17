@@ -35,26 +35,15 @@ class AbsIndexScheduler(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         """Generate a list of indexes that can be used to retrieve items from the replay memory.
 
         Args:
             batch_size (int, default=None): The required batch size. If it is None, all indexes where an experience
                 item is present are returned.
-            forbid_last (bool, default=False): Whether the latest element is allowed to be sampled.
-                If this is true, the last index will always be excluded from the result.
 
         Returns:
             indexes (np.ndarray): The list of indexes.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_last_index(self) -> int:
-        """Get the index of the latest element in the memory.
-
-        Returns:
-            index (int): The index of the latest element in the memory.
         """
         raise NotImplementedError
 
@@ -93,13 +82,10 @@ class RandomIndexScheduler(AbsIndexScheduler):
         self._size = min(self._size + batch_size, self._capacity)
         return indexes
 
-    def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
         assert self._size > 0, "Cannot sample from an empty memory."
         return np.random.choice(self._size, size=batch_size, replace=True)
-
-    def get_last_index(self) -> int:
-        raise NotImplementedError
 
 
 class FIFOIndexScheduler(AbsIndexScheduler):
@@ -135,18 +121,14 @@ class FIFOIndexScheduler(AbsIndexScheduler):
             self._head = (self._head + overwrite) % self._capacity
             return self.get_put_indexes(batch_size)
 
-    def get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
-        tmp = self._tail if not forbid_last else (self._tail - 1) % self._capacity
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         indexes = (
-            np.arange(self._head, tmp)
-            if tmp > self._head
-            else np.concatenate([np.arange(self._head, self._capacity), np.arange(tmp)])
+            np.arange(self._head, self._tail)
+            if self._tail > self._head
+            else np.concatenate([np.arange(self._head, self._capacity), np.arange(self._tail)])
         )
-        self._head = tmp
+        self._head = self._tail
         return indexes
-
-    def get_last_index(self) -> int:
-        return (self._tail - 1) % self._capacity
 
 
 class AbsReplayMemory(object, metaclass=ABCMeta):
@@ -176,9 +158,9 @@ class AbsReplayMemory(object, metaclass=ABCMeta):
         """Please refer to the doc string in AbsIndexScheduler."""
         return self._idx_scheduler.get_put_indexes(batch_size)
 
-    def _get_sample_indexes(self, batch_size: int = None, forbid_last: bool = False) -> np.ndarray:
+    def _get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         """Please refer to the doc string in AbsIndexScheduler."""
-        return self._idx_scheduler.get_sample_indexes(batch_size, forbid_last)
+        return self._idx_scheduler.get_sample_indexes(batch_size)
 
 
 class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
@@ -205,6 +187,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._actions = np.zeros((self._capacity, self._action_dim), dtype=np.float32)
         self._rewards = np.zeros(self._capacity, dtype=np.float32)
         self._terminals = np.zeros(self._capacity, dtype=bool)
+        self._truncated = np.zeros(self._capacity, dtype=bool)
         self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._returns = np.zeros(self._capacity, dtype=np.float32)
         self._advantages = np.zeros(self._capacity, dtype=np.float32)
@@ -233,6 +216,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             assert match_shape(transition_batch.actions, (batch_size, self._action_dim))
             assert match_shape(transition_batch.rewards, (batch_size,))
             assert match_shape(transition_batch.terminals, (batch_size,))
+            assert match_shape(transition_batch.truncated, (batch_size,))
             assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
             if transition_batch.returns is not None:
                 match_shape(transition_batch.returns, (batch_size,))
@@ -255,6 +239,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._actions[indexes] = transition_batch.actions
         self._rewards[indexes] = transition_batch.rewards
         self._terminals[indexes] = transition_batch.terminals
+        self._truncated[indexes] = transition_batch.truncated
         self._next_states[indexes] = transition_batch.next_states
         if transition_batch.returns is not None:
             self._returns[indexes] = transition_batch.returns
@@ -273,7 +258,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         Returns:
             batch (TransitionBatch): The sampled batch.
         """
-        indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
+        indexes = self._get_sample_indexes(batch_size)
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
@@ -292,15 +277,12 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
             terminals=self._terminals[indexes],
+            truncated=self._truncated[indexes],
             next_states=self._next_states[indexes],
             returns=self._returns[indexes],
             advantages=self._advantages[indexes],
             old_logps=self._old_logps[indexes],
         )
-
-    @abstractmethod
-    def _get_forbid_last(self) -> bool:
-        raise NotImplementedError
 
 
 class RandomReplayMemory(ReplayMemory):
@@ -318,14 +300,10 @@ class RandomReplayMemory(ReplayMemory):
             RandomIndexScheduler(capacity, random_overwrite),
         )
         self._random_overwrite = random_overwrite
-        self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
 
     @property
     def random_overwrite(self) -> bool:
         return self._random_overwrite
-
-    def _get_forbid_last(self) -> bool:
-        return False
 
 
 class FIFOReplayMemory(ReplayMemory):
@@ -341,9 +319,6 @@ class FIFOReplayMemory(ReplayMemory):
             action_dim,
             FIFOIndexScheduler(capacity),
         )
-
-    def _get_forbid_last(self) -> bool:
-        return not self._terminals[self._idx_scheduler.get_last_index()]
 
 
 class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
@@ -374,6 +349,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         self._rewards = [np.zeros(self._capacity, dtype=np.float32) for _ in range(self.agent_num)]
         self._next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self._terminals = np.zeros(self._capacity, dtype=bool)
+        self._truncated = np.zeros(self._capacity, dtype=bool)
 
         assert len(agent_states_dims) == self.agent_num
         self._agent_states_dims = agent_states_dims
@@ -408,6 +384,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
                 assert match_shape(transition_batch.rewards[i], (batch_size,))
 
             assert match_shape(transition_batch.terminals, (batch_size,))
+            assert match_shape(transition_batch.truncated, (batch_size,))
             assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
 
             assert len(transition_batch.agent_states) == self.agent_num
@@ -430,6 +407,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             self._actions[i][indexes] = transition_batch.actions[i]
             self._rewards[i][indexes] = transition_batch.rewards[i]
         self._terminals[indexes] = transition_batch.terminals
+        self._truncated[indexes] = transition_batch.truncated
 
         self._next_states[indexes] = transition_batch.next_states
         for i in range(self.agent_num):
@@ -446,7 +424,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         Returns:
             batch (MultiTransitionBatch): The sampled batch.
         """
-        indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
+        indexes = self._get_sample_indexes(batch_size)
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> MultiTransitionBatch:
@@ -465,14 +443,11 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],
             terminals=self._terminals[indexes],
+            truncated=self._truncated[indexes],
             next_states=self._next_states[indexes],
             agent_states=[state[indexes] for state in self._agent_states],
             next_agent_states=[state[indexes] for state in self._next_agent_states],
         )
-
-    @abstractmethod
-    def _get_forbid_last(self) -> bool:
-        raise NotImplementedError
 
 
 class RandomMultiReplayMemory(MultiReplayMemory):
@@ -492,14 +467,10 @@ class RandomMultiReplayMemory(MultiReplayMemory):
             agent_states_dims,
         )
         self._random_overwrite = random_overwrite
-        self._scheduler = RandomIndexScheduler(capacity, random_overwrite)
 
     @property
     def random_overwrite(self) -> bool:
         return self._random_overwrite
-
-    def _get_forbid_last(self) -> bool:
-        return False
 
 
 class FIFOMultiReplayMemory(MultiReplayMemory):
@@ -517,6 +488,3 @@ class FIFOMultiReplayMemory(MultiReplayMemory):
             FIFOIndexScheduler(capacity),
             agent_states_dims,
         )
-
-    def _get_forbid_last(self) -> bool:
-        return not self._terminals[self._idx_scheduler.get_last_index()]

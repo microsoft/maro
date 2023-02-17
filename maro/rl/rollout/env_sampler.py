@@ -146,6 +146,7 @@ class ExpElement:
     terminal_dict: Dict[Any, bool]
     next_state: Optional[np.ndarray]
     next_agent_state_dict: Dict[Any, np.ndarray]
+    truncated: bool
 
     @property
     def agent_names(self) -> list:
@@ -171,6 +172,7 @@ class ExpElement:
                 }
                 if self.next_agent_state_dict is not None and agent_name in self.next_agent_state_dict
                 else {},
+                truncated=self.truncated,
             )
         return ret
 
@@ -194,6 +196,7 @@ class ExpElement:
                 terminal_dict={},
                 next_state=self.next_state,
                 next_agent_state_dict=None if self.next_agent_state_dict is None else {},
+                truncated=self.truncated,
             ),
         )
         for agent_name, trainer_name in agent2trainer.items():
@@ -225,6 +228,7 @@ class CacheElement(ExpElement):
             terminal_dict=self.terminal_dict,
             next_state=self.next_state,
             next_agent_state_dict=self.next_agent_state_dict,
+            truncated=self.truncated,
         )
 
 
@@ -240,6 +244,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         agent_wrapper_cls (Type[AbsAgentWrapper], default=SimpleAgentWrapper): Specific AgentWrapper type.
         reward_eval_delay (int, default=None): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. If it is None, calculate reward immediately after `step()`.
+        max_episode_length (int, default=None): Maximum number of steps in one episode during sampling.
+            When reach this limit, the environment will be truncated and reset.
     """
 
     def __init__(
@@ -251,7 +257,10 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         trainable_policies: List[str] = None,
         agent_wrapper_cls: Type[AbsAgentWrapper] = SimpleAgentWrapper,
         reward_eval_delay: int = None,
+        max_episode_length: int = None,
     ) -> None:
+        assert learn_env is not test_env, "Please use different envs for training and testing."
+
         self._learn_env = learn_env
         self._test_env = test_env
 
@@ -262,11 +271,14 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._state: Optional[np.ndarray] = None
         self._agent_state_dict: Dict[Any, np.ndarray] = {}
 
-        self._trans_cache: List[CacheElement] = []
-        self._agent_last_index: Dict[Any, int] = {}  # Index of last occurrence of agent in self._trans_cache
+        self._transition_cache: List[CacheElement] = []
+        self._agent_last_index: Dict[Any, int] = {}  # Index of last occurrence of agent in self._transition_cache
         self._reward_eval_delay = reward_eval_delay
+        self._max_episode_length = max_episode_length
+        self._current_episode_length = 0
 
         self._info: dict = {}
+        self.metrics: dict = {}
 
         assert self._reward_eval_delay is None or self._reward_eval_delay >= 0
 
@@ -291,10 +303,16 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
             [policy_name in self._rl_policy_dict for policy_name in self._trainable_policies],
         ), "All trainable policies must be RL policies!"
 
+        self._total_number_interactions = 0
+
     @property
     def env(self) -> Env:
         assert self._env is not None
         return self._env
+
+    def monitor_metrics(self) -> float:
+        """Metrics watched by early stopping."""
+        return float(self._total_number_interactions)
 
     def _switch_env(self, env: Env) -> None:
         self._env = env
@@ -383,36 +401,36 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _append_cache_element(self, cache_element: Optional[CacheElement]) -> None:
         """`cache_element` == None means we are processing the last element in trans_cache"""
         if cache_element is None:
-            if len(self._trans_cache) > 0:
-                self._trans_cache[-1].next_state = self._trans_cache[-1].state
-
             for agent_name, i in self._agent_last_index.items():
-                e = self._trans_cache[i]
+                e = self._transition_cache[i]
                 e.terminal_dict[agent_name] = self._end_of_episode
                 e.next_agent_state_dict[agent_name] = e.agent_state_dict[agent_name]
         else:
-            self._trans_cache.append(cache_element)
+            self._transition_cache.append(cache_element)
 
-            if len(self._trans_cache) > 0:
-                self._trans_cache[-1].next_state = cache_element.state
-
-            cur_index = len(self._trans_cache) - 1
+            cur_index = len(self._transition_cache) - 1
             for agent_name in cache_element.agent_names:
                 if agent_name in self._agent_last_index:
                     i = self._agent_last_index[agent_name]
-                    self._trans_cache[i].terminal_dict[agent_name] = False
-                    self._trans_cache[i].next_agent_state_dict[agent_name] = cache_element.agent_state_dict[agent_name]
+                    e = self._transition_cache[i]
+                    e.terminal_dict[agent_name] = False
+                    e.next_agent_state_dict[agent_name] = cache_element.agent_state_dict[agent_name]
                 self._agent_last_index[agent_name] = cur_index
 
     def _reset(self) -> None:
         self.env.reset()
+        self._current_episode_length = 0
         self._info.clear()
-        self._trans_cache.clear()
+        self._transition_cache.clear()
         self._agent_last_index.clear()
         self._step(None)
 
     def _select_trainable_agents(self, original_dict: dict) -> dict:
         return {k: v for k, v in original_dict.items() if k in self._trainable_agents}
+
+    @property
+    def truncated(self) -> bool:
+        return self._max_episode_length == self._current_episode_length
 
     def sample(
         self,
@@ -430,65 +448,88 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         Returns:
             A dict that contains the collected experiences and additional information.
         """
-        # Init the env
-        self._switch_env(self._learn_env)
+        steps_to_go = num_steps if num_steps is not None else float("inf")
+        if policy_state is not None:  # Update policy state if necessary
+            self.set_policy_state(policy_state)
+        self._switch_env(self._learn_env)  # Init the env
+        self._agent_wrapper.explore()  # Collect experience
+
         if self._end_of_episode:
             self._reset()
 
-        # Update policy state if necessary
-        if policy_state is not None:
-            self.set_policy_state(policy_state)
+        # If num_steps is None, run until the end of episode or the episode is truncated
+        # If num_steps is not None, run until we collect required number of steps
+        total_experiences = []
 
-        # Collect experience
-        self._agent_wrapper.explore()
-        steps_to_go = float("inf") if num_steps is None else num_steps
-        while not self._end_of_episode and steps_to_go > 0:
-            # Get agent actions and translate them to env actions
-            action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+        while not any(
+            [
+                num_steps is None and (self._end_of_episode or self.truncated),
+                num_steps is not None and steps_to_go == 0,
+            ],
+        ):
+            if self._end_of_episode or self.truncated:
+                self._reset()
 
-            # Store experiences in the cache
-            cache_element = CacheElement(
-                tick=self.env.tick,
-                event=self._event,
-                state=self._state,
-                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
-                action_dict=self._select_trainable_agents(action_dict),
-                env_action_dict=self._select_trainable_agents(env_action_dict),
-                # The following will be generated later
-                reward_dict={},
-                terminal_dict={},
-                next_state=None,
-                next_agent_state_dict={},
-            )
+            while not any(
+                [
+                    self._end_of_episode,
+                    self.truncated,
+                    steps_to_go == 0,
+                ],
+            ):
+                # Get agent actions and translate them to env actions
+                action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
+                env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
-            # Update env and get new states (global & agent)
-            self._step(list(env_action_dict.values()))
+                self._total_number_interactions += 1
+                self._current_episode_length += 1
+                steps_to_go -= 1
 
-            if self._reward_eval_delay is None:
-                self._calc_reward(cache_element)
-                self._post_step(cache_element)
-            self._append_cache_element(cache_element)
-            steps_to_go -= 1
-        self._append_cache_element(None)
+                # Store experiences in the cache
+                cache_element = CacheElement(
+                    tick=self.env.tick,
+                    event=self._event,
+                    state=self._state,
+                    agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                    action_dict=self._select_trainable_agents(action_dict),
+                    env_action_dict=self._select_trainable_agents(env_action_dict),
+                    # The following will be generated/updated later
+                    reward_dict={},
+                    terminal_dict={},
+                    next_state=None,
+                    next_agent_state_dict={},
+                    truncated=self.truncated,
+                )
 
-        tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
-        experiences: List[ExpElement] = []
-        while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-            cache_element = self._trans_cache.pop(0)
-            # !: Here the reward calculation method requires the given tick is enough and must be used then.
-            if self._reward_eval_delay is not None:
-                self._calc_reward(cache_element)
-                self._post_step(cache_element)
-            experiences.append(cache_element.make_exp_element())
+                # Update env and get new states (global & agent)
+                self._step(list(env_action_dict.values()))
+                cache_element.next_state = self._state
 
-        self._agent_last_index = {
-            k: v - len(experiences) for k, v in self._agent_last_index.items() if v >= len(experiences)
-        }
+                if self._reward_eval_delay is None:
+                    self._calc_reward(cache_element)
+                    self._post_step(cache_element)
+                self._append_cache_element(cache_element)
+
+            self._append_cache_element(None)
+
+            tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
+            experiences: List[ExpElement] = []
+            while len(self._transition_cache) > 0 and self._transition_cache[0].tick <= tick_bound:
+                cache_element = self._transition_cache.pop(0)
+                # !: Here the reward calculation method requires the given tick is enough and must be used then.
+                if self._reward_eval_delay is not None:
+                    self._calc_reward(cache_element)
+                    self._post_step(cache_element)
+                experiences.append(cache_element.make_exp_element())
+
+            self._agent_last_index = {
+                k: v - len(experiences) for k, v in self._agent_last_index.items() if v >= len(experiences)
+            }
+
+            total_experiences += experiences
 
         return {
-            "end_of_episode": self._end_of_episode,
-            "experiences": [experiences],
+            "experiences": [total_experiences],
             "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
         }
 
@@ -514,50 +555,57 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         return loaded
 
-    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None) -> dict:
+    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None, num_episodes: int = 1) -> dict:
         self._switch_env(self._test_env)
-        self._reset()
-        if policy_state is not None:
-            self.set_policy_state(policy_state)
+        info_list = []
 
-        self._agent_wrapper.exploit()
-        while not self._end_of_episode:
-            action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
-            env_action_dict = self._translate_to_env_action(action_dict, self._event)
+        for _ in range(num_episodes):
+            self._reset()
+            if policy_state is not None:
+                self.set_policy_state(policy_state)
 
-            # Store experiences in the cache
-            cache_element = CacheElement(
-                tick=self.env.tick,
-                event=self._event,
-                state=self._state,
-                agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
-                action_dict=self._select_trainable_agents(action_dict),
-                env_action_dict=self._select_trainable_agents(env_action_dict),
-                # The following will be generated later
-                reward_dict={},
-                terminal_dict={},
-                next_state=None,
-                next_agent_state_dict={},
-            )
+            self._agent_wrapper.exploit()
+            while not self._end_of_episode:
+                action_dict = self._agent_wrapper.choose_actions(self._agent_state_dict)
+                env_action_dict = self._translate_to_env_action(action_dict, self._event)
 
-            # Update env and get new states (global & agent)
-            self._step(list(env_action_dict.values()))
+                # Store experiences in the cache
+                cache_element = CacheElement(
+                    tick=self.env.tick,
+                    event=self._event,
+                    state=self._state,
+                    agent_state_dict=self._select_trainable_agents(self._agent_state_dict),
+                    action_dict=self._select_trainable_agents(action_dict),
+                    env_action_dict=self._select_trainable_agents(env_action_dict),
+                    # The following will be generated later
+                    reward_dict={},
+                    terminal_dict={},
+                    next_state=None,
+                    next_agent_state_dict={},
+                    truncated=False,  # No truncation in evaluation
+                )
 
-            if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
-                self._calc_reward(cache_element)
-                self._post_eval_step(cache_element)
+                # Update env and get new states (global & agent)
+                self._step(list(env_action_dict.values()))
+                cache_element.next_state = self._state
 
-            self._append_cache_element(cache_element)
-        self._append_cache_element(None)
+                if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
+                    self._calc_reward(cache_element)
+                    self._post_eval_step(cache_element)
 
-        tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
-        while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
-            cache_element = self._trans_cache.pop(0)
-            if self._reward_eval_delay is not None:
-                self._calc_reward(cache_element)
-                self._post_eval_step(cache_element)
+                self._append_cache_element(cache_element)
+            self._append_cache_element(None)
 
-        return {"info": [self._info]}
+            tick_bound = self.env.tick - (0 if self._reward_eval_delay is None else self._reward_eval_delay)
+            while len(self._transition_cache) > 0 and self._transition_cache[0].tick <= tick_bound:
+                cache_element = self._transition_cache.pop(0)
+                if self._reward_eval_delay is not None:
+                    self._calc_reward(cache_element)
+                    self._post_eval_step(cache_element)
+
+            info_list.append(self._info)
+
+        return {"info": info_list}
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement) -> None:

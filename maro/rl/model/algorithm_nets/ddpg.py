@@ -40,3 +40,7 @@ class ContinuousDDPGNet(ContinuousPolicyNet, metaclass=ABCMeta):
     def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         # Not used in DDPG
         pass
+
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        # Not used in DDPG
+        pass

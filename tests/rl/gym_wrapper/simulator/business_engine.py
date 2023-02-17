@@ -4,6 +4,7 @@
 from typing import List, Optional, cast
 
 import gym
+import numpy as np
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
@@ -36,7 +37,6 @@ class GymBusinessEngine(AbsBusinessEngine):
 
         self._gym_scenario_name = topology
         self._gym_env = gym.make(self._gym_scenario_name)
-        self._seed = additional_options.get("random_seed", None)
 
         self.reset()
 
@@ -81,7 +81,7 @@ class GymBusinessEngine(AbsBusinessEngine):
         return self._info_record[tick]
 
     def reset(self, keep_seed: bool = False) -> None:
-        self._last_obs = self._gym_env.reset()[0]
+        self._last_obs = self._gym_env.reset(seed=np.random.randint(low=0, high=4096))[0]
         self._is_done = False
         self._truncated = False
         self._reward_record = {}

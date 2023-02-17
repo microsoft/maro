@@ -1,21 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# Example RL config file for CIM scenario.
+# Example RL config file for GYM scenario.
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
 # Run this workflow by executing one of the following commands:
-# - python ./examples/rl/run.py ./examples/rl/cim.yml
-# - (Requires installing MARO from source) maro local run ./examples/rl/cim.yml
+# - python tests/rl/run.py tests/rl/config.yml
 
-job: cim_rl_workflow
-scenario_path: "examples/cim/rl"
-log_path: "log/cim_rl/"
+job: gym_rl_workflow
+scenario_path: "tests/rl/tasks/ddpg"
+log_path: "tests/rl/log/ddpg"
 main:
-  num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
-  num_steps: null
-  eval_schedule: 5
-  early_stop_patience: 5
+  num_episodes: 25000
+  num_steps: 200
+  eval_schedule: 25
+  num_eval_episodes: 10
+  min_n_sample: 1
   logging:
     stdout: INFO
     file: DEBUG
@@ -28,8 +28,8 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "log/cim_rl/checkpoints"
-    interval: 5
+    path: null
+    interval: 25
   logging:
     stdout: INFO
     file: DEBUG

@@ -221,3 +221,17 @@ class ContinuousPolicyNet(PolicyNet, metaclass=ABCMeta):
 
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(ContinuousPolicyNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
+
+    def get_random_actions(self, states: torch.Tensor) -> torch.Tensor:
+        actions = self._get_random_actions_impl(states)
+
+        assert self._shape_check(
+            states=states,
+            actions=actions,
+        ), f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
+
+        return actions
+
+    @abstractmethod
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError
