@@ -42,7 +42,7 @@ class TRPOParams(BaseTrainerParams, metaclass=ABCMeta):
     clip_ratio: Optional[float] = None
     max_kl: float = 0.01,
     backtrack_coeff: float = 0.8,
-    max_backtracks: int = 10,
+    max_backtracks: int = 10
 
 
 class TRPOOps(AbsTrainOps):
@@ -51,7 +51,7 @@ class TRPOOps(AbsTrainOps):
     def __init__(
         self,
         name: str,
-        policy: RLPolicy,
+        policy: ContinuousRLPolicy,
         params: TRPOParams,
         dist_fn: Type[torch.distributions.Distribution],
         reward_discount: float = 0.9,
@@ -72,7 +72,7 @@ class TRPOOps(AbsTrainOps):
         self._clip_ratio = params.clip_ratio
         self._v_critic_net = params.get_v_critic_net_func()
         self._is_discrete_action = isinstance(self._policy, DiscretePolicyGradient)
-
+        self._max_backtracks = params.max_backtracks
         self._deterministic_eval = deterministic_eval
         self.dist_fn = dist_fn
         self.policy_net = Policy(self.policy_state_dim, self.policy_action_dim)
@@ -126,6 +126,20 @@ class TRPOOps(AbsTrainOps):
 
 
 
+    # def _get_flat_grad(
+    #     self, y: torch.Tensor, model: nn.Module, **kwargs: Any
+    # ) -> torch.Tensor:
+    #     grads = torch.autograd.grad(y, model.parameters(), **kwargs)  # type: ignore
+    #     return torch.cat([grad.reshape(-1) for grad in grads])
+
+    def get_kl(self, states):
+        mean1, log_std1, std1 = self.policy_net(Variable(states))
+        mean0 = Variable(mean1.data)
+        log_std0 = Variable(log_std1.data)
+        std0 = Variable(std1.data)
+        kl = log_std1 - log_std0 + (std0.pow(2) + (mean0 - mean1).pow(2)) / (2.0 * std1.pow(2)) - 0.5
+        return kl.sum(1, keepdim=True)
+
     def _MVP(self, v: torch.Tensor, flat_kl_grad: torch.Tensor) -> torch.Tensor:
         """Matrix vector product."""
         # caculate second order gradient of kl with respect to theta
@@ -135,8 +149,6 @@ class TRPOOps(AbsTrainOps):
         flat_grad_list = [y for x, y in flat_grads.items()]
         flat_kl_grad_grad = torch.cat([grad.reshape(-1) for grad in flat_grad_list]).detach()
         return flat_kl_grad_grad + v * 0.1
-
-
 
     def _conjugate_gradients(
         self,
@@ -162,6 +174,18 @@ class TRPOOps(AbsTrainOps):
             rdotr = new_rdotr
         return x
 
+    def _set_from_flat_params(
+        self, model: nn.Module, flat_params: torch.Tensor
+    ) -> nn.Module:
+        prev_ind = 0
+        for param in model.parameters():
+            flat_size = int(np.prod(list(param.size())))
+            param.data.copy_(
+                flat_params[prev_ind:prev_ind + flat_size].view(param.size())
+            )
+            prev_ind += flat_size
+        return model
+
     def _get_actor_loss(self, batch: TransitionBatch) -> Tuple[torch.Tensor, bool]:
         """Compute the actor loss of the batch.
 
@@ -179,28 +203,38 @@ class TRPOOps(AbsTrainOps):
         advantages = ndarray_to_tensor(batch.advantages, device=self._device)
         logps_old = ndarray_to_tensor(batch.old_logps, device=self._device)
 
+        reward = torch.Tensor(actions.size(0),1)
+        # ratio:
         if self._is_discrete_action:
             actions = actions.long()
         logps = self._policy.get_states_actions_logps(states, actions)
         ratio = torch.exp(logps - logps_old)
         ratio = ratio.reshape(ratio.size(0), -1).transpose(0, 1)
-        actor_loss = -(ratio * advantages).mean()
-        # 梯度
-        flat_grads = self._v_critic_net.get_gradients(actor_loss)
+        # actor_loss
+        actor_loss = -(ratio * reward).mean()
+
+        # flat_gard
+        flat_grads = self._policy.get_gradients(actor_loss)
         flat_grad_list = [y for x, y in flat_grads.items()]
         flat_grads = torch.cat([grad.reshape(-1) for grad in flat_grad_list])
 
-        # kl梯度
+        # calculate natural gradient
         with torch.no_grad():
-            self._v_critic_net.train()
-            old_logps = ndarray_to_tensor(batch.old_logps, device=self._device)
+            self._policy.train()
+            states = ndarray_to_tensor(batch.states, device=self._device)
 
-        kl = kl_divergence(old_logps, logps).mean()
+        #  kl
+        """
+         因类型不同，所不采用torch中的 kl_divergence
+         get_kl 源于 https://github.com/ikostrikov/pytorch-trpo/blob/master/trpo.py
+        """
+        kl = self.get_kl(states).mean()
+        # kl = kl_divergence(old_logps, logps).mean()
 
-        flat_kl_grad = self._v_critic_net.get_gradients(kl)
+        # kl flat_gard
+        flat_kl_grad = self._policy.get_gradients(kl)
         flat_kl_grad_list = [y for x, y in flat_kl_grad.items()]
         flat_kl_grad = torch.cat([grad.reshape(-1) for grad in flat_kl_grad_list])
-
 
         search_direction = -self._conjugate_gradients(
             flat_grads,
@@ -217,31 +251,32 @@ class TRPOOps(AbsTrainOps):
 
         # stepsize: linesearch stepsize
         with torch.no_grad():
-            flat_params = torch.cat(
-                [param.data.view(-1) for param in self.actor.parameters()]
-            )
-            for i in range(self._max_backtracks):
-                new_flat_params = flat_params + step_size * search_direction
-                self._set_from_flat_params(self.actor, new_flat_params)
-                # calculate kl and if in bound, loss actually down
-                new_dist = self(minibatch).dist
 
-                new_dratio = (
-                    new_dist.log_prob(actions) - logps_old
-                ).exp().float()
-                new_dratio = new_dratio.reshape(new_dratio.size(0),
-                                                -1).transpose(0, 1)
-                new_actor_loss = -(new_dratio * advantages).mean()
-                kl = kl_divergence(old_dist, new_dist).mean()
+            flat_params = torch.cat(
+                [param.data.view(-1) for param in self.policy_net.parameters()]
+            )
+
+            for i in range(self._max_backtracks):
+                print(flat_params)
+                print(step_size * search_direction)
+                new_flat_params = flat_params + step_size * search_direction
+                self._set_from_flat_params(self.policy_net, new_flat_params)
+                # calculate kl and if in bound, loss actually down
+                new_logps = self._policy.get_actions_with_logps(states)[1]
+                new_ratio = torch.exp(new_logps - logps_old)
+                new_ratio = new_ratio.reshape(ratio.size(0), -1).transpose(0, 1)
+                new_actor_loss = -(new_ratio * advantages).mean()
+                kl = self.get_kl(states).mean()
+                # kl = kl_divergence(old_dist, new_dist).mean()
 
                 if kl < self._delta and new_actor_loss < actor_loss:
                     if i > 0:
                         warnings.warn(f"Backtracking to step {i}.")
                     break
                 elif i < self._max_backtracks - 1:
-                    step_size = step_size * self._backtrack_coeff
+                    step_size = step_size * 0.8
                 else:
-                    self._set_from_flat_params(self.actor, new_flat_params)
+                    self._set_from_flat_params(self.policy_net, new_flat_params)
                     step_size = torch.tensor([0.0])
                     warnings.warn(
                         "Line search failed! It seems hyperparamters"
@@ -322,9 +357,7 @@ class TRPOOps(AbsTrainOps):
             rewards = np.concatenate([batch.rewards, np.zeros(1)])
             deltas = rewards[:-1] + self._reward_discount * values[1:] - values[:-1]  # r + gamma * v(s') - v(s)
             batch.returns = discount_cumsum(rewards, self._reward_discount)[:-1]
-
-            if self._clip_ratio is not None:
-                batch.old_logps = self._policy.get_states_actions_logps(states, actions).detach().cpu().numpy()
+            batch.old_logps = self._policy.get_states_actions_logps(states, actions).detach().cpu().numpy()
 
         return batch
 
