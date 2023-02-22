@@ -4,19 +4,14 @@
 from typing import cast
 
 from maro.simulator import Env
-from maro.utils import set_seeds
 
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
-
-set_seeds(123)
 
 env_conf = {
     "topology": "Walker2d-v4",  # HalfCheetah-v4, Hopper-v4, Walker2d-v4, Swimmer-v4, Ant-v4
     "start_tick": 0,
     "durations": 100000,  # Set a very large number
-    "options": {
-        "random_seed": None,
-    },
+    "options": {},
 }
 
 learn_env = Env(business_engine_cls=GymBusinessEngine, **env_conf)
