@@ -61,7 +61,7 @@ def get_redis_conn(port=None):
 
 
 # Functions executed on CLI commands
-def run(conf_path: str, containerize: bool = False, evaluate_only: bool = False, **kwargs):
+def run(conf_path: str, containerize: bool = False, seed: int = None, evaluate_only: bool = False, **kwargs):
     # Load job configuration file
     parser = ConfigParser(conf_path)
     if containerize:
@@ -71,13 +71,14 @@ def run(conf_path: str, containerize: bool = False, evaluate_only: bool = False,
                 LOCAL_MARO_ROOT,
                 DOCKERFILE_PATH,
                 DOCKER_IMAGE_NAME,
+                seed=seed,
                 evaluate_only=evaluate_only,
             )
         except KeyboardInterrupt:
             stop_rl_job_with_docker_compose(parser.config["job"], LOCAL_MARO_ROOT)
     else:
         try:
-            start_rl_job(parser, LOCAL_MARO_ROOT, evaluate_only=evaluate_only)
+            start_rl_job(parser, LOCAL_MARO_ROOT, seed=seed, evaluate_only=evaluate_only)
         except KeyboardInterrupt:
             sys.exit(1)
 
