@@ -286,6 +286,9 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         return self._policy_net.get_gradients(loss)
 
+    def get_kl_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
+        return self._policy_net.get_kl_gradients(loss)
+
     def apply_gradients(self, grad: dict) -> None:
         self._policy_net.apply_gradients(grad)
 

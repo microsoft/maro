@@ -191,6 +191,18 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
+    def get_kl_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
+        """Get the gradients with respect to all parameters of the internal nets according to the given loss.
+
+        Args:
+            loss (torch.tensor): Loss used to update the model.
+
+        Returns:
+            grad (Dict[str, torch.Tensor]): A dict that contains gradients of the internal nets for all parameters.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def apply_gradients(self, grad: dict) -> None:
         """Apply gradients to the net to update all parameters.
 
