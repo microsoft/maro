@@ -87,6 +87,7 @@ def get_ddpg_policy(
         name=name,
         action_range=(action_lower_bound, action_upper_bound),
         policy_net=MyContinuousDDPGNet(gym_state_dim, gym_action_dim, action_limit),
+        warmup=10000,
     )
 
 
