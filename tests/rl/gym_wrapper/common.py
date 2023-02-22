@@ -4,11 +4,8 @@
 from typing import cast
 
 from maro.simulator import Env
-from maro.utils import set_seeds
 
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
-
-set_seeds(123)
 
 env_conf = {
     "topology": "Walker2d-v4",  # HalfCheetah-v4, Hopper-v4, Walker2d-v4, Swimmer-v4, Ant-v4
