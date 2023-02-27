@@ -47,6 +47,19 @@ class AbsNet(torch.nn.Module, metaclass=ABCMeta):
         loss.backward()
         return {name: param.grad for name, param in self.named_parameters()}
 
+    def get_kl_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
+        """Get the gradients with respect to all parameters according to the given loss.
+
+        Args:
+            loss (torch.tensor): Loss used to compute gradients.
+
+        Returns:
+            Gradients (Dict[str, torch.Tensor]): A dict that contains gradients for all parameters.
+        """
+        self.optim.zero_grad()
+        loss.backward(retain_graph=True)
+        return {name: param.grad for name, param in self.named_parameters()}
+
     def apply_gradients(self, grad: Dict[str, torch.Tensor]) -> None:
         """Apply gradients to the net to update all parameters.
 

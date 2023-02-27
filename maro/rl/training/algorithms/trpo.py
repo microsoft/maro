@@ -18,7 +18,7 @@ from torch.distributions import Independent, Normal, Distribution
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
-from torch import nn
+from torch import nn, Tensor
 from torch.distributions import kl_divergence
 
 
@@ -124,8 +124,6 @@ class TRPOOps(AbsTrainOps):
         self._v_critic_net.train()
         self._v_critic_net.apply_gradients(grad_dict)
 
-
-
     # def _get_flat_grad(
     #     self, y: torch.Tensor, model: nn.Module, **kwargs: Any
     # ) -> torch.Tensor:
@@ -140,14 +138,25 @@ class TRPOOps(AbsTrainOps):
         kl = log_std1 - log_std0 + (std0.pow(2) + (mean0 - mean1).pow(2)) / (2.0 * std1.pow(2)) - 0.5
         return kl.sum(1, keepdim=True)
 
+    def _get_flat_grad(
+        self, y: torch.Tensor, model: nn.Module, **kwargs: Any
+    ) -> torch.Tensor:
+        grads = torch.autograd.grad(y, model.parameters(), **kwargs)  # type: ignore
+        return torch.cat([grad.reshape(-1) for grad in grads])
+
+    def kl_div(self, p, q):
+        return (p * torch.log(p / q)).sum().mean()
+
     def _MVP(self, v: torch.Tensor, flat_kl_grad: torch.Tensor) -> torch.Tensor:
         """Matrix vector product."""
         # caculate second order gradient of kl with respect to theta
         kl_v = (flat_kl_grad * v).sum()
-        kl_v = torch.zeros(1, requires_grad=True)
-        flat_grads = self._v_critic_net.get_gradients(kl_v)
+        kl_v.requires_grad_(True)
+
+        flat_grads = self._policy.get_kl_gradients(kl_v)
         flat_grad_list = [y for x, y in flat_grads.items()]
         flat_kl_grad_grad = torch.cat([grad.reshape(-1) for grad in flat_grad_list]).detach()
+
         return flat_kl_grad_grad + v * 0.1
 
     def _conjugate_gradients(
@@ -203,7 +212,7 @@ class TRPOOps(AbsTrainOps):
         advantages = ndarray_to_tensor(batch.advantages, device=self._device)
         logps_old = ndarray_to_tensor(batch.old_logps, device=self._device)
 
-        reward = torch.Tensor(actions.size(0),1)
+        reward = torch.Tensor(actions.size(0), 1)
         # ratio:
         if self._is_discrete_action:
             actions = actions.long()
@@ -221,18 +230,21 @@ class TRPOOps(AbsTrainOps):
         # calculate natural gradient
         with torch.no_grad():
             self._policy.train()
-            states = ndarray_to_tensor(batch.states, device=self._device)
+            old_nograd_logps = self._policy.get_states_actions_logps(states, actions)
 
         #  kl
         """
          因类型不同，所不采用torch中的 kl_divergence
          get_kl 源于 https://github.com/ikostrikov/pytorch-trpo/blob/master/trpo.py
+         math type :  p * torch.log(p / q).sum()
+         (logps * torch.log(logps / logps)).sum()
         """
-        kl = self.get_kl(states).mean()
-        # kl = kl_divergence(old_logps, logps).mean()
+
+        kl = self.kl_div(old_nograd_logps, logps_old)
+        kl.requires_grad_(True)
 
         # kl flat_gard
-        flat_kl_grad = self._policy.get_gradients(kl)
+        flat_kl_grad = self._policy.get_kl_gradients(kl)
         flat_kl_grad_list = [y for x, y in flat_kl_grad.items()]
         flat_kl_grad = torch.cat([grad.reshape(-1) for grad in flat_kl_grad_list])
 
@@ -253,22 +265,25 @@ class TRPOOps(AbsTrainOps):
         with torch.no_grad():
 
             flat_params = torch.cat(
-                [param.data.view(-1) for param in self.policy_net.parameters()]
+                [param.data.view(-1) for param in self._policy.policy_net.parameters()]
             )
 
             for i in range(self._max_backtracks):
-                print(flat_params)
-                print(step_size * search_direction)
+                # print(flat_params)
+                # print(step_size * search_direction)
                 new_flat_params = flat_params + step_size * search_direction
-                self._set_from_flat_params(self.policy_net, new_flat_params)
-                # calculate kl and if in bound, loss actually down
-                new_logps = self._policy.get_actions_with_logps(states)[1]
-                new_ratio = torch.exp(new_logps - logps_old)
-                new_ratio = new_ratio.reshape(ratio.size(0), -1).transpose(0, 1)
-                new_actor_loss = -(new_ratio * advantages).mean()
-                kl = self.get_kl(states).mean()
-                # kl = kl_divergence(old_dist, new_dist).mean()
 
+                self._set_from_flat_params(self._policy.policy_net, new_flat_params)
+                # calculate kl and if in bound, loss actually down
+                new_logps = self._policy.get_states_actions_logps(states, actions)
+                new_ratio = torch.exp(new_logps - logps_old)
+
+                new_ratio = new_ratio.reshape(ratio.size(0), -1).transpose(0, 1)
+                new_actor_loss = -(new_ratio * reward).mean()
+
+                # kl = (old_nograd_logps * torch.log(old_nograd_logps / new_logps)).sum().mean()
+                kl = self.kl_div(old_nograd_logps,ndarray_to_tensor(batch.old_logps, device=self._device))
+                kl.requires_grad_(True)
                 if kl < self._delta and new_actor_loss < actor_loss:
                     if i > 0:
                         warnings.warn(f"Backtracking to step {i}.")
@@ -276,17 +291,18 @@ class TRPOOps(AbsTrainOps):
                 elif i < self._max_backtracks - 1:
                     step_size = step_size * 0.8
                 else:
-                    self._set_from_flat_params(self.policy_net, new_flat_params)
+                    self._set_from_flat_params(self._policy.policy_net, new_flat_params)
                     step_size = torch.tensor([0.0])
                     warnings.warn(
                         "Line search failed! It seems hyperparamters"
                         " are poor and need to be changed."
                     )
-
+        print("--------------------------------------")
+        print(actor_loss)
         return actor_loss
 
     @remote
-    def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
+    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, Tensor]:
         """Compute the actor network's gradients of a batch.
 
         Args:
@@ -402,6 +418,7 @@ class TRPOTrainer(SingleAgentTrainer):
     def _register_policy(self, policy: RLPolicy) -> None:
         assert isinstance(policy, (ContinuousRLPolicy, DiscretePolicyGradient))
         self._policy = policy
+
 
     def build(self) -> None:
         self._ops = cast(TRPOOps, self.get_ops())
