@@ -75,10 +75,11 @@ def plot_performance_curves(title: str, dir_names: List[str], smooth_window_size
         plt.fill_between(x, y_mean - y_std, y_mean + y_std, color=color_map[algorithm], alpha=0.2)
 
     plt.legend()
+    plt.grid()
     plt.title(title)
     plt.xlabel("Total Env Interactions")
-    plt.ylabel(f"Average Trajectory Return (moving average with window size = {smooth_window_size})")
-    plt.savefig(os.path.join(LOG_DIR, f"{title}_{smooth_window_size}.png"))
+    plt.ylabel(f"Average Trajectory Return \n(moving average with window size = {smooth_window_size})")
+    plt.savefig(os.path.join(LOG_DIR, f"{title}_{smooth_window_size}.png"), bbox_inches="tight")
     plt.close()
 
 

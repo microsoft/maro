@@ -82,7 +82,7 @@ class GymEnvSampler(AbsEnvSampler):
             self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
             self._sample_rewards.clear()
         else:
-            self.metrics.clear()
+            self.metrics = {"n_interactions": self._total_number_interactions}
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
         if len(self._eval_rewards) > 0:
@@ -95,3 +95,5 @@ class GymEnvSampler(AbsEnvSampler):
             }
             self.metrics.update(cur)
             self._eval_rewards.clear()
+        else:
+            self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
