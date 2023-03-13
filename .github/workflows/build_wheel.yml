@@ -42,7 +42,7 @@ jobs:
         python setup.py bdist_wheel
 
     - name: Build manylinux wheel
-      if: runner.os == 'Linux' && matrix.python-version == '3.6'
+      if: runner.os == 'Linux' && matrix.python-version == '3.7'
       uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2010_x86_64
       with:
         python-versions: 'cp36-cp36m cp37-cp37m'
@@ -51,13 +51,13 @@ jobs:
         pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH'
 
     - name: Move valid packages to dist folder for manylinux
-      if: runner.os == 'Linux' && matrix.python-version == '3.6'
+      if: runner.os == 'Linux' && matrix.python-version == '3.7'
       run: |
         mkdir -p dist
         cp wheelhouse/pymaro-*-manylinux*.whl dist
 
     - name: Build source package on linux
-      if: runner.os == 'Linux' && matrix.python-version == '3.6'
+      if: runner.os == 'Linux' && matrix.python-version == '3.7'
       run: |
         python setup.py sdist
 
@@ -73,6 +73,6 @@ jobs:
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
+      if: (runner.os == 'Linux' && matrix.python-version == '3.7') || (runner.os == 'Windows' || runner.os == 'macOS')
       run: |
         twine upload --verbose dist/*.whl
