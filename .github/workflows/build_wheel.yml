@@ -41,12 +41,20 @@ jobs:
       run: |
         python setup.py bdist_wheel
 
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+
     - name: Build manylinux wheel
       if: runner.os == 'Linux' && matrix.python-version == '3.7'
       uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2010_x86_64
       with:
         python-versions: 'cp37-cp37m cp38-cp38m cp39-cp39m'
         build-requirements: 'numpy'
+        system-packages: 'libffi-devel'
         pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
         pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH'
 
