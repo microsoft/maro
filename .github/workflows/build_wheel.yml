@@ -42,7 +42,7 @@ jobs:
         python setup.py bdist_wheel
 
     - name: Install docker compose
-      if: runner.os == "Linux" && matrix.python-version == '3.7'
+      if: runner.os == 'Linux' && matrix.python-version == '3.7'
       run: |
         sudo apt install docker-compose
 
