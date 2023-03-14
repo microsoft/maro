@@ -48,7 +48,7 @@ jobs:
         python-versions: 'cp37-cp37m cp38-cp38m cp39-cp39m'
         build-requirements: 'numpy'
         system-packages: 'libffi-devel'
-        pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH; sudo apt install docker-compose'
+        pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH ; sudo apt install docker-compose'
         pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
 
     - name: Move valid packages to dist folder for manylinux
