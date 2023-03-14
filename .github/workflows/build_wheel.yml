@@ -44,6 +44,8 @@ jobs:
     - name: Build manylinux wheel
       if: runner.os == 'Linux' && matrix.python-version == '3.7'
       uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2010_x86_64
+      env:
+        GITHUB_BUILD_ACTION: True
       with:
         python-versions: 'cp37-cp37m cp38-cp38m cp39-cp39m'
         build-requirements: 'numpy'
