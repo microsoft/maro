@@ -52,7 +52,7 @@ jobs:
       env:
         GITHUB_BUILD_ACTION: True
       with:
-        python-versions: 'cp37-cp37m cp38-cp38m cp39-cp39m'
+        python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39'
         build-requirements: 'numpy'
         system-packages: 'libffi-devel'
         pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH'
