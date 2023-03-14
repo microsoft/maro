@@ -41,6 +41,11 @@ jobs:
       run: |
         python setup.py bdist_wheel
 
+    - name: Build source package on Windows
+      if: runner.os == 'Windows' && matrix.python-version == '3.7'
+      run: |
+        python setup.py sdist
+
     - name: Build manylinux wheel
       if: runner.os == 'Linux' && matrix.python-version == '3.7'
       uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2010_x86_64
@@ -58,11 +63,6 @@ jobs:
       run: |
         mkdir -p dist
         cp wheelhouse/pymaro-*-manylinux*.whl dist
-
-    - name: Build source package on linux
-      if: runner.os == 'Linux' && matrix.python-version == '3.7'
-      run: |
-        python setup.py sdist
 
     - name: Upload linux wheel to artifact
       uses: actions/upload-artifact@v2
