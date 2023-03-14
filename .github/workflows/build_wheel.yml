@@ -44,7 +44,9 @@ jobs:
     - name: Install docker compose
       if: runner.os == 'Linux' && matrix.python-version == '3.7'
       run: |
-        sudo apt install docker-compose
+        pip install --upgrade pip
+
+      # sudo apt install docker-compose
 
     - name: Build manylinux wheel
       if: runner.os == 'Linux' && matrix.python-version == '3.7'
