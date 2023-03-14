@@ -82,6 +82,8 @@ extensions.append(
     ),
 )
 
+# It is not necessary to install these packages when using manylinux action, as we only need numpy to build wheels
+# NOTE: install following package will cause build error in current(2023-03-14) manylinux image
 if "GITHUB_BUILD_ACTION" in os.environ:
     install_requires = []
 else:
@@ -107,30 +109,6 @@ if sys.version.startswith("3.6"):
     install_requires.append("dataclasses>=0.5")
 
 readme = io.open("./maro/README.rst", encoding="utf-8").read()
-
-# It is not necessary to install these packages when using manylinux action, as we only need numpy to build wheels
-# NOTE: install following package will cause build error in current(2023-03-14) manylinux image
-if "GITHUB_BUILD_ACTION" in os.environ:
-    install_requires = []
-else:
-    install_requires = [
-             # TODO: use a helper function to collect these
-            "holidays>=0.10.3",
-            "numpy>=1.19.5",
-            "pandas>=0.25.3",
-            "paramiko>=2.9.2",
-            "ptvsd>=4.3.2",
-            "python_dateutil>=2.8.1",
-            "PyYAML>=5.4.1",
-            "pyzmq>=19.0.2",
-            "redis>=3.5.3",
-            "requests>=2.25.1",
-            "scipy>=1.7.0",
-            "tabulate>=0.8.5",
-            "torch>=1.6.0, <1.14.0",
-            "tornado>=6.1",   
-    ] + specific_requires
-
 
 setup(
     name="pymaro",
