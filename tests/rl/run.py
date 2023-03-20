@@ -4,7 +4,6 @@
 import argparse
 
 from maro.cli.local.commands import run
-from maro.utils.utils import set_seeds
 
 
 def get_args() -> argparse.Namespace:
@@ -17,6 +16,4 @@ def get_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = get_args()
-    if args.seed is not None:
-        set_seeds(seed=args.seed)
-    run(conf_path=args.conf_path, containerize=False, evaluate_only=args.evaluate_only)
+    run(conf_path=args.conf_path, containerize=False, seed=args.seed, evaluate_only=args.evaluate_only)

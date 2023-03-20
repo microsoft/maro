@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import torch
+from gym import spaces
 from torch.optim import Adam
 
 from maro.rl.model import QNet
@@ -10,12 +11,14 @@ from maro.rl.model.fc_block import FullyConnected
 from maro.rl.policy import ContinuousRLPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
 from maro.rl.training.algorithms import DDPGParams, DDPGTrainer
+from maro.rl.utils import ndarray_to_tensor
 
 from tests.rl.gym_wrapper.common import (
     action_limit,
     action_lower_bound,
     action_upper_bound,
     gym_action_dim,
+    gym_action_space,
     gym_state_dim,
     learn_env,
     num_agents,
@@ -37,7 +40,14 @@ critic_learning_rate = 1e-3
 
 
 class MyContinuousDDPGNet(ContinuousDDPGNet):
-    def __init__(self, state_dim: int, action_dim: int, action_limit: float, noise_scale: float = 0.1) -> None:
+    def __init__(
+        self,
+        state_dim: int,
+        action_dim: int,
+        action_limit: float,
+        action_space: spaces.Space,
+        noise_scale: float = 0.1,
+    ) -> None:
         super(MyContinuousDDPGNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
 
         self._net = FullyConnected(
@@ -50,6 +60,7 @@ class MyContinuousDDPGNet(ContinuousDDPGNet):
         self._optim = Adam(self._net.parameters(), lr=critic_learning_rate)
         self._action_limit = action_limit
         self._noise_scale = noise_scale
+        self._action_space = action_space
 
     def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
         action = self._net(states) * self._action_limit
@@ -58,6 +69,11 @@ class MyContinuousDDPGNet(ContinuousDDPGNet):
             action += noise.to(action.device)
             action = torch.clamp(action, -self._action_limit, self._action_limit)
         return action
+
+    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+        return torch.stack(
+            [ndarray_to_tensor(self._action_space.sample(), device=self._device) for _ in range(states.shape[0])],
+        )
 
 
 class MyQCriticNet(QNet):
@@ -86,7 +102,8 @@ def get_ddpg_policy(
     return ContinuousRLPolicy(
         name=name,
         action_range=(action_lower_bound, action_upper_bound),
-        policy_net=MyContinuousDDPGNet(gym_state_dim, gym_action_dim, action_limit),
+        policy_net=MyContinuousDDPGNet(gym_state_dim, gym_action_dim, action_limit, gym_action_space),
+        warmup=10000,
     )
 
 

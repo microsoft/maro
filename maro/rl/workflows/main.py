@@ -15,7 +15,7 @@ from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
 from maro.rl.utils.training import get_latest_ep
 from maro.rl.workflows.callback import CallbackManager, Checkpoint, EarlyStopping, MetricsRecorder
-from maro.utils import LoggerV2
+from maro.utils import LoggerV2, set_seeds
 
 
 class WorkflowEnvAttributes:
@@ -85,6 +85,7 @@ class WorkflowEnvAttributes:
 def _get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="MARO RL workflow parser")
     parser.add_argument("--evaluate_only", action="store_true", help="Only run evaluation part of the workflow")
+    parser.add_argument("--seed", type=int, help="The random seed set before running this job")
     return parser.parse_args()
 
 
@@ -243,9 +244,13 @@ def evaluate_only_workflow(rl_component_bundle: RLComponentBundle, env_attr: Wor
 
 
 if __name__ == "__main__":
+    args = _get_args()
+    if args.seed is not None:
+        set_seeds(seed=args.seed)
+
     scenario_path = get_env("SCENARIO_PATH")
     scenario_path = os.path.normpath(scenario_path)
     sys.path.insert(0, os.path.dirname(scenario_path))
     module = importlib.import_module(os.path.basename(scenario_path))
 
-    main(getattr(module, "rl_component_bundle"), WorkflowEnvAttributes(), args=_get_args())
+    main(getattr(module, "rl_component_bundle"), WorkflowEnvAttributes(), args=args)

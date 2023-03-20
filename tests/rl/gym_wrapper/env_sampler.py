@@ -68,26 +68,32 @@ class GymEnvSampler(AbsEnvSampler):
         self._eval_rewards.append((len(rewards), np.sum(rewards)))
 
     def post_collect(self, info_list: list, ep: int) -> None:
-        cur = {
-            "n_steps": sum([n for n, _ in self._sample_rewards]),
-            "n_segment": len(self._sample_rewards),
-            "avg_reward": np.mean([r for _, r in self._sample_rewards]),
-            "avg_n_steps": np.mean([n for n, _ in self._sample_rewards]),
-            "max_n_steps": np.max([n for n, _ in self._sample_rewards]),
-            "n_interactions": self._total_number_interactions,
-        }
-        self.metrics.update(cur)
-        # clear validation metrics
-        self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
-        self._sample_rewards.clear()
+        if len(self._sample_rewards) > 0:
+            cur = {
+                "n_steps": sum([n for n, _ in self._sample_rewards]),
+                "n_segment": len(self._sample_rewards),
+                "avg_reward": np.mean([r for _, r in self._sample_rewards]),
+                "avg_n_steps": np.mean([n for n, _ in self._sample_rewards]),
+                "max_n_steps": np.max([n for n, _ in self._sample_rewards]),
+                "n_interactions": self._total_number_interactions,
+            }
+            self.metrics.update(cur)
+            # clear validation metrics
+            self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
+            self._sample_rewards.clear()
+        else:
+            self.metrics = {"n_interactions": self._total_number_interactions}
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
-        cur = {
-            "val/n_steps": sum([n for n, _ in self._eval_rewards]),
-            "val/n_segment": len(self._eval_rewards),
-            "val/avg_reward": np.mean([r for _, r in self._eval_rewards]),
-            "val/avg_n_steps": np.mean([n for n, _ in self._eval_rewards]),
-            "val/max_n_steps": np.max([n for n, _ in self._eval_rewards]),
-        }
-        self.metrics.update(cur)
-        self._eval_rewards.clear()
+        if len(self._eval_rewards) > 0:
+            cur = {
+                "val/n_steps": sum([n for n, _ in self._eval_rewards]),
+                "val/n_segment": len(self._eval_rewards),
+                "val/avg_reward": np.mean([r for _, r in self._eval_rewards]),
+                "val/avg_n_steps": np.mean([n for n, _ in self._eval_rewards]),
+                "val/max_n_steps": np.max([n for n, _ in self._eval_rewards]),
+            }
+            self.metrics.update(cur)
+            self._eval_rewards.clear()
+        else:
+            self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}

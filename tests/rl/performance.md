@@ -1,13 +1,14 @@
 # Performance for Gym Task Suite
 
-We benchmarked the MARO RL Toolkit implementation in Gym task suite.
-Some are compared to the benchmarks in [OpenAI Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#).
-Limited by the environment version difference<!-- and some others?-->,
-there may be some gaps between the performance here and that in Spinning Up benchmarks.
+We benchmarked the MARO RL Toolkit implementation in Gym task suite. Some are compared to the benchmarks in
+[OpenAI Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#). We've tried to align the
+hyper-parameters for these benchmarks , but limited by the environment version difference, there may be some gaps
+between the performance here and that in Spinning Up benchmarks. Generally speaking, the performance is comparable.
 
 ## Experimental Setting
 
-The hyper-parameters are set to align with those used in [Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#experiment-details):
+The hyper-parameters are set to align with those used in
+[Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#experiment-details):
 
 **Batch Size**:
 
@@ -24,13 +25,25 @@ The hyper-parameters are set to align with those used in [Spinning Up](https://s
 - For on-policy algorithms: measured as the average trajectory return across the batch collected at each epoch;
 - For off-policy algorithms: measured once every 10,000 steps by running the deterministic policy (or, in the case of SAC, the mean policy) without action noise for ten trajectories, and reporting the average return over those test trajectories;
 
-**Total timesteps**: set to 3M for all task suites and algorithms.
+**Total timesteps**: set to 4M for all task suites and algorithms.
 
-Other parameters are set to the values in *tests/rl/tasks/*.
+More details about the parameters can be found in *tests/rl/tasks/*.
 
-## Performance Comparison
+## Performance
 
-Five environments from the MuJoCo Gym task suite are reported in Spinning Up, they are: HalfCheetah, Hopper, Walker2d, Swimmer, and Ant.
+Five environments from the MuJoCo Gym task suite are reported in Spinning Up, they are: HalfCheetah, Hopper, Walker2d,
+Swimmer, and Ant. The commit id of the code used to conduct the experiments for MARO RL benchmarks is ee25ce1e97.
+The commands used are:
+
+```sh
+# Step 1: Set up the MuJoCo Environment in file tests/rl/gym_wrapper/common.py
+
+# Step 2: Use the command below to run experiment with ALGORITHM (ddpg, ppo, sac) and random seed SEED.
+python tests/rl/run.py tests/rl/tasks/ALGORITHM/config.yml --seed SEED
+
+# Step 3: Plot performance curves by environment with specific smooth window size WINDOWSIZE.
+python tests/rl/plot.py --smooth WINDOWSIZE
+```
 
 |     **Env**     | **Spinning Up** | **MARO RL w/o Smooth** | **MARO RL w/ Smooth** |
 |:---------------:|:---------------:|:----------------------:|:---------------------:|
