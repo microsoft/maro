@@ -247,7 +247,7 @@ if __name__ == "__main__":
     args = _get_args()
     if args.seed is not None:
         set_seeds(seed=args.seed)
-    
+
     scenario_path = get_env("SCENARIO_PATH")
     scenario_path = os.path.normpath(scenario_path)
     sys.path.insert(0, os.path.dirname(scenario_path))

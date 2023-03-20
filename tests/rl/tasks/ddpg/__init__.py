@@ -41,11 +41,11 @@ critic_learning_rate = 1e-3
 
 class MyContinuousDDPGNet(ContinuousDDPGNet):
     def __init__(
-        self, 
-        state_dim: int, 
-        action_dim: int, 
-        action_limit: float, 
-        action_space: spaces.Space, 
+        self,
+        state_dim: int,
+        action_dim: int,
+        action_limit: float,
+        action_space: spaces.Space,
         noise_scale: float = 0.1,
     ) -> None:
         super(MyContinuousDDPGNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
@@ -74,6 +74,7 @@ class MyContinuousDDPGNet(ContinuousDDPGNet):
         return torch.stack(
             [ndarray_to_tensor(self._action_space.sample(), device=self._device) for _ in range(states.shape[0])],
         )
+
 
 class MyQCriticNet(QNet):
     def __init__(self, state_dim: int, action_dim: int) -> None:
