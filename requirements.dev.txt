@@ -41,7 +41,7 @@ pyzmq>=19.0.2
 recommonmark~=0.6.0
 requests>=2.25.1
 scipy>=1.7.0
-setuptools==58.0.4
+setuptools==65.5.1
 six==1.13.0
 sphinx==1.8.6
 sphinx_rtd_theme==1.0.0
@@ -49,7 +49,7 @@ streamlit>=0.69.1
 stringcase>=1.2.0
 tabulate>=0.8.5
 termgraph==0.5.3
-torch==1.6.0
+torch==1.13.1
 torchsummary==1.5.1
 tornado>=6.1
 tqdm>=4.51.0

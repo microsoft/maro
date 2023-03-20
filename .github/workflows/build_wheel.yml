@@ -41,25 +41,28 @@ jobs:
       run: |
         python setup.py bdist_wheel
 
+    - name: Build source package on Windows
+      if: runner.os == 'Windows' && matrix.python-version == '3.7'
+      run: |
+        python setup.py sdist
+
     - name: Build manylinux wheel
-      if: runner.os == 'Linux' && matrix.python-version == '3.6'
+      if: runner.os == 'Linux' && matrix.python-version == '3.7'
       uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2010_x86_64
+      env:
+        GITHUB_BUILD_ACTION: True
       with:
-        python-versions: 'cp36-cp36m cp37-cp37m'
+        python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39'
         build-requirements: 'numpy'
-        pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
+        system-packages: 'libffi-devel'
         pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH'
+        pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
 
     - name: Move valid packages to dist folder for manylinux
-      if: runner.os == 'Linux' && matrix.python-version == '3.6'
+      if: runner.os == 'Linux' && matrix.python-version == '3.7'
       run: |
         mkdir -p dist
         cp wheelhouse/pymaro-*-manylinux*.whl dist
-
-    - name: Build source package on linux
-      if: runner.os == 'Linux' && matrix.python-version == '3.6'
-      run: |
-        python setup.py sdist
 
     - name: Upload linux wheel to artifact
       uses: actions/upload-artifact@v2
@@ -73,6 +76,6 @@ jobs:
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
+      if: (runner.os == 'Linux' && matrix.python-version == '3.7') || (runner.os == 'Windows' || runner.os == 'macOS')
       run: |
         twine upload --verbose dist/*.whl
