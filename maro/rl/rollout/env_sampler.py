@@ -387,7 +387,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _step(self, actions: Optional[list]) -> None:
         _, self._event, self._end_of_episode = self.env.step(actions)
         self._state, self._agent_state_dict = (
-            (None, {}) if self._end_of_episode else self._get_global_and_agent_state(self._event)
+            (None, {}) if self._end_of_episode else self._get_global_and_agent_state(self._event, self.env.tick)
         )
 
     def _calc_reward(self, cache_element: CacheElement) -> None:
