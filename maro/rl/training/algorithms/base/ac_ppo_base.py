@@ -90,13 +90,19 @@ class ACBasedOps(AbsTrainOps):
         """
         return self._v_critic_net.get_gradients(self._get_critic_loss(batch))
 
-    def update_critic(self, batch: TransitionBatch) -> None:
+    def update_critic(self, batch: TransitionBatch) -> float:
         """Update the critic network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (float): The detached loss of this batch.
         """
-        self._v_critic_net.step(self._get_critic_loss(batch))
+        self._v_critic_net.train()
+        loss = self._get_critic_loss(batch)
+        self._v_critic_net.step(loss)
+        return loss.detach().cpu().numpy().item()
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
         """Update the critic network with remotely computed gradients.
@@ -148,24 +154,26 @@ class ACBasedOps(AbsTrainOps):
             batch (TransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The actor gradient of the batch.
+            grad_dict (Dict[str, torch.Tensor]): The actor gradient of the batch.
             early_stop (bool): Early stop indicator.
         """
         loss, early_stop = self._get_actor_loss(batch)
         return self._policy.get_gradients(loss), early_stop
 
-    def update_actor(self, batch: TransitionBatch) -> bool:
+    def update_actor(self, batch: TransitionBatch) -> Tuple[float, bool]:
         """Update the actor network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
 
         Returns:
+            loss (float): The detached loss of this batch.
             early_stop (bool): Early stop indicator.
         """
+        self._policy.train()
         loss, early_stop = self._get_actor_loss(batch)
         self._policy.train_step(loss)
-        return early_stop
+        return loss.detach().cpu().numpy().item(), early_stop
 
     def update_actor_with_grad(self, grad_dict_and_early_stop: Tuple[dict, bool]) -> bool:
         """Update the actor network with remotely computed gradients.
@@ -332,7 +340,9 @@ class ACBasedTrainer(SingleAgentTrainer):
         batch = self._get_batch()
 
         for _ in range(self._params.grad_iters):
-            if self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch)):  # early stop
+            grad_dict, early_stop = await self._ops.get_actor_grad(batch)
+            self._ops.update_actor_with_grad(grad_dict)
+            if early_stop:
                 break
 
         for _ in range(self._params.grad_iters):

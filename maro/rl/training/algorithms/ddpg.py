@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, cast
+from typing import Callable, Dict, Optional, Tuple, cast
 
 import torch
 
@@ -120,16 +120,21 @@ class DDPGOps(AbsTrainOps):
         self._q_critic_net.train()
         self._q_critic_net.apply_gradients(grad_dict)
 
-    def update_critic(self, batch: TransitionBatch) -> None:
+    def update_critic(self, batch: TransitionBatch) -> float:
         """Update the critic network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (float): The detached loss of this batch.
         """
         self._q_critic_net.train()
-        self._q_critic_net.step(self._get_critic_loss(batch))
+        loss = self._get_critic_loss(batch)
+        self._q_critic_net.step(loss)
+        return loss.detach().cpu().numpy().item()
 
-    def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
+    def _get_actor_loss(self, batch: TransitionBatch) -> Tuple[torch.Tensor, bool]:
         """Compute the actor loss of the batch.
 
         Args:
@@ -137,6 +142,7 @@ class DDPGOps(AbsTrainOps):
 
         Returns:
             loss (torch.Tensor): The actor loss of the batch.
+            early_stop (bool): The early stop indicator, set to False in current implementation.
         """
         assert isinstance(batch, TransitionBatch)
         self._policy.train()
@@ -147,19 +153,23 @@ class DDPGOps(AbsTrainOps):
             actions=self._policy.get_actions_tensor(states),  # miu(s)
         ).mean()  # -Q(s, miu(s))
 
-        return policy_loss
+        early_stop = False
+
+        return policy_loss, early_stop
 
     @remote
-    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
         """Compute the actor network's gradients of a batch.
 
         Args:
             batch (TransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The actor gradient of the batch.
+            grad_dict (Dict[str, torch.Tensor]): The actor gradient of the batch.
+            early_stop (bool): Early stop indicator.
         """
-        return self._policy.get_gradients(self._get_actor_loss(batch))
+        loss, early_stop = self._get_actor_loss(batch)
+        return self._policy.get_gradients(loss), early_stop
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the actor network with remotely computed gradients.
@@ -170,14 +180,20 @@ class DDPGOps(AbsTrainOps):
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
-    def update_actor(self, batch: TransitionBatch) -> None:
+    def update_actor(self, batch: TransitionBatch) -> Tuple[float, bool]:
         """Update the actor network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (float): The detached loss of this batch.
+            early_stop (bool): Early stop indicator.
         """
         self._policy.train()
-        self._policy.train_step(self._get_actor_loss(batch))
+        loss, early_stop = self._get_actor_loss(batch)
+        self._policy.train_step(loss)
+        return loss.detach().cpu().numpy().item(), early_stop
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -290,9 +306,11 @@ class DDPGTrainer(SingleAgentTrainer):
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
-            self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))
-
+            grad_dict, early_stop = await self._ops.get_actor_grad(batch)
+            self._ops.update_actor_with_grad(grad_dict)
             self._try_soft_update_target()
+            if early_stop:
+                break
 
     def _try_soft_update_target(self) -> None:
         """Soft update the target policy and target critic."""

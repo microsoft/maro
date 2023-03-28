@@ -95,14 +95,33 @@ class SoftActorCriticOps(AbsTrainOps):
         self._q_net1.apply_gradients(grad_dicts[0])
         self._q_net2.apply_gradients(grad_dicts[1])
 
-    def update_critic(self, batch: TransitionBatch) -> None:
+    def update_critic(self, batch: TransitionBatch) -> Tuple[float, float]:
+        """Update the critic network using a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss_q1 (float): The detached q_net1 loss of this batch.
+            loss_q2 (float): The detached q_net2 loss of this batch.
+        """
         self._q_net1.train()
         self._q_net2.train()
         loss_q1, loss_q2 = self._get_critic_loss(batch)
         self._q_net1.step(loss_q1)
         self._q_net2.step(loss_q2)
+        return loss_q1.detach().cpu().numpy().item(), loss_q2.detach().cpu().numpy().item()
 
-    def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
+    def _get_actor_loss(self, batch: TransitionBatch) -> Tuple[torch.Tensor, bool]:
+        """Compute the actor loss of the batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (torch.Tensor): The actor loss of the batch.
+            early_stop (bool): The early stop indicator, set to False in current implementation.
+        """
         self._q_net1.freeze()
         self._q_net2.freeze()
 
@@ -118,19 +137,42 @@ class SoftActorCriticOps(AbsTrainOps):
         self._q_net1.unfreeze()
         self._q_net2.unfreeze()
 
-        return loss
+        early_stop = False
+
+        return loss, early_stop
 
     @remote
-    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
-        return self._policy.get_gradients(self._get_actor_loss(batch))
+    def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
+        """Compute the actor network's gradients of a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            grad_dict (Dict[str, torch.Tensor]): The actor gradient of the batch.
+            early_stop (bool): Early stop indicator.
+        """
+        loss, early_stop = self._get_actor_loss(batch)
+        return self._policy.get_gradients(loss), early_stop
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
-    def update_actor(self, batch: TransitionBatch) -> None:
+    def update_actor(self, batch: TransitionBatch) -> Tuple[float, bool]:
+        """Update the actor network using a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (float): The detached loss of this batch.
+            early_stop (bool): Early stop indicator.
+        """
         self._policy.train()
-        self._policy.train_step(self._get_actor_loss(batch))
+        loss, early_stop = self._get_actor_loss(batch)
+        self._policy.train_step(loss)
+        return loss.detach().cpu().numpy().item(), early_stop
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -224,9 +266,11 @@ class SoftActorCriticTrainer(SingleAgentTrainer):
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
-            self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))
-
+            grad_dict, early_stop = await self._ops.get_actor_grad(batch)
+            self._ops.update_actor_with_grad(grad_dict)
             self._try_soft_update_target()
+            if early_stop:
+                break
 
     def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
         return transition_batch
