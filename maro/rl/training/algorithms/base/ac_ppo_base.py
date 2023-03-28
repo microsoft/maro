@@ -255,7 +255,7 @@ class ACBasedOps(AbsTrainOps):
     def to_device(self, device: str = None) -> None:
         self._device = get_torch_device(device)
         self._policy.to_device(self._device)
-        self._v_critic_net.to(self._device)
+        self._v_critic_net.to_device(self._device)
 
 
 class ACBasedTrainer(SingleAgentTrainer):

@@ -200,8 +200,8 @@ class DDPGOps(AbsTrainOps):
         self._device = get_torch_device(device=device)
         self._policy.to_device(self._device)
         self._target_policy.to_device(self._device)
-        self._q_critic_net.to(self._device)
-        self._target_q_critic_net.to(self._device)
+        self._q_critic_net.to_device(self._device)
+        self._target_q_critic_net.to_device(self._device)
 
 
 class DDPGTrainer(SingleAgentTrainer):

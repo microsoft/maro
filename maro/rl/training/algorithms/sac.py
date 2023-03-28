@@ -155,10 +155,10 @@ class SoftActorCriticOps(AbsTrainOps):
 
         self._policy.to_device(self._device)
 
-        self._q_net1.to(self._device)
-        self._q_net2.to(self._device)
-        self._target_q_net1.to(self._device)
-        self._target_q_net2.to(self._device)
+        self._q_net1.to_device(self._device)
+        self._q_net2.to_device(self._device)
+        self._target_q_net1.to_device(self._device)
+        self._target_q_net2.to_device(self._device)
 
 
 class SoftActorCriticTrainer(SingleAgentTrainer):

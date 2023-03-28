@@ -275,8 +275,8 @@ class DiscreteMADDPGOps(AbsTrainOps):
             self._policy.to_device(self._device)
             self._target_policy.to_device(self._device)
 
-        self._q_critic_net.to(self._device)
-        self._target_q_critic_net.to(self._device)
+        self._q_critic_net.to_device(self._device)
+        self._target_q_critic_net.to_device(self._device)
 
 
 class DiscreteMADDPGTrainer(MultiAgentTrainer):
