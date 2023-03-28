@@ -118,10 +118,14 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         Returns:
             q_values (np.ndarray): Q-matrix.
         """
-        return self.q_values_for_all_actions_tensor(
-            ndarray_to_tensor(states, device=self._device),
-            **kwargs,
-        ).cpu().numpy()
+        return (
+            self.q_values_for_all_actions_tensor(
+                ndarray_to_tensor(states, device=self._device),
+                **kwargs,
+            )
+            .cpu()
+            .numpy()
+        )
 
     def q_values_for_all_actions_tensor(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Generate a matrix containing the Q-values for all actions for the given states.
