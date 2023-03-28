@@ -49,7 +49,12 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
 
         return actions
 
-    def get_actions_with_probs(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_actions_with_probs(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         assert self._shape_check(
             states=states,
             **kwargs,
@@ -66,7 +71,12 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
 
         return actions, probs
 
-    def get_actions_with_logps(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_actions_with_logps(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         assert self._shape_check(
             states=states,
             **kwargs,
@@ -112,11 +122,21 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_actions_with_probs_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_probs_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_logps_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         raise NotImplementedError
 
     @abstractmethod
@@ -197,7 +217,12 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
         actions, _ = self._get_actions_with_probs_impl(states, exploring, **kwargs)
         return actions
 
-    def _get_actions_with_probs_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_probs_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         probs = self.get_action_probs(states, **kwargs)
         if exploring:
             distribution = Categorical(probs)
@@ -207,7 +232,12 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
             probs, actions = probs.max(dim=1)
             return actions.unsqueeze(1), probs
 
-    def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_logps_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         actions, probs = self._get_actions_with_probs_impl(states, exploring, **kwargs)
         return actions, torch.log(probs)
 

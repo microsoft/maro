@@ -25,11 +25,21 @@ class ContinuousDDPGNet(ContinuousPolicyNet, metaclass=ABCMeta):
     - set_state(self, net_state: dict) -> None:
     """
 
-    def _get_actions_with_probs_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_probs_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Not used in DDPG
         pass
 
-    def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_logps_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Not used in DDPG
         pass
 
