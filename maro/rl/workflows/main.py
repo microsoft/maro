@@ -145,6 +145,7 @@ class TrainingWorkflow(object):
             )
         if env_attr.early_stop_patience is not None:
             callbacks.append(EarlyStopping(patience=env_attr.early_stop_patience))
+        callbacks.extend(rl_component_bundle.customized_callbacks)
         cbm = CallbackManager(self, callbacks, env_sampler, training_manager, env_attr.logger)
 
         if env_attr.load_path:
