@@ -43,18 +43,23 @@ class ContinuousACBasedNet(ContinuousPolicyNet, metaclass=ABCMeta):
     - set_state(self, net_state: dict) -> None:
     """
 
-    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
-        actions, _ = self._get_actions_with_logps_impl(states, exploring)
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> torch.Tensor:
+        actions, _ = self._get_actions_with_logps_impl(states, exploring, **kwargs)
         return actions
 
-    def _get_actions_with_probs_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_probs_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Not used in Actor-Critic or PPO
         pass
 
-    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         # Not used in Actor-Critic or PPO
         pass
 
-    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+    def _get_random_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         # Not used in Actor-Critic or PPO
         pass

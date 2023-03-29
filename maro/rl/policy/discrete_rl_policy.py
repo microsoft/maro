@@ -52,10 +52,10 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
     def action_num(self) -> int:
         return self._action_num
 
-    def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
+    def _post_check(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> bool:
         return all([0 <= action < self.action_num for action in actions.cpu().numpy().flatten()])
 
-    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+    def _get_random_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         return ndarray_to_tensor(
             np.random.randint(self.action_num, size=(states.shape[0], 1)),
             device=self._device,
@@ -109,7 +109,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def q_net(self) -> DiscreteQNet:
         return self._q_net
 
-    def q_values_for_all_actions(self, states: np.ndarray) -> np.ndarray:
+    def q_values_for_all_actions(self, states: np.ndarray, **kwargs) -> np.ndarray:
         """Generate a matrix containing the Q-values for all actions for the given states.
 
         Args:
@@ -118,9 +118,16 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         Returns:
             q_values (np.ndarray): Q-matrix.
         """
-        return self.q_values_for_all_actions_tensor(ndarray_to_tensor(states, device=self._device)).cpu().numpy()
+        return (
+            self.q_values_for_all_actions_tensor(
+                ndarray_to_tensor(states, device=self._device),
+                **kwargs,
+            )
+            .cpu()
+            .numpy()
+        )
 
-    def q_values_for_all_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
+    def q_values_for_all_actions_tensor(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Generate a matrix containing the Q-values for all actions for the given states.
 
         Args:
@@ -129,12 +136,12 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         Returns:
             q_values (torch.Tensor): Q-matrix.
         """
-        assert self._shape_check(states=states)
-        q_values = self._q_net.q_values_for_all_actions(states)
+        assert self._shape_check(states=states, **kwargs)
+        q_values = self._q_net.q_values_for_all_actions(states, **kwargs)
         assert match_shape(q_values, (states.shape[0], self.action_num))  # [B, action_num]
         return q_values
 
-    def q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
+    def q_values(self, states: np.ndarray, actions: np.ndarray, **kwargs) -> np.ndarray:
         """Generate the Q values for given state-action pairs.
 
         Args:
@@ -148,12 +155,13 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             self.q_values_tensor(
                 ndarray_to_tensor(states, device=self._device),
                 ndarray_to_tensor(actions, device=self._device),
+                **kwargs,
             )
             .cpu()
             .numpy()
         )
 
-    def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         """Generate the Q values for given state-action pairs.
 
         Args:
@@ -163,40 +171,46 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         Returns:
             q_values (torch.Tensor): Q-values.
         """
-        assert self._shape_check(states=states, actions=actions)  # actions: [B, 1]
-        q_values = self._q_net.q_values(states, actions)
+        assert self._shape_check(states=states, actions=actions, **kwargs)  # actions: [B, 1]
+        q_values = self._q_net.q_values(states, actions, **kwargs)
         assert match_shape(q_values, (states.shape[0],))  # [B]
         return q_values
 
     def explore(self) -> None:
         pass  # Overwrite the base method and turn off explore mode.
 
-    def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        return self._get_actions_with_probs_impl(states)[0]
+    def _get_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._get_actions_with_probs_impl(states, **kwargs)[0]
 
-    def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        q_matrix = self.q_values_for_all_actions_tensor(states)  # [B, action_num]
+    def _get_actions_with_probs_impl(self, states: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+        q_matrix = self.q_values_for_all_actions_tensor(states, **kwargs)  # [B, action_num]
         q_matrix_softmax = self._softmax(q_matrix)
         _, actions = q_matrix.max(dim=1)  # [B], [B]
 
         if self._is_exploring:
-            actions = self._exploration_func(states, actions.cpu().numpy(), self.action_num, **self._exploration_params)
+            actions = self._exploration_func(
+                states,
+                actions.cpu().numpy(),
+                self.action_num,
+                **self._exploration_params,
+                **kwargs,
+            )
             actions = ndarray_to_tensor(actions, device=self._device)
 
         actions = actions.unsqueeze(1)
         return actions, q_matrix_softmax.gather(1, actions).squeeze(-1)  # [B, 1]
 
-    def _get_actions_with_logps_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        actions, probs = self._get_actions_with_probs_impl(states)
+    def _get_actions_with_logps_impl(self, states: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+        actions, probs = self._get_actions_with_probs_impl(states, **kwargs)
         return actions, torch.log(probs)
 
-    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        q_matrix = self.q_values_for_all_actions_tensor(states)
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        q_matrix = self.q_values_for_all_actions_tensor(states, **kwargs)
         q_matrix_softmax = self._softmax(q_matrix)
         return q_matrix_softmax.gather(1, actions).squeeze(-1)  # [B]
 
-    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        probs = self._get_states_actions_probs_impl(states, actions)
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        probs = self._get_states_actions_probs_impl(states, actions, **kwargs)
         return torch.log(probs)
 
     def train_step(self, loss: torch.Tensor) -> None:
@@ -276,20 +290,20 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def policy_net(self) -> DiscretePolicyNet:
         return self._policy_net
 
-    def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        return self._policy_net.get_actions(states, self._is_exploring)
+    def _get_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._policy_net.get_actions(states, self._is_exploring, **kwargs)
 
-    def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self._policy_net.get_actions_with_probs(states, self._is_exploring)
+    def _get_actions_with_probs_impl(self, states: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_probs(states, self._is_exploring, **kwargs)
 
-    def _get_actions_with_logps_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self._policy_net.get_actions_with_logps(states, self._is_exploring)
+    def _get_actions_with_logps_impl(self, states: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_logps(states, self._is_exploring, **kwargs)
 
-    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        return self._policy_net.get_states_actions_probs(states, actions)
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._policy_net.get_states_actions_probs(states, actions, **kwargs)
 
-    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        return self._policy_net.get_states_actions_logps(states, actions)
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._policy_net.get_states_actions_logps(states, actions, **kwargs)
 
     def train_step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)
@@ -330,7 +344,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         assert isinstance(other_policy, DiscretePolicyGradient)
         self._policy_net.soft_update(other_policy.policy_net, tau)
 
-    def get_action_probs(self, states: torch.Tensor) -> torch.Tensor:
+    def get_action_probs(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Get the probabilities for all actions according to states.
 
         Args:
@@ -341,15 +355,16 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         """
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
-        action_probs = self._policy_net.get_action_probs(states)
+        action_probs = self._policy_net.get_action_probs(states, **kwargs)
         assert match_shape(action_probs, (states.shape[0], self.action_num)), (
             f"Action probabilities shape check failed. Expecting: {(states.shape[0], self.action_num)}, "
             f"actual: {action_probs.shape}."
         )
         return action_probs
 
-    def get_action_logps(self, states: torch.Tensor) -> torch.Tensor:
+    def get_action_logps(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Get the log-probabilities for all actions according to states.
 
         Args:
@@ -358,14 +373,14 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         Returns:
             action_logps (torch.Tensor): Action probabilities with shape [batch_size, action_num].
         """
-        return torch.log(self.get_action_probs(states))
+        return torch.log(self.get_action_probs(states, **kwargs))
 
-    def _get_state_action_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        action_probs = self.get_action_probs(states)
+    def _get_state_action_probs_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        action_probs = self.get_action_probs(states, **kwargs)
         return action_probs.gather(1, actions).squeeze(-1)  # [B]
 
-    def _get_state_action_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        action_logps = self.get_action_logps(states)
+    def _get_state_action_logps_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        action_logps = self.get_action_logps(states, **kwargs)
         return action_logps.gather(1, actions).squeeze(-1)  # [B]
 
     def _to_device_impl(self, device: torch.device) -> None:

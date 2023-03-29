@@ -76,7 +76,7 @@ class ContinuousRLPolicy(RLPolicy):
     def policy_net(self) -> ContinuousPolicyNet:
         return self._policy_net
 
-    def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:
+    def _post_check(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> bool:
         return all(
             [
                 (np.array(self._lbounds) <= actions.detach().cpu().numpy()).all(),
@@ -84,23 +84,23 @@ class ContinuousRLPolicy(RLPolicy):
             ],
         )
 
-    def _get_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        return self._policy_net.get_actions(states, self._is_exploring)
+    def _get_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._policy_net.get_actions(states, self._is_exploring, **kwargs)
 
-    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
-        return self._policy_net.get_random_actions(states)
+    def _get_random_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._policy_net.get_random_actions(states, **kwargs)
 
-    def _get_actions_with_probs_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self._policy_net.get_actions_with_probs(states, self._is_exploring)
+    def _get_actions_with_probs_impl(self, states: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_probs(states, self._is_exploring, **kwargs)
 
-    def _get_actions_with_logps_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self._policy_net.get_actions_with_logps(states, self._is_exploring)
+    def _get_actions_with_logps_impl(self, states: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._policy_net.get_actions_with_logps(states, self._is_exploring, **kwargs)
 
-    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        return self._policy_net.get_states_actions_probs(states, actions)
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._policy_net.get_states_actions_probs(states, actions, **kwargs)
 
-    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        return self._policy_net.get_states_actions_logps(states, actions)
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        return self._policy_net.get_states_actions_logps(states, actions, **kwargs)
 
     def train_step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)

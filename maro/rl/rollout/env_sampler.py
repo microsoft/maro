@@ -48,6 +48,7 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
     def choose_actions(
         self,
         state_by_agent: Dict[Any, Union[np.ndarray, list]],
+        **kwargs,
     ) -> Dict[Any, Union[np.ndarray, list]]:
         """Choose action according to the given (observable) states of all agents.
 
@@ -61,13 +62,14 @@ class AbsAgentWrapper(object, metaclass=ABCMeta):
         """
         self.switch_to_eval_mode()
         with torch.no_grad():
-            ret = self._choose_actions_impl(state_by_agent)
+            ret = self._choose_actions_impl(state_by_agent, **kwargs)
         return ret
 
     @abstractmethod
     def _choose_actions_impl(
         self,
         state_by_agent: Dict[Any, Union[np.ndarray, list]],
+        **kwargs,
     ) -> Dict[Any, Union[np.ndarray, list]]:
         """Implementation of `choose_actions`."""
         raise NotImplementedError
@@ -99,6 +101,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     def _choose_actions_impl(
         self,
         state_by_agent: Dict[Any, Union[np.ndarray, list]],
+        **kwargs,
     ) -> Dict[Any, Union[np.ndarray, list]]:
         # Aggregate states by policy
         states_by_policy = collections.defaultdict(list)  # {str: list of np.ndarray}
@@ -116,7 +119,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
                 states = np.vstack(states_by_policy[policy_name])  # np.ndarray
             else:
                 states = states_by_policy[policy_name]  # list
-            actions: Union[np.ndarray, list] = policy.get_actions(states)  # np.ndarray or list
+            actions: Union[np.ndarray, list] = policy.get_actions(states, **kwargs)  # np.ndarray or list
             action_dict.update(zip(agents_by_policy[policy_name], actions))
 
         return action_dict
@@ -387,7 +390,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _step(self, actions: Optional[list]) -> None:
         _, self._event, self._end_of_episode = self.env.step(actions)
         self._state, self._agent_state_dict = (
-            (None, {}) if self._end_of_episode else self._get_global_and_agent_state(self._event)
+            (None, {}) if self._end_of_episode else self._get_global_and_agent_state(self._event, self.env.tick)
         )
 
     def _calc_reward(self, cache_element: CacheElement) -> None:

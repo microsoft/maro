@@ -33,93 +33,121 @@ class PolicyNet(AbsNet, metaclass=ABCMeta):
     def action_dim(self) -> int:
         return self._action_dim
 
-    def get_actions(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
+    def get_actions(self, states: torch.Tensor, exploring: bool, **kwargs) -> torch.Tensor:
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
 
-        actions = self._get_actions_impl(states, exploring)
+        actions = self._get_actions_impl(states, exploring, **kwargs)
 
         assert self._shape_check(
             states=states,
             actions=actions,
+            **kwargs,
         ), f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
 
         return actions
 
-    def get_actions_with_probs(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_actions_with_probs(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
 
-        actions, probs = self._get_actions_with_probs_impl(states, exploring)
+        actions, probs = self._get_actions_with_probs_impl(states, exploring, **kwargs)
 
         assert self._shape_check(
             states=states,
             actions=actions,
+            **kwargs,
         ), f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
         assert len(probs.shape) == 1 and probs.shape[0] == states.shape[0]
 
         return actions, probs
 
-    def get_actions_with_logps(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_actions_with_logps(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
 
-        actions, logps = self._get_actions_with_logps_impl(states, exploring)
+        actions, logps = self._get_actions_with_logps_impl(states, exploring, **kwargs)
 
         assert self._shape_check(
             states=states,
             actions=actions,
+            **kwargs,
         ), f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
         assert len(logps.shape) == 1 and logps.shape[0] == states.shape[0]
 
         return actions, logps
 
-    def get_states_actions_probs(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def get_states_actions_probs(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
 
-        probs = self._get_states_actions_probs_impl(states, actions)
+        probs = self._get_states_actions_probs_impl(states, actions, **kwargs)
 
         assert len(probs.shape) == 1 and probs.shape[0] == states.shape[0]
 
         return probs
 
-    def get_states_actions_logps(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def get_states_actions_logps(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
 
-        logps = self._get_states_actions_logps_impl(states, actions)
+        logps = self._get_states_actions_logps_impl(states, actions, **kwargs)
 
         assert len(logps.shape) == 1 and logps.shape[0] == states.shape[0]
 
         return logps
 
     @abstractmethod
-    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> torch.Tensor:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_actions_with_probs_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_probs_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_with_logps_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         raise NotImplementedError
 
-    def _shape_check(self, states: torch.Tensor, actions: torch.Tensor = None) -> bool:
+    def _shape_check(self, states: torch.Tensor, actions: torch.Tensor = None, **kwargs) -> bool:
         """Check whether the states and actions have valid shapes.
 
         Args:
@@ -160,7 +188,7 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
     def action_num(self) -> int:
         return self._action_num
 
-    def get_action_probs(self, states: torch.Tensor) -> torch.Tensor:
+    def get_action_probs(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Get the probabilities for all possible actions in the action space.
 
         Args:
@@ -171,8 +199,9 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
         """
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
-        action_probs = self._get_action_probs_impl(states)
+        action_probs = self._get_action_probs_impl(states, **kwargs)
         assert match_shape(action_probs, (states.shape[0], self.action_num)), (
             f"Action probabilities shape check failed. Expecting: {(states.shape[0], self.action_num)}, "
             f"actual: {action_probs.shape}."
@@ -180,16 +209,21 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
         return action_probs
 
     @abstractmethod
-    def _get_action_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
+    def _get_action_probs_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Implementation of `get_action_probs`. The core logic of a discrete policy net should be implemented here."""
         raise NotImplementedError
 
-    def _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
-        actions, _ = self._get_actions_with_probs_impl(states, exploring)
+    def _get_actions_impl(self, states: torch.Tensor, exploring: bool, **kwargs) -> torch.Tensor:
+        actions, _ = self._get_actions_with_probs_impl(states, exploring, **kwargs)
         return actions
 
-    def _get_actions_with_probs_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
-        probs = self.get_action_probs(states)
+    def _get_actions_with_probs_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        probs = self.get_action_probs(states, **kwargs)
         if exploring:
             distribution = Categorical(probs)
             actions = distribution.sample().unsqueeze(1)
@@ -198,16 +232,21 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
             probs, actions = probs.max(dim=1)
             return actions.unsqueeze(1), probs
 
-    def _get_actions_with_logps_impl(self, states: torch.Tensor, exploring: bool) -> Tuple[torch.Tensor, torch.Tensor]:
-        actions, probs = self._get_actions_with_probs_impl(states, exploring)
+    def _get_actions_with_logps_impl(
+        self,
+        states: torch.Tensor,
+        exploring: bool,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        actions, probs = self._get_actions_with_probs_impl(states, exploring, **kwargs)
         return actions, torch.log(probs)
 
-    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        probs = self.get_action_probs(states)
+    def _get_states_actions_probs_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        probs = self.get_action_probs(states, **kwargs)
         return probs.gather(1, actions).squeeze(-1)
 
-    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        probs = self._get_states_actions_probs_impl(states, actions)
+    def _get_states_actions_logps_impl(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        probs = self._get_states_actions_probs_impl(states, actions, **kwargs)
         return torch.log(probs)
 
 
@@ -222,16 +261,17 @@ class ContinuousPolicyNet(PolicyNet, metaclass=ABCMeta):
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(ContinuousPolicyNet, self).__init__(state_dim=state_dim, action_dim=action_dim)
 
-    def get_random_actions(self, states: torch.Tensor) -> torch.Tensor:
-        actions = self._get_random_actions_impl(states)
+    def get_random_actions(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
+        actions = self._get_random_actions_impl(states, **kwargs)
 
         assert self._shape_check(
             states=states,
             actions=actions,
+            **kwargs,
         ), f"Actions shape check failed. Expecting: {(states.shape[0], self.action_dim)}, actual: {actions.shape}."
 
         return actions
 
     @abstractmethod
-    def _get_random_actions_impl(self, states: torch.Tensor) -> torch.Tensor:
+    def _get_random_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         raise NotImplementedError
