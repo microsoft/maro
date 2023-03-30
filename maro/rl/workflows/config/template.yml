@@ -24,6 +24,8 @@ main:
   # A list indicates the episodes at the end of which policies are to be evaluated. Note that episode indexes are
   # 1-based.
   eval_schedule: 10
+  early_stop_patience: 10  # Number of epochs waiting for a better validation metrics. Could be `null`.
+  num_eval_episodes: 10  # Number of Episodes to run in evaluation.
   # Minimum number of samples to start training in one epoch. The workflow will re-run experience collection
   # until we have at least `min_n_sample` of experiences.
   min_n_sample: 1
@@ -68,8 +70,9 @@ training:
   checkpointing:
     # Directory to save trainer snapshots under. Snapshot files created at different episodes will be saved under
     # separate folders named using episode numbers. For example, if a snapshot is created for a trainer named "dqn"
-    # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
-    path: "/path/to/your/checkpoint/folder"
+    # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt". If null, the
+    # default checkpoint folder would be created under `log_path`.
+    path: "/path/to/your/checkpoint/folder"  # or `null`
     interval: 10  # Interval at which trained policies / models are persisted to disk.
   proxy:  # Proxy settings. Ignored if training.mode is "simple".
     host: "127.0.0.1"  # Proxy service host's IP address. Ignored if run in containerized environments.

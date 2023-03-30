@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 from maro.rl.policy import AbsPolicy, RLPolicy
 from maro.rl.rollout import AbsEnvSampler
 from maro.rl.training import AbsTrainer
+from maro.rl.workflows.callback import Callback
 
 
 class RLComponentBundle:
@@ -20,7 +21,7 @@ class RLComponentBundle:
         If None, there will be no explicit device assignment.
     policy_trainer_mapping (Dict[str, str], default=None): Policy-trainer mapping which identifying which trainer to
         train each policy. If None, then a policy's trainer's name is the first segment of the policy's name,
-        seperated by dot. For example, "ppo_1.policy" is trained by "ppo_1". Only policies that provided in
+        separated by dot. For example, "ppo_1.policy" is trained by "ppo_1". Only policies that provided in
         policy-trainer mapping are considered as trainable polices. Policies that not provided in policy-trainer
         mapping will not be trained.
     """
@@ -33,11 +34,13 @@ class RLComponentBundle:
         trainers: List[AbsTrainer],
         device_mapping: Dict[str, str] = None,
         policy_trainer_mapping: Dict[str, str] = None,
+        customized_callbacks: List[Callback] = [],
     ) -> None:
         self.env_sampler = env_sampler
         self.agent2policy = agent2policy
         self.policies = policies
         self.trainers = trainers
+        self.customized_callbacks = customized_callbacks
 
         policy_set = set([policy.name for policy in self.policies])
         not_found = [policy_name for policy_name in self.agent2policy.values() if policy_name not in policy_set]

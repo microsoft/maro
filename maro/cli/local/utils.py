@@ -4,7 +4,7 @@
 import os
 import subprocess
 from copy import deepcopy
-from typing import List
+from typing import List, Optional
 
 import docker
 import yaml
@@ -110,12 +110,15 @@ def exec(cmd: str, env: dict, debug: bool = False) -> subprocess.Popen:
 def start_rl_job(
     parser: ConfigParser,
     maro_root: str,
+    seed: Optional[int],
     evaluate_only: bool,
     background: bool = False,
 ) -> List[subprocess.Popen]:
     procs = [
         exec(
-            f"python {script}" + ("" if not evaluate_only else " --evaluate_only"),
+            f"python {script}"
+            + ("" if not evaluate_only else " --evaluate_only")
+            + ("" if seed is None else f" --seed {seed}"),
             format_env_vars({**env, "PYTHONPATH": maro_root}, mode="proc"),
             debug=not background,
         )
@@ -169,6 +172,7 @@ def start_rl_job_with_docker_compose(
     context: str,
     dockerfile_path: str,
     image_name: str,
+    seed: Optional[int],
     evaluate_only: bool,
 ) -> None:
     common_spec = {
@@ -185,7 +189,9 @@ def start_rl_job_with_docker_compose(
                 **deepcopy(common_spec),
                 **{
                     "container_name": component,
-                    "command": f"python3 {script}" + ("" if not evaluate_only else " --evaluate_only"),
+                    "command": f"python3 {script}"
+                    + ("" if not evaluate_only else " --evaluate_only")
+                    + ("" if seed is None else f" --seed {seed}"),
                     "environment": format_env_vars(env, mode="docker-compose"),
                 },
             }

@@ -161,15 +161,20 @@ class DiscreteMADDPGOps(AbsTrainOps):
         """
         return self._q_critic_net.get_gradients(self._get_critic_loss(batch, next_actions))
 
-    def update_critic(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> None:
+    def update_critic(self, batch: MultiTransitionBatch, next_actions: List[torch.Tensor]) -> float:
         """Update the critic network using a batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
             next_actions (List[torch.Tensor]): List of next actions of all policies.
+
+        Returns:
+            loss (float): The detached loss of this batch.
         """
         self._q_critic_net.train()
-        self._q_critic_net.step(self._get_critic_loss(batch, next_actions))
+        loss = self._get_critic_loss(batch, next_actions)
+        self._q_critic_net.step(loss)
+        return loss.detach().cpu().numpy().item()
 
     def update_critic_with_grad(self, grad_dict: dict) -> None:
         """Update the critic network with remotely computed gradients.
@@ -180,7 +185,7 @@ class DiscreteMADDPGOps(AbsTrainOps):
         self._q_critic_net.train()
         self._q_critic_net.apply_gradients(grad_dict)
 
-    def _get_actor_loss(self, batch: MultiTransitionBatch) -> torch.Tensor:
+    def _get_actor_loss(self, batch: MultiTransitionBatch) -> Tuple[torch.Tensor, bool]:
         """Compute the actor loss of the batch.
 
         Args:
@@ -188,11 +193,13 @@ class DiscreteMADDPGOps(AbsTrainOps):
 
         Returns:
             loss (torch.Tensor): The actor loss of the batch.
+            early_stop (bool): The early stop indicator, set to False in current implementation.
         """
         latest_action, latest_action_logp = self.get_latest_action(batch)
         states = ndarray_to_tensor(batch.states, device=self._device)  # x
         actions = [ndarray_to_tensor(action, device=self._device) for action in batch.actions]  # a
         actions[self._policy_idx] = latest_action
+
         self._policy.train()
         self._q_critic_net.freeze()
         actor_loss = -(
@@ -203,28 +210,39 @@ class DiscreteMADDPGOps(AbsTrainOps):
             * latest_action_logp
         ).mean()  # Q(x, a^j_1, ..., a_i, ..., a^j_N)
         self._q_critic_net.unfreeze()
-        return actor_loss
+
+        early_stop = False
+
+        return actor_loss, early_stop
 
     @remote
-    def get_actor_grad(self, batch: MultiTransitionBatch) -> Dict[str, torch.Tensor]:
+    def get_actor_grad(self, batch: MultiTransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
         """Compute the actor network's gradients of a batch.
+
+        Args:
+            batch (TransitionBatch): Batch.
+
+        Returns:
+            grad_dict (Dict[str, torch.Tensor]): The actor gradient of the batch.
+            early_stop (bool): Early stop indicator.
+        """
+        loss, early_stop = self._get_actor_loss(batch)
+        return self._policy.get_gradients(loss), early_stop
+
+    def update_actor(self, batch: MultiTransitionBatch) -> Tuple[float, bool]:
+        """Update the actor network using a batch.
 
         Args:
             batch (MultiTransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The actor gradient of the batch.
-        """
-        return self._policy.get_gradients(self._get_actor_loss(batch))
-
-    def update_actor(self, batch: MultiTransitionBatch) -> None:
-        """Update the actor network using a batch.
-
-        Args:
-            batch (MultiTransitionBatch): Batch.
+            loss (float): The detached loss of this batch.
+            early_stop (bool): Early stop indicator.
         """
         self._policy.train()
-        self._policy.train_step(self._get_actor_loss(batch))
+        loss, early_stop = self._get_actor_loss(batch)
+        self._policy.train_step(loss)
+        return loss.detach().cpu().numpy().item(), early_stop
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the critic network with remotely computed gradients.
@@ -275,8 +293,8 @@ class DiscreteMADDPGOps(AbsTrainOps):
             self._policy.to_device(self._device)
             self._target_policy.to_device(self._device)
 
-        self._q_critic_net.to(self._device)
-        self._target_q_critic_net.to(self._device)
+        self._q_critic_net.to_device(self._device)
+        self._target_q_critic_net.to_device(self._device)
 
 
 class DiscreteMADDPGTrainer(MultiAgentTrainer):
@@ -378,6 +396,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
             agent_states=agent_states,
             next_agent_states=next_agent_states,
             terminals=np.array(terminal_flags),
+            truncated=np.array([exp_element.truncated for exp_element in exp_elements]),
         )
         self._replay_memory.put(transition_batch)
 
@@ -459,7 +478,7 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
                     ops.update_critic_with_grad(critic_grad)
 
             # Update actors
-            actor_grad_list = await asyncio.gather(*[ops.get_actor_grad(batch) for ops in self._actor_ops_list])
+            actor_grad_list = await asyncio.gather(*[ops.get_actor_grad(batch)[0] for ops in self._actor_ops_list])
             for ops, actor_grad in zip(self._actor_ops_list, actor_grad_list):
                 ops.update_actor_with_grad(actor_grad)
 

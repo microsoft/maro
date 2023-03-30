@@ -12,6 +12,7 @@ from maro.rl.training.algorithms import DQNParams, DQNTrainer
 q_net_conf = {
     "hidden_dims": [256, 128, 64, 32],
     "activation": torch.nn.LeakyReLU,
+    "output_activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": True,
     "skip_connection": False,

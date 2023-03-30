@@ -189,8 +189,13 @@ class BatchEnvSampler:
             "info": [res["info"][0] for res in results],
         }
 
-    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None) -> dict:
-        req = {"type": "eval", "policy_state": policy_state, "index": self._ep}  # -1 signals test
+    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None, num_episodes: int = 1) -> dict:
+        req = {
+            "type": "eval",
+            "policy_state": policy_state,
+            "index": self._ep,
+            "num_eval_episodes": num_episodes,
+        }  # -1 signals test
         results = self._controller.collect(req, self._eval_parallelism)
         return {
             "info": [res["info"][0] for res in results],

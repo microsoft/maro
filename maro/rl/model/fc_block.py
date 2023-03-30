@@ -39,7 +39,8 @@ class FullyConnected(nn.Module):
         input_dim: int,
         output_dim: int,
         hidden_dims: List[int],
-        activation: Optional[Type[torch.nn.Module]] = nn.ReLU,
+        activation: Optional[Type[torch.nn.Module]] = None,
+        output_activation: Optional[Type[torch.nn.Module]] = None,
         head: bool = False,
         softmax: bool = False,
         batch_norm: bool = False,
@@ -54,7 +55,8 @@ class FullyConnected(nn.Module):
         self._output_dim = output_dim
 
         # network features
-        self._activation = activation() if activation else None
+        self._activation = activation if activation else None
+        self._output_activation = output_activation if output_activation else None
         self._head = head
         self._softmax = nn.Softmax(dim=1) if softmax else None
         self._batch_norm = batch_norm
@@ -70,9 +72,13 @@ class FullyConnected(nn.Module):
 
         # build the net
         dims = [self._input_dim] + self._hidden_dims
-        layers = [self._build_layer(in_dim, out_dim) for in_dim, out_dim in zip(dims, dims[1:])]
+        layers = [
+            self._build_layer(in_dim, out_dim, activation=self._activation) for in_dim, out_dim in zip(dims, dims[1:])
+        ]
         # top layer
-        layers.append(self._build_layer(dims[-1], self._output_dim, head=self._head))
+        layers.append(
+            self._build_layer(dims[-1], self._output_dim, head=self._head, activation=self._output_activation),
+        )
 
         self._net = nn.Sequential(*layers)
 
@@ -101,7 +107,13 @@ class FullyConnected(nn.Module):
     def output_dim(self) -> int:
         return self._output_dim
 
-    def _build_layer(self, input_dim: int, output_dim: int, head: bool = False) -> nn.Module:
+    def _build_layer(
+        self,
+        input_dim: int,
+        output_dim: int,
+        head: bool = False,
+        activation: Type[torch.nn.Module] = None,
+    ) -> nn.Module:
         """Build a basic layer.
 
         BN -> Linear -> Activation -> Dropout
@@ -110,8 +122,8 @@ class FullyConnected(nn.Module):
         if self._batch_norm:
             components.append(("batch_norm", nn.BatchNorm1d(input_dim)))
         components.append(("linear", nn.Linear(input_dim, output_dim)))
-        if not head and self._activation is not None:
-            components.append(("activation", self._activation))
+        if not head and activation is not None:
+            components.append(("activation", activation()))
         if not head and self._dropout_p:
             components.append(("dropout", nn.Dropout(p=self._dropout_p)))
         return nn.Sequential(OrderedDict(components))

@@ -5,12 +5,12 @@
 # Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
 
 # Run this workflow by executing one of the following commands:
-# - python .\examples\rl\run_rl_example.py .\examples\rl\vm_scheduling.yml
-# - (Requires installing MARO from source) maro local run .\examples\rl\vm_scheduling.yml
+# - python ./examples/rl/run.py ./examples/rl/vm_scheduling.yml
+# - (Requires installing MARO from source) maro local run ./examples/rl/vm_scheduling.yml
 
 job: vm_scheduling_rl_workflow
 scenario_path: "examples/vm_scheduling/rl"
-log_path: "log/rl_job/vm_scheduling.txt"
+log_path: "log/vm_rl/"
 main:
   num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_steps: null
@@ -27,7 +27,7 @@ training:
   load_path: null
   load_episode: null
   checkpointing:
-    path: "checkpoint/rl_job/vm_scheduling"
+    path: "log/vm_rl/checkpoints"
     interval: 5
   logging:
     stdout: INFO

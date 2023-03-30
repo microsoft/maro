@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, cast
+from typing import Callable, Dict, Optional, Tuple, cast
 
 import torch
 
@@ -27,7 +27,7 @@ class DDPGParams(BaseTrainerParams):
     random_overwrite (bool, default=False): This specifies overwrite behavior when the replay memory capacity
         is reached. If True, overwrite positions will be selected randomly. Otherwise, overwrites will occur
         sequentially with wrap-around.
-    min_num_to_trigger_training (int, default=0): Minimum number required to start training.
+    n_start_train (int, default=0): Minimum number required to start training.
     """
 
     get_q_critic_net_func: Callable[[], QNet]
@@ -36,7 +36,7 @@ class DDPGParams(BaseTrainerParams):
     q_value_loss_cls: Optional[Callable] = None
     soft_update_coef: float = 1.0
     random_overwrite: bool = False
-    min_num_to_trigger_training: int = 0
+    n_start_train: int = 0
 
 
 class DDPGOps(AbsTrainOps):
@@ -93,9 +93,9 @@ class DDPGOps(AbsTrainOps):
                 states=next_states,  # s'
                 actions=self._target_policy.get_actions_tensor(next_states),  # miu_targ(s')
             )  # Q_targ(s', miu_targ(s'))
+            # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
+            target_q_values = (rewards + self._reward_discount * (1.0 - terminals.float()) * next_q_values).detach()
 
-        # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
-        target_q_values = (rewards + self._reward_discount * (1 - terminals.long()) * next_q_values).detach()
         q_values = self._q_critic_net.q_values(states=states, actions=actions)  # Q(s, a)
         return self._q_value_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
 
@@ -120,16 +120,21 @@ class DDPGOps(AbsTrainOps):
         self._q_critic_net.train()
         self._q_critic_net.apply_gradients(grad_dict)
 
-    def update_critic(self, batch: TransitionBatch) -> None:
+    def update_critic(self, batch: TransitionBatch) -> float:
         """Update the critic network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (float): The detached loss of this batch.
         """
         self._q_critic_net.train()
-        self._q_critic_net.step(self._get_critic_loss(batch))
+        loss = self._get_critic_loss(batch)
+        self._q_critic_net.step(loss)
+        return loss.detach().cpu().numpy().item()
 
-    def _get_actor_loss(self, batch: TransitionBatch) -> torch.Tensor:
+    def _get_actor_loss(self, batch: TransitionBatch) -> Tuple[torch.Tensor, bool]:
         """Compute the actor loss of the batch.
 
         Args:
@@ -137,6 +142,7 @@ class DDPGOps(AbsTrainOps):
 
         Returns:
             loss (torch.Tensor): The actor loss of the batch.
+            early_stop (bool): The early stop indicator, set to False in current implementation.
         """
         assert isinstance(batch, TransitionBatch)
         self._policy.train()
@@ -147,19 +153,23 @@ class DDPGOps(AbsTrainOps):
             actions=self._policy.get_actions_tensor(states),  # miu(s)
         ).mean()  # -Q(s, miu(s))
 
-        return policy_loss
+        early_stop = False
+
+        return policy_loss, early_stop
 
     @remote
-    def get_actor_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def get_actor_grad(self, batch: TransitionBatch) -> Tuple[Dict[str, torch.Tensor], bool]:
         """Compute the actor network's gradients of a batch.
 
         Args:
             batch (TransitionBatch): Batch.
 
         Returns:
-            grad (torch.Tensor): The actor gradient of the batch.
+            grad_dict (Dict[str, torch.Tensor]): The actor gradient of the batch.
+            early_stop (bool): Early stop indicator.
         """
-        return self._policy.get_gradients(self._get_actor_loss(batch))
+        loss, early_stop = self._get_actor_loss(batch)
+        return self._policy.get_gradients(loss), early_stop
 
     def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the actor network with remotely computed gradients.
@@ -170,14 +180,20 @@ class DDPGOps(AbsTrainOps):
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
-    def update_actor(self, batch: TransitionBatch) -> None:
+    def update_actor(self, batch: TransitionBatch) -> Tuple[float, bool]:
         """Update the actor network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
+
+        Returns:
+            loss (float): The detached loss of this batch.
+            early_stop (bool): Early stop indicator.
         """
         self._policy.train()
-        self._policy.train_step(self._get_actor_loss(batch))
+        loss, early_stop = self._get_actor_loss(batch)
+        self._policy.train_step(loss)
+        return loss.detach().cpu().numpy().item(), early_stop
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -200,8 +216,8 @@ class DDPGOps(AbsTrainOps):
         self._device = get_torch_device(device=device)
         self._policy.to_device(self._device)
         self._target_policy.to_device(self._device)
-        self._q_critic_net.to(self._device)
-        self._target_q_critic_net.to(self._device)
+        self._q_critic_net.to_device(self._device)
+        self._target_q_critic_net.to_device(self._device)
 
 
 class DDPGTrainer(SingleAgentTrainer):
@@ -263,10 +279,10 @@ class DDPGTrainer(SingleAgentTrainer):
     def train_step(self) -> None:
         assert isinstance(self._ops, DDPGOps)
 
-        if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
+        if self._replay_memory.n_sample < self._params.n_start_train:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})",
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})",
             )
             return
 
@@ -280,19 +296,21 @@ class DDPGTrainer(SingleAgentTrainer):
     async def train_step_as_task(self) -> None:
         assert isinstance(self._ops, RemoteOps)
 
-        if self._replay_memory.n_sample < self._params.min_num_to_trigger_training:
+        if self._replay_memory.n_sample < self._params.n_start_train:
             print(
                 f"Skip this training step due to lack of experiences "
-                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.min_num_to_trigger_training})",
+                f"(current = {self._replay_memory.n_sample}, minimum = {self._params.n_start_train})",
             )
             return
 
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
             self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
-            self._ops.update_actor_with_grad(await self._ops.get_actor_grad(batch))
-
+            grad_dict, early_stop = await self._ops.get_actor_grad(batch)
+            self._ops.update_actor_with_grad(grad_dict)
             self._try_soft_update_target()
+            if early_stop:
+                break
 
     def _try_soft_update_target(self) -> None:
         """Soft update the target policy and target critic."""

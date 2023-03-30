@@ -31,7 +31,7 @@ class QNet(AbsNet, metaclass=ABCMeta):
     def action_dim(self) -> int:
         return self._action_dim
 
-    def _shape_check(self, states: torch.Tensor, actions: torch.Tensor = None) -> bool:
+    def _shape_check(self, states: torch.Tensor, actions: torch.Tensor = None, **kwargs) -> bool:
         """Check whether the states and actions have valid shapes.
 
         Args:
@@ -52,7 +52,7 @@ class QNet(AbsNet, metaclass=ABCMeta):
                     return False
             return True
 
-    def q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def q_values(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         """Get Q-values according to states and actions.
 
         Args:
@@ -62,12 +62,12 @@ class QNet(AbsNet, metaclass=ABCMeta):
         Returns:
             q (torch.Tensor): Q-values with shape [batch_size].
         """
-        assert self._shape_check(states=states, actions=actions), (
+        assert self._shape_check(states=states, actions=actions, **kwargs), (
             f"States or action shape check failed. Expecting: "
             f"states = {('BATCH_SIZE', self.state_dim)}, action = {('BATCH_SIZE', self.action_dim)}. "
             f"Actual: states = {states.shape}, action = {actions.shape}."
         )
-        q = self._get_q_values(states, actions)
+        q = self._get_q_values(states, actions, **kwargs)
         assert match_shape(
             q,
             (states.shape[0],),
@@ -75,7 +75,7 @@ class QNet(AbsNet, metaclass=ABCMeta):
         return q
 
     @abstractmethod
-    def _get_q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def _get_q_values(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
         """Implementation of `q_values`."""
         raise NotImplementedError
 
@@ -96,7 +96,7 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
     def action_num(self) -> int:
         return self._action_num
 
-    def q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
+    def q_values_for_all_actions(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Get Q-values for all actions according to states.
 
         Args:
@@ -107,20 +107,21 @@ class DiscreteQNet(QNet, metaclass=ABCMeta):
         """
         assert self._shape_check(
             states=states,
+            **kwargs,
         ), f"States shape check failed. Expecting: {('BATCH_SIZE', self.state_dim)}, actual: {states.shape}."
-        q = self._get_q_values_for_all_actions(states)
+        q = self._get_q_values_for_all_actions(states, **kwargs)
         assert match_shape(q, (states.shape[0], self.action_num)), (
             f"Q-value matrix shape check failed. Expecting: {(states.shape[0], self.action_num)}, "
             f"actual: {q.shape}."
         )  # [B, action_num]
         return q
 
-    def _get_q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        q = self.q_values_for_all_actions(states)  # [B, action_num]
+    def _get_q_values(self, states: torch.Tensor, actions: torch.Tensor, **kwargs) -> torch.Tensor:
+        q = self.q_values_for_all_actions(states, **kwargs)  # [B, action_num]
         return q.gather(1, actions.long()).reshape(-1)  # [B, action_num] + [B, 1] => [B]
 
     @abstractmethod
-    def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
+    def _get_q_values_for_all_actions(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         """Implementation of `q_values_for_all_actions`."""
         raise NotImplementedError
 
