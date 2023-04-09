@@ -56,3 +56,4 @@ tqdm>=4.51.0
 urllib3==1.26.5
 wrapt==1.11.2
 zmq==0.0.0
+tianshou

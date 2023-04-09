@@ -268,7 +268,7 @@ class ConfigParser:
         min_n_sample = self._config["main"].get("min_n_sample", 1)
         env: dict = {
             main_proc: (
-                os.path.join(self._get_workflow_path(containerize=containerize), "main.py"),
+                os.path.join(self._get_workflow_path(containerize=containerize), "workflow.py"),
                 {
                     "JOB": self._config["job"],
                     "NUM_EPISODES": str(num_episodes),
