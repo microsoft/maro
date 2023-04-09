@@ -1,12 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from typing import Any, Type
+from typing import Any, Callable, Type, Union
 
 import torch
 from gym import spaces
 from tianshou.data import Batch
 from torch.optim import Optimizer
-
+from torch.distributions import Distribution
 from maro.rl_v31.model.base import PolicyModel
 from maro.rl_v31.policy.base import BaseRLPolicy
 from maro.rl_v31.utils import to_torch
@@ -21,7 +21,7 @@ class PGPolicy(BaseRLPolicy):
         model: PolicyModel,
         optim: Optimizer,
         is_discrete: bool,
-        dist_fn: Type[torch.distributions.Distribution] = torch.distributions.Categorical,
+        dist_fn: Union[Type[Distribution], Callable[[torch.Tensor], Distribution]] = torch.distributions.Categorical,
     ) -> None:
         assert isinstance(action_space, (spaces.Box, spaces.Discrete))
 
@@ -44,7 +44,7 @@ class PGPolicy(BaseRLPolicy):
         if self.is_discrete:
             act = dist.sample() if self.is_exploring else logits.argmax(-1)
         else:
-            act = logits[0]
+            act = logits
 
         return Batch(act=act, dist=dist, logits=logits)
 

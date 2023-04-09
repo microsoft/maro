@@ -59,7 +59,10 @@ class PPOTrainOps(PolicyGradientTrainOps):
             dist = self._policy(batch).dist
             act = to_torch(batch.action)
             adv = to_torch(batch.adv)
-            logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze()
+            if self._policy.is_discrete:
+                logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze()
+            else:
+                pass  # TODO
             batch.logps_old = logps
 
         return batch
