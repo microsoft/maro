@@ -18,8 +18,10 @@ env = Env(business_engine_cls=GymBusinessEngine, **env_conf)
 num_agents = len(env.agent_idx_list)
 
 gym_env = cast(GymBusinessEngine, env.business_engine).gym_env
+gym_obs_space = gym_env.observation_space
 gym_action_space = gym_env.action_space
 gym_state_dim = gym_env.observation_space.shape[0]
 gym_action_dim = gym_action_space.shape[0]
+obs_lower_bound, obs_upper_bound = gym_obs_space.low, gym_obs_space.high
 action_lower_bound, action_upper_bound = gym_action_space.low, gym_action_space.high
 action_limit = gym_action_space.high[0]
