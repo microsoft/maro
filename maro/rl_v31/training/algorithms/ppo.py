@@ -62,7 +62,7 @@ class PPOTrainOps(PolicyGradientTrainOps):
             if self._policy.is_discrete:
                 logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze()
             else:
-                pass  # TODO
+                logps = dist.log_prob(act).sum(axis=-1)
             batch.logps_old = logps
 
         return batch

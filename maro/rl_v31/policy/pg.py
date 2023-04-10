@@ -39,12 +39,18 @@ class PGPolicy(BaseRLPolicy):
     def forward(self, batch: Batch, **kwargs: Any) -> Batch:
         obs = to_torch(batch.obs)
         logits = self.model(obs)
-        dist = self.dist_fn(logits)
+        
+        if isinstance(logits, torch.Tensor):
+            dist = self.dist_fn(logits)
+        elif isinstance(logits, tuple):
+            dist = self.dist_fn(*logits)
+        else:
+            raise ValueError(f"Logits of type {type(logits)} is not acceptable.")
 
         if self.is_discrete:
             act = dist.sample() if self.is_exploring else logits.argmax(-1)
         else:
-            act = logits
+            act = dist.sample()
 
         return Batch(act=act, dist=dist, logits=logits)
 

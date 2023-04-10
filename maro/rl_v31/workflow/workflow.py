@@ -26,7 +26,7 @@ class Workflow(object):
         self.logger = LoggerV2(
             "MAIN",
             dump_path=os.path.join(log_path, "log.txt"),
-            dump_mode="a",
+            dump_mode="w",
             stdout_level=log_level_stdout,
             file_level=log_level_file,
         )
@@ -41,6 +41,8 @@ class Workflow(object):
         num_iterations: int,
         steps_per_iteration: Optional[int] = None,
         episodes_per_iteration: Optional[int] = None,
+        valid_steps_per_iteration: Optional[int] = None,
+        valid_episodes_per_iteration: Optional[int] = None,
         checkpoint_path: Optional[str] = None,
         checkpoint_interval: int = 1,
         validation_interval: Optional[int] = None,
@@ -105,7 +107,6 @@ class Workflow(object):
                 n_episodes=episodes_per_iteration,
             )
             self.train_metrics = self._rcb.metrics_agg_func(total_info)
-            print(self.train_metrics)
 
             self.logger.info(
                 f'Rollout of EP {ep} finished, '
@@ -125,8 +126,8 @@ class Workflow(object):
 
                 valid_collector.switch_explore(explore_in_validation)
                 total_info, total_exps = valid_collector.collect(
-                    n_steps=steps_per_iteration,
-                    n_episodes=episodes_per_iteration,
+                    n_steps=valid_steps_per_iteration,
+                    n_episodes=valid_episodes_per_iteration,
                 )
                 self.valid_metrics = self._rcb.metrics_agg_func(total_info)
 

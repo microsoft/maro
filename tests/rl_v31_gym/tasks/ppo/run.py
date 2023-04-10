@@ -8,11 +8,12 @@ def main() -> None:
         log_path="tests/rl_v31_gym/outputs/ppo",
     )
     workflow.train(
-        num_iterations=30,
-        steps_per_iteration=100,
+        num_iterations=1000,
+        steps_per_iteration=4000,
+        validation_interval=5,
+        valid_episodes_per_iteration=10,
+        checkpoint_interval=5,
         checkpoint_path="tests/rl_v31_gym/outputs/ppo/checkpoints",
-        checkpoint_interval=3,
-        validation_interval=3,
     )
 
 

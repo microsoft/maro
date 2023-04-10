@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from typing import List, Tuple
 from gym import spaces
 from torch import nn
 from torch.distributions import Normal
@@ -43,15 +44,10 @@ class MyPolicyModel(PolicyModel):
             activation=actor_net_conf["activation"],
         )
 
-    def distribution(self, obs: torch.Tensor) -> Normal:
+    def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         mu = self._mu_net(obs.float())
-        std = torch.exp(self._log_std)
-        return Normal(mu, std)
-
-    def forward(self, obs: torch.Tensor) -> torch.Tensor:
-        dist = self.distribution(obs)
-        actions = dist.sample()
-        return actions
+        std = torch.exp(self._log_std) + torch.zeros_like(mu)
+        return mu, std
 
 
 class MyCriticModel(BaseNet):
@@ -82,7 +78,7 @@ def get_ppo_policy(name: str, obs_lower_bound: float, obs_upper_bound: float, ac
         model=model,
         optim=optim,
         is_discrete=False,
-        dist_fn=model.distribution,
+        dist_fn=Normal,
     )
 
 
@@ -102,21 +98,32 @@ trainers = [
     PPOTrainer(
         name=f'ppo_{i}',
         # TODO: create rmm in collector?
-        rmm=ReplayMemoryManager(memories=[ReplayMemory(capacity=1000) for _ in range(1)]),  # TODO: config parallelism & memory size
+        rmm=ReplayMemoryManager(memories=[ReplayMemory(capacity=4000) for _ in range(1)]),  # TODO: config parallelism & memory size
         critic_func=lambda: get_ppo_critic(gym_state_dim),
         critic_loss_cls=nn.SmoothL1Loss,
         lam=0.97,
         reward_discount=0.99,
-        clip_ratio=0.1,
+        clip_ratio=0.2,
         grad_iters=80,
     )
     for i in range(num_agents)
 ]
+
+def metrics_agg_func(metrics: List[dict]) -> dict:
+    ret = {
+        "n_steps": sum(e["n_steps"] for e in metrics),
+        "n_segment": sum(e["n_segment"] for e in metrics),
+        "max_n_steps": sum(e["max_n_steps"] for e in metrics),
+        "n_interactions": sum(e["n_interactions"] for e in metrics),
+    }
+    ret["avg_reward"] = np.sum([e["avg_reward"] * e["n_segment"] for e in metrics]) / ret["n_segment"]
+    ret["avg_n_steps"] = np.sum([e["avg_n_steps"] * e["n_segment"] for e in metrics]) / ret["n_segment"]
+    return ret
 
 rl_component_bundle = RLComponentBundle(
     env_wrapper_func=lambda: GymEnvWrapper(Env(business_engine_cls=GymBusinessEngine, **env_conf)),
     agent2policy=agent2policy,
     policies=policies,
     trainers=trainers,
-    metrics_agg_func=None,  # TODO
+    metrics_agg_func=metrics_agg_func,
 )

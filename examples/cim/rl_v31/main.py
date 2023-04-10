@@ -13,6 +13,7 @@ def main() -> None:
     workflow.train(
         num_iterations=30,
         episodes_per_iteration=1,
+        valid_episodes_per_iteration=5,
         checkpoint_path="examples/cim/rl_v31/log/checkpoints/",
         checkpoint_interval=3,
         validation_interval=3,

@@ -65,7 +65,7 @@ class Collector(object):
         n_steps: Optional[int] = None,
         n_episodes: Optional[int] = None,
         policy_state: Optional[dict] = None,  # TODO: check if this is needed
-    ) -> Dict[int, List[ExpElement]]:
+    ) -> Tuple[List[dict], Dict[int, List[ExpElement]]]:
         assert any(
             [
                 n_steps is None and n_episodes is not None,
@@ -79,13 +79,9 @@ class Collector(object):
         env_exps = self._collect_n_steps(n_steps) if n_steps is not None else self._collect_n_episodes(n_episodes)
         return env_exps
 
-    def _collect_n_steps(self, n_steps: int) -> Dict[int, List[ExpElement]]:
+    def _collect_n_steps(self, n_steps: int) -> Tuple[List[dict], Dict[int, List[ExpElement]]]:
         assert n_steps > 0
-        if n_steps % self.env_num != 0:
-            warnings.warn(
-                f"n_step={n_steps} is not a multiple of #env ({self.env_num}), "
-                "which may cause extra transitions collected into the buffer.",
-            )
+
         env_ids = list(range(self.env_num))
 
         total_exps: Dict[int, List[ExpElement]] = {i: [] for i in env_ids}
@@ -116,7 +112,8 @@ class Collector(object):
                 total_exps[i] += ready_elements
                 n_steps -= len(ready_elements)
 
-        return total_exps
+        total_infos: List[dict] = list(self._venv.gather_info(env_ids).values())
+        return total_infos, total_exps
 
     def _collect_n_episodes(self, n_episodes: int) -> Tuple[List[dict], Dict[int, List[ExpElement]]]:
         assert n_episodes > 0

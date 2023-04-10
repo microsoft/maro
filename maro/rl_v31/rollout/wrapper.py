@@ -86,6 +86,8 @@ class EnvWrapper(object):
 
         self._all_elements: List[CacheElement] = []
         self._agent_last_idx: Dict[Any, int] = {}
+        
+        self._total_num_interaction = 0
 
         # Elements in [0, n_ready_elements) contains reward, so they are ready to be returned
         self.n_ready_elements = 0
@@ -111,11 +113,7 @@ class EnvWrapper(object):
             if self._discard_tail_elements and self._all_elements[i].tick > tick_bound:
                 break
 
-            self._all_elements[i].reward_dict = self.get_reward(
-                event=self._all_elements[i].event,
-                act_dict=self._all_elements[i].action_dict,
-                tick=self._all_elements[i].tick,
-            )
+            self._calc_reward_for_element(self._all_elements[i])
             i += 1
         self.n_ready_elements = i
         self._all_elements[self.n_ready_elements:] = []  # Discard tail elements
@@ -133,16 +131,20 @@ class EnvWrapper(object):
                 e = self._all_elements[i]
                 e.terminal_dict[agent_name] = False
                 e.next_agent_obs_dict[agent_name] = agent_obs
+                
+    def _calc_reward_for_element(self, element: CacheElement) -> None:
+        element.reward_dict = self.get_reward(
+            event=element.event,
+            act_dict=element.action_dict,
+            tick=element.tick,
+        )
+        self.post_step(element)
 
     def _calc_rewards(self) -> None:
         tick_bound = self.env.tick - self._reward_eval_delay
         i = self.n_ready_elements
         while i < len(self._all_elements) and self._all_elements[i].tick <= tick_bound:
-            self._all_elements[i].reward_dict = self.get_reward(
-                event=self._all_elements[i].event,
-                act_dict=self._all_elements[i].action_dict,
-                tick=self._all_elements[i].tick,
-            )
+            self._calc_reward_for_element(self._all_elements[i])
             i += 1
         self.n_ready_elements = i
 
@@ -157,6 +159,7 @@ class EnvWrapper(object):
         self.obs, self.agent_obs_dict = self._extract_obs()
 
     def _step(self, policy_act_dict: Dict[Any, PolicyActionType]) -> None:
+        self._total_num_interaction += 1
         self.cur_ep_length += 1
 
         act_dict = self.policy_act_to_act(self.event, policy_act_dict)
@@ -228,3 +231,6 @@ class EnvWrapper(object):
     @abstractmethod
     def gather_info(self) -> dict:
         raise NotImplementedError
+
+    def post_step(self, element: CacheElement) -> None:
+        pass
