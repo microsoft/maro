@@ -42,7 +42,10 @@ class PPOTrainOps(PolicyGradientTrainOps):
         act = to_torch(batch.action)
         adv = to_torch(batch.adv)
         logps_old = to_torch(batch.logps_old)
-        logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze()
+        if self._policy.is_discrete:
+            logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze()
+        else:
+            logps = dist.log_prob(act).sum(axis=-1)
 
         ratio = torch.exp(logps - logps_old)
         kl = (logps_old - logps).mean().item()
