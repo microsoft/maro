@@ -1,5 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional
 
+import torch
+
 from maro.rl_v31.policy.base import AbsPolicy
 from maro.rl_v31.rollout.wrapper import EnvWrapper
 from maro.rl_v31.training.trainer import BaseTrainer
@@ -31,6 +33,7 @@ class RLComponentBundle(object):
                 f"Policies [{', '.join(sorted(useless_policies))}] are ignored since they are not used by any agent."
             )
         self.policies = [policy for policy in policies if policy.name in required_policies]
+        self.policy_dict = {policy.name: policy for policy in self.policies}
 
         #
         self.policy2trainer = (
@@ -51,15 +54,14 @@ class RLComponentBundle(object):
         self.trainers = [trainer for trainer in trainers if trainer.name in required_trainers]
 
         #
-        self.device_mapping = device_mapping or {}
-        self.device_mapping = {k: v for k, v in self.device_mapping.items() if k in self.policy2trainer}
+        self.device_mapping: Dict[str, torch.device] = {
+            policy_name: torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu")) 
+            for policy_name, device in device_mapping.items() 
+            if policy_name in self.policy2trainer
+        } if device_mapping is not None else {}
 
         #
         if metrics_agg_func is None:
             self.metrics_agg_func = lambda x: {"metrics": x}
         else:
             self.metrics_agg_func = metrics_agg_func
-
-    @property
-    def collect_policies(self) -> List[str]:
-        return [policy.name for policy in self.policies if policy.name in self.policy2trainer]

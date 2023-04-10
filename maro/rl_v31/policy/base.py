@@ -32,6 +32,8 @@ class AbsPolicy(BaseNet, metaclass=ABCMeta):
         self.name = name
         self.obs_space = obs_space
         self.action_space = action_space
+        
+        self.device: Optional[torch.device] = None
 
     @abstractmethod
     def forward(
@@ -48,6 +50,15 @@ class AbsPolicy(BaseNet, metaclass=ABCMeta):
     @abstractmethod
     def set_states(self, state_dict: dict) -> None:
         raise NotImplementedError
+    
+    def to_device(self, device: torch.device) -> None:
+        """Assign the current policy to a specific device.
+
+        Args:
+            device (torch.device): The target device.
+        """
+        self.device = device
+        self.to(self.device)
 
 
 class BaseDLPolicy(AbsPolicy, metaclass=ABCMeta):
@@ -65,22 +76,6 @@ class BaseDLPolicy(AbsPolicy, metaclass=ABCMeta):
         )
 
         self.optim = optim
-        self.device: Optional[torch.device] = None
-
-    def to_device(self, device: torch.device) -> None:
-        """Assign the current policy to a specific device.
-
-        Args:
-            device (torch.device): The target device.
-        """
-        if self.device is None:
-            self.device = device
-            self.to(self.device)
-        elif self.device != device:
-            raise ValueError(
-                f"Policy {self.name} has already been assigned to device {self.device} "
-                f"and cannot be re-assigned to device {device}",
-            )
 
     def get_states(self) -> dict:
         return {

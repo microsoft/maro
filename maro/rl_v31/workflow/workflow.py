@@ -57,7 +57,6 @@ class Workflow(object):
             ),
             policies=self._rcb.policies,
             agent2policy=self._rcb.agent2policy,
-            collect_policies=self._rcb.collect_policies,
         )
         valid_collector = Collector(
             venv=BaseVectorEnv(
@@ -66,7 +65,6 @@ class Workflow(object):
             ),
             policies=self._rcb.policies,
             agent2policy=self._rcb.agent2policy,
-            collect_policies=self._rcb.collect_policies,
         )
         train_collector.reset()
         valid_collector.reset()

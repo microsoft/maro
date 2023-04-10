@@ -12,10 +12,10 @@ from maro.rl_v31.training.trainer import BaseTrainer
 class TrainingManager(object):
     def __init__(
         self,
-        trainers: List[BaseTrainer],  # TODO: replace by bundle
-        policies: List[BaseRLPolicy],  # TODO: replace by bundle
-        agent2policy: Dict[Any, str],  # TODO: replace by bundle
-        policy2trainer: Dict[str, str],  # TODO: replace by bundle
+        trainers: List[BaseTrainer],
+        policies: List[BaseRLPolicy],
+        agent2policy: Dict[Any, str],
+        policy2trainer: Dict[str, str],
     ) -> None:
 
         self._trainer_dict = {}

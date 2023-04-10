@@ -24,16 +24,10 @@ class Collector(object):
         venv: BaseVectorEnv,
         policies: List[AbsPolicy],
         agent2policy: Dict[Any, str],
-        collect_policies: Optional[Iterable[str]] = None,
     ) -> None:
         self._venv = venv
         self._policies = policies
         self._agent2policy = agent2policy
-
-        if collect_policies is None:  # TODO: use collect_policies
-            self._collect_policies = set(policy.name for policy in policies)
-        else:
-            self._collect_policies = set(collect_policies)
 
         self._data: List[EnvStepRes] = [EnvStepRes.dummy() for _ in range(self.env_num)]
 
@@ -76,8 +70,8 @@ class Collector(object):
         if policy_state is not None:
             self._agent_wrapper.set_policy_state(policy_state)
 
-        env_exps = self._collect_n_steps(n_steps) if n_steps is not None else self._collect_n_episodes(n_episodes)
-        return env_exps
+        total_infos, env_exps = self._collect_n_steps(n_steps) if n_steps is not None else self._collect_n_episodes(n_episodes)
+        return total_infos, env_exps
 
     def _collect_n_steps(self, n_steps: int) -> Tuple[List[dict], Dict[int, List[ExpElement]]]:
         assert n_steps > 0
