@@ -2,7 +2,9 @@
 # Licensed under the MIT License.
 import os
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+import torch
 
 from maro.rl_v31.objects import ExpElement
 from maro.rl_v31.policy.base import BaseRLPolicy
@@ -16,6 +18,7 @@ class TrainingManager(object):
         policies: List[BaseRLPolicy],
         agent2policy: Dict[Any, str],
         policy2trainer: Dict[str, str],
+        device_mapping: Optional[Dict[str, torch.device]] = None,
     ) -> None:
 
         self._trainer_dict = {}
@@ -32,6 +35,9 @@ class TrainingManager(object):
         self._agent2trainer: Dict[Any, str] = {}
         for agent_name, policy_name in agent2policy.items():
             self._agent2trainer[agent_name] = policy2trainer[policy_name]
+
+        if device_mapping is not None:
+            self.assign_device(device_mapping)
 
     def train_step(self) -> None:
         for trainer in self._trainer_dict.values():
@@ -61,3 +67,8 @@ class TrainingManager(object):
         os.makedirs(path, exist_ok=True)
         for trainer_name, trainer in self._trainer_dict.items():
             trainer.save(path)
+
+    def assign_device(self, device_mapping: Dict[str, torch.device]) -> None:
+        for trainer_name, device in device_mapping.items():
+            trainer = self._trainer_dict[trainer_name]
+            trainer.to_device(device)

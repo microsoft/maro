@@ -15,7 +15,8 @@ class RLComponentBundle(object):
         policies: List[AbsPolicy],
         trainers: List[BaseTrainer],
         policy2trainer: Optional[Dict[str, str]] = None,
-        device_mapping: Optional[Dict[str, str]] = None,
+        policy_device_mapping: Optional[Dict[str, str]] = None,
+        trainer_device_mapping: Optional[Dict[str, str]] = None,
         metrics_agg_func: Optional[Callable[[List[dict]], dict]] = None,
     ) -> None:
         self.env_wrapper_func = env_wrapper_func
@@ -33,7 +34,7 @@ class RLComponentBundle(object):
                 f"Policies [{', '.join(sorted(useless_policies))}] are ignored since they are not used by any agent."
             )
         self.policies = [policy for policy in policies if policy.name in required_policies]
-        self.policy_dict = {policy.name: policy for policy in self.policies}
+        self.policy_dict: Dict[str, AbsPolicy] = {policy.name: policy for policy in self.policies}
 
         #
         self.policy2trainer = (
@@ -52,13 +53,20 @@ class RLComponentBundle(object):
                 f"Trainers [{', '.join(sorted(useless_trainers))}] are ignored since they are not used by any policy."
             )
         self.trainers = [trainer for trainer in trainers if trainer.name in required_trainers]
+        self.trainer_dict: Dict[str, BaseTrainer] = {trainer.name: trainer for trainer in self.trainers}
 
         #
-        self.device_mapping: Dict[str, torch.device] = {
-            policy_name: torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu")) 
-            for policy_name, device in device_mapping.items() 
-            if policy_name in self.policy2trainer
-        } if device_mapping is not None else {}
+        self.policy_device_mapping: Dict[str, torch.device] = {
+            policy_name: torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
+            for policy_name, device in policy_device_mapping.items()
+            if policy_name in self.policy_dict
+        } if policy_device_mapping is not None else {}
+
+        self.trainer_device_mapping: Dict[str, torch.device] = {
+            trainer_name: torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
+            for trainer_name, device in trainer_device_mapping.items()
+            if trainer_name in self.trainer_dict
+        } if trainer_device_mapping is not None else {}
 
         #
         if metrics_agg_func is None:

@@ -93,6 +93,10 @@ class BaseTrainer(object, metaclass=ABCMeta):
     def save(self, path: str) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def to_device(self, device: torch.device) -> None:
+        raise NotImplementedError
+
 
 class SingleAgentTrainer(BaseTrainer, metaclass=ABCMeta):
     @property

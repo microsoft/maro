@@ -96,6 +96,9 @@ class PolicyGradientTrainOps(BaseTrainOps):
 
         return batch
 
+    def to_device(self, device: torch.device) -> None:
+        self._critic.to(device)
+
 
 class PolicyGradientTrainer(SingleAgentTrainer):
     def __init__(
@@ -149,3 +152,6 @@ class PolicyGradientTrainer(SingleAgentTrainer):
 
         for _ in range(self._grad_iters):
             self._ops.update_critic(batch)
+
+    def to_device(self, device: torch.device) -> None:
+        self._ops.to_device(device)

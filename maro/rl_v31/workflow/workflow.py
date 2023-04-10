@@ -36,6 +36,10 @@ class Workflow(object):
 
         self.early_stop = False
 
+        for policy_name, device in self._rcb.policy_device_mapping.items():
+            policy = self._rcb.policy_dict[policy_name]
+            policy.to_device(device)
+
     def train(
         self,
         num_iterations: int,
@@ -74,6 +78,7 @@ class Workflow(object):
             policies=self._rcb.policies,
             agent2policy=self._rcb.agent2policy,
             policy2trainer=self._rcb.policy2trainer,
+            device_mapping=self._rcb.trainer_device_mapping,
         )
 
         # Build callbacks
