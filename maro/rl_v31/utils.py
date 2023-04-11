@@ -75,7 +75,10 @@ def gym_space_contains(space: gym.Space, x: Any) -> None:
 
 def convert_ndarray_to_tensor(obs: Any) -> Any:
     if isinstance(obs, np.ndarray):
-        return torch.from_numpy(obs)
+        try:
+            return torch.from_numpy(obs)
+        except TypeError:
+            return [convert_ndarray_to_tensor(e) for e in obs]
     elif isinstance(obs, list):
         return [convert_ndarray_to_tensor(e) for e in obs]
     elif isinstance(obs, tuple):
