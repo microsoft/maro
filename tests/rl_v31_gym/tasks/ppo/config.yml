@@ -1,0 +1,17 @@
+job: rl_gym_ppo
+scenario_path: "tests/rl_v31_gym/tasks/ppo"
+log_path: "tests/rl_v31_gym/log/ppo"
+main:
+  num_iterations: 1000
+rollout:
+  parallelism: 1
+  parallel_type: dummy
+train:
+  steps_per_iteration: 4000
+  checkpoint_path: "tests/rl_v31_gym/log/ppo/checkpoints"
+  validation_interval: 5
+valid:
+  episodes_per_iteration: 10
+test:
+  episodes_per_iteration: 10
+  load_path: "tests/rl_v31_gym/log/ppo/checkpoints/latest"

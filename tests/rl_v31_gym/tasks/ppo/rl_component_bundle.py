@@ -124,10 +124,7 @@ policies = [
 trainers = [
     PPOTrainer(
         name=f"ppo_{i}",
-        # TODO: create rmm in collector?
-        rmm=ReplayMemoryManager(
-            memories=[ReplayMemory(capacity=4000) for _ in range(1)],
-        ),  # TODO: config parallelism & memory size
+        memory_size=4000,
         critic_func=lambda: get_ppo_critic(gym_state_dim),
         critic_loss_cls=nn.SmoothL1Loss,
         lam=0.97,

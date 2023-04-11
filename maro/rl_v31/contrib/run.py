@@ -9,9 +9,12 @@ from typing import Optional
 from maro.rl_v31.contrib.parser import RLConfigParser
 from maro.rl_v31.workflow.workflow import Workflow
 from maro.utils import set_seeds
+from maro.utils.utils import LOCAL_MARO_ROOT
 
 
 def run(config: dict, test_only: bool = False, seed: Optional[int] = None) -> None:
+    os.environ["PYTHONPATH"] = LOCAL_MARO_ROOT
+    
     if seed is not None:
         set_seeds(seed)
 
