@@ -1,10 +1,14 @@
 import os
+import shutil
 from typing import Optional, Tuple
+
+import pandas as pd
 
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.rollout.collector import Collector
 from maro.rl_v31.rollout.venv import BaseVectorEnv
 from maro.rl_v31.rollout.worker import DummyEnvWorker
+from maro.rl_v31.rollout.wrapper import AgentWrapper
 from maro.rl_v31.training.training_manager import TrainingManager
 from maro.rl_v31.workflow.callback import CallbackManager, Checkpoint, EarlyStopping, MetricsRecorder
 from maro.utils import LoggerV2
@@ -48,19 +52,23 @@ class Workflow(object):
         valid_steps_per_iteration: Optional[int] = None,
         valid_episodes_per_iteration: Optional[int] = None,
         checkpoint_path: Optional[str] = None,
-        checkpoint_interval: int = 1,
         validation_interval: Optional[int] = None,
         explore_in_training: bool = True,
         explore_in_validation: bool = False,
         early_stop_config: Optional[Tuple[str, int, bool]] = None,
+        load_path: Optional[str] = None,
     ) -> None:
+        agent_wrapper = AgentWrapper(
+            policy_dict={policy.name: policy for policy in self._rcb.policies},
+            agent2policy=self._rcb.agent2policy,
+        )
         train_collector = Collector(
             venv=BaseVectorEnv(
                 env_fns=[self._rcb.env_wrapper_func for _ in range(self._rollout_parallelism)],
                 worker_fn=lambda env_wrapper: DummyEnvWorker(env_wrapper),
             ),
             policies=self._rcb.policies,
-            agent2policy=self._rcb.agent2policy,
+            agent_wrapper=agent_wrapper,
         )
         valid_collector = Collector(
             venv=BaseVectorEnv(
@@ -68,7 +76,7 @@ class Workflow(object):
                 worker_fn=lambda env_wrapper: DummyEnvWorker(env_wrapper),
             ),
             policies=self._rcb.policies,
-            agent2policy=self._rcb.agent2policy,
+            agent_wrapper=agent_wrapper,
         )
         train_collector.reset()
         valid_collector.reset()
@@ -80,17 +88,30 @@ class Workflow(object):
             policy2trainer=self._rcb.policy2trainer,
             device_mapping=self._rcb.trainer_device_mapping,
         )
+        if load_path is not None:
+            agent_wrapper.load(load_path)
+            training_manager.load(load_path)
 
         # Build callbacks
         callbacks = [MetricsRecorder(path=self.log_path)]
+
         if checkpoint_path is not None:
-            callbacks.append(Checkpoint(path=checkpoint_path, interval=checkpoint_interval))
+            cb_checkpoint = Checkpoint(path=checkpoint_path, interval=validation_interval)
+            callbacks.append(cb_checkpoint)
+        else:
+            cb_checkpoint = None
+
         if early_stop_config is not None:
             monitor, patience, higher_better = early_stop_config
-            callbacks.append(EarlyStopping(patience=patience, monitor=monitor, higher_better=higher_better))
+            cb_early_stopping = EarlyStopping(patience=patience, monitor=monitor, higher_better=higher_better)
+            callbacks.append(cb_early_stopping)
+        else:
+            cb_early_stopping = None
+
         cbm = CallbackManager(
             workflow=self,
             callbacks=callbacks,
+            agent_wrapper=agent_wrapper,
             training_manager=training_manager,
             logger=self.logger,
         )
@@ -138,5 +159,42 @@ class Workflow(object):
 
             cbm.on_episode_end(ep)
 
-            # No need to transfer policy state in simple mode. Add this function later.
-            # policy_states = training_manager.get_policy_state()
+        if cb_checkpoint is not None and cb_early_stopping is not None:
+            cb_checkpoint.make_copy(str(cb_early_stopping.best_ep), "best")
+
+    def test(
+        self,
+        save_path: str,
+        steps_per_iteration: Optional[int] = None,
+        episodes_per_iteration: Optional[int] = None,
+        explore: bool = False,
+        load_path: Optional[str] = None,
+    ) -> None:
+        agent_wrapper = AgentWrapper(
+            policy_dict={policy.name: policy for policy in self._rcb.policies},
+            agent2policy=self._rcb.agent2policy,
+        )
+        collector = Collector(
+            venv=BaseVectorEnv(
+                env_fns=[self._rcb.env_wrapper_func for _ in range(self._rollout_parallelism)],
+                worker_fn=lambda env_wrapper: DummyEnvWorker(env_wrapper),
+            ),
+            policies=self._rcb.policies,
+            agent_wrapper=agent_wrapper,
+        )
+        collector.reset()
+
+        if load_path is not None:
+            agent_wrapper.load(load_path)
+
+        collector.switch_explore(explore)
+        total_info, total_exps = collector.collect(
+            n_steps=steps_per_iteration,
+            n_episodes=episodes_per_iteration,
+        )
+        metrics = self._rcb.metrics_agg_func(total_info)
+
+        df = pd.DataFrame.from_dict({k: [v] for k, v in metrics.items()})
+        path = os.path.join(save_path, "test_result.csv")
+        self.logger.info(f"Test result dumped to {path}")
+        df.to_csv(path)

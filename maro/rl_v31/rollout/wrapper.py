@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import os
 from abc import abstractmethod
 from collections import defaultdict, deque
 from typing import Any, Dict, List, Optional, Tuple
@@ -63,6 +64,14 @@ class AgentWrapper(object):
         for policy in self._policy_dict.values():
             if isinstance(policy, BaseRLPolicy):
                 policy.switch_explore(explore)
+
+    def save(self, path: str) -> None:
+        for policy in self._policy_dict.values():
+            torch.save(policy.get_states(), os.path.join(path, f"policy__{policy.name}.ckpt"))
+
+    def load(self, path: str) -> None:
+        for policy in self._policy_dict.values():
+            policy.set_states(torch.load(os.path.join(path, f"policy__{policy.name}.ckpt")))
 
 
 class EnvWrapper(object):

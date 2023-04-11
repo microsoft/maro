@@ -21,12 +21,10 @@ class BaseTrainOps(object):
 
     def get_state(self) -> dict:
         return {
-            "policy": self._policy.get_states(),
             "auxiliary": self._get_auxiliary_state(),
         }
 
     def set_state(self, ops_state_dict: dict) -> None:
-        self._policy.set_states(ops_state_dict["policy"])
         self._set_auxiliary_state(ops_state_dict["auxiliary"])
 
     @abstractmethod
@@ -90,6 +88,10 @@ class BaseTrainer(object, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
+    def load(self, path: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def save(self, path: str) -> None:
         raise NotImplementedError
 
@@ -135,13 +137,14 @@ class SingleAgentTrainer(BaseTrainer, metaclass=ABCMeta):
     def get_policy_state(self) -> Dict[str, dict]:
         return {self.policy.name: self.ops.get_state()["policy"]}
 
+    def load(self, path: str) -> None:
+        auxiliary_state = torch.load(os.path.join(path, f"trainer__{self.name}.ckpt"))
+        self.ops.set_state({"auxiliary": auxiliary_state})
+
     def save(self, path: str) -> None:
         ops_state = self.ops.get_state()
-        policy_state = ops_state["policy"]
         auxiliary_state = ops_state["auxiliary"]
-
-        torch.save(policy_state, os.path.join(path, f"{self.name}_policy.ckpt"))
-        torch.save(auxiliary_state, os.path.join(path, f"{self.name}_non_policy.ckpt"))
+        torch.save(auxiliary_state, os.path.join(path, f"trainer__{self.name}.ckpt"))
 
 
 class MultiAgentTrainer(BaseTrainer, metaclass=ABCMeta):

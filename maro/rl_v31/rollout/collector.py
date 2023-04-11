@@ -22,18 +22,13 @@ class Collector(object):
         self,
         venv: BaseVectorEnv,
         policies: List[AbsPolicy],
-        agent2policy: Dict[Any, str],
+        agent_wrapper: AgentWrapper
     ) -> None:
         self._venv = venv
         self._policies = policies
-        self._agent2policy = agent2policy
 
         self._data: List[EnvStepRes] = [EnvStepRes.dummy() for _ in range(self.env_num)]
-
-        self._agent_wrapper = AgentWrapper(
-            policy_dict={policy.name: policy for policy in policies},
-            agent2policy=agent2policy,
-        )
+        self._agent_wrapper = agent_wrapper
 
     @property
     def env_num(self) -> int:

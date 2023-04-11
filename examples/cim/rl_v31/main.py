@@ -15,9 +15,14 @@ def main() -> None:
         episodes_per_iteration=1,
         valid_episodes_per_iteration=5,
         checkpoint_path="examples/cim/rl_v31/log/checkpoints/",
-        checkpoint_interval=3,
         validation_interval=3,
-        # early_stop_config=("container_shortage", 2, False),
+        # early_stop_config=("container_shortage", 5, False),
+    )
+    workflow.test(
+        save_path="examples/cim/rl_v31/log/",
+        episodes_per_iteration=5,
+        # load_path="examples/cim/rl_v31/log/checkpoints/best/"
+        load_path="examples/cim/rl_v31/log/checkpoints/latest/"
     )
 
 

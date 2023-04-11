@@ -60,12 +60,12 @@ class TrainingManager(object):
             for trainer_name, trainer_exps in trainer_exp_pool.items():
                 self._trainer_dict[trainer_name].record_exp(env_id, trainer_exps)
 
-    def load(self, path: str) -> List[str]:
-        pass
+    def load(self, path: str) -> None:
+        for trainer in self._trainer_dict.values():
+            trainer.load(path)
 
     def save(self, path: str) -> None:
-        os.makedirs(path, exist_ok=True)
-        for trainer_name, trainer in self._trainer_dict.items():
+        for trainer in self._trainer_dict.values():
             trainer.save(path)
 
     def assign_device(self, device_mapping: Dict[str, torch.device]) -> None:

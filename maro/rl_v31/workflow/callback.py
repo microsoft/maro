@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import copy
 import os
+import shutil
 import typing
 from typing import Dict, List, Optional
 
 import pandas as pd
 
+from maro.rl_v31.rollout.wrapper import AgentWrapper
 from maro.rl_v31.training.training_manager import TrainingManager
 from maro.utils import LoggerV2
 
@@ -19,6 +21,7 @@ if typing.TYPE_CHECKING:
 class Callback(object):
     def __init__(self) -> None:
         self.workflow: Optional[Workflow] = None
+        self.agent_wrapper: Optional[AgentWrapper] = None
         self.training_manager: Optional[TrainingManager] = None
         self.logger: Optional[LoggerV2] = None
 
@@ -54,20 +57,21 @@ class EarlyStopping(Callback):
         self._patience = patience
         self._monitor = monitor
         self._higher_better = higher_better
-        self._best_ep: int = -1
-        self._best: float = float("-inf") if higher_better else float("inf")
+
+        self.best_ep: int = -1
+        self.best: float = float("-inf") if higher_better else float("inf")
 
     def on_validation_end(self, ep: int) -> None:
         cur = self.workflow.valid_metrics[self._monitor]
-        if (self._higher_better and cur > self._best) or (not self._higher_better and cur < self._best):
-            self._best_ep = ep
-            self._best = cur
-        self.logger.info(f"Current metric: {cur} @ ep {ep}. Best metric: {self._best} @ ep {self._best_ep}")
+        if (self._higher_better and cur > self.best) or (not self._higher_better and cur < self.best):
+            self.best_ep = ep
+            self.best = cur
+        self.logger.info(f"Current metric: {cur} @ ep {ep}. Best metric: {self.best} @ ep {self.best_ep}")
 
-        if ep - self._best_ep > self._patience:
+        if ep - self.best_ep > self._patience:
             self.workflow.early_stop = True
             self.logger.info(
-                f"Validation metric has not been updated for {ep - self._best_ep} "
+                f"Validation metric has not been updated for {ep - self.best_ep} "
                 f"epochs (patience = {self._patience} epochs). Early stop.",
             )
 
@@ -79,10 +83,27 @@ class Checkpoint(Callback):
         self._path = path
         self._interval = interval
 
+        if os.path.exists(path):
+            shutil.rmtree(path)
+        os.makedirs(path, exist_ok=True)
+
     def on_training_end(self, ep: int) -> None:
         if ep % self._interval == 0:
-            self.training_manager.save(os.path.join(self._path, str(ep)))
-            self.logger.info(f"[Episode {ep}] All trainer states saved under {self._path}")
+            ep_path = os.path.join(self._path, str(ep))
+            os.makedirs(ep_path, exist_ok=True)
+
+            self.agent_wrapper.save(ep_path)
+            self.training_manager.save(ep_path)
+            self.logger.info(f"[Episode {ep}] All policy/trainer states saved under {self._path}")
+
+            self.make_copy(str(ep), "latest")
+
+    def make_copy(self, src: str, dst: str) -> None:
+        src_path = os.path.join(self._path, src)
+        dst_path = os.path.join(self._path, dst)
+        if os.path.exists(dst_path):
+            shutil.rmtree(dst_path)
+        shutil.copytree(src_path, dst_path)
 
 
 class MetricsRecorder(Callback):
@@ -136,6 +157,7 @@ class CallbackManager(object):
         self,
         workflow: Workflow,
         callbacks: List[Callback],
+        agent_wrapper: AgentWrapper,
         training_manager: TrainingManager,
         logger: LoggerV2,
     ) -> None:
@@ -144,6 +166,7 @@ class CallbackManager(object):
         self._callbacks = callbacks
         for callback in self._callbacks:
             callback.workflow = workflow
+            callback.agent_wrapper = agent_wrapper
             callback.training_manager = training_manager
             callback.logger = logger
 
