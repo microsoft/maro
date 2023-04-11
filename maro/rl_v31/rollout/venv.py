@@ -49,9 +49,7 @@ class BaseVectorEnv(object):
             self.workers[i].send(msg)  # Send None to a worker means reset
         return {i: self.workers[i].recv()[1] for i in ids}
 
-    def step(
-        self, env_policy_acts: Dict[int, Dict[Any, PolicyActionType]], **kwargs: Any
-    ) -> Dict[int, EnvStepRes]:
+    def step(self, env_policy_acts: Dict[int, Dict[Any, PolicyActionType]], **kwargs: Any) -> Dict[int, EnvStepRes]:
         assert not self.is_closed
 
         for i, policy_act in env_policy_acts.items():

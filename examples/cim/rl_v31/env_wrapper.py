@@ -4,9 +4,14 @@ import numpy as np
 
 import torch
 
-from examples.cim.rl_v31.config import action_shaping_conf, env_conf, port_attributes, reward_shaping_conf, \
-    state_shaping_conf, \
-    vessel_attributes
+from examples.cim.rl_v31.config import (
+    action_shaping_conf,
+    env_conf,
+    port_attributes,
+    reward_shaping_conf,
+    state_shaping_conf,
+    vessel_attributes,
+)
 from maro.rl_v31.rollout.wrapper import EnvWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent

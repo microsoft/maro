@@ -2,9 +2,8 @@
 # Licensed under the MIT License.
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict, deque
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from tianshou.data import Batch
 
@@ -70,7 +69,9 @@ class Collector(object):
         if policy_state is not None:
             self._agent_wrapper.set_policy_state(policy_state)
 
-        total_infos, env_exps = self._collect_n_steps(n_steps) if n_steps is not None else self._collect_n_episodes(n_episodes)
+        total_infos, env_exps = (
+            self._collect_n_steps(n_steps) if n_steps is not None else self._collect_n_episodes(n_episodes)
+        )
         return total_infos, env_exps
 
     def _collect_n_steps(self, n_steps: int) -> Tuple[List[dict], Dict[int, List[ExpElement]]]:

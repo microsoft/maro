@@ -39,7 +39,7 @@ class PGPolicy(BaseRLPolicy):
     def forward(self, batch: Batch, **kwargs: Any) -> Batch:
         obs = to_torch(batch.obs)
         logits = self.model(obs)
-        
+
         if isinstance(logits, torch.Tensor):
             dist = self.dist_fn(logits)
         elif isinstance(logits, tuple):

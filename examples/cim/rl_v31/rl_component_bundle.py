@@ -19,7 +19,7 @@ agent2policy = {agent: f"ppo_{agent}.policy" for agent in env.agent_idx_list}
 policies = [get_ppo_policy(state_dim, action_num, f"ppo_{i}.policy") for i in range(num_agents)]
 trainers = [
     PPOTrainer(
-        name=f'ppo_{i}',
+        name=f"ppo_{i}",
         # TODO: create rmm in collector?
         rmm=ReplayMemoryManager(memories=[ReplayMemory(capacity=1000) for _ in range(PARALLELISM)]),
         critic_func=lambda: get_ppo_critic(state_dim),

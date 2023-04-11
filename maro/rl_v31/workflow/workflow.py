@@ -100,7 +100,7 @@ class Workflow(object):
             if self.early_stop:  # Might be set in `cbm.on_validation_end()`
                 break
 
-            self.logger.info(f'Running iteration {ep}')
+            self.logger.info(f"Running iteration {ep}")
 
             cbm.on_episode_start(ep)
 
@@ -112,8 +112,8 @@ class Workflow(object):
             self.train_metrics = self._rcb.metrics_agg_func(total_info)
 
             self.logger.info(
-                f'Rollout of EP {ep} finished, '
-                f'collected {sum(map(len, total_exps.values()))} experiences. Start training.'
+                f"Rollout of EP {ep} finished, "
+                f"collected {sum(map(len, total_exps.values()))} experiences. Start training.",
             )
 
             cbm.on_training_start(ep)
@@ -121,7 +121,7 @@ class Workflow(object):
             training_manager.train_step()
             cbm.on_training_end(ep)
 
-            self.logger.info(f'Training of EP {ep} finished.')
+            self.logger.info(f"Training of EP {ep} finished.")
 
             if validation_interval is not None and ep % validation_interval == 0:
                 self.logger.info(f"Validation of EP {ep}")

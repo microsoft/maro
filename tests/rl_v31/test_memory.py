@@ -24,7 +24,7 @@ def _get_batch(s: int, e: int) -> Batch:
 
 
 rmm = ReplayMemoryManager(
-    memories=[ReplayMemory(capacity=10) for _ in range(3)]
+    memories=[ReplayMemory(capacity=10) for _ in range(3)],
 )
 
 

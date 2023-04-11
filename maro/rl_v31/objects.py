@@ -41,7 +41,7 @@ class ExpElement:
                 next_obs=self.next_obs,
                 next_agent_obs_dict=None if self.next_agent_obs_dict is None else {},
                 truncated=self.truncated,
-            )
+            ),
         )
 
         for agent_name in self.agent_obs_dict:

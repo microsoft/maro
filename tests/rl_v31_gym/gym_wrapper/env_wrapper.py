@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Dict, Optional, Tuple, cast
 
 import numpy as np
 from maro.rl_v31.objects import CacheElement
@@ -56,10 +56,10 @@ class GymEnvWrapper(EnvWrapper):
             return cur
         else:
             return {"n_interactions": self._total_num_interaction}
-    
+
     def post_step(self, element: CacheElement) -> None:
         if not (self.end_of_episode or element.truncated):
             return
-        
+
         cur_metrics = list(self.env.metrics["reward_record"].values())
         self._reward_history.append((len(cur_metrics), np.sum(cur_metrics)))

@@ -14,8 +14,17 @@ from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundl
 from maro.rl_v31.training.algorithms.ppo import PPOTrainer
 from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 from maro.simulator import Env
-from tests.rl_v31_gym.gym_wrapper.common import (obs_lower_bound, obs_upper_bound, action_lower_bound, action_upper_bound, env, env_conf, gym_action_dim,
-                                                 gym_state_dim, num_agents)
+from tests.rl_v31_gym.gym_wrapper.common import (
+    obs_lower_bound,
+    obs_upper_bound,
+    action_lower_bound,
+    action_upper_bound,
+    env,
+    env_conf,
+    gym_action_dim,
+    gym_state_dim,
+    num_agents,
+)
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper
 from tests.rl_v31_gym.gym_wrapper.simulator.business_engine import GymBusinessEngine
 
@@ -65,7 +74,15 @@ class MyCriticModel(BaseNet):
         return self.mlp(obs).squeeze(-1)
 
 
-def get_ppo_policy(name: str, obs_lower_bound: float, obs_upper_bound: float, action_lower_bound: float, action_upper_bound: float, obs_dim: int, action_dim: int) -> PPOPolicy:
+def get_ppo_policy(
+    name: str,
+    obs_lower_bound: float,
+    obs_upper_bound: float,
+    action_lower_bound: float,
+    action_upper_bound: float,
+    obs_dim: int,
+    action_dim: int,
+) -> PPOPolicy:
     obs_space = spaces.Box(obs_lower_bound, obs_upper_bound, shape=(obs_dim,))
     action_space = spaces.Box(action_lower_bound, action_upper_bound, shape=(action_dim,))
     model = MyPolicyModel(obs_dim=obs_dim, action_dim=action_dim)
@@ -91,14 +108,24 @@ def get_ppo_critic(obs_dim: int) -> VCritic:
 
 agent2policy = {agent: f"ppo_{agent}.policy" for agent in env.agent_idx_list}
 policies = [
-    get_ppo_policy(f"ppo_{i}.policy", obs_lower_bound, obs_upper_bound, action_lower_bound, action_upper_bound, gym_state_dim, gym_action_dim)
+    get_ppo_policy(
+        f"ppo_{i}.policy",
+        obs_lower_bound,
+        obs_upper_bound,
+        action_lower_bound,
+        action_upper_bound,
+        gym_state_dim,
+        gym_action_dim,
+    )
     for i in range(num_agents)
 ]
 trainers = [
     PPOTrainer(
-        name=f'ppo_{i}',
+        name=f"ppo_{i}",
         # TODO: create rmm in collector?
-        rmm=ReplayMemoryManager(memories=[ReplayMemory(capacity=4000) for _ in range(1)]),  # TODO: config parallelism & memory size
+        rmm=ReplayMemoryManager(
+            memories=[ReplayMemory(capacity=4000) for _ in range(1)],
+        ),  # TODO: config parallelism & memory size
         critic_func=lambda: get_ppo_critic(gym_state_dim),
         critic_loss_cls=nn.SmoothL1Loss,
         lam=0.97,
@@ -108,6 +135,7 @@ trainers = [
     )
     for i in range(num_agents)
 ]
+
 
 def metrics_agg_func(metrics: List[dict]) -> dict:
     ret = {
@@ -119,6 +147,7 @@ def metrics_agg_func(metrics: List[dict]) -> dict:
     ret["avg_reward"] = np.sum([e["avg_reward"] * e["n_segment"] for e in metrics]) / ret["n_segment"]
     ret["avg_n_steps"] = np.sum([e["avg_n_steps"] * e["n_segment"] for e in metrics]) / ret["n_segment"]
     return ret
+
 
 rl_component_bundle = RLComponentBundle(
     env_wrapper_func=lambda: GymEnvWrapper(Env(business_engine_cls=GymBusinessEngine, **env_conf)),

@@ -12,7 +12,6 @@ from torch.nn import Parameter
 from torch.optim import Optimizer
 
 from maro.rl_v31.model.base import BaseNet
-from maro.rl_v31.utils import convert_ndarray_to_tensor
 
 
 def _set_requires_grad(params: Iterator[Parameter], value: bool) -> None:
@@ -32,7 +31,7 @@ class AbsPolicy(BaseNet, metaclass=ABCMeta):
         self.name = name
         self.obs_space = obs_space
         self.action_space = action_space
-        
+
         self.device: Optional[torch.device] = None
 
     @abstractmethod
@@ -50,7 +49,7 @@ class AbsPolicy(BaseNet, metaclass=ABCMeta):
     @abstractmethod
     def set_states(self, state_dict: dict) -> None:
         raise NotImplementedError
-    
+
     def to_device(self, device: torch.device) -> None:
         """Assign the current policy to a specific device.
 

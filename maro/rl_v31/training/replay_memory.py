@@ -34,7 +34,7 @@ class ReplayMemory(object):
                 [
                     np.arange(start, self.capacity),
                     np.arange(0, start + size - self.capacity),
-                ]
+                ],
             )
 
     def sample(self, size: Optional[int] = None, random: bool = False, pop: bool = False) -> Batch:
@@ -65,9 +65,9 @@ class ReplayMemory(object):
         if len(batch) > self.capacity:
             warnings.warn(
                 f"Trying to store a HUGE batch of size {len(batch)} into a replay memory of size {self.capacity}. "
-                f"Only the last {self.capacity} elements will be kept."
+                f"Only the last {self.capacity} elements will be kept.",
             )
-            batch = batch[-self.capacity:]
+            batch = batch[-self.capacity :]
 
         n = len(batch)
         indexes = self._get_contiguous_indexes(self.ptr, n)
@@ -122,9 +122,7 @@ class ReplayMemoryManager(object):
 
         if size is None:
             return {
-                i: self.memories[i].sample(size=None, random=random, pop=pop)
-                for i in ids
-                if self.memories[i].size > 0
+                i: self.memories[i].sample(size=None, random=random, pop=pop) for i in ids if self.memories[i].size > 0
             }
         else:
             sizes = [self.memories[i].size for i in ids]

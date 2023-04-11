@@ -54,7 +54,7 @@ class AgentWrapper(object):
                 act = policy(batch).act
                 i = 0
                 for agent_name, size in zip(agents, sizes):
-                    act_dict[agent_name] = act[i: i + size]
+                    act_dict[agent_name] = act[i : i + size]
                     i += size
 
         return act_dict
@@ -86,15 +86,15 @@ class EnvWrapper(object):
 
         self._all_elements: List[CacheElement] = []
         self._agent_last_idx: Dict[Any, int] = {}
-        
+
         self._total_num_interaction = 0
 
         # Elements in [0, n_ready_elements) contains reward, so they are ready to be returned
         self.n_ready_elements = 0
 
     def collect_ready_exps(self) -> List[ExpElement]:
-        ready_elements = [e.to_exp_element() for e in self._all_elements[:self.n_ready_elements]]
-        self._all_elements = self._all_elements[self.n_ready_elements:]
+        ready_elements = [e.to_exp_element() for e in self._all_elements[: self.n_ready_elements]]
+        self._all_elements = self._all_elements[self.n_ready_elements :]
 
         self._agent_last_idx = {k: v - self.n_ready_elements for k, v in self._agent_last_idx.items()}
         self.n_ready_elements = 0
@@ -116,7 +116,7 @@ class EnvWrapper(object):
             self._calc_reward_for_element(self._all_elements[i])
             i += 1
         self.n_ready_elements = i
-        self._all_elements[self.n_ready_elements:] = []  # Discard tail elements
+        self._all_elements[self.n_ready_elements :] = []  # Discard tail elements
 
     def _append_element(self, element: CacheElement) -> None:
         cur_idx = len(self._all_elements)
@@ -131,7 +131,7 @@ class EnvWrapper(object):
                 e = self._all_elements[i]
                 e.terminal_dict[agent_name] = False
                 e.next_agent_obs_dict[agent_name] = agent_obs
-                
+
     def _calc_reward_for_element(self, element: CacheElement) -> None:
         element.reward_dict = self.get_reward(
             event=element.event,

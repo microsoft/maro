@@ -82,12 +82,12 @@ class PolicyGradientTrainOps(BaseTrainOps):
                 while j < len(batch) - 1 and not (batch.terminal[j] or batch.truncated[j]):
                     j += 1
 
-                last_val = 0.0 if batch.terminal[j] else self._critic(batch[j:j + 1], use="next_obs").item()
-                cur_values = np.append(values[i:j + 1], last_val)
-                cur_rewards = np.append(batch.reward[i:j + 1], last_val)
+                last_val = 0.0 if batch.terminal[j] else self._critic(batch[j : j + 1], use="next_obs").item()
+                cur_values = np.append(values[i : j + 1], last_val)
+                cur_rewards = np.append(batch.reward[i : j + 1], last_val)
                 cur_deltas = cur_rewards[:-1] + self._reward_discount * cur_values[1:] - cur_values[:-1]
-                returns[i: j + 1] = discount_cumsum(cur_rewards, self._reward_discount)[:-1]
-                adv[i: j + 1] = discount_cumsum(cur_deltas, self._reward_discount * self._lam)
+                returns[i : j + 1] = discount_cumsum(cur_rewards, self._reward_discount)[:-1]
+                adv[i : j + 1] = discount_cumsum(cur_deltas, self._reward_discount * self._lam)
 
                 i = j + 1
 

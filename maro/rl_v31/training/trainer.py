@@ -3,7 +3,7 @@
 import os
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import torch
 from tianshou.data import Batch
@@ -116,10 +116,12 @@ class SingleAgentTrainer(BaseTrainer, metaclass=ABCMeta):
                 agent_exps_dict[agent_name]["reward"].append(element.reward_dict[agent_name])
                 agent_exps_dict[agent_name]["terminal"].append(element.terminal_dict[agent_name])
                 agent_exps_dict[agent_name]["truncated"].append(element.truncated)
-                agent_exps_dict[agent_name]["next_obs"].append(element.next_agent_obs_dict.get(
-                    agent_name,
-                    element.agent_obs_dict[agent_name],
-                ))
+                agent_exps_dict[agent_name]["next_obs"].append(
+                    element.next_agent_obs_dict.get(
+                        agent_name,
+                        element.agent_obs_dict[agent_name],
+                    ),
+                )
 
         batches = [Batch(**agent_exps) for agent_exps in agent_exps_dict.values()]
         batch = Batch.cat(batches)
