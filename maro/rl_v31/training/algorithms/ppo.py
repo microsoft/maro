@@ -75,7 +75,7 @@ class PPOTrainer(PolicyGradientTrainer):
     def __init__(
         self,
         name: str,
-        rmm: ReplayMemoryManager,
+        memory_size: int,
         critic_func: Callable[[], VCritic],
         clip_ratio: float = 1.0,
         batch_size: int = 128,
@@ -88,7 +88,7 @@ class PPOTrainer(PolicyGradientTrainer):
     ) -> None:
         super().__init__(
             name=name,
-            rmm=rmm,
+            memory_size=memory_size,
             critic_func=critic_func,
             batch_size=batch_size,
             reward_discount=reward_discount,

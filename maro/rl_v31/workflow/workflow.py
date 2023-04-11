@@ -84,6 +84,7 @@ class Workflow(object):
             agent2policy=self._rcb.agent2policy,
             policy2trainer=self._rcb.policy2trainer,
             device_mapping=self._rcb.trainer_device_mapping,
+            rollout_parallelism=self._rollout_parallelism,
         )
         if load_path is not None:
             agent_wrapper.load(load_path)

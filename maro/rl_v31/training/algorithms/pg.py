@@ -103,7 +103,7 @@ class PolicyGradientTrainer(SingleAgentTrainer):
     def __init__(
         self,
         name: str,
-        rmm: ReplayMemoryManager,
+        memory_size: int,
         critic_func: Callable[[], VCritic],
         batch_size: int = 128,
         reward_discount: float = 0.99,
@@ -115,7 +115,7 @@ class PolicyGradientTrainer(SingleAgentTrainer):
     ) -> None:
         super().__init__(
             name=name,
-            rmm=rmm,
+            memory_size=memory_size,
             batch_size=batch_size,
             reward_discount=reward_discount,
             **kwargs,
@@ -139,7 +139,7 @@ class PolicyGradientTrainer(SingleAgentTrainer):
         )
 
     def train_step(self) -> None:
-        batch_dict = self._rmm.sample(size=None, random=False, pop=True)
+        batch_dict = self.rmm.sample(size=None, random=False, pop=True)
         batch_list = [self._ops.preprocess_batch(batch) for batch in batch_dict.values()]
         batch = Batch.cat(batch_list)
         batch.adv = (batch.adv - batch.adv.mean()) / batch.adv.std()

@@ -18,6 +18,7 @@ class TrainingManager(object):
         agent2policy: Dict[Any, str],
         policy2trainer: Dict[str, str],
         device_mapping: Optional[Dict[str, torch.device]] = None,
+        rollout_parallelism: int = 1,
     ) -> None:
 
         self._trainer_dict = {}
@@ -25,6 +26,7 @@ class TrainingManager(object):
             trainer.register_policies(policies, policy2trainer)
             trainer.register_agent2policy(agent2policy, policy2trainer)
             trainer.build()
+            trainer.create_memory(rollout_parallelism)
             self._trainer_dict[trainer.name] = trainer
 
         self._policies = policies

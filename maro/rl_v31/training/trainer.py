@@ -1,16 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import math
 import os
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import torch
 from tianshou.data import Batch
 
 from maro.rl_v31.objects import ExpElement
 from maro.rl_v31.policy.base import BaseRLPolicy
-from maro.rl_v31.training.replay_memory import ReplayMemoryManager
+from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 
 
 class BaseTrainOps(object):
@@ -40,14 +41,15 @@ class BaseTrainer(object, metaclass=ABCMeta):
     def __init__(
         self,
         name: str,
-        rmm: ReplayMemoryManager,
+        memory_size: int,
         batch_size: int = 128,
         reward_discount: float = 0.99,
         **kwargs: Any,
     ) -> None:
         self.name = name
 
-        self._rmm = rmm
+        self.rmm: Optional[ReplayMemoryManager] = None
+        self._memory_size = memory_size
         self._batch_size = batch_size
         self._reward_discount = reward_discount
 
@@ -70,6 +72,12 @@ class BaseTrainer(object, metaclass=ABCMeta):
 
     def register_policies(self, policies: List[BaseRLPolicy], policy2trainer: Dict[str, str]) -> None:
         self._policies = [policy for policy in policies if policy2trainer[policy.name] == self.name]
+
+    def create_memory(self, rollout_parallelism: int) -> None:
+        single_capacity = int(math.ceil(self._memory_size / rollout_parallelism))
+        self.rmm = ReplayMemoryManager(
+            memories=[ReplayMemory(capacity=single_capacity) for _ in range(rollout_parallelism)],
+        )
 
     @abstractmethod
     def train_step(self) -> None:
@@ -127,7 +135,7 @@ class SingleAgentTrainer(BaseTrainer, metaclass=ABCMeta):
 
         batches = [Batch(**agent_exps) for agent_exps in agent_exps_dict.values()]
         batch = Batch.cat(batches)
-        self._rmm.store(batches=[batch], ids=[env_id])
+        self.rmm.store(batches=[batch], ids=[env_id])
 
     @property
     def ops(self) -> BaseTrainOps:

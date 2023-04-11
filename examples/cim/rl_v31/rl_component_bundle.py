@@ -7,11 +7,10 @@ from torch import nn
 
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.ppo import PPOTrainer
-from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 from maro.simulator import Env
 
 from examples.cim.rl_v31.algorithms.ppo import get_ppo_critic, get_ppo_policy
-from examples.cim.rl_v31.config import PARALLELISM, action_num, env_conf, reward_shaping_conf, state_dim
+from examples.cim.rl_v31.config import action_num, env_conf, reward_shaping_conf, state_dim
 from examples.cim.rl_v31.env_wrapper import CimEnvWrapper, env
 
 num_agents = len(env.agent_idx_list)
@@ -21,8 +20,7 @@ policies = [get_ppo_policy(state_dim, action_num, f"ppo_{i}.policy") for i in ra
 trainers = [
     PPOTrainer(
         name=f"ppo_{i}",
-        # TODO: create rmm in collector?
-        rmm=ReplayMemoryManager(memories=[ReplayMemory(capacity=1000) for _ in range(PARALLELISM)]),
+        memory_size=1000,
         critic_func=lambda: get_ppo_critic(state_dim),
         critic_loss_cls=nn.SmoothL1Loss,
         lam=0.0,
