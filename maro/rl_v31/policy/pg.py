@@ -5,8 +5,9 @@ from typing import Any, Callable, Type, Union
 import torch
 from gym import spaces
 from tianshou.data import Batch
-from torch.optim import Optimizer
 from torch.distributions import Distribution
+from torch.optim import Optimizer
+
 from maro.rl_v31.model.base import PolicyModel
 from maro.rl_v31.policy.base import BaseRLPolicy
 from maro.rl_v31.utils import to_torch

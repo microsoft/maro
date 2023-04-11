@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 from tianshou.data import Batch
+
 from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 
 

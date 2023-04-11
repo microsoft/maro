@@ -1,5 +1,6 @@
-from .rl_component_bundle import rl_component_bundle as rcb
 from maro.rl_v31.workflow.workflow import Workflow
+
+from .rl_component_bundle import rl_component_bundle as rcb
 
 
 def main() -> None:

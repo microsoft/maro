@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from typing import Any, Callable, cast, Tuple
+from typing import Any, Callable, Tuple, cast
 
 import numpy as np
 import torch
@@ -11,7 +11,6 @@ from maro.rl_v31.policy.pg import PGPolicy
 from maro.rl_v31.training.replay_memory import ReplayMemoryManager
 from maro.rl_v31.training.trainer import BaseTrainOps, SingleAgentTrainer
 from maro.rl_v31.utils import discount_cumsum, to_torch
-
 
 # TODO: handle ops device
 

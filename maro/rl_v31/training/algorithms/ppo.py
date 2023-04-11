@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from typing import Any, Callable, cast, Tuple
+from typing import Any, Callable, Tuple, cast
 
 import torch
 from tianshou.data import Batch

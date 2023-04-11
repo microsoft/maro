@@ -5,13 +5,14 @@ from typing import List
 import numpy as np
 from torch import nn
 
-from examples.cim.rl_v31.algorithms.ppo import get_ppo_critic, get_ppo_policy
-from examples.cim.rl_v31.config import action_num, env_conf, PARALLELISM, reward_shaping_conf, state_dim
-from examples.cim.rl_v31.env_wrapper import CimEnvWrapper, env
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.ppo import PPOTrainer
 from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 from maro.simulator import Env
+
+from examples.cim.rl_v31.algorithms.ppo import get_ppo_critic, get_ppo_policy
+from examples.cim.rl_v31.config import PARALLELISM, action_num, env_conf, reward_shaping_conf, state_dim
+from examples.cim.rl_v31.env_wrapper import CimEnvWrapper, env
 
 num_agents = len(env.agent_idx_list)
 
@@ -41,7 +42,7 @@ def metrics_agg_func(x: List[dict]) -> dict:
     return ret
 
 
-rcb = RLComponentBundle(
+rl_component_bundle = RLComponentBundle(
     env_wrapper_func=lambda: CimEnvWrapper(Env(**env_conf), reward_eval_delay=reward_shaping_conf["time_window"]),
     agent2policy=agent2policy,
     policies=policies,

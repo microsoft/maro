@@ -8,9 +8,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import torch
 from tianshou.data import Batch
 
+from maro.rl_v31.objects import CacheElement, ExpElement
 from maro.rl_v31.policy.base import AbsPolicy, BaseRLPolicy
 from maro.simulator import Env
-from maro.rl_v31.objects import CacheElement, ExpElement
+
 from .typing import ActionType, EnvStepRes, ObservationType, PolicyActionType, StateType
 
 

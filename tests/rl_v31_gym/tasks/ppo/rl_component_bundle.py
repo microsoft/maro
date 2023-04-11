@@ -1,6 +1,7 @@
+from typing import List, Tuple
+
 import numpy as np
 import torch
-from typing import List, Tuple
 from gym import spaces
 from torch import nn
 from torch.distributions import Normal
@@ -14,9 +15,8 @@ from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundl
 from maro.rl_v31.training.algorithms.ppo import PPOTrainer
 from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 from maro.simulator import Env
+
 from tests.rl_v31_gym.gym_wrapper.common import (
-    obs_lower_bound,
-    obs_upper_bound,
     action_lower_bound,
     action_upper_bound,
     env,
@@ -24,6 +24,8 @@ from tests.rl_v31_gym.gym_wrapper.common import (
     gym_action_dim,
     gym_state_dim,
     num_agents,
+    obs_lower_bound,
+    obs_upper_bound,
 )
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper
 from tests.rl_v31_gym.gym_wrapper.simulator.business_engine import GymBusinessEngine

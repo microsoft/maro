@@ -8,11 +8,9 @@ from typing import Any, Dict, List, Optional, Tuple
 from tianshou.data import Batch
 
 from maro.rl_v31.objects import ExpElement
-from maro.rl_v31.policy.base import AbsPolicy
 from maro.rl_v31.rollout.typing import EnvStepRes
 from maro.rl_v31.rollout.venv import BaseVectorEnv
 from maro.rl_v31.rollout.wrapper import AgentWrapper
-
 
 # TODO: handle truncated
 
@@ -21,12 +19,9 @@ class Collector(object):
     def __init__(
         self,
         venv: BaseVectorEnv,
-        policies: List[AbsPolicy],
-        agent_wrapper: AgentWrapper
+        agent_wrapper: AgentWrapper,
     ) -> None:
         self._venv = venv
-        self._policies = policies
-
         self._data: List[EnvStepRes] = [EnvStepRes.dummy() for _ in range(self.env_num)]
         self._agent_wrapper = agent_wrapper
 

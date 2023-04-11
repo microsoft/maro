@@ -1,5 +1,4 @@
 import os
-import shutil
 from typing import Optional, Tuple
 
 import pandas as pd
@@ -67,7 +66,6 @@ class Workflow(object):
                 env_fns=[self._rcb.env_wrapper_func for _ in range(self._rollout_parallelism)],
                 worker_fn=lambda env_wrapper: DummyEnvWorker(env_wrapper),
             ),
-            policies=self._rcb.policies,
             agent_wrapper=agent_wrapper,
         )
         valid_collector = Collector(
@@ -75,7 +73,6 @@ class Workflow(object):
                 env_fns=[self._rcb.env_wrapper_func for _ in range(self._rollout_parallelism)],
                 worker_fn=lambda env_wrapper: DummyEnvWorker(env_wrapper),
             ),
-            policies=self._rcb.policies,
             agent_wrapper=agent_wrapper,
         )
         train_collector.reset()
@@ -179,7 +176,6 @@ class Workflow(object):
                 env_fns=[self._rcb.env_wrapper_func for _ in range(self._rollout_parallelism)],
                 worker_fn=lambda env_wrapper: DummyEnvWorker(env_wrapper),
             ),
-            policies=self._rcb.policies,
             agent_wrapper=agent_wrapper,
         )
         collector.reset()

@@ -1,8 +1,11 @@
 from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
-
 import torch
+
+from maro.rl_v31.rollout.wrapper import EnvWrapper
+from maro.simulator import Env
+from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
 from examples.cim.rl_v31.config import (
     action_shaping_conf,
@@ -12,9 +15,6 @@ from examples.cim.rl_v31.config import (
     state_shaping_conf,
     vessel_attributes,
 )
-from maro.rl_v31.rollout.wrapper import EnvWrapper
-from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 
 env = Env(**env_conf)
 

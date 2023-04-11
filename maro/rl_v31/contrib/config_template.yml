@@ -1,0 +1,27 @@
+job: your_job_name
+scenario_path: "/path/to/your/scenario"
+log_path: "/path/to/your/log/folder"  # All logs are written to a single file for ease of viewing.
+main:
+  num_iterations: 100
+  explore_in_training: true
+  explore_in_valid_and_test: false
+rollout:
+  parallelism: 1
+  parallel_type: dummy
+train:
+  steps_per_iteration: null
+  episodes_per_iteration: null
+  checkpoint_path: "path/to/your/checkpoint/folder"
+  validation_interval: null
+  load_path: "path/to/your/load/path"
+  early_stop:
+    monitor: your_monitor
+    patience: 10
+    higher_better: true
+valid:
+  steps_per_iteration: null
+  episodes_per_iteration: null
+test:
+  steps_per_iteration: null
+  episodes_per_iteration: null
+  load_path: "path/to/your/load/path"

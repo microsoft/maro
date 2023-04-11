@@ -1,5 +1,6 @@
-from examples.cim.rl_v31.rl_component_bundle import rcb
 from maro.rl_v31.workflow.workflow import Workflow
+
+from examples.cim.rl_v31.rl_component_bundle import rl_component_bundle as rcb
 
 PARALLELISM = 1
 
@@ -22,7 +23,7 @@ def main() -> None:
         save_path="examples/cim/rl_v31/log/",
         episodes_per_iteration=5,
         # load_path="examples/cim/rl_v31/log/checkpoints/best/"
-        load_path="examples/cim/rl_v31/log/checkpoints/latest/"
+        load_path="examples/cim/rl_v31/log/checkpoints/latest/",
     )
 
 

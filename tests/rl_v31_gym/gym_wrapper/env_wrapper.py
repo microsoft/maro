@@ -1,10 +1,11 @@
 from typing import Dict, Optional, Tuple, cast
 
 import numpy as np
-from maro.rl_v31.objects import CacheElement
 
+from maro.rl_v31.objects import CacheElement
 from maro.rl_v31.rollout.wrapper import EnvWrapper
 from maro.simulator import Env
+
 from .simulator.business_engine import GymBusinessEngine
 from .simulator.common import Action, DecisionEvent
 

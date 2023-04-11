@@ -1,0 +1,20 @@
+job: cim
+scenario_path: "examples/cim/rl_v31/"
+log_path: "log/cim_v31/"
+main:
+  num_iterations: 30
+  explore_in_training: true
+  explore_in_valid_and_test: true
+train:
+  episodes_per_iteration: 1
+  checkpoint_path: "log/cim_v31/checkpoints/"
+  validation_interval: 3
+  early_stop:
+    monitor: container_shortage
+    patience: 5
+    higher_better: false
+valid:
+  episodes_per_iteration: 1
+test:
+  episodes_per_iteration: 1
+  load_path: "log/cim_v31/checkpoints/best/"
