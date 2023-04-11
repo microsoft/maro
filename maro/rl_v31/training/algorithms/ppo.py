@@ -8,7 +8,6 @@ from tianshou.data import Batch
 from maro.rl_v31.model.vnet import VCritic
 from maro.rl_v31.policy.pg import PGPolicy
 from maro.rl_v31.training.algorithms.pg import PolicyGradientTrainer, PolicyGradientTrainOps
-from maro.rl_v31.training.replay_memory import ReplayMemoryManager
 from maro.rl_v31.utils import to_torch
 
 

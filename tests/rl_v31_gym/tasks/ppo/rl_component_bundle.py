@@ -13,7 +13,6 @@ from maro.rl_v31.model.vnet import VCritic
 from maro.rl_v31.policy import PPOPolicy
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.ppo import PPOTrainer
-from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 from maro.simulator import Env
 
 from tests.rl_v31_gym.gym_wrapper.common import (

@@ -12,9 +12,12 @@ from maro.utils import set_seeds
 from maro.utils.utils import LOCAL_MARO_ROOT
 
 
-def run(config: dict, test_only: bool = False, seed: Optional[int] = None) -> None:
+def start_rl_job(config_path: str, test_only: bool = False, seed: Optional[int] = None) -> None:
     os.environ["PYTHONPATH"] = LOCAL_MARO_ROOT
-    
+
+    parser = RLConfigParser(config_path, test_only)
+    config = parser.parse()
+
     if seed is not None:
         set_seeds(seed)
 
@@ -61,8 +64,4 @@ if __name__ == "__main__":
     parser.add_argument("--test_only", action="store_true", help="Only run evaluation part of the workflow")
 
     args = parser.parse_args()
-
-    parser = RLConfigParser(args.config, args.test_only)
-    config = parser.parse()
-
-    run(config, test_only=args.test_only, seed=args.seed)
+    start_rl_job(config_path=args.config, test_only=args.test_only, seed=args.seed)

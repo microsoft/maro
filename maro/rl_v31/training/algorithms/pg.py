@@ -8,7 +8,6 @@ from tianshou.data import Batch
 
 from maro.rl_v31.model.vnet import VCritic
 from maro.rl_v31.policy.pg import PGPolicy
-from maro.rl_v31.training.replay_memory import ReplayMemoryManager
 from maro.rl_v31.training.trainer import BaseTrainOps, SingleAgentTrainer
 from maro.rl_v31.utils import discount_cumsum, to_torch
 
