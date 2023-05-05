@@ -2,12 +2,13 @@
 # Licensed under the MIT license.
 
 from dataclasses import dataclass
-from typing import Dict, cast
+from typing import Dict, Tuple, cast
 
+import numpy as np
 import torch
 
 from maro.rl.policy import RLPolicy, ValueBasedPolicy
-from maro.rl.training import AbsTrainOps, BaseTrainerParams, RandomReplayMemory, RemoteOps, SingleAgentTrainer, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, PriorityReplayMemory, RemoteOps, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
@@ -27,11 +28,12 @@ class DQNParams(BaseTrainerParams):
         sequentially with wrap-around.
     """
 
+    alpha: float
+    beta: float
     num_epochs: int = 1
     update_target_every: int = 5
     soft_update_coef: float = 0.1
     double: bool = False
-    random_overwrite: bool = False
 
 
 class DQNOps(AbsTrainOps):
@@ -54,20 +56,21 @@ class DQNOps(AbsTrainOps):
         self._reward_discount = reward_discount
         self._soft_update_coef = params.soft_update_coef
         self._double = params.double
-        self._loss_func = torch.nn.MSELoss()
 
         self._target_policy: ValueBasedPolicy = clone(self._policy)
         self._target_policy.set_name(f"target_{self._policy.name}")
         self._target_policy.eval()
 
-    def _get_batch_loss(self, batch: TransitionBatch) -> torch.Tensor:
+    def _get_batch_loss(self, batch: TransitionBatch, weight: np.ndarray) -> Tuple[torch.Tensor, torch.Tensor]:
         """Compute the loss of the batch.
 
         Args:
             batch (TransitionBatch): Batch.
+            weight (np.ndarray): Weight of each data entry.
 
         Returns:
             loss (torch.Tensor): The loss of the batch.
+            td_error (torch.Tensor): TD-error of the batch.
         """
         assert isinstance(batch, TransitionBatch)
         assert isinstance(self._policy, ValueBasedPolicy)
@@ -78,6 +81,8 @@ class DQNOps(AbsTrainOps):
         actions = ndarray_to_tensor(batch.actions, device=self._device)
         rewards = ndarray_to_tensor(batch.rewards, device=self._device)
         terminals = ndarray_to_tensor(batch.terminals, device=self._device).float()
+
+        weight = ndarray_to_tensor(weight, device=self._device)
 
         with torch.no_grad():
             if self._double:
@@ -91,7 +96,9 @@ class DQNOps(AbsTrainOps):
 
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
         q_values = self._policy.q_values_tensor(states, actions)
-        return self._loss_func(q_values, target_q_values)
+        td_error = target_q_values - q_values
+
+        return (td_error.pow(2) * weight).mean(), td_error
 
     @remote
     def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
@@ -103,7 +110,8 @@ class DQNOps(AbsTrainOps):
         Returns:
             grad (torch.Tensor): The gradient of the batch.
         """
-        return self._policy.get_gradients(self._get_batch_loss(batch))
+        loss, _ = self._get_batch_loss(batch)
+        return self._policy.get_gradients(loss)
 
     def update_with_grad(self, grad_dict: dict) -> None:
         """Update the network with remotely computed gradients.
@@ -114,14 +122,20 @@ class DQNOps(AbsTrainOps):
         self._policy.train()
         self._policy.apply_gradients(grad_dict)
 
-    def update(self, batch: TransitionBatch) -> None:
+    def update(self, batch: TransitionBatch, weight: np.ndarray) -> np.ndarray:
         """Update the network using a batch.
 
         Args:
             batch (TransitionBatch): Batch.
+            weight (np.ndarray): Weight of each data entry.
+
+        Returns:
+            td_errors (np.ndarray)
         """
         self._policy.train()
-        self._policy.train_step(self._get_batch_loss(batch))
+        loss, td_error = self._get_batch_loss(batch, weight)
+        self._policy.train_step(loss)
+        return td_error.detach().numpy()
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -168,19 +182,17 @@ class DQNTrainer(SingleAgentTrainer):
 
     def build(self) -> None:
         self._ops = cast(DQNOps, self.get_ops())
-        self._replay_memory = RandomReplayMemory(
+        self._replay_memory = PriorityReplayMemory(
             capacity=self._replay_memory_capacity,
             state_dim=self._ops.policy_state_dim,
             action_dim=self._ops.policy_action_dim,
-            random_overwrite=self._params.random_overwrite,
+            alpha=self._params.alpha,
+            beta=self._params.beta,
         )
 
     def _register_policy(self, policy: RLPolicy) -> None:
         assert isinstance(policy, ValueBasedPolicy)
         self._policy = policy
-
-    def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
-        return transition_batch
 
     def get_local_ops(self) -> AbsTrainOps:
         return DQNOps(
@@ -191,13 +203,19 @@ class DQNTrainer(SingleAgentTrainer):
             params=self._params,
         )
 
-    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
-        return self._replay_memory.sample(batch_size if batch_size is not None else self._batch_size)
+    def _get_batch(self, batch_size: int = None) -> Tuple[TransitionBatch, np.ndarray]:
+        replay_memory = cast(PriorityReplayMemory, self.replay_memory)
+        batch = replay_memory.sample(batch_size or self._batch_size)
+        weight = replay_memory.get_weight()
+        return batch, weight
 
     def train_step(self) -> None:
         assert isinstance(self._ops, DQNOps)
+        replay_memory = cast(PriorityReplayMemory, self.replay_memory)
         for _ in range(self._params.num_epochs):
-            self._ops.update(self._get_batch())
+            batch, weight = self._get_batch()
+            td_error = self._ops.update(batch, weight)
+            replay_memory.update_weight(td_error)
 
         self._try_soft_update_target()
 

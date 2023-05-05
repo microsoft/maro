@@ -272,9 +272,6 @@ class SoftActorCriticTrainer(SingleAgentTrainer):
             if early_stop:
                 break
 
-    def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
-        return transition_batch
-
     def get_local_ops(self) -> SoftActorCriticOps:
         return SoftActorCriticOps(
             name=self._policy.name,

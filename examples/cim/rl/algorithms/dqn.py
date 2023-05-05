@@ -64,6 +64,7 @@ def get_dqn(name: str) -> DQNTrainer:
             num_epochs=10,
             soft_update_coef=0.1,
             double=False,
-            random_overwrite=False,
+            alpha=1.0,
+            beta=1.0,
         ),
     )

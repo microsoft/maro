@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from .proxy import TrainingProxy
-from .replay_memory import FIFOMultiReplayMemory, FIFOReplayMemory, RandomMultiReplayMemory, RandomReplayMemory
+from .replay_memory import FIFOMultiReplayMemory, FIFOReplayMemory, PriorityReplayMemory, RandomMultiReplayMemory, RandomReplayMemory
 from .train_ops import AbsTrainOps, RemoteOps, remote
 from .trainer import AbsTrainer, BaseTrainerParams, MultiAgentTrainer, SingleAgentTrainer
 from .training_manager import TrainingManager
@@ -12,6 +12,7 @@ __all__ = [
     "TrainingProxy",
     "FIFOMultiReplayMemory",
     "FIFOReplayMemory",
+    "PriorityReplayMemory",
     "RandomMultiReplayMemory",
     "RandomReplayMemory",
     "AbsTrainOps",
