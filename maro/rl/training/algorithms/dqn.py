@@ -203,19 +203,20 @@ class DQNTrainer(SingleAgentTrainer):
             params=self._params,
         )
 
-    def _get_batch(self, batch_size: int = None) -> Tuple[TransitionBatch, np.ndarray]:
+    def _get_batch(self, batch_size: int = None) -> Tuple[TransitionBatch, np.ndarray, np.ndarray]:
         replay_memory = cast(PriorityReplayMemory, self.replay_memory)
-        batch = replay_memory.sample(batch_size or self._batch_size)
-        weight = replay_memory.get_weight()
-        return batch, weight
+        indexes = replay_memory.get_sample_indexes(batch_size or self._batch_size)
+        batch = replay_memory.sample_by_indexes(indexes)
+        weight = replay_memory.get_weight(indexes)
+        return batch, indexes, weight
 
     def train_step(self) -> None:
         assert isinstance(self._ops, DQNOps)
         replay_memory = cast(PriorityReplayMemory, self.replay_memory)
         for _ in range(self._params.num_epochs):
-            batch, weight = self._get_batch()
+            batch, indexes, weight = self._get_batch()
             td_error = self._ops.update(batch, weight)
-            replay_memory.update_weight(td_error)
+            replay_memory.update_weight(indexes, td_error)
 
         self._try_soft_update_target()
 
