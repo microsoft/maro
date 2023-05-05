@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -86,6 +86,74 @@ class RandomIndexScheduler(AbsIndexScheduler):
         assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
         assert self._size > 0, "Cannot sample from an empty memory."
         return np.random.choice(self._size, size=batch_size, replace=True)
+
+
+class PriorityReplayIndexScheduler(AbsIndexScheduler):
+    """
+    Indexer for priority replay memory: https://arxiv.org/abs/1511.05952.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+        alpha (float): Alpha (see original paper for explanation).
+        beta (float): Alpha (see original paper for explanation).
+    """
+    def __init__(
+        self,
+        capacity: int,
+        alpha: float,
+        beta: float,
+    ) -> None:
+        super(PriorityReplayIndexScheduler, self).__init__(capacity)
+        self._alpha = alpha
+        self._beta = beta
+        self._max_prio = self._min_prio = 1.0
+        self._weights = np.zeros(capacity, dtype=np.float32)
+
+        self._ptr = self._size = 0
+
+        self._last_sample_indexes: Optional[np.ndarray] = None
+
+    def init_weights(self, indexes: np.ndarray) -> None:
+        self._weights[indexes] = self._max_prio ** self._alpha
+
+    def get_weight(self) -> np.ndarray:
+        # important sampling weight calculation
+        # original formula: ((p_j/p_sum*N)**(-beta))/((p_min/p_sum*N)**(-beta))
+        # simplified formula: (p_j/p_min)**(-beta)
+        return (self._weights[self._last_sample_indexes] / self._min_prio) ** (-self._beta)
+
+    def update_weight(self, weight: np.ndarray) -> None:
+        weight = np.abs(weight) + np.finfo(np.float32).eps.item()
+        self._weights[self._last_sample_indexes] = weight ** self._alpha
+        self._max_prio = max(self._max_prio, weight.max())
+        self._min_prio = min(self._min_prio, weight.min())
+
+    def get_put_indexes(self, batch_size: int) -> np.ndarray:
+        if self._ptr + batch_size <= self._capacity:
+            indexes = np.arange(self._ptr, self._ptr + batch_size)
+            self._ptr += batch_size
+        else:
+            overwrites = self._ptr + batch_size - self._capacity
+            indexes = np.concatenate(
+                [
+                    np.arange(self._ptr, self._capacity),
+                    np.arange(overwrites),
+                ],
+            )
+            self._ptr = overwrites
+
+        self._size = min(self._size + batch_size, self._capacity)
+        self.init_weights(indexes)
+        return indexes
+
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
+        assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
+        assert self._size > 0, "Cannot sample from an empty memory."
+
+        weights = self._weights[:self._size]
+        weights = weights / weights.sum()
+        self._last_sample_indexes = np.random.choice(np.arange(self._size), p=weights, size=batch_size, replace=False)
+        return self._last_sample_indexes
 
 
 class FIFOIndexScheduler(AbsIndexScheduler):
@@ -304,6 +372,31 @@ class RandomReplayMemory(ReplayMemory):
     @property
     def random_overwrite(self) -> bool:
         return self._random_overwrite
+
+
+class PriorityReplayMemory(ReplayMemory):
+    def __init__(
+        self,
+        capacity: int,
+        state_dim: int,
+        action_dim: int,
+        alpha: float,
+        beta: float,
+    ) -> None:
+        super(PriorityReplayMemory, self).__init__(
+            capacity,
+            state_dim,
+            action_dim,
+            PriorityReplayIndexScheduler(capacity, alpha, beta),
+        )
+
+    def get_weight(self) -> np.ndarray:
+        assert isinstance(self._idx_scheduler, PriorityReplayIndexScheduler)
+        return self._idx_scheduler.get_weight()
+
+    def update_weight(self, weight: np.ndarray) -> None:
+        assert isinstance(self._idx_scheduler, PriorityReplayIndexScheduler)
+        self._idx_scheduler.update_weight(weight)
 
 
 class FIFOReplayMemory(ReplayMemory):

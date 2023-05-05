@@ -271,9 +271,8 @@ class SingleAgentTrainer(AbsTrainer, metaclass=ABCMeta):
             transition_batch = self._preprocess_batch(transition_batch)
             self.replay_memory.put(transition_batch)
 
-    @abstractmethod
     def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
-        raise NotImplementedError
+        return transition_batch
 
     def _assert_ops_exists(self) -> None:
         if not self.ops:
