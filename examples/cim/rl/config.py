@@ -35,4 +35,4 @@ state_dim = (state_shaping_conf["look_back"] + 1) * (state_shaping_conf["max_por
 
 action_num = len(action_shaping_conf["action_space"])
 
-algorithm = "ppo"  # ac, ppo, dqn or discrete_maddpg
+algorithm = "dqn"  # ac, ppo, dqn or discrete_maddpg
