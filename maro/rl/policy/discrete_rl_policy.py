@@ -176,9 +176,6 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         assert match_shape(q_values, (states.shape[0],))  # [B]
         return q_values
 
-    def explore(self) -> None:
-        pass  # Overwrite the base method and turn off explore mode.
-
     def _get_actions_impl(self, states: torch.Tensor, **kwargs) -> torch.Tensor:
         return self._get_actions_with_probs_impl(states, **kwargs)[0]
 

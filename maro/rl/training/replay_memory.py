@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 
@@ -97,6 +97,7 @@ class PriorityReplayIndexScheduler(AbsIndexScheduler):
         alpha (float): Alpha (see original paper for explanation).
         beta (float): Alpha (see original paper for explanation).
     """
+
     def __init__(
         self,
         capacity: int,
@@ -112,7 +113,7 @@ class PriorityReplayIndexScheduler(AbsIndexScheduler):
         self._ptr = self._size = 0
 
     def init_weights(self, indexes: np.ndarray) -> None:
-        self._weights[indexes] = self._max_prio ** self._alpha
+        self._weights[indexes] = self._max_prio**self._alpha
 
     def get_weight(self, indexes: np.ndarray) -> np.ndarray:
         # important sampling weight calculation
@@ -123,7 +124,7 @@ class PriorityReplayIndexScheduler(AbsIndexScheduler):
     def update_weight(self, indexes: np.ndarray, weight: np.ndarray) -> None:
         assert indexes.shape == weight.shape
         weight = np.abs(weight) + np.finfo(np.float32).eps.item()
-        self._weights[indexes] = weight ** self._alpha
+        self._weights[indexes] = weight**self._alpha
         self._max_prio = max(self._max_prio, weight.max())
         self._min_prio = min(self._min_prio, weight.min())
 
@@ -149,7 +150,7 @@ class PriorityReplayIndexScheduler(AbsIndexScheduler):
         assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
         assert self._size > 0, "Cannot sample from an empty memory."
 
-        weights = self._weights[:self._size]
+        weights = self._weights[: self._size]
         weights = weights / weights.sum()
         return np.random.choice(np.arange(self._size), p=weights, size=batch_size, replace=False)
 
@@ -372,7 +373,7 @@ class RandomReplayMemory(ReplayMemory):
         return self._random_overwrite
 
 
-class PriorityReplayMemory(ReplayMemory):
+class PrioritizedReplayMemory(ReplayMemory):
     def __init__(
         self,
         capacity: int,
@@ -381,7 +382,7 @@ class PriorityReplayMemory(ReplayMemory):
         alpha: float,
         beta: float,
     ) -> None:
-        super(PriorityReplayMemory, self).__init__(
+        super(PrioritizedReplayMemory, self).__init__(
             capacity,
             state_dim,
             action_dim,

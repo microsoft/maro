@@ -8,7 +8,15 @@ import numpy as np
 import torch
 
 from maro.rl.policy import RLPolicy, ValueBasedPolicy
-from maro.rl.training import AbsTrainOps, BaseTrainerParams, PriorityReplayMemory, RemoteOps, SingleAgentTrainer, remote
+from maro.rl.training import (
+    AbsTrainOps,
+    BaseTrainerParams,
+    PrioritizedReplayMemory,
+    RandomReplayMemory,
+    RemoteOps,
+    SingleAgentTrainer,
+    remote,
+)
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
@@ -16,6 +24,9 @@ from maro.utils import clone
 @dataclass
 class DQNParams(BaseTrainerParams):
     """
+    use_prioritized_replay (bool, default=False): Whether to use prioritized replay memory.
+    alpha (float, default=0.4): Alpha in prioritized replay memory.
+    beta (float, default=0.6): Beta in prioritized replay memory.
     num_epochs (int, default=1): Number of training epochs.
     update_target_every (int, default=5): Number of gradient steps between target model updates.
     soft_update_coef (float, default=0.1): Soft update coefficient, e.g.,
@@ -28,8 +39,9 @@ class DQNParams(BaseTrainerParams):
         sequentially with wrap-around.
     """
 
-    alpha: float
-    beta: float
+    use_prioritized_replay: bool = False
+    alpha: float = 0.4
+    beta: float = 0.6
     num_epochs: int = 1
     update_target_every: int = 5
     soft_update_coef: float = 0.1
@@ -90,9 +102,7 @@ class DQNOps(AbsTrainOps):
                 actions_by_eval_policy = self._policy.get_actions_tensor(next_states)
                 next_q_values = self._target_policy.q_values_tensor(next_states, actions_by_eval_policy)
             else:
-                self._target_policy.exploit()
-                actions = self._target_policy.get_actions_tensor(next_states)
-                next_q_values = self._target_policy.q_values_tensor(next_states, actions)
+                next_q_values = self._target_policy.q_values_for_all_actions_tensor(next_states).max(dim=1)[0]
 
         target_q_values = (rewards + self._reward_discount * (1 - terminals) * next_q_values).detach()
         q_values = self._policy.q_values_tensor(states, actions)
@@ -182,13 +192,22 @@ class DQNTrainer(SingleAgentTrainer):
 
     def build(self) -> None:
         self._ops = cast(DQNOps, self.get_ops())
-        self._replay_memory = PriorityReplayMemory(
-            capacity=self._replay_memory_capacity,
-            state_dim=self._ops.policy_state_dim,
-            action_dim=self._ops.policy_action_dim,
-            alpha=self._params.alpha,
-            beta=self._params.beta,
-        )
+
+        if self._params.use_prioritized_replay:
+            self._replay_memory = PrioritizedReplayMemory(
+                capacity=self._replay_memory_capacity,
+                state_dim=self._ops.policy_state_dim,
+                action_dim=self._ops.policy_action_dim,
+                alpha=self._params.alpha,
+                beta=self._params.beta,
+            )
+        else:
+            self._replay_memory = RandomReplayMemory(
+                capacity=self._replay_memory_capacity,
+                state_dim=self._ops.policy_state_dim,
+                action_dim=self._ops.policy_action_dim,
+                random_overwrite=False,
+            )
 
     def _register_policy(self, policy: RLPolicy) -> None:
         assert isinstance(policy, ValueBasedPolicy)
@@ -204,19 +223,23 @@ class DQNTrainer(SingleAgentTrainer):
         )
 
     def _get_batch(self, batch_size: int = None) -> Tuple[TransitionBatch, np.ndarray, np.ndarray]:
-        replay_memory = cast(PriorityReplayMemory, self.replay_memory)
-        indexes = replay_memory.get_sample_indexes(batch_size or self._batch_size)
-        batch = replay_memory.sample_by_indexes(indexes)
-        weight = replay_memory.get_weight(indexes)
+        indexes = self.replay_memory.get_sample_indexes(batch_size or self._batch_size)
+        batch = self.replay_memory.sample_by_indexes(indexes)
+
+        if self._params.use_prioritized_replay:
+            weight = cast(PrioritizedReplayMemory, self.replay_memory).get_weight(indexes)
+        else:
+            weight = np.ones(len(indexes))
+
         return batch, indexes, weight
 
     def train_step(self) -> None:
         assert isinstance(self._ops, DQNOps)
-        replay_memory = cast(PriorityReplayMemory, self.replay_memory)
         for _ in range(self._params.num_epochs):
             batch, indexes, weight = self._get_batch()
             td_error = self._ops.update(batch, weight)
-            replay_memory.update_weight(indexes, td_error)
+            if self._params.use_prioritized_replay:
+                cast(PrioritizedReplayMemory, self.replay_memory).update_weight(indexes, td_error)
 
         self._try_soft_update_target()
 
