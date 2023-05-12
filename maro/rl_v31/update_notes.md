@@ -1,0 +1,19 @@
+- Policy
+  - Allow any type of states. We now can pass any type of states to the policy as long as the internal model could handle it.
+  - Simplified the calling logic of the policy. Now, the logic chain of policy generating action is much lighter.
+  - Policy is now a subclass of `torch.nn.Module`, so it can be directly trained by torch / assigned device as a whole. This can simplify the training-related logic a lot.
+  - Use `gym.spaces` to constrain input's (states) and output's (action) format.
+- Rollout
+  - Totally re-design the rollout-related structure.
+    - Previous: `Env` => `EnvSampler` => `Rollout workflow`
+    - Current: `Env` => `EnvWrapper` => `EnvWorker` => `VectorEnv` => `Collector`
+  - The major benefits brought by the new design is we can implement *parallel rollout* in a more elegant way. Now, parallel rollout is implemented in the level of `EnvWorker`. Each type of `EnvWorker` is corresponded to a type of parallel mode.
+  - Redesign the experience collection logic in `Collector`. Now, we can elegantly collect specific number of steps or specific number of complete episodes.
+- Data & Replay memory
+  - Use `tianshou.data.Batch` to store transition data. `Batch` is pretty functional and flexible. It is reasonable to reuse it instead of building new wheels.
+  - Optimize the implementation of replay memory.
+- Workflow
+  - New starting script & config template & config parser
+- Example & test
+  - Rewrite CIM examples based on the new version.
+  - Rewrite GYM tests of PPO. The test performance remains unchanged.
