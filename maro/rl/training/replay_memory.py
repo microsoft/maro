@@ -152,7 +152,7 @@ class PriorityReplayIndexScheduler(AbsIndexScheduler):
 
         weights = self._weights[: self._size]
         weights = weights / weights.sum()
-        return np.random.choice(np.arange(self._size), p=weights, size=batch_size, replace=False)
+        return np.random.choice(np.arange(self._size), p=weights, size=batch_size, replace=True)
 
 
 class FIFOIndexScheduler(AbsIndexScheduler):
