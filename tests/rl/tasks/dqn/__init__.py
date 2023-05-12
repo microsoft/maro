@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from torch.optim import Adam
 
+from maro.rl.exploration import LinearExploration
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
@@ -69,13 +70,11 @@ def get_dqn_policy(
     return ValueBasedPolicy(
         name=name,
         q_net=MyQNet(state_dim=state_dim, action_num=action_num),
-        exploration_strategy=(
-            linear_explore.explore_func,
-            {
-                "explore_steps": 10000,
-                "start_explore_prob": 1.0,
-                "end_explore_prob": 0.02,
-            },
+        explore_strategy=LinearExploration(
+            num_actions=action_num,
+            explore_steps=10000,
+            start_explore_prob=1.0,
+            end_explore_prob=0.02,
         ),
         warmup=0,  # TODO: check this
     )

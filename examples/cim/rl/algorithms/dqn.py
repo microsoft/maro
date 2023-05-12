@@ -4,7 +4,7 @@
 import torch
 from torch.optim import RMSprop
 
-from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
+from maro.rl.exploration import EpsilonGreedy
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.training.algorithms import DQNParams, DQNTrainer
@@ -36,19 +36,7 @@ def get_dqn_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPoli
     return ValueBasedPolicy(
         name=name,
         q_net=MyQNet(state_dim, action_num),
-        exploration_strategy=(epsilon_greedy, {"epsilon": 0.4}),
-        exploration_scheduling_options=[
-            (
-                "epsilon",
-                MultiLinearExplorationScheduler,
-                {
-                    "splits": [(2, 0.32)],
-                    "initial_value": 0.4,
-                    "last_ep": 5,
-                    "final_value": 0.0,
-                },
-            ),
-        ],
+        explore_strategy=EpsilonGreedy(epsilon=0.4, num_actions=action_num),
         warmup=100,
     )
 
