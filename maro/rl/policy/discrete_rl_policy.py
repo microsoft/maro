@@ -2,15 +2,14 @@
 # Licensed under the MIT license.
 
 from abc import ABCMeta
-from typing import Callable, Dict, List, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 import torch
 
-from maro.rl.exploration import epsilon_greedy
+from maro.rl.exploration import ExploreStrategy
 from maro.rl.model import DiscretePolicyNet, DiscreteQNet
 from maro.rl.utils import match_shape, ndarray_to_tensor
-from maro.utils import clone
 
 from .abs_policy import RLPolicy
 
@@ -69,8 +68,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         name (str): Name of the policy.
         q_net (DiscreteQNet): Q-net used in this value-based policy.
         trainable (bool, default=True): Whether this policy is trainable.
-        exploration_strategy (Tuple[Callable, dict], default=(epsilon_greedy, {"epsilon": 0.1})): Exploration strategy.
-        exploration_scheduling_options (List[tuple], default=None): List of exploration scheduler options.
+        explore_strategy (Optional[ExploreStrategy], default=None): Explore strategy.
         warmup (int, default=50000): Number of steps for uniform-random action selection, before running real policy.
             Helps exploration.
     """
@@ -80,8 +78,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         name: str,
         q_net: DiscreteQNet,
         trainable: bool = True,
-        exploration_strategy: Tuple[Callable, dict] = (epsilon_greedy, {"epsilon": 0.1}),
-        exploration_scheduling_options: List[tuple] = None,
+        explore_strategy: Optional[ExploreStrategy] = None,
         warmup: int = 50000,
     ) -> None:
         assert isinstance(q_net, DiscreteQNet)
@@ -94,15 +91,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             warmup=warmup,
         )
         self._q_net = q_net
-
-        self._exploration_func = exploration_strategy[0]
-        self._exploration_params = clone(exploration_strategy[1])  # deep copy is needed to avoid unwanted sharing
-        self._exploration_schedulers = (
-            [opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options]
-            if exploration_scheduling_options is not None
-            else []
-        )
-
+        self._explore_strategy = explore_strategy
         self._softmax = torch.nn.Softmax(dim=1)
 
     @property
@@ -184,14 +173,8 @@ class ValueBasedPolicy(DiscreteRLPolicy):
         q_matrix_softmax = self._softmax(q_matrix)
         _, actions = q_matrix.max(dim=1)  # [B], [B]
 
-        if self._is_exploring:
-            actions = self._exploration_func(
-                states,
-                actions.cpu().numpy(),
-                self.action_num,
-                **self._exploration_params,
-                **kwargs,
-            )
+        if self._is_exploring and self._explore_strategy is not None:
+            actions = self._explore_strategy.get_action(state=states.cpu().numpy(), action=actions.cpu().numpy())
             actions = ndarray_to_tensor(actions, device=self._device)
 
         actions = actions.unsqueeze(1)
