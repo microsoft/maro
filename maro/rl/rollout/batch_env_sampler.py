@@ -6,6 +6,7 @@ import time
 from itertools import chain
 from typing import Any, Dict, List, Optional, Union
 
+import numpy as np
 import torch
 import zmq
 from zmq import Context, Poller
@@ -15,7 +16,16 @@ from maro.rl.utils.common import bytes_to_pyobj, get_own_ip_address, pyobj_to_by
 from maro.rl.utils.objects import FILE_SUFFIX
 from maro.utils import DummyLogger, LoggerV2
 
-from .env_sampler import ExpElement
+from .env_sampler import EnvSamplerInterface, ExpElement
+
+
+def _split(total: int, k: int) -> List[int]:
+    """Split integer `total` into `k` groups where the sum of the `k` groups equals to `total` and all groups are
+    as close as possible.
+    """
+
+    p, q = total // k, total % k
+    return [p + 1] * q + [p] * (k - q)
 
 
 class ParallelTaskController(object):
@@ -39,7 +49,7 @@ class ParallelTaskController(object):
         self._poller.register(self._task_endpoint, zmq.POLLIN)
 
         self._workers: set = set()
-        self._logger: Union[DummyLogger, LoggerV2] = logger if logger is not None else DummyLogger()
+        self._logger: Union[DummyLogger, LoggerV2] = logger or DummyLogger()
 
     def _wait_for_workers_ready(self, k: int) -> None:
         while len(self._workers) < k:
@@ -50,7 +60,14 @@ class ParallelTaskController(object):
         assert isinstance(rep, dict)
         return rep["result"] if rep["index"] == index else None
 
-    def collect(self, req: dict, parallelism: int, min_replies: int = None, grace_factor: float = None) -> List[dict]:
+    def collect(
+        self,
+        req: dict,
+        parallelism: int,
+        min_replies: int = None,
+        grace_factor: float = None,
+        unique_params: Optional[dict] = None,
+    ) -> list:
         """Send a task request to a set of remote workers and collect the results.
 
         Args:
@@ -62,18 +79,24 @@ class ParallelTaskController(object):
                 minimum required replies (as determined by ``min_replies``). For example, if the minimum required
                 replies are received in T seconds, it will allow an additional T * grace_factor seconds to collect
                 the remaining results.
+            unique_params (Optional[float], default=None): Unique params for each worker.
 
         Returns:
             A list of results. Each element in the list is a dict that contains results from a worker.
         """
+        if unique_params is not None:
+            for key, params in unique_params.items():
+                assert len(params) == parallelism
+            assert len(set(req.keys()) & set(unique_params.keys())) == 0, "Parameter overwritten is not allowed."
+
         self._wait_for_workers_ready(parallelism)
-        if min_replies is None:
-            min_replies = parallelism
+        min_replies = min_replies or parallelism
 
         start_time = time.time()
         results: list = []
-        for worker_id in list(self._workers)[:parallelism]:
-            self._task_endpoint.send_multipart([worker_id, pyobj_to_bytes(req)])
+        for i, worker_id in enumerate(list(self._workers)[:parallelism]):
+            cur_params = {key: params[i] for key, params in unique_params.items()} if unique_params is not None else {}
+            self._task_endpoint.send_multipart([worker_id, pyobj_to_bytes({**req, **cur_params})])
         self._logger.debug(f"Sent {parallelism} roll-out requests...")
 
         while len(results) < min_replies:
@@ -104,48 +127,45 @@ class ParallelTaskController(object):
         self._context.term()
 
 
-class BatchEnvSampler:
+class BatchEnvSampler(EnvSamplerInterface):
     """Facility that samples from multiple copies of an environment in parallel.
 
     No environment is created here. Instead, it uses a ParallelTaskController to send roll-out requests to a set of
     remote workers and collect results from them.
 
     Args:
-        sampling_parallelism (int): Parallelism for sampling from the environment.
-        port (int): Network port that the internal ``ParallelTaskController`` uses to talk to the remote workers.
+        sampling_parallelism (int, default=1): Parallelism for sampling from the environment.
+        port (int, default=DEFAULT_ROLLOUT_PRODUCER_PORT): Network port that the internal ``ParallelTaskController``
+            uses to talk to the remote workers.
         min_env_samples (int, default=None): The minimum number of results to collect in one round of remote sampling.
             If it is None, it defaults to the value of ``sampling_parallelism``.
         grace_factor (float, default=None): Factor that determines the additional wait time after receiving the minimum
             required env samples (as determined by ``min_env_samples``). For example, if the minimum required samples
             are received in T seconds, it will allow an additional T * grace_factor seconds to collect the remaining
             results.
-        eval_parallelism (int, default=None): Parallelism for policy evaluation on remote workers.
+        eval_parallelism (int, default=1): Parallelism for policy evaluation on remote workers.
         logger (LoggerV2, default=None): Optional logger for logging key events.
     """
 
     def __init__(
         self,
-        sampling_parallelism: int,
-        port: int = None,
+        sampling_parallelism: int = 1,
+        port: int = DEFAULT_ROLLOUT_PRODUCER_PORT,
         min_env_samples: int = None,
         grace_factor: float = None,
-        eval_parallelism: int = None,
+        eval_parallelism: int = 1,
         logger: LoggerV2 = None,
     ) -> None:
         super(BatchEnvSampler, self).__init__()
-        self._logger: Union[LoggerV2, DummyLogger] = logger if logger is not None else DummyLogger()
-        self._controller = ParallelTaskController(
-            port=port if port is not None else DEFAULT_ROLLOUT_PRODUCER_PORT,
-            logger=logger,
-        )
+        self._logger: Union[LoggerV2, DummyLogger] = logger or DummyLogger()
+        self._controller = ParallelTaskController(port=port, logger=logger)
 
-        self._sampling_parallelism = 1 if sampling_parallelism is None else sampling_parallelism
-        self._min_env_samples = min_env_samples if min_env_samples is not None else self._sampling_parallelism
+        self._sampling_parallelism = sampling_parallelism
+        self._min_env_samples = min_env_samples or self._sampling_parallelism
         self._grace_factor = grace_factor
-        self._eval_parallelism = 1 if eval_parallelism is None else eval_parallelism
+        self._eval_parallelism = eval_parallelism
 
         self._ep = 0
-        self._end_of_episode = True
 
     def sample(
         self,
@@ -165,26 +185,23 @@ class BatchEnvSampler:
             A dict that contains the collected experiences and additional information.
         """
         # increment episode depending on whether the last episode has concluded
-        if self._end_of_episode:
-            self._ep += 1
-
+        self._ep += 1
         self._logger.info(f"Collecting roll-out data for episode {self._ep}")
         req = {
             "type": "sample",
             "policy_state": policy_state,
-            "num_steps": num_steps,
             "index": self._ep,
         }
+        num_steps = [None] * self._sampling_parallelism if num_steps is None else _split(num_steps, self._sampling_parallelism)
         results = self._controller.collect(
             req,
             self._sampling_parallelism,
             min_replies=self._min_env_samples,
             grace_factor=self._grace_factor,
+            unique_params={"num_steps": num_steps},
         )
-        self._end_of_episode = any(res["end_of_episode"] for res in results)
         merged_experiences: List[List[ExpElement]] = list(chain(*[res["experiences"] for res in results]))
         return {
-            "end_of_episode": self._end_of_episode,
             "experiences": merged_experiences,
             "info": [res["info"][0] for res in results],
         }
@@ -194,9 +211,12 @@ class BatchEnvSampler:
             "type": "eval",
             "policy_state": policy_state,
             "index": self._ep,
-            "num_eval_episodes": num_episodes,
         }  # -1 signals test
-        results = self._controller.collect(req, self._eval_parallelism)
+        results = self._controller.collect(
+            req,
+            self._eval_parallelism,
+            unique_params={"num_eval_episodes": _split(num_episodes, self._eval_parallelism)},
+        )
         return {
             "info": [res["info"][0] for res in results],
         }
@@ -223,10 +243,21 @@ class BatchEnvSampler:
     def exit(self) -> None:
         self._controller.exit()
 
-    def post_collect(self, info_list: list, ep: int) -> None:
-        req = {"type": "post_collect", "info_list": info_list, "index": ep}
-        self._controller.collect(req, 1)
+    def post_collect(self, ep: int) -> None:
+        req = {"type": "post_collect", "index": ep}
+        self._controller.collect(req, self._sampling_parallelism)
 
-    def post_evaluate(self, info_list: list, ep: int) -> None:
-        req = {"type": "post_evaluate", "info_list": info_list, "index": ep}
-        self._controller.collect(req, 1)
+    def post_evaluate(self, ep: int) -> None:
+        req = {"type": "post_evaluate", "index": ep}
+        self._controller.collect(req, self._eval_parallelism)
+
+    def monitor_metrics(self) -> float:
+        req = {"type": "monitor_metrics", "index": self._ep}
+        return float(np.mean(self._controller.collect(req, self._sampling_parallelism)))
+
+    def get_metrics(self) -> dict:
+        req = {"type": "get_metrics", "index": self._ep}
+        metrics_list = self._controller.collect(req, self._sampling_parallelism)
+        req = {"type": "merge_metrics", "metrics_list": metrics_list, "index": self._ep}
+        metrics = self._controller.collect(req, 1)[0]
+        return metrics

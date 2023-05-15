@@ -6,24 +6,22 @@ from __future__ import annotations
 import copy
 import os
 import typing
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import pandas as pd
 
-from maro.rl.rollout import AbsEnvSampler, BatchEnvSampler
+from maro.rl.rollout import EnvSamplerInterface
 from maro.rl.training import TrainingManager
 from maro.utils import LoggerV2
 
 if typing.TYPE_CHECKING:
     from maro.rl.workflows.main import TrainingWorkflow
 
-EnvSampler = Union[AbsEnvSampler, BatchEnvSampler]
-
 
 class Callback(object):
     def __init__(self) -> None:
         self.workflow: Optional[TrainingWorkflow] = None
-        self.env_sampler: Optional[EnvSampler] = None
+        self.env_sampler: Optional[EnvSamplerInterface] = None
         self.training_manager: Optional[TrainingManager] = None
         self.logger: Optional[LoggerV2] = None
 
@@ -107,8 +105,8 @@ class MetricsRecorder(Callback):
             df.to_csv(os.path.join(self._path, "metrics_valid.csv"), index=True)
 
     def on_training_end(self, ep: int) -> None:
-        if len(self.env_sampler.metrics) > 0:
-            metrics = copy.deepcopy(self.env_sampler.metrics)
+        metrics = copy.deepcopy(self.env_sampler.get_metrics())
+        if len(metrics) > 0:
             metrics["ep"] = ep
             if ep in self._full_metrics:
                 self._full_metrics[ep].update(metrics)
@@ -117,8 +115,8 @@ class MetricsRecorder(Callback):
         self._dump_metric_history()
 
     def on_validation_end(self, ep: int) -> None:
-        if len(self.env_sampler.metrics) > 0:
-            metrics = copy.deepcopy(self.env_sampler.metrics)
+        metrics = copy.deepcopy(self.env_sampler.get_metrics())
+        if len(metrics) > 0:
             metrics["ep"] = ep
             if ep in self._full_metrics:
                 self._full_metrics[ep].update(metrics)
@@ -136,7 +134,7 @@ class CallbackManager(object):
         self,
         workflow: TrainingWorkflow,
         callbacks: List[Callback],
-        env_sampler: EnvSampler,
+        env_sampler: EnvSamplerInterface,
         training_manager: TrainingManager,
         logger: LoggerV2,
     ) -> None:

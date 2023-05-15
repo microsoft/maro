@@ -1,0 +1,45 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# Example RL config file for GYM scenario (parallel mode).
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
+job: gym_rl_workflow
+scenario_path: "tests/rl/tasks/ac"
+log_path: "tests/rl/log/ac"
+main:
+  num_episodes: 1000
+  num_steps: null
+  eval_schedule: 5
+  num_eval_episodes: 10
+  min_n_sample: 5000
+  logging:
+    stdout: INFO
+    file: DEBUG
+rollout:
+  logging:
+    stdout: INFO
+    file: DEBUG
+  parallelism:
+    sampling: 2
+    eval: 2
+    min_env_samples: 2
+    grace_factor: 0.2
+    controller:
+      host: "127.0.0.1"
+      port: 21000
+training:
+  mode: parallel
+  load_path: null
+  load_episode: null
+  checkpointing:
+    path: null
+    interval: 5
+  logging:
+    stdout: INFO
+    file: DEBUG
+  proxy:
+    host: "127.0.0.1"
+    frontend: 10000
+    backend: 10001
+  num_workers: 2

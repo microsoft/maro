@@ -235,7 +235,39 @@ class CacheElement(ExpElement):
         )
 
 
-class AbsEnvSampler(object, metaclass=ABCMeta):
+class EnvSamplerInterface(object, metaclass=ABCMeta):
+    @abstractmethod
+    def monitor_metrics(self) -> float:
+        raise NotImplementedError
+
+    @abstractmethod
+    def load_policy_state(self, path: str) -> List[str]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def sample(
+        self,
+        policy_state: Optional[Dict[str, Dict[str, Any]]] = None,
+        num_steps: Optional[int] = None,
+    ) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
+    def eval(self, policy_state: Dict[str, Dict[str, Any]] = None, num_episodes: int = 1) -> dict:
+        raise NotImplementedError
+
+    def post_collect(self, ep: int) -> None:
+        """Routines to be invoked at the end of training episodes"""
+
+    def post_evaluate(self, ep: int) -> None:
+        """Routines to be invoked at the end of evaluation episodes"""
+
+    @abstractmethod
+    def get_metrics(self) -> dict:
+        raise NotImplementedError
+
+
+class AbsEnvSampler(EnvSamplerInterface, metaclass=ABCMeta):
     """Simulation data collector and policy evaluator.
 
     Args:
@@ -262,6 +294,8 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         reward_eval_delay: int = None,
         max_episode_length: int = None,
     ) -> None:
+        super(AbsEnvSampler, self).__init__()
+
         assert learn_env is not test_env, "Please use different envs for training and testing."
 
         self._learn_env = learn_env
@@ -281,6 +315,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
         self._current_episode_length = 0
 
         self._info: dict = {}
+        self._info_list: List[dict] = []  # Will NOT be cleared in `reset()`.
         self.metrics: dict = {}
 
         assert self._reward_eval_delay is None or self._reward_eval_delay >= 0
@@ -531,9 +566,11 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
             total_experiences += experiences
 
+        info = deepcopy(self._info)  # TODO: may have overhead issues. Leave to future work.
+        self._info_list.append(info)
         return {
             "experiences": [total_experiences],
-            "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
+            "info": [info],
         }
 
     def set_policy_state(self, policy_state_dict: Dict[str, dict]) -> None:
@@ -560,7 +597,6 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
     def eval(self, policy_state: Dict[str, Dict[str, Any]] = None, num_episodes: int = 1) -> dict:
         self._switch_env(self._test_env)
-        info_list = []
 
         for _ in range(num_episodes):
             self._reset()
@@ -606,9 +642,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     self._calc_reward(cache_element)
                     self._post_eval_step(cache_element)
 
-            info_list.append(self._info)
+            self._info_list.append(self._info)
 
-        return {"info": info_list}
+        return {"info": self._info_list}
 
     @abstractmethod
     def _post_step(self, cache_element: CacheElement) -> None:
@@ -618,8 +654,9 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
     def _post_eval_step(self, cache_element: CacheElement) -> None:
         raise NotImplementedError
 
-    def post_collect(self, info_list: list, ep: int) -> None:
-        """Routines to be invoked at the end of training episodes"""
+    def get_metrics(self) -> dict:
+        return self.metrics
 
-    def post_evaluate(self, info_list: list, ep: int) -> None:
-        """Routines to be invoked at the end of evaluation episodes"""
+    @staticmethod
+    def merge_metrics(metrics_list: List[dict]) -> dict:
+        return metrics_list[0]

@@ -237,7 +237,7 @@ class SoftActorCriticTrainer(SingleAgentTrainer):
         self._policy = policy
 
     def train_step(self) -> None:
-        assert isinstance(self._ops, SoftActorCriticOps)
+        ops = cast(SoftActorCriticOps, self._ops)
 
         if self._replay_memory.n_sample < self._params.n_start_train:
             print(
@@ -248,13 +248,15 @@ class SoftActorCriticTrainer(SingleAgentTrainer):
 
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
-            self._ops.update_critic(batch)
-            self._ops.update_actor(batch)
+            ops.update_critic(batch)
+            _, early_stop = ops.update_actor(batch)
 
             self._try_soft_update_target()
+            if early_stop:
+                break
 
     async def train_step_as_task(self) -> None:
-        assert isinstance(self._ops, RemoteOps)
+        ops = cast(SoftActorCriticOps, self._ops)
 
         if self._replay_memory.n_sample < self._params.n_start_train:
             print(
@@ -265,9 +267,10 @@ class SoftActorCriticTrainer(SingleAgentTrainer):
 
         for _ in range(self._params.num_epochs):
             batch = self._get_batch()
-            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
-            grad_dict, early_stop = await self._ops.get_actor_grad(batch)
-            self._ops.update_actor_with_grad(grad_dict)
+            ops.update_critic_with_grad(await ops.get_critic_grad(batch))
+            grad_dict, early_stop = await ops.get_actor_grad(batch)
+            ops.update_actor_with_grad(grad_dict)
+
             self._try_soft_update_target()
             if early_stop:
                 break

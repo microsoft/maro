@@ -34,7 +34,7 @@ class AbsWorker(object):
         super(AbsWorker, self).__init__()
 
         self._id = f"worker.{idx}"
-        self._logger: Union[LoggerV2, DummyLogger] = logger if logger else DummyLogger()
+        self._logger: Union[LoggerV2, DummyLogger] = logger or DummyLogger()
 
         # ZMQ sockets and streams
         self._context = Context.instance()

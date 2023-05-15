@@ -277,6 +277,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             {
                 "order_requirements": total_booking,
                 "container_shortage": total_shortage,
+                "shortage_percentage": total_shortage / total_booking,
                 "operation_number": self._total_operate_num,
             },
         )

@@ -26,7 +26,7 @@ class TrainOpsWorker(AbsWorker):
             so that the proxy can keep track of its connection status.
         rl_component_bundle (RLComponentBundle): Resources to launch the RL workflow.
         producer_host (str): IP address of the proxy host to connect to.
-        producer_port (int, default=10001): Port of the proxy host to connect to.
+        producer_port (int, default=DEFAULT_TRAINING_BACKEND_PORT): Port of the proxy host to connect to.
     """
 
     def __init__(
@@ -34,13 +34,13 @@ class TrainOpsWorker(AbsWorker):
         idx: int,
         rl_component_bundle: RLComponentBundle,
         producer_host: str,
-        producer_port: int = None,
+        producer_port: int = DEFAULT_TRAINING_BACKEND_PORT,
         logger: LoggerV2 = None,
     ) -> None:
         super(TrainOpsWorker, self).__init__(
             idx=idx,
             producer_host=producer_host,
-            producer_port=producer_port if producer_port is not None else DEFAULT_TRAINING_BACKEND_PORT,
+            producer_port=producer_port,
             logger=logger,
         )
 

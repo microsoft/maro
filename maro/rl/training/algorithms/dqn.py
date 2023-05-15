@@ -111,17 +111,19 @@ class DQNOps(AbsTrainOps):
         return (td_error.pow(2) * weight).mean(), td_error
 
     @remote
-    def get_batch_grad(self, batch: TransitionBatch) -> Dict[str, torch.Tensor]:
+    def get_batch_grad(self, batch: TransitionBatch, weight: np.ndarray) -> Tuple[Dict[str, torch.Tensor], np.ndarray]:
         """Compute the network's gradients of a batch.
 
         Args:
             batch (TransitionBatch): Batch.
+            weight (np.ndarray): Weight of each data entry.
 
         Returns:
             grad (torch.Tensor): The gradient of the batch.
+            td_error (np.ndarray): TD error.
         """
-        loss, _ = self._get_batch_loss(batch)
-        return self._policy.get_gradients(loss)
+        loss, td_error = self._get_batch_loss(batch, weight)
+        return self._policy.get_gradients(loss), td_error.detach().numpy()
 
     def update_with_grad(self, grad_dict: dict) -> None:
         """Update the network with remotely computed gradients.
@@ -234,20 +236,23 @@ class DQNTrainer(SingleAgentTrainer):
         return batch, indexes, weight
 
     def train_step(self) -> None:
-        assert isinstance(self._ops, DQNOps)
+        ops = cast(DQNOps, self._ops)
         for _ in range(self._params.num_epochs):
             batch, indexes, weight = self._get_batch()
-            td_error = self._ops.update(batch, weight)
+            td_error = ops.update(batch, weight)
             if self._params.use_prioritized_replay:
                 cast(PrioritizedReplayMemory, self.replay_memory).update_weight(indexes, td_error)
 
         self._try_soft_update_target()
 
     async def train_step_as_task(self) -> None:
-        assert isinstance(self._ops, RemoteOps)
+        ops = cast(DQNOps, self._ops)
         for _ in range(self._params.num_epochs):
-            batch = self._get_batch()
-            self._ops.update_with_grad(await self._ops.get_batch_grad(batch))
+            batch, indexes, weight = self._get_batch()
+            grad, td_error = await ops.get_batch_grad(batch, weight)
+            ops.update_with_grad(grad)
+            if self._params.use_prioritized_replay:
+                cast(PrioritizedReplayMemory, self.replay_memory).update_weight(indexes, td_error)
 
         self._try_soft_update_target()
 

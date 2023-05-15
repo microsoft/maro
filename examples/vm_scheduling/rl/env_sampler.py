@@ -166,29 +166,35 @@ class VMEnvSampler(AbsEnvSampler):
     def _post_eval_step(self, cache_element: CacheElement) -> None:
         self._post_step(cache_element)
 
-    def post_collect(self, info_list: list, ep: int) -> None:
+    def post_collect(self, ep: int) -> None:
+        if len(self._info_list) == 0:
+            return
+
         # print the env metric from each rollout worker
-        for info in info_list:
+        for info in self._info_list:
             print(f"env summary (episode {ep}): {info['env_metric']}")
 
         # print the average env metric
-        if len(info_list) > 1:
-            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
-            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
-            print(f"average env metric (episode {ep}): {avg_metric}")
+        metric_keys, num_envs = self._info_list[0]["env_metric"].keys(), len(self._info_list)
+        avg_metric = {key: sum(tr["env_metric"][key] for tr in self._info_list) / num_envs for key in metric_keys}
+        print(f"average env metric (episode {ep}): {avg_metric}")
 
-    def post_evaluate(self, info_list: list, ep: int) -> None:
+        self._info_list.clear()
+
+    def post_evaluate(self, ep: int) -> None:
+        if len(self._info_list) == 0:
+            return
+
         # print the env metric from each rollout worker
-        for info in info_list:
+        for info in self._info_list:
             print(f"env summary (evaluation episode {ep}): {info['env_metric']}")
 
         # print the average env metric
-        if len(info_list) > 1:
-            metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
-            avg_metric = {key: sum(tr["env_metric"][key] for tr in info_list) / num_envs for key in metric_keys}
-            print(f"average env metric (evaluation episode {ep}): {avg_metric}")
+        metric_keys, num_envs = self._info_list[0]["env_metric"].keys(), len(self._info_list)
+        avg_metric = {key: sum(tr["env_metric"][key] for tr in self._info_list) / num_envs for key in metric_keys}
+        print(f"average env metric (evaluation episode {ep}): {avg_metric}")
 
-        for info in info_list:
+        for info in self._info_list:
             core_requirement = info["actions_by_core_requirement"]
             action_sequence = info["action_sequence"]
             # plot action sequence
@@ -231,3 +237,5 @@ class VMEnvSampler(AbsEnvSampler):
 
             plt.cla()
             plt.close("all")
+
+        self._info_list.clear()
