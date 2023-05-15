@@ -192,7 +192,9 @@ class BatchEnvSampler(EnvSamplerInterface):
             "policy_state": policy_state,
             "index": self._ep,
         }
-        num_steps = [None] * self._sampling_parallelism if num_steps is None else _split(num_steps, self._sampling_parallelism)
+        num_steps = (
+            [None] * self._sampling_parallelism if num_steps is None else _split(num_steps, self._sampling_parallelism)
+        )
         results = self._controller.collect(
             req,
             self._sampling_parallelism,

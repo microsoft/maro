@@ -137,12 +137,21 @@ class CIMEnvSampler(AbsEnvSampler):
         metrics_list = [m for m in metrics_list if "val/shortage_percentage" in m]
         if len(metrics_list) > 0:
             n_episode = sum(m["val/n_episode"] for m in metrics_list)
-            metrics.update({
-                "val/order_requirements": sum(m["val/order_requirements"] * m["val/n_episode"] for m in metrics_list) / n_episode,
-                "val/container_shortage": sum(m["val/container_shortage"] * m["val/n_episode"] for m in metrics_list) / n_episode,
-                "val/operation_number": sum(m["val/operation_number"] * m["val/n_episode"] for m in metrics_list) / n_episode,
-                "val/n_episode": n_episode,
-            })
+            metrics.update(
+                {
+                    "val/order_requirements": sum(
+                        m["val/order_requirements"] * m["val/n_episode"] for m in metrics_list
+                    )
+                    / n_episode,
+                    "val/container_shortage": sum(
+                        m["val/container_shortage"] * m["val/n_episode"] for m in metrics_list
+                    )
+                    / n_episode,
+                    "val/operation_number": sum(m["val/operation_number"] * m["val/n_episode"] for m in metrics_list)
+                    / n_episode,
+                    "val/n_episode": n_episode,
+                },
+            )
             metrics["val/shortage_percentage"] = metrics["val/container_shortage"] / metrics["val/order_requirements"]
 
         return metrics

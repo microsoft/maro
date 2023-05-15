@@ -106,8 +106,8 @@ class GymEnvSampler(AbsEnvSampler):
     @staticmethod
     def merge_metrics(metrics_list: List[dict]) -> dict:
         metrics = {"n_interactions": sum(m["n_interactions"] for m in metrics_list)}
-        
-        tmp_metrics_list = [m for m in metrics_list if "n_steps" in m ]
+
+        tmp_metrics_list = [m for m in metrics_list if "n_steps" in m]
         if len(tmp_metrics_list) > 0:
             n_steps = sum(m["n_steps"] for m in tmp_metrics_list)
             n_segment = sum(m["n_segment"] for m in tmp_metrics_list)
@@ -118,10 +118,10 @@ class GymEnvSampler(AbsEnvSampler):
                     "avg_reward": sum(m["avg_reward"] * m["n_segment"] for m in tmp_metrics_list) / n_segment,
                     "avg_n_steps": n_steps / n_segment,
                     "max_n_steps": max(m["max_n_steps"] for m in tmp_metrics_list),
-                }
+                },
             )
-            
-        tmp_metrics_list = [m for m in metrics_list if "val/n_steps" in m ]
+
+        tmp_metrics_list = [m for m in metrics_list if "val/n_steps" in m]
         if len(tmp_metrics_list) > 0:
             n_steps = sum(m["val/n_steps"] for m in tmp_metrics_list)
             n_segment = sum(m["val/n_segment"] for m in tmp_metrics_list)
@@ -129,10 +129,11 @@ class GymEnvSampler(AbsEnvSampler):
                 {
                     "val/n_steps": n_steps,
                     "val/n_segment": n_segment,
-                    "val/avg_reward": sum(m["val/avg_reward"] * m["val/n_segment"] for m in tmp_metrics_list) / n_segment,
+                    "val/avg_reward": sum(m["val/avg_reward"] * m["val/n_segment"] for m in tmp_metrics_list)
+                    / n_segment,
                     "val/avg_n_steps": n_steps / n_segment,
                     "val/max_n_steps": max(m["val/max_n_steps"] for m in tmp_metrics_list),
-                }
+                },
             )
 
         return metrics

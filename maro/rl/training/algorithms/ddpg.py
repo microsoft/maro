@@ -8,7 +8,7 @@ import torch
 
 from maro.rl.model import QNet
 from maro.rl.policy import ContinuousRLPolicy, RLPolicy
-from maro.rl.training import AbsTrainOps, BaseTrainerParams, RandomReplayMemory, RemoteOps, SingleAgentTrainer, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, RandomReplayMemory, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 

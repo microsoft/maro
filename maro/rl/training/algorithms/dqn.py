@@ -13,7 +13,6 @@ from maro.rl.training import (
     BaseTrainerParams,
     PrioritizedReplayMemory,
     RandomReplayMemory,
-    RemoteOps,
     SingleAgentTrainer,
     remote,
 )

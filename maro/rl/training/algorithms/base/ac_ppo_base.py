@@ -10,7 +10,7 @@ import torch
 
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
-from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, discount_cumsum, get_torch_device, ndarray_to_tensor
 
 
