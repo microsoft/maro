@@ -39,7 +39,7 @@ class RolloutWorker(AbsWorker):
             producer_port=producer_port if producer_port is not None else DEFAULT_ROLLOUT_PRODUCER_PORT,
             logger=logger,
         )
-        self._env_sampler = rl_component_bundle.env_sampler  # TODO: deep copy?
+        self._env_sampler = rl_component_bundle.env_sampler
 
     def _compute(self, msg: list) -> None:
         """Perform a full or partial episode of roll-out for sampling or evaluation.
