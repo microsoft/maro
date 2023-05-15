@@ -336,7 +336,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         }
 
     def set_state(self, policy_state: dict) -> None:
-        self._policy_net.set_state(policy_state)
+        self._policy_net.set_state(policy_state["net"])
         self._warmup = policy_state["policy"]["warmup"]
         self._call_count = policy_state["policy"]["call_count"]
 
