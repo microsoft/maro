@@ -6,7 +6,7 @@
 job: mis_lwd
 scenario_path: "examples/mis/lwd"
 # The log dir where you want to save the training loggings and model checkpoints.
-log_path: "examples/mis/lwd/log/test"
+log_path: "examples/mis/lwd/log/test_40_50"
 main:
   # Number of episodes to run. Each episode is one cycle of roll-out and training.
   num_episodes: 1000

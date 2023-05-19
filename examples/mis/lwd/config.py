@@ -15,8 +15,8 @@ class Config(object):
 
     # Configuration for the MISEnv
     max_tick = 32  # Once the max_tick reached, the timeout processing will set all deferred nodes to excluded
-    num_node_lower_bound: int = 15
-    num_node_upper_bound: int = 20
+    num_node_lower_bound: int = 40
+    num_node_upper_bound: int = 50
     node_sample_probability: float = 0.15
 
     # Configuration for the reward definition
