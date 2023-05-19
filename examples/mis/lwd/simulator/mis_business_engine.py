@@ -3,7 +3,7 @@
 
 import math
 import random
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import dgl
 import dgl.function as fn
@@ -45,6 +45,7 @@ class MISBusinessEngine(AbsBusinessEngine):
 
         self._register_events()
 
+        self._batch_adjs: List[Dict[int, List[int]]] = []
         self._batch_graphs: dgl.DGLGraph = None
         self._vertex_states: torch.Tensor = None
         self._is_done_mask: torch.Tensor = None
@@ -168,8 +169,9 @@ class MISBusinessEngine(AbsBusinessEngine):
         decision_event = self._event_buffer.gen_decision_event(tick, decision_payload)
         self._event_buffer.insert_event(decision_event)
 
-    def _generate_er_graph(self) -> dgl.DGLGraph:
+    def _generate_er_graph(self) -> Tuple[dgl.DGLGraph, Dict[int, List[int]]]:
         num_nodes = random.randint(self._num_node_lower_bound, self._num_node_upper_bound)
+        adj = {node: [] for node in range(num_nodes)}
 
         w = -1
         lp = math.log(1.0 - self._node_sample_probability)
@@ -186,15 +188,28 @@ class MISBusinessEngine(AbsBusinessEngine):
             if v < num_nodes:
                 u_list.extend([v, w])
                 v_list.extend([w, v])
+                adj[v].append(w)
+                adj[w].append(v)
 
         graph = dgl.graph((u_list, v_list), num_nodes=num_nodes)
 
-        return graph
+        return graph, adj
 
-    def reset(self, keep_seed: bool = False) -> None:
-        self._batch_graphs = dgl.batch([self._generate_er_graph() for _ in range(self._graph_batch_size)])
+    def _reset_batch_graph(self) -> None:
+        graph_list = []
+        self._batch_adjs = []
+        for _ in range(self._graph_batch_size):
+            graph, adj = self._generate_er_graph()
+            graph_list.append(graph)
+            self._batch_adjs.append(adj)
+
+        self._batch_graphs = dgl.batch(graph_list)
         self._batch_graphs.set_n_initializer(dgl.init.zero_initializer)
         self._batch_graphs = self._batch_graphs.to(self._device)
+        return
+
+    def reset(self, keep_seed: bool = False) -> None:
+        self._reset_batch_graph()
 
         tensor_size = (self._batch_graphs.num_nodes(), self._num_samples)
         self._vertex_states = torch.full(size=tensor_size, fill_value=VertexState.Deferred, device=self._device)
