@@ -1,0 +1,37 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
+job: mis_lwd
+scenario_path: "examples/mis/lwd"
+# The log dir where you want to save the training loggings and model checkpoints.
+log_path: "examples/mis/lwd/log/test"
+main:
+  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  num_episodes: 1000
+  # This can be an integer or a list of integers. An integer indicates the interval at which policies are evaluated.
+  # A list indicates the episodes at the end of which policies are to be evaluated. Note that episode indexes are
+  # 1-based.
+  eval_schedule: [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000]
+  # Number of Episodes to run in evaluation.
+  num_eval_episodes: 5
+  min_n_sample: 1
+  logging:
+    stdout: INFO
+    file: DEBUG
+rollout:
+  logging:
+    stdout: INFO
+    file: DEBUG
+training:
+  mode: simple
+  load_path: null
+  load_episode: null
+  checkpointing:
+    path: null
+    # Interval at which trained policies / models are persisted to disk.
+    interval: 200
+  logging:
+    stdout: INFO
+    file: DEBUG

@@ -122,7 +122,7 @@ class MISEnvSampler(AbsEnvSampler):
         ) -> int:
             res = 0
             for _ in range(num_samples):
-                res = max(res, solver(graph))
+                res = max(res, len(solver(graph)))
             return res
 
         graph_size_list = [len(graph) for graph in graph_list]

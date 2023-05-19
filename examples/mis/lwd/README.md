@@ -4,7 +4,9 @@ It is the application of the [LwD](http://proceedings.mlr.press/v119/ahn20a.html
 Some code are referred from the original GitHub [repository](https://github.com/sungsoo-ahn/learning_what_to_defer)
 held by the authors.
 
-## Deferred Markov Decision Process
+## Algorithm Introduction
+
+### Deferred Markov Decision Process
 
 <div style="text-align: center;">
 
@@ -12,7 +14,7 @@ held by the authors.
 
 </div>
 
-### State
+#### State
 
 Each state of the MDP is represented as a *vertex-state* vector:
 
@@ -27,7 +29,7 @@ and *the determination is deferred and expected to be made in later iterations* 
 The MDP is *initialized* with the deferred vertex-states, i.e., $s_i = *, \forall i \in V$,
 while *terminated* when (a) there is no deferred vertex-state left or (b) time limit is reached.
 
-### Action
+#### Action
 
 Actions correspond to new assignments for the next state of vertices, defined only on the deferred vertices here:
 
@@ -39,7 +41,7 @@ $a_* = [a_i: i \in V_*] \in \{0, 1, *\}^{V_*}$
 
 where $V_* = \{i: i \in V, x_i = *\}$.
 
-### Transition
+#### Transition
 
 The transition $P_{a_*}(s, s')$ consists of two deterministic phases:
 
@@ -59,7 +61,7 @@ Here is an illustration of the transition fucntion:
 
 </div>
 
-### Reward
+#### Reward
 
 A *cardinality reward* is defined here:
 
@@ -72,7 +74,7 @@ $R(s, s') = \sum_{i \in V_* \setminus V_*'}{s_i'}$
 where $V_*$ and $V_*'$ are the set of vertices with deferred vertex-state with respect to $s$ and $s'$ respectively.
 By doing so, the overall reward of the MDP corresonds to the cardinality of the independent set returned.
 
-## Diversification Reward
+### Diversification Reward
 
 Couple two copies of MDPs defined on an indentical graph $G$ into a new MDP.
 Then the new MDP is associated with a pair of distinct vertex-state vectors $(s, \bar{s})$,
@@ -99,7 +101,7 @@ But note that, the entropy regularition only attempts to generate diverse trajec
 which does not necessarily lead to diverse solutions at last,
 since there existing many trajectories resulting in the same solution.*
 
-## Design of the Neural Network
+### Design of the Neural Network
 
 The policy network $\pi(a|s)$ and the value network $V(s)$ is designed to follow the
 [GraphSAGE](https://proceedings.neurips.cc/paper/2017/hash/5dd9db5e033da9c6fb5ba83c7a7ebea9-Abstract.html) architecture,
@@ -118,7 +120,7 @@ Here $B$ and $D$ corresponds to adjacency and degree matrix of the graph $G$, re
 the policy and value networks apply softmax function and graph readout function with sum pooling instead of ReLU
 to generate actions and value estimates, respectively.
 
-## Input of the Neural Network
+### Input of the Neural Network
 
 - The subgraph that is induced on the deferred vertices $V_*$ as the input of the networks
 since the determined part of the graph no longer affects the future rewards of the MDP.
@@ -127,6 +129,22 @@ since the determined part of the graph no longer affects the future rewards of t
   - Vertex degrees;
   - The current iteration-index of the MDP, normalized by the maximum number of iterations.
 
-## Training Algorithm
+### Training Algorithm
 
 The Proximal Policy Optimization (PPO) is used in this solution.
+
+## Quick Start
+
+Please make sure the environment is correctly set up, refer to
+[MARO](https://github.com/microsoft/maro#install-maro-from-source) for more installation guidance.
+To try the example code, you can simply run:
+
+```sh
+python examples/rl/run.py examples/mis/lwd/config.yml
+```
+
+The default log path is set to *examples/mis/lwd/log/test*, the recorded metrics and training curves can be found here.
+
+To adjust the configurations of the training workflow, go to file: *examples/mis/lwd/config.yml*,
+To adjust the problem formulation, network setting and some other detailed configurations,
+go to file *examples/mis/lwd/config.py*.
