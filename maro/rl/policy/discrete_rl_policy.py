@@ -177,7 +177,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
             actions = self._explore_strategy.get_action(state=states.cpu().numpy(), action=actions.cpu().numpy())
             actions = ndarray_to_tensor(actions, device=self._device)
 
-        actions = actions.unsqueeze(1)
+        actions = actions.unsqueeze(1).long()
         return actions, q_matrix_softmax.gather(1, actions).squeeze(-1)  # [B, 1]
 
     def _get_actions_with_logps_impl(self, states: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
