@@ -21,7 +21,8 @@ from tests.rl_v31_gym.gym_wrapper.common import (
     env,
     env_conf,
     gym_action_dim,
-    gym_state_dim,
+    gym_obs_dim,
+    is_discrete,
     num_agents,
     obs_lower_bound,
     obs_upper_bound,
@@ -107,6 +108,7 @@ def get_ppo_critic(obs_dim: int) -> VCritic:
     return VCritic(model=model, optim=optim)
 
 
+assert not is_discrete
 agent2policy = {agent: f"ppo_{agent}.policy" for agent in env.agent_idx_list}
 policies = [
     get_ppo_policy(
@@ -115,7 +117,7 @@ policies = [
         obs_upper_bound,
         action_lower_bound,
         action_upper_bound,
-        gym_state_dim,
+        gym_obs_dim,
         gym_action_dim,
     )
     for i in range(num_agents)
@@ -124,7 +126,7 @@ trainers = [
     PPOTrainer(
         name=f"ppo_{i}",
         memory_size=4000,
-        critic_func=lambda: get_ppo_critic(gym_state_dim),
+        critic_func=lambda: get_ppo_critic(gym_obs_dim),
         critic_loss_cls=nn.SmoothL1Loss,
         lam=0.97,
         reward_discount=0.99,

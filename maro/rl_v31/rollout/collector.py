@@ -97,7 +97,9 @@ class Collector(object):
                 total_exps[i] += ready_elements
                 n_steps -= len(ready_elements)
 
-        total_infos: List[dict] = list(self._venv.gather_info(env_ids).values())
+        total_infos: List[dict] = list(
+            self._venv.gather_info(env_ids).values(),
+        )  # TODO: shall we gather info everytime a episode finishes?
         return total_infos, total_exps
 
     def _collect_n_episodes(self, n_episodes: int) -> Tuple[List[dict], Dict[int, List[ExpElement]]]:
@@ -106,7 +108,7 @@ class Collector(object):
         waiting_env_ids = deque([i for i in range(self.env_num) if self._data[i].end_of_episode])
         assert len(waiting_env_ids) > 0, "No usable envs. Stop data collections."
 
-        env_ids = set([])
+        env_ids = []
         total_exps: Dict[int, List[ExpElement]] = defaultdict(list)
         total_infos: List[dict] = []
         while n_episodes > 0 or len(env_ids) > 0:
@@ -117,13 +119,15 @@ class Collector(object):
                 total_infos += list(infos.values())
 
                 waiting_env_ids.extend(recycle_env_ids)
-                env_ids -= set(recycle_env_ids)
+
+                recycle_env_ids = set(recycle_env_ids)
+                env_ids = [e for e in env_ids if e not in recycle_env_ids]
 
             # Allocate new envs if needed
             m = min(n_episodes, len(waiting_env_ids))
             if m > 0:
                 allocate_env_ids = [waiting_env_ids.popleft() for _ in range(m)]
-                env_ids |= set(allocate_env_ids)
+                env_ids += allocate_env_ids
                 n_episodes -= m
                 self.reset_envs(allocate_env_ids)
 
@@ -139,9 +143,9 @@ class Collector(object):
 
             # Decompose
             env_policy_acts = {}
-            for i in env_ids:
+            for i, e in enumerate(env_ids):
                 cur = {agent_name: act[i] for agent_name, act in policy_act_dict.items()}
-                env_policy_acts[i] = cur
+                env_policy_acts[e] = cur
 
             self._update_data(self._venv.step(env_policy_acts))
             env_ready_elements = self._venv.collect_ready_exps(list(env_ids))

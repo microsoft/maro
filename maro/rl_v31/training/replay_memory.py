@@ -45,15 +45,13 @@ class ReplayMemory(object):
                 self.reset()
             return batch
         else:
-            assert 0 < size <= self.size
-
             if random:
                 assert not pop, "Pop is not allowed under random mode."
-                indexes = np.random.choice(np.arange(self.size), size=size, replace=False)
+                indexes = np.random.choice(np.arange(self.size), size=size, replace=True)
                 return self.data[indexes]
             else:
-                t = self.header
-                indexes = self._get_contiguous_indexes(t, size)
+                assert 0 < size <= self.size
+                indexes = self._get_contiguous_indexes(self.header, size)
                 batch = self.data[indexes]
                 if pop:
                     self.size -= size  # Reduce self_size only. Pop elements will not affect self._ptr.
@@ -113,12 +111,10 @@ class ReplayMemoryManager(object):
     def sample(
         self,
         size: Optional[int] = None,
-        ids: Optional[List[int]] = None,
         random: bool = False,
         pop: bool = False,
     ) -> Dict[int, Batch]:
-        if ids is None:
-            ids = list(range(self.num_memories))
+        ids = list(range(self.num_memories))
 
         if size is None:
             return {
@@ -126,7 +122,8 @@ class ReplayMemoryManager(object):
             }
         else:
             sizes = [self.memories[i].size for i in ids]
-            assert 0 < size <= sum(sizes)
+            if not random:
+                assert 0 < size <= sum(sizes)
             sample_sizes = _get_sample_sizes(size, sizes)
 
             batch_dict = {

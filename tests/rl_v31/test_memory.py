@@ -39,19 +39,19 @@ for memory in rmm.memories:
 print("\n" * 3)
 
 
-t = rmm.sample(size=None, ids=None, random=False, pop=False)
+t = rmm.sample(size=None, random=False, pop=False)
 for k, v in t.items():
     print(k, len(v), v)
 print("\n" * 3)
 
 
-t = rmm.sample(size=10, ids=None, random=True, pop=False)
+t = rmm.sample(size=10, random=True, pop=False)
 for k, v in t.items():
     print(k, len(v), v)
 print("\n" * 3)
 
 
-t = rmm.sample(size=10, ids=None, random=False, pop=True)
+t = rmm.sample(size=10, random=False, pop=True)
 for k, v in t.items():
     print(k, len(v), v)
 for memory in rmm.memories:
@@ -60,7 +60,7 @@ for memory in rmm.memories:
 print("\n" * 3)
 
 
-t = rmm.sample(size=None, ids=None, random=False, pop=False)
+t = rmm.sample(size=None, random=False, pop=False)
 for k, v in t.items():
     print(k, len(v), v)
 print("\n" * 3)
