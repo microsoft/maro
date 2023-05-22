@@ -74,7 +74,8 @@ We compare the performance of DQN with RL Baseline Zoo.
 
 ### Performance
 
-More details about the parameters can be found in *tests/rl/tasks/*.
+More details about the parameters can be found in *tests/rl/tasks/*. 
+Please refer to the original link of RL Baseline Zoo for the baseline metrics. 
 
 |  algo  |            env_id             |mean_reward|
 |--------|-------------------------------|----------:|
