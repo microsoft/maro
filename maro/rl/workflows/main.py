@@ -6,10 +6,10 @@ import importlib
 import os
 import sys
 import time
-from typing import List, Union
+from typing import List
 
 from maro.rl.rl_component.rl_component_bundle import RLComponentBundle
-from maro.rl.rollout import AbsEnvSampler, BatchEnvSampler, ExpElement
+from maro.rl.rollout import BatchEnvSampler, EnvSamplerInterface, ExpElement
 from maro.rl.training import TrainingManager
 from maro.rl.utils import get_torch_device
 from maro.rl.utils.common import float_or_none, get_env, int_or_none, list_or_none
@@ -92,7 +92,7 @@ def _get_args() -> argparse.Namespace:
 def _get_env_sampler(
     rl_component_bundle: RLComponentBundle,
     env_attr: WorkflowEnvAttributes,
-) -> Union[AbsEnvSampler, BatchEnvSampler]:
+) -> EnvSamplerInterface:
     if env_attr.parallel_rollout:
         assert env_attr.env_sampling_parallelism is not None
         return BatchEnvSampler(
@@ -190,7 +190,7 @@ class TrainingWorkflow(object):
 
                 collect_time += time.time() - tc0
 
-            env_sampler.post_collect(total_info_list, ep)
+            env_sampler.post_collect(ep)
 
             tu0 = time.time()
             env_attr.logger.info(f"Roll-out completed for episode {ep}. Training started...")
@@ -208,11 +208,11 @@ class TrainingWorkflow(object):
                 cbm.on_validation_start(ep)
 
                 eval_point_index += 1
-                result = env_sampler.eval(
+                env_sampler.eval(
                     policy_state=training_manager.get_policy_state() if not env_attr.is_single_thread else None,
                     num_episodes=env_attr.num_eval_episodes,
                 )
-                env_sampler.post_evaluate(result["info"], ep)
+                env_sampler.post_evaluate(ep)
 
                 cbm.on_validation_end(ep)
 
@@ -237,8 +237,8 @@ def evaluate_only_workflow(rl_component_bundle: RLComponentBundle, env_attr: Wor
         loaded = env_sampler.load_policy_state(path)
         env_attr.logger.info(f"Loaded policies {loaded} into env sampler from {path}")
 
-    result = env_sampler.eval(num_episodes=env_attr.num_eval_episodes)
-    env_sampler.post_evaluate(result["info"], -1)
+    env_sampler.eval(num_episodes=env_attr.num_eval_episodes)
+    env_sampler.post_evaluate(-1)
 
     if isinstance(env_sampler, BatchEnvSampler):
         env_sampler.exit()

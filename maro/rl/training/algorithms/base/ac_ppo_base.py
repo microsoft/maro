@@ -10,7 +10,7 @@ import torch
 
 from maro.rl.model import VNet
 from maro.rl.policy import ContinuousRLPolicy, DiscretePolicyGradient, RLPolicy
-from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, RemoteOps, SingleAgentTrainer, remote
+from maro.rl.training import AbsTrainOps, BaseTrainerParams, FIFOReplayMemory, SingleAgentTrainer, remote
 from maro.rl.utils import TransitionBatch, discount_cumsum, get_torch_device, ndarray_to_tensor
 
 
@@ -175,18 +175,14 @@ class ACBasedOps(AbsTrainOps):
         self._policy.train_step(loss)
         return loss.detach().cpu().numpy().item(), early_stop
 
-    def update_actor_with_grad(self, grad_dict_and_early_stop: Tuple[dict, bool]) -> bool:
+    def update_actor_with_grad(self, grad_dict: dict) -> None:
         """Update the actor network with remotely computed gradients.
 
         Args:
-            grad_dict_and_early_stop (Tuple[dict, bool]): Gradients and early stop indicator.
-
-        Returns:
-            early stop indicator
+            grad_dict (dict): Gradients.
         """
         self._policy.train()
-        self._policy.apply_gradients(grad_dict_and_early_stop[0])
-        return grad_dict_and_early_stop[1]
+        self._policy.apply_gradients(grad_dict)
 
     def get_non_policy_state(self) -> dict:
         return {
@@ -322,28 +318,22 @@ class ACBasedTrainer(SingleAgentTrainer):
         return batch
 
     def train_step(self) -> None:
-        assert isinstance(self._ops, ACBasedOps)
-
+        ops = cast(ACBasedOps, self._ops)
         batch = self._get_batch()
-
         for _ in range(self._params.grad_iters):
-            early_stop = self._ops.update_actor(batch)
+            _, early_stop = ops.update_actor(batch)
             if early_stop:
                 break
-
         for _ in range(self._params.grad_iters):
-            self._ops.update_critic(batch)
+            ops.update_critic(batch)
 
     async def train_step_as_task(self) -> None:
-        assert isinstance(self._ops, RemoteOps)
-
+        ops = cast(ACBasedOps, self._ops)
         batch = self._get_batch()
-
         for _ in range(self._params.grad_iters):
-            grad_dict, early_stop = await self._ops.get_actor_grad(batch)
-            self._ops.update_actor_with_grad(grad_dict)
+            grad_dict, early_stop = await ops.get_actor_grad(batch)
+            ops.update_actor_with_grad(grad_dict)
             if early_stop:
                 break
-
         for _ in range(self._params.grad_iters):
-            self._ops.update_critic_with_grad(await self._ops.get_critic_grad(batch))
+            ops.update_critic_with_grad(await ops.get_critic_grad(batch))

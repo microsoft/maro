@@ -10,7 +10,9 @@ from maro.simulator import Env
 from tests.rl.gym_wrapper.simulator.business_engine import GymBusinessEngine
 
 env_conf = {
-    "topology": "CartPole-v1",  # HalfCheetah-v4, Hopper-v4, Walker2d-v4, Swimmer-v4, Ant-v4, CartPole-v1
+    # Envs with discrete action: {CartPole-v1}
+    # Envs with continuous action: {HalfCheetah-v4, Hopper-v4, Walker2d-v4, Swimmer-v4, Ant-v4}
+    "topology": "Walker2d-v4",
     "start_tick": 0,
     "durations": 100000,  # Set a very large number
     "options": {},

@@ -53,7 +53,6 @@ class RolloutWorker(AbsWorker):
         else:
             req = bytes_to_pyobj(msg[-1])
             assert isinstance(req, dict)
-            assert req["type"] in {"sample", "eval", "set_policy_state", "post_collect", "post_evaluate"}
 
             if req["type"] in ("sample", "eval"):
                 result = (
@@ -61,12 +60,20 @@ class RolloutWorker(AbsWorker):
                     if req["type"] == "sample"
                     else self._env_sampler.eval(policy_state=req["policy_state"], num_episodes=req["num_eval_episodes"])
                 )
-                self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))
+            elif req["type"] == "monitor_metrics":
+                result = self._env_sampler.monitor_metrics()
+            elif req["type"] == "get_metrics":
+                result = self._env_sampler.get_metrics()
+            elif req["type"] == "merge_metrics":
+                result = self._env_sampler.merge_metrics(metrics_list=req["metrics_list"])
             else:
                 if req["type"] == "set_policy_state":
                     self._env_sampler.set_policy_state(policy_state_dict=req["policy_state"])
                 elif req["type"] == "post_collect":
-                    self._env_sampler.post_collect(info_list=req["info_list"], ep=req["index"])
+                    self._env_sampler.post_collect(ep=req["index"])
+                elif req["type"] == "post_evaluate":
+                    self._env_sampler.post_evaluate(ep=req["index"])
                 else:
-                    self._env_sampler.post_evaluate(info_list=req["info_list"], ep=req["index"])
-                self._stream.send(pyobj_to_bytes({"result": True, "index": req["index"]}))
+                    raise ValueError(f"Invalid remote function call: {req['type']}")
+                result = True
+            self._stream.send(pyobj_to_bytes({"result": result, "index": req["index"]}))

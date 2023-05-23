@@ -85,30 +85,73 @@ class CIMEnvSampler(AbsEnvSampler):
     def _post_eval_step(self, cache_element: CacheElement) -> None:
         self._post_step(cache_element)
 
-    def post_collect(self, info_list: list, ep: int) -> None:
+    def post_collect(self, ep: int) -> None:
+        if len(self._info_list) == 0:
+            return
+
         # print the env metric from each rollout worker
-        for info in info_list:
+        for info in self._info_list:
             print(f"env summary (episode {ep}): {info['env_metric']}")
 
         # average env metric
-        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
-        avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
+        metric_keys, num_envs = self._info_list[0]["env_metric"].keys(), len(self._info_list)
+        avg_metric = {key: sum(info["env_metric"][key] for info in self._info_list) / num_envs for key in metric_keys}
+        avg_metric["n_episode"] = len(self._info_list)
         print(f"average env summary (episode {ep}): {avg_metric}")
 
         self.metrics.update(avg_metric)
         self.metrics = {k: v for k, v in self.metrics.items() if not k.startswith("val/")}
+        self._info_list.clear()
 
-    def post_evaluate(self, info_list: list, ep: int) -> None:
+    def post_evaluate(self, ep: int) -> None:
+        if len(self._info_list) == 0:
+            return
+
         # print the env metric from each rollout worker
-        for info in info_list:
+        for info in self._info_list:
             print(f"env summary (episode {ep}): {info['env_metric']}")
 
         # average env metric
-        metric_keys, num_envs = info_list[0]["env_metric"].keys(), len(info_list)
-        avg_metric = {key: sum(info["env_metric"][key] for info in info_list) / num_envs for key in metric_keys}
+        metric_keys, num_envs = self._info_list[0]["env_metric"].keys(), len(self._info_list)
+        avg_metric = {key: sum(info["env_metric"][key] for info in self._info_list) / num_envs for key in metric_keys}
+        avg_metric["n_episode"] = len(self._info_list)
         print(f"average env summary (episode {ep}): {avg_metric}")
 
         self.metrics.update({"val/" + k: v for k, v in avg_metric.items()})
+        self._info_list.clear()
 
     def monitor_metrics(self) -> float:
-        return -self.metrics["val/container_shortage"]
+        return -self.metrics["val/shortage_percentage"]
+
+    @staticmethod
+    def merge_metrics(metrics_list: List[dict]) -> dict:
+        n_episode = sum(m["n_episode"] for m in metrics_list)
+        metrics: dict = {
+            "order_requirements": sum(m["order_requirements"] * m["n_episode"] for m in metrics_list) / n_episode,
+            "container_shortage": sum(m["container_shortage"] * m["n_episode"] for m in metrics_list) / n_episode,
+            "operation_number": sum(m["operation_number"] * m["n_episode"] for m in metrics_list) / n_episode,
+            "n_episode": n_episode,
+        }
+        metrics["shortage_percentage"] = metrics["container_shortage"] / metrics["order_requirements"]
+
+        metrics_list = [m for m in metrics_list if "val/shortage_percentage" in m]
+        if len(metrics_list) > 0:
+            n_episode = sum(m["val/n_episode"] for m in metrics_list)
+            metrics.update(
+                {
+                    "val/order_requirements": sum(
+                        m["val/order_requirements"] * m["val/n_episode"] for m in metrics_list
+                    )
+                    / n_episode,
+                    "val/container_shortage": sum(
+                        m["val/container_shortage"] * m["val/n_episode"] for m in metrics_list
+                    )
+                    / n_episode,
+                    "val/operation_number": sum(m["val/operation_number"] * m["val/n_episode"] for m in metrics_list)
+                    / n_episode,
+                    "val/n_episode": n_episode,
+                },
+            )
+            metrics["val/shortage_percentage"] = metrics["val/container_shortage"] / metrics["val/order_requirements"]
+
+        return metrics

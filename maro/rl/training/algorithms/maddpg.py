@@ -478,7 +478,8 @@ class DiscreteMADDPGTrainer(MultiAgentTrainer):
                     ops.update_critic_with_grad(critic_grad)
 
             # Update actors
-            actor_grad_list = await asyncio.gather(*[ops.get_actor_grad(batch)[0] for ops in self._actor_ops_list])
+            return_list = await asyncio.gather(*[ops.get_actor_grad(batch) for ops in self._actor_ops_list])
+            actor_grad_list = [e[0] for e in return_list]
             for ops, actor_grad in zip(self._actor_ops_list, actor_grad_list):
                 ops.update_actor_with_grad(actor_grad)
 
