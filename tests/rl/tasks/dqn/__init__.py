@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import numpy as np
 import torch
 from torch.optim import Adam
 
@@ -19,32 +18,6 @@ net_conf = {
     "output_activation": None,
 }
 lr = 1e-3
-
-
-class LinearExplore:
-    def __init__(self) -> None:
-        self._call_count = 0
-
-    def explore_func(
-        self,
-        state: np.ndarray,
-        action: np.ndarray,
-        num_actions: int,
-        *,
-        explore_steps: int,
-        start_explore_prob: float,
-        end_explore_prob: float,
-    ) -> np.ndarray:
-        ratio = min(self._call_count / explore_steps, 1.0)
-        epsilon = start_explore_prob + (end_explore_prob - start_explore_prob) * ratio
-        explore_flag = np.random.random() < epsilon
-        action = np.array([np.random.randint(num_actions) if explore_flag else act for act in action])
-
-        self._call_count += 1
-        return action
-
-
-linear_explore = LinearExplore()
 
 
 class MyQNet(DiscreteQNet):
