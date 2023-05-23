@@ -237,7 +237,7 @@ def evaluate_only_workflow(rl_component_bundle: RLComponentBundle, env_attr: Wor
         loaded = env_sampler.load_policy_state(path)
         env_attr.logger.info(f"Loaded policies {loaded} into env sampler from {path}")
 
-    result = env_sampler.eval(num_episodes=env_attr.num_eval_episodes)
+    env_sampler.eval(num_episodes=env_attr.num_eval_episodes)
     env_sampler.post_evaluate(-1)
 
     if isinstance(env_sampler, BatchEnvSampler):

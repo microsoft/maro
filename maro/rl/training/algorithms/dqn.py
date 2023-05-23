@@ -8,7 +8,6 @@ import numpy as np
 import torch
 
 from maro.rl.policy import RLPolicy, ValueBasedPolicy
-
 from maro.rl.training import (
     AbsTrainOps,
     BaseTrainerParams,
@@ -17,19 +16,6 @@ from maro.rl.training import (
     SingleAgentTrainer,
     remote,
 )
-
-from maro.rl.training import AbsTrainOps, BaseTrainerParams, RandomReplayMemory, RemoteOps, SingleAgentTrainer, remote
-
-from maro.rl.training import (
-    AbsTrainOps,
-    BaseTrainerParams,
-    PrioritizedReplayMemory,
-    RandomReplayMemory,
-    RemoteOps,
-    SingleAgentTrainer,
-    remote,
-)
-
 from maro.rl.utils import TransitionBatch, get_torch_device, ndarray_to_tensor
 from maro.utils import clone
 
