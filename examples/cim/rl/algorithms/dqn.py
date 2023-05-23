@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from typing import Optional, Tuple
 
 import torch
 from torch.optim import RMSprop
 
-from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
+from maro.rl.exploration import EpsilonGreedy
 from maro.rl.model import DiscreteQNet, FullyConnected
 from maro.rl.policy import ValueBasedPolicy
 from maro.rl.training.algorithms import DQNParams, DQNTrainer
@@ -23,32 +24,62 @@ learning_rate = 0.05
 
 
 class MyQNet(DiscreteQNet):
-    def __init__(self, state_dim: int, action_num: int) -> None:
+    def __init__(
+        self,
+        state_dim: int,
+        action_num: int,
+        dueling_param: Optional[Tuple[dict, dict]] = None,
+    ) -> None:
         super(MyQNet, self).__init__(state_dim=state_dim, action_num=action_num)
-        self._fc = FullyConnected(input_dim=state_dim, output_dim=action_num, **q_net_conf)
-        self._optim = RMSprop(self._fc.parameters(), lr=learning_rate)
+
+        self._use_dueling = dueling_param is not None
+        self._fc = FullyConnected(input_dim=state_dim, output_dim=0 if self._use_dueling else action_num, **q_net_conf)
+        if self._use_dueling:
+            q_kwargs, v_kwargs = dueling_param
+            self._q = FullyConnected(input_dim=self._fc.output_dim, output_dim=action_num, **q_kwargs)
+            self._v = FullyConnected(input_dim=self._fc.output_dim, output_dim=1, **v_kwargs)
+
+        self._optim = RMSprop(self.parameters(), lr=learning_rate)
 
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
-        return self._fc(states)
+        logits = self._fc(states)
+        if self._use_dueling:
+            q = self._q(logits)
+            v = self._v(logits)
+            logits = q - q.mean(dim=1, keepdim=True) + v
+        return logits
 
 
 def get_dqn_policy(state_dim: int, action_num: int, name: str) -> ValueBasedPolicy:
+    q_kwargs = {
+        "hidden_dims": [128],
+        "activation": torch.nn.LeakyReLU,
+        "output_activation": torch.nn.LeakyReLU,
+        "softmax": False,
+        "batch_norm": True,
+        "skip_connection": False,
+        "head": True,
+        "dropout_p": 0.0,
+    }
+    v_kwargs = {
+        "hidden_dims": [128],
+        "activation": torch.nn.LeakyReLU,
+        "output_activation": None,
+        "softmax": False,
+        "batch_norm": True,
+        "skip_connection": False,
+        "head": True,
+        "dropout_p": 0.0,
+    }
+
     return ValueBasedPolicy(
         name=name,
-        q_net=MyQNet(state_dim, action_num),
-        exploration_strategy=(epsilon_greedy, {"epsilon": 0.4}),
-        exploration_scheduling_options=[
-            (
-                "epsilon",
-                MultiLinearExplorationScheduler,
-                {
-                    "splits": [(2, 0.32)],
-                    "initial_value": 0.4,
-                    "last_ep": 5,
-                    "final_value": 0.0,
-                },
-            ),
-        ],
+        q_net=MyQNet(
+            state_dim,
+            action_num,
+            dueling_param=(q_kwargs, v_kwargs),
+        ),
+        explore_strategy=EpsilonGreedy(epsilon=0.4, num_actions=action_num),
         warmup=100,
     )
 
@@ -64,6 +95,7 @@ def get_dqn(name: str) -> DQNTrainer:
             num_epochs=10,
             soft_update_coef=0.1,
             double=False,
-            random_overwrite=False,
+            alpha=1.0,
+            beta=1.0,
         ),
     )

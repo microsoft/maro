@@ -88,6 +88,73 @@ class RandomIndexScheduler(AbsIndexScheduler):
         return np.random.choice(self._size, size=batch_size, replace=True)
 
 
+class PriorityReplayIndexScheduler(AbsIndexScheduler):
+    """
+    Indexer for priority replay memory: https://arxiv.org/abs/1511.05952.
+
+    Args:
+        capacity (int): Maximum capacity of the replay memory.
+        alpha (float): Alpha (see original paper for explanation).
+        beta (float): Alpha (see original paper for explanation).
+    """
+
+    def __init__(
+        self,
+        capacity: int,
+        alpha: float,
+        beta: float,
+    ) -> None:
+        super(PriorityReplayIndexScheduler, self).__init__(capacity)
+        self._alpha = alpha
+        self._beta = beta
+        self._max_prio = self._min_prio = 1.0
+        self._weights = np.zeros(capacity, dtype=np.float32)
+
+        self._ptr = self._size = 0
+
+    def init_weights(self, indexes: np.ndarray) -> None:
+        self._weights[indexes] = self._max_prio**self._alpha
+
+    def get_weight(self, indexes: np.ndarray) -> np.ndarray:
+        # important sampling weight calculation
+        # original formula: ((p_j/p_sum*N)**(-beta))/((p_min/p_sum*N)**(-beta))
+        # simplified formula: (p_j/p_min)**(-beta)
+        return (self._weights[indexes] / self._min_prio) ** (-self._beta)
+
+    def update_weight(self, indexes: np.ndarray, weight: np.ndarray) -> None:
+        assert indexes.shape == weight.shape
+        weight = np.abs(weight) + np.finfo(np.float32).eps.item()
+        self._weights[indexes] = weight**self._alpha
+        self._max_prio = max(self._max_prio, weight.max())
+        self._min_prio = min(self._min_prio, weight.min())
+
+    def get_put_indexes(self, batch_size: int) -> np.ndarray:
+        if self._ptr + batch_size <= self._capacity:
+            indexes = np.arange(self._ptr, self._ptr + batch_size)
+            self._ptr += batch_size
+        else:
+            overwrites = self._ptr + batch_size - self._capacity
+            indexes = np.concatenate(
+                [
+                    np.arange(self._ptr, self._capacity),
+                    np.arange(overwrites),
+                ],
+            )
+            self._ptr = overwrites
+
+        self._size = min(self._size + batch_size, self._capacity)
+        self.init_weights(indexes)
+        return indexes
+
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
+        assert batch_size is not None and batch_size > 0, f"Invalid batch size: {batch_size}"
+        assert self._size > 0, "Cannot sample from an empty memory."
+
+        weights = self._weights[: self._size]
+        weights = weights / weights.sum()
+        return np.random.choice(np.arange(self._size), p=weights, size=batch_size, replace=True)
+
+
 class FIFOIndexScheduler(AbsIndexScheduler):
     """First-in-first-out index scheduler.
 
@@ -154,11 +221,11 @@ class AbsReplayMemory(object, metaclass=ABCMeta):
     def state_dim(self) -> int:
         return self._state_dim
 
-    def _get_put_indexes(self, batch_size: int) -> np.ndarray:
+    def get_put_indexes(self, batch_size: int) -> np.ndarray:
         """Please refer to the doc string in AbsIndexScheduler."""
         return self._idx_scheduler.get_put_indexes(batch_size)
 
-    def _get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
+    def get_sample_indexes(self, batch_size: int = None) -> np.ndarray:
         """Please refer to the doc string in AbsIndexScheduler."""
         return self._idx_scheduler.get_sample_indexes(batch_size)
 
@@ -225,10 +292,10 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
             if transition_batch.old_logps is not None:
                 match_shape(transition_batch.old_logps, (batch_size,))
 
-        self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
+        self.put_by_indexes(self.get_put_indexes(batch_size), transition_batch)
         self._n_sample = min(self._n_sample + transition_batch.size, self._capacity)
 
-    def _put_by_indexes(self, indexes: np.ndarray, transition_batch: TransitionBatch) -> None:
+    def put_by_indexes(self, indexes: np.ndarray, transition_batch: TransitionBatch) -> None:
         """Store a transition batch into the memory at the give indexes.
 
         Args:
@@ -258,7 +325,7 @@ class ReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         Returns:
             batch (TransitionBatch): The sampled batch.
         """
-        indexes = self._get_sample_indexes(batch_size)
+        indexes = self.get_sample_indexes(batch_size)
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
@@ -304,6 +371,31 @@ class RandomReplayMemory(ReplayMemory):
     @property
     def random_overwrite(self) -> bool:
         return self._random_overwrite
+
+
+class PrioritizedReplayMemory(ReplayMemory):
+    def __init__(
+        self,
+        capacity: int,
+        state_dim: int,
+        action_dim: int,
+        alpha: float,
+        beta: float,
+    ) -> None:
+        super(PrioritizedReplayMemory, self).__init__(
+            capacity,
+            state_dim,
+            action_dim,
+            PriorityReplayIndexScheduler(capacity, alpha, beta),
+        )
+
+    def get_weight(self, indexes: np.ndarray) -> np.ndarray:
+        assert isinstance(self._idx_scheduler, PriorityReplayIndexScheduler)
+        return self._idx_scheduler.get_weight(indexes)
+
+    def update_weight(self, indexes: np.ndarray, weight: np.ndarray) -> None:
+        assert isinstance(self._idx_scheduler, PriorityReplayIndexScheduler)
+        self._idx_scheduler.update_weight(indexes, weight)
 
 
 class FIFOReplayMemory(ReplayMemory):
@@ -393,9 +485,9 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
                 assert match_shape(transition_batch.agent_states[i], (batch_size, self._agent_states_dims[i]))
                 assert match_shape(transition_batch.next_agent_states[i], (batch_size, self._agent_states_dims[i]))
 
-        self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
+        self.put_by_indexes(self.get_put_indexes(batch_size), transition_batch=transition_batch)
 
-    def _put_by_indexes(self, indexes: np.ndarray, transition_batch: MultiTransitionBatch) -> None:
+    def put_by_indexes(self, indexes: np.ndarray, transition_batch: MultiTransitionBatch) -> None:
         """Store a transition batch into the memory at the give indexes.
 
         Args:
@@ -424,7 +516,7 @@ class MultiReplayMemory(AbsReplayMemory, metaclass=ABCMeta):
         Returns:
             batch (MultiTransitionBatch): The sampled batch.
         """
-        indexes = self._get_sample_indexes(batch_size)
+        indexes = self.get_sample_indexes(batch_size)
         return self.sample_by_indexes(indexes)
 
     def sample_by_indexes(self, indexes: np.ndarray) -> MultiTransitionBatch:

@@ -13,7 +13,7 @@ class FullyConnected(nn.Module):
 
     Args:
         input_dim (int): Network input dimension.
-        output_dim (int): Network output dimension.
+        output_dim (int): Network output dimension. If it is 0, will not create the top layer.
         hidden_dims (List[int]): Dimensions of hidden layers. Its length is the number of hidden layers. For example,
             `hidden_dims=[128, 256]` refers to two hidden layers with output dim of 128 and 256, respectively.
         activation (Optional[Type[torch.nn.Module], default=nn.ReLU): Activation class provided by ``torch.nn`` or a
@@ -52,7 +52,6 @@ class FullyConnected(nn.Module):
         super(FullyConnected, self).__init__()
         self._input_dim = input_dim
         self._hidden_dims = hidden_dims if hidden_dims is not None else []
-        self._output_dim = output_dim
 
         # network features
         self._activation = activation if activation else None
@@ -76,9 +75,13 @@ class FullyConnected(nn.Module):
             self._build_layer(in_dim, out_dim, activation=self._activation) for in_dim, out_dim in zip(dims, dims[1:])
         ]
         # top layer
-        layers.append(
-            self._build_layer(dims[-1], self._output_dim, head=self._head, activation=self._output_activation),
-        )
+        if output_dim != 0:
+            layers.append(
+                self._build_layer(dims[-1], output_dim, head=self._head, activation=self._output_activation),
+            )
+            self._output_dim = output_dim
+        else:
+            self._output_dim = hidden_dims[-1]
 
         self._net = nn.Sequential(*layers)
 
