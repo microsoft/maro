@@ -1,4 +1,4 @@
-job: rl_gym_ppo
+job: rl_gym_ddpg
 scenario_path: "tests/rl_v31_gym/tasks/ddpg"
 log_path: "tests/rl_v31_gym/log/ddpg"
 main:

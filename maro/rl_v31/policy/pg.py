@@ -1,12 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from abc import ABCMeta
+
 from typing import Any, Callable, Type, Union, cast
 
 import torch
 from gym import spaces
 from tianshou.data import Batch
-from torch.distributions import Distribution
+from torch.distributions import Categorical, Distribution
 from torch.optim import Optimizer
 
 from maro.rl_v31.model.base import PolicyModel
@@ -14,7 +14,7 @@ from maro.rl_v31.policy.base import BaseRLPolicy
 from maro.rl_v31.utils import to_torch
 
 
-class PGPolicy(BaseRLPolicy, metaclass=ABCMeta):
+class PGPolicy(BaseRLPolicy):
     def __init__(
         self,
         name: str,
@@ -22,7 +22,7 @@ class PGPolicy(BaseRLPolicy, metaclass=ABCMeta):
         action_space: spaces.Space,
         model: PolicyModel,
         optim: Optimizer,
-        dist_fn: Union[Type[Distribution], Callable[[torch.Tensor], Distribution]] = torch.distributions.Categorical,
+        dist_fn: Union[Type[Distribution], Callable[[torch.Tensor], Distribution]] = Categorical,
     ) -> None:
         super().__init__(
             name=name,

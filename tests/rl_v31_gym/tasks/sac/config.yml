@@ -1,0 +1,17 @@
+job: rl_gym_sac
+scenario_path: "tests/rl_v31_gym/tasks/sac"
+log_path: "tests/rl_v31_gym/log/sac"
+main:
+  num_iterations: 80000
+rollout:
+  parallelism: 1
+  parallel_type: dummy
+train:
+  steps_per_iteration: 50
+  checkpoint_path: "tests/rl_v31_gym/log/sac/checkpoints"
+  validation_interval: 200
+valid:
+  episodes_per_iteration: 10
+test:
+  episodes_per_iteration: 10
+  load_path: "tests/rl_v31_gym/log/sac/checkpoints/latest"

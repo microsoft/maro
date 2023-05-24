@@ -52,7 +52,7 @@ class Callback(object):
 
 class EarlyStopping(Callback):
     def __init__(self, patience: int, monitor: str, higher_better: bool) -> None:
-        super(EarlyStopping, self).__init__()
+        super().__init__()
 
         self._patience = patience
         self._monitor = monitor
@@ -78,7 +78,7 @@ class EarlyStopping(Callback):
 
 class Checkpoint(Callback):
     def __init__(self, path: str, interval: int) -> None:
-        super(Checkpoint, self).__init__()
+        super().__init__()
 
         self._path = path
         self._interval = interval
@@ -108,7 +108,7 @@ class Checkpoint(Callback):
 
 class MetricsRecorder(Callback):
     def __init__(self, path: str) -> None:
-        super(MetricsRecorder, self).__init__()
+        super().__init__()
 
         self._full_metrics: Dict[int, dict] = {}
         self._valid_metrics: Dict[int, dict] = {}
@@ -161,7 +161,7 @@ class CallbackManager(object):
         training_manager: TrainingManager,
         logger: LoggerV2,
     ) -> None:
-        super(CallbackManager, self).__init__()
+        super().__init__()
 
         self._callbacks = callbacks
         for callback in self._callbacks:
