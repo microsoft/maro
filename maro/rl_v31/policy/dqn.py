@@ -34,26 +34,34 @@ class DQNPolicy(BaseRLPolicy):
         self._qnet = qnet
         self._explore_strategy = explore_strategy
 
-    def q_values(self, obs: Any, act: torch.Tensor) -> torch.Tensor:
+        assert isinstance(action_space, spaces.Discrete)
+        self._action_num = action_space.n
+
+    def q_values(self, obs: Any, act: torch.Tensor) -> torch.Tensor:  # (B,)
         return self._qnet.q_values(obs, act)
 
-    def q_values_for_all(self, obs: Any) -> torch.Tensor:
+    def q_values_for_all(self, obs: Any) -> torch.Tensor:  # (B, action_num)
         return self._qnet.q_values_for_all(obs)
 
-    def forward(
-        self,
-        batch: Batch,
-        **kwargs: Any,
-    ) -> Batch:
-        obs = to_torch(batch.obs)
-        q = self.q_values_for_all(obs)
-        q_softmax = nn.Softmax(dim=1)(q)
-        _, act = q.max(dim=1)
+    def get_random_action(self, batch: Batch, **kwargs: Any) -> Batch:
+        logits = torch.ones((len(batch), self._action_num)) / self._action_num  # (B, action_num)
+        dist = torch.distributions.Categorical(logits)
+        act = dist.sample().long()  # (B,)
+        log_probs = dist.log_prob(act)  # (B,)
+
+        # act shape: (B,)
+        # probs shape: (B,)
+        return Batch(act=act, probs=torch.exp(log_probs))
+
+    def get_action(self, batch: Batch, use: str, **kwargs: Any) -> Batch:
+        obs = to_torch(batch[use])
+        q = self.q_values_for_all(obs)  # (B, action_num)
+        q_softmax = nn.Softmax(dim=1)(q)  # (B, action_num)
+        _, act = q.max(dim=1)  # (B,)
 
         if self.is_exploring and self._explore_strategy is not None:
-            act = self._explore_strategy.get_action(obs=obs.cpu().numpy(), action=act.cpu().numpy())
-            act = to_torch(act)
+            act = self._explore_strategy.get_action(obs=obs, action=act)  # (B,)
+        act = act.long()
 
-        act = act.unsqueeze(1).long()
-        probs = q_softmax.gather(1, act).squeeze(-1)
+        probs = q_softmax.gather(1, act.unsqueeze(1)).squeeze(-1)  # (B,)
         return Batch(act=act, probs=probs)

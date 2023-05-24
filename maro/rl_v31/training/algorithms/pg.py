@@ -14,7 +14,7 @@ from maro.rl_v31.utils import discount_cumsum, to_torch
 # TODO: handle ops device
 
 
-class PolicyGradientTrainOps(BaseTrainOps):
+class PolicyGradientOps(BaseTrainOps):
     def __init__(
         self,
         name: str,
@@ -127,7 +127,7 @@ class PolicyGradientTrainer(SingleAgentTrainer):
         self._min_logp = min_logp
 
     def build(self) -> None:
-        self._ops = PolicyGradientTrainOps(
+        self._ops = PolicyGradientOps(
             name=self.policy.name,
             policy=cast(PGPolicy, self.policy),
             critic_func=self._critic_func,

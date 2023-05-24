@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 import torch
@@ -29,6 +29,7 @@ from tests.rl_v31_gym.gym_wrapper.common import (
 )
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper
 from tests.rl_v31_gym.gym_wrapper.simulator.business_engine import GymBusinessEngine
+from tests.rl_v31_gym.tasks.utils import metrics_agg_func
 
 actor_net_conf = {
     "hidden_dims": [64, 32],
@@ -96,7 +97,6 @@ def get_ppo_policy(
         action_space=action_space,
         model=model,
         optim=optim,
-        is_discrete=False,
         dist_fn=Normal,
     )
 
@@ -135,18 +135,6 @@ trainers = [
     )
     for i in range(num_agents)
 ]
-
-
-def metrics_agg_func(metrics: List[dict]) -> dict:
-    ret = {
-        "n_steps": sum(e["n_steps"] for e in metrics),
-        "n_segment": sum(e["n_segment"] for e in metrics),
-        "max_n_steps": sum(e["max_n_steps"] for e in metrics),
-        "n_interactions": sum(e["n_interactions"] for e in metrics),
-    }
-    ret["avg_reward"] = np.sum([e["avg_reward"] * e["n_segment"] for e in metrics]) / ret["n_segment"]
-    ret["avg_n_steps"] = np.sum([e["avg_n_steps"] * e["n_segment"] for e in metrics]) / ret["n_segment"]
-    return ret
 
 
 rl_component_bundle = RLComponentBundle(

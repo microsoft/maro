@@ -6,7 +6,7 @@ main:
   explore_in_training: true
   explore_in_valid_and_test: true
 train:
-  episodes_per_iteration: 1
+  episodes_per_iteration: 2
   checkpoint_path: "log/cim_v31/checkpoints/"
   validation_interval: 3
   early_stop:
@@ -18,3 +18,6 @@ valid:
 test:
   episodes_per_iteration: 1
   load_path: "log/cim_v31/checkpoints/best/"
+rollout:
+  parallelism: 2
+  parallel_type: dummy

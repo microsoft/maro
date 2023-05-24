@@ -7,11 +7,11 @@ from tianshou.data import Batch
 
 from maro.rl_v31.model.vnet import VCritic
 from maro.rl_v31.policy.pg import PGPolicy
-from maro.rl_v31.training.algorithms.pg import PolicyGradientTrainer, PolicyGradientTrainOps
+from maro.rl_v31.training.algorithms.pg import PolicyGradientOps, PolicyGradientTrainer
 from maro.rl_v31.utils import to_torch
 
 
-class PPOTrainOps(PolicyGradientTrainOps):
+class PPOOps(PolicyGradientOps):
     def __init__(
         self,
         name: str,
@@ -42,7 +42,7 @@ class PPOTrainOps(PolicyGradientTrainOps):
         adv = to_torch(batch.adv)
         logps_old = to_torch(batch.logps_old)
         if self._policy.is_discrete:
-            logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze()
+            logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze(-1)
         else:
             logps = dist.log_prob(act).sum(axis=-1)
 
@@ -62,7 +62,7 @@ class PPOTrainOps(PolicyGradientTrainOps):
             act = to_torch(batch.action)
             adv = to_torch(batch.adv)
             if self._policy.is_discrete:
-                logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze()
+                logps = dist.log_prob(act).reshape(len(adv), -1).transpose(0, 1).squeeze(-1)
             else:
                 logps = dist.log_prob(act).sum(axis=-1)
             batch.logps_old = logps
@@ -101,7 +101,7 @@ class PPOTrainer(PolicyGradientTrainer):
         self._clip_ratio = clip_ratio
 
     def build(self) -> None:
-        self._ops = PPOTrainOps(
+        self._ops = PPOOps(
             name=self.policy.name,
             policy=cast(PGPolicy, self.policy),
             critic_func=self._critic_func,

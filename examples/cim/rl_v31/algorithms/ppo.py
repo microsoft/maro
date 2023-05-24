@@ -73,7 +73,6 @@ def get_ppo_policy(state_dim: int, action_num: int, name: str) -> PPOPolicy:
         action_space=action_space,
         model=model,
         optim=optim,
-        is_discrete=True,
     )
 
 

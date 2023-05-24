@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from typing import Any, Callable, Type, Union
+from abc import ABCMeta
+from typing import Any, Callable, Type, Union, cast
 
 import torch
 from gym import spaces
@@ -13,7 +14,7 @@ from maro.rl_v31.policy.base import BaseRLPolicy
 from maro.rl_v31.utils import to_torch
 
 
-class PGPolicy(BaseRLPolicy):
+class PGPolicy(BaseRLPolicy, metaclass=ABCMeta):
     def __init__(
         self,
         name: str,
@@ -21,11 +22,8 @@ class PGPolicy(BaseRLPolicy):
         action_space: spaces.Space,
         model: PolicyModel,
         optim: Optimizer,
-        is_discrete: bool,
         dist_fn: Union[Type[Distribution], Callable[[torch.Tensor], Distribution]] = torch.distributions.Categorical,
     ) -> None:
-        assert isinstance(action_space, (spaces.Box, spaces.Discrete))
-
         super().__init__(
             name=name,
             obs_space=obs_space,
@@ -34,11 +32,25 @@ class PGPolicy(BaseRLPolicy):
         )
 
         self.model = model
-        self.is_discrete = is_discrete
         self.dist_fn = dist_fn
 
-    def forward(self, batch: Batch, **kwargs: Any) -> Batch:
-        obs = to_torch(batch.obs)
+    def get_random_action(self, batch: Batch, **kwargs: Any) -> Batch:
+        if self.is_discrete:
+            action_space = cast(spaces.Discrete, self.action_space)
+            logits = torch.ones((len(batch), action_space.n)) / action_space.n  # (B, action_num)
+            dist = torch.distributions.Categorical(logits)
+            act = dist.sample().long()  # (B,)
+        else:
+            action_space = cast(spaces.Box, self.action_space)
+            low = torch.Tensor(action_space.low).repeat(len(batch), 1)  # (B, action_dim)
+            high = torch.Tensor(action_space.high).repeat(len(batch), 1)  # (B, action_dim)
+            dist = torch.distributions.Uniform(low, high)
+            act = dist.sample()  # (B, action_dim)
+
+        return Batch(act=act, dist=dist)  # TODO: do we need to return logits?
+
+    def get_action(self, batch: Batch, use: str, **kwargs: Any) -> Batch:
+        obs = to_torch(batch[use])
         logits = self.model(obs)
 
         if isinstance(logits, torch.Tensor):
@@ -49,11 +61,12 @@ class PGPolicy(BaseRLPolicy):
             raise ValueError(f"Logits of type {type(logits)} is not acceptable.")
 
         if self.is_discrete:
-            act = dist.sample() if self.is_exploring else logits.argmax(-1)
+            act = dist.sample() if self.is_exploring else logits.argmax(-1)  # (B,)
+            act = act.long()
         else:
-            act = dist.sample()
+            act = dist.sample()  # (B,)
 
-        return Batch(act=act, dist=dist, logits=logits)
+        return Batch(act=act, dist=dist, logits=logits)  # TODO: do we need to return logits?
 
 
 class ContinuousPGPolicy(PGPolicy):
@@ -65,16 +78,15 @@ class ContinuousPGPolicy(PGPolicy):
         model: PolicyModel,
         optim: Optimizer,
     ) -> None:
-        assert isinstance(action_space, spaces.Box), "Action space of ContinuousPGPolicy should be `spaces.Box`."
-
         super().__init__(
             name=name,
             obs_space=obs_space,
             action_space=action_space,
             model=model,
             optim=optim,
-            is_discrete=False,
         )
+
+        assert not self.is_discrete
 
 
 class DiscretePGPolicy(PGPolicy):
@@ -86,16 +98,12 @@ class DiscretePGPolicy(PGPolicy):
         model: PolicyModel,
         optim: Optimizer,
     ) -> None:
-        assert isinstance(
-            action_space,
-            spaces.Discrete,
-        ), "Action space of DiscretePGPolicy should be `spaces.Discrete`."
-
         super().__init__(
             name=name,
             obs_space=obs_space,
             action_space=action_space,
             model=model,
             optim=optim,
-            is_discrete=True,
         )
+
+        assert self.is_discrete

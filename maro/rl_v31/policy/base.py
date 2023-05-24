@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterator, Optional, cast
 
 import torch
 from gym import spaces
@@ -107,15 +107,6 @@ class BaseDLPolicy(AbsPolicy, metaclass=ABCMeta):
     def unfreeze(self, params: Optional[Iterator[Parameter]] = None) -> None:
         _set_requires_grad(params or self.parameters(), True)
 
-    def soft_update(self, other: BaseDLPolicy, tau: float) -> None:
-        assert self.__class__ == other.__class__, (
-            f"Soft update can only be done between same classes. Current model type: {self.__class__}, "
-            f"other model type: {other.__class__}"
-        )
-
-        for params, other_params in zip(self.parameters(), other.parameters()):
-            params.data = (1 - tau) * params.data + tau * other_params.data
-
 
 class BaseRLPolicy(BaseDLPolicy, metaclass=ABCMeta):
     def __init__(
@@ -124,6 +115,7 @@ class BaseRLPolicy(BaseDLPolicy, metaclass=ABCMeta):
         obs_space: spaces.Space,
         action_space: spaces.Space,
         optim: Optimizer,
+        warmup: int = 0,
     ) -> None:
         super().__init__(
             name=name,
@@ -132,7 +124,37 @@ class BaseRLPolicy(BaseDLPolicy, metaclass=ABCMeta):
             optim=optim,
         )
 
+        assert isinstance(action_space, (spaces.Box, spaces.Discrete))
+
+        self.warmup = warmup
+        self.is_discrete = isinstance(action_space, spaces.Discrete)
+
+        self.call_count = 0
         self.is_exploring = False
+
+    def forward(self, batch: Batch, use: str = "obs", **kwargs: Any) -> Batch:
+        random = self.call_count < self.warmup
+        res = self.get_random_action(batch, **kwargs) if random else self.get_action(batch, use, **kwargs)
+        self.call_count += len(batch)
+
+        act = res.act
+        if self.is_discrete:
+            assert act.shape == (len(batch),)
+            act = act.long()
+        else:
+            action_space = cast(spaces.Box, self.action_space)
+            assert act.shape == (len(batch), len(action_space.low))
+            act = act.float()
+
+        return res
+
+    @abstractmethod
+    def get_random_action(self, batch: Batch, **kwargs: Any) -> Batch:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_action(self, batch: Batch, use: str, **kwargs: Any) -> Batch:
+        raise NotImplementedError
 
     def switch_explore(self, explore: bool) -> None:
         self.is_exploring = explore

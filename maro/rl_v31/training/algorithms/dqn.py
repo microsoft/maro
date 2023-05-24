@@ -52,9 +52,9 @@ class DQNOps(BaseTrainOps):
         with torch.no_grad():
             if self._double:
                 self._policy.switch_explore(False)
-                next_q_values = self._target_policy.q_values(next_obs, self._policy(next_obs))  # TODO
+                next_q_values = self._target_policy.q_values(next_obs, self._policy(next_obs))  # (B,)
             else:
-                next_q_values = self._target_policy.q_values_for_all(next_obs).max(dim=1)[0]
+                next_q_values = self._target_policy.q_values_for_all(next_obs).max(dim=1)[0]  # (B,)
 
         target_q_values = (reward + self._reward_discount * (1.0 - terminal) * next_q_values).detach()
         q_values = self._policy.q_values(obs, act)

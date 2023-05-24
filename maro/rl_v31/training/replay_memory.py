@@ -101,6 +101,10 @@ class ReplayMemoryManager(object):
         self.memories = memories
 
     @property
+    def n_sample(self) -> int:
+        return sum(memory.size for memory in self.memories)
+
+    @property
     def num_memories(self) -> int:
         return len(self.memories)
 
