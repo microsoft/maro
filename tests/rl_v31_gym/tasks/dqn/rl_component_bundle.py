@@ -1,5 +1,4 @@
 import torch
-from gym import spaces
 from torch.optim import Adam
 
 from maro.rl.model import FullyConnected
@@ -9,16 +8,13 @@ from maro.rl_v31.policy.dqn import DQNPolicy
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.dqn import DQNTrainer
 from maro.simulator import Env
-
 from tests.rl_v31_gym.gym_wrapper.common import (
     env,
     env_conf,
     gym_action_num,
-    gym_obs_dim,
-    is_discrete,
+    gym_action_space, gym_obs_dim,
+    gym_obs_space, is_discrete,
     num_agents,
-    obs_lower_bound,
-    obs_upper_bound,
 )
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper
 from tests.rl_v31_gym.gym_wrapper.simulator.business_engine import GymBusinessEngine
@@ -33,12 +29,12 @@ lr = 1e-3
 
 
 class MyQNet(DiscreteQNet):
-    def __init__(self, obs_dim: int, action_num: int) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
         self._mlp = FullyConnected(
-            input_dim=obs_dim,
-            output_dim=action_num,
+            input_dim=gym_obs_dim,
+            output_dim=gym_action_num,
             **net_conf,
         )
 
@@ -46,24 +42,18 @@ class MyQNet(DiscreteQNet):
         return self._mlp(obs)
 
 
-def get_dqn_policy(
-    name: str,
-    obs_dim: int,
-    action_num: int,
-) -> DQNPolicy:
-    obs_space = spaces.Box(obs_lower_bound, obs_upper_bound, shape=(obs_dim,))
-    action_space = spaces.Discrete(action_num)
-    qnet = MyQNet(obs_dim=obs_dim, action_num=action_num)
+def get_dqn_policy(name: str) -> DQNPolicy:
+    qnet = MyQNet()
     optim = Adam(qnet.parameters(), lr=lr)
 
     return DQNPolicy(
         name=name,
-        obs_space=obs_space,
-        action_space=action_space,
+        obs_space=gym_obs_space,
+        action_space=gym_action_space,
         optim=optim,
         qnet=qnet,
         explore_strategy=LinearExploration(
-            num_actions=action_num,
+            num_actions=gym_action_num,
             explore_steps=10000,
             start_explore_prob=1.0,
             end_explore_prob=0.02,
@@ -73,14 +63,7 @@ def get_dqn_policy(
 
 assert is_discrete
 agent2policy = {agent: f"dqn_{agent}.policy" for agent in env.agent_idx_list}
-policies = [
-    get_dqn_policy(
-        f"dqn_{i}.policy",
-        obs_dim=gym_obs_dim,
-        action_num=gym_action_num,
-    )
-    for i in range(num_agents)
-]
+policies = [get_dqn_policy(f"dqn_{i}.policy") for i in range(num_agents)]
 trainers = [
     DQNTrainer(
         name=f"dqn_{i}",
@@ -96,7 +79,6 @@ trainers = [
     )
     for i in range(num_agents)
 ]
-
 
 rl_component_bundle = RLComponentBundle(
     env_wrapper_func=lambda: GymEnvWrapper(Env(business_engine_cls=GymBusinessEngine, **env_conf)),

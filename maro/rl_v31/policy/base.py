@@ -140,11 +140,11 @@ class BaseRLPolicy(BaseDLPolicy, metaclass=ABCMeta):
         act = res.act
         if self.is_discrete:
             assert act.shape == (len(batch),)
-            act = act.long()
+            res.act = act.long()
         else:
             action_space = cast(spaces.Box, self.action_space)
             assert act.shape == (len(batch), len(action_space.low))
-            act = act.float()
+            res.act = act.float()
 
         return res
 

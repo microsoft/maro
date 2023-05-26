@@ -2,7 +2,6 @@ from typing import Tuple
 
 import numpy as np
 import torch
-from gym import spaces
 from torch import nn
 from torch.distributions import Normal
 from torch.optim import Adam, RMSprop
@@ -14,18 +13,13 @@ from maro.rl_v31.policy import PPOPolicy
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.ppo import PPOTrainer
 from maro.simulator import Env
-
 from tests.rl_v31_gym.gym_wrapper.common import (
-    action_lower_bound,
-    action_upper_bound,
     env,
     env_conf,
     gym_action_dim,
-    gym_obs_dim,
-    is_discrete,
+    gym_action_space, gym_obs_dim,
+    gym_obs_space, is_discrete,
     num_agents,
-    obs_lower_bound,
-    obs_upper_bound,
 )
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper
 from tests.rl_v31_gym.gym_wrapper.simulator.business_engine import GymBusinessEngine
@@ -44,15 +38,15 @@ critic_learning_rate = 1e-3
 
 
 class MyPolicyModel(PolicyModel):
-    def __init__(self, obs_dim: int, action_dim: int) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
-        log_std = -0.5 * np.ones(action_dim, dtype=np.float32)
+        log_std = -0.5 * np.ones(gym_action_dim, dtype=np.float32)
         self._log_std = torch.nn.Parameter(torch.as_tensor(log_std))
         self._mu_net = FullyConnected(
-            input_dim=obs_dim,
+            input_dim=gym_obs_dim,
             hidden_dims=actor_net_conf["hidden_dims"],
-            output_dim=action_dim,
+            output_dim=gym_action_dim,
             activation=actor_net_conf["activation"],
         )
 
@@ -77,32 +71,22 @@ class MyCriticModel(BaseNet):
         return self.mlp(obs).squeeze(-1)
 
 
-def get_ppo_policy(
-    name: str,
-    obs_lower_bound: float,
-    obs_upper_bound: float,
-    action_lower_bound: float,
-    action_upper_bound: float,
-    obs_dim: int,
-    action_dim: int,
-) -> PPOPolicy:
-    obs_space = spaces.Box(obs_lower_bound, obs_upper_bound, shape=(obs_dim,))
-    action_space = spaces.Box(action_lower_bound, action_upper_bound, shape=(action_dim,))
-    model = MyPolicyModel(obs_dim=obs_dim, action_dim=action_dim)
+def get_ppo_policy(name: str) -> PPOPolicy:
+    model = MyPolicyModel()
     optim = Adam(model.parameters(), lr=actor_learning_rate)
 
     return PPOPolicy(
         name=name,
-        obs_space=obs_space,
-        action_space=action_space,
+        obs_space=gym_obs_space,
+        action_space=gym_action_space,
         model=model,
         optim=optim,
         dist_fn=Normal,
     )
 
 
-def get_ppo_critic(obs_dim: int) -> VCritic:
-    model = MyCriticModel(obs_dim=obs_dim)
+def get_ppo_critic() -> VCritic:
+    model = MyCriticModel(obs_dim=gym_obs_dim)
     optim = RMSprop(model.parameters(), lr=critic_learning_rate)
 
     return VCritic(model=model, optim=optim)
@@ -110,23 +94,12 @@ def get_ppo_critic(obs_dim: int) -> VCritic:
 
 assert not is_discrete
 agent2policy = {agent: f"ppo_{agent}.policy" for agent in env.agent_idx_list}
-policies = [
-    get_ppo_policy(
-        f"ppo_{i}.policy",
-        obs_lower_bound,
-        obs_upper_bound,
-        action_lower_bound,
-        action_upper_bound,
-        gym_obs_dim,
-        gym_action_dim,
-    )
-    for i in range(num_agents)
-]
+policies = [get_ppo_policy(f"ppo_{i}.policy") for i in range(num_agents)]
 trainers = [
     PPOTrainer(
         name=f"ppo_{i}",
         memory_size=4000,
-        critic_func=lambda: get_ppo_critic(gym_obs_dim),
+        critic_func=get_ppo_critic,
         critic_loss_cls=nn.SmoothL1Loss,
         lam=0.97,
         reward_discount=0.99,
@@ -135,7 +108,6 @@ trainers = [
     )
     for i in range(num_agents)
 ]
-
 
 rl_component_bundle = RLComponentBundle(
     env_wrapper_func=lambda: GymEnvWrapper(Env(business_engine_cls=GymBusinessEngine, **env_conf)),

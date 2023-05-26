@@ -41,17 +41,12 @@ critic_learning_rate = 1e-3
 
 
 class MyPolicyModel(PolicyModel):
-    def __init__(
-        self,
-        obs_dim: int,
-        act_dim: int,
-        action_limit: float,
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
         self._net = FullyConnected(
-            input_dim=obs_dim,
-            output_dim=act_dim,
+            input_dim=gym_obs_dim,
+            output_dim=gym_action_dim,
             hidden_dims=actor_net_conf["hidden_dims"],
             activation=actor_net_conf["activation"],
             output_activation=actor_net_conf["output_activation"],
@@ -64,15 +59,11 @@ class MyPolicyModel(PolicyModel):
 
 
 class MyCriticModel(QNet):
-    def __init__(
-        self,
-        obs_dim: int,
-        act_dim: int,
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
         self.mlp = FullyConnected(
-            input_dim=obs_dim + act_dim,
+            input_dim=gym_obs_dim + gym_action_dim,
             output_dim=1,
             hidden_dims=critic_net_conf["hidden_dims"],
             activation=critic_net_conf["activation"],
@@ -83,7 +74,7 @@ class MyCriticModel(QNet):
 
 
 def get_ddpg_policy(name: str) -> DDPGPolicy:
-    model = MyPolicyModel(obs_dim=gym_obs_dim, act_dim=gym_action_dim, action_limit=action_limit)
+    model = MyPolicyModel()
     optim = Adam(model.parameters(), lr=actor_learning_rate)
 
     return DDPGPolicy(
@@ -97,8 +88,9 @@ def get_ddpg_policy(name: str) -> DDPGPolicy:
 
 
 def get_ddpg_critic() -> QCritic:
-    model = MyCriticModel(obs_dim=gym_obs_dim, act_dim=gym_action_dim)
+    model = MyCriticModel()
     optim = Adam(model.parameters(), lr=critic_learning_rate)
+
     return QCritic(model=model, optim=optim)
 
 
@@ -111,7 +103,7 @@ trainers = [
         reward_discount=0.99,
         memory_size=1000000,
         batch_size=100,
-        critic_func=lambda: get_ddpg_critic(),
+        critic_func=get_ddpg_critic,
         num_epochs=50,
         n_start_train=1000,
         soft_update_coef=0.005,

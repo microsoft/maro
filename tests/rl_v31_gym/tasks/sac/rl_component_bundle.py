@@ -36,22 +36,18 @@ LOG_STD_MIN = -20
 
 
 class MyPolicyModel(PolicyModel):
-    def __init__(
-        self,
-        obs_dim: int,
-        act_dim: int,
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
         self._net = FullyConnected(
-            input_dim=obs_dim,
+            input_dim=gym_obs_dim,
             output_dim=actor_net_conf["hidden_dims"][-1],
             hidden_dims=actor_net_conf["hidden_dims"][:-1],
             activation=actor_net_conf["activation"],
             output_activation=actor_net_conf["activation"],
         )
-        self._mu = torch.nn.Linear(actor_net_conf["hidden_dims"][-1], act_dim)
-        self._log_std = torch.nn.Linear(actor_net_conf["hidden_dims"][-1], act_dim)
+        self._mu = torch.nn.Linear(actor_net_conf["hidden_dims"][-1], gym_action_dim)
+        self._log_std = torch.nn.Linear(actor_net_conf["hidden_dims"][-1], gym_action_dim)
 
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         net_out = self._net(obs.float())
@@ -63,11 +59,11 @@ class MyPolicyModel(PolicyModel):
 
 
 class MyCriticModel(QNet):
-    def __init__(self, obs_dim: int, act_dim: int) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
         self.mlp = FullyConnected(
-            input_dim=obs_dim + act_dim,
+            input_dim=gym_obs_dim + gym_action_dim,
             output_dim=1,
             hidden_dims=critic_net_conf["hidden_dims"],
             activation=critic_net_conf["activation"],
@@ -78,7 +74,7 @@ class MyCriticModel(QNet):
 
 
 def get_sac_policy(name: str) -> SACPolicy:
-    model = MyPolicyModel(obs_dim=gym_obs_dim, act_dim=gym_action_dim)
+    model = MyPolicyModel()
     optim = Adam(model.parameters(), lr=actor_learning_rate)
 
     return SACPolicy(
@@ -92,8 +88,9 @@ def get_sac_policy(name: str) -> SACPolicy:
 
 
 def get_sac_critic() -> QCritic:
-    model = MyCriticModel(obs_dim=gym_obs_dim, act_dim=gym_action_dim)
+    model = MyCriticModel()
     optim = Adam(model.parameters(), lr=critic_learning_rate)
+
     return QCritic(model=model, optim=optim)
 
 
@@ -106,7 +103,7 @@ trainers = [
         reward_discount=0.99,
         memory_size=1000000,
         batch_size=100,
-        critic_func=lambda: get_sac_critic(),
+        critic_func=get_sac_critic,
         num_epochs=50,
         n_start_train=1000,
         soft_update_coef=0.005,
