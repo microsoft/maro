@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import math
 from typing import Any, Optional, Tuple, cast
 
 import numpy as np
@@ -8,6 +9,7 @@ import torch
 from tianshou.data import Batch
 
 from maro.rl_v31.policy.dqn import DQNPolicy
+from maro.rl_v31.training.replay_memory import ReplayMemory, ReplayMemoryManager
 from maro.rl_v31.training.trainer import BaseTrainOps, SingleAgentTrainer
 from maro.rl_v31.utils import to_torch
 from maro.utils import clone
@@ -20,18 +22,18 @@ class DQNOps(BaseTrainOps):
         policy: DQNPolicy,
         reward_discount: float = 0.99,
         soft_update_coef: float = 0.1,
-        use_prioritized_replay: bool = False,
-        alpha: float = 0.4,
-        beta: float = 0.6,
+        prioritized_params: Optional[Tuple[float, float]] = None,
         double: bool = False,
     ) -> None:
         super().__init__(name=name, policy=policy, reward_discount=reward_discount)
 
         self._soft_update_coef = soft_update_coef
-        self._use_prioritized_replay = use_prioritized_replay
-        self._alpha = alpha
-        self._beta = beta
         self._double = double
+        
+        self._use_prioritized_replay = prioritized_params is not None
+        self._prioritized_params = prioritized_params
+        if self._use_prioritized_replay:
+            self._alpha, self._beta = prioritized_params
 
         self._target_policy: DQNPolicy = clone(self._policy)
         self._target_policy.name = f"target_{self._policy.name}"
@@ -100,6 +102,7 @@ class DQNTrainer(SingleAgentTrainer):
         )
 
         self._use_prioritized_replay = prioritized_params is not None
+        self._prioritized_params = prioritized_params
         if self._use_prioritized_replay:
             self._alpha, self._beta = prioritized_params
 
@@ -116,10 +119,15 @@ class DQNTrainer(SingleAgentTrainer):
             policy=cast(DQNPolicy, self.policy),
             reward_discount=self._reward_discount,
             soft_update_coef=self._soft_update_coef,
-            use_prioritized_replay=self._use_prioritized_replay,
-            alpha=self._alpha,
-            beta=self._beta,
+            prioritized_params=self._prioritized_params,
             double=self._double,
+        )
+        
+    def create_memory(self, rollout_parallelism: int) -> None:
+        single_capacity = int(math.ceil(self._memory_size / rollout_parallelism))
+        self.rmm = ReplayMemoryManager(
+            memories=[ReplayMemory(capacity=single_capacity) for _ in range(rollout_parallelism)],
+            priority_params=self._prioritized_params,
         )
 
     def train_step(self) -> None:

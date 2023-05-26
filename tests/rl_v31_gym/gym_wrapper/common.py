@@ -10,7 +10,7 @@ from maro.simulator import Env
 from .simulator.business_engine import GymBusinessEngine
 
 env_conf = {
-    "topology": "Walker2d-v4",  # HalfCheetah-v4, Hopper-v4, Walker2d-v4, Swimmer-v4, Ant-v4, CartPole-v1
+    "topology": "CartPole-v1",  # HalfCheetah-v4, Hopper-v4, Walker2d-v4, Swimmer-v4, Ant-v4, CartPole-v1
     "start_tick": 0,
     "durations": 100000,  # Set a very large number
     "options": {},
