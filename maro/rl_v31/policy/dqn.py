@@ -41,7 +41,7 @@ class DQNPolicy(BaseRLPolicy):
         return self._qnet.q_values(obs, act)
 
     def q_values_for_all(self, obs: Any) -> torch.Tensor:  # (B, action_num)
-        return self._qnet.q_values_for_all(obs)
+        return self._qnet.q_values(obs)
 
     def get_random_action(self, batch: Batch, **kwargs: Any) -> Batch:
         logits = torch.ones((len(batch), self._action_num)) / self._action_num  # (B, action_num)

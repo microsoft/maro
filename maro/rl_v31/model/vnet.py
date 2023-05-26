@@ -18,11 +18,10 @@ class VCritic(BaseNet, metaclass=ABCMeta):
 
         self.model = model
         self.optim = optim
-
-    def forward(self, batch: Batch, use: str = "obs", **kwargs: Any) -> torch.Tensor:  # (B,)
-        obs = to_torch(batch[use])
-        critic_value = self.model(obs)
-        assert critic_value.shape == torch.Size([len(batch)])
+        
+    def forward(self, obs: Any, **kwargs: Any) -> torch.Tensor:  # (B,)
+        critic_value = self.model(obs).float()
+        assert critic_value.shape == torch.Size([len(obs)])
         return critic_value
 
     def train_step(self, loss: torch.Tensor) -> None:

@@ -48,7 +48,7 @@ class DDPGOps(BaseTrainOps):
             )  # Q_targ(s', miu_targ(s'))
             # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
             target_q_values = (
-                (reward + self._reward_discount * (1.0 - terminal.float()) * next_q_values).detach().float()
+                (reward + self._reward_discount * (1.0 - terminal) * next_q_values).detach().float()
             )
 
         q_values = self._q_critic(obs=obs, act=act)  # Q(s, a)

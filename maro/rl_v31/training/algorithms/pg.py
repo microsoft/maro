@@ -51,8 +51,9 @@ class PolicyGradientOps(BaseTrainOps):
     def _get_critic_loss(self, batch: Batch) -> torch.Tensor:
         # TODO: use minibatch?
         self._critic.train()
+        obs = to_torch(batch.obs)
         returns = to_torch(batch.returns)
-        values = self._critic(batch)
+        values = self._critic(obs)
         return self._critic_loss_func(values, returns)
 
     def update_actor(self, batch: Batch) -> Tuple[float, bool]:
@@ -70,8 +71,11 @@ class PolicyGradientOps(BaseTrainOps):
         with torch.no_grad():
             self._critic.eval()
             self._policy.eval()
-            values = self._critic(batch).detach().cpu().numpy()
-
+            
+            obs = to_torch(batch.obs)
+            next_obs = to_torch(batch.next_obs)
+            
+            values = self._critic(obs).detach().cpu().numpy()
             returns = np.zeros(len(batch), dtype=np.float32)
             adv = np.zeros(len(batch), dtype=np.float32)
             i = 0
@@ -80,7 +84,7 @@ class PolicyGradientOps(BaseTrainOps):
                 while j < len(batch) - 1 and not (batch.terminal[j] or batch.truncated[j]):
                     j += 1
 
-                last_val = 0.0 if batch.terminal[j] else self._critic(batch[j : j + 1], use="next_obs").item()
+                last_val = 0.0 if batch.terminal[j] else self._critic(next_obs[j : j + 1]).item()
                 cur_values = np.append(values[i : j + 1], last_val)
                 cur_rewards = np.append(batch.reward[i : j + 1], last_val)
                 cur_deltas = cur_rewards[:-1] + self._reward_discount * cur_values[1:] - cur_values[:-1]

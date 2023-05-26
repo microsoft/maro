@@ -39,7 +39,7 @@ class PGPolicy(BaseRLPolicy):
             action_space = cast(spaces.Discrete, self.action_space)
             logits = torch.ones((len(batch), action_space.n)) / action_space.n  # (B, action_num)
             dist = torch.distributions.Categorical(logits)
-            act = dist.sample().long()  # (B,)
+            act = dist.sample()  # (B,)
         else:
             action_space = cast(spaces.Box, self.action_space)
             low = torch.Tensor(action_space.low).repeat(len(batch), 1)  # (B, action_dim)
@@ -62,7 +62,6 @@ class PGPolicy(BaseRLPolicy):
 
         if self.is_discrete:
             act = dist.sample() if self.is_exploring else logits.argmax(-1)  # (B,)
-            act = act.long()
         else:
             act = dist.sample()  # (B,)
 
