@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from typing import Any, Callable, cast, Tuple
+from typing import Any, Callable, Tuple, cast
 
 import torch
 from tianshou.data import Batch
@@ -20,7 +20,7 @@ class SACOps(BaseTrainOps):
         critic_func: Callable[[], QCritic],
         reward_discount: float = 0.99,
         entropy_coef: float = 0.1,
-        soft_update_coef: float = 0.05
+        soft_update_coef: float = 0.05,
     ) -> None:
         super().__init__(name=name, policy=policy, reward_discount=reward_discount)
 
@@ -51,7 +51,9 @@ class SACOps(BaseTrainOps):
             target_q1 = self._target_q_critic1(next_obs, next_act)
             target_q2 = self._target_q_critic2(next_obs, next_act)
             target_q = torch.min(target_q1, target_q2)
-            y = (reward + self._reward_discount * (1.0 - terminal) * (target_q - self._entropy_coef * next_logps)).float()
+            y = (
+                reward + self._reward_discount * (1.0 - terminal) * (target_q - self._entropy_coef * next_logps)
+            ).float()
 
         q1 = self._q_critic1(obs, act)
         q2 = self._q_critic2(obs, act)
@@ -140,10 +142,7 @@ class SACTrainer(SingleAgentTrainer):
             return
 
         for _ in range(self._num_epochs):
-            batch_dict = self.rmm.sample(size=self._batch_size, random=True, pop=False)
-            batch_list = list(batch_dict.values())
-            batch = Batch.cat(batch_list)
-
+            batch = self.rmm.sample(size=self._batch_size, random=True, pop=False)
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
             self._try_soft_update_target()

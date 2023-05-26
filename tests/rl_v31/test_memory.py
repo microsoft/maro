@@ -26,6 +26,7 @@ def _get_batch(s: int, e: int) -> Batch:
 
 rmm = ReplayMemoryManager(
     memories=[ReplayMemory(capacity=10) for _ in range(3)],
+    priority_params=(0.4, 0.6),
 )
 
 
@@ -39,19 +40,19 @@ for memory in rmm.memories:
 print("\n" * 3)
 
 
-t = rmm.sample(size=None, random=False, pop=False)
+t = rmm.sample_separated(size=None, random=False, pop=False)
 for k, v in t.items():
     print(k, len(v), v)
 print("\n" * 3)
 
 
-t = rmm.sample(size=10, random=True, pop=False)
+t = rmm.sample_separated(size=10, random=True, pop=False)
 for k, v in t.items():
     print(k, len(v), v)
 print("\n" * 3)
 
 
-t = rmm.sample(size=10, random=False, pop=True)
+t = rmm.sample_separated(size=10, random=False, pop=True)
 for k, v in t.items():
     print(k, len(v), v)
 for memory in rmm.memories:
@@ -60,7 +61,13 @@ for memory in rmm.memories:
 print("\n" * 3)
 
 
-t = rmm.sample(size=None, random=False, pop=False)
+t = rmm.sample_separated(size=None, random=False, pop=False)
 for k, v in t.items():
     print(k, len(v), v)
 print("\n" * 3)
+
+
+random_indexes = rmm.sample_random_indexes(size=8, weighted=True)
+print(random_indexes)
+print(rmm.sample_by_indexes(random_indexes))
+print(rmm.get_weights(random_indexes))

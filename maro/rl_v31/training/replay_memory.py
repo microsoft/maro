@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 import math
 import warnings
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from tianshou.data import Batch
@@ -37,9 +37,15 @@ class ReplayMemory(object):
                 ],
             )
 
+    def get_all_indexes(self) -> np.ndarray:
+        return self._get_contiguous_indexes(self.header, self.size)
+
+    def sample_by_indexes(self, indexes: np.ndarray) -> Batch:
+        return self.data[indexes]
+
     def sample(self, size: Optional[int] = None, random: bool = False, pop: bool = False) -> Batch:
         if size is None:
-            indexes = self._get_contiguous_indexes(self.header, self.size)
+            indexes = self.get_all_indexes()
             batch = self.data[indexes]
             if pop:
                 self.reset()
@@ -57,7 +63,7 @@ class ReplayMemory(object):
                     self.size -= size  # Reduce self_size only. Pop elements will not affect self._ptr.
                 return batch
 
-    def store(self, batch: Batch) -> None:
+    def store(self, batch: Batch) -> np.ndarray:
         assert REQUIRED_KEYS.issubset(batch.keys())
 
         if len(batch) > self.capacity:
@@ -82,6 +88,8 @@ class ReplayMemory(object):
         self.ptr = (self.ptr + n) % self.capacity
         self.size = min(self.size + n, self.capacity)
 
+        return indexes
+
 
 def _get_sample_sizes(target: int, sizes: List[int]) -> List[int]:
     total = sum(sizes)
@@ -97,8 +105,34 @@ def _get_sample_sizes(target: int, sizes: List[int]) -> List[int]:
 
 
 class ReplayMemoryManager(object):
-    def __init__(self, memories: List[ReplayMemory]) -> None:
+    def __init__(
+        self,
+        memories: List[ReplayMemory],
+        priority_params: Optional[Tuple[float, float]] = None,
+    ) -> None:
         self.memories = memories
+
+        if priority_params is not None:
+            self.maintain_priority = True
+            self.alpha, self.beta = priority_params
+            self.max_prio = self.min_prio = 1.0
+            self.weights = np.zeros(sum(m.capacity for m in memories), dtype=np.float32)
+        else:
+            self.maintain_priority = False
+
+    def init_weights(self, indexes: np.ndarray) -> None:
+        self.weights[indexes] = self.max_prio * self.alpha
+
+    def get_weights(self, indexes: np.ndarray) -> np.ndarray:
+        return (self.weights[indexes] / self.min_prio) ** -self.beta
+
+    def update_weights(self, indexes: np.ndarray, weights: np.ndarray) -> None:
+        assert indexes.shape == weights.shape
+
+        weights = np.abs(weights) + np.finfo(np.float32).eps.item()
+        self.weights[indexes] = weights**self.alpha
+        self.max_prio = max(self.max_prio, weights.max())
+        self.min_prio = min(self.min_prio, weights.min())
 
     @property
     def n_sample(self) -> int:
@@ -109,10 +143,52 @@ class ReplayMemoryManager(object):
         return len(self.memories)
 
     def store(self, batches: List[Batch], ids: List[int]) -> None:
-        for i, batch in zip(ids, batches):
-            self.memories[i].store(batch)
+        store_indexes = [self.memories[i].store(batch) for i, batch in zip(ids, batches)]
 
-    def sample(
+        if self.maintain_priority:
+            self.init_weights(indexes=self._encode_indexes(store_indexes))
+
+    def _get_offsets(self) -> List[int]:
+        offsets = [0]
+        for m in self.memories:
+            offsets.append(offsets[-1] + m.capacity)
+        return offsets
+
+    def _encode_indexes(self, groups: List[np.ndarray]) -> np.ndarray:
+        offsets = self._get_offsets()
+        indexes = np.concatenate([o + i for o, i in zip(offsets[:-1], groups)])
+        return indexes
+
+    def _decode_indexes(self, indexes: np.ndarray) -> List[np.ndarray]:
+        offsets = self._get_offsets()
+        indexes = np.sort(indexes)
+        groups = []
+        i = 0
+        for lower, upper in zip(offsets[:-1], offsets[1:]):
+            j = i
+            while j < len(indexes) and indexes[j] < upper:
+                j += 1
+            groups.append(indexes[i:j] - lower)
+            i = j
+        return groups
+
+    def sample_random_indexes(self, size: int, weighted: bool = False) -> np.ndarray:
+        indexes = self._encode_indexes([m.get_all_indexes() for m in self.memories])
+
+        if weighted:
+            assert self.maintain_priority
+            weights = self.weights[indexes]
+            weights /= weights.sum()
+            return np.random.choice(indexes, size=size, replace=True, p=weights)
+        else:
+            return np.random.choice(indexes, size=size, replace=True)
+
+    def sample_by_indexes(self, indexes: np.ndarray) -> Batch:
+        group_indexes = self._decode_indexes(indexes)
+        batch_list = [m.sample_by_indexes(indexes) for m, indexes in zip(self.memories, group_indexes)]
+        return Batch.cat(batch_list)
+
+    def sample_separated(
         self,
         size: Optional[int] = None,
         random: bool = False,
@@ -137,3 +213,13 @@ class ReplayMemoryManager(object):
             }
             assert sum(len(v) for v in batch_dict.values()) == size
             return batch_dict
+
+    def sample(
+        self,
+        size: Optional[int] = None,
+        random: bool = False,
+        pop: bool = False,
+    ) -> Batch:
+        batch_dict = self.sample_separated(size, random, pop)
+        batch_list = list(batch_dict.values())
+        return Batch.cat(batch_list)

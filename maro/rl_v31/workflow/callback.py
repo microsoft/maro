@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 from __future__ import annotations
-from collections import defaultdict
 
 import copy
 import os
 import shutil
 import typing
-from typing import Dict, List, Optional
+from collections import defaultdict
+from typing import List, Optional
 
 import pandas as pd
 
@@ -110,30 +110,30 @@ class Checkpoint(Callback):
 class MetricsRecorder(Callback):
     def __init__(self, path: str) -> None:
         super().__init__()
-        
+
         self._path = path
         self._first = defaultdict(lambda: True)
-        
+
     def _dump(self, ep: int, metrics: dict, tag: str) -> None:
         metrics["ep"] = ep
         first = self._first[tag]
         path = os.path.join(self._path, f"metrics_{tag}.csv")
-        
+
         df = pd.DataFrame.from_records([metrics]).set_index(["ep"])
         df.to_csv(path, index=True, header=first, mode="w" if first else "a")
-        
+
         self._first[tag] = False
 
     def on_training_end(self, ep: int) -> None:
         train_metrics = copy.deepcopy(self.workflow.train_metrics)
         self._dump(ep, train_metrics, "full")
-        
+
     def on_validation_end(self, ep: int) -> None:
         train_metrics = copy.deepcopy(self.workflow.train_metrics)
         valid_metrics = copy.deepcopy(self.workflow.valid_metrics)
         valid_metrics = {"val/" + str(k): v for k, v in valid_metrics.items()}
         self._dump(ep, {**train_metrics, **valid_metrics}, "valid")
-        
+
 
 class CallbackManager(object):
     def __init__(

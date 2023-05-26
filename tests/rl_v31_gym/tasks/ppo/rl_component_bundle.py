@@ -13,12 +13,15 @@ from maro.rl_v31.policy import PPOPolicy
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.ppo import PPOTrainer
 from maro.simulator import Env
+
 from tests.rl_v31_gym.gym_wrapper.common import (
     env,
     env_conf,
     gym_action_dim,
-    gym_action_space, gym_obs_dim,
-    gym_obs_space, is_discrete,
+    gym_action_space,
+    gym_obs_dim,
+    gym_obs_space,
+    is_discrete,
     num_agents,
 )
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper

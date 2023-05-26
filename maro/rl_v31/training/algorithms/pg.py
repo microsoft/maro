@@ -71,10 +71,10 @@ class PolicyGradientOps(BaseTrainOps):
         with torch.no_grad():
             self._critic.eval()
             self._policy.eval()
-            
+
             obs = to_torch(batch.obs)
             next_obs = to_torch(batch.next_obs)
-            
+
             values = self._critic(obs).detach().cpu().numpy()
             returns = np.zeros(len(batch), dtype=np.float32)
             adv = np.zeros(len(batch), dtype=np.float32)
@@ -142,7 +142,7 @@ class PolicyGradientTrainer(SingleAgentTrainer):
         )
 
     def train_step(self) -> None:
-        batch_dict = self.rmm.sample(size=None, random=False, pop=True)
+        batch_dict = self.rmm.sample_separated(size=None, random=False, pop=True)
         batch_list = [self._ops.preprocess_batch(batch) for batch in batch_dict.values()]
         batch = Batch.cat(batch_list)
         batch.adv = (batch.adv - batch.adv.mean()) / batch.adv.std()

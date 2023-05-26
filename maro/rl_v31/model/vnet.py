@@ -4,12 +4,10 @@ from abc import ABCMeta
 from typing import Any
 
 import torch
-from tianshou.data import Batch
 from torch import nn
 from torch.optim import Optimizer
 
 from maro.rl_v31.model.base import BaseNet
-from maro.rl_v31.utils import to_torch
 
 
 class VCritic(BaseNet, metaclass=ABCMeta):
@@ -18,7 +16,7 @@ class VCritic(BaseNet, metaclass=ABCMeta):
 
         self.model = model
         self.optim = optim
-        
+
     def forward(self, obs: Any, **kwargs: Any) -> torch.Tensor:  # (B,)
         critic_value = self.model(obs).float()
         assert critic_value.shape == torch.Size([len(obs)])

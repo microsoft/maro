@@ -8,12 +8,15 @@ from maro.rl_v31.policy.dqn import DQNPolicy
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.dqn import DQNTrainer
 from maro.simulator import Env
+
 from tests.rl_v31_gym.gym_wrapper.common import (
     env,
     env_conf,
     gym_action_num,
-    gym_action_space, gym_obs_dim,
-    gym_obs_space, is_discrete,
+    gym_action_space,
+    gym_obs_dim,
+    gym_obs_space,
+    is_discrete,
     num_agents,
 )
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper
@@ -70,9 +73,7 @@ trainers = [
         memory_size=50000,
         batch_size=64,
         reward_discount=1.0,
-        use_prioritized_replay=False,
-        # alpha=0.4,
-        # beta=0.6,
+        # prioritized_params=(0.4, 0.6),
         num_epochs=50,
         update_target_every=10,
         soft_update_coef=1.0,

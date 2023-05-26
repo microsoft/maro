@@ -1,9 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from typing import Any, Callable, cast, Type, Union
+from typing import Any, Callable, Type, Union, cast
 
+import numpy as np
 import torch
+import torch.nn.functional as F
 from gym import spaces
 from tianshou.data import Batch
 from torch.distributions import Distribution, Normal
@@ -12,8 +14,6 @@ from torch.optim import Optimizer
 from maro.rl_v31.model.base import PolicyModel
 from maro.rl_v31.policy.base import BaseRLPolicy
 from maro.rl_v31.utils import to_torch
-import torch.nn.functional as F
-import numpy as np
 
 
 class SACPolicy(BaseRLPolicy):

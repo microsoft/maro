@@ -27,7 +27,7 @@ class DDPGOps(BaseTrainOps):
         self._q_critic = critic_func()
         self._target_q_critic: QCritic = clone(self._q_critic)
         self._target_q_critic.eval()
-        
+
         assert not self._target_policy.is_exploring
 
         self._q_loss_func = torch.nn.MSELoss()
@@ -47,9 +47,7 @@ class DDPGOps(BaseTrainOps):
                 act=self._target_policy(batch, use="next_obs").act,  # miu_targ(s')
             )  # Q_targ(s', miu_targ(s'))
             # y(r, s', d) = r + gamma * (1 - d) * Q_targ(s', miu_targ(s'))
-            target_q_values = (
-                (reward + self._reward_discount * (1.0 - terminal) * next_q_values).detach().float()
-            )
+            target_q_values = (reward + self._reward_discount * (1.0 - terminal) * next_q_values).detach().float()
 
         q_values = self._q_critic(obs=obs, act=act)  # Q(s, a)
         return self._q_loss_func(q_values, target_q_values)  # MSE(Q(s, a), y(r, s', d))
@@ -123,10 +121,7 @@ class DDPGTrainer(SingleAgentTrainer):
             return
 
         for _ in range(self._num_epochs):
-            batch_dict = self.rmm.sample(size=self._batch_size, random=True, pop=False)
-            batch_list = list(batch_dict.values())
-            batch = Batch.cat(batch_list)
-
+            batch = self.rmm.sample(size=self._batch_size, random=True, pop=False)
             self._ops.update_critic(batch)
             self._ops.update_actor(batch)
             self._try_soft_update_target()

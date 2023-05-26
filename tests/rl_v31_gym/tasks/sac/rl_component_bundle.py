@@ -12,10 +12,18 @@ from maro.rl_v31.policy.sac import SACPolicy
 from maro.rl_v31.rl_component_bundle.rl_component_bundle import RLComponentBundle
 from maro.rl_v31.training.algorithms.sac import SACTrainer
 from maro.simulator import Env
-from tests.rl_v31_gym.gym_wrapper.common import action_limit, env, env_conf, gym_action_dim, gym_action_space, \
-    gym_obs_dim, \
-    gym_obs_space, is_discrete, \
-    num_agents
+
+from tests.rl_v31_gym.gym_wrapper.common import (
+    action_limit,
+    env,
+    env_conf,
+    gym_action_dim,
+    gym_action_space,
+    gym_obs_dim,
+    gym_obs_space,
+    is_discrete,
+    num_agents,
+)
 from tests.rl_v31_gym.gym_wrapper.env_wrapper import GymEnvWrapper
 from tests.rl_v31_gym.gym_wrapper.simulator.business_engine import GymBusinessEngine
 from tests.rl_v31_gym.tasks.utils import metrics_agg_func
