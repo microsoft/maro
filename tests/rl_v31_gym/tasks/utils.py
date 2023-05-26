@@ -18,5 +18,15 @@ def metrics_agg_func(metrics: List[dict]) -> dict:
                 "max_n_steps": max(e["max_n_steps"] for e in metrics),
             },
         )
+    else:
+        ret.update(
+            {
+                "n_steps": None,
+                "n_segment": None,
+                "avg_reward": None,
+                "avg_n_steps": None,
+                "max_n_steps": None,
+            },
+        )
 
     return ret

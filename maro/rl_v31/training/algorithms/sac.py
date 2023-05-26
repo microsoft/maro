@@ -51,10 +51,10 @@ class SACOps(BaseTrainOps):
             target_q1 = self._target_q_critic1(next_obs, next_act)
             target_q2 = self._target_q_critic2(next_obs, next_act)
             target_q = torch.min(target_q1, target_q2)
-            y = reward + self._reward_discount * (1.0 - terminal) * (target_q - self._entropy_coef * next_logps)
+            y = (reward + self._reward_discount * (1.0 - terminal) * (target_q - self._entropy_coef * next_logps)).float()
 
-        q1 = self._q_critic1(obs, act)
-        q2 = self._q_critic2(obs, act)
+        q1 = self._q_critic1(obs, act).float()
+        q2 = self._q_critic2(obs, act).float()
         loss_q1 = self._q_value_loss_func(q1, y)
         loss_q2 = self._q_value_loss_func(q2, y)
         return loss_q1, loss_q2

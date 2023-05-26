@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 from __future__ import annotations
+from collections import defaultdict
 
 import copy
 import os
@@ -109,48 +110,30 @@ class Checkpoint(Callback):
 class MetricsRecorder(Callback):
     def __init__(self, path: str) -> None:
         super().__init__()
-
-        self._full_metrics: Dict[int, dict] = {}
-        self._valid_metrics: Dict[int, dict] = {}
+        
         self._path = path
-
-    def _dump_metric_history(self) -> None:
-        if len(self._full_metrics) > 0:
-            metric_list = [self._full_metrics[ep] for ep in sorted(self._full_metrics.keys())]
-            df = pd.DataFrame.from_records(metric_list)
-            df = df.set_index(["ep"])
-            df.to_csv(os.path.join(self._path, "metrics_full.csv"), index=True)
-        if len(self._valid_metrics) > 0:
-            metric_list = [self._valid_metrics[ep] for ep in sorted(self._valid_metrics.keys())]
-            df = pd.DataFrame.from_records(metric_list)
-            df = df.set_index(["ep"])
-            df.to_csv(os.path.join(self._path, "metrics_valid.csv"), index=True)
+        self._first = defaultdict(lambda: True)
+        
+    def _dump(self, ep: int, metrics: dict, tag: str) -> None:
+        metrics["ep"] = ep
+        first = self._first[tag]
+        path = os.path.join(self._path, f"metrics_{tag}.csv")
+        
+        df = pd.DataFrame.from_records([metrics]).set_index(["ep"])
+        df.to_csv(path, index=True, header=first, mode="w" if first else "a")
+        
+        self._first[tag] = False
 
     def on_training_end(self, ep: int) -> None:
-        if len(self.workflow.train_metrics) > 0:
-            metrics = copy.deepcopy(self.workflow.train_metrics)
-            metrics["ep"] = ep
-            if ep in self._full_metrics:
-                self._full_metrics[ep].update(metrics)
-            else:
-                self._full_metrics[ep] = metrics
-        self._dump_metric_history()
-
+        train_metrics = copy.deepcopy(self.workflow.train_metrics)
+        self._dump(ep, train_metrics, "full")
+        
     def on_validation_end(self, ep: int) -> None:
-        if len(self.workflow.valid_metrics) > 0:
-            metrics = copy.deepcopy(self.workflow.valid_metrics)
-            metrics = {"val/" + str(k): v for k, v in metrics.items()}
-            metrics["ep"] = ep
-            if ep in self._full_metrics:
-                self._full_metrics[ep].update(metrics)
-            else:
-                self._full_metrics[ep] = metrics
-            if ep in self._valid_metrics:
-                self._valid_metrics[ep].update(metrics)
-            else:
-                self._valid_metrics[ep] = metrics
-        self._dump_metric_history()
-
+        train_metrics = copy.deepcopy(self.workflow.train_metrics)
+        valid_metrics = copy.deepcopy(self.workflow.valid_metrics)
+        valid_metrics = {"val/" + str(k): v for k, v in valid_metrics.items()}
+        self._dump(ep, {**train_metrics, **valid_metrics}, "valid")
+        
 
 class CallbackManager(object):
     def __init__(
