@@ -533,7 +533,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
 
         return {
             "experiences": [total_experiences],
-            "info": [deepcopy(self._info)],  # TODO: may have overhead issues. Leave to future work.
+            "info": [deepcopy(self._info)],
         }
 
     def set_policy_state(self, policy_state_dict: Dict[str, dict]) -> None:
@@ -592,7 +592,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                 self._step(list(env_action_dict.values()))
                 cache_element.next_state = self._state
 
-                if self._reward_eval_delay is None:  # TODO: necessary to calculate reward in eval()?
+                if self._reward_eval_delay is None:
                     self._calc_reward(cache_element)
                     self._post_eval_step(cache_element)
 
@@ -606,7 +606,7 @@ class AbsEnvSampler(object, metaclass=ABCMeta):
                     self._calc_reward(cache_element)
                     self._post_eval_step(cache_element)
 
-            info_list.append(self._info)
+            info_list.append(deepcopy(self._info))
 
         return {"info": info_list}
 
