@@ -1,9 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Dict, List, Tuple, Type, Union, cast
 
 import numpy as np
+from gym import spaces
 
 from maro.rl.policy.abs_policy import AbsPolicy
 from maro.rl.rollout import AbsEnvSampler, CacheElement
@@ -40,6 +41,10 @@ class GymEnvSampler(AbsEnvSampler):
         self._sample_rewards = []
         self._eval_rewards = []
 
+        gym_env = cast(GymBusinessEngine, learn_env.business_engine).gym_env
+        gym_action_space = gym_env.action_space
+        self._is_discrete = isinstance(gym_action_space, spaces.Discrete)
+
     def _get_global_and_agent_state_impl(
         self,
         event: DecisionEvent,
@@ -48,7 +53,7 @@ class GymEnvSampler(AbsEnvSampler):
         return None, {0: event.state}
 
     def _translate_to_env_action(self, action_dict: dict, event: Any) -> dict:
-        return {k: Action(v) for k, v in action_dict.items()}
+        return {k: Action(v.item() if self._is_discrete else v) for k, v in action_dict.items()}
 
     def _get_reward(self, env_action_dict: dict, event: Any, tick: int) -> Dict[Any, float]:
         be = self._env.business_engine

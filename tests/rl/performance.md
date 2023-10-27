@@ -1,11 +1,15 @@
 # Performance for Gym Task Suite
 
 We benchmarked the MARO RL Toolkit implementation in Gym task suite. Some are compared to the benchmarks in
-[OpenAI Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#). We've tried to align the
+[OpenAI Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#) and [RL Baseline Zoo](https://github.com/DLR-RM/rl-baselines3-zoo/blob/master/benchmark.md). We've tried to align the
 hyper-parameters for these benchmarks , but limited by the environment version difference, there may be some gaps
 between the performance here and that in Spinning Up benchmarks. Generally speaking, the performance is comparable.
 
-## Experimental Setting
+## Compare with OpenAI Spinning Up
+
+We compare the performance of PPO, SAC, and DDPG in MARO with [OpenAI Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#).
+
+### Experimental Setting
 
 The hyper-parameters are set to align with those used in
 [Spinning Up](https://spinningup.openai.com/en/latest/spinningup/bench.html#experiment-details):
@@ -29,7 +33,7 @@ The hyper-parameters are set to align with those used in
 
 More details about the parameters can be found in *tests/rl/tasks/*.
 
-## Performance
+### Performance
 
 Five environments from the MuJoCo Gym task suite are reported in Spinning Up, they are: HalfCheetah, Hopper, Walker2d,
 Swimmer, and Ant. The commit id of the code used to conduct the experiments for MARO RL benchmarks is ee25ce1e97.
@@ -52,3 +56,28 @@ python tests/rl/plot.py --smooth WINDOWSIZE
 | [**Walker2d**](https://gymnasium.farama.org/environments/mujoco/walker2d/) | ![Wab](https://spinningup.openai.com/en/latest/_images/pytorch_walker2d_performance.svg) | ![Wa1](./log/Walker2d_1.png) | ![Wa11](./log/Walker2d_11.png) |
 | [**Swimmer**](https://gymnasium.farama.org/environments/mujoco/swimmer/) | ![Swb](https://spinningup.openai.com/en/latest/_images/pytorch_swimmer_performance.svg) | ![Sw1](./log/Swimmer_1.png) | ![Sw11](./log/Swimmer_11.png) |
 | [**Ant**](https://gymnasium.farama.org/environments/mujoco/ant/) | ![Anb](https://spinningup.openai.com/en/latest/_images/pytorch_ant_performance.svg) | ![An1](./log/Ant_1.png) | ![An11](./log/Ant_11.png) |
+
+## Compare with RL Baseline Zoo
+
+[RL Baseline Zoo](https://github.com/DLR-RM/rl-baselines3-zoo/blob/master/benchmark.md) provides a comprehensive set of benchmarks for multiple algorithms and environments.
+However, unlike OpenAI Spinning Up, it does not provide the complete learning curve. Instead, we can only find the final metrics in it.
+We therefore leave the comparison with RL Baseline Zoo as a minor addition.
+
+We compare the performance of DQN with RL Baseline Zoo.
+
+### Experimental Setting
+
+- Batch size: size 64 for each gradient descent step;
+- Network: size (256) with relu units;
+- Performance metric: measured as the average trajectory return across the batch collected at 10 epochs;
+- Total timesteps: 150,000.
+
+### Performance
+
+More details about the parameters can be found in *tests/rl/tasks/*. 
+Please refer to the original link of RL Baseline Zoo for the baseline metrics. 
+
+|  algo  |            env_id             |mean_reward|
+|--------|-------------------------------|----------:|
+|DQN     |CartPole-v1                    |    500.00 |
+|DQN     |MountainCar-v0                 |   -116.90 |
