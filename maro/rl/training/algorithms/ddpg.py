@@ -261,9 +261,6 @@ class DDPGTrainer(SingleAgentTrainer):
         assert isinstance(policy, ContinuousRLPolicy)
         self._policy = policy
 
-    def _preprocess_batch(self, transition_batch: TransitionBatch) -> TransitionBatch:
-        return transition_batch
-
     def get_local_ops(self) -> AbsTrainOps:
         return DDPGOps(
             name=self._policy.name,

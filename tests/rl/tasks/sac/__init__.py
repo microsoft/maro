@@ -24,6 +24,7 @@ from tests.rl.gym_wrapper.common import (
     gym_action_dim,
     gym_action_space,
     gym_state_dim,
+    is_discrete,
     learn_env,
     num_agents,
     test_env,
@@ -132,6 +133,8 @@ def get_sac_trainer(name: str, state_dim: int, action_dim: int) -> SoftActorCrit
         ),
     )
 
+
+assert not is_discrete
 
 algorithm = "sac"
 agent2policy = {agent: f"{algorithm}_{agent}.policy" for agent in learn_env.agent_idx_list}
