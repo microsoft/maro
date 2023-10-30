@@ -53,7 +53,7 @@ jobs:
         GITHUB_BUILD_ACTION: True
       with:
         python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39'
-        build-requirements: 'numpy'
+        build-requirements: 'numpy==1.21.6'
         system-packages: 'libffi-devel'
         pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH'
         pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
@@ -74,8 +74,8 @@ jobs:
 
     - name: Publish wheels to PyPI
       env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       if: (runner.os == 'Linux' && matrix.python-version == '3.7') || (runner.os == 'Windows' || runner.os == 'macOS')
       run: |
         twine upload --verbose dist/*.whl
