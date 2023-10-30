@@ -74,8 +74,8 @@ jobs:
 
     - name: Publish wheels to PyPI
       env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       if: (runner.os == 'Linux' && matrix.python-version == '3.7') || (runner.os == 'Windows' || runner.os == 'macOS')
       run: |
         twine upload --verbose dist/*.whl
