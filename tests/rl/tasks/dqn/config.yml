@@ -1,0 +1,32 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# Example RL config file for GYM scenario.
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
+job: gym_rl_workflow
+scenario_path: "tests/rl/tasks/dqn"
+log_path: "tests/rl/log/dqn_cartpole"
+main:
+  num_episodes: 3000
+  num_steps: 50
+  eval_schedule: 50
+  num_eval_episodes: 10
+  min_n_sample: 1
+  logging:
+    stdout: INFO
+    file: DEBUG
+rollout:
+  logging:
+    stdout: INFO
+    file: DEBUG
+training:
+  mode: simple
+  load_path: null
+  load_episode: null
+  checkpointing:
+    path: null
+    interval: 5
+  logging:
+    stdout: INFO
+    file: DEBUG
