@@ -53,6 +53,6 @@ torch==1.13.1
 torchsummary==1.5.1
 tornado>=6.1
 tqdm>=4.51.0
-urllib3==1.26.5
+urllib3==1.26.18
 wrapt==1.11.2
 zmq==0.0.0
