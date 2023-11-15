@@ -147,6 +147,17 @@ of user-defined functions for message auto-handling, cluster provision, and job 
   $Env:PYTHONPATH=PATH-TO-MARO
   ```
 
+## Use MARO in [VSCode DevContainer](https://code.visualstudio.com/docs/devcontainers/containers)
+
+- Prerequisites
+  - Install Docker on your local machine.
+  - Make sure your Docker daemon is running.
+- Open MARO folder with VSCode.
+- Open command palette by pressing `Ctrl/Cmd` + `Shift` + `P`.
+- Type `Dev Containers: Rebuild and Reopen in Container` in the command palette and then prese `Enter` to start building dev container.
+- The building process might takes a few minutes. After it is done, you are all set!
+
+
 ## Quick Example
 
 ```python

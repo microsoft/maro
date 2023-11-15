@@ -4,8 +4,5 @@
     "context": "..",
     "dockerfile": "Dockerfile"
   },
-  "postCreateCommand": [
-    "bash scripts/install_maro.sh",
-    "pip install -r ./requirements.dev.txt"
-  ]
+  "postCreateCommand": "bash scripts/install_maro.sh && pip install -r ./requirements.dev.txt"
 }
