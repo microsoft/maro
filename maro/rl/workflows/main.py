@@ -160,6 +160,11 @@ class TrainingWorkflow(object):
             loaded = training_manager.load(path)
             env_attr.logger.info(f"Loaded trainers {loaded} from {path}")
             start_ep = ep + 1
+
+            if env_attr.eval_schedule:
+                eval_len = len(env_attr.eval_schedule)
+                while eval_point_index < eval_len and env_attr.eval_schedule[eval_point_index] < start_ep:
+                    eval_point_index += 1
         else:
             start_ep = 1
 
