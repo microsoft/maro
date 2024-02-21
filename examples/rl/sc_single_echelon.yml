@@ -1,0 +1,54 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# Example RL config file for supply chain scenario.
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
+# Run this workflow by executing one of the following commands:
+# - python .\examples\rl\run_rl_example.py .\examples\rl\supply_chain.yml
+# - (Requires installing MARO from source) maro local run .\examples\rl\supply_chain.yml
+
+job: supply_chain_rl_workflow
+scenario_path: "examples/supply_chain/single_echelon"
+log_path: "examples/supply_chain/logs/rl_job/supply_chain.txt"
+main:
+  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  num_episodes: 100
+  # Number of environment steps to collect environment samples over. If null, samples are collected until the
+  # environments reach the terminal state, i.e., for a full episode. Otherwise, samples are collected until the
+  # specified number of steps or the terminal state is reached, whichever comes first.
+  num_steps: null
+  # This can be an integer or a list of integers. An integer indicates the interval at which policies are evaluated.
+  # A list indicates the episodes at the end of which policies are to be evaluated. Note that episode indexes are
+  # 1-based.
+  eval_schedule: 5
+  # Log levels for the main loop. Could be: DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
+  logging:
+    stdout: INFO
+    file: DEBUG
+rollout:
+  logging:
+    stdout: INFO
+    file: DEBUG
+training:
+  # Must be "simple" or "parallel". In simple mode, all underlying models are trained locally. In parallel mode,
+  # all trainers send gradient-related tasks to a proxy service where they get dispatched to a set of workers.
+  mode: simple
+  # Path to load previously saved trainer snapshots from. A policy trainer's snapshot includes the states of all
+  # the policies it manages as well as the states of auxillary models (e.g., critics in the Actor-Critic paradigm).
+  # If the path corresponds to an existing directory, the program will look under the directory for snapshot files
+  # that match the trainer names specified in the scenario and attempt to load from them.
+  load_path: null
+  # Which episode of the previously saved snapshots to load. If it is not provided, the last snapshot will be loaded.
+  load_episode: null
+  # Optional section to specify model checkpointing settings.
+  checkpointing:
+    # Directory to save trainer snapshots under. Snapshot files created at different episodes will be saved under
+    # separate folders named using episode numbers. For example, if a snapshot is created for a trainer named "dqn"
+    # at the end of episode 10, the file path would be "/path/to/your/checkpoint/folder/10/dqn.ckpt".
+    path: "checkpoint/rl_job/supply_chain"
+    # Interval at which trained policies / models are persisted to disk.
+    interval: 20
+  logging:
+    stdout: INFO
+    file: DEBUG
