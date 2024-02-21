@@ -8,19 +8,6 @@ from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, ManufactureUnit
 
 
-# NOTE: NOT USED for SCI topologies since there are purchasing cycle among facilities(stores).
-class VehicleSelection(Enum):
-    # Choose the default one, NOTE: it will try to read file default_vendor.pkl from the topology folder.
-    DEFAULT_ONE = "default"
-    # Randomly choosing one for each decision, NOTE: it requires no cycle exists in route network.
-    RANDOM = "random"
-    # Always choosing the one with shortest leading time, NOTE: it requires no cycle exists in route network.
-    SHORTEST_LEADING_TIME = "shortest"
-    # Always choosing the one with cheapest total cost (products, order base, transportation),
-    # NOTE: it requires no cycle exists in route network.
-    CHEAPEST_TOTAL_COST = "cheapest"
-
-
 # Feature keywords & index for snapshot accessing. NOTE: DO NOT CHANGE.
 distribution_features = ("pending_product_quantity", "pending_order_number")
 IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER = 0, 1
@@ -108,16 +95,12 @@ workflow_settings: dict = {
     "pending_order_len": 4,
     # Parameter for reward shaping - reward normalization factor.
     "reward_normalization": 1.0,
-    # NOT USED for SCI topologies.
-    "vehicle_selection_method": VehicleSelection.CHEAPEST_TOTAL_COST,
     # Render figures for agents or not.
     "plot_render": PLOT_RENDER,
     # Dump product metrics csv to log path or not.
     "dump_product_metrics": True,
     # Dump consumer actions to logger or not.
     "log_consumer_actions": True,
-    # Dump chosen upstream vlt info to log path or not.
-    "dump_chosen_vlt_info": False,
 }
 
 # Experiment name, partial setting for log path.

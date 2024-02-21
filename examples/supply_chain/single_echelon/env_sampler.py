@@ -38,7 +38,6 @@ from .config import (
     IDX_SELLER_DEMAND,
     OR_NUM_CONSUMER_ACTIONS,
     TEAM_REWARD,
-    VehicleSelection,
     consumer_features,
     distribution_features,
     env_conf,
@@ -108,14 +107,6 @@ class SCEnvSampler(AbsEnvSampler):
         super().__init__(learn_env, test_env, agent_wrapper_cls, reward_eval_delay)
 
         self._workflow_settings: dict = workflow_settings
-        if self._workflow_settings["vehicle_selection_method"] == VehicleSelection.DEFAULT_ONE:
-            file_path = os.path.join(
-                os.path.dirname(self._learn_env.business_engine._config_path),
-                self._learn_env.business_engine._topology,
-                "default_vendor.pkl",
-            )
-            with open(file_path, "rb") as f:
-                self._default_vendor = pickle.load(f)
 
         business_engine = self._learn_env.business_engine
         assert isinstance(business_engine, SupplyChainBusinessEngine)
@@ -176,7 +167,7 @@ class SCEnvSampler(AbsEnvSampler):
         self._storage_capacity_dict: Optional[Dict[int, Dict[int, int]]] = None
 
         self._cached_vlt: Dict[int, VendorLeadingTimeInfo] = {}
-        self._fixed_vlt = self._workflow_settings["vehicle_selection_method"] != VehicleSelection.RANDOM
+        self._fixed_vlt = True
 
         ########################################################################
         # State managers.
@@ -311,65 +302,13 @@ class SCEnvSampler(AbsEnvSampler):
             ]
 
             if len(vlt_info_candidates) > 0:
-                vehicle_selection = self._workflow_settings["vehicle_selection_method"]
-                if vehicle_selection == VehicleSelection.RANDOM:
-                    vlt_info = random.choice(vlt_info_candidates)
-                elif vehicle_selection == VehicleSelection.SHORTEST_LEADING_TIME:
-                    vlt_info = min(vlt_info_candidates, key=lambda x: x.vlt)
-                elif vehicle_selection == VehicleSelection.CHEAPEST_TOTAL_COST:
-                    # As the product cost and order base cost are only related to product quantity,
-                    # the transportation cost is the difference of different vehicle type selections.
-                    vlt_info = min(vlt_info_candidates, key=lambda x: x.unit_transportation_cost * (x.vlt + 1))
-                elif vehicle_selection == VehicleSelection.DEFAULT_ONE:
-                    # TODO: read default vlt info directly.
-                    default_vehicle_type = self._default_vendor[facility_info.name][sku_name]
-                    vlt_info = next(
-                        filter(lambda info: info.vehicle_type == default_vehicle_type, vlt_info_candidates),
-                        None,
-                    )
-                    assert (
-                        vlt_info is not None
-                    ), f"Default vehicle type {default_vehicle_type} not exist for {facility_info.name}'s {sku_name}!"
-                else:
-                    raise Exception(f"Vehicle Selection method undefined: {vehicle_selection}")
+                vlt_info = random.choice(vlt_info_candidates)
             else:
                 vlt_info = None
 
             self._cached_vlt[entity_id] = vlt_info
 
         return self._cached_vlt[entity_id]
-
-    def dump_vlt_info(self) -> None:
-        default_vendor = {}
-        for entity_id, vlt_info in self._cached_vlt.items():
-            entity = self._entity_dict[entity_id]
-            facility_info = self._facility_info_dict[entity.facility_id]
-            sku_id = entity.skus.id
-
-            facility_name = facility_info.name
-            sku_name = entity.skus.name
-
-            for src_fid, info_by_type in facility_info.upstream_vlt_infos[sku_id].items():
-                for v_type, info in info_by_type.items():
-                    if info == vlt_info:
-                        if facility_name not in default_vendor:
-                            default_vendor[facility_name] = {}
-                        default_vendor[facility_name][sku_name] = (self._facility_info_dict[src_fid].name, v_type)
-                        break
-
-        # assert isinstance(self._workflow_settings["vehicle_selection_method"], VehicleSelection)
-        # selection_method = self._workflow_settings["vehicle_selection_method"].value
-
-        file_path = os.path.join(self._workflow_settings["log_path"], f"vendor.py")
-        pprint_path = os.path.join(self._workflow_settings["log_path"], f"vendor_pprint.py")
-        with open(file_path, "w") as f:
-            json.dump(default_vendor, f)
-
-        stdout_fh = sys.stdout
-        sys.stdout = open(pprint_path, "w")
-        pprint(default_vendor)
-        sys.stdout.close()
-        sys.stdout = stdout_fh
 
     def get_or_policy_state(self, entity: SupplyChainEntity) -> dict:
         if self._storage_capacity_dict is None:
@@ -844,13 +783,6 @@ class SCEnvSampler(AbsEnvSampler):
                     consumer_purchased[0, :, i] = purchased[:, node_idx]
                     consumer_received[0, :, i] = received[:, node_idx]
 
-            # if issubclass(entity.class_type, (ManufactureUnit, ProductUnit)):
-            #     product_info = self._facility_info_dict[entity.facility_id].products_info[entity.skus.id]
-            #     if product_info.manufacture_info is not None:
-            #         node_idx = product_info.manufacture_info.node_index
-            #         manufacture_started[0, :, i] = started[:, node_idx]
-            #         manufacture_finished[0, :, i] = finished[:, node_idx]
-
         return consumer_purchased, consumer_received, manufacture_started, manufacture_finished
 
     def post_evaluate(self, info_list: list, ep: int) -> None:
@@ -871,8 +803,8 @@ class SCEnvSampler(AbsEnvSampler):
             if self._workflow_settings["plot_render"]:
                 self._logger.info("Start render...")
                 self._tracker.render_facility_balance_and_reward(facility_types=(OuterRetailerFacility))
-                self._tracker.render_all_sku(entity_types=(ConsumerUnit, ManufactureUnit))
-            self._tracker.dump_sku_status(entity_types=(ConsumerUnit, ManufactureUnit))
+                self._tracker.render_all_sku(entity_types=(ConsumerUnit))
+            self._tracker.dump_sku_status(entity_types=(ConsumerUnit))
 
             if self._workflow_settings["dump_product_metrics"]:
                 self._logger.info(f"Start post update product metrics...")
@@ -891,9 +823,6 @@ class SCEnvSampler(AbsEnvSampler):
         self._logger.info(f"Max Eval Reward: {self._max_eval_reward:,.2f}")
         self._logger.debug(f"Eval Reward List: {self._eval_reward_list}")
         self._mean_reward = {entity_id: val / self._step_idx for entity_id, val in self._mean_reward.items()}
-
-        if self._workflow_settings["dump_chosen_vlt_info"]:
-            self.dump_vlt_info()
 
     def eval(self, policy_state: Dict[str, object] = None) -> dict:
         self._is_eval = True
