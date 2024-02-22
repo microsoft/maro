@@ -8,6 +8,18 @@ import numpy as np
 from maro.simulator import Env
 
 
+def is_valid_attribute_key(env: Env, target_type: str, attribute: str) -> bool:
+    valid_target_types = set(env.summary["node_detail"].keys())
+    if target_type not in valid_target_types:
+        return False
+
+    valid_attributes = set(env.summary["node_detail"][target_type]["attributes"].keys())
+    if attribute not in valid_attributes:
+        return False
+
+    return True
+
+
 def _check_attribute_keys(env: Env, target_type: str, attribute: str) -> None:
     valid_target_types = set(env.summary["node_detail"].keys())
     assert target_type in valid_target_types, f"Target_type {target_type} not in {list(valid_target_types)}!"

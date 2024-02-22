@@ -1,13 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
-
-from maro.simulator.scenarios.supply_chain.facilities import FacilityInfo, OuterRetailerFacility
-from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
-from maro.simulator.scenarios.supply_chain.units import ConsumerUnit, ManufactureUnit
-
-
 # Feature keywords & index for snapshot accessing. NOTE: DO NOT CHANGE.
 distribution_features = ("pending_product_quantity", "pending_order_number")
 IDX_DISTRIBUTION_PENDING_PRODUCT_QUANTITY, IDX_DISTRIBUTION_PENDING_ORDER_NUMBER = 0, 1
@@ -21,31 +14,12 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS, IDX_CONSUMER_PUR
 product_features = ("price",)
 IDX_PRODUCT_PRICE = 0
 
-
-# Parameters for Consumer Base Policy, the factor acting on the expected leading time.
-# m_vlt: manufacture leading time factor for ManufactureUnit.
-# s_vlt: vehicle leading time factor for ConsumerUnit in stores.
-# ns_vlt: vehicle leading time factor for ConsumerUnit in Non-stores.
-m_vlt, s_vlt, ns_vlt = 2, 2, 2
-
-
-def get_vlt_buffer_factor(entity: SupplyChainEntity, facility_info: FacilityInfo) -> float:
-    if issubclass(entity.class_type, ManufactureUnit):
-        return m_vlt
-    elif issubclass(entity.class_type, ConsumerUnit):
-        if issubclass(facility_info.class_name, OuterRetailerFacility):
-            return s_vlt
-        else:
-            return ns_vlt
-    else:
-        raise (f"Get entity(id: {entity.id}) neither ManufactureUnit nor ConsumerUnit")
-
-
+DEVICE: str = "cpu"
 # Algorithm for ConsumerUnits: How many products to purchase from the upstream facility?
 # EOQ: a consumer baseline policy. The quantity is decided by the expected leading time & the historical demand.
 # DQN: a RL policy.
 # PPO: a RL policy.
-ALGO = "EOQ"
+ALGO = "PPO"
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
 
 # Parameters for the reward design of RL policy. Treat ConsumerUnits of one facility as a team or not.

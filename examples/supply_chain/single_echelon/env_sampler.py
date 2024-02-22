@@ -49,8 +49,7 @@ from .config import (
 from examples.supply_chain.rl.or_agent_state import ScOrAgentStates
 from examples.supply_chain.rl.rl_agent_state import ScRlAgentStates, serialize_state
 
-from examples.supply_chain.single_echelon.balance_calculator import BalanceSheetCalculator  # NOTE
-
+from examples.supply_chain.common.balance_calculator import BalanceSheetCalculator
 from examples.supply_chain.common.render_tools.plot_render import SimulationTracker
 from examples.supply_chain.common.utils import get_attributes, get_list_attributes
 
@@ -701,6 +700,8 @@ class SCEnvSampler(AbsEnvSampler):
             consumer_action_dict = {}
             for entity_id in cache_element.agent_state_dict.keys():
                 entity = self._entity_dict[entity_id]
+                if entity_id not in self._mean_reward:
+                    self._mean_reward[entity_id] = 0
                 self._mean_reward[entity_id] += self._reward_status.get(entity_id, 0)
                 if issubclass(entity.class_type, ConsumerUnit):
                     parent_entity = self._entity_dict[entity.parent_id]

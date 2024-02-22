@@ -13,7 +13,7 @@ from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from maro.simulator.scenarios.supply_chain.units.distribution import DistributionUnitInfo
 from maro.simulator.scenarios.supply_chain.units.storage import StorageUnitInfo
 
-from .utils import get_attributes, get_list_attributes
+from .utils import get_attributes, get_list_attributes, is_valid_attribute_key
 
 
 @dataclass
@@ -183,7 +183,7 @@ class BalanceSheetCalculator:
         # profit = sold * price
         seller_step_profit = get_attributes(self._env, "seller", "sold", tick) * price
 
-        # loss = demand * price * backlog_ratio
+        # loss = (demand - sold) * (price * backlog_ratio)
         seller_step_cost = -1 * (
             (get_attributes(self._env, "seller", "demand", tick) - get_attributes(self._env, "seller", "sold", tick))
             * get_attributes(self._env, "seller", "backlog_ratio", tick)
@@ -199,6 +199,9 @@ class BalanceSheetCalculator:
             np.ndarray: manufacture id list, with manufacture node index as 1st-dim index.
             np.ndarray: manufacture step cost, with manufacture node index as 1st-dim index.
         """
+        if not is_valid_attribute_key(self._env, "manufacture", "id"):
+            return [], []
+
         manufacture_ids = get_attributes(self._env, "manufacture", "id", tick).astype(np.int)
 
         # loss = manufacture number * cost

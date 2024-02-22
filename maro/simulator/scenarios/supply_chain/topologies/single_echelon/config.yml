@@ -97,20 +97,20 @@ world:
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 60
-          unit_order_cost: 2.0
-          backlog_ratio: 0
+          sale_gamma: 250
+          unit_order_cost: 0
+          backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
         "product_1":
           price: 12
           init_stock: 300
           sub_storage_id: 1
           has_consumer: True
           has_seller: True
-          sale_gamma: 100
-          unit_order_cost: 3.0
-          backlog_ratio: 0
+          sale_gamma: 150
+          unit_order_cost: 0
+          backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
       config:
-        unit_order_cost: 200
+        unit_order_cost: 0
         file_path:  /home/jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_1_demand.csv
 
     - name: Store_2
@@ -133,20 +133,20 @@ world:
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 60
-          unit_order_cost: 2.0
-          backlog_ratio: 0
+          sale_gamma: 250
+          unit_order_cost: 0
+          backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
         "product_2":
           price: 12
           init_stock: 300
           sub_storage_id: 2
           has_consumer: True
           has_seller: True
-          sale_gamma: 100
-          unit_order_cost: 3.0
-          backlog_ratio: 0
+          sale_gamma: 150
+          unit_order_cost: 0
+          backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
       config:
-        unit_order_cost: 200
+        unit_order_cost: 0
         file_path:  /home/jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_2_demand.csv
 
     - name: Store_3
@@ -173,9 +173,9 @@ world:
           sub_storage_id: 0
           has_consumer: True
           has_seller: True
-          sale_gamma: 60
-          unit_order_cost: 2.0
-          backlog_ratio: 0
+          sale_gamma: 200
+          unit_order_cost: 0
+          backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
         "product_1":
           price: 12
           init_stock: 200
@@ -183,8 +183,8 @@ world:
           has_consumer: True
           has_seller: True
           sale_gamma: 100
-          unit_order_cost: 3.0
-          backlog_ratio: 0
+          unit_order_cost: 0
+          backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
         "product_2":
           price: 12
           init_stock: 200
@@ -192,10 +192,10 @@ world:
           has_consumer: True
           has_seller: True
           sale_gamma: 100
-          unit_order_cost: 3.0
-          backlog_ratio: 0
+          unit_order_cost: 0
+          backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
       config:
-        unit_order_cost: 200
+        unit_order_cost: 0
         file_path:  /home/jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_3_demand.csv
 
   topology:

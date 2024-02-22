@@ -18,7 +18,7 @@ from maro.simulator.scenarios.supply_chain.objects import SupplyChainEntity
 from examples.supply_chain.rl.algorithms.dqn import get_dqn, get_dqn_policy
 from examples.supply_chain.rl.algorithms.ppo import get_ppo, get_ppo_policy
 from examples.supply_chain.rl.algorithms.rule_based import ConsumerMinMaxPolicy
-from .config import ALGO, NUM_CONSUMER_ACTIONS, env_conf, test_env_conf
+from .config import ALGO, DEVICE, NUM_CONSUMER_ACTIONS, env_conf, test_env_conf
 from .env_sampler import SCEnvSampler
 from examples.supply_chain.rl.rl_agent_state import STATE_DIM
 
@@ -74,12 +74,11 @@ class SupplyChainBundle(RLComponentBundle):
 
     def get_trainer_creator(self) -> Dict[str, Callable[[], AbsTrainer]]:
         get_trainer = get_dqn if ALGO == "DQN" else partial(get_ppo, STATE_DIM)
-        trainer_creator = {"consumer": partial(get_trainer, STATE_DIM, "consumer")}
+        trainer_creator = {"consumer": partial(get_trainer, "consumer")}
         return trainer_creator
 
     def get_device_mapping(self) -> Dict[str, str]:
-        device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        device_mapping = {"consumer.policy": device}
+        device_mapping = {"consumer.policy": DEVICE}
         return device_mapping
 
     def get_policy_trainer_mapping(self) -> Dict[str, str]:
