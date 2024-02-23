@@ -14,13 +14,13 @@ IDX_CONSUMER_ORDER_BASE_COST, IDX_CONSUMER_LATEST_CONSUMPTIONS, IDX_CONSUMER_PUR
 product_features = ("price",)
 IDX_PRODUCT_PRICE = 0
 
-DEVICE: str = "cpu"
 # Algorithm for ConsumerUnits: How many products to purchase from the upstream facility?
 # EOQ: a consumer baseline policy. The quantity is decided by the expected leading time & the historical demand.
 # DQN: a RL policy.
 # PPO: a RL policy.
 ALGO = "PPO"
 assert ALGO in ["DQN", "EOQ", "PPO"], "wrong ALGO"
+DEVICE: str = "cpu"
 
 # Parameters for the reward design of RL policy. Treat ConsumerUnits of one facility as a team or not.
 TEAM_REWARD = False
@@ -32,10 +32,7 @@ OR_NUM_CONSUMER_ACTIONS = 20
 NUM_CONSUMER_ACTIONS = 3
 OR_MANUFACTURE_ACTIONS = 20
 
-# Topology to use, valid SCI topologies:
-# - SCI_10_default, SCI_10_cheapest_storage_enlarged, SCI_10_shortest_storage_enlarged
-# - SCI_500_default, SCI_500_cheapest_storage_enlarged, SCI_500_shortest_storage_enlarged
-# TOPOLOGY = "SCI_10_default"
+# Topology to use
 TOPOLOGY = "single_echelon"
 
 # The duration for training Env. Unit: tick (day).
@@ -78,13 +75,7 @@ workflow_settings: dict = {
 }
 
 # Experiment name, partial setting for log path.
-EXP_NAME = (
-    f"{TOPOLOGY}"
-    # f"_{test_env_conf['durations']}"
-    f"_{ALGO}"
-    f"{'_TR' if TEAM_REWARD else ''}"
-    f"_test"
-)
+EXP_NAME = f"{TOPOLOGY}_{ALGO}_test"
 
 # Path to dump the experimental logs, results, and render figures.
 workflow_settings["log_path"] = f"examples/supply_chain/logs/{EXP_NAME}/"

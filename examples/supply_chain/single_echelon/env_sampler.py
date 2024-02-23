@@ -505,6 +505,67 @@ class SCEnvSampler(AbsEnvSampler):
 
         return {entity_id: r / get_reward_norm(entity_id) for entity_id, r in rewards.items()}
 
+    def _shape_action_to_meet_constraints(
+        self, actions: List[ConsumerAction], SC_dict: Dict[int, int], LC: int, P_dict: Dict[int, int],
+    ) -> List[ConsumerAction]:
+        action_infos: List[Tuple[int, int, int]] = [(action.id, action.sku_id, action.quantity) for action in actions]
+        shaped_quantity_dict: Dict[int, Dict[int, int]] = {}
+
+        # Step1: shape action quantity to be times of P
+        action_infos: List[Tuple[int, int, int]] = [
+            (con_id, sku_id, quantity // P_dict[sku_id] * P_dict[sku_id])
+            for con_id, sku_id, quantity in action_infos
+        ]
+
+        # Supply Constraint
+        action_info_by_sku: List[List[Tuple[int, int, int]]] = []
+        for sku_id, SC in SC_dict.items():
+            total_asked = 0
+            for con_id, act_sku_id, quantity in action_infos:
+                if sku_id == act_sku_id:
+                    total_asked += quantity
+
+            remove_ratio = max(total_asked - SC, 0) / total_asked if total_asked > 0 else 0
+            shaped_action_infos: List[Tuple[int, int, int]] = []
+            for con_id, act_sku_id, quantity in action_infos:
+                if sku_id == act_sku_id:
+                    P = P_dict[sku_id]
+                    remaining_quantity = int(quantity * (1 - remove_ratio) // P * P)
+                    shaped_action_infos.append((con_id, act_sku_id, remaining_quantity))
+            if len(shaped_action_infos) > 0:
+                action_info_by_sku.append(shaped_action_infos)
+
+        # Labour Constraint
+        labour_count: List[int] = []
+        for shaped_action_infos in action_info_by_sku:
+            sku_id = shaped_action_infos[0][1]
+            P = P_dict[sku_id]
+            labour_count.append([quantity // P for _, _, quantity in shaped_action_infos])
+        total_labour_needed = sum([sum(count_list) for count_list in labour_count])
+        remove_ratio = max(total_labour_needed - LC, 0) / total_labour_needed if total_labour_needed > 0 else 0
+
+        for shaped_action_infos in action_info_by_sku:
+            for con_id, sku_id, quantity in shaped_action_infos:
+                P = P_dict[sku_id]
+                remaining_quantity = int(quantity * (1 - remove_ratio) // P * P)
+                if con_id not in shaped_quantity_dict:
+                    shaped_quantity_dict[con_id] = {}
+                shaped_quantity_dict[con_id][sku_id] = remaining_quantity
+
+        shaped_actions = [
+            ConsumerAction(
+                action.id,
+                action.sku_id,
+                action.source_id,
+                shaped_quantity_dict[action.id][action.sku_id],
+                action.vehicle_type,
+                action.expiration_buffer,
+            )
+            for action in actions
+        ]
+
+        return shaped_actions
+
     def _translate_to_env_action(
         self,
         action_dict: Dict[Any, Union[np.ndarray, List[object]]],
@@ -547,6 +608,20 @@ class SCEnvSampler(AbsEnvSampler):
 
             if env_action:
                 env_action_dict[agent_id] = env_action
+
+        # Shape consumer actions to meet constraints
+        consumer_actions = [
+            action for agent_id, action in env_action_dict.items()
+            if issubclass(self._entity_dict[agent_id].class_type, ConsumerUnit)
+        ]
+        consumer_actions = self._shape_action_to_meet_constraints(
+            consumer_actions,
+            SC_dict={10: 800, 11: 500, 12: 500},  # TODO: constant used here
+            LC=260,  # TODO: constant used here
+            P_dict={10: 8, 11: 5, 12: 5},  # TODO: constant used here
+        )
+        for con_act in consumer_actions:
+            env_action_dict[con_act.id] = con_act
 
         return env_action_dict
 

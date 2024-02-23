@@ -21,68 +21,6 @@ def get_metrics(env_: Env) -> dict:
     return info
 
 
-def shape_actions(
-    actions: List[ConsumerAction], SC_dict: Dict[int, int], LC: int, P_dict: Dict[int, int], consumer_list: List[SupplyChainEntity],
-) -> List[ConsumerAction]:
-    action_infos: List[Tuple[int, int, int]] = [(action.id, action.sku_id, action.quantity) for action in actions]
-    shaped_quantity_dict: Dict[int, Dict[int, int]] = {}
-
-    # Step1: shape action quantity to be times of P
-    action_infos: List[Tuple[int, int, int]] = [(con_id, sku_id, quantity // P_dict[sku_id] * P_dict[sku_id]) for con_id, sku_id, quantity in action_infos]
-
-    # Supply Constraint
-    action_info_by_sku: List[List[Tuple[int, int, int]]] = []
-    for sku_id, SC in SC_dict.items():
-        total_asked = 0
-        for con_id, act_sku_id, quantity in action_infos:
-            if sku_id == act_sku_id:
-                total_asked += quantity
-
-        remove_ratio = max(total_asked - SC, 0) / SC
-        shaped_action_infos: List[Tuple[int, int, int]] = []
-        for con_id, act_sku_id, quantity in action_infos:
-            if sku_id == act_sku_id:
-                P = P_dict[sku_id]
-                remaining_quantity = quantity * (1 - remove_ratio) // P * P
-                shaped_action_infos.append((con_id, act_sku_id, remaining_quantity))
-        action_info_by_sku.append(shaped_action_infos)
-
-    # Labour Constraint
-    labour_count: List[int] = []
-    for shaped_action_infos in action_info_by_sku:
-        sku_id = shaped_action_infos[0][1]
-        P = P_dict[sku_id]
-        labour_count.append([quantity // P for _, _, quantity in shaped_action_infos])
-    total_labour_needed = sum([sum(count_list) for count_list in labour_count])
-    remove_ratio = max(total_labour_needed - LC, 0) / LC
-
-    for shaped_action_infos in action_info_by_sku:
-        for con_id, sku_id, quantity in shaped_action_infos:
-            P = P_dict[sku_id]
-            remaining_quantity = quantity * (1 - remove_ratio) // P * P
-            if con_id not in shaped_quantity_dict:
-                shaped_quantity_dict[con_id] = {}
-            shaped_quantity_dict[con_id][sku_id] = remaining_quantity
-
-    shaped_actions = [
-        ConsumerAction(
-            action.id,
-            action.sku_id,
-            action.source_id,
-            shaped_quantity_dict[action.id][action.sku_id],
-            action.vehicle_type,
-            action.expiration_buffer,
-        )
-        for action in actions
-    ]
-
-    # Storage Capacity Limit?
-    for act, sact in zip(actions, shaped_actions):
-        print(act.id, act.sku_id, ":", act.quantity, "->", sact.quantity)
-
-    return shaped_actions
-
-
 if __name__ == "__main__":
     # Create an environment instance
     env = Env(scenario="supply_chain", topology="single_echelon", start_tick=0, durations=100)
