@@ -13,7 +13,7 @@ scenario_path: "examples/supply_chain/single_echelon"
 log_path: "examples/supply_chain/logs/rl_job/supply_chain.txt"
 main:
   # Number of episodes to run. Each episode is one cycle of roll-out and training.
-  num_episodes: 100
+  num_episodes: 50
   # Number of environment steps to collect environment samples over. If null, samples are collected until the
   # environments reach the terminal state, i.e., for a full episode. Otherwise, samples are collected until the
   # specified number of steps or the terminal state is reached, whichever comes first.
@@ -21,7 +21,7 @@ main:
   # This can be an integer or a list of integers. An integer indicates the interval at which policies are evaluated.
   # A list indicates the episodes at the end of which policies are to be evaluated. Note that episode indexes are
   # 1-based.
-  eval_schedule: 5
+  eval_schedule: 10
   # Log levels for the main loop. Could be: DEBUG, INFO, WARN, ERROR, CRITICAL, PROGRESS
   logging:
     stdout: INFO

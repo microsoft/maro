@@ -761,7 +761,6 @@ class SCEnvSampler(AbsEnvSampler):
             self.product_metric_track.pop(key)
 
     def _post_eval_step(self, cache_element: CacheElement) -> None:
-        self._logger.info(f"Step: {self._step_idx}")
         if self._tracker.eval_period[0] <= cache_element.tick < self._tracker.eval_period[1]:
             self._eval_reward += np.sum(
                 [
