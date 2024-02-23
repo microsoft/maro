@@ -53,7 +53,7 @@ world:
           config:
             capacity: null  # null indicates infinite storage capacity.
             unit_storage_cost: 0
-        distribution: # TODO: add LC constraint
+        distribution:
           config:
             train:
               number: null  # null indicates infinite distribution capacity.
@@ -111,7 +111,7 @@ world:
           backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
       config:
         unit_order_cost: 0
-        file_path:  /home/jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_1_demand.csv
+        file_path:  maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_1_demand.csv
 
     - name: Store_2
       definition_ref: StoreFacility
@@ -147,7 +147,7 @@ world:
           backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
       config:
         unit_order_cost: 0
-        file_path:  /home/jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_2_demand.csv
+        file_path:  maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_2_demand.csv
 
     - name: Store_3
       definition_ref: StoreFacility
@@ -196,7 +196,7 @@ world:
           backlog_ratio: 0.1  # NOTE: LS = price * backlog_ratio
       config:
         unit_order_cost: 0
-        file_path:  /home/jinyu/maro/maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_3_demand.csv
+        file_path:  maro/simulator/scenarios/supply_chain/topologies/single_echelon/store_3_demand.csv
 
   topology:
     "Store_1":
