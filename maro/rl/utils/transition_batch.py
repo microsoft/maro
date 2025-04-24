@@ -18,6 +18,7 @@ class TransitionBatch:
     terminals: np.ndarray  # 1D
     returns: np.ndarray = None  # 1D
     advantages: np.ndarray = None  # 1D
+    old_logps: np.ndarray = None  # 1D
 
     @property
     def size(self) -> int:
@@ -32,6 +33,10 @@ class TransitionBatch:
             assert len(self.terminals.shape) == 1 and self.terminals.shape[0] == self.states.shape[0]
 
     def calc_returns(self, discount_factor: float) -> None:
+        # normalized rewards 
+        # max_reward, min_reward = np.max(self.rewards), np.min(self.rewards)
+        # self.rewards = (self.rewards - min_reward) / max(1e-8, max_reward-min_reward)
+        # self.rewards = (self.rewards - self.rewards.mean()) / (self.rewards.std() + 1e-5)
         self.returns = discount_cumsum(self.rewards, discount_factor)
 
     def make_kth_sub_batch(self, i: int, k: int) -> TransitionBatch:
@@ -43,6 +48,7 @@ class TransitionBatch:
             terminals=self.terminals[i::k],
             returns=self.returns[i::k] if self.returns is not None else None,
             advantages=self.advantages[i::k] if self.advantages is not None else None,
+            old_logps=self.old_logps[i::k] if self.old_logps is not None else None,
         )
 
     def split(self, k: int) -> List[TransitionBatch]:
@@ -116,4 +122,7 @@ def merge_transition_batches(batch_list: List[TransitionBatch]) -> TransitionBat
         terminals=np.concatenate([batch.terminals for batch in batch_list]),
         returns=np.concatenate([batch.returns for batch in batch_list]),
         advantages=np.concatenate([batch.advantages for batch in batch_list]),
+        old_logps=None if batch_list[0].old_logps is None else np.concatenate(
+            [batch.old_logps for batch in batch_list]
+        ),
     )

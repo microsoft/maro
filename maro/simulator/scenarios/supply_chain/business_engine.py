@@ -1,19 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 import os
 from typing import List
 
 from maro.backends.frame import FrameBase
-
 from maro.event_buffer import CascadeEvent, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
-from . import SupplyChainAction
 
+from .actions import SupplyChainAction
+from .objects import SupplyChainEntity
 from .parser import ConfigParser, SupplyChainConfiguration
-from .units import ProductUnit, UnitBase
-from .world import SupplyChainEntity, World
+from .units import ProductUnit
+from .world import World
 
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):
@@ -53,13 +52,24 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Clear the metrics cache.
         self._metrics_cache = None
 
+        """
+        Initialize info & status that would be used in step(), including:
+        - update SKU price
+        - initialize internal status
+        """
+        for facility in self.world.facilities.values():
+            facility.pre_step(tick)
+
+        # TODO: need to order Facility or not?
         # Call step functions by facility
-        # Step first.
         for facility in self.world.facilities.values():
             facility.step(tick)
 
-        # TODO: confirm whether we can flush_state() immediately after the step()
-        # Then flush states to frame before generate decision event.
+        """
+        Flush states to frame before generating decision event.
+        . The processing logic requires that: DO NOT call flush_states() immediately after step().
+        E.g. the ProductUnit.flush_states() should be called after the DistributionUnit.step().
+        """
         for facility in self.world.facilities.values():
             facility.flush_states()
 
@@ -72,6 +82,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Call post_step functions by facility.
         for facility in self.world.facilities.values():
             facility.post_step(tick)
+
+        for facility in self.world.facilities.values():
+            facility.flush_states()
+
+        self._frame.take_snapshot(self.frame_index(tick))
 
         return tick + 1 == self._max_tick
 
@@ -115,11 +130,12 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
     def _on_action_received(self, event: CascadeEvent) -> None:
-        actions: List[SupplyChainAction] = event.payload
+        assert isinstance(event.payload, list)
+        actions = event.payload
         for action in actions:
+            assert isinstance(action, SupplyChainAction)
             entity = self.world.get_entity_by_id(action.id)
-            if entity is not None and isinstance(entity, UnitBase):
-                entity.set_action(action)
+            entity.on_action_received(event.tick, action)
 
     def get_metrics(self) -> dict:
         if self._metrics_cache is None:
@@ -128,7 +144,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     product.id: {
                         "sale_mean": product.get_sale_mean(),
                         "sale_std": product.get_sale_std(),
-                        "selling_price": product.get_selling_price(),
+                        "selling_price": product.get_max_sale_price(),
                         "pending_order_daily":
                             None if product.consumer is None else product.consumer.pending_order_daily,
                     } for product in self._product_units
@@ -137,7 +153,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     facility.id: {
                         "in_transit_orders": facility.get_in_transit_orders(),
                         "pending_order":
-                            None if facility.distribution is None else facility.distribution.get_pending_order(),
+                            None if facility.distribution is None
+                            else facility.distribution.get_pending_product_quantities(),
                     } for facility in self.world.facilities.values()
                 }
             }

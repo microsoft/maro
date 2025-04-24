@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import sys
+sys.path.append("/data/songlei/maro/")
 from os.path import dirname, join, realpath
 
 from maro.rl.training import TrainingManager
@@ -8,19 +9,33 @@ from maro.rl.workflows.scenario import Scenario
 from maro.utils import LoggerV2
 
 # config variables
-SCENARIO_NAME = "cim"
+SCENARIO_NAME = "supply_chain"
 SCENARIO_PATH = join(dirname(dirname(realpath(__file__))), SCENARIO_NAME, "rl")
-NUM_EPISODES = 50
+NUM_EPISODES = 1000
 NUM_STEPS = None
 CHECKPOINT_PATH = join(dirname(SCENARIO_PATH), "checkpoints")
-CHECKPOINT_INTERVAL = 5
-EVAL_SCHEDULE = [10, 20, 30, 40, 50]
-LOG_PATH = join(dirname(SCENARIO_PATH), "logs", SCENARIO_NAME)
+CHECKPOINT_INTERVAL = 10
+EVAL_SCHEDULE = list(range(20, NUM_EPISODES+20, 20))
 
 
+import argparse
+import os
+import pandas as pd
+
+# Single-threaded launcher
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_name", default="Round1")
+    parser.add_argument("--baseline", action='store_true')
+    parser.add_argument("--team_reward", action='store_true')
+    parser.add_argument("--shared_model", action='store_true')
+    args = parser.parse_args()
+
+    LOG_PATH = join(dirname(SCENARIO_PATH), "results", args.exp_name)
+    os.makedirs(LOG_PATH, exist_ok=True)
+
     scenario = Scenario(SCENARIO_PATH)
-    logger = LoggerV2("MAIN", dump_path=LOG_PATH)
+    logger = LoggerV2("MAIN", dump_path=f"{LOG_PATH}/log.txt")
 
     agent2policy = scenario.agent2policy
     policy_creator = scenario.policy_creator
@@ -45,10 +60,11 @@ if __name__ == "__main__":
         trainable_policy_creator,
         trainer_creator,
         trainable_agent2policy,
+        device_mapping=scenario.device_mapping,
         logger=logger
     )
 
-    # main loop
+    # main loopxs
     for ep in range(1, NUM_EPISODES + 1):
         collect_time = training_time = 0
         segment, end_of_episode = 1, False
@@ -57,22 +73,29 @@ if __name__ == "__main__":
             result = env_sampler.sample(num_steps=NUM_STEPS)
             experiences = result["experiences"]
             end_of_episode = result["end_of_episode"]
-
             if scenario.post_collect:
                 scenario.post_collect(result["info"], ep, segment)
-
             logger.info(f"Roll-out completed for episode {ep}. Training started...")
             training_manager.record_experiences(experiences)
             training_manager.train_step()
-            if CHECKPOINT_PATH and ep % CHECKPOINT_INTERVAL == 0:
-                pth = join(CHECKPOINT_PATH, str(ep))
-                training_manager.save(pth)
-                logger.info(f"All trainer states saved under {pth}")
             segment += 1
 
+        if CHECKPOINT_PATH and ep % CHECKPOINT_INTERVAL == 0:
+            pth = join(CHECKPOINT_PATH, str(ep))
+            training_manager.save(pth)
+            logger.info(f"All trainer states saved under {pth}")
         # performance details
         if ep == EVAL_SCHEDULE[eval_point_index]:
+            logger.info(f"Eval {ep} starting")
             eval_point_index += 1
             result = env_sampler.eval()
-            if scenario.post_evaluate:
-                scenario.post_evaluate(result["info"], ep)
+            # if scenario.post_evaluate:
+            #     scenario.post_evaluate(result["info"], ep)
+            # tracker = result['tracker']
+            # tracker.render(LOG_PATH, 'a_plot_balance.png', tracker.step_balances, ["OuterRetailerFacility"])
+            # tracker.render(LOG_PATH, 'a_plot_reward.png', tracker.step_rewards, ["OuterRetailerFacility"])
+            # tracker.render_sku(LOG_PATH)
+
+            # df_product = pd.DataFrame(env_sampler._balance_calculator.product_metric_track)
+            # df_product = df_product.groupby(['tick', 'id']).first().reset_index()
+            # df_product.to_csv(f'{LOG_PATH}/output_product_metrics_{ep}.csv', index=False)

@@ -3,7 +3,7 @@
 
 from .callbacks import post_collect, post_evaluate
 from .env_sampler import env_sampler_creator
-from .policies import agent2policy, policy_creator, trainable_policies, trainer_creator
+from .policies import agent2policy, policy_creator, trainable_policies, trainer_creator, device_mapping
 
 __all__ = [
     "agent2policy",
@@ -12,5 +12,6 @@ __all__ = [
     "post_collect",
     "post_evaluate",
     "trainable_policies",
-    "trainer_creator"
+    "trainer_creator",
+    "device_mapping",
 ]

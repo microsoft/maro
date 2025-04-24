@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Iterable, Optional
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 import torch
@@ -27,14 +27,14 @@ class AbsPolicy(object, metaclass=ABCMeta):
         self._trainable = trainable
 
     @abstractmethod
-    def get_actions(self, states: object) -> Iterable:
+    def get_actions(self, states: object) -> object:
         """Get actions according to states.
 
         Args:
             states (object): States.
 
         Returns:
-            actions (Iterable): Actions.
+            actions (object): Actions.
         """
         raise NotImplementedError
 
@@ -107,11 +107,11 @@ class RuleBasedPolicy(AbsPolicy, metaclass=ABCMeta):
     def __init__(self, name: str) -> None:
         super(RuleBasedPolicy, self).__init__(name=name, trainable=False)
 
-    def get_actions(self, states: object) -> object:
+    def get_actions(self, states: List[object]) -> List[object]:
         return self._rule(states)
 
     @abstractmethod
-    def _rule(self, states: object) -> object:
+    def _rule(self, states: List[object]) -> List[object]:
         raise NotImplementedError
 
     def explore(self) -> None:
@@ -206,7 +206,7 @@ class RLPolicy(AbsPolicy, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
-        return self.get_actions_tensor(ndarray_to_tensor(states, self._device)).cpu().numpy()
+        return self.get_actions_tensor(ndarray_to_tensor(states, device=self._device)).cpu().numpy()
 
     def get_actions_tensor(self, states: torch.Tensor) -> torch.Tensor:
         """Get actions according to states. Takes torch.Tensor as inputs and returns torch.Tensor.

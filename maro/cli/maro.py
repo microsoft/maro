@@ -173,6 +173,7 @@ def load_parser_local(prev_parser: ArgumentParser, global_parser: ArgumentParser
     )
     parser.add_argument("conf_path", help='Path of the job deployment')
     parser.add_argument("-c", "--containerize", action="store_true", help="Whether to run jobs in containers")
+    parser.add_argument("--evaluate_only", action="store_true", help="Only run evaluation part of the workflow")
     parser.add_argument("-p", "--port", type=int, default=20000, help="")
     parser.set_defaults(func=run)
 

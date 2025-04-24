@@ -39,6 +39,10 @@ class Scenario(object):
         return getattr(self._module, "trainer_creator")
 
     @property
+    def device_mapping(self) -> Dict[str, str]:
+        return getattr(self._module, "device_mapping", {})
+
+    @property
     def post_collect(self) -> Callable[[list, int, int], None]:
         return getattr(self._module, "post_collect", None)
 

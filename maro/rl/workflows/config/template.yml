@@ -58,7 +58,9 @@ training:
   # the policies it manages as well as the states of auxillary models (e.g., critics in the Actor-Critic paradigm).
   # If the path corresponds to an existing directory, the program will look under the directory for snapshot files
   # that match the trainer names specified in the scenario and attempt to load from them.
-  load_path: "/path/to/your/models"
+  load_path: "/path/to/your/models"  # or `null`
+  # Which episode of the previously saved snapshots to load. If it is not provided, the last snapshot will be loaded.
+  load_episode: null
   # Optional section to specify model checkpointing settings.
   checkpointing:
     # Directory to save trainer snapshots under. Snapshot files created at different episodes will be saved under

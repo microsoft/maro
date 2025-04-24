@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 def post_collect(info_list: list, ep: int, segment: int) -> None:
     # print the env metric from each rollout worker
     for info in info_list:

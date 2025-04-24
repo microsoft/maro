@@ -1,0 +1,34 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# Example RL config file for CIM scenario.
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
+# Run this workflow by executing one of the following commands:
+# - python .\examples\rl\run_rl_example.py .\examples\rl\cim.yml
+# - (Requires installing MARO from source) maro local run .\examples\rl\cim.yml
+
+job: cim_rl_workflow
+scenario_path: "examples/cim/rl"
+log_path: "log/rl_job/cim.txt"
+main:
+  num_episodes: 30  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  num_steps: null
+  eval_schedule: 5
+  logging:
+    stdout: INFO
+    file: DEBUG
+rollout:
+  logging:
+    stdout: INFO
+    file: DEBUG
+training:
+  mode: simple
+  load_path: null
+  load_episode: null
+  checkpointing:
+    path: "checkpoint/rl_job/cim"
+    interval: 5
+  logging:
+    stdout: INFO
+    file: DEBUG

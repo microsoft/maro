@@ -8,16 +8,14 @@ from torch.optim import Adam, RMSprop
 
 from maro.rl.model import DiscretePolicyNet, FullyConnected, VNet
 from maro.rl.policy import DiscretePolicyGradient
-from maro.rl.training.algorithms import (
-    DiscreteActorCriticTrainer, DiscreteActorCriticParams, DiscretePPOParams, DiscretePPOTrainer,
-)
+from maro.rl.training.algorithms import DiscreteActorCriticTrainer, DiscreteActorCriticParams
 
 actor_net_conf = {
     "hidden_dims": [256, 128, 64],
     "activation": torch.nn.Tanh,
     "softmax": True,
     "batch_norm": False,
-    "head": True
+    "head": True,
 }
 critic_net_conf = {
     "hidden_dims": [256, 128, 64],
@@ -25,7 +23,7 @@ critic_net_conf = {
     "activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": True,
-    "head": True
+    "head": True,
 }
 actor_learning_rate = 0.001
 critic_learning_rate = 0.001
@@ -64,7 +62,7 @@ class MyActorNet(DiscretePolicyNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -99,7 +97,7 @@ class MyCriticNet(VNet):
     def get_state(self) -> dict:
         return {
             "network": self.state_dict(),
-            "optim": self._optim.state_dict()
+            "optim": self._optim.state_dict(),
         }
 
     def set_state(self, net_state: dict) -> None:
@@ -121,7 +119,6 @@ def get_ac(state_dim: int, name: str) -> DiscreteActorCriticTrainer:
     return DiscreteActorCriticTrainer(
         name=name,
         params=DiscreteActorCriticParams(
-            device="cpu",
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             reward_discount=.0,
             grad_iters=10,

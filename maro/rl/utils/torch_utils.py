@@ -31,7 +31,7 @@ def match_shape(tensor: Union[torch.Tensor, np.ndarray], shape: tuple) -> bool:
         return True
 
 
-def ndarray_to_tensor(array: np.ndarray, device: torch.device) -> torch.Tensor:
+def ndarray_to_tensor(array: np.ndarray, device: torch.device = None) -> torch.Tensor:
     """
     Convert a np.ndarray to a torch.Tensor.
 
@@ -54,3 +54,7 @@ def average_grads(grad_list: List[dict]) -> dict:
         param_name: torch.mean(torch.stack([grad[param_name] for grad in grad_list]), dim=0)
         for param_name in grad_list[0]
     }
+
+
+def get_torch_device(device: str = None):
+    return torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))

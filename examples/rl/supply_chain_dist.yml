@@ -1,0 +1,56 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# Example RL config file for supply chain scenario.
+# Please refer to `maro/rl/workflows/config/template.yml` for the complete template and detailed explanations.
+
+# Run this workflow by executing one of the following commands:
+# - python .\examples\rl\run_rl_example.py .\examples\rl\supply_chain.yml
+# - (Requires installing MARO from source) maro local run .\examples\rl\supply_chain.yml
+
+job: supply_chain_rl_workflow
+scenario_path: "examples/supply_chain/rl"
+log_path: "log/rl_job/supply_chain.txt"
+main:
+  num_episodes: 1000  # Number of episodes to run. Each episode is one cycle of roll-out and training.
+  # num_steps: None
+  eval_schedule: 20
+  logging:
+    stdout: INFO
+    file: DEBUG
+rollout:
+  parallelism:
+    sampling: 4  # Number of parallel roll-outs to collecting training data from.
+    # Number of parallel roll-outs to evaluate policies on. If not specified, one roll-out worker is chosen to perform
+    # evaluation.
+    eval: null
+    # Minimum number of environment samples to collect from the parallel roll-outs per episode / segment before moving
+    # on to the training phase. The actual number of env samples collected may be more than this value if we allow a
+    # grace period (see the comment for rollout.parallelism.grace_factor for details), but never less. This value should
+    # not exceed rollout.parallelism.sampling.
+    min_env_samples: 3
+    # Factor that determines the additional wait time after the required number of environment samples as indicated by
+    # "min_env_samples" are received. For example, if T seconds elapsed after receiving "min_env_samples" environment
+    # samples, it will wait an additional T * grace_factor seconds to try to collect the remaining results.
+    grace_factor: 0.2
+    controller:  # Parallel roll-out controller settings. Ignored if rollout.parallelism section is absent.
+      host: "127.0.0.1"  # Controller's IP address. Ignored if run in containerized environments.
+      port: 20000  # Controller's network port for remote roll-out workers to connect to.
+  logging:
+    stdout: INFO
+    file: DEBUG
+training:
+  mode: simple
+  load_path: null
+  load_episode: null
+  checkpointing:
+    path: "checkpoint/rl_job/supply_chain"
+    interval: 1000
+  proxy:  # Proxy settings. Ignored if training.mode is "simple".
+    host: "127.0.0.1"  # Proxy service host's IP address. Ignored if run in containerized environments.
+    frontend: 10000  # Proxy service's network port for trainers to send tasks to.
+    backend: 10001  # Proxy service's network port for remote workers to connect to.
+  num_workers: 1
+  logging:
+    stdout: INFO
+    file: DEBUG

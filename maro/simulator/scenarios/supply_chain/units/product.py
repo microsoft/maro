@@ -1,42 +1,67 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple, Union
+
 import numpy as np
 
-from ..datamodels import ProductDataModel
-from .consumer import ConsumerUnit
+from maro.simulator.scenarios.supply_chain.datamodels import ProductDataModel
+
+from .consumer import ConsumerUnit, ConsumerUnitInfo
 from .distribution import DistributionUnit
-from .extendunitbase import ExtendUnitBase
-from .manufacture import ManufactureUnit
-from .seller import SellerUnit
+from .extendunitbase import ExtendUnitBase, ExtendUnitInfo
+from .manufacture import ManufactureUnit, ManufactureUnitInfo
+from .seller import SellerUnit, SellerUnitInfo
 from .storage import StorageUnit
+from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
+
+
+@dataclass
+class ProductUnitInfo(ExtendUnitInfo):
+    consumer_info: Optional[ConsumerUnitInfo]
+    manufacture_info: Optional[ManufactureUnitInfo]
+    seller_info: Optional[SellerUnitInfo]
+    max_vlt: Optional[int]
 
 
 class ProductUnit(ExtendUnitBase):
-    """Unit that used to group units of one special sku, usually contains consumer, seller and manufacture."""
+    """Unit that used to group units of one specific SKU, usually contains consumer, seller and manufacture."""
 
-    # Consumer unit of current sku.
-    consumer: ConsumerUnit = None
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+    ) -> None:
+        super(ProductUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config,
+        )
 
-    # Seller unit of current sku.
-    seller: SellerUnit = None
+        # The consumer unit of this SKU.
+        self.consumer: Optional[ConsumerUnit] = None
+        # The seller unit of this SKU.
+        self.seller: Optional[SellerUnit] = None
+        # The manufacture unit of this SKU.
+        self.manufacture: Optional[ManufactureUnit] = None
 
-    # Manufacture unit of this sku.
-    manufacture: ManufactureUnit = None
+        # The storage unit of the facility it belongs to. It is a reference to self.facility.storage.
+        self.storage: Optional[StorageUnit] = None
+        # The distribution unit of the facility it belongs to. It is a reference to self.facility.distribution.
+        self.distribution: Optional[DistributionUnit] = None
 
-    # Storage of this facility, always a reference of facility.storage.
-    storage: StorageUnit = None
-
-    # Reference to facility's distribution unit.
-    distribution: DistributionUnit = None
-
-    def __init__(self) -> None:
-        super(ProductUnit, self).__init__()
+        # 1st element: out product_id; 2nd element: self consumption / out product quantity
+        self.bom_out_info_list: List[Tuple[int, float]] = []
 
         # Internal states to track distribution.
-        self._checkin_order = 0
-        self._transport_cost = 0
-        self._delay_order_penalty = 0
+        self._check_in_quantity_in_order: int = 0
+        self._transportation_cost: float = 0
+        self._delay_order_penalty: float = 0
 
     def initialize(self) -> None:
         super().initialize()
@@ -46,7 +71,23 @@ class ProductUnit(ExtendUnitBase):
         assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
-    def _step_impl(self, tick: int) -> None:
+    def pre_step(self, tick: int) -> None:
+        for unit in self.children:
+            unit.pre_step(tick)
+
+        if self._check_in_quantity_in_order > 0:
+            self.data_model.check_in_quantity_in_order = 0
+            self._check_in_quantity_in_order = 0
+
+        if self._transportation_cost > 0:
+            self.data_model.transportation_cost = 0
+            self._transportation_cost = 0
+
+        if self._delay_order_penalty > 0:
+            self.data_model.delay_order_penalty = 0
+            self._delay_order_penalty = 0
+
+    def step(self, tick: int) -> None:
         for unit in self.children:
             unit.step(tick)
 
@@ -55,168 +96,91 @@ class ProductUnit(ExtendUnitBase):
             unit.flush_states()
 
         if self.distribution is not None:
-            self._checkin_order = self.distribution.check_in_order[self.product_id]
-            self._transport_cost = self.distribution.transportation_cost[self.product_id]
+            # Processing in flush_states() to make sure self.distribution.step() has already done.
+            self._check_in_quantity_in_order = self.distribution.check_in_quantity_in_order[self.product_id]
+            self._transportation_cost = self.distribution.transportation_cost[self.product_id]
             self._delay_order_penalty = self.distribution.delay_order_penalty[self.product_id]
 
-            self.distribution.check_in_order[self.product_id] = 0
-            self.distribution.transportation_cost[self.product_id] = 0
-            self.distribution.delay_order_penalty[self.product_id] = 0
+        if self._check_in_quantity_in_order > 0:
+            self.data_model.check_in_quantity_in_order = self._check_in_quantity_in_order
 
-        if self._checkin_order > 0:
-            self.data_model.distribution_check_order = self._checkin_order
-
-        if self._transport_cost > 0:
-            self.data_model.distribution_transport_cost = self._transport_cost
+        if self._transportation_cost > 0:
+            self.data_model.transportation_cost = self._transportation_cost
 
         if self._delay_order_penalty > 0:
-            self.data_model.distribution_delay_order_penalty = self._delay_order_penalty
+            self.data_model.delay_order_penalty = self._delay_order_penalty
 
     def post_step(self, tick: int) -> None:
-        super().post_step(tick)
-
         for unit in self.children:
             unit.post_step(tick)
-
-        if self._checkin_order > 0:
-            self.data_model.distribution_check_order = 0
-            self._checkin_order = 0
-
-        if self._transport_cost > 0:
-            self.data_model.distribution_transport_cost = 0
-            self._transport_cost = 0
-
-        if self._delay_order_penalty > 0:
-            self.data_model.distribution_delay_order_penalty = 0
-            self._delay_order_penalty = 0
 
     def reset(self) -> None:
         super().reset()
 
-        self._checkin_order = 0
-        self._transport_cost = 0
+        self._check_in_quantity_in_order = 0
+        self._transportation_cost = 0
         self._delay_order_penalty = 0
 
         for unit in self.children:
             unit.reset()
 
-    def get_unit_info(self) -> dict:  # TODO: replaced with a NamedTuple or a data class
-        return {
-            "id": self.id,
-            "sku_id": self.product_id,
-            "max_vlt": self._get_max_vlt(),
-            "node_name": type(self.data_model).__node_name__ if self.data_model is not None else None,
-            "node_index": self.data_model_index if self.data_model is not None else None,
-            "class": type(self),
-            "config": self.config,
-            "consumer": self.consumer.get_unit_info() if self.consumer is not None else None,
-            "seller": self.seller.get_unit_info() if self.seller is not None else None,
-            "manufacture": self.manufacture.get_unit_info() if self.manufacture is not None else None,
-        }
+    def get_unit_info(self) -> ProductUnitInfo:
+        return ProductUnitInfo(
+            **super(ProductUnit, self).get_unit_info().__dict__,
+            consumer_info=self.consumer.get_unit_info() if self.consumer else None,
+            manufacture_info=self.manufacture.get_unit_info() if self.manufacture else None,
+            seller_info=self.seller.get_node_info() if self.seller else None,
+            max_vlt=self.facility.get_max_vlt(self.product_id),
+        )
 
-    # TODO: add following field into states.
-    def get_latest_sale(self) -> float:
-        sale = 0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
+    def _get_sale_means(self) -> List[float]:
+        sale_means = []
+        _cache: Dict[int, float] = {}
 
-        for facility in downstreams:
-            sale += facility.products[self.product_id].get_latest_sale()
+        def _get_sale_mean(product_unit: ProductUnit) -> float:
+            if product_unit.id not in _cache:
+                _cache[product_unit.id] = product_unit.get_sale_mean()
+            return _cache[product_unit.id]
 
-        return sale
+        for downstream_facility in self.facility.downstream_facility_list[self.product_id]:
+            sale_means.append(_get_sale_mean(downstream_facility.products[self.product_id]))
+        for out_product_id, consumption_ratio in self.bom_out_info_list:
+            sale_means.append(int(_get_sale_mean(self.facility.products[out_product_id]) * consumption_ratio))
+
+        return sale_means
 
     def get_sale_mean(self) -> float:
-        sale_mean = 0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
-
-        for facility in downstreams:
-            sale_mean += facility.products[self.product_id].get_sale_mean()
-
-        return sale_mean
+        """"Here the sale mean of upstreams means the sum of its downstreams,
+        which indicates the daily demand of this product from the aspect of the facility it belongs."""
+        return float(np.sum(self._get_sale_means()))
 
     def get_sale_std(self) -> float:
-        sale_std = 0
+        sale_means = self._get_sale_means()
+        return 0.0 if len(sale_means) == 0 else float(np.std(sale_means))
 
-        downstreams = self.facility.downstreams.get(self.product_id, [])
-
-        for facility in downstreams:
-            sale_std += facility.products[self.product_id].get_sale_std()
-
-        return sale_std / np.sqrt(max(1, len(downstreams)))
-
-    def get_selling_price(self) -> float:
+    def get_max_sale_price(self) -> float:
         price = 0.0
-        downstreams = self.facility.downstreams.get(self.product_id, [])
 
-        for facility in downstreams:
-            price = max(price, facility.products[self.product_id].get_selling_price())
+        for downstream_facility in self.facility.downstream_facility_list[self.product_id]:
+            price = max(price, downstream_facility.products[self.product_id].get_max_sale_price())
 
         return price
 
-    def _get_max_vlt(self) -> int:
-        vlt = 1
 
-        if self.consumer is not None:
-            for source_facility_id in self.consumer.sources:
-                source_facility = self.world.get_facility_by_id(source_facility_id)
+class StoreProductUnit(ProductUnit):
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+    ) -> None:
+        super(StoreProductUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config,
+        )
 
-                source_vlt = source_facility.skus[self.product_id].vlt
+    def get_sale_mean(self) -> float:
+        return self.seller.sale_mean()
 
-                vlt = max(vlt, source_vlt)
+    def get_sale_std(self) -> float:
+        return self.seller.sale_std()
 
-        return vlt
-
-    @staticmethod
-    def generate(facility, config: dict, unit_def: object) -> dict:
-        """Generate product unit by sku information.
-
-        Args:
-            facility (FacilityBase): Facility this product belongs to.
-            config (dict): Config of children unit.
-            unit_def (object): Definition of the unit (from config).
-
-        Returns:
-            dict: Dictionary of product unit, key is the product id, value if ProductUnit.
-        """
-        products_dict = {}
-
-        if facility.skus is not None and len(facility.skus) > 0:
-            world = facility.world
-
-            for sku_id, sku in facility.skus.items():
-                sku_type = sku.type
-
-                product_unit: ProductUnit = world.build_unit_by_type(unit_def, facility, facility)
-                product_unit.product_id = sku_id
-                product_unit.children = []
-                product_unit.parse_configs(config)
-                product_unit.storage = product_unit.facility.storage
-                product_unit.distribution = product_unit.facility.distribution
-
-                # NOTE: BE CAREFUL about the order, product unit will use this order update children,
-                # the order may affect the states.
-                # Here we make sure consumer is the first one, so it can place order first.
-                for child_name in ("consumer", "seller", "manufacture"):
-                    conf = config.get(child_name, None)
-
-                    if conf is not None:
-                        # Ignore manufacture unit if it is not for a production, even it is configured in config.
-                        if sku_type != "production" and child_name == "manufacture":
-                            continue
-
-                        # We produce the product, so we do not need to purchase it.
-                        if sku_type == "production" and child_name == "consumer":
-                            continue
-
-                        child_unit = world.build_unit(facility, product_unit, conf)
-                        child_unit.product_id = sku_id
-
-                        setattr(product_unit, child_name, child_unit)
-
-                        # Parse config for unit.
-                        child_unit.parse_configs(conf.get("config", {}))
-
-                        product_unit.children.append(child_unit)
-
-                products_dict[sku_id] = product_unit
-
-        return products_dict
+    def get_max_sale_price(self) -> float:
+        return self.facility.skus[self.product_id].price

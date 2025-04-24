@@ -10,69 +10,56 @@
 
 facility_definitions:
   # facility definition
-  WarehouseFacility: &warehouse_facility
+  WarehouseFacility:
     class: "WarehouseFacility"
     children:
       storage:
         class: "StorageUnit"
       distribution:
         class: "DistributionUnit"
-      products:
-        class: "ProductUnit"
-        # if true then will call generate function of class type
-        is_template: true
-        # config will be passed to generator as parameters
-        config:
-          consumer:
-            class: "ConsumerUnit"
+    products:
+      class: "ProductUnit"
+      # config will be passed to generator as parameters
+      config:
+        consumer:
+          class: "ConsumerUnit"
 
-  SupplierFacility: &supplier_facility
+  SupplierFacility:
     class: "SupplierFacility"
     children:
       storage:
         class: "StorageUnit"
       distribution:
         class: "DistributionUnit"
-      products:
-        class: "ProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
-          manufacture:
-            class: "ManufactureUnit"
+    products:
+      class: "ProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        manufacture:
+          class: "ManufactureUnit"
 
-  RetailerFacility: &retailer_facility
+  RetailerFacility:
     class: "RetailerFacility"
     children:
       storage:
         class: "StorageUnit"
-      products:
-        class: "StoreProductUnit"
-        is_template: true
-        config:
-          consumer:
-            class: "ConsumerUnit"
-          seller:
-            class: "SellerUnit"
-            config:
-              sale_hist_len: 4
+    products:
+      class: "StoreProductUnit"
+      config:
+        consumer:
+          class: "ConsumerUnit"
+        seller:
+          class: "SellerUnit"
+          config:
+            sale_hist_len: 4
 
-# common entity/unit definition as reference to simplify the file.
-normal_vehicle: &normal_vehicle
-  class: "VehicleUnit"
-  config:
-    patient: 100
 
 # a normal distribution definition
 normal_distribution: &normal_distribution
-  class: "DistributionUnit"
-  children:
-    vehicles:
-      - *normal_vehicle
-      - *normal_vehicle
   config:
-    unit_price: 1
+    train:
+      number: 2
 
 small_storage: &small_storage
   # config of data model of this unit
@@ -128,12 +115,10 @@ world:
       skus:
         sku3: # sku name and attributes needed for this facility
           init_stock: 100
-          product_unit_cost: 1
-          production_rate: 1
-          type: "production" # production means this is the output production of this facility
-          cost: 10
+          unit_product_cost: 1
+          max_manufacture_rate: 1
+          has_manufacture: True
           price: 10
-          vlt: 1
 
       # configuration of child units.
       children:
@@ -145,35 +130,33 @@ world:
 
       # config of this facility
       config:
-        delay_order_penalty: 10
-        order_cost: 0
+        unit_delay_order_penalty: 10
+        unit_order_cost: 0
+
     - name: "Supplier_002"
       definition_ref: "SupplierFacility"
 
       skus:
         sku1:
           init_stock: 100
-          product_unit_cost: 1
-          production_rate: 1
-          type: "production"
-          cost: 10
+          unit_product_cost: 1
+          max_manufacture_rate: 1
+          has_manufacture: True
           price: 100
-          vlt: 1
         sku3:
           init_stock: 100
-          production_rate: 1
-          type: "material"
-          cost: 10
+          max_manufacture_rate: 1
+          has_consumer: True
           price: 100
-          vlt: 1
 
       children:
         storage: *small_storage
         distribution: *normal_distribution
 
       config:
-        delay_order_penalty: 10
-        order_cost: 0
+        unit_delay_order_penalty: 10
+        unit_order_cost: 0
+
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
 
@@ -181,94 +164,91 @@ world:
         sku1:
           init_stock: 1000
           price: 100
-          vlt: 1
-        sku2:
-          init_stock: 1000
-          price: 100
-          vlt: 1
+          has_consumer: True
         sku3:
           init_stock: 1000
           price: 100
-          vlt: 1
+          has_consumer: True
 
       children:
         storage: *huge_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 0
+        unit_delay_order_penalty: 10
+        unit_order_cost: 0
+
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
 
       skus:
         sku1:
           price: 300
-          cost: 10
           init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1 # optional
-          vlt: 1
+          has_consumer: True
+          has_seller: True
         sku3:
           price: 200
-          cost: 10
           init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
-          vlt: 1
-        sku2:
-          price: 100
-          cost: 10
-          init_stock: 100
-          sale_gamma: 100
-          backlog_ratio: 0.1
-          vlt: 1
+          has_consumer: True
+          has_seller: True
 
       children:
         storage: *medium_storage
 
       config:
-        order_cost: 0
+        unit_order_cost: 0
+
   # topology used to specify the up/downstream for facilities
   # we split it from facility, so that we can support configuration inherit to override it
   # for a new topology
-  # TODO: change the name?
   topology:
     # key is current facility, value if upstream facilities that will provide a certain sku
     Supplier_002:
-      # this config means "Supplier1" will purchase "sku3" from facility "Supplier3",
+      # this config means "Supplier_002" will purchase "sku3" from facility "Supplier_001",
       # or any other facility in the list
       sku3:
-        - "Supplier_001"
+        "Supplier_001":
+          train:
+            vlt: 7
+            cost: 1
     Warehouse_001:
       sku1:
-        - "Supplier_002"
+        "Supplier_002":
+          train:
+            vlt: 7
+            cost: 1
       sku3:
-        - "Supplier_001"
+        "Supplier_001":
+          train:
+            vlt: 7
+            cost: 1
     Retailer_001:
       sku1:
-        - "Supplier_002"
+        "Supplier_002":
+          train:
+            vlt: 7
+            cost: 1
       sku3:
-        - "Supplier_001"
-
-  # map grid definitions
-  grid:
-    size: [20, 20]
-
-    # facility position in grid
-    facilities:
-      Supplier_001: [0, 0]
-      Supplier_002: [3, 3]
-      Warehouse_001: [6, 6]
-      Retailer_001: [10, 18]
-
-    # cells that un-traversable
-    blocks:
-      railroad:
-        - [10, 10]
-        - [10, 11]
-        - [10, 12]
-        - [11, 12]
-
+        "Supplier_001":
+          train:
+            vlt: 7
+            cost: 1
 
 settings:
   pending_order_len: 4
+
+
+policy_parameter:
+  facilities:
+    Supplier_001:
+      max_price: 10
+    Supplier_002:
+      max_price: 100
+    Warehouse_001:
+      max_price: 100
+    Retailer_001:
+      max_price: 300

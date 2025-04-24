@@ -1,27 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
+import typing
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
-from maro.simulator.scenarios.supply_chain.units.unitbase import UnitBase
+from .unitbase import BaseUnitInfo, UnitBase
+from ..objects import SubStorageConfig
 
-
-DEFAULT_SUB_STORAGE_ID = 0
-
-@dataclass
-class SubStorageConfig:
-    id: int
-    capacity: int = 100  # TODO: Is it a MUST config or could it be default?
-    unit_storage_cost: int = 1
-
-def parse_storage_config(config: dict) -> List[SubStorageConfig]:  # TODO: here or in parser
-    if not isinstance(config, list):
-        id = config.get("id", DEFAULT_SUB_STORAGE_ID)
-        return [SubStorageConfig(id=id, **config)]
-    return [SubStorageConfig(**cfg) for cfg in config]
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.facilities import FacilityBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 class AddStrategy(Enum):
@@ -37,11 +31,74 @@ class AddStrategy(Enum):
     LimitedByUpperBound = 4
 
 
-class StorageUnit(UnitBase):
+@dataclass
+class StorageUnitInfo(BaseUnitInfo):
+    product_list: List[int]
+
+
+class AbsStorageUnit(UnitBase, metaclass=ABCMeta):
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(AbsStorageUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
+
+    def initialize(self) -> None:
+        super(AbsStorageUnit, self).initialize()
+
+    @property
+    def capacity(self) -> int:
+        raise Exception("Only StorageUnit has capacity property, confirm which Unit to use!")
+
+    @property
+    def remaining_space(self) -> int:
+        raise Exception("Only StorageUnit has remaining_space property, confirm which Unit to use!")
+
+    def get_product_quantity(self, product_id: int) -> int:
+        raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
+
+    def get_product_max_remaining_space(self, product_id: int) -> int:
+        raise Exception("If you need ManufactureUnit to simulate the manufacturing process, use StorageUnit please.")
+
+    @abstractmethod
+    def try_add_products(
+        self,
+        product_quantities: Dict[int, int],
+        add_strategy: AddStrategy = AddStrategy.IgnoreUpperBoundAllOrNothing,
+    ) -> Dict[int, int]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    def take_available(self, product_id: int, quantity: int) -> int:
+        raise NotImplementedError
+
+    def flush_states(self) -> None:
+        super(AbsStorageUnit, self).flush_states()
+
+    def reset(self) -> None:
+        super(AbsStorageUnit, self).reset()
+
+    def get_unit_info(self) -> StorageUnitInfo:
+        return StorageUnitInfo(
+            **super(AbsStorageUnit, self).get_unit_info().__dict__,
+            product_list=list(self.facility.skus.keys()),
+        )
+
+
+class StorageUnit(AbsStorageUnit):
     """Unit that used to store skus."""
 
-    def __init__(self) -> None:
-        super(StorageUnit, self).__init__()
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict,
+    ) -> None:
+        super(StorageUnit, self).__init__(
+            id, data_model_name, data_model_index, facility, parent, world, config,
+        )
 
         # Key: Sub-Storage ID
         self._capacity_dict: Dict[int, int] = {}
@@ -56,23 +113,20 @@ class StorageUnit(UnitBase):
         self._product_level: Dict[int, int] = {}
         self._product_level_changed: Dict[int, bool] = {}
 
-        # Mapping from the product id to sub-storage id
+        # Mapping from the product id to sub-storage id.
         self._product2storage: Dict[int, int] = {}
-
-    @property
-    def capacity(self) -> int:  # TODO: not used now. Check to remove or not.
-        return self._total_capacity
-
-    @property
-    def remaining_space(self) -> int:  # TODO: not used now. Check to remove or not.
-        return sum(self._remaining_space_dict.values())
+        # Mapping between the sub-storage id and the idx in the data model.
+        self._storage_id2idx: Dict[int, int] = {}
+        self._storage_idx2id: Dict[int, int] = {}
 
     def initialize(self) -> None:
         super(StorageUnit, self).initialize()
 
         # Initialize capacity info.
-        self.config: List[SubStorageConfig] = parse_storage_config(self.config)
-        for sub_config in self.config:
+        assert isinstance(self.config, dict)
+        assert len(self.config) > 0
+        for sub_config in self.config.values():
+            assert isinstance(sub_config, SubStorageConfig)
             assert sub_config.id not in self._capacity_dict, f"Sub-Storage {sub_config.id} already exist!"
             self._capacity_dict[sub_config.id] = sub_config.capacity
             self._remaining_space_dict[sub_config.id] = sub_config.capacity
@@ -123,12 +177,32 @@ class StorageUnit(UnitBase):
                         # In the case the initial remaining space is not divisible.
                         upper_bound_dict[sku_id] = remaining_space
 
+        capacity_list: List[int] = []
+        remaining_space_list: List[int] = []
+        for idx, id in enumerate(self._capacity_dict.keys()):
+            self._storage_id2idx[id] = idx
+            self._storage_idx2id[idx] = id
+
+            capacity_list.append(self._capacity_dict[id])
+            remaining_space_list.append(self._remaining_space_dict[id])
+
         self.data_model.initialize(
-            capacity=self.capacity,
-            remaining_space=self.remaining_space,
+            capacity=capacity_list,
+            remaining_space=remaining_space_list,
             product_list=[sku_id for sku_id in self._product_level.keys()],
+            product_storage_index=[
+                self._storage_id2idx[self._product2storage[sku_id]] for sku_id in self._product_level.keys()
+            ],
             product_quantity=[n for n in self._product_level.values()],
         )
+
+    @property
+    def capacity(self) -> int:  # TODO: not used now. Check to remove or not.
+        return self._total_capacity
+
+    @property
+    def remaining_space(self) -> int:  # TODO: not used now. Check to remove or not.
+        return sum(self._remaining_space_dict.values())
 
     def get_product_quantity(self, product_id: int) -> int:
         """Get product quantity in storage.
@@ -162,10 +236,14 @@ class StorageUnit(UnitBase):
         self._product_level_changed[product_id] = True
         self._remaining_space_dict[self._product2storage[product_id]] += quantity
 
+    """
+    - would be called by DistributionUnit.post_step() -> _try_unload()
+    - would be called by ManufactureUnit.post_step()
+    """
     def try_add_products(
         self,
         product_quantities: Dict[int, int],
-        add_strategy: AddStrategy=AddStrategy.IgnoreUpperBoundAllOrNothing
+        add_strategy: AddStrategy = AddStrategy.IgnoreUpperBoundAllOrNothing,
     ) -> Dict[int, int]:
         """Try to add products into storage.
 
@@ -198,11 +276,13 @@ class StorageUnit(UnitBase):
             elif add_strategy == AddStrategy.IgnoreUpperBoundProportional:
                 fulfill_ratio_dict: Dict[int, float] = {}
                 for storage_id, requirement in space_requirements.items():
-                    fulfill_ratio_dict[storage_id] = requirement / self._remaining_space_dict[storage_id]
+                    fulfill_ratio_dict[storage_id] = min(1.0, self._remaining_space_dict[storage_id] / requirement)
 
                 for product_id, quantity in product_quantities.items():
                     storage_id = self._product2storage[product_id]
-                    quantity = min(int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id])
+                    quantity = min(
+                        int(quantity * fulfill_ratio_dict[storage_id]), self._remaining_space_dict[storage_id],
+                    )
                     self._add_product(product_id, quantity)
                     added_quantities[product_id] = quantity
 
@@ -223,6 +303,10 @@ class StorageUnit(UnitBase):
 
         return added_quantities
 
+    """
+    - would be called by DistributionUnit.place_order(), when action taking.
+    - would be called by DistributionUnit.step()
+    """
     def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
         """Try to take specified number of product.
 
@@ -243,6 +327,9 @@ class StorageUnit(UnitBase):
 
         return True
 
+    """
+    - would be called by SellerUnit.step()
+    """
     def take_available(self, product_id: int, quantity: int) -> int:
         """Take as much as available specified product from storage.
 
@@ -271,13 +358,16 @@ class StorageUnit(UnitBase):
             i += 1
 
         if has_changes:
-            self.data_model.remaining_space = self.remaining_space
+            i = 0
+            for remaining_space in self._remaining_space_dict.values():
+                self.data_model.remaining_space[i] = remaining_space
+                i += 1
 
     def reset(self) -> None:
         super(StorageUnit, self).reset()
 
         # Reset status in Python side.
-        for sub_config in self.config:
+        for sub_config in self.config.values():
             self._remaining_space_dict[sub_config.id] = sub_config.capacity
 
         for sku in self.facility.skus.values():
@@ -286,9 +376,29 @@ class StorageUnit(UnitBase):
 
             self._remaining_space_dict[sku.sub_storage_id] -= sku.init_stock
 
-    def get_unit_info(self) -> dict:
-        info = super().get_unit_info()
 
-        info["product_list"] = [i for i in self._product_level.keys()]
+class SuperStorageUnit(AbsStorageUnit):
+    """SuperStorageUnit is used to simulate the case where we have infinite product inventory.
 
-        return info
+    Usually used to be the storage unit of a Super Vendor, along with No-Manufacture setting and No-Data-Model setting.
+    Function get_product_quantity(self, product_id: int) and get_product_max_remaining_space(self, product_id: int) are
+    only used in ManufactureUnit, so leave them to raise NotImplementError to indicate wrong setting.
+    """
+    def __init__(
+        self, id: int, data_model_name: Optional[str], data_model_index: Optional[int],
+        facility: FacilityBase, parent: Union[FacilityBase, UnitBase], world: World, config: dict
+    ) -> None:
+        super(SuperStorageUnit, self).__init__(id, data_model_name, data_model_index, facility, parent, world, config)
+
+    def try_add_products(
+        self,
+        product_quantities: Dict[int, int],
+        add_strategy: AddStrategy = AddStrategy.IgnoreUpperBoundAllOrNothing,
+    ) -> Dict[int, int]:
+        return product_quantities
+
+    def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
+        return True
+
+    def take_available(self, product_id: int, quantity: int) -> int:
+        return quantity

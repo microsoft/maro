@@ -136,8 +136,8 @@ class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):
             actions = self._get_actions_exploring_impl(states)
             return actions
         else:
-            action_logps = self.get_action_logps(states)
-            logps, actions = action_logps.max(dim=1)
+            action_logps = self.get_action_probs(states)
+            _, actions = action_logps.max(dim=1)
             return actions.unsqueeze(1)
 
     def _get_actions_exploring_impl(self, states: torch.Tensor) -> torch.Tensor:

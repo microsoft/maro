@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import collections
+
 import os
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Dict, Optional
 
-import pandas as pd
 from yaml import safe_load
 
 
@@ -25,7 +24,7 @@ class DataModelDef(ModuleDef):
 
 @dataclass
 class EntityDef(ModuleDef):
-    data_model_alias: str
+    data_model_alias: Optional[str]
 
 
 def find_class_type(module_path: str, class_name: str) -> type:
@@ -76,6 +75,9 @@ class SupplyChainConfiguration:
         # Other settings.
         self.settings = {}
 
+        # Policy parameters, optional.
+        self.policy_parameters = {}
+
     def add_data_definition(self, alias: str, class_name: str, module_path: str, name_in_frame: str) -> None:
         """Add a data model definition.
 
@@ -96,14 +98,14 @@ class SupplyChainConfiguration:
             name_in_frame,
         )
 
-    def add_entity_definition(self, alias: str, class_name: str, module_path: str, data_model: str) -> None:
+    def add_entity_definition(self, alias: str, class_name: str, module_path: str, data_model: Optional[str]) -> None:
         """Add entity (unit & facility) definition.
 
         Args:
             alias (str): Alias of this data model.
             class_name (str): Name of class.
             module_path (str): Full path of module.
-            data_model (str): Data model used for this entity.
+            data_model (Optional[str]): Data model used for this entity. None indicates no corresponding data model.
         """
         assert alias not in self.entity_defs
 
@@ -190,7 +192,7 @@ class ConfigParser:
 
             # Go through world configurations to generate a full one.
             # . Copy other configurations first
-            for sub_conf_name in ("skus", "topology", "grid"):
+            for sub_conf_name in ("skus", "topology"):
                 self._result.world[sub_conf_name] = world_def[sub_conf_name]
 
             # . Copy facilities content different if without definition reference.
@@ -212,3 +214,5 @@ class ConfigParser:
                 self._result.world["facilities"].append(facility)
 
             self._result.settings = conf.get("settings", {})
+
+            self._result.policy_parameters = conf.get("policy_parameters", {})

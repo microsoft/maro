@@ -14,7 +14,6 @@ def get_ppo(state_dim: int, name: str) -> DiscretePPOTrainer:
     return DiscretePPOTrainer(
         name=name,
         params=DiscretePPOParams(
-            device="cpu",
             get_v_critic_net_func=lambda: MyCriticNet(state_dim),
             reward_discount=.0,
             grad_iters=10,

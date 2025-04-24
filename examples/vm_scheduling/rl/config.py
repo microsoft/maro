@@ -9,7 +9,7 @@ env_conf = {
     "topology": "azure.2019.10k",
     "start_tick": 0,
     "durations": 300,  # 8638
-    "snapshot_resolution": 1
+    "snapshot_resolution": 1,
 }
 
 num_pms = Env(**env_conf).business_engine.pm_amount
@@ -23,7 +23,7 @@ pm_attributes = ["cpu_cores_capacity", "memory_capacity", "cpu_cores_allocated",
 
 reward_shaping_conf = {
     "alpha": 0.0,
-    "beta": 1.0
+    "beta": 1.0,
 }
 seed = 666
 
@@ -32,11 +32,11 @@ test_env_conf = {
     "topology": "azure.2019.10k.oversubscription",
     "start_tick": 0,
     "durations": 300,
-    "snapshot_resolution": 1
+    "snapshot_resolution": 1,
 }
 test_reward_shaping_conf = {
     "alpha": 0.0,
-    "beta": 1.0
+    "beta": 1.0,
 }
 
 test_seed = 1024

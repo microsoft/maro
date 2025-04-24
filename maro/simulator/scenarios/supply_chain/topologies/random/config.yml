@@ -195,7 +195,7 @@ world:
           unit_storage_cost: 1
     config:
       delay_order_penalty: 1000
-      order_cost: 200
+      unit_order_cost: 200
     definition_ref: SupplierFacility
     name: SUPPLIER0
     skus:
@@ -9311,7 +9311,7 @@ world:
           unit_storage_cost: 1
     config:
       delay_order_penalty: 1000
-      order_cost: 500
+      unit_order_cost: 500
     definition_ref: WarehouseFacility
     name: WAREHOUSE0
     skus:
@@ -15321,7 +15321,7 @@ world:
           capacity: 1064900
           unit_storage_cost: 1
     config:
-      order_cost: 500
+      unit_order_cost: 500
     definition_ref: RetailerFacility
     name: STORE0
     skus:
